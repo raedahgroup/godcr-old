@@ -26,14 +26,15 @@ var (
 )
 
 type config struct {
-	ShowVersion     bool   `short:"V" long:"version" description:"Display version information and exit"`
-	ListCommands    bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
-	ConfigFile      string `short:"C" long:"configfile" description:"Path to configuration file"`
-	RPCUser         string `short:"u" long:"rpcuser" description:"RPC username"`
-	RPCPassword     string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
-	WalletRPCServer string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
-	RPCCert         string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	NoDaemonTLS     bool   `long:"nodaemontls" description:"Disable TLS"`
+	ShowVersion       bool   `short:"V" long:"version" description:"Display version information and exit"`
+	ListCommands      bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
+	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
+	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
+	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
+	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
+	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
+	HTTPServerAddress string `short:"h" long:"httpserveraddress" description:"Serve via http using this address if not empty"`
+	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
 func cleanAndExpandPath(path string) string {

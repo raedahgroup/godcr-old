@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -24,9 +23,7 @@ var (
 // returns an error if any of the required parameters are absent.
 // returns an error if any of the parameters passed in cannot be converted to their required types
 // for transport
-func balance(conn *grpc.ClientConn, ctx context.Context, opts []string) (*Response, error) {
-	c := pb.NewWalletServiceClient(conn)
-
+func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) {
 	// check if passed options are complete
 	if len(opts) < 2 {
 		return nil, fmt.Errorf("command 'balance' requires 2 params. %d found", len(opts))
@@ -45,7 +42,7 @@ func balance(conn *grpc.ClientConn, ctx context.Context, opts []string) (*Respon
 		AccountNumber:         uint32(accountNumber),
 		RequiredConfirmations: int32(requiredConfirmations),
 	}
-	r, err := c.Balance(ctx, req)
+	r, err := c.wc.Balance(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -54,18 +51,14 @@ func balance(conn *grpc.ClientConn, ctx context.Context, opts []string) (*Respon
 		Columns: balanceColumns,
 	}
 
-	row := fmt.Sprintf("%d \t %d \t %d \t %d \t %d",
+	row := []interface{}{
 		r.Total,
 		r.Spendable,
 		r.LockedByTickets,
 		r.VotingAuthority,
 		r.Unconfirmed,
-	)
+	}
 
 	res.Result = append(res.Result, row)
 	return res, nil
-}
-
-func init() {
-	RegisterHandler("balance", "Show account balance for account number", balance)
 }
