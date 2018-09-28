@@ -7,7 +7,6 @@ import (
 	"os"
 
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
-	"google.golang.org/grpc"
 )
 
 func getSourceAccount(fromAccount *uint32, c pb.WalletServiceClient, ctx context.Context) error {
@@ -63,12 +62,11 @@ func getPassphrase(passphrase *string) error {
 	return err
 }
 
-func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) (*Response, error) {
-	c := pb.NewWalletServiceClient(conn)
+func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response, error) {
 	var sourceAccount uint32
 	var err error
 	for {
-		err = getSourceAccount(&sourceAccount, c, ctx)
+		err = getSourceAccount(&sourceAccount, c.wc, ctx)
 		if err == nil {
 			break
 		}
@@ -77,7 +75,7 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 
 	var destinationAddress string
 	for {
-		err = getDestinationAddress(&destinationAddress, c, ctx)
+		err = getDestinationAddress(&destinationAddress, c.wc, ctx)
 		if err == nil {
 			break
 		}
@@ -86,7 +84,7 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 
 	var amount int64
 	for {
-		err = getAmount(&amount, c, ctx)
+		err = getAmount(&amount, c.wc, ctx)
 		if err == nil {
 			break
 		}
@@ -94,13 +92,17 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 	}
 
 	var passphrase string
+	err = getPassphrase(&passphrase)
+	if err != nil {
+		return nil, fmt.Errorf("error taking passphrase: %s", err.Error())
+	}
 
 	// construct transaction
 	cReq := &pb.ConstructTransactionRequest{
 		SourceAccount: sourceAccount,
 	}
 
-	constructResponse, err := c.ConstructTransaction(ctx, cReq)
+	constructResponse, err := c.wc.ConstructTransaction(ctx, cReq)
 	if err != nil {
 		return nil, fmt.Errorf("Error constructing transaction: %s", err.Error())
 	}
@@ -111,7 +113,7 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 		SerializedTransaction: constructResponse.UnsignedTransaction,
 	}
 
-	signResponse, err := c.SignTransaction(ctx, sReq)
+	signResponse, err := c.wc.SignTransaction(ctx, sReq)
 	if err != nil {
 		return nil, fmt.Errorf("Error signing transaction: %s", err.Error())
 	}
@@ -120,7 +122,7 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 	pReq := &pb.PublishTransactionRequest{
 		SignedTransaction: signResponse.Transaction,
 	}
-	publishResponse, err := c.PublishTransaction(ctx, pReq)
+	publishResponse, err := c.wc.PublishTransaction(ctx, pReq)
 	if err != nil {
 		return nil, fmt.Errorf("Error publishing transaction")
 	}
@@ -129,40 +131,12 @@ func sendTransaction(conn *grpc.ClientConn, ctx context.Context, opts []string) 
 		Columns: []string{"Result", "Hash"},
 	}
 
-	resultRow := fmt.Sprintf("%s \t %s",
+	resultRow := []interface{}{
 		"Transaction was published successfully",
-		publishResponse.TransactionHash,
-	)
+		string(publishResponse.TransactionHash),
+	}
 
-	res.Result = []string{resultRow}
+	res.Result = [][]interface{}{resultRow}
 
 	return res, nil
-}
-
-/**
-func getTransactions(conn *grpc.ClientConn, ctx context.Context, opts []string) (*Response, error) {
-	c := pb.NewWalletServiceClient(conn)
-
-	// check if passed options are complete
-	if len(opts) < 2 {
-		return nil, fmt.Errorf("command 'transactions' requires 2 params. %d found", len(opts))
-	}
-
-	// get block height
-	startingBlockheight, err := strconv.ParseInt(opts[0], 10, 32)
-	if err != nil {
-		return nil, fmt.Errorf("Error getting starting block height from options: %s", err.Error())
-	}
-
-	limit, err := strconv.ParseInt(opts[1], 10, 32)
-	if err != nil {
-		return nil, fmt.Errorf("Error getting limit from options: %s", err.Error())
-	}
-
-	req := &pb.GetTransactionsrequest{}
-}
-**/
-
-func init() {
-	RegisterHandler("send", "Send DCR to address", sendTransaction)
 }

@@ -42,18 +42,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// check if command is supported
-	command := args[0]
-	if !walletrpcclient.IsCommandSupported(command) {
-		fmt.Fprintf(os.Stderr, "Unrecognized command %s'\n", command)
-		fmt.Fprintln(os.Stderr, listCmdMessage)
+	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s'\n", err.Error())
 		os.Exit(1)
 	}
 
-	// connect to grpc server
-	conn, err := walletrpcclient.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s'\n", err.Error())
+	// check if command is supported
+	command := args[0]
+	if !client.IsCommandSupported(command) {
+		fmt.Fprintf(os.Stderr, "Unrecognized command %s'\n", command)
+		fmt.Fprintln(os.Stderr, listCmdMessage)
 		os.Exit(1)
 	}
 
@@ -64,7 +63,7 @@ func main() {
 		opts = append(opts, opt)
 	}
 
-	res, err := walletrpcclient.RunCommand(conn, command, opts)
+	res, err := client.RunCommand(command, opts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
 		os.Exit(1)
@@ -87,8 +86,14 @@ func printResult(res *walletrpcclient.Response) {
 	}
 
 	fmt.Fprintln(w, header)
-	for _, v := range res.Result {
-		fmt.Fprintln(w, v)
+	for _, row := range res.Result {
+		rowStr := ""
+		for range row {
+			rowStr += "%v \t "
+		}
+
+		rowStr = strings.TrimSuffix(rowStr, "\t ")
+		fmt.Fprintln(w, fmt.Sprintf(rowStr, row...))
 	}
 
 	w.Flush()
