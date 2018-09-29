@@ -10,7 +10,6 @@ import (
 
 	flags "github.com/btcsuite/go-flags"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/version"
 )
 
 const (
@@ -125,7 +124,7 @@ func loadConfig() (*config, []string, error) {
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
 	if preCfg.ShowVersion {
-		fmt.Println(appName, "version", version.Ver.String())
+		fmt.Println(appName, "version", Ver.String())
 		os.Exit(0)
 	}
 
