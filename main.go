@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/raedahgroup/dcrcli/server"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
@@ -67,21 +68,50 @@ func main() {
 		os.Exit(1)
 	}
 
+	serveHTTP := false
+	if config.HTTPServerAddress != "" {
+		serveHTTP = true
+	}
+
 	// check if arguments were supplied
 	// if not, exit
-	if len(args) < 1 {
+	if len(args) < 1 && !serveHTTP {
 		usage("No command specified")
 		os.Exit(1)
 	}
 
-	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	var command string
+
+	// get an instance of walletrpcclient without connecting
+	// because there are commands we can run at this stage without needing to connect to dcrwallet
+	client := walletrpcclient.New()
+	if !serveHTTP {
+		command = args[0]
+		if args[0] == "listcommands" {
+			res, err := client.RunCommand("listcommands", nil)
+			if err != nil {
+				// can never happen at this stage
+				fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
+				os.Exit(1)
+			}
+			printResult(res)
+			os.Exit(0)
+		}
+	}
+
+	err = client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s'\n", err.Error())
 		os.Exit(1)
 	}
 
+	if serveHTTP {
+		server := server.New(config.HTTPServerAddress, client)
+		server.Serve()
+		// control can never go beyond this ????
+	}
+
 	// check if command is supported
-	command := args[0]
 	if !client.IsCommandSupported(command) {
 		fmt.Fprintf(os.Stderr, "Unrecognized command %s'\n", command)
 		fmt.Fprintln(os.Stderr, listCmdMessage)
@@ -107,6 +137,7 @@ func main() {
 func printResult(res *walletrpcclient.Response) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 	header := ""
+	spaceRow := ""
 	columnLength := len(res.Columns)
 
 	for i := range res.Columns {
@@ -115,9 +146,11 @@ func printResult(res *walletrpcclient.Response) {
 			tab = " "
 		}
 		header += res.Columns[i] + tab
+		spaceRow += " " + tab
 	}
 
 	fmt.Fprintln(w, header)
+	fmt.Fprintln(w, spaceRow)
 	for _, row := range res.Result {
 		rowStr := ""
 		for range row {
@@ -129,9 +162,4 @@ func printResult(res *walletrpcclient.Response) {
 	}
 
 	w.Flush()
-}
-
-// list all supported commands
-func listCommands() {
-
 }
