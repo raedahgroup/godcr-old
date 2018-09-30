@@ -25,7 +25,7 @@ var (
 )
 
 type config struct {
-	ShowVersion       bool   `short:"V" long:"version" description:"Display version information and exit"`
+	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
 	ListCommands      bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
@@ -130,8 +130,7 @@ func loadConfig() (*config, []string, error) {
 
 	// Show available commands and exit if list commands flag was specified.
 	if preCfg.ListCommands {
-		listCommands()
-		os.Exit(0)
+		return &cfg, []string{"listcommands"}, nil
 	}
 
 	// Load additional config from file
