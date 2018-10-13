@@ -1,0 +1,5 @@
+.vscode/
+*.exe
+.DS_Store
+vendor/
+dcrcli
