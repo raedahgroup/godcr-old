@@ -1,4 +1,4 @@
-module github.com/codemaestro64/dcrcli
+module github.com/raedahgroup/dcrcli
 
 require (
 	github.com/btcsuite/go-flags v0.0.0-20150116065318-6c288d648c1c
