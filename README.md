@@ -25,7 +25,7 @@ It is recommended to add `$GOPATH/bin` to your `PATH`.
 
 ##### Example of obtaining and building from source in Linux 
 ```bash 
-$ git clone https://github.com/codemaestro64/dcrcli ~/src/dcrcli 
+$ git clone https://github.com/raedahgroup/dcrcli ~/src/dcrcli 
 $ cd ~/src/dcrcli 
 $ go install 
 ```
@@ -54,6 +54,6 @@ See the CONTRIBUTING.md file for details. Here's an overview of it:
 1. Create a branch for your work (`git branch -b branch`).
 3. Write your codes 
 4. Commit and push to your repo
-5. Create a [pull request](https://github.com/codemaestro64/dcrcli)
+5. Create a [pull request](https://github.com/raedahgroup/dcrcli)
 
 ## License
