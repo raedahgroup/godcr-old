@@ -2,10 +2,12 @@ package walletrpcclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/Baozisoftware/qrcode-terminal-go"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -15,6 +17,7 @@ type (
 	Response struct {
 		Columns []string
 		Result  [][]interface{}
+		Qrcode  bool
 	}
 	Handler func(ctx context.Context, args []string) (*Response, error)
 
@@ -25,6 +28,10 @@ type (
 		wc           pb.WalletServiceClient
 		vc           pb.VersionServiceClient
 	}
+)
+
+const (
+	requiredConfirmations int32 = 0
 )
 
 func New() *Client {
@@ -215,26 +222,27 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 // for transport
 func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) {
 	// check if passed options are complete
-	if len(opts) < 1 {
-		return nil, fmt.Errorf("command 'balance' requires at least 1 param. %d found", len(opts))
+	if len(opts) == 0 {
+		return nil, errors.New("command 'balance' requires at least 1 param. 0 found")
 	}
 
-	accountNumber, err := strconv.ParseUint(opts[0], 10, 64)
+	accountNumber, err := strconv.ParseUint(opts[0], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting account number from options: %s", err.Error())
 	}
 
-	requiredConfirmations := int64(0)
+	reqConf := requiredConfirmations
 	if len(opts) > 1 {
-		requiredConfirmations, err = strconv.ParseInt(opts[1], 10, 64)
+		conf, err := strconv.ParseInt(opts[1], 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting required confirmations from options: %s", err.Error())
 		}
+		reqConf = int32(conf)
 	}
 
 	req := &pb.BalanceRequest{
 		AccountNumber:         uint32(accountNumber),
-		RequiredConfirmations: int32(requiredConfirmations),
+		RequiredConfirmations: reqConf,
 	}
 	r, err := c.wc.Balance(ctx, req)
 	if err != nil {
@@ -318,7 +326,47 @@ func (c *Client) overview(ctx context.Context, opts []string) (*Response, error)
 // receive returns a generated address, and generates a qr code for recieving funds
 // requires no parameter
 func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) {
-	return nil, nil
+	if len(opts) == 0 {
+		return nil, errors.New("command 'receive' requires at least 1 param. 0 found")
+	}
+
+	accountNumber, err := strconv.ParseUint(opts[0], 0, 32)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
+	}
+
+	// TODO this should be optionally supplied by the user
+	gapPolicy := pb.NextAddressRequest_GAP_POLICY_WRAP
+	// this shouldn't
+	kind := pb.NextAddressRequest_BIP0044_EXTERNAL
+
+	req := &pb.NextAddressRequest{
+		Account:   uint32(accountNumber),
+		GapPolicy: gapPolicy,
+		Kind:      kind,
+	}
+
+	r, err := c.wc.NextAddress(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("error getting receive address: err: %s", err.Error())
+	}
+
+	res := &Response{
+		Columns: []string{
+			"Address",
+			"QR Code",
+		},
+		Result: [][]interface{}{
+			[]interface{}{
+				r.Address,
+				"",
+			},
+		},
+	}
+	obj := qrcodeTerminal.New()
+	obj.Get(r.Address).Print()
+
+	return res, nil
 }
 
 // walletVersion fetches and returns version of wallet we are connected to
