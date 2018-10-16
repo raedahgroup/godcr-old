@@ -32,7 +32,7 @@ type config struct {
 	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `short:"h" long:"httpserveraddress" description:"Serve via http using this address if not empty"`
+	HTTPServerAddress string `short:"p" long:"httpserveraddress" description:"Serve via http using this address if not empty"`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
@@ -89,17 +89,13 @@ func cleanAndExpandPath(path string) string {
 }
 
 func loadConfig() (*config, []string, error) {
-	// Default config
 	cfg := config{
 		ConfigFile: defaultConfigFile,
 	}
 
-	// Pre-parse the command line options to see if an alternative config
-	// file, the version flag, or the list commands flag was specified.  Any
-	// errors aside from the help message error can be ignored here since
-	// they will be caught by the final parse below.
+	// Pre-parse command line arguments
 	preCfg := cfg
-	preParser := flags.NewParser(&preCfg, flags.Default)
+	preParser := flags.NewParser(&preCfg, flags.HelpFlag)
 	_, err := preParser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
@@ -119,16 +115,17 @@ func loadConfig() (*config, []string, error) {
 		}
 	}
 
-	// Show version and exit if the version flag was specified.
+	// Show version and exit if the version flag was specified
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
-	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
 	if preCfg.ShowVersion {
 		fmt.Println(appName, "version", Ver.String())
 		os.Exit(0)
 	}
 
-	// Show available commands and exit if list commands flag was specified.
+	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
+
+	// check if listcommand cmd was specified
 	if preCfg.ListCommands {
 		return &cfg, []string{"listcommands"}, nil
 	}
