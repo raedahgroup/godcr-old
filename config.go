@@ -19,9 +19,11 @@ const (
 )
 
 var (
-	defaultAppDataDir = dcrutil.AppDataDir("dcrcli", false)
-	defaultConfigFile = filepath.Join(defaultAppDataDir, defaultConfigFilename)
-	defaultLogDir     = filepath.Join(defaultAppDataDir, defaultLogDirname)
+	defaultAppDataDir          = dcrutil.AppDataDir("dcrcli", false)
+	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
+	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
+	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
+	defaultLogDir              = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
 type config struct {
@@ -92,6 +94,7 @@ func loadConfig() (*config, []string, error) {
 	// Default config
 	cfg := config{
 		ConfigFile: defaultConfigFile,
+		RPCCert:    defaultRPCCertFile,
 	}
 
 	// Pre-parse the command line options to see if an alternative config
