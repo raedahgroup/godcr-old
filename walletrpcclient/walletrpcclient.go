@@ -221,35 +221,35 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 // returns an error if any of the parameters passed in cannot be converted to their required types
 // for transport
 func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) {
-	// check if passed options are complete
-	if len(opts) == 0 {
-		return nil, errors.New("command 'balance' requires at least 1 param. 0 found")
-	}
-
-	accountNumber, err := strconv.ParseUint(opts[0], 10, 32)
+	accountsRes, err := c.wc.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("Error getting account number from options: %s", err.Error())
+		return nil, fmt.Errorf("error fetching accounts. err: %s", err.Error())
 	}
 
-	reqConf := requiredConfirmations
-	if len(opts) > 1 {
-		conf, err := strconv.ParseInt(opts[1], 10, 32)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting required confirmations from options: %s", err.Error())
+	balances := make([][]interface{}, len(accountsRes.Accounts))
+	for i, v := range accountsRes.Accounts {
+		balanceReq := &pb.BalanceRequest{
+			AccountNumber:         v.AccountNumber,
+			RequiredConfirmations: 0,
 		}
-		reqConf = int32(conf)
-	}
 
-	req := &pb.BalanceRequest{
-		AccountNumber:         uint32(accountNumber),
-		RequiredConfirmations: reqConf,
-	}
-	r, err := c.wc.Balance(ctx, req)
-	if err != nil {
-		return nil, err
+		balanceRes, err := c.wc.Balance(ctx, balanceReq)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
+		}
+
+		balances[i] = []interface{}{
+			v.AccountName,
+			balanceRes.Total,
+			balanceRes.Spendable,
+			balanceRes.LockedByTickets,
+			balanceRes.VotingAuthority,
+			balanceRes.Unconfirmed,
+		}
 	}
 
 	balanceColumns := []string{
+		"Account",
 		"Total",
 		"Spendable",
 		"Locked By Tickets",
@@ -259,17 +259,9 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 
 	res := &Response{
 		Columns: balanceColumns,
+		Result:  balances,
 	}
 
-	row := []interface{}{
-		r.Total,
-		r.Spendable,
-		r.LockedByTickets,
-		r.VotingAuthority,
-		r.Unconfirmed,
-	}
-
-	res.Result = append(res.Result, row)
 	return res, nil
 }
 
