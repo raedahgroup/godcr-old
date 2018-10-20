@@ -74,10 +74,19 @@ func main() {
 	}
 
 	// check if arguments were supplied
-	// if not, exit
+	// if not, run ./dcrcli -l, previously used to exit and show usage info
 	if len(args) < 1 && !serveHTTP {
-		usage("No command specified")
-		os.Exit(1)
+		//Go to usage page
+		//usage("No command specified")
+		client := walletrpcclient.New()
+		res, err := client.RunCommand("listcommands", nil)
+		if err != nil {
+			// can never happen at this stage
+			fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
+			os.Exit(1)
+		}
+		printResult(res)
+		os.Exit(0)
 	}
 
 	var command string
