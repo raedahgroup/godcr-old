@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Baozisoftware/qrcode-terminal-go"
+	"github.com/decred/dcrd/dcrutil"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -213,11 +214,11 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 
 		balances[i] = []interface{}{
 			v.AccountName,
-			balanceRes.Total,
-			balanceRes.Spendable,
-			balanceRes.LockedByTickets,
-			balanceRes.VotingAuthority,
-			balanceRes.Unconfirmed,
+			dcrutil.Amount(balanceRes.Total),
+			dcrutil.Amount(balanceRes.Spendable),
+			dcrutil.Amount(balanceRes.LockedByTickets),
+			dcrutil.Amount(balanceRes.VotingAuthority),
+			dcrutil.Amount(balanceRes.Unconfirmed),
 		}
 	}
 
