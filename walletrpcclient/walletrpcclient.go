@@ -109,33 +109,6 @@ func (c *Client) RegisterHandler(key, command, description string, h Handler) {
 	c.descriptions[key] = description
 }
 
-// accounts lists all the accounts and their total balances in a wallet
-// requires no parameter
-func (c *Client) accounts(ctx context.Context, opts []string) (*Response, error) {
-	r, err := c.wc.Accounts(ctx, &pb.AccountsRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	accountsColumn := []string{
-		"Account Number",
-		"Account Name",
-		"Total Balance",
-	}
-
-	res := &Response{
-		Columns: accountsColumn,
-		Result:  [][]interface{}{},
-	}
-
-	for _, v := range r.Accounts {
-		row := []interface{}{v.AccountNumber, v.AccountName, v.TotalBalance}
-		res.Result = append(res.Result, row)
-	}
-
-	return res, nil
-}
-
 func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response, error) {
 	var sourceAccount uint32
 	var err error
@@ -265,56 +238,6 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 	return res, nil
 }
 
-// overview fetches and returns overview of wallet funds
-// requires no parameter
-func (c *Client) overview(ctx context.Context, opts []string) (*Response, error) {
-	r, err := c.wc.Accounts(ctx, &pb.AccountsRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	var total, spendable, lockedByTickets, unconfirmed, votingAuthority int64
-
-	for _, v := range r.Accounts {
-		req := &pb.BalanceRequest{
-			AccountNumber:         v.AccountNumber,
-			RequiredConfirmations: 0,
-		}
-
-		res, err := c.wc.Balance(ctx, req)
-		if err != nil {
-			return nil, err
-		}
-
-		total += res.Total
-		spendable += res.Spendable
-		unconfirmed += res.Unconfirmed
-		votingAuthority += res.VotingAuthority
-		lockedByTickets += res.LockedByTickets
-	}
-
-	response := &Response{
-		Columns: []string{
-			"Total",
-			"Spendable",
-			"Unconfirmed",
-			"Voting Authority",
-			"Locked By Tickets",
-		},
-	}
-
-	rows := []interface{}{
-		total,
-		spendable,
-		unconfirmed,
-		votingAuthority,
-		lockedByTickets,
-	}
-
-	response.Result = append(response.Result, rows)
-	return response, nil
-}
-
 // receive returns a generated address, and generates a qr code for recieving funds
 // requires no parameter
 func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) {
@@ -398,9 +321,7 @@ func (c *Client) listCommands(ctx context.Context, opts []string) (*Response, er
 func (c *Client) registerHandlers() {
 	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
 	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.sendTransaction)
-	c.RegisterHandler("accounts", "accounts", "List all accounts", c.accounts)
-	c.RegisterHandler("overview", "overview", "Overview of wallet", c.overview)
 	c.RegisterHandler("walletversion", "walletversion", "Show version of wallet", c.walletVersion)
-	c.RegisterHandler("balance", "balance accountnumber minconfirmations", "Check balance of an account", c.balance)
+	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
 }
