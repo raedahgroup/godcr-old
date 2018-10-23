@@ -3,3 +3,6 @@
 .DS_Store
 vendor/
 dcrcli
+go.mod
+go.sum
+dcrcli.conf
