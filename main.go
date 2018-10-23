@@ -68,6 +68,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// get an instance of walletrpcclient without connecting
+	// because there are commands we can run at this stage without needing to connect to dcrwallet
+	client := walletrpcclient.New()
+
 	serveHTTP := false
 	if config.HTTPServerAddress != "" {
 		serveHTTP = true
@@ -78,7 +82,6 @@ func main() {
 	if len(args) < 1 && !serveHTTP {
 		//Go to usage page
 		//usage("No command specified")
-		client := walletrpcclient.New()
 		res, err := client.RunCommand("listcommands", nil)
 		if err != nil {
 			// can never happen at this stage
@@ -91,9 +94,6 @@ func main() {
 
 	var command string
 
-	// get an instance of walletrpcclient without connecting
-	// because there are commands we can run at this stage without needing to connect to dcrwallet
-	client := walletrpcclient.New()
 	if !serveHTTP {
 		command = args[0]
 		if args[0] == "listcommands" {
