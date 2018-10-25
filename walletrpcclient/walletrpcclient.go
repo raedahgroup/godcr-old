@@ -243,7 +243,7 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 // requires no parameter
 func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) {
 	if len(opts) == 0 {
-		return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"account\"")
+		return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
 	}
 
 	accountNumber, err := strconv.ParseUint(opts[0], 0, 32)
