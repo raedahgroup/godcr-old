@@ -2,33 +2,55 @@ package walletrpcclient
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
+	"strings"
 
+	"github.com/manifoldco/promptui"
+
+	"github.com/decred/dcrd/dcrutil"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 )
 
-func getSourceAccount(fromAccount *uint32, c pb.WalletServiceClient, ctx context.Context) error {
-	fmt.Println("Source Account: ")
-	_, err := fmt.Scanf("%d", fromAccount)
+func getSourceAccount(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+	// get accounts
+	accountsRes, err := c.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
-		return err
+		return "", fmt.Errorf("error fetching accounts. err: %s", err.Error())
 	}
 
-	// validate account number
-	r, err := c.Accounts(ctx, &pb.AccountsRequest{})
-	if err != nil {
-		fmt.Printf("Error validating account; %s", err.Error())
-		os.Exit(1)
-	}
-
-	for _, v := range r.Accounts {
-		if v.AccountNumber == *fromAccount {
-			return nil
+	promptItems := make([]string, len(accountsRes.Accounts))
+	for _, v := range accountsRes.Accounts {
+		balanceReq := &pb.BalanceRequest{
+			AccountNumber:         v.AccountNumber,
+			RequiredConfirmations: 0,
 		}
+
+		balanceRes, err := c.Balance(ctx, balanceReq)
+		if err != nil {
+			return "", fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
+		}
+
+		item := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(balanceRes.Total).String())
+		promptItems = append(promptItems, item)
+
 	}
-	return errors.New("invalid account number")
+
+	prompt := promptui.Select{
+		Label: "Select source account",
+		Items: promptItems,
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("error getting selected account: %s", err.Error())
+	}
+
+	parts := strings.Split(result, "(")
+	if len(parts) == 0 {
+		return "", fmt.Errorf("error selecting source account")
+	}
+
+	return parts[0], nil
 }
 
 func getDestinationAddress(destinationAddress *string, c pb.WalletServiceClient, ctx context.Context) error {

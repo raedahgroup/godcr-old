@@ -111,7 +111,8 @@ func (c *Client) RegisterHandler(key, command, description string, h Handler) {
 }
 
 func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response, error) {
-	var sourceAccount uint32
+
+	/**var sourceAccount uint32
 	var err error
 	for {
 		err = getSourceAccount(&sourceAccount, c.wc, ctx)
@@ -186,7 +187,8 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 
 	res.Result = [][]interface{}{resultRow}
 
-	return res, nil
+	return res, nil**/
+	return nil, nil
 }
 
 // balance gets the balance of an account by its account number
