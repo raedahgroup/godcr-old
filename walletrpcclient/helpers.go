@@ -2,8 +2,9 @@ package walletrpcclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
+	"strconv"
 
 	"github.com/manifoldco/promptui"
 
@@ -11,14 +12,15 @@ import (
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 )
 
-func getSourceAccount(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32, error) {
 	// get accounts
 	accountsRes, err := c.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
-		return "", fmt.Errorf("error fetching accounts. err: %s", err.Error())
+		return 0, fmt.Errorf("error fetching accounts. err: %s", err.Error())
 	}
 
-	promptItems := make([]string, len(accountsRes.Accounts))
+	promptItems := []string{}
+	accounts := map[string]uint32{}
 	for _, v := range accountsRes.Accounts {
 		balanceReq := &pb.BalanceRequest{
 			AccountNumber:         v.AccountNumber,
@@ -27,11 +29,12 @@ func getSourceAccount(c pb.WalletServiceClient, ctx context.Context) (string, er
 
 		balanceRes, err := c.Balance(ctx, balanceReq)
 		if err != nil {
-			return "", fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
+			return 0, fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
 		}
 
 		item := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(balanceRes.Total).String())
 		promptItems = append(promptItems, item)
+		accounts[item] = v.AccountNumber
 
 	}
 
@@ -42,44 +45,81 @@ func getSourceAccount(c pb.WalletServiceClient, ctx context.Context) (string, er
 
 	_, result, err := prompt.Run()
 	if err != nil {
-		return "", fmt.Errorf("error getting selected account: %s", err.Error())
+		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
 
-	parts := strings.Split(result, "(")
-	if len(parts) == 0 {
-		return "", fmt.Errorf("error selecting source account")
+	account, ok := accounts[result]
+	if !ok {
+		return 0, fmt.Errorf("error selecting account")
 	}
 
-	return parts[0], nil
+	return account, nil
 }
 
-func getDestinationAddress(destinationAddress *string, c pb.WalletServiceClient, ctx context.Context) error {
-	fmt.Println("Destination address: ")
-	_, err := fmt.Scanln(destinationAddress)
+func getSendDestinationAddress(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+	validate := func(address string) error {
+		req := &pb.ValidateAddressRequest{
+			Address: address,
+		}
+
+		r, err := c.ValidateAddress(ctx, req)
+		if err != nil {
+			return fmt.Errorf("error validating address: %s", err.Error())
+		}
+
+		if !r.IsValid {
+			return errors.New("Invalid address")
+		}
+		return nil
+	}
+
+	prompt := promptui.Prompt{
+		Label:    "Destination Address",
+		Validate: validate,
+	}
+
+	result, err := prompt.Run()
 	if err != nil {
-		return err
+		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
-	// validate address
-	req := &pb.ValidateAddressRequest{
-		Address: *destinationAddress,
-	}
-	r, err := c.ValidateAddress(ctx, req)
-	if err != nil || !r.IsValid {
-		return fmt.Errorf("Invalid address")
-	}
-
-	return nil
+	return result, nil
 }
 
-func getAmount(amount *int64, c pb.WalletServiceClient, ctx context.Context) error {
-	fmt.Println("Amount; ")
-	_, err := fmt.Scanf("%d", amount)
-	return err
+func getSendAmount(c pb.WalletServiceClient, ctx context.Context) (int64, error) {
+	var amount int64
+	var err error
+
+	validate := func(value string) error {
+		amount, err = strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return fmt.Errorf("error parsing amount: %s", err.Error())
+		}
+		return nil
+	}
+
+	prompt := promptui.Prompt{
+		Label:    "Amount (DCR)",
+		Validate: validate,
+	}
+
+	_, err = prompt.Run()
+	if err != nil {
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
+	}
+
+	return amount, nil
 }
 
-func getPassphrase(passphrase *string) error {
-	fmt.Println("Wallet Passphrase: ")
-	_, err := fmt.Scanln(passphrase)
-	return err
+func getWalletPassphrase(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+	prompt := promptui.Prompt{
+		Label: "Wallet Passphrase",
+		Mask:  '*',
+	}
+
+	result, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("error receiving input: %s", err.Error())
+	}
+	return result, nil
 }
