@@ -92,7 +92,7 @@ func (c *Client) IsCommandSupported(command string) bool {
 func (c *Client) RunCommand(command string, opts []string) (*Response, error) {
 	handler := c.funcMap[command]
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	res, err := handler(ctx, opts)
