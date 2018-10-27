@@ -68,23 +68,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	// get an instance of walletrpcclient without connecting
+	// because there are commands we can run at this stage without needing to connect to dcrwallet
+	client := walletrpcclient.New()
+
 	serveHTTP := false
 	if config.HTTPServerAddress != "" {
 		serveHTTP = true
 	}
 
 	// check if arguments were supplied
-	// if not, exit
+	// if not, run ./dcrcli -l, previously used to exit and show usage info
 	if len(args) < 1 && !serveHTTP {
-		usage("No command specified")
-		os.Exit(1)
+		//Go to usage page
+		//usage("No command specified")
+		res, err := client.RunCommand("listcommands", nil)
+		if err != nil {
+			// can never happen at this stage
+			fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
+			os.Exit(1)
+		}
+		printResult(res)
+		os.Exit(0)
 	}
 
 	var command string
 
-	// get an instance of walletrpcclient without connecting
-	// because there are commands we can run at this stage without needing to connect to dcrwallet
-	client := walletrpcclient.New()
 	if !serveHTTP {
 		command = args[0]
 		if args[0] == "listcommands" {
