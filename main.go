@@ -91,7 +91,7 @@ func main() {
 			res, err := client.RunCommand("listcommands", nil)
 			if err != nil {
 				// can never happen at this stage
-				fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
+				fmt.Fprintf(os.Stderr, "Error running command.\n %s\n", err.Error())
 				os.Exit(1)
 			}
 			printResult(res)
@@ -101,7 +101,7 @@ func main() {
 
 	err = client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s'\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s\n", err.Error())
 		os.Exit(1)
 	}
 
@@ -113,7 +113,7 @@ func main() {
 
 	// check if command is supported
 	if !client.IsCommandSupported(command) {
-		fmt.Fprintf(os.Stderr, "Unrecognized command %s'\n", command)
+		fmt.Fprintf(os.Stderr, "Unrecognized command.\n %s\n", command)
 		fmt.Fprintln(os.Stderr, listCmdMessage)
 		os.Exit(1)
 	}
@@ -127,7 +127,7 @@ func main() {
 
 	res, err := client.RunCommand(command, opts)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Error running command.\n %s\n", err.Error())
 		os.Exit(1)
 	}
 
