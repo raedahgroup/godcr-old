@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/decred/dcrd/txscript"
+
 	"github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/decred/dcrd/dcrutil"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
@@ -108,68 +110,72 @@ func (c *Client) RegisterHandler(key, command, description string, h Handler) {
 }
 
 func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response, error) {
-	var sourceAccount uint32
-	var err error
-	for {
-		err = getSourceAccount(&sourceAccount, c.wc, ctx)
-		if err == nil {
-			break
-		}
-		fmt.Printf("error: %s", err.Error())
-	}
-
-	var destinationAddress string
-	for {
-		err = getDestinationAddress(&destinationAddress, c.wc, ctx)
-		if err == nil {
-			break
-		}
-		fmt.Printf("error: %s", err.Error())
-	}
-
-	var amount int64
-	for {
-		err = getAmount(&amount, c.wc, ctx)
-		if err == nil {
-			break
-		}
-		fmt.Printf("error: %s", err.Error())
-	}
-
-	var passphrase string
-	err = getPassphrase(&passphrase)
+	sourceAccount, err := getSendSourceAccount(c.wc, ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error taking passphrase: %s", err.Error())
+		return nil, err
 	}
 
-	// construct transaction
+	destinationAddressStr, err := getSendDestinationAddress(c.wc, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// decode address
+	addr, err := dcrutil.DecodeAddress(destinationAddressStr)
+	if err != nil {
+		return nil, err
+	}
+
+	amount, err := getSendAmount(c.wc, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pkScript, err := txscript.PayToAddrScript(addr)
+	if err != nil {
+		return nil, err
+	}
+
 	cReq := &pb.ConstructTransactionRequest{
 		SourceAccount: sourceAccount,
+		NonChangeOutputs: []*pb.ConstructTransactionRequest_Output{{
+			Destination: &pb.ConstructTransactionRequest_OutputDestination{
+				Script:        pkScript,
+				ScriptVersion: 0,
+			},
+			Amount: amount,
+		}},
 	}
 
-	constructResponse, err := c.wc.ConstructTransaction(ctx, cReq)
+	cRes, err := c.wc.ConstructTransaction(ctx, cReq)
 	if err != nil {
 		return nil, fmt.Errorf("Error constructing transaction: %s", err.Error())
+	}
+
+	passphrase, err := getWalletPassphrase(c.wc, ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	// Sign transaction
 	sReq := &pb.SignTransactionRequest{
 		Passphrase:            []byte(passphrase),
-		SerializedTransaction: constructResponse.UnsignedTransaction,
+		SerializedTransaction: cRes.UnsignedTransaction,
 	}
 
-	signResponse, err := c.wc.SignTransaction(ctx, sReq)
+	sRes, err := c.wc.SignTransaction(ctx, sReq)
 	if err != nil {
-		return nil, fmt.Errorf("Error signing transaction: %s", err.Error())
+		return nil, fmt.Errorf("error signing transaction: %s", err.Error())
 	}
 
 	// publish transaction
 	pReq := &pb.PublishTransactionRequest{
-		SignedTransaction: signResponse.Transaction,
+		SignedTransaction: sRes.Transaction,
 	}
-	publishResponse, err := c.wc.PublishTransaction(ctx, pReq)
+
+	pRes, err := c.wc.PublishTransaction(ctx, pReq)
 	if err != nil {
-		return nil, fmt.Errorf("Error publishing transaction")
+		return nil, fmt.Errorf("error publishing transaction: %s", err.Error())
 	}
 
 	res := &Response{
@@ -177,8 +183,8 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 	}
 
 	resultRow := []interface{}{
-		"Transaction was published successfully",
-		string(publishResponse.TransactionHash),
+		"Successfull",
+		string(pRes.TransactionHash),
 	}
 
 	res.Result = [][]interface{}{resultRow}
