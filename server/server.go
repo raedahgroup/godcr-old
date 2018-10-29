@@ -1,8 +1,9 @@
 package server
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
@@ -19,7 +20,14 @@ func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
 
 	router := chi.NewRouter()
 	server.registerHandlers(router)
-	log.Fatal(http.ListenAndServe(address, router))
+
+	fmt.Printf("starting http server on %s\n", address)
+	err := http.ListenAndServe(address, router)
+	if err != nil {
+		fmt.Println("Error starting web server")
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 func (s *Server) registerHandlers(r *chi.Mux) {
