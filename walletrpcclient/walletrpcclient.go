@@ -108,7 +108,12 @@ func (c *Client) IsCommandSupported(command string) bool {
 // This should only be called after verifying that the command is supported using the IsCommandSupported
 // function.
 func (c *Client) RunCommand(command string, opts []string) (*Response, error) {
-	handler := c.funcMap[command]
+	handler, validCommand := c.funcMap[command]
+	if !validCommand {
+		err := errors.New("unrecognized command " + command)
+		return nil, err
+	}
+
 	ctx := context.Background()
 
 	res, err := handler(ctx, opts)
