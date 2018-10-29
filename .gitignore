@@ -1,6 +1,7 @@
 .vscode/
 *.exe
 .DS_Store
+.idea/
 vendor/
 dcrcli
 go.mod

@@ -47,7 +47,7 @@ func New() *Client {
 	return client
 }
 
-func (c *Client) Connect(address, cert string, noTLS bool) error {
+func (c *Client) Connect(address, cert string, noTLS bool) (error) {
 	var conn *grpc.ClientConn
 	var err error
 
@@ -77,7 +77,24 @@ func (c *Client) Connect(address, cert string, noTLS bool) error {
 
 	c.wc = pb.NewWalletServiceClient(conn)
 	c.vc = pb.NewVersionServiceClient(conn)
+
 	return nil
+}
+
+// listCommands lists all supported commands
+// requires no parameter
+func (c *Client) ListSupportedCommands() (*Response) {
+	res := &Response{
+		Columns: []string{"Command", "Description"},
+	}
+	for i, v := range c.commands {
+		item := []interface{}{
+			v,
+			c.descriptions[i],
+		}
+		res.Result = append(res.Result, item)
+	}
+	return res
 }
 
 // IsCommandSupported returns a boolean whose value depends on if a command is registered as suppurted along
@@ -306,24 +323,7 @@ func (c *Client) walletVersion(ctx context.Context, opts []string) (*Response, e
 	return res, nil
 }
 
-// listCommands lists all supported commands
-// requires no parameter
-func (c *Client) listCommands(ctx context.Context, opts []string) (*Response, error) {
-	res := &Response{
-		Columns: []string{"Command", "Description"},
-	}
-	for i, v := range c.commands {
-		item := []interface{}{
-			v,
-			c.descriptions[i],
-		}
-		res.Result = append(res.Result, item)
-	}
-	return res, nil
-}
-
 func (c *Client) registerHandlers() {
-	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
 	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.sendTransaction)
 	c.RegisterHandler("walletversion", "walletversion", "Show version of wallet", c.walletVersion)
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
