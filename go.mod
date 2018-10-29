@@ -12,6 +12,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8 // indirect
 	golang.org/x/sys v0.0.0-20180928133829-e4b3c5e90611 // indirect
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
+	google.golang.org/grpc v1.14.0
 )
 
 replace github.com/raedahgroup/dcrcli/walletrpcclient => ./walletrpcclient

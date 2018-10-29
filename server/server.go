@@ -10,14 +10,16 @@ import (
 
 type Server struct {
 	walletClient *walletrpcclient.Client
-	address      string
 }
 
-func New(address string, walletClient *walletrpcclient.Client) *Server {
-	return &Server{
-		address:      address,
+func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
+	server := &Server{
 		walletClient: walletClient,
 	}
+
+	router := chi.NewRouter()
+	server.registerHandlers(router)
+	log.Fatal(http.ListenAndServe(address, router))
 }
 
 func (s *Server) registerHandlers(r *chi.Mux) {
@@ -26,10 +28,4 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/version", s.version)
 	r.Get("/balance/{accountNumber}", s.balance)
 	r.Get("/balance/{accountNumber}/{minConf}", s.balance)
-}
-
-func (s *Server) Serve() {
-	router := chi.NewRouter()
-	s.registerHandlers(router)
-	log.Fatal(http.ListenAndServe(s.address, router))
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
@@ -22,25 +21,6 @@ var Ver = Version{
 	Minor: 0,
 	Patch: 1,
 	Label: "",
-}
-
-const (
-	showHelpMessage = "Specify -h to show available options"
-	listCmdMessage  = "Specify -l to list available commands"
-)
-
-// usage displays the general usage when the help flag is not displayed and
-// and an invalid command was specified.  The commandUsage function is used
-// instead when a valid command was specified.
-func usage(errorMessage string) {
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
-	fmt.Fprintln(os.Stderr, errorMessage)
-	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "  %s [OPTIONS] <command> <args...>\n\n",
-		appName)
-	fmt.Fprintln(os.Stderr, showHelpMessage)
-	fmt.Fprintln(os.Stderr, listCmdMessage)
 }
 
 // CommitHash may be set on the build command line:
@@ -68,73 +48,61 @@ func main() {
 		os.Exit(1)
 	}
 
-	// get an instance of walletrpcclient without connecting
-	// because there are commands we can run at this stage without needing to connect to dcrwallet
-	client := walletrpcclient.New()
-
-	serveHTTP := false
 	if config.HTTPServerAddress != "" {
-		serveHTTP = true
+		fmt.Println("Running in http mode")
+		enterHttpMode(config)
+	} else {
+		fmt.Println("Running in cli mode")
+		enterCliMode(config, args)
+	}
+}
+
+func enterHttpMode(config *config) {
+	client := walletrpcclient.New()
+	err := client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 
-	// check if arguments were supplied
-	// if not, run ./dcrcli -l, previously used to exit and show usage info
-	if len(args) < 1 && !serveHTTP {
-		//Go to usage page
-		//usage("No command specified")
-		res, err := client.RunCommand("listcommands", nil)
-		if err != nil {
-			// can never happen at this stage
-			fmt.Fprintf(os.Stderr, "Error running command %s'\n", err.Error())
-			os.Exit(1)
-		}
-		printResult(res)
+	server.StartHttpServer(config.HTTPServerAddress, client)
+}
+
+func enterCliMode(config *config, args []string) {
+	client := walletrpcclient.New()
+
+	if len(args) == 0 {
+		noCommandReceived(client)
 		os.Exit(0)
 	}
 
-	var command string
-
-	if !serveHTTP {
-		command = args[0]
-		if args[0] == "listcommands" {
-			res, err := client.RunCommand("listcommands", nil)
-			if err != nil {
-				// can never happen at this stage
-				fmt.Fprintf(os.Stderr, "Error running command.\n %s\n", err.Error())
-				os.Exit(1)
-			}
-			printResult(res)
-			os.Exit(0)
-		}
+	command := args[0]
+	if command == "-l" {
+		showAvailableCommands(client)
 	}
 
-	err = client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error connecting to RPC server %s\n", err.Error())
-		os.Exit(1)
-	}
-
-	if serveHTTP {
-		server := server.New(config.HTTPServerAddress, client)
-		server.Serve()
-		// control can never go beyond this ????
-	}
-
-	// check if command is supported
 	if !client.IsCommandSupported(command) {
-		fmt.Fprintf(os.Stderr, "Unrecognized command.\n %s\n", command)
-		fmt.Fprintln(os.Stderr, listCmdMessage)
+		invalidCommandReceived(command)
 		os.Exit(1)
 	}
 
-	// remaining arguments are options
-	remainingArgs := args[1:]
-	opts := make([]string, 0, len(remainingArgs))
-	for _, opt := range remainingArgs {
-		opts = append(opts, opt)
+	cliExecuteCommand(client, command, config, args)
+}
+
+func cliExecuteCommand(client *walletrpcclient.Client, command string, config *config, args []string) {
+	// open connection to rpc client
+	err := client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 
-	res, err := client.RunCommand(command, opts)
+	// get arguments for this command, where command = args[0]
+	commandArgs := args[1:]
+
+	res, err := client.RunCommand(command, commandArgs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command.\n %s\n", err.Error())
 		os.Exit(1)
@@ -171,4 +139,20 @@ func printResult(res *walletrpcclient.Response) {
 	}
 
 	w.Flush()
+}
+
+func showAvailableCommands(client *walletrpcclient.Client) {
+	commands := client.ListSupportedCommands()
+	printResult(commands)
+}
+
+func noCommandReceived(client *walletrpcclient.Client) {
+	fmt.Printf("usage: %s [OPTIONS] <command> <args...>\n\n", AppName)
+	fmt.Printf("below are supported %s commands\n\n", AppName)
+	showAvailableCommands(client)
+	fmt.Printf("\nFor available options, see '%s -h'\n", AppName)
+}
+
+func invalidCommandReceived(command string) {
+	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", AppName, command, AppName)
 }
