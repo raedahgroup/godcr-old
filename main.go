@@ -48,16 +48,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	if config.HTTPServerAddress != "" {
+	if config.Mode == "http" {
 		fmt.Println("Running in http mode")
 		enterHttpMode(config)
 	} else {
-		fmt.Println("Running in cli mode")
 		enterCliMode(config, args)
 	}
 }
 
 func enterHttpMode(config *config) {
+	if config.HTTPServerAddress == "" {
+		fmt.Println("Cannot start http server. Server address not set")
+		os.Exit(1)
+	}
+
 	client := walletrpcclient.New()
 	err := client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
@@ -104,7 +108,8 @@ func cliExecuteCommand(client *walletrpcclient.Client, command string, config *c
 
 	res, err := client.RunCommand(command, commandArgs)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error running command.\n %s\n", err.Error())
+		fmt.Fprintln(os.Stderr, "Error running command")
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -147,8 +152,8 @@ func showAvailableCommands(client *walletrpcclient.Client) {
 }
 
 func noCommandReceived(client *walletrpcclient.Client) {
-	fmt.Printf("usage: %s [OPTIONS] <command> <args...>\n\n", AppName)
-	fmt.Printf("below are supported %s commands\n\n", AppName)
+	fmt.Printf("usage: %s [OPTIONS] <command> <args...>\n", AppName)
+	fmt.Printf("available %s commands:\n", AppName)
 	showAvailableCommands(client)
 	fmt.Printf("\nFor available options, see '%s -h'\n", AppName)
 }
