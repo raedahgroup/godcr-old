@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/decred/dcrd/dcrutil"
@@ -91,9 +90,7 @@ func (c *Client) IsCommandSupported(command string) bool {
 // function.
 func (c *Client) RunCommand(command string, opts []string) (*Response, error) {
 	handler := c.funcMap[command]
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
+	ctx := context.Background()
 
 	res, err := handler(ctx, opts)
 	return res, err
