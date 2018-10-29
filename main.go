@@ -108,7 +108,7 @@ func cliExecuteCommand(client *walletrpcclient.Client, command string, config *c
 
 	res, err := client.RunCommand(command, commandArgs)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error running command")
+		fmt.Fprintf(os.Stderr, "Error running command '%s %s'", AppName, command)
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
@@ -152,7 +152,7 @@ func showAvailableCommands(client *walletrpcclient.Client) {
 }
 
 func noCommandReceived(client *walletrpcclient.Client) {
-	fmt.Printf("usage: %s [OPTIONS] <command> <args...>\n", AppName)
+	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", AppName)
 	fmt.Printf("available %s commands:\n", AppName)
 	showAvailableCommands(client)
 	fmt.Printf("\nFor available options, see '%s -h'\n", AppName)
