@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Baozisoftware/qrcode-terminal-go"
-	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -20,7 +17,7 @@ type (
 		Result  [][]interface{}
 		Qrcode  bool
 	}
-	Handler func(ctx context.Context, args []string) (*Response, error)
+	Handler func(args []string, params map[string]interface{}) (*Response, error)
 
 	Client struct {
 		funcMap      map[string]Handler
@@ -29,10 +26,6 @@ type (
 		wc           pb.WalletServiceClient
 		vc           pb.VersionServiceClient
 	}
-)
-
-const (
-	requiredConfirmations int32 = 0
 )
 
 func New() *Client {
@@ -106,17 +99,113 @@ func (c *Client) IsCommandSupported(command string) bool {
 // RunCommand takes a command and tries to call the appropriate handler to call a gRPC service
 // This should only be called after verifying that the command is supported using the IsCommandSupported
 // function.
-func (c *Client) RunCommand(command string, opts []string) (*Response, error) {
-	handler, validCommand := c.funcMap[command]
-	if !validCommand {
-		err := errors.New("unrecognized command: " + command)
-		return nil, err
+func (c *Client) RunCommand(command string, args []string, params map[string]interface{}) (*Response, error) {
+	handler := c.funcMap[command]
+	res, err := handler(args, params)
+	return res, err
+}
+
+// listCommands calls the cmdListCommands. This requires no parameters to run
+func (c *Client) listCommands(args []string, params map[string]interface{}) (*Response, error) {
+	return c.cmdListCommands(context.Background())
+}
+
+// receive calls the cmdReceive function.
+// parameters:
+// 1. where the command is called from. either web or terminal  (required); defaults to terminal
+// 2. accountNumber (required when called from web)
+func (c *Client) receive(args []string, params map[string]interface{}) (*Response, error) {
+	var accountNumber uint32
+	caller := "terminal"
+
+	if c, ok := params["caller"]; ok {
+		caller = c.(string)
+	}
+
+	if caller == "web" {
+		if acc, ok := params["accountNumber"]; ok {
+			accountNumber = acc.(uint32)
+		} else {
+			return nil, errors.New("account number is required")
+		}
+	} else {
+		if len(args) == 0 {
+			return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
+		}
+		acc, err := strconv.ParseUint(args[0], 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
+		}
+		accountNumber = uint32(acc)
+	}
+
+	return c.cmdReceive(context.Background(), accountNumber)
+}
+
+func (c *Client) send(args []string, params map[string]interface{}) (*Response, error) {
+	var sourceAccount uint32
+	var destinationAddress string
+	var sendAmount int64
+	var passphrase string
+	var err error
+
+	caller := "terminal"
+	if c, ok := params["caller"]; ok {
+		caller = c.(string)
 	}
 
 	ctx := context.Background()
+	if caller == "web" {
+		if sAcc, ok := params["sourceAccount"]; ok {
+			sourceAccount = sAcc.(uint32)
+		} else {
+			return nil, errors.New("source account number is required")
+		}
 
-	res, err := handler(ctx, opts)
-	return res, err
+		if addr, ok := params["destinationAddress"]; ok {
+			destinationAddress = addr.(string)
+		} else {
+			return nil, errors.New("destination address is required")
+		}
+
+		if amt, ok := params["amount"]; ok {
+			sendAmount = amt.(int64)
+		} else {
+			return nil, errors.New("send amoount is required")
+		}
+
+		if pass, ok := params["passphrase"]; ok {
+			passphrase = pass.(string)
+		} else {
+			return nil, errors.New("passphrase is required")
+		}
+	} else {
+		sourceAccount, err = getSendSourceAccount(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		destinationAddress, err = getSendDestinationAddress(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		sendAmount, err = getSendAmount(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		passphrase, err = getWalletPassphrase(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return c.cmdSendTransaction(ctx, sourceAccount, destinationAddress, sendAmount, passphrase)
+}
+
+func (c *Client) balance(args []string, params map[string]interface{}) (*Response, error) {
+	return c.cmdBalance(context.Background())
 }
 
 // RegisterHandler registers a command, its description and its handler
@@ -130,206 +219,9 @@ func (c *Client) RegisterHandler(key, command, description string, h Handler) {
 	c.descriptions[key] = description
 }
 
-func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response, error) {
-	sourceAccount, err := getSendSourceAccount(c.wc, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	destinationAddressStr, err := getSendDestinationAddress(c.wc, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// decode address
-	addr, err := dcrutil.DecodeAddress(destinationAddressStr)
-	if err != nil {
-		return nil, err
-	}
-
-	amount, err := getSendAmount(c.wc, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	pkScript, err := txscript.PayToAddrScript(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	cReq := &pb.ConstructTransactionRequest{
-		SourceAccount: sourceAccount,
-		NonChangeOutputs: []*pb.ConstructTransactionRequest_Output{{
-			Destination: &pb.ConstructTransactionRequest_OutputDestination{
-				Script:        pkScript,
-				ScriptVersion: 0,
-			},
-			Amount: amount,
-		}},
-	}
-
-	cRes, err := c.wc.ConstructTransaction(ctx, cReq)
-	if err != nil {
-		return nil, fmt.Errorf("error constructing transaction: %s", err.Error())
-	}
-
-	passphrase, err := getWalletPassphrase(c.wc, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Sign transaction
-	sReq := &pb.SignTransactionRequest{
-		Passphrase:            []byte(passphrase),
-		SerializedTransaction: cRes.UnsignedTransaction,
-	}
-
-	sRes, err := c.wc.SignTransaction(ctx, sReq)
-	if err != nil {
-		return nil, fmt.Errorf("error signing transaction: %s", err.Error())
-	}
-
-	// publish transaction
-	pReq := &pb.PublishTransactionRequest{
-		SignedTransaction: sRes.Transaction,
-	}
-
-	pRes, err := c.wc.PublishTransaction(ctx, pReq)
-	if err != nil {
-		return nil, fmt.Errorf("error publishing transaction: %s", err.Error())
-	}
-
-	res := &Response{
-		Columns: []string{"Result", "Hash"},
-	}
-
-	resultRow := []interface{}{
-		"Successfull",
-		string(pRes.TransactionHash),
-	}
-
-	res.Result = [][]interface{}{resultRow}
-
-	return res, nil
-}
-
-// balance gets the balance of an account by its account number
-// requires at least one option (AccountNumber).
-// the second paramter (minConf) is optional and defaults to 0 if not set
-// returns an error if any of the parameters passed in cannot be converted to their required types
-// for transport
-func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) {
-	accountsRes, err := c.wc.Accounts(ctx, &pb.AccountsRequest{})
-	if err != nil {
-		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
-	}
-
-	balances := make([][]interface{}, len(accountsRes.Accounts))
-	for i, v := range accountsRes.Accounts {
-		balanceReq := &pb.BalanceRequest{
-			AccountNumber:         v.AccountNumber,
-			RequiredConfirmations: 0,
-		}
-
-		balanceRes, err := c.wc.Balance(ctx, balanceReq)
-		if err != nil {
-			return nil, fmt.Errorf("error fetching balance for account %d: %s", v.AccountNumber, err.Error())
-		}
-
-		balances[i] = []interface{}{
-			v.AccountName,
-			dcrutil.Amount(balanceRes.Total),
-			dcrutil.Amount(balanceRes.Spendable),
-			dcrutil.Amount(balanceRes.LockedByTickets),
-			dcrutil.Amount(balanceRes.VotingAuthority),
-			dcrutil.Amount(balanceRes.Unconfirmed),
-		}
-	}
-
-	balanceColumns := []string{
-		"Account",
-		"Total",
-		"Spendable",
-		"Locked By Tickets",
-		"Voting Authority",
-		"Unconfirmed",
-	}
-
-	res := &Response{
-		Columns: balanceColumns,
-		Result:  balances,
-	}
-
-	return res, nil
-}
-
-// receive returns a generated address, and generates a qr code for recieving funds
-// opts should contain account number in pos 0
-func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) {
-	if len(opts) == 0 {
-		return nil, errors.New("command requires 1 argument (account number)\nExample usage: receive 2147483647")
-	}
-
-	accountNumber, err := strconv.ParseUint(opts[0], 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing account number: %s", err.Error())
-	}
-
-	// TODO this should be optionally supplied by the user
-	gapPolicy := pb.NextAddressRequest_GAP_POLICY_WRAP
-	// this shouldn't
-	kind := pb.NextAddressRequest_BIP0044_EXTERNAL
-
-	req := &pb.NextAddressRequest{
-		Account:   uint32(accountNumber),
-		GapPolicy: gapPolicy,
-		Kind:      kind,
-	}
-
-	r, err := c.wc.NextAddress(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("error getting receive address: %s", err.Error())
-	}
-
-	res := &Response{
-		Columns: []string{
-			"Address",
-			"QR Code",
-		},
-		Result: [][]interface{}{
-			[]interface{}{
-				r.Address,
-				"",
-			},
-		},
-	}
-	obj := qrcodeTerminal.New()
-	obj.Get(r.Address).Print()
-
-	return res, nil
-}
-
-// walletVersion fetches and returns version of wallet we are connected to
-func (c *Client) walletVersion(ctx context.Context, opts []string) (*Response, error) {
-	r, err := c.vc.Version(ctx, &pb.VersionRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	res := &Response{
-		Columns: []string{
-			"Version",
-		},
-		Result: [][]interface{}{
-			[]interface{}{r.VersionString},
-		},
-	}
-	return res, nil
-}
-
 func (c *Client) registerHandlers() {
-	c.RegisterHandler("send", "send", "Send DCR to address (interactive)", c.sendTransaction)
-	c.RegisterHandler("walletversion", "walletversion", "Show version of wallet", c.walletVersion)
-	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
+	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
 	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
+	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
+	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 }

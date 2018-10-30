@@ -25,7 +25,7 @@ func (s *Server) renderError(w http.ResponseWriter, req *http.Request, err error
 }
 
 func (s *Server) accounts(w http.ResponseWriter, req *http.Request) {
-	res, err := s.walletClient.RunCommand("accounts", nil)
+	res, err := s.walletClient.RunCommand("accounts", nil, nil)
 	if err != nil {
 		s.renderError(w, req, err)
 		return
@@ -46,29 +46,11 @@ func (s *Server) balance(w http.ResponseWriter, req *http.Request) {
 	}
 
 	opts := []string{accountNumber, minConf}
-	res, err := s.walletClient.RunCommand("balance", opts)
+	res, err := s.walletClient.RunCommand("balance", opts, nil)
 	if err != nil {
 		s.renderError(w, req, err)
 		return
 	}
 
-	s.renderJSON(w, req, res)
-}
-
-func (s *Server) overview(w http.ResponseWriter, req *http.Request) {
-	res, err := s.walletClient.RunCommand("overview", nil)
-	if err != nil {
-		s.renderError(w, req, err)
-		return
-	}
-	s.renderJSON(w, req, res)
-}
-
-func (s *Server) version(w http.ResponseWriter, req *http.Request) {
-	res, err := s.walletClient.RunCommand("walletversion", nil)
-	if err != nil {
-		s.renderError(w, req, err)
-		return
-	}
 	s.renderJSON(w, req, res)
 }

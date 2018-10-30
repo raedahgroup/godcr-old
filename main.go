@@ -103,10 +103,13 @@ func cliExecuteCommand(client *walletrpcclient.Client, command string, config *c
 		os.Exit(1)
 	}
 
+	params := make(map[string]interface{}, 1)
+	params["caller"] = "cli"
+
 	// get arguments for this command, where command = args[0]
 	commandArgs := args[1:]
 
-	res, err := client.RunCommand(command, commandArgs)
+	res, err := client.RunCommand(command, commandArgs, params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command '%s %s'", AppName, command)
 		fmt.Fprintln(os.Stderr, err.Error())
