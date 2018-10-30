@@ -17,7 +17,7 @@ type (
 		Result  [][]interface{}
 		Qrcode  bool
 	}
-	Handler func(args []string, params map[string]interface{}) (*Response, error)
+	Handler func(commandArgs []string, params map[string]interface{}) (*Response, error)
 
 	Client struct {
 		funcMap      map[string]Handler
@@ -99,22 +99,22 @@ func (c *Client) IsCommandSupported(command string) bool {
 // RunCommand takes a command and tries to call the appropriate handler to call a gRPC service
 // This should only be called after verifying that the command is supported using the IsCommandSupported
 // function.
-func (c *Client) RunCommand(command string, args []string, params map[string]interface{}) (*Response, error) {
+func (c *Client) RunCommand(command string, commandArgs []string, params map[string]interface{}) (*Response, error) {
 	handler := c.funcMap[command]
-	res, err := handler(args, params)
+	res, err := handler(commandArgs, params)
 	return res, err
 }
 
 // listCommands calls the cmdListCommands. This requires no parameters to run
-func (c *Client) listCommands(args []string, params map[string]interface{}) (*Response, error) {
-	return c.cmdListCommands(context.Background())
+func (c *Client) listCommands(commandArgs []string, params map[string]interface{}) (*Response, error) {
+	return c.cmdListCommands()
 }
 
 // receive calls the cmdReceive function.
 // parameters:
 // 1. where the command is called from. either web or cli  (required); defaults to cli
 // 2. accountNumber (required when not called from cli)
-func (c *Client) receive(args []string, params map[string]interface{}) (*Response, error) {
+func (c *Client) receive(commandArgs []string, params map[string]interface{}) (*Response, error) {
 	var accountNumber uint32
 	caller := "cli"
 
@@ -123,10 +123,10 @@ func (c *Client) receive(args []string, params map[string]interface{}) (*Respons
 	}
 
 	if caller == "cli" {
-		if len(args) == 0 {
+		if len(commandArgs) == 0 {
 			return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
 		}
-		acc, err := strconv.ParseUint(args[0], 0, 32)
+		acc, err := strconv.ParseUint(commandArgs[0], 0, 32)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
 		}
@@ -142,7 +142,7 @@ func (c *Client) receive(args []string, params map[string]interface{}) (*Respons
 	return c.cmdReceive(context.Background(), accountNumber)
 }
 
-func (c *Client) send(args []string, params map[string]interface{}) (*Response, error) {
+func (c *Client) send(commandArgs []string, params map[string]interface{}) (*Response, error) {
 	var sourceAccount uint32
 	var destinationAddress string
 	var sendAmount int64
@@ -204,7 +204,7 @@ func (c *Client) send(args []string, params map[string]interface{}) (*Response, 
 	return c.cmdSendTransaction(ctx, sourceAccount, destinationAddress, sendAmount, passphrase)
 }
 
-func (c *Client) balance(args []string, params map[string]interface{}) (*Response, error) {
+func (c *Client) balance(commandArgs []string, params map[string]interface{}) (*Response, error) {
 	return c.cmdBalance(context.Background())
 }
 

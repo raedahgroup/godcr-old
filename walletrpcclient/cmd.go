@@ -170,7 +170,7 @@ func (c *Client) cmdWalletVersion(ctx context.Context) (*Response, error) {
 
 // listCommands lists all supported commands
 // requires no parameter
-func (c *Client) cmdListCommands(ctx context.Context) (*Response, error) {
+func (c *Client) cmdListCommands() (*Response, error) {
 	res := &Response{
 		Columns: []string{"Command", "Description"},
 	}
