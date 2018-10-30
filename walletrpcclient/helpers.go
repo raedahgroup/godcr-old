@@ -16,7 +16,7 @@ func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32
 	// get accounts
 	accountsRes, err := c.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
-		return 0, fmt.Errorf("error fetching accounts. err: %s", err.Error())
+		return 0, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
 	promptItems := []string{}
@@ -29,13 +29,13 @@ func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32
 
 		balanceRes, err := c.Balance(ctx, balanceReq)
 		if err != nil {
-			return 0, fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
+			return 0, fmt.Errorf("error fetching balance for account %d: %s", v.AccountNumber, err.Error())
 		}
 
 		item := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(balanceRes.Total).String())
+		fmt.Println(v.AccountNumber)
 		promptItems = append(promptItems, item)
 		accounts[item] = v.AccountNumber
-
 	}
 
 	prompt := promptui.Select{
@@ -68,7 +68,7 @@ func getSendDestinationAddress(c pb.WalletServiceClient, ctx context.Context) (s
 		}
 
 		if !r.IsValid {
-			return errors.New("Invalid address")
+			return errors.New("invalid address")
 		}
 		return nil
 	}
