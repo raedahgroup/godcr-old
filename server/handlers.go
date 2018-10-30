@@ -65,7 +65,7 @@ func (s *Server) overview(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) version(w http.ResponseWriter, req *http.Request) {
-	res, err := s.walletClient.RunCommand("walletVersion", nil)
+	res, err := s.walletClient.RunCommand("walletversion", nil)
 	if err != nil {
 		s.renderError(w, req, err)
 		return

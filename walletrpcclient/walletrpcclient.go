@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/decred/dcrd/txscript"
-
 	"github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/txscript"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -77,7 +76,24 @@ func (c *Client) Connect(address, cert string, noTLS bool) error {
 
 	c.wc = pb.NewWalletServiceClient(conn)
 	c.vc = pb.NewVersionServiceClient(conn)
+
 	return nil
+}
+
+// listCommands lists all supported commands
+// requires no parameter
+func (c *Client) ListSupportedCommands() *Response {
+	res := &Response{
+		Columns: []string{"Command", "Description"},
+	}
+	for i, v := range c.commands {
+		item := []interface{}{
+			v,
+			c.descriptions[i],
+		}
+		res.Result = append(res.Result, item)
+	}
+	return res
 }
 
 // IsCommandSupported returns a boolean whose value depends on if a command is registered as suppurted along
@@ -91,7 +107,12 @@ func (c *Client) IsCommandSupported(command string) bool {
 // This should only be called after verifying that the command is supported using the IsCommandSupported
 // function.
 func (c *Client) RunCommand(command string, opts []string) (*Response, error) {
-	handler := c.funcMap[command]
+	handler, validCommand := c.funcMap[command]
+	if !validCommand {
+		err := errors.New("unrecognized command: " + command)
+		return nil, err
+	}
+
 	ctx := context.Background()
 
 	res, err := handler(ctx, opts)
@@ -149,7 +170,7 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 
 	cRes, err := c.wc.ConstructTransaction(ctx, cReq)
 	if err != nil {
-		return nil, fmt.Errorf("Error constructing transaction: %s", err.Error())
+		return nil, fmt.Errorf("error constructing transaction: %s", err.Error())
 	}
 
 	passphrase, err := getWalletPassphrase(c.wc, ctx)
@@ -200,7 +221,7 @@ func (c *Client) sendTransaction(ctx context.Context, opts []string) (*Response,
 func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) {
 	accountsRes, err := c.wc.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("error fetching accounts. err: %s", err.Error())
+		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
 	balances := make([][]interface{}, len(accountsRes.Accounts))
@@ -212,7 +233,7 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 
 		balanceRes, err := c.wc.Balance(ctx, balanceReq)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching balance for account: %d. err: %s", v.AccountNumber, err.Error())
+			return nil, fmt.Errorf("error fetching balance for account %d: %s", v.AccountNumber, err.Error())
 		}
 
 		balances[i] = []interface{}{
@@ -243,15 +264,15 @@ func (c *Client) balance(ctx context.Context, opts []string) (*Response, error) 
 }
 
 // receive returns a generated address, and generates a qr code for recieving funds
-// requires no parameter
+// opts should contain account number in pos 0
 func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) {
 	if len(opts) == 0 {
-		return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
+		return nil, errors.New("command requires 1 argument (account number)\nExample usage: receive 2147483647")
 	}
 
 	accountNumber, err := strconv.ParseUint(opts[0], 0, 32)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
+		return nil, fmt.Errorf("error parsing account number: %s", err.Error())
 	}
 
 	// TODO this should be optionally supplied by the user
@@ -267,7 +288,7 @@ func (c *Client) receive(ctx context.Context, opts []string) (*Response, error) 
 
 	r, err := c.wc.NextAddress(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("error getting receive address: err: %s", err.Error())
+		return nil, fmt.Errorf("error getting receive address: %s", err.Error())
 	}
 
 	res := &Response{
@@ -306,25 +327,8 @@ func (c *Client) walletVersion(ctx context.Context, opts []string) (*Response, e
 	return res, nil
 }
 
-// listCommands lists all supported commands
-// requires no parameter
-func (c *Client) listCommands(ctx context.Context, opts []string) (*Response, error) {
-	res := &Response{
-		Columns: []string{"Command", "Description"},
-	}
-	for i, v := range c.commands {
-		item := []interface{}{
-			v,
-			c.descriptions[i],
-		}
-		res.Result = append(res.Result, item)
-	}
-	return res, nil
-}
-
 func (c *Client) registerHandlers() {
-	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
-	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.sendTransaction)
+	c.RegisterHandler("send", "send", "Send DCR to address (interactive)", c.sendTransaction)
 	c.RegisterHandler("walletversion", "walletversion", "Show version of wallet", c.walletVersion)
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
