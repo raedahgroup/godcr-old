@@ -112,23 +112,17 @@ func (c *Client) listCommands(args []string, params map[string]interface{}) (*Re
 
 // receive calls the cmdReceive function.
 // parameters:
-// 1. where the command is called from. either web or terminal  (required); defaults to terminal
-// 2. accountNumber (required when called from web)
+// 1. where the command is called from. either web or cli  (required); defaults to cli
+// 2. accountNumber (required when not called from cli)
 func (c *Client) receive(args []string, params map[string]interface{}) (*Response, error) {
 	var accountNumber uint32
-	caller := "terminal"
+	caller := "cli"
 
 	if c, ok := params["caller"]; ok {
 		caller = c.(string)
 	}
 
-	if caller == "web" {
-		if acc, ok := params["accountNumber"]; ok {
-			accountNumber = acc.(uint32)
-		} else {
-			return nil, errors.New("account number is required")
-		}
-	} else {
+	if caller == "cli" {
 		if len(args) == 0 {
 			return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
 		}
@@ -137,6 +131,12 @@ func (c *Client) receive(args []string, params map[string]interface{}) (*Respons
 			return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
 		}
 		accountNumber = uint32(acc)
+	} else {
+		if acc, ok := params["accountNumber"]; ok {
+			accountNumber = acc.(uint32)
+		} else {
+			return nil, errors.New("account number is required")
+		}
 	}
 
 	return c.cmdReceive(context.Background(), accountNumber)
@@ -149,13 +149,33 @@ func (c *Client) send(args []string, params map[string]interface{}) (*Response, 
 	var passphrase string
 	var err error
 
-	caller := "terminal"
+	caller := "cli"
 	if c, ok := params["caller"]; ok {
 		caller = c.(string)
 	}
 
 	ctx := context.Background()
-	if caller == "web" {
+	if caller == "cli" {
+		sourceAccount, err = getSendSourceAccount(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		destinationAddress, err = getSendDestinationAddress(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		sendAmount, err = getSendAmount(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		passphrase, err = getWalletPassphrase(c.wc, ctx)
+		if err != nil {
+			return nil, err
+		}
+	} else {
 		if sAcc, ok := params["sourceAccount"]; ok {
 			sourceAccount = sAcc.(uint32)
 		} else {
@@ -178,26 +198,6 @@ func (c *Client) send(args []string, params map[string]interface{}) (*Response, 
 			passphrase = pass.(string)
 		} else {
 			return nil, errors.New("passphrase is required")
-		}
-	} else {
-		sourceAccount, err = getSendSourceAccount(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		destinationAddress, err = getSendDestinationAddress(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		sendAmount, err = getSendAmount(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		passphrase, err = getWalletPassphrase(c.wc, ctx)
-		if err != nil {
-			return nil, err
 		}
 	}
 
