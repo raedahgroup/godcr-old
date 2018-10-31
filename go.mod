@@ -5,7 +5,6 @@ require (
 	github.com/btcsuite/go-flags v0.0.0-20150116065318-6c288d648c1c
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/decred/dcrd/dcrutil v1.1.1
-	github.com/decred/dcrd/txscript v1.0.1 // indirect
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
