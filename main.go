@@ -79,6 +79,6 @@ func enterCliMode(config *config, args []string) {
 		os.Exit(1)
 	}
 
-	cli := cli.New(client, AppName)
-	cli.RunCommand(args)
+	c := cli.New(client, AppName)
+	c.RunCommand(args)
 }
