@@ -58,10 +58,6 @@ func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, er
 	return conn, nil
 }
 
-type SendResult struct {
-	TransactionHash string `json:"transaction_hash"`
-}
-
 func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
 	// decode destination address
 	addr, err := dcrutil.DecodeAddress(destinationAddress)
@@ -122,16 +118,6 @@ func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, pa
 	return response, nil
 }
 
-type AccountBalanceResult struct {
-	AccountName     string         `json:"account_name"`
-	AccountNumber   uint32         `json:"account_number"`
-	Total           dcrutil.Amount `json:"total"`
-	Spendable       dcrutil.Amount `json:"spendable"`
-	LockedByTickets dcrutil.Amount `json:"locked_by_tickets"`
-	VotingAuthority dcrutil.Amount `json:"voting_authority"`
-	Unconfirmed     dcrutil.Amount `json:"unconfirmed"`
-}
-
 func (c *Client) Balance() ([]AccountBalanceResult, error) {
 	ctx := context.Background()
 	accounts, err := c.walletServiceClient.Accounts(ctx, &pb.AccountsRequest{})
@@ -163,10 +149,6 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 	}
 
 	return balanceResult, nil
-}
-
-type ReceiveResult struct {
-	Address string
 }
 
 func (c *Client) Receive(accountNumber uint32) (*ReceiveResult, error) {
