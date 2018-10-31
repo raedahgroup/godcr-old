@@ -1,41 +1,29 @@
-package walletrpcclient
+package cli
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/manifoldco/promptui"
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
 
 	"github.com/decred/dcrd/dcrutil"
-	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 )
 
-func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32, error) {
-	// get accounts
-	accountsRes, err := c.Accounts(ctx, &pb.AccountsRequest{})
+func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
+	// get send  accounts
+	accounts, err := c.Balance()
 	if err != nil {
-		return 0, fmt.Errorf("error fetching accounts: %s", err.Error())
+		return 0, err
 	}
 
 	promptItems := []string{}
-	accounts := map[string]uint32{}
-	for _, v := range accountsRes.Accounts {
-		balanceReq := &pb.BalanceRequest{
-			AccountNumber:         v.AccountNumber,
-			RequiredConfirmations: 0,
-		}
-
-		balanceRes, err := c.Balance(ctx, balanceReq)
-		if err != nil {
-			return 0, fmt.Errorf("error fetching balance for account %d: %s", v.AccountNumber, err.Error())
-		}
-
-		item := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(balanceRes.Total).String())
-		fmt.Println(v.AccountNumber)
-		promptItems = append(promptItems, item)
-		accounts[item] = v.AccountNumber
+	accountItems := map[string]uint32{}
+	for _, v := range accounts {
+		itemStr := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(v.Total).String())
+		promptItems = append(promptItems, itemStr)
+		accountItems[itemStr] = v.AccountNumber
 	}
 
 	prompt := promptui.Select{
@@ -48,7 +36,7 @@ func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
 
-	account, ok := accounts[result]
+	account, ok := accountItems[result]
 	if !ok {
 		return 0, fmt.Errorf("error selecting account")
 	}
@@ -56,18 +44,14 @@ func getSendSourceAccount(c pb.WalletServiceClient, ctx context.Context) (uint32
 	return account, nil
 }
 
-func getSendDestinationAddress(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	validate := func(address string) error {
-		req := &pb.ValidateAddressRequest{
-			Address: address,
-		}
-
-		r, err := c.ValidateAddress(ctx, req)
+		isValid, err := c.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}
 
-		if !r.IsValid {
+		if !isValid {
 			return errors.New("invalid address")
 		}
 		return nil
@@ -86,7 +70,7 @@ func getSendDestinationAddress(c pb.WalletServiceClient, ctx context.Context) (s
 	return result, nil
 }
 
-func getSendAmount(c pb.WalletServiceClient, ctx context.Context) (int64, error) {
+func getSendAmount() (int64, error) {
 	var amount int64
 	var err error
 
@@ -111,7 +95,7 @@ func getSendAmount(c pb.WalletServiceClient, ctx context.Context) (int64, error)
 	return amount, nil
 }
 
-func getWalletPassphrase(c pb.WalletServiceClient, ctx context.Context) (string, error) {
+func getWalletPassphrase() (string, error) {
 	prompt := promptui.Prompt{
 		Label: "Wallet Passphrase",
 		Mask:  '*',

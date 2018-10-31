@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
-	"text/tabwriter"
 
+	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/server"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
@@ -62,8 +61,7 @@ func enterHttpMode(config *config) {
 		os.Exit(1)
 	}
 
-	client := walletrpcclient.New()
-	err := client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -74,90 +72,13 @@ func enterHttpMode(config *config) {
 }
 
 func enterCliMode(config *config, args []string) {
-	client := walletrpcclient.New()
-
-	if len(args) == 0 {
-		noCommandReceived(client)
-		os.Exit(0)
-	}
-
-	command := args[0]
-	if command == "-l" {
-		showAvailableCommands(client)
-	}
-
-	if !client.IsCommandSupported(command) {
-		invalidCommandReceived(command)
-		os.Exit(1)
-	}
-
-	cliExecuteCommand(client, command, config, args)
-}
-
-func cliExecuteCommand(client *walletrpcclient.Client, command string, config *config, args []string) {
-	// open connection to rpc client
-	err := client.Connect(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	// get arguments for this command, where command = args[0]
-	commandArgs := args[1:]
-
-	res, err := client.RunCommand(command, commandArgs)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error running command '%s %s'", AppName, command)
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	printResult(res)
-}
-
-func printResult(res *walletrpcclient.Response) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-	header := ""
-	spaceRow := ""
-	columnLength := len(res.Columns)
-
-	for i := range res.Columns {
-		tab := " \t "
-		if columnLength == i+1 {
-			tab = " "
-		}
-		header += res.Columns[i] + tab
-		spaceRow += " " + tab
-	}
-
-	fmt.Fprintln(w, header)
-	fmt.Fprintln(w, spaceRow)
-	for _, row := range res.Result {
-		rowStr := ""
-		for range row {
-			rowStr += "%v \t "
-		}
-
-		rowStr = strings.TrimSuffix(rowStr, "\t ")
-		fmt.Fprintln(w, fmt.Sprintf(rowStr, row...))
-	}
-
-	w.Flush()
-}
-
-func showAvailableCommands(client *walletrpcclient.Client) {
-	commands := client.ListSupportedCommands()
-	printResult(commands)
-}
-
-func noCommandReceived(client *walletrpcclient.Client) {
-	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", AppName)
-	fmt.Printf("available %s commands:\n", AppName)
-	showAvailableCommands(client)
-	fmt.Printf("\nFor available options, see '%s -h'\n", AppName)
-}
-
-func invalidCommandReceived(command string) {
-	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", AppName, command, AppName)
+	c := cli.New(client, AppName)
+	c.RunCommand(args)
 }
