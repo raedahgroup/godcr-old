@@ -49,6 +49,7 @@ func (s *Server) loadTemplates() {
 	layout := "server/views/layout.html"
 	tpls := map[string]string{
 		"balance.html": "server/views/balance.html",
+		"send.html":    "server/views/send.html",
 	}
 
 	for i, v := range tpls {
