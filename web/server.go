@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -46,10 +47,11 @@ func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
 }
 
 func (s *Server) loadTemplates() {
-	layout := "server/views/layout.html"
+	layout := "web/views/layout.html"
 	tpls := map[string]string{
-		"balance.html": "server/views/balance.html",
-		"send.html":    "server/views/send.html",
+		"balance.html": "web/views/balance.html",
+		"send.html":    "web/views/send.html",
+		"receive.html": "web/views/receive.html",
 	}
 
 	for i, v := range tpls {
@@ -102,4 +104,14 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/send", s.GetSend)
 	r.Post("/send", s.PostSend)
 	r.Get("/receive", s.GetReceive)
+}
+
+func renderJSON(data interface{}, res http.ResponseWriter) {
+	d, err := json.Marshal(data)
+	if err != nil {
+		log.Fatalf("error marshalling data: %s", err.Error())
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.Write(d)
 }

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
@@ -166,19 +165,13 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 	res := &response{
 		columns: []string{
 			"Address",
-			"QR Code",
 		},
 		result: [][]interface{}{
 			[]interface{}{
 				r.Address,
-				"",
 			},
 		},
 	}
-
-	obj := qrcodeTerminal.New()
-	obj.Get(r.Address).Print()
-
 	return res, nil
 }
 
