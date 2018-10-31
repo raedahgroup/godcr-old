@@ -1,0 +1,67 @@
+{{ define "html-head" }}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="dcrcli">
+    <meta name="author" content="The Decred developers">
+    <title>{{.}}</title>
+    <link rel="stylesheet" href="/static/font/material-icons.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+</head>
+{{ end }}
+
+{{ define "header" }}
+<div class="header">
+    <div class="header-top">
+        <div class="inner">
+            <div class="container">
+                <div class="text-center">
+                    <h3>DCRCLI</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="navbar navbar-expand-sm navbar-light bg-light">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-toggles="collapse" data-target="#nav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="icon material-icons">account_balance_wallet</i>
+                            <span class="text">Balance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/send">
+                            <i class="icon icon material-icons">send</i>
+                            <span class="text">Send</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/receive">
+                            <i class="icon icon material-icons"></i>
+                            <span class="text">Receive</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+{{ end }}
+
+{{ define "footer" }}
+<div class="footer">
+    <div class="inner">
+        <div class="text-center"></div>
+    </div>
+</div>
+{{ end }}
