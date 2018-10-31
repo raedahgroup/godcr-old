@@ -72,29 +72,6 @@ func enterHttpMode(config *config) {
 }
 
 func enterCliMode(config *config, args []string) {
-	//client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
-	cli := cli.New()
-
-	if len(args) == 0 {
-		noCommandReceived(cli)
-		os.Exit(0)
-	}
-
-	command := args[0]
-	if command == "-l" {
-		showAvailableCommands(cli)
-	}
-
-	if !cli.IsCommandSupported(command) {
-		invalidCommandReceived(command)
-		os.Exit(1)
-	}
-
-	cliExecuteCommand(cli, command, config, args)
-}
-
-func cliExecuteCommand(cli *cli.CLI, command string, config *config, args []string) {
-	// open connection to rpc client
 	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
@@ -102,23 +79,6 @@ func cliExecuteCommand(cli *cli.CLI, command string, config *config, args []stri
 		os.Exit(1)
 	}
 
-	// get arguments for this command, where command = args[0]
-	commandArgs := args[1:]
-
-	cli.RunCommand(command, commandArgs, client)
-}
-
-func showAvailableCommands(cli *cli.CLI) {
-	cli.RunCommand("listcommands", nil, nil)
-}
-
-func noCommandReceived(client *cli.CLI) {
-	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", AppName)
-	fmt.Printf("available %s commands:\n", AppName)
-	showAvailableCommands(client)
-	fmt.Printf("\nFor available options, see '%s -h'\n", AppName)
-}
-
-func invalidCommandReceived(command string) {
-	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", AppName, command, AppName)
+	cli := cli.New(client, AppName)
+	cli.RunCommand(args)
 }
