@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                {{ if .error }}
+                <div class="alert alert-danger">{{ .error }}</div>
+                {{ else }}
+                <div class="card">
+                   <div class="card-body">
+                       <h5 class="card-title">Generate Receive Address</h5>
+                       <form method="POST" action="/receive/generate" id="generate-form">
+                            <div class="row">
+                                <div class="col-md-9 col-sm-12">
+                                  <div class="form-group">
+                                      <label for="account">Account</label>
+                                      <select class="form-control" name="account" id="account">
+                                          {{ range $s := .accounts }}
+                                          <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                          {{ end }}
+                                      </select>
+                                  </div>
+                                </div>
+                                <div class="col-md-3 col-sm-12">
+                                    <div class="form-group btn-form-group">
+                                      <button type="submit" id="submit" class="btn btn-success form-control">Generate</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="result-card">
+                            <div id="result-text">
+                                <strong>Address:</strong>
+                                <span id="address"></span>
+                            </div>
+                            <div id="result-img"></div>
+                        </div>
+                   </div>
+                </div>
+               {{ end }}
+            </div>
+        </div>
+    </div>
+    <style>
+        .btn-form-group {
+            padding-top: 26px;
+        }
+    </style>
+    <script>
+        $(function(){
+            var form = $("#generate-form");
+            $("#result-text").hide();
+
+            form.submit(function(e){
+                e.preventDefault()
+                $.ajax({
+                    type: 'GET',
+                    url: '/receive/generate',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            $("#address").text(response.address)
+                            $("#result-img").html(response.imageStr)
+                            $("#result-text").show();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("an error occurred");
+                    }
+                })
+            })
+        });
+    </script>
+</body>
+</html>

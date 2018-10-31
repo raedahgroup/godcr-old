@@ -12,17 +12,23 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            {{ range $s := .result.Columns }}
-                            <th>{{ $s }}</th>
-                            {{ end }}
+                            <th>Account Name</th>
+                            <th>Total</th>
+                            <th>Spendable</th>
+                            <th>Locked By Tickets</th>
+                            <th>Voting Authority</th>
+                            <th>Unconfirmed</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {{ range $s := .result.Result }}
+                        {{ range $s := .result }}
                         <tr>
-                            {{ range $v := $s }}
-                            <td>{{ $v }}</td>
-                            {{ end }}
+                           <td>{{ $s.AccountName }}</td>
+                           <td>{{ $s.Total }}</td>
+                           <td>{{ $s.Spendable }}</td>
+                           <td>{{ $s.LockedByTickets }}</td>
+                           <td>{{ $s.VotingAuthority }}</td>
+                           <td>{{ $s.Unconfirmed }}</td>
                         </tr>
                         {{ end }}
                     </tbody>

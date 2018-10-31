@@ -6,6 +6,11 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
+                {{ if .error }}
+                <div class="alert alert-danger">{{ .error }}</div>
+                {{ else if .success }}
+                <div class="alert alert-success">The transaction was published successfully. Hash: {{ .success }}</div>
+                {{ else }}
                <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Send DCR</h5>
@@ -14,23 +19,31 @@
                                 <div class="col-md-6 col-sm-12">
                                     <div class="form-group">
                                         <label for="sourceAccount">Source Account</label>
-                                        <select class="form-control" id="sourceAccount" name="sourceAccount">
-
+                                        <select class="form-control" id="sourceAccount" name="sourceAccount" required>
+                                            {{ range $s := .balances }}
+                                            <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                            {{ end }}
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-sm-12">
                                     <div class="form-group">
                                         <label for="amount">Amount (DCR)</label>
-                                        <input type="number" class="form-control" id="amount" name="amount" />
+                                        <input type="number" class="form-control" id="amount" name="amount" required />
                                     </div> 
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-12 col-sm-12">
+                                <div class="col-md-6 col-sm-6">
                                     <div class="form-group">
                                         <label for="destinationAddress">Destination Address</label>
-                                        <input type="text" class="form-control" id="destinationAddress" name="destinationAddress" />
+                                        <input type="text" class="form-control" id="destinationAddress" name="destinationAddress" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="walletPassphrase">Wallet Passphrase</label>
+                                        <input type="password" class="form-control" id="walletPassphrase" name="walletPassphrase" required />
                                     </div>
                                 </div>
                             </div>
@@ -45,6 +58,7 @@
                        </form>
                    </div>
                </div>
+               {{ end }}
             </div>
         </div>
     </div>
