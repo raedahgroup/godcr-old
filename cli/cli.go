@@ -22,15 +22,18 @@ type (
 		funcMap         map[string]Handler
 		commands        map[string]string
 		descriptions    map[string]string
+		appName         string
 		walletrpcclient *walletrpcclient.Client
 	}
 )
 
-func New() *CLI {
+func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 	client := &CLI{
-		funcMap:      make(map[string]Handler),
-		commands:     make(map[string]string),
-		descriptions: make(map[string]string),
+		funcMap:         make(map[string]Handler),
+		commands:        make(map[string]string),
+		descriptions:    make(map[string]string),
+		walletrpcclient: walletrpcclient,
+		appName:         appName,
 	}
 
 	// register handlers
@@ -39,19 +42,46 @@ func New() *CLI {
 	return client
 }
 
-func (c *CLI) RunCommand(command string, commandArgs []string, walletrpcclient *walletrpcclient.Client) {
-	c.walletrpcclient = walletrpcclient
+func (c *CLI) RunCommand(commandArgs []string) {
+	if len(commandArgs) == 0 {
+		c.noCommandReceived()
+		os.Exit(1)
+	}
+
+	command := commandArgs[0]
+	if !c.IsCommandSupported(command) {
+		if command == "-l" {
+			command = "listcommands"
+		} else {
+			c.invalidCommandReceived(command)
+			os.Exit(1)
+		}
+	}
+	if command == "-l" {
+		command = "listcommands"
+	}
 
 	handler := c.funcMap[command]
-	res, err := handler(commandArgs)
+	res, err := handler(commandArgs[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error executing command '%s'", command)
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	c.printResult(res)
+	printResult(res)
 	os.Exit(0)
+}
+
+func (c *CLI) noCommandReceived() {
+	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", c.appName)
+	fmt.Printf("available %s commands:\n", c.appName)
+	c.listCommands(nil)
+	fmt.Printf("\nFor available options, see '%s -h'\n", c.appName)
+}
+
+func (c *CLI) invalidCommandReceived(command string) {
+	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", c.appName, command, c.appName)
 }
 
 func (c *CLI) IsCommandSupported(command string) bool {
@@ -77,7 +107,7 @@ func (c *CLI) registerHandlers() {
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 }
 
-func (c *CLI) printResult(res *response) {
+func printResult(res *response) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 	header := ""
 	spaceRow := ""
