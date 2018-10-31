@@ -2,59 +2,47 @@ package walletrpcclient
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strconv"
 
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/txscript"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-type (
-	Response struct {
-		Columns []string
-		Result  [][]interface{}
-		Qrcode  bool
-	}
-	Handler func(commandArgs []string, params map[string]interface{}) (*Response, error)
-
-	Client struct {
-		funcMap      map[string]Handler
-		commands     map[string]string
-		descriptions map[string]string
-		wc           pb.WalletServiceClient
-		vc           pb.VersionServiceClient
-	}
-)
-
-func New() *Client {
-	client := &Client{
-		funcMap:      make(map[string]Handler),
-		commands:     make(map[string]string),
-		descriptions: make(map[string]string),
-	}
-
-	client.registerHandlers()
-	return client
+type Client struct {
+	walletServiceClient pb.WalletServiceClient
 }
 
-func (c *Client) Connect(address, cert string, noTLS bool) error {
+func New(address, cert string, noTLS bool) (*Client, error) {
+	c := &Client{}
+	conn, err := c.connect(address, cert, noTLS)
+	if err != nil {
+		return nil, err
+	}
+
+	// register clients
+	c.walletServiceClient = pb.NewWalletServiceClient(conn)
+
+	return c, nil
+}
+
+func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	var err error
 
 	if noTLS {
 		conn, err = grpc.Dial(address, grpc.WithInsecure())
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		creds, err := credentials.NewClientTLSFromFile(cert, "")
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		// dial options
 		opts := []grpc.DialOption{
 			grpc.WithTransportCredentials(
 				creds,
@@ -63,165 +51,154 @@ func (c *Client) Connect(address, cert string, noTLS bool) error {
 
 		conn, err = grpc.Dial(address, opts...)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	c.wc = pb.NewWalletServiceClient(conn)
-	c.vc = pb.NewVersionServiceClient(conn)
-
-	return nil
+	return conn, nil
 }
 
-// listCommands lists all supported commands
-// requires no parameter
-func (c *Client) ListSupportedCommands() *Response {
-	res := &Response{
-		Columns: []string{"Command", "Description"},
-	}
-	for i, v := range c.commands {
-		item := []interface{}{
-			v,
-			c.descriptions[i],
-		}
-		res.Result = append(res.Result, item)
-	}
-	return res
+type SendResult struct {
+	TransactionHash string `json:"transaction_hash"`
 }
 
-// IsCommandSupported returns a boolean whose value depends on if a command is registered as suppurted along
-// with it's func handler
-func (c *Client) IsCommandSupported(command string) bool {
-	_, ok := c.funcMap[command]
-	return ok
-}
-
-// RunCommand takes a command and tries to call the appropriate handler to call a gRPC service
-// This should only be called after verifying that the command is supported using the IsCommandSupported
-// function.
-func (c *Client) RunCommand(command string, commandArgs []string, params map[string]interface{}) (*Response, error) {
-	handler := c.funcMap[command]
-	res, err := handler(commandArgs, params)
-	return res, err
-}
-
-// listCommands calls the cmdListCommands. This requires no parameters to run
-func (c *Client) listCommands(commandArgs []string, params map[string]interface{}) (*Response, error) {
-	return c.cmdListCommands()
-}
-
-// receive calls the cmdReceive function.
-// parameters:
-// 1. where the command is called from. either web or cli  (required); defaults to cli
-// 2. accountNumber (required when not called from cli)
-func (c *Client) receive(commandArgs []string, params map[string]interface{}) (*Response, error) {
-	var accountNumber uint32
-	caller := "cli"
-
-	if c, ok := params["caller"]; ok {
-		caller = c.(string)
+func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
+	// decode destination address
+	addr, err := dcrutil.DecodeAddress(destinationAddress)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding destination address: %s", err.Error())
 	}
 
-	if caller == "cli" {
-		if len(commandArgs) == 0 {
-			return nil, errors.New("command 'receive' requires at least 1 param. 0 found \nUsage:\n  receive \"accountnumber\"")
-		}
-		acc, err := strconv.ParseUint(commandArgs[0], 0, 32)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing account number. err:%s", err.Error())
-		}
-		accountNumber = uint32(acc)
-	} else {
-		if acc, ok := params["accountNumber"]; ok {
-			accountNumber = acc.(uint32)
-		} else {
-			return nil, errors.New("account number is required")
-		}
+	// get script
+	pkScript, err := txscript.PayToAddrScript(addr)
+	if err != nil {
+		return nil, err
 	}
 
-	return c.cmdReceive(context.Background(), accountNumber)
-}
-
-func (c *Client) send(commandArgs []string, params map[string]interface{}) (*Response, error) {
-	var sourceAccount uint32
-	var destinationAddress string
-	var sendAmount int64
-	var passphrase string
-	var err error
-
-	caller := "cli"
-	if c, ok := params["caller"]; ok {
-		caller = c.(string)
+	// construct transaction
+	constructRequest := &pb.ConstructTransactionRequest{
+		SourceAccount: sourceAccount,
+		NonChangeOutputs: []*pb.ConstructTransactionRequest_Output{{
+			Destination: &pb.ConstructTransactionRequest_OutputDestination{
+				Script:        pkScript,
+				ScriptVersion: 0,
+			},
+			Amount: amount,
+		}},
 	}
 
 	ctx := context.Background()
-	if caller == "cli" {
-		sourceAccount, err = getSendSourceAccount(c.wc, ctx)
+
+	constructResponse, err := c.walletServiceClient.ConstructTransaction(ctx, constructRequest)
+	if err != nil {
+		return nil, fmt.Errorf("error constructing transaction: %s", err.Error())
+	}
+
+	// sign transaction
+	signRequest := &pb.SignTransactionRequest{
+		Passphrase:            []byte(passphrase),
+		SerializedTransaction: constructResponse.UnsignedTransaction,
+	}
+
+	signResponse, err := c.walletServiceClient.SignTransaction(ctx, signRequest)
+	if err != nil {
+		return nil, fmt.Errorf("error signing transaction: %s", err.Error())
+	}
+
+	// publish transaction
+	publishRequest := &pb.PublishTransactionRequest{
+		SignedTransaction: signResponse.Transaction,
+	}
+
+	publishResponse, err := c.walletServiceClient.PublishTransaction(ctx, publishRequest)
+	if err != nil {
+		return nil, fmt.Errorf("error publishing transaction: %s", err.Error())
+	}
+
+	response := &SendResult{
+		TransactionHash: string(publishResponse.TransactionHash),
+	}
+
+	return response, nil
+}
+
+type AccountBalanceResult struct {
+	AccountName     string         `json:"account_name"`
+	AccountNumber   uint32         `json:"account_number"`
+	Total           dcrutil.Amount `json:"total"`
+	Spendable       dcrutil.Amount `json:"spendable"`
+	LockedByTickets dcrutil.Amount `json:"locked_by_tickets"`
+	VotingAuthority dcrutil.Amount `json:"voting_authority"`
+	Unconfirmed     dcrutil.Amount `json:"unconfirmed"`
+}
+
+func (c *Client) Balance() ([]AccountBalanceResult, error) {
+	ctx := context.Background()
+	accounts, err := c.walletServiceClient.Accounts(ctx, &pb.AccountsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
+	}
+
+	balanceResult := make([]AccountBalanceResult, len(accounts.Accounts))
+	for i, v := range accounts.Accounts {
+		req := &pb.BalanceRequest{
+			AccountNumber:         v.AccountNumber,
+			RequiredConfirmations: 0,
+		}
+
+		res, err := c.walletServiceClient.Balance(ctx, req)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error fetching balance for account: %d :%s", v.AccountNumber, err.Error())
 		}
 
-		destinationAddress, err = getSendDestinationAddress(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		sendAmount, err = getSendAmount(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		passphrase, err = getWalletPassphrase(c.wc, ctx)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		if sAcc, ok := params["sourceAccount"]; ok {
-			sourceAccount = sAcc.(uint32)
-		} else {
-			return nil, errors.New("source account number is required")
-		}
-
-		if addr, ok := params["destinationAddress"]; ok {
-			destinationAddress = addr.(string)
-		} else {
-			return nil, errors.New("destination address is required")
-		}
-
-		if amt, ok := params["amount"]; ok {
-			sendAmount = amt.(int64)
-		} else {
-			return nil, errors.New("send amoount is required")
-		}
-
-		if pass, ok := params["passphrase"]; ok {
-			passphrase = pass.(string)
-		} else {
-			return nil, errors.New("passphrase is required")
+		balanceResult[i] = AccountBalanceResult{
+			AccountNumber:   v.AccountNumber,
+			AccountName:     v.AccountName,
+			Total:           dcrutil.Amount(res.Total),
+			Spendable:       dcrutil.Amount(res.Spendable),
+			LockedByTickets: dcrutil.Amount(res.LockedByTickets),
+			VotingAuthority: dcrutil.Amount(res.VotingAuthority),
+			Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
 		}
 	}
 
-	return c.cmdSendTransaction(ctx, sourceAccount, destinationAddress, sendAmount, passphrase)
+	return balanceResult, nil
 }
 
-func (c *Client) balance(commandArgs []string, params map[string]interface{}) (*Response, error) {
-	return c.cmdBalance(context.Background())
+type ReceiveResult struct {
+	Address string
 }
 
-// RegisterHandler registers a command, its description and its handler
-func (c *Client) RegisterHandler(key, command, description string, h Handler) {
-	if _, ok := c.funcMap[key]; ok {
-		panic("trying to register a handler twice: " + key)
+func (c *Client) Receive(accountNumber uint32) (*ReceiveResult, error) {
+	ctx := context.Background()
+
+	req := &pb.NextAddressRequest{
+		Account:   accountNumber,
+		GapPolicy: pb.NextAddressRequest_GAP_POLICY_WRAP,
+		Kind:      pb.NextAddressRequest_BIP0044_EXTERNAL,
 	}
 
-	c.funcMap[key] = h
-	c.commands[key] = command
-	c.descriptions[key] = description
+	r, err := c.walletServiceClient.NextAddress(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("error generating receive address: %s", err.Error())
+	}
+
+	res := &ReceiveResult{
+		Address: r.Address,
+	}
+
+	return res, nil
 }
 
-func (c *Client) registerHandlers() {
-	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
-	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
-	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
-	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
+func (c *Client) ValidateAddress(address string) (bool, error) {
+	req := &pb.ValidateAddressRequest{
+		Address: address,
+	}
+
+	r, err := c.walletServiceClient.ValidateAddress(context.Background(), req)
+	if err != nil {
+		return false, err
+	}
+
+	return r.IsValid, nil
 }
