@@ -17,7 +17,8 @@ func (s *Server) GetBalance(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) GetSend(res http.ResponseWriter, req *http.Request) {
-
+	data := map[string]interface{}{}
+	s.render("send.html", data, res)
 }
 
 func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {

@@ -45,3 +45,15 @@ tbody td {
     margin-top: 5px;
     padding: 1.5rem 1.2rem !important;
 }
+
+.card-body {
+    padding: 1.3rem 1.8rem !important;
+}
+
+.form-control {
+    border-radius: 0px;
+}
+
+.btn i {
+    font-size: 12px;
+}
