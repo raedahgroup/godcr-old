@@ -49,16 +49,11 @@ func (c *CLI) RunCommand(commandArgs []string) {
 	}
 
 	command := commandArgs[0]
-	if !c.IsCommandSupported(command) {
-		if command == "-l" {
-			command = "listcommands"
-		} else {
-			c.invalidCommandReceived(command)
-			os.Exit(1)
-		}
-	}
 	if command == "-l" {
 		command = "listcommands"
+	} else if !c.IsCommandSupported(command) {
+		c.invalidCommandReceived(command)
+		os.Exit(1)
 	}
 
 	handler := c.funcMap[command]
