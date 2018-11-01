@@ -104,6 +104,7 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/send", s.GetSend)
 	r.Post("/send", s.PostSend)
 	r.Get("/receive", s.GetReceive)
+	r.Get("/receive/generate/{accountNumber}", s.GetReceiveGenerate)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {
