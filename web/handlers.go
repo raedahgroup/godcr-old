@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -75,11 +76,13 @@ func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
 	s.render("receive.html", data, res)
 }
 
+// GetReceiveGenerate calls walletrpcclient to  generate an address where DCR can be sent to
+// this function is called via ajax
 func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	accountNumberStr := chi.URLParam(req, "account")
+	accountNumberStr := chi.URLParam(req, "accountNumber")
 	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 32)
 	if err != nil {
 		data["success"] = false
@@ -101,7 +104,9 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	imgStr := "data:image/png;base64," + string(png)
+	// encode to base64
+	encodedStr := base64.StdEncoding.EncodeToString(png)
+	imgStr := "data:image/png;base64," + encodedStr
 
 	data["success"] = true
 	data["address"] = addr.Address

@@ -48,6 +48,10 @@
         .btn-form-group {
             padding-top: 26px;
         }
+
+        .result-card {
+            font-size: 20px;
+        }
     </style>
     <script>
         $(function(){
@@ -58,8 +62,8 @@
                 e.preventDefault()
                 $.ajax({
                     type: 'GET',
-                    url: '/receive/generate',
-                    data: form.serialize(),
+                    url: '/receive/generate/' + $("#account").val(),
+                    data: {},
                     success: function(response) {
                         if (response.success) {
                             $("#address").text(response.address)
