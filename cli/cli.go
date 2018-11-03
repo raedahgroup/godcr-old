@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -43,6 +44,16 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 }
 
 func (c *CLI) RunCommand(commandArgs []string) {
+	// Catch a ^C interrupt.
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+	go func() {
+		for _ = range signalChannel {
+			fmt.Println("\n^C interrupt, caught on main")
+			//os.Exit(1)
+		}
+	}()
+
 	if len(commandArgs) == 0 {
 		c.noCommandReceived()
 		os.Exit(1)
@@ -59,7 +70,7 @@ func (c *CLI) RunCommand(commandArgs []string) {
 	handler := c.funcMap[command]
 	res, err := handler(commandArgs[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing command '%s'", command)
+		fmt.Fprintf(os.Stderr, "Error executing command '%s'\n", command)
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
@@ -100,6 +111,7 @@ func (c *CLI) registerHandlers() {
 	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
 	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
+	c.RegisterHandler("nextaccount", "nextaccount", "Generate next account for wallet", c.nextAccount)
 }
 
 func printResult(res *response) {
@@ -217,6 +229,38 @@ func (c *CLI) send(commandArgs []string) (*response, error) {
 			[]interface{}{
 				"The transaction was published successfully",
 				result.TransactionHash,
+			},
+		},
+	}
+
+	return res, nil
+}
+
+func (c *CLI) nextAccount(commandArgs []string) (*response, error) {
+	if len(commandArgs) == 0 {
+		return nil, errors.New("account name is required")
+	}
+
+	accountName := commandArgs[0]
+	passphrase, err := getPassword("Wallet Passphrase")
+	if err != nil {
+		return nil, err
+	}
+
+	accountNumber, err := c.walletrpcclient.NextAccount(accountName, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &response{
+		columns: []string{
+			"Account Name",
+			"Account Number",
+		},
+		result: [][]interface{}{
+			[]interface{}{
+				accountName,
+				accountNumber,
 			},
 		},
 	}
