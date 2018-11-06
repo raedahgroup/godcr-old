@@ -3,6 +3,7 @@ package walletrpcclient
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -197,8 +198,8 @@ func (c *Client) ValidateAddress(address string) (bool, error) {
 
 func (c *Client) NextAccount(accountName string, passphrase string) (uint32, error) {
 	req := &pb.NextAccountRequest{
-		AccountName:accountName,
-		Passphrase:[]byte(passphrase),
+		AccountName: accountName,
+		Passphrase:  []byte(passphrase),
 	}
 
 	r, err := c.walletServiceClient.NextAccount(context.Background(), req)
@@ -207,4 +208,45 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	}
 
 	return r.AccountNumber, nil
+}
+
+func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentOutputsResult, error) {
+	req := &pb.UnspentOutputsRequest{
+		Account:                  account,
+		TargetAmount:             targetAmount,
+		RequiredConfirmations:    0,
+		IncludeImmatureCoinbases: true,
+	}
+
+	stream, err := c.walletServiceClient.UnspentOutputs(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	outputs := []*UnspentOutputsResult{}
+
+	for {
+		item, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		outputItem := &UnspentOutputsResult{
+			TransactionHash: item.TransactionHash,
+			OutputIndex:     item.OutputIndex,
+			Amount:          item.Amount,
+			PkScript:        item.PkScript,
+			AmountSum:       item.AmountSum,
+			ReceiveTime:     item.ReceiveTime,
+			Tree:            item.Tree,
+			FromCoinbase:    item.FromCoinbase,
+		}
+		outputs = append(outputs, outputItem)
+	}
+
+	return outputs, nil
 }
