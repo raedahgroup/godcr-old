@@ -46,10 +46,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="icon icon material-icons">send</i>
-                                        Send
-                                    </button>
+                                    <button type="submit" id="submit-btn" class="btn btn-success">Send</button>
                                 </div>
                             </div>
                        </form>
@@ -75,11 +72,15 @@
         }
         $(function(){
             var form = $("#send-form");
+            var submit_btn = $("#submit-btn");
+            
             $(".alert-success").hide();
             $(".alert-danger").hide();
 
             form.on("submit", function(e){
                 e.preventDefault();
+                submit_btn.attr("disabled", "disabled").html("Sending...");
+
                 $.ajax({
                     url: form.attr("action"),
                     method: "POST",
@@ -93,6 +94,9 @@
                     },
                     error: function(error) {
                         setErrorMessage("A server error occurred")
+                    },
+                    complete: function() {
+                        submit_btn.removeAttr("disabled").html("Send");
                     }
                 })
             })
