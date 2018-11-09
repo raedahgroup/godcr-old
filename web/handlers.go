@@ -55,13 +55,13 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := s.walletClient.Send(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	result, err := s.walletClient.Send(amount*100000000, uint32(sourceAccount), destinationAddressStr, passphraseStr)
 	if err != nil {
 		data["error"] = err.Error()
 		return
 	}
 
-	data["success"] = base64.StdEncoding.EncodeToString([]byte(result.TransactionHash))
+	data["success"] = result.TransactionHash
 }
 
 func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
