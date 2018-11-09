@@ -6,15 +6,12 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                {{ if .error }}
-                <div class="alert alert-danger">{{ .error }}</div>
-                {{ else if .success }}
-                <div class="alert alert-success">The transaction was published successfully. Hash: {{ .success }}</div>
-                {{ else }}
+                <div class="alert alert-danger"></div>
+                <div class="alert alert-success"></div>
                <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Send DCR</h5>
-                       <form method="POST" action="/send">
+                       <form method="POST" action="/send" id="send-form">
                             <div class="row">
                                 <div class="col-md-6 col-sm-12">
                                     <div class="form-group">
@@ -58,9 +55,48 @@
                        </form>
                    </div>
                </div>
-               {{ end }}
             </div>
         </div>
     </div>
+    <style>
+        .alert {
+            display: none;
+        }
+    </style>
+    <script>
+        function setErrorMessage(message) {
+            $(".alert-success").hide();
+            $(".alert-danger").html(message).show()
+        }
+        function setSuccessMessage(message) {
+            var m = "The transaction was published successfully. Hash: <strong>" + message + "</strong>";
+            $(".alert-danger").hide();
+            $(".alert-success").html(m);
+        }
+        $(function(){
+            var form = $("#send-form");
+            $(".alert-success").hide();
+            $(".alert-danger").hide();
+
+            form.on("submit", function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: form.attr("action"),
+                    method: "POST",
+                    data: form.serialize(),
+                    success: function(response){
+                        if (typeof response.success != "undefined") {
+                            setSuccessMessage(response.success) 
+                        } else {
+                            setErrorMessage(response.error) 
+                        }
+                    },
+                    error: function(error) {
+                        setErrorMessage("A server error occurred")
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 </html>
