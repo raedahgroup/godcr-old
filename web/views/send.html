@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <div class="alert alert-danger"></div>
+                <div class="alert alert-success"></div>
+               <div class="card">
+                   <div class="card-body">
+                       <h5 class="card-title">Send DCR</h5>
+                       <form method="POST" action="/send" id="send-form">
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="sourceAccount">Source Account</label>
+                                        <select class="form-control" id="sourceAccount" name="sourceAccount" required>
+                                            {{ range $s := .balances }}
+                                            <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                            {{ end }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="amount">Amount (DCR)</label>
+                                        <input type="number" class="form-control" id="amount" name="amount" required />
+                                    </div> 
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="destinationAddress">Destination Address</label>
+                                        <input type="text" class="form-control" id="destinationAddress" name="destinationAddress" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="walletPassphrase">Wallet Passphrase</label>
+                                        <input type="password" class="form-control" id="walletPassphrase" name="walletPassphrase" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <button type="submit" id="submit-btn" class="btn btn-success">Send</button>
+                                </div>
+                            </div>
+                       </form>
+                   </div>
+               </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        .alert {
+            display: none;
+        }
+    </style>
+    <script>
+        function setErrorMessage(message) {
+            $(".alert-success").hide();
+            $(".alert-danger").html(message).show()
+        }
+        function setSuccessMessage(message) {
+            var m = "The transaction was published successfully. Hash: <strong>" + message + "</strong>";
+            $(".alert-danger").hide();
+            $(".alert-success").html(m).show();
+        }
+        $(function(){
+            var form = $("#send-form");
+            var submit_btn = $("#submit-btn");
+            
+            $(".alert-success").hide();
+            $(".alert-danger").hide();
+
+            form.on("submit", function(e){
+                e.preventDefault();
+                submit_btn.attr("disabled", "disabled").html("Sending...");
+
+                $.ajax({
+                    url: form.attr("action"),
+                    method: "POST",
+                    data: form.serialize(),
+                    success: function(response){
+                        if (typeof response.success != "undefined") {
+                            setSuccessMessage(response.success) 
+                        } else {
+                            setErrorMessage(response.error) 
+                        }
+                    },
+                    error: function(error) {
+                        setErrorMessage("A server error occurred")
+                    },
+                    complete: function() {
+                        submit_btn.removeAttr("disabled").html("Send");
+                    }
+                })
+            })
+        })
+    </script>
+</body>
+</html>

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 type (
@@ -163,6 +163,11 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 		return nil, err
 	}
 
+	qr, err := qrcode.New(r.Address, qrcode.Medium)
+	if err != nil {
+		return nil, fmt.Errorf("Error generating QR Code: %s", err.Error())
+	}
+
 	res := &response{
 		columns: []string{
 			"Address",
@@ -171,14 +176,10 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 		result: [][]interface{}{
 			[]interface{}{
 				r.Address,
-				"",
+				qr.ToString(true),
 			},
 		},
 	}
-
-	obj := qrcodeTerminal.New()
-	obj.Get(r.Address).Print()
-
 	return res, nil
 }
 
