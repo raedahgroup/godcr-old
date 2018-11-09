@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"text/template"
 
@@ -19,7 +18,6 @@ import (
 type Server struct {
 	walletClient *walletrpcclient.Client
 	templates    map[string]*template.Template
-	lock         sync.RWMutex
 }
 
 func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
@@ -60,16 +58,11 @@ func (s *Server) loadTemplates() {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
 
-		s.lock.Lock()
 		s.templates[i] = tpl
-		s.lock.Unlock()
 	}
 }
 
 func (s *Server) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
 	if tpl, ok := s.templates[tplName]; ok {
 		err := tpl.Execute(res, data)
 		if err != nil {
