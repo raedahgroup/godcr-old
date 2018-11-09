@@ -71,7 +71,7 @@
         function setSuccessMessage(message) {
             var m = "The transaction was published successfully. Hash: <strong>" + message + "</strong>";
             $(".alert-danger").hide();
-            $(".alert-success").html(m);
+            $(".alert-success").html(m).show();
         }
         $(function(){
             var form = $("#send-form");
