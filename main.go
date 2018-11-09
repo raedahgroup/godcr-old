@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/server"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/dcrcli/web"
 )
 
 type Version struct {
@@ -68,7 +68,7 @@ func enterHttpMode(config *config) {
 		os.Exit(1)
 	}
 
-	server.StartHttpServer(config.HTTPServerAddress, client)
+	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
 func enterCliMode(config *config, args []string) {
