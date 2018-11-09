@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/txscript"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
@@ -111,8 +112,10 @@ func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, pa
 		return nil, fmt.Errorf("error publishing transaction: %s", err.Error())
 	}
 
+	transactionHash, _ := chainhash.NewHash(publishResponse.TransactionHash)
+
 	response := &SendResult{
-		TransactionHash: string(publishResponse.TransactionHash),
+		TransactionHash: transactionHash.String(),
 	}
 
 	return response, nil
