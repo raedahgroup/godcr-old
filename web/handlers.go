@@ -36,7 +36,7 @@ func (s *Server) GetSend(res http.ResponseWriter, req *http.Request) {
 
 func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
-	defer s.render("send.html", data, res)
+	defer renderJSON(data, res)
 
 	amountStr := req.FormValue("amount")
 	sourceAccountStr := req.FormValue("sourceAccount")
@@ -45,23 +45,23 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 
 	amount, err := strconv.ParseInt(amountStr, 10, 64)
 	if err != nil {
-		data["error"] = err
+		data["error"] = err.Error()
 		return
 	}
 
 	sourceAccount, err := strconv.ParseUint(sourceAccountStr, 10, 32)
 	if err != nil {
-		data["error"] = err
+		data["error"] = err.Error()
 		return
 	}
 
 	result, err := s.walletClient.Send(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
 	if err != nil {
-		data["error"] = err
+		data["error"] = err.Error()
 		return
 	}
 
-	data["success"] = result.TransactionHash
+	data["success"] = base64.StdEncoding.EncodeToString([]byte(result.TransactionHash))
 }
 
 func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
