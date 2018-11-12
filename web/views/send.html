@@ -18,7 +18,14 @@
                                         <label for="sourceAccount">Source Account</label>
                                         <select class="form-control" id="sourceAccount" name="sourceAccount" required>
                                             {{ range $s := .balances }}
-                                            <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+
+                                            {{/* bug fix - hide imported wallet by default if no wallet imported */}}
+                                            {{$blankImported := eq $s.AccountName "imported"}}
+                                            {{$blankImported2 := eq $s.Total 0}}
+                                                {{ if and $blankImported $blankImported2}}
+                                                {{ else }}
+                                                    <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                                {{ end }}
                                             {{ end }}
                                         </select>
                                     </div>
@@ -27,7 +34,7 @@
                                     <div class="form-group">
                                         <label for="amount">Amount (DCR)</label>
                                         <input type="number" class="form-control" id="amount" name="amount" required />
-                                    </div> 
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -73,7 +80,7 @@
         $(function(){
             var form = $("#send-form");
             var submit_btn = $("#submit-btn");
-            
+
             $(".alert-success").hide();
             $(".alert-danger").hide();
 
@@ -87,9 +94,9 @@
                     data: form.serialize(),
                     success: function(response){
                         if (typeof response.success != "undefined") {
-                            setSuccessMessage(response.success) 
+                            setSuccessMessage(response.success)
                         } else {
-                            setErrorMessage(response.error) 
+                            setErrorMessage(response.error)
                         }
                     },
                     error: function(error) {
