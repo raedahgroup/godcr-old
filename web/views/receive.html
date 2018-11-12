@@ -19,7 +19,15 @@
                                       <label for="account">Account</label>
                                       <select class="form-control" name="account" id="account">
                                           {{ range $s := .accounts }}
-                                          <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+
+                                          {{/* bug fix - hide imported wallet by default if no wallet imported */}}
+                                          {{$blankImported := eq $s.AccountName "imported"}}
+                                          {{$blankImported2 := eq $s.Total 0}}
+                                              {{ if and $blankImported $blankImported2}}
+                                              {{ else }}
+                                                  <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                              {{ end }}
+
                                           {{ end }}
                                       </select>
                                   </div>

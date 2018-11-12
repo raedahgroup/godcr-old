@@ -243,6 +243,12 @@ func (c *CLI) balance(commandArgs []string) (*response, error) {
 		result: make([][]interface{}, len(balances)),
 	}
 	for i, v := range balances {
+
+		// bug fix - hide imported wallet by default if no wallet imported
+		if v.AccountName == "imported" && v.Total == 0 {
+			break
+		}
+
 		res.result[i] = []interface{}{
 			v.AccountName,
 			v.Total,
