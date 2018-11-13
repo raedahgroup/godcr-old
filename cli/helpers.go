@@ -10,7 +10,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 )
 
-func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
+func getSendSourceAccount(c *walletrpcclient.Client, promptFn prompter) (uint32, error) {
 	// get send  accounts
 	accounts, err := c.Balance()
 	if err != nil {
@@ -33,7 +33,7 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 		accountItems[idx] = v.AccountNumber
 	}
 
-	result, err := promptItems.Prompt()
+	result, err := promptFn(promptItems)
 	if err != nil {
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
@@ -51,7 +51,7 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	return account, nil
 }
 
-func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
+func getSendDestinationAddress(c *walletrpcclient.Client, promptFn prompter) (string, error) {
 	validate := func(address string) error {
 		isValid, err := c.ValidateAddress(address)
 		if err != nil {
@@ -69,7 +69,7 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 		Validate: validate,
 	}
 
-	result, err := prompt.Prompt()
+	result, err := promptFn(prompt)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -77,7 +77,7 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	return result, nil
 }
 
-func getSendAmount() (int64, error) {
+func getSendAmount(promptFn prompter) (int64, error) {
 	var amount int64
 	var err error
 
@@ -94,7 +94,7 @@ func getSendAmount() (int64, error) {
 		Validate: validate,
 	}
 
-	_, err = prompt.Prompt()
+	_, err = promptFn(prompt)
 	if err != nil {
 		return 0, fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -102,13 +102,13 @@ func getSendAmount() (int64, error) {
 	return amount, nil
 }
 
-func getWalletPassphrase() (string, error) {
+func getWalletPassphrase(promptFn prompter) (string, error) {
 	prompt := promptOption{
 		Label:  "Wallet Passphrase",
 		Secure: true,
 	}
 
-	result, err := prompt.Prompt()
+	result, err := promptFn(prompt)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}

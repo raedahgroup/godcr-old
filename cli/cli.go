@@ -192,22 +192,22 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 }
 
 func (c *CLI) send(commandArgs []string) (*response, error) {
-	sourceAccount, err := getSendSourceAccount(c.walletrpcclient)
+	sourceAccount, err := getSendSourceAccount(c.walletrpcclient, promptTty)
 	if err != nil {
 		return nil, err
 	}
 
-	destinationAddress, err := getSendDestinationAddress(c.walletrpcclient)
+	destinationAddress, err := getSendDestinationAddress(c.walletrpcclient, promptTty)
 	if err != nil {
 		return nil, err
 	}
 
-	sendAmount, err := getSendAmount()
+	sendAmount, err := getSendAmount(promptTty)
 	if err != nil {
 		return nil, err
 	}
 
-	passphrase, err := getWalletPassphrase()
+	passphrase, err := getWalletPassphrase(promptTty)
 	if err != nil {
 		return nil, err
 	}
