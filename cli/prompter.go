@@ -12,9 +12,7 @@ import (
 )
 
 // prompter fetches input from a prompt, returning the value received, and an error, if any.
-type prompter interface {
-	Prompt() (int, string, error)
-}
+type prompter func(p promptOption) (string, error)
 
 type validatorFunc func(value string) error
 
@@ -26,7 +24,7 @@ type promptOption struct {
 	Secure   bool
 }
 
-func (p promptOption) Prompt() (string, error) {
+func promptTty(p promptOption) (string, error) {
 	label := ""
 	if p.Default != "" {
 		label += fmt.Sprintf("[default: %s]", p.Default)
@@ -41,8 +39,8 @@ func (p promptOption) Prompt() (string, error) {
 		return "", err
 	}
 	if p.Validate != nil {
-		if vErr := p.Validate(input); vErr != nil {
-			return "", vErr
+		if err = p.Validate(input); err != nil {
+			return "", err
 		}
 	}
 	return strings.TrimSpace(input), nil
