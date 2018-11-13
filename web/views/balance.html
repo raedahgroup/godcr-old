@@ -22,23 +22,14 @@
                     </thead>
                     <tbody>
                         {{ range $s := .result }}
-
-                            {{/* bug fix - hide imported wallet by default if no wallet imported */}}
-                            {{$blankImported := eq $s.AccountName "imported"}}
-                            {{$blankImported2 := eq $s.Total 0}}
-                                {{ if and $blankImported $blankImported2}}
-                                {{ else }}
-                                {{/* bug fix - hide imported wallet by default if no wallet imported */}}
-
-                                <tr>
-                                   <td>{{ $s.AccountName }}</td>
-                                   <td>{{ $s.Total }}</td>
-                                   <td>{{ $s.Spendable }}</td>
-                                   <td>{{ $s.LockedByTickets }}</td>
-                                   <td>{{ $s.VotingAuthority }}</td>
-                                   <td>{{ $s.Unconfirmed }}</td>
-                                </tr>
-                                {{ end }}
+                        <tr>
+                           <td>{{ $s.AccountName }}</td>
+                           <td>{{ $s.Total }}</td>
+                           <td>{{ $s.Spendable }}</td>
+                           <td>{{ $s.LockedByTickets }}</td>
+                           <td>{{ $s.VotingAuthority }}</td>
+                           <td>{{ $s.Unconfirmed }}</td>
+                        </tr>
                         {{ end }}
                     </tbody>
                 </table>
