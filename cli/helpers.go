@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/manifoldco/promptui"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -17,26 +16,34 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-
-	promptItems := []string{}
-	accountItems := map[string]uint32{}
-	for _, v := range accounts {
-		itemStr := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(v.Total).String())
-		promptItems = append(promptItems, itemStr)
-		accountItems[itemStr] = v.AccountNumber
+	validateInt := func(v string) error {
+		if _, err := strconv.Atoi(v); err != nil {
+			return err
+		}
+		return nil
+	}
+	promptItems := promptOption{
+		Label:    "Select source account",
+		Validate: validateInt,
+	}
+	accountItems := map[int]uint32{}
+	for idx, v := range accounts {
+		promptItems.Options = append(promptItems.Options, fmt.Sprintf("%3d. %s (%s)",
+			idx, v.AccountName, dcrutil.Amount(v.Total).String()))
+		accountItems[idx] = v.AccountNumber
 	}
 
-	prompt := promptui.Select{
-		Label: "Select source account",
-		Items: promptItems,
-	}
-
-	_, result, err := prompt.Run()
+	result, err := promptItems.Prompt()
 	if err != nil {
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
 
-	account, ok := accountItems[result]
+	choice, err := strconv.Atoi(result)
+	if err != nil {
+		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
+	}
+
+	account, ok := accountItems[choice]
 	if !ok {
 		return 0, fmt.Errorf("error selecting account")
 	}
@@ -57,12 +64,12 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 		return nil
 	}
 
-	prompt := promptui.Prompt{
+	prompt := promptOption{
 		Label:    "Destination Address",
 		Validate: validate,
 	}
 
-	result, err := prompt.Run()
+	result, err := prompt.Prompt()
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -82,12 +89,12 @@ func getSendAmount() (int64, error) {
 		return nil
 	}
 
-	prompt := promptui.Prompt{
+	prompt := promptOption{
 		Label:    "Amount (DCR)",
 		Validate: validate,
 	}
 
-	_, err = prompt.Run()
+	_, err = prompt.Prompt()
 	if err != nil {
 		return 0, fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -96,12 +103,12 @@ func getSendAmount() (int64, error) {
 }
 
 func getWalletPassphrase() (string, error) {
-	prompt := promptui.Prompt{
-		Label: "Wallet Passphrase",
-		Mask:  '*',
+	prompt := promptOption{
+		Label:  "Wallet Passphrase",
+		Secure: true,
 	}
 
-	result, err := prompt.Run()
+	result, err := prompt.Prompt()
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
