@@ -46,6 +46,8 @@ func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
 
 func (s *Server) loadTemplates() {
 	layout := "web/views/layout.html"
+	utils := "web/views/utils.html"
+
 	tpls := map[string]string{
 		"balance.html": "web/views/balance.html",
 		"send.html":    "web/views/send.html",
@@ -53,7 +55,7 @@ func (s *Server) loadTemplates() {
 	}
 
 	for i, v := range tpls {
-		tpl, err := template.New(i).ParseFiles(v, layout)
+		tpl, err := template.New(i).ParseFiles(v, layout, utils)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
