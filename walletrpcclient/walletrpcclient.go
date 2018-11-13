@@ -128,7 +128,31 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
+	// bug fix - hide imported wallet by default if no wallet imported (pt 1)
+	var minusRange = 0  // used to return correct number of wallet entries to make
+	for i, v := range accounts.Accounts {
+		req := &pb.BalanceRequest{
+			AccountNumber:         v.AccountNumber,
+			RequiredConfirmations: 0,
+		}
+		res, err := c.walletServiceClient.Balance(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching balance for account: %d :%s", v.AccountNumber, err.Error())
+		}
+
+		if v.AccountName == "imported" && dcrutil.Amount(res.Total) == 0 {
+			minusRange = 1
+		}
+		i++
+	}
+
 	balanceResult := make([]AccountBalanceResult, len(accounts.Accounts))
+
+	if minusRange == 1 {
+		balanceResult = make([]AccountBalanceResult, len(accounts.Accounts)-1)
+	}
+	// bug fix - hide imported wallet by default if no wallet imported (pt 1)
+
 	for i, v := range accounts.Accounts {
 		req := &pb.BalanceRequest{
 			AccountNumber:         v.AccountNumber,
@@ -140,6 +164,13 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 			return nil, fmt.Errorf("error fetching balance for account: %d :%s", v.AccountNumber, err.Error())
 		}
 
+		// bug fix - hide imported wallet by default if no wallet imported (pt 2)
+		if v.AccountName == "imported" && dcrutil.Amount(res.Total) == 0 {
+			break
+			i++
+		}
+		// bug fix - hide imported wallet by default if no wallet imported (pt 2)
+
 		balanceResult[i] = AccountBalanceResult{
 			AccountNumber:   v.AccountNumber,
 			AccountName:     v.AccountName,
@@ -149,6 +180,7 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 			VotingAuthority: dcrutil.Amount(res.VotingAuthority),
 			Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
 		}
+
 	}
 
 	return balanceResult, nil
