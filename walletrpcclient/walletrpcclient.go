@@ -187,3 +187,17 @@ func (c *Client) ValidateAddress(address string) (bool, error) {
 
 	return r.IsValid, nil
 }
+
+func (c *Client) NextAccount(accountName string, passphrase string) (uint32, error) {
+	req := &pb.NextAccountRequest{
+		AccountName:accountName,
+		Passphrase:[]byte(passphrase),
+	}
+
+	r, err := c.walletServiceClient.NextAccount(context.Background(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.AccountNumber, nil
+}
