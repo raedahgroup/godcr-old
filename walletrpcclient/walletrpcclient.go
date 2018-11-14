@@ -60,33 +60,8 @@ func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, er
 	return conn, nil
 }
 
-func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
-	// decode destination address
-	addr, err := dcrutil.DecodeAddress(destinationAddress)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding destination address: %s", err.Error())
-	}
-
-	// get script
-	pkScript, err := txscript.PayToAddrScript(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	// construct transaction
-	constructRequest := &pb.ConstructTransactionRequest{
-		SourceAccount: sourceAccount,
-		NonChangeOutputs: []*pb.ConstructTransactionRequest_Output{{
-			Destination: &pb.ConstructTransactionRequest_OutputDestination{
-				Script:        pkScript,
-				ScriptVersion: 0,
-			},
-			Amount: amount,
-		}},
-	}
-
+func (c *Client) sendTransaction(constructRequest *pb.ConstructTransactionRequest, passphrase string) (*SendResult, error) {
 	ctx := context.Background()
-
 	constructResponse, err := c.walletServiceClient.ConstructTransaction(ctx, constructRequest)
 	if err != nil {
 		return nil, fmt.Errorf("error constructing transaction: %s", err.Error())
@@ -120,6 +95,73 @@ func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, pa
 	}
 
 	return response, nil
+}
+
+func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
+	// decode destination address
+	addr, err := dcrutil.DecodeAddress(destinationAddress)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding destination address: %s", err.Error())
+	}
+
+	// get script
+	pkScript, err := txscript.PayToAddrScript(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// construct transaction
+	constructRequest := &pb.ConstructTransactionRequest{
+		SourceAccount: sourceAccount,
+		NonChangeOutputs: []*pb.ConstructTransactionRequest_Output{{
+			Destination: &pb.ConstructTransactionRequest_OutputDestination{
+				Script:        pkScript,
+				ScriptVersion: 0,
+			},
+			Amount: amount,
+		}},
+	}
+
+	return c.sendTransaction(constructRequest, passphrase)
+}
+
+func (c *Client) SendCustom(outputTransactionHashes []string, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
+	outputs := []*transactionOutput{}
+	for _, v := range outputTransactionHashes {
+		tx, err := c.GetTransaction([]byte(v))
+		if err != nil {
+			return nil, fmt.Errorf("Error fetching transaction. hash: %s", v)
+		}
+
+		for _, k := range tx.TransactionDetails.Output {
+			output := &transactionOutput{
+				Index:        k.Index,
+				Account:      k.Account,
+				Internal:     k.Internal,
+				Amount:       k.Amount,
+				Address:      k.Address,
+				OutputScript: k.OutputScript,
+			}
+			outputs = append(outputs, output)
+		}
+	}
+
+	constructRequest := &pb.ConstructTransactionRequest{
+		SourceAccount:    sourceAccount,
+		NonChangeOutputs: make([]*pb.ConstructTransactionRequest_Output, len(outputs)),
+	}
+
+	for i, v := range outputs {
+		constructRequest.NonChangeOutputs[i] = &pb.ConstructTransactionRequest_Output{
+			Destination: &pb.ConstructTransactionRequest_OutputDestination{
+				Script:        v.OutputScript,
+				ScriptVersion: 0,
+			},
+			Amount: v.Amount,
+		}
+	}
+
+	return c.sendTransaction(constructRequest, passphrase)
 }
 
 func (c *Client) Balance() ([]AccountBalanceResult, error) {
@@ -210,6 +252,53 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
+func (c *Client) GetTransaction(txHash []byte) (*TransactionResult, error) {
+	req := &pb.GetTransactionRequest{
+		TransactionHash: txHash,
+	}
+
+	r, err := c.walletServiceClient.GetTransaction(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := &TransactionResult{
+		Confirmations: r.Confirmations,
+		BlockHash:     r.BlockHash,
+		TransactionDetails: &transaction{
+			Fee:             r.Transaction.Fee,
+			Transaction:     r.Transaction.Transaction,
+			Timestamp:       r.Transaction.Timestamp,
+			TransactionType: int(r.Transaction.TransactionType),
+			Input:           make([]*transactionInput, len(r.Transaction.Debits)),
+			Output:          make([]*transactionOutput, len(r.Transaction.Credits)),
+		},
+	}
+
+	for i, v := range r.Transaction.Debits {
+		input := &transactionInput{
+			Index:           v.Index,
+			PreviousAccount: v.PreviousAccount,
+			PreviousAmount:  v.PreviousAmount,
+		}
+		tx.TransactionDetails.Input[i] = input
+	}
+
+	for i, v := range r.Transaction.Credits {
+		output := &transactionOutput{
+			Index:        v.Index,
+			Account:      v.Account,
+			Internal:     v.Internal,
+			Amount:       v.Amount,
+			Address:      v.Address,
+			OutputScript: v.OutputScript,
+		}
+		tx.TransactionDetails.Output[i] = output
+	}
+
+	return tx, nil
+}
+
 func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentOutputsResult, error) {
 	req := &pb.UnspentOutputsRequest{
 		Account:                  account,
@@ -235,12 +324,14 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 			return nil, err
 		}
 
+		transactionHash, _ := chainhash.NewHash(item.TransactionHash)
+
 		outputItem := &UnspentOutputsResult{
-			TransactionHash: item.TransactionHash,
+			TransactionHash: transactionHash.String(),
 			OutputIndex:     item.OutputIndex,
-			Amount:          item.Amount,
+			Amount:          AtomToCoin(item.Amount),
 			PkScript:        item.PkScript,
-			AmountSum:       item.AmountSum,
+			AmountSum:       AtomToCoin(item.AmountSum),
 			ReceiveTime:     item.ReceiveTime,
 			Tree:            item.Tree,
 			FromCoinbase:    item.FromCoinbase,

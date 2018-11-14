@@ -112,3 +112,26 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 	data["address"] = addr.Address
 	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
 }
+
+func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	accountNumberStr := chi.URLParam(req, "accountNumber")
+	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 32)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	utxos, err := s.walletClient.UnspentOutputs(uint32(accountNumber), 0)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	data["success"] = true
+	data["message"] = utxos
+}
