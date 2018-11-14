@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 
 	"github.com/decred/dcrd/dcrutil"
 )
 
-func getSendSourceAccount(c *walletrpcclient.Client, promptFn prompter) (uint32, error) {
+func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	var choice int
 	var err error
 	// get send  accounts
@@ -30,7 +32,6 @@ func getSendSourceAccount(c *walletrpcclient.Client, promptFn prompter) (uint32,
 		return nil
 	}
 
-	promptItems := promptData{Label: "Select source account"}
 	accountItems := map[int]uint32{}
 	options := make([]string, len(accounts))
 
@@ -38,25 +39,16 @@ func getSendSourceAccount(c *walletrpcclient.Client, promptFn prompter) (uint32,
 		options[idx] = fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(v.Total).String())
 		accountItems[idx] = v.AccountNumber
 	}
-	promptItems.Options = options
 
-	for {
-		input, err := promptFn(promptItems)
-		if err != nil {
-			// There was an error reading input; we cannot proceed.
-			return 0, fmt.Errorf("error getting selected account: %s", err.Error())
-		}
-		if err = validateInput(input); err != nil {
-			// The user entered incorrect data. Prompt again.
-			fmt.Println(err.Error())
-			continue
-		}
-		break
+	_, err = terminalprompt.RequestSelection("Select source account", options, validateInput)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
 	return accountItems[choice], nil
 }
 
-func getSendDestinationAddress(c *walletrpcclient.Client, promptFn prompter) (string, error) {
+func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	validate := func(address string) error {
 		isValid, err := c.ValidateAddress(address)
 		if err != nil {
@@ -69,28 +61,17 @@ func getSendDestinationAddress(c *walletrpcclient.Client, promptFn prompter) (st
 		return nil
 	}
 
-	prompt := promptData{
-		Label: "Destination Address",
-	}
 	var result string
-	for {
-		result, err := promptFn(prompt)
-		if err != nil {
-			// There was an error reading input; we cannot proceed.
-			return "", fmt.Errorf("error receiving input: %s", err.Error())
-		}
-		if err = validate(result); err != nil {
-			// The user entered incorrect data. Prompt again.
-			fmt.Println(err.Error())
-			continue
-		}
-		break
+	result, err := terminalprompt.RequestInput("Destination Address", validate)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
 	return result, nil
 }
 
-func getSendAmount(promptFn prompter) (int64, error) {
+func getSendAmount() (int64, error) {
 	var amount int64
 	var err error
 
@@ -102,31 +83,20 @@ func getSendAmount(promptFn prompter) (int64, error) {
 		return nil
 	}
 
-	prompt := promptData{Label: "Amount (DCR)"}
-
-	for {
-		result, err := promptFn(prompt)
-		if err != nil {
-			// There was an error reading input; we cannot proceed.
-			return 0, fmt.Errorf("error receiving input: %s", err.Error())
-		}
-		if err = validate(result); err != nil {
-			// The user entered incorrect data. Prompt again.
-			fmt.Println(err.Error())
-			continue
-		}
-		break
+	_, err = terminalprompt.RequestInput("Amount (DCR)", validate)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
 	}
+
 	return amount, nil
 }
 
-func getWalletPassphrase(promptFn prompter) (string, error) {
-	prompt := promptData{
-		Label:  "Wallet Passphrase",
-		Secure: true,
+func getWalletPassphrase() (string, error) {
+	emptyValidator := func(v string) error {
+		return nil
 	}
-
-	result, err := promptFn(prompt)
+	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", emptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
