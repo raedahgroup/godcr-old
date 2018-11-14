@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"strings"
@@ -12,37 +13,40 @@ import (
 )
 
 // prompter fetches input from a prompt, returning the value received, and an error, if any.
-type prompter func(p promptOption) (string, error)
+type prompter func(p promptData) (string, error)
 
 type validatorFunc func(value string) error
 
-type promptOption struct {
-	Label    interface{}
-	Options  []interface{}
-	Default  string
-	Validate validatorFunc
-	Secure   bool
+type promptData struct {
+	Label   interface{}
+	Options []string
+	Default string
+	Secure  bool
 }
 
-func promptTty(p promptOption) (string, error) {
+func promptTty(p promptData) (string, error) {
 	label := ""
 	if p.Default != "" {
 		label += fmt.Sprintf("[default: %s]", p.Default)
 	}
 	label += "=> "
 	fmt.Println(p.Label)
-	for _, opt := range p.Options {
-		fmt.Println(opt)
+
+	for idx, opt := range p.Options {
+		fmt.Printf("%d. %s\n", idx, opt)
 	}
+
 	input, err := readInput(label, p.Secure)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return "", err
 	}
-	if p.Validate != nil {
-		if err = p.Validate(input); err != nil {
-			return "", err
+	if err == io.EOF {
+		if p.Default != "" {
+			return p.Default, nil
 		}
+		return input, nil
 	}
+
 	return strings.TrimSpace(input), nil
 }
 
