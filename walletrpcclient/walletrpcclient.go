@@ -128,8 +128,9 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	balanceResult := make([]AccountBalanceResult, len(accounts.Accounts))
-	for i, v := range accounts.Accounts {
+	balanceResult := make([]AccountBalanceResult, 0, len(accounts.Accounts))
+
+	for _, v := range accounts.Accounts {
 		req := &pb.BalanceRequest{
 			AccountNumber:         v.AccountNumber,
 			RequiredConfirmations: 0,
@@ -140,7 +141,11 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 			return nil, fmt.Errorf("error fetching balance for account: %d :%s", v.AccountNumber, err.Error())
 		}
 
-		balanceResult[i] = AccountBalanceResult{
+		if v.AccountName == "imported" && dcrutil.Amount(res.Total) == 0 {
+			continue
+		}
+
+		accountBalance := AccountBalanceResult{
 			AccountNumber:   v.AccountNumber,
 			AccountName:     v.AccountName,
 			Total:           dcrutil.Amount(res.Total),
@@ -149,6 +154,8 @@ func (c *Client) Balance() ([]AccountBalanceResult, error) {
 			VotingAuthority: dcrutil.Amount(res.VotingAuthority),
 			Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
 		}
+
+		balanceResult = append(balanceResult, accountBalance)
 	}
 
 	return balanceResult, nil
@@ -186,4 +193,18 @@ func (c *Client) ValidateAddress(address string) (bool, error) {
 	}
 
 	return r.IsValid, nil
+}
+
+func (c *Client) NextAccount(accountName string, passphrase string) (uint32, error) {
+	req := &pb.NextAccountRequest{
+		AccountName:accountName,
+		Passphrase:[]byte(passphrase),
+	}
+
+	r, err := c.walletServiceClient.NextAccount(context.Background(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.AccountNumber, nil
 }

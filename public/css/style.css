@@ -54,6 +54,17 @@ tbody td {
     border-radius: 0px;
 }
 
+.error {
+    color: brown;
+}
+
 .btn i {
     font-size: 12px;
+}
+
+
+.modal-content {
+    border-radius: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
 }
