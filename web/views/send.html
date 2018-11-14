@@ -6,8 +6,8 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                <div class="alert alert-danger"></div>
-                <div class="alert alert-success"></div>
+                <div class="alert alert-danger hide-empty"></div>
+                <div class="alert alert-success hide-empty"></div>
                 <form method="POST" action="/send" id="send-form" novalidate>
                     {{ template "send-passphrase-modal" }}
                     <div class="stepper">
@@ -58,12 +58,27 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <button type="button" id="next-btn" class="btn btn-success">Next</button>
+                                        <button type="button" class="next-btn btn btn-success" class="btn btn-success">Next</button>
                                     </div>
                                 </div>
                             </div>
                             <div class="tab-pane" role="tabpanel" id="step2">
-                                www
+                                <div class="alert alert-info">Build custom transaction with wallet inputs</div>
+                                <div id="wallet-outputs">
+                                        <table class="table inverse" height="200px">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Transaction Hash</th>
+                                                    <th>Amount</th>
+                                                    <th>Received At</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                </div>
+                                <button type="button" class="previous-btn btn btn-danger">Previous</button>
+                                <button type="submit" id="submit-btn" class="btn btn-success">Submit</button>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -73,8 +88,13 @@
         </div>
     </div>
     <style>
-        .alert {
+        .alert.hide-empty {
             display: none;
+        }
+
+        table {
+            height: 300px !important;
+            max-height: 300px !important;
         }
     </style>
     <script type="text/javascript" src="/static/js/send.js"></script>
