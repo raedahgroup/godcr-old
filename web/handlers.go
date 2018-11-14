@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
+
 	"github.com/go-chi/chi"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -38,6 +40,8 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
+	req.ParseForm()
+	txHashes := req.Form["tx"]
 	amountStr := req.FormValue("amount")
 	sourceAccountStr := req.FormValue("sourceAccount")
 	destinationAddressStr := req.FormValue("destinationAddress")
