@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
+
 	"github.com/go-chi/chi"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -38,6 +40,8 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
+	req.ParseForm()
+	txHashes := req.Form["tx"]
 	amountStr := req.FormValue("amount")
 	sourceAccountStr := req.FormValue("sourceAccount")
 	destinationAddressStr := req.FormValue("destinationAddress")
@@ -55,7 +59,13 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := s.walletClient.Send(amount*100000000, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	var result *walletrpcclient.SendResult
+	if len(txHashes) > 0 {
+		result, err = s.walletClient.SendCustom(txHashes, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	} else {
+		result, err = s.walletClient.Send(amount*100000000, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	}
+
 	if err != nil {
 		data["error"] = err.Error()
 		return

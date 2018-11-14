@@ -128,7 +128,7 @@ func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, pa
 func (c *Client) SendCustom(outputTransactionHashes []string, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
 	outputs := []*transactionOutput{}
 	for _, v := range outputTransactionHashes {
-		tx, err := c.GetTransaction([]byte(v))
+		tx, err := c.GetTransaction(v)
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching transaction. hash: %s", v)
 		}
@@ -154,6 +154,7 @@ func (c *Client) SendCustom(outputTransactionHashes []string, sourceAccount uint
 	for i, v := range outputs {
 		constructRequest.NonChangeOutputs[i] = &pb.ConstructTransactionRequest_Output{
 			Destination: &pb.ConstructTransactionRequest_OutputDestination{
+				Address:       destinationAddress,
 				Script:        v.OutputScript,
 				ScriptVersion: 0,
 			},
@@ -252,9 +253,14 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
-func (c *Client) GetTransaction(txHash []byte) (*TransactionResult, error) {
+func (c *Client) GetTransaction(txHashStr string) (*TransactionResult, error) {
+	txHash, err := chainhash.NewHashFromStr(txHashStr)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &pb.GetTransactionRequest{
-		TransactionHash: txHash,
+		TransactionHash: txHash.CloneBytes(),
 	}
 
 	r, err := c.walletServiceClient.GetTransaction(context.Background(), req)
