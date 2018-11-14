@@ -5,51 +5,51 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
-
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
-	var choice int
+	var selection int
 	var err error
 	// get send  accounts
 	accounts, err := c.Balance()
 	if err != nil {
 		return 0, err
 	}
-	// validateInput ensures that the input received is a number that corresponds to an account
-	validateInput := func(value string) error {
-		if choice, err = strconv.Atoi(value); err != nil {
-			return fmt.Errorf("could not recognize input: not an allowed option")
+	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
+	validateAccountSelection := func(input string) error {
+		minAllowed, maxAllowed := 1, len(accounts)
+		errWrongInput := fmt.Errorf("Error: input must be between %d and %d", minAllowed, maxAllowed)
+		if selection, err = strconv.Atoi(input); err != nil {
+			return errWrongInput
 		}
-		choiceFloor, choiceCeiling := 0, len(accounts)-1
-		if choice < choiceFloor || choice > choiceCeiling {
-			return fmt.Errorf("%d is not an allowed option", choice)
+		if selection < minAllowed || selection > maxAllowed {
+			return errWrongInput
 		}
+		selection--
 		return nil
 	}
 
-	accountItems := map[int]uint32{}
+	accountNumbers := map[int]uint32{}
 	options := make([]string, len(accounts))
 
-	for idx, v := range accounts {
-		options[idx] = fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(v.Total).String())
-		accountItems[idx] = v.AccountNumber
+	for index, account := range accounts {
+		options[index] = fmt.Sprintf("%s (%s)", account.AccountName, dcrutil.Amount(account.Total).String())
+		accountNumbers[index] = account.AccountNumber
 	}
 
-	_, err = terminalprompt.RequestSelection("Select source account", options, validateInput)
+	_, err = terminalprompt.RequestSelection("Select source account", options, validateAccountSelection)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
-	return accountItems[choice], nil
+	return accountNumbers[selection], nil
 }
 
 func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
-	validate := func(address string) error {
+	validateAddressInput := func(address string) error {
 		isValid, err := c.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
@@ -61,29 +61,28 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 		return nil
 	}
 
-	var result string
-	result, err := terminalprompt.RequestInput("Destination Address", validate)
+	address, err := terminalprompt.RequestInput("Destination Address", validateAddressInput)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
-	return result, nil
+	return address, nil
 }
 
 func getSendAmount() (int64, error) {
 	var amount int64
 	var err error
 
-	validate := func(value string) error {
-		amount, err = strconv.ParseInt(value, 10, 64)
+	validateAmount := func(input string) error {
+		amount, err = strconv.ParseInt(input, 10, 64)
 		if err != nil {
 			return fmt.Errorf("error parsing amount: %s", err.Error())
 		}
 		return nil
 	}
 
-	_, err = terminalprompt.RequestInput("Amount (DCR)", validate)
+	_, err = terminalprompt.RequestInput("Amount (DCR)", validateAmount)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error receiving input: %s", err.Error())
@@ -93,10 +92,7 @@ func getSendAmount() (int64, error) {
 }
 
 func getWalletPassphrase() (string, error) {
-	emptyValidator := func(v string) error {
-		return nil
-	}
-	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", emptyValidator)
+	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}

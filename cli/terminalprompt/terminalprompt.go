@@ -6,13 +6,18 @@ import (
 	"io"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+// ValidatorFunction  validates the input string according to its custom logic.
 type ValidatorFunction func(string) error
+
+// EmptyValidator is a noop validator that can be used if no validation is needed.
+var EmptyValidator = func(v string) error {
+	return nil
+}
 
 func skipEOFError(value string, err error) (string, error) {
 	switch err {
@@ -36,7 +41,7 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Println(err.Error())
+			fmt.Printf("%s\n\n", err.Error())
 			continue
 		}
 		return value, nil
@@ -54,7 +59,7 @@ func RequestInputSecure(message string, validate ValidatorFunction) (string, err
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Println(err.Error())
+			fmt.Printf("%s\n\n", err.Error())
 			continue
 		}
 		return value, nil
@@ -67,18 +72,18 @@ func RequestInputSecure(message string, validate ValidatorFunction) (string, err
 // It calls `validate` on the received input. If `validate` returns an error, the user is prompted
 // again for a correct input.
 func RequestSelection(message string, options []string, validate ValidatorFunction) (string, error) {
-	var label = message + strings.Repeat("\n", 2)
+	var label = message + "\n"
 	for idx, opt := range options {
-		label += fmt.Sprintf("%d. %s\n", idx, opt)
+		label += fmt.Sprintf(" [%d]: %s\n", idx+1, opt)
 	}
-	label += "\n=> "
+	label += "=> "
 	for {
 		value, err := skipEOFError(readInput(label, false))
 		if err != nil {
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Println(err.Error())
+			fmt.Printf("%s\n\n", err.Error())
 			continue
 		}
 		return value, nil
