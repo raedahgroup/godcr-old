@@ -50,14 +50,15 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 // the program exits with an error.
 // commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *CLI) RunCommand(commandArgs []string) {
-	// Catch a ^C interrupt.
+	// Listen for an interrupt signal (os.Interrupt, SIGINT).
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
 	go func() {
-		for _ = range signalChannel {
-			fmt.Println("\n^C interrupt, caught on main")
-			//os.Exit(1)
-		}
+		// Capture SIGINT and do nothing. This allows other functions that need to clean up
+		// on SIGINT to do so and exit. If we exit here, the other functions may not have
+		// finished their clean up.
+		<-signalChannel
+		fmt.Println("\n^C interrupt, caught on main")
 	}()
 
 	if len(commandArgs) == 0 {
@@ -251,7 +252,7 @@ func (c *CLI) nextAccount(commandArgs []string) (*response, error) {
 	}
 
 	accountName := commandArgs[0]
-	passphrase, err := getPassword("Wallet Passphrase")
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return nil, err
 	}
