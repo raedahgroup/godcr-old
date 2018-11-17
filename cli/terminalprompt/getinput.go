@@ -16,11 +16,10 @@ import (
 
 // getTextInput - Prompt for text input.
 func getTextInput(prompt string) (string, error) {
-	fmt.Println(prompt)
+	fmt.Print(prompt)
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')
-	fmt.Println()
 
 	if err != nil {
 		return "", err
@@ -30,7 +29,7 @@ func getTextInput(prompt string) (string, error) {
 
 // getPasswordInput - Prompt for password.
 func getPasswordInput(prompt string) (string, error) {
-	fmt.Println(prompt)
+	fmt.Print(prompt)
 
 	// Catch a ^C interrupt.
 	// Make sure that we reset term echo before exiting.
@@ -51,7 +50,6 @@ func getPasswordInput(prompt string) (string, error) {
 
 	// re-enable terminal echo
 	setTerminalEcho(true)
-	fmt.Println()
 
 	if err != nil {
 		return "", err
