@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -43,17 +42,13 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 	return client
 }
 
+// RunCommand invokes the handler function registered for the given
+// command in `commandArgs`.
+//
+// If no command, or an unsupported command is passed to RunCommand,
+// the program exits with an error.
+// commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *CLI) RunCommand(commandArgs []string) {
-	// Catch a ^C interrupt.
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt)
-	go func() {
-		for _ = range signalChannel {
-			fmt.Println("\n^C interrupt, caught on main")
-			//os.Exit(1)
-		}
-	}()
-
 	if len(commandArgs) == 0 {
 		c.noCommandReceived()
 		os.Exit(1)
@@ -90,6 +85,8 @@ func (c *CLI) invalidCommandReceived(command string) {
 	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", c.appName, command, c.appName)
 }
 
+// IsCommandSupported returns true if the `command` specified is registered
+// on the current CLI object; otherwise, it returns false.
 func (c *CLI) IsCommandSupported(command string) bool {
 	_, ok := c.funcMap[command]
 	return ok
@@ -243,7 +240,7 @@ func (c *CLI) nextAccount(commandArgs []string) (*response, error) {
 	}
 
 	accountName := commandArgs[0]
-	passphrase, err := getPassword("Wallet Passphrase")
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return nil, err
 	}
