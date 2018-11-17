@@ -158,7 +158,7 @@ func (c *CLI) listCommands(commandArgs []string) (*response, error) {
 }
 
 func (c *CLI) receive(commandArgs []string) (*response, error) {
-	recieveAddress := ""
+	var recieveAddress uint32 = 0
 
 	// if no address passed in
 	if len(commandArgs) == 0 {
@@ -169,20 +169,19 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 			return nil, err
 		}
 
-		recieveAddress = fmt.Sprint(sourceAccount)
+		recieveAddress = sourceAccount
+	} else {
+
+		// if an address was passed in eg. ./dcrcli receive 0 use that address
+		x, err := strconv.ParseUint(commandArgs[0], 0, 32)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing account number: %s", err.Error())
+		}
+
+		recieveAddress = uint32(x)
 	}
 
-	// if an address was passed in eg. ./dcrcli receive 0 use that address
-	if recieveAddress == "" {
-		recieveAddress = commandArgs[0]
-	}
-
-	acc, err := strconv.ParseUint(recieveAddress, 0, 32)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing account number: %s", err.Error())
-	}
-
-	r, err := c.walletrpcclient.Receive(uint32(acc))
+	r, err := c.walletrpcclient.Receive(uint32(recieveAddress))
 	if err != nil {
 		return nil, err
 	}
