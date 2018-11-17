@@ -5,47 +5,53 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/manifoldco/promptui"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
+	var selection int
+	var err error
 	// get send  accounts
 	accounts, err := c.Balance()
 	if err != nil {
 		return 0, err
 	}
-
-	promptItems := []string{}
-	accountItems := map[string]uint32{}
-	for _, v := range accounts {
-		itemStr := fmt.Sprintf("%s (%s)", v.AccountName, dcrutil.Amount(v.Total).String())
-		promptItems = append(promptItems, itemStr)
-		accountItems[itemStr] = v.AccountNumber
+	// Proceed with default account if there's no other account.
+	if len(accounts) == 1 {
+		return accounts[0].AccountNumber, nil
+	}
+	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
+	validateAccountSelection := func(input string) error {
+		minAllowed, maxAllowed := 1, len(accounts)
+		errWrongInput := fmt.Errorf("Error: input must be between %d and %d", minAllowed, maxAllowed)
+		if selection, err = strconv.Atoi(input); err != nil {
+			return errWrongInput
+		}
+		if selection < minAllowed || selection > maxAllowed {
+			return errWrongInput
+		}
+		selection--
+		return nil
 	}
 
-	prompt := promptui.Select{
-		Label: "Select source account",
-		Items: promptItems,
+	options := make([]string, len(accounts))
+
+	for index, account := range accounts {
+		options[index] = fmt.Sprintf("%s (%s)", account.AccountName, dcrutil.Amount(account.Total).String())
 	}
 
-	_, result, err := prompt.Run()
+	_, err = terminalprompt.RequestSelection("Select source account", options, validateAccountSelection)
 	if err != nil {
+		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
-
-	account, ok := accountItems[result]
-	if !ok {
-		return 0, fmt.Errorf("error selecting account")
-	}
-
-	return account, nil
+	return accounts[selection].AccountNumber, nil
 }
 
 func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
-	validate := func(address string) error {
+	validateAddressInput := func(address string) error {
 		isValid, err := c.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
@@ -57,38 +63,30 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 		return nil
 	}
 
-	prompt := promptui.Prompt{
-		Label:    "Destination Address",
-		Validate: validate,
-	}
-
-	result, err := prompt.Run()
+	address, err := terminalprompt.RequestInput("Destination Address", validateAddressInput)
 	if err != nil {
+		// There was an error reading input; we cannot proceed.
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
-	return result, nil
+	return address, nil
 }
 
 func getSendAmount() (int64, error) {
 	var amount int64
 	var err error
 
-	validate := func(value string) error {
-		amount, err = strconv.ParseInt(value, 10, 64)
+	validateAmount := func(input string) error {
+		amount, err = strconv.ParseInt(input, 10, 64)
 		if err != nil {
 			return fmt.Errorf("error parsing amount: %s", err.Error())
 		}
 		return nil
 	}
 
-	prompt := promptui.Prompt{
-		Label:    "Amount (DCR)",
-		Validate: validate,
-	}
-
-	_, err = prompt.Run()
+	_, err = terminalprompt.RequestInput("Amount (DCR)", validateAmount)
 	if err != nil {
+		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
@@ -96,12 +94,7 @@ func getSendAmount() (int64, error) {
 }
 
 func getWalletPassphrase() (string, error) {
-	prompt := promptui.Prompt{
-		Label: "Wallet Passphrase",
-		Mask:  '*',
-	}
-
-	result, err := prompt.Run()
+	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
