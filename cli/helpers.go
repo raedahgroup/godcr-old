@@ -18,6 +18,10 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
+	// Proceed with default account if there's no other account.
+	if len(accounts) == 1 {
+		return accounts[0].AccountNumber, nil
+	}
 	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
 	validateAccountSelection := func(input string) error {
 		minAllowed, maxAllowed := 1, len(accounts)
