@@ -66,13 +66,13 @@ func RequestInputSecure(message string, validate ValidatorFunction) (string, err
 // It calls `validate` on the received input. If `validate` returns an error, the user is prompted
 // again for a correct input.
 func RequestSelection(message string, options []string, validate ValidatorFunction) (string, error) {
-	var label = message + "\n"
+	var promptMessage = message + "\n"
 	for idx, opt := range options {
-		label += fmt.Sprintf(" [%d]: %s\n", idx+1, opt)
+		promptMessage += fmt.Sprintf(" [%d]: %s\n", idx+1, opt)
 	}
-	label += "=> "
+	promptMessage += "=> "
 	for {
-		value, err := skipEOFError(getTextInput(label))
+		value, err := skipEOFError(getTextInput(promptMessage))
 		if err != nil {
 			return "", err
 		}
