@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -50,17 +49,6 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 // the program exits with an error.
 // commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *CLI) RunCommand(commandArgs []string) {
-	// Listen for an interrupt signal (os.Interrupt, SIGINT).
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt)
-	go func() {
-		// Capture SIGINT and do nothing. This allows other functions that need to clean up
-		// on SIGINT to do so and exit. If we exit here, the other functions may not have
-		// finished their clean up.
-		<-signalChannel
-		fmt.Println("\n^C interrupt, caught on main")
-	}()
-
 	if len(commandArgs) == 0 {
 		c.noCommandReceived()
 		os.Exit(1)
