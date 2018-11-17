@@ -32,12 +32,10 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 		return nil
 	}
 
-	accountNumbers := map[int]uint32{}
 	options := make([]string, len(accounts))
 
 	for index, account := range accounts {
 		options[index] = fmt.Sprintf("%s (%s)", account.AccountName, dcrutil.Amount(account.Total).String())
-		accountNumbers[index] = account.AccountNumber
 	}
 
 	_, err = terminalprompt.RequestSelection("Select source account", options, validateAccountSelection)
@@ -45,7 +43,7 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
-	return accountNumbers[selection], nil
+	return accounts[selection].AccountNumber, nil
 }
 
 func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
