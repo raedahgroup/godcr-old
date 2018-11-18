@@ -116,9 +116,21 @@ function clearMessages() {
 }
 
 $(function(){
-    $("#submit-btn").on("click", function(){
-        if (validateSendForm()) {
-            getWalletPassphraseAndSubmit(submitSendForm);
+    var stepper_index = 0;
+    var steppers = $(".stepper .nav-link");
+
+    $("#next-btn").on("click", function(){
+        if (validateSendForm() && stepper_index <= steppers.length) {
+            stepper_index += 1;
+            steppers.eq(stepper_index).tab("show").addClass("stepper-active");
+            var progress_width = (stepper_index+1 / steppers.length) * 100;
+            $(".stepper .progress-bar").css("width", progress_width + "%");
         }
     });
+
+    $("#submit-btn").on("click", function(){
+        getWalletPassphraseAndSubmit(submitSendForm)
+    })
 });
+
+
