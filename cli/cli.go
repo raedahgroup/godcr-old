@@ -164,16 +164,16 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 	if len(commandArgs) == 0 {
 
 		// display menu options to select account
-		sourceAccount, err := getSendSourceAccount(c.walletrpcclient)
+		var err error
+		recieveAddress, err = getSendSourceAccount(c.walletrpcclient)
 		if err != nil {
 			return nil, err
 		}
 
-		recieveAddress = sourceAccount
 	} else {
 
 		// if an address was passed in eg. ./dcrcli receive 0 use that address
-		x, err := strconv.ParseUint(commandArgs[0], 0, 32)
+		x, err := strconv.ParseUint(commandArgs[0], 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("Error parsing account number: %s", err.Error())
 		}
@@ -181,7 +181,7 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 		recieveAddress = uint32(x)
 	}
 
-	r, err := c.walletrpcclient.Receive(uint32(recieveAddress))
+	r, err := c.walletrpcclient.Receive(recieveAddress)
 	if err != nil {
 		return nil, err
 	}
