@@ -172,9 +172,7 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	} else {
-
 		// if an address was passed in eg. ./dcrcli receive 0 use that address
 		x, err := strconv.ParseUint(commandArgs[0], 10, 32)
 		if err != nil {
