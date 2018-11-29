@@ -43,7 +43,7 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	destinationAddressStr := req.FormValue("destinationAddress")
 	passphraseStr := req.FormValue("walletPassphrase")
 
-	amount, err := strconv.ParseInt(amountStr, 10, 64)
+	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -55,7 +55,7 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := s.walletClient.Send(amount*100000000, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	result, err := s.walletClient.Send(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
 	if err != nil {
 		data["error"] = err.Error()
 		return
