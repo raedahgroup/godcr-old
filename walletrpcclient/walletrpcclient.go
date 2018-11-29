@@ -59,7 +59,15 @@ func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, er
 	return conn, nil
 }
 
-func (c *Client) Send(amount int64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
+func (c *Client) Send(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (*SendResult, error) {
+	// convert amount from float64 DCR to int64 Atom as required by dcrwallet ConstructTransaction implementation
+	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
+	if err != nil {
+		return nil, err
+	}
+	// type of amountInAtom is `dcrutil.Amount` which is an int64 alias
+	amount := int64(amountInAtom)
+
 	// decode destination address
 	addr, err := dcrutil.DecodeAddress(destinationAddress)
 	if err != nil {

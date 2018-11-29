@@ -72,12 +72,12 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	return address, nil
 }
 
-func getSendAmount() (int64, error) {
-	var amount int64
+func getSendAmount() (float64, error) {
+	var amount float64
 	var err error
 
 	validateAmount := func(input string) error {
-		amount, err = strconv.ParseInt(input, 10, 64)
+		amount, err = strconv.ParseFloat(input, 64)
 		if err != nil {
 			return fmt.Errorf("error parsing amount: %s", err.Error())
 		}
