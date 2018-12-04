@@ -17,8 +17,12 @@ type (
 		columns []string
 		result  [][]interface{}
 	}
+	// Handler carries out the action required by a command.
+	// commandArgs holds the arguments passed to the command.
 	Handler func(commandArgs []string) (*response, error)
-	CLI     struct {
+
+	// CLI holds data needed to run the program.
+	CLI struct {
 		funcMap         map[string]Handler
 		commands        map[string]string
 		descriptions    map[string]string
@@ -27,6 +31,7 @@ type (
 	}
 )
 
+// New creates a new CLI object with the given arguments.
 func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 	client := &CLI{
 		funcMap:         make(map[string]Handler),
@@ -77,8 +82,7 @@ func (c *CLI) RunCommand(commandArgs []string) {
 func (c *CLI) noCommandReceived() {
 	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", c.appName)
 	fmt.Printf("available %s commands:\n", c.appName)
-	c.listCommands(nil)
-	fmt.Printf("\nFor available options, see '%s -h'\n", c.appName)
+	c.RunCommand([]string{"-l"})
 }
 
 func (c *CLI) invalidCommandReceived(command string) {
