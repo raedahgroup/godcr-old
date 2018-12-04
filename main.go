@@ -47,7 +47,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if config.Mode == "http" {
+	if config.HTTPServerAddress != "" {
 		fmt.Println("Running in http mode")
 		enterHttpMode(config)
 	} else {
