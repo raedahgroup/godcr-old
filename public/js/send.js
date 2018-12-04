@@ -78,7 +78,7 @@ function submitSendForm(passphrase) {
         method: "POST",
         data: form.serialize(),
         success: function(response) {
-            if (typeof response.success != "undefined" && response.success) {
+            if (response.success) {
                 var m = "The transaction was published successfully. Hash: <strong>" + response.success + "</strong>";
                 setSuccessMessage(m)
             } else {
@@ -103,7 +103,7 @@ function getUnspentOutputs(account_number, success_callback) {
         method: "GET",
         data: {},
         success: function(response) {
-            if (typeof response.success != "undefined" && response.success) {
+            if (response.success) {
                 success_callback(response.message);
             } else {
                 setErrorMessage(response.message);
@@ -165,7 +165,7 @@ $(function(){
                     return  "<tr>" + 
                                 "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
                                 "<td width='60%'>" + tx.key + "</td>" + 
-                                "<td width='15%'>" + tx.amount + "DCR</td>" + 
+                                "<td width='15%'>" + tx.amount + "</td>" + 
                                 "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
                             "</tr>"
                 });

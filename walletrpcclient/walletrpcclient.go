@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/raedahgroup/dcrcli/walletcore"
+	"github.com/raedahgroup/dcrcli/walletrpcclient/walletcore"
 )
 
 type Client struct {
@@ -297,58 +297,6 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
-func (c *Client) GetTransaction(txHashStr string) (*TransactionResult, error) {
-	txHash, err := chainhash.NewHashFromStr(txHashStr)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &pb.GetTransactionRequest{
-		TransactionHash: txHash.CloneBytes(),
-	}
-
-	r, err := c.walletServiceClient.GetTransaction(context.Background(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	tx := &TransactionResult{
-		Confirmations: r.Confirmations,
-		BlockHash:     r.BlockHash,
-		TransactionDetails: &transaction{
-			Fee:             r.Transaction.Fee,
-			Transaction:     r.Transaction.Transaction,
-			Timestamp:       r.Transaction.Timestamp,
-			TransactionType: int(r.Transaction.TransactionType),
-			Input:           make([]*transactionInput, len(r.Transaction.Debits)),
-			Output:          make([]*transactionOutput, len(r.Transaction.Credits)),
-		},
-	}
-
-	for i, v := range r.Transaction.Debits {
-		input := &transactionInput{
-			Index:           v.Index,
-			PreviousAccount: v.PreviousAccount,
-			PreviousAmount:  v.PreviousAmount,
-		}
-		tx.TransactionDetails.Input[i] = input
-	}
-
-	for i, v := range r.Transaction.Credits {
-		output := &transactionOutput{
-			Index:        v.Index,
-			Account:      v.Account,
-			Internal:     v.Internal,
-			Amount:       v.Amount,
-			Address:      v.Address,
-			OutputScript: v.OutputScript,
-		}
-		tx.TransactionDetails.Output[i] = output
-	}
-
-	return tx, nil
-}
-
 func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentOutputsResult, error) {
 	req := &pb.UnspentOutputsRequest{
 		Account:                  account,
@@ -380,9 +328,9 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 			OutputKey:		 fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex),
 			TransactionHash: transactionHash.String(),
 			OutputIndex:     item.OutputIndex,
-			Amount:          AtomToCoin(item.Amount),
+			Amount:          dcrutil.Amount(item.Amount).String(),
 			PkScript:        item.PkScript,
-			AmountSum:       AtomToCoin(item.AmountSum),
+			AmountSum:       dcrutil.Amount(item.AmountSum).String(),
 			ReceiveTime:     item.ReceiveTime,
 			Tree:            item.Tree,
 			FromCoinbase:    item.FromCoinbase,
