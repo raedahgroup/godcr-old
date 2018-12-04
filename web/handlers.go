@@ -41,7 +41,7 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	defer renderJSON(data, res)
 
 	req.ParseForm()
-	txHashes := req.Form["tx"]
+	utxos := req.Form["tx"]
 	amountStr := req.FormValue("amount")
 	sourceAccountStr := req.FormValue("sourceAccount")
 	destinationAddressStr := req.FormValue("destinationAddress")
@@ -59,7 +59,13 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := s.walletClient.Send(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	var result *walletrpcclient.SendResult
+	if len(utxos) > 0 {
+		result, err = s.walletClient.SendFromUTXOs(utxos, amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	} else {
+		result, err = s.walletClient.SendFromAccount(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	}
+
 	if err != nil {
 		data["error"] = err.Error()
 		return

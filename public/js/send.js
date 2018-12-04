@@ -160,17 +160,16 @@ $(function(){
             var account_number = $("#sourceAccount").find(":selected").val();
             var callback = function(txs) {
                 // populate outputs 
-                for (var i in txs) {
-                    var row = "<tr>" + 
-                                 "<td width='5%'><input type='checkbox' name='tx' value="+ txs[i].transaction_hash+" /></td>" +
-                                 "<td width='60%'>" + txs[i].transaction_hash + "</td>" + 
-                                 "<td width='15%'>" + txs[i].amount + "DCR</td>" + 
-                                 "<td width='20%'>" + txs[i].receive_time + "</td>" +
-                               "</tr>"
-                    
-                    $("#wallet-outputs tbody").append(row);
-                }
-
+                var utxoHtml = txs.map(tx => {
+                    var receiveDateTime = new Date(tx.receive_time * 1000)
+                    return  "<tr>" + 
+                                "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
+                                "<td width='60%'>" + tx.key + "</td>" + 
+                                "<td width='15%'>" + tx.amount + "DCR</td>" + 
+                                "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
+                            "</tr>"
+                });
+                $("#wallet-outputs tbody").html(utxoHtml.join('\n'));
 
                 stepper_index += 1;
                 goToTab(steppers.eq(stepper_index));  
