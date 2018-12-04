@@ -34,9 +34,8 @@ type config struct {
 	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `short:"p" long:"httpserveraddress" description:"Http address to serve if mode is set to http"`
+	HTTPServerAddress string `long:"http" description:"HTTP address to serve. This turns HTTP mode on."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
-	Mode              string `short:"m" long:"mode" description:"Toggles between 'http' and 'cli' modes"`
 }
 
 func cleanAndExpandPath(path string) string {
