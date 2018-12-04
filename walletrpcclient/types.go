@@ -21,6 +21,7 @@ type SendResult struct {
 }
 
 type UnspentOutputsResult struct {
+	OutputKey		string `json:"key"`
 	TransactionHash string `json:"transaction_hash"`
 	OutputIndex     uint32 `json:"output_index"`
 	ReceiveTime     int64  `json:"receive_time"`
