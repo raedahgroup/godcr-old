@@ -10,6 +10,7 @@ import (
 
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
+	"sort"
 )
 
 type (
@@ -23,11 +24,12 @@ type (
 
 	// CLI holds data needed to run the program.
 	CLI struct {
-		funcMap         map[string]Handler
-		commands        map[string]string
-		descriptions    map[string]string
-		appName         string
-		walletrpcclient *walletrpcclient.Client
+		funcMap          map[string]Handler
+		commands         map[string]string
+		descriptions     map[string]string
+		commandListOrder []string
+		appName          string
+		walletrpcclient  *walletrpcclient.Client
 	}
 )
 
@@ -105,6 +107,7 @@ func (c *CLI) RegisterHandler(key, command, description string, h Handler) {
 	c.funcMap[key] = h
 	c.commands[key] = command
 	c.descriptions[key] = description
+	c.commandListOrder = append(c.commandListOrder, key)
 }
 
 func (c *CLI) registerHandlers() {
@@ -113,6 +116,7 @@ func (c *CLI) registerHandlers() {
 	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 	c.RegisterHandler("nextaccount", "nextaccount", "Generate next account for wallet", c.nextAccount)
+	sort.Strings(c.commandListOrder)
 }
 
 func printResult(res *response) {
@@ -150,10 +154,10 @@ func (c *CLI) listCommands(commandArgs []string) (*response, error) {
 		columns: []string{"Command", "Description"},
 	}
 
-	for i, v := range c.commands {
+	for _, key := range c.commandListOrder {
 		item := []interface{}{
-			v,
-			c.descriptions[i],
+			c.commands[key],
+			c.descriptions[key],
 		}
 
 		res.result = append(res.result, item)
