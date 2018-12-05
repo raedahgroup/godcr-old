@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
-	"sort"
 )
 
 type (
@@ -84,11 +82,12 @@ func (c *CLI) RunCommand(commandArgs []string) {
 func (c *CLI) noCommandReceived() {
 	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", c.appName)
 	fmt.Printf("available %s commands:\n", c.appName)
-	c.RunCommand([]string{"-l"})
+	printResult(c.listCommands(nil))
 }
 
 func (c *CLI) invalidCommandReceived(command string) {
-	fmt.Fprintf(os.Stderr, "%s: '%s' is not a valid command. See '%s -h'\n", c.appName, command, c.appName)
+	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n\n", c.appName, command)
+	c.noCommandReceived()
 }
 
 // IsCommandSupported returns true if the `command` specified is registered
@@ -111,12 +110,9 @@ func (c *CLI) RegisterHandler(key, command, description string, h Handler) {
 }
 
 func (c *CLI) registerHandlers() {
-	c.RegisterHandler("listcommands", "-l", "List all supported commands", c.listCommands)
-	c.RegisterHandler("receive", "receive", "Generate address to receive funds", c.receive)
-	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
-	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
-	c.RegisterHandler("nextaccount", "nextaccount", "Generate next account for wallet", c.nextAccount)
-	sort.Strings(c.commandListOrder)
+	c.RegisterHandler("balance", "balance", "show your balance", c.balance)
+	c.RegisterHandler("send", "send", "send a transaction", c.send)
+	c.RegisterHandler("receive", "receive", "show your address to receive funds", c.receive)
 }
 
 func printResult(res *response) {
@@ -149,7 +145,7 @@ func printResult(res *response) {
 	w.Flush()
 }
 
-func (c *CLI) listCommands(commandArgs []string) (*response, error) {
+func (c *CLI) listCommands(commandArgs []string) *response {
 	res := &response{
 		columns: []string{"Command", "Description"},
 	}
@@ -162,7 +158,7 @@ func (c *CLI) listCommands(commandArgs []string) (*response, error) {
 
 		res.result = append(res.result, item)
 	}
-	return res, nil
+	return res
 }
 
 func (c *CLI) receive(commandArgs []string) (*response, error) {
@@ -247,38 +243,6 @@ func (c *CLI) send(commandArgs []string) (*response, error) {
 			[]interface{}{
 				"The transaction was published successfully",
 				result.TransactionHash,
-			},
-		},
-	}
-
-	return res, nil
-}
-
-func (c *CLI) nextAccount(commandArgs []string) (*response, error) {
-	if len(commandArgs) == 0 {
-		return nil, errors.New("account name is required")
-	}
-
-	accountName := commandArgs[0]
-	passphrase, err := getWalletPassphrase()
-	if err != nil {
-		return nil, err
-	}
-
-	accountNumber, err := c.walletrpcclient.NextAccount(accountName, passphrase)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &response{
-		columns: []string{
-			"Account Name",
-			"Account Number",
-		},
-		result: [][]interface{}{
-			[]interface{}{
-				accountName,
-				accountNumber,
 			},
 		},
 	}
