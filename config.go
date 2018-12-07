@@ -33,8 +33,8 @@ type config struct {
 	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `long:"httpserveraddress" description:"address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"run in HTTP mode. Requires httpserveraddress to be set"`
+	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port of the HTTP server."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. Requires httpserveraddress to be set"`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
