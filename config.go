@@ -28,7 +28,6 @@ var (
 
 type config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
-	ListCommands      bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
 	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
@@ -128,11 +127,6 @@ func loadConfig() (*config, []string, error) {
 	}
 
 	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
-
-	// check if listcommand cmd was specified
-	if preCfg.ListCommands {
-		return &cfg, []string{"listcommands"}, nil
-	}
 
 	// Load additional config from file
 	parser := flags.NewParser(&cfg, flags.Default)
