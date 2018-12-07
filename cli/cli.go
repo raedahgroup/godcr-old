@@ -82,7 +82,7 @@ func (c *CLI) RunCommand(commandArgs []string) {
 func (c *CLI) noCommandReceived() {
 	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", c.appName)
 	fmt.Printf("available %s commands:\n", c.appName)
-	printResult(c.listCommands(nil))
+	c.listCommands()
 }
 
 func (c *CLI) invalidCommandReceived(command string) {
@@ -97,8 +97,8 @@ func (c *CLI) IsCommandSupported(command string) bool {
 	return ok
 }
 
-// RegisterHandler registers a command, its description and its handler
-func (c *CLI) RegisterHandler(key, command, description string, h Handler) {
+// registerHandler registers a command, its description and its handler
+func (c *CLI) registerHandler(key, command, description string, h Handler) {
 	if _, ok := c.funcMap[key]; ok {
 		panic("trying to register a handler twice: " + key)
 	}
@@ -110,9 +110,9 @@ func (c *CLI) RegisterHandler(key, command, description string, h Handler) {
 }
 
 func (c *CLI) registerHandlers() {
-	c.RegisterHandler("balance", "balance", "show your balance", c.balance)
-	c.RegisterHandler("send", "send", "send a transaction", c.send)
-	c.RegisterHandler("receive", "receive", "show your address to receive funds", c.receive)
+	c.registerHandler("balance", "balance", "show your balance", c.balance)
+	c.registerHandler("send", "send", "send a transaction", c.send)
+	c.registerHandler("receive", "receive", "show your address to receive funds", c.receive)
 }
 
 func printResult(res *response) {
@@ -145,7 +145,7 @@ func printResult(res *response) {
 	w.Flush()
 }
 
-func (c *CLI) listCommands(commandArgs []string) *response {
+func (c *CLI) listCommands() {
 	res := &response{
 		columns: []string{"Command", "Description"},
 	}
@@ -158,7 +158,7 @@ func (c *CLI) listCommands(commandArgs []string) *response {
 
 		res.result = append(res.result, item)
 	}
-	return res
+	printResult(res)
 }
 
 func (c *CLI) receive(commandArgs []string) (*response, error) {
