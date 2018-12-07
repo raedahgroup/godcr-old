@@ -225,7 +225,7 @@ func (c *CLI) send(commandArgs []string) (*response, error) {
 		return nil, err
 	}
 
-	result, err := c.walletrpcclient.Send(sendAmount, sourceAccount, destinationAddress, passphrase)
+	result, err := c.walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	if err != nil {
 		return nil, err
 	}

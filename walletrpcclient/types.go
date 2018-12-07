@@ -19,3 +19,15 @@ type AccountBalanceResult struct {
 type SendResult struct {
 	TransactionHash string `json:"transaction_hash"`
 }
+
+type UnspentOutputsResult struct {
+	OutputKey		string `json:"key"`
+	TransactionHash string `json:"transaction_hash"`
+	OutputIndex     uint32 `json:"output_index"`
+	ReceiveTime     int64  `json:"receive_time"`
+	FromCoinbase    bool   `json:"from_coinbase"`
+	Tree            int32  `json:"tree"`
+	Amount          string  `json:"amount"`
+	PkScript        []byte `json:"-"`
+	AmountSum       string  `json:"amount_sum"`
+}

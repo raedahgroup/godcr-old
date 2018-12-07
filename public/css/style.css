@@ -32,9 +32,19 @@ body {
 }
 
 
+.table.inverse tbody td {
+    background-color: #f5f5f5 !important;
+    border-color: #fff !important;
+}
+.card {
+    border-radius: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+}
 .card-body {
     padding: 1.3rem 1.8rem !important;
 }
+
 
 .form-control {
     border-radius: 0px;
@@ -42,6 +52,13 @@ body {
 
 .error {
     color: brown;
+}
+
+.btn {
+    border-radius: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    padding: .375rem 1rem;
 }
 
 .btn i {
@@ -53,4 +70,50 @@ body {
     border-radius: 0;
     -moz-border-radius: 0;
     -webkit-border-radius: 0;
+}
+
+.stepper .nav-tabs {
+    border-color: transparent;
+    background-color: #fff;
+}
+
+.stepper .nav-tabs .nav-item {
+    transition: all 0.5s;
+    padding: 0 !important;
+}
+
+.stepper .nav-link {
+    color: inherit;
+    display: block;
+    text-align: center;
+    padding: 20px 0 !important;
+    border-color: transparent !important;
+    border-radius: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+}
+
+.stepper .nav-link{
+    pointer-events: none;
+    cursor: default;
+}
+
+.stepper .nav-tabs .stepper-active {
+    background-color: #09c !important;
+    color: #fff;
+}
+
+.stepper .nav-link span {
+    font-size: 14px !important;
+}
+
+.stepper .progress {
+    height: 3px;
+}
+
+.stepper .tab-content {
+    padding: 20px 30px;
+    background-color: #fff;
+    border: 1px solid #d0d0d0;
+    border-top-color: transparent;
 }
