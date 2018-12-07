@@ -30,11 +30,11 @@ type config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
-	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
+	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. Requires httpserveraddress to be set"`
+	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
