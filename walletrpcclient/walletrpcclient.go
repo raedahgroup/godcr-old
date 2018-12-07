@@ -129,8 +129,10 @@ func (c *Client) SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAcc
 			return nil, err
 		}
 
-		// todo could _ be an error
-		transactionHash, _ := chainhash.NewHash(item.TransactionHash)
+		transactionHash, err := chainhash.NewHash(item.TransactionHash)
+		if err != nil {
+			return nil, fmt.Errorf("invalid transaction hash: %s", err.Error())
+		}
 
 		outputKey := fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex)
 		useUtxo := false
@@ -147,7 +149,6 @@ func (c *Client) SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAcc
 		input := wire.NewTxIn(outpoint, item.Amount, nil)
 		inputs = append(inputs, input)
 
-		// todo compare capacity with length
 		if len(inputs) == len(utxoKeys) {
 			break;
 		}
