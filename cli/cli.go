@@ -62,7 +62,7 @@ func (c *CLI) RunCommand(commandArgs []string) {
 	command := commandArgs[0]
 	if command == "-l" {
 		command = "listcommands"
-	} else if !c.IsCommandSupported(command) {
+	} else if !c.isCommandSupported(command) {
 		c.invalidCommandReceived(command)
 		os.Exit(1)
 	}
@@ -92,7 +92,7 @@ func (c *CLI) invalidCommandReceived(command string) {
 
 // IsCommandSupported returns true if the `command` specified is registered
 // on the current CLI object; otherwise, it returns false.
-func (c *CLI) IsCommandSupported(command string) bool {
+func (c *CLI) isCommandSupported(command string) bool {
 	_, ok := c.funcMap[command]
 	return ok
 }
