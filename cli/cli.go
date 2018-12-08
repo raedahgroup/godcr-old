@@ -1,16 +1,10 @@
 package cli
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"os"
-	"strconv"
-	"strings"
-	"text/tabwriter"
 
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
-	qrcode "github.com/skip2/go-qrcode"
 )
 
 type (
@@ -29,13 +23,6 @@ type (
 		appName          string
 		walletrpcclient  *walletrpcclient.Client
 	}
-
-	// command is an action that can be requested at the cli
-	command struct {
-		name        string
-		description string
-		handler     handler
-	}
 )
 
 // New creates a new cli object with the given arguments.
@@ -50,15 +37,6 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *cli {
 	client.registerHandlers()
 
 	return client
-}
-
-// supportedCommands provides the commands available from the cli
-func supportedCommands() []command {
-	return []command{
-		{"balance", "show your balance", balance},
-		{"send", "send a transaction", send},
-		{"receive", "show your address to receive funds", receive},
-	}
 }
 
 func (c *cli) registerHandlers() {
@@ -76,162 +54,6 @@ func (c *cli) registerHandler(key, command, description string, h handler) {
 
 	c.funcMap[key] = h
 	c.commandListOrder = append(c.commandListOrder, key)
-}
-
-func balance(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
-	balances, err := walletrpcclient.Balance()
-	if err != nil {
-		return nil, err
-	}
-
-	res := &response{
-		columns: []string{
-			"Account",
-			"Total",
-			"Spendable",
-			"Locked By Tickets",
-			"Voting Authority",
-			"Unconfirmed",
-		},
-		result: make([][]interface{}, len(balances)),
-	}
-	for i, v := range balances {
-		res.result[i] = []interface{}{
-			v.AccountName,
-			v.Total,
-			v.Spendable,
-			v.LockedByTickets,
-			v.VotingAuthority,
-			v.Unconfirmed,
-		}
-	}
-
-	return res, nil
-}
-
-func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
-	sourceAccount, err := getSendSourceAccount(walletrpcclient)
-	if err != nil {
-		return nil, err
-	}
-
-	destinationAddress, err := getSendDestinationAddress(walletrpcclient)
-	if err != nil {
-		return nil, err
-	}
-
-	sendAmount, err := getSendAmount()
-	if err != nil {
-		return nil, err
-	}
-
-	passphrase, err := getWalletPassphrase()
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &response{
-		columns: []string{
-			"Result",
-			"Hash",
-		},
-		result: [][]interface{}{
-			[]interface{}{
-				"The transaction was published successfully",
-				result.TransactionHash,
-			},
-		},
-	}
-
-	return res, nil
-}
-
-func receive(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
-	var recieveAddress uint32
-
-	// if no address passed in
-	if len(commandArgs) == 0 {
-
-		// display menu options to select account
-		var err error
-		recieveAddress, err = getSendSourceAccount(walletrpcclient)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// if an address was passed in eg. ./dcrcli receive 0 use that address
-		x, err := strconv.ParseUint(commandArgs[0], 10, 32)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing account number: %s", err.Error())
-		}
-
-		recieveAddress = uint32(x)
-	}
-
-	r, err := walletrpcclient.Receive(recieveAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	qr, err := qrcode.New(r.Address, qrcode.Medium)
-	if err != nil {
-		return nil, fmt.Errorf("Error generating QR Code: %s", err.Error())
-	}
-
-	res := &response{
-		columns: []string{
-			"Address",
-			"QR Code",
-		},
-		result: [][]interface{}{
-			[]interface{}{
-				r.Address,
-				qr.ToString(true),
-			},
-		},
-	}
-	return res, nil
-}
-
-// HelpMessage returns the cli usage message as a string.
-func HelpMessage() string {
-	buf := bytes.NewBuffer([]byte{})
-	writer := tabWriter(buf)
-	writeHelpMessage("", writer)
-	return buf.String()
-}
-
-func tabWriter(w io.Writer) *tabwriter.Writer {
-	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-}
-
-// PrintHelp outputs help message to os.Stderr
-func PrintHelp() {
-	usagePrefix := "Usage:\n  dcrcli "
-	stderrTabWriter := tabWriter(os.Stderr)
-	writeHelpMessage(usagePrefix, stderrTabWriter)
-}
-
-func writeHelpMessage(prefix string, w *tabwriter.Writer) {
-	res := &response{
-		columns: []string{prefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
-	}
-	commands := supportedCommands()
-
-	for _, command := range commands {
-		item := []interface{}{
-			command.name,
-			command.description,
-		}
-		res.result = append(res.result, item)
-	}
-
-	printResult(w, res)
 }
 
 // RunCommand invokes the handler function registered for the given
@@ -274,33 +96,4 @@ func (c *cli) isCommandSupported(command string) bool {
 func (c *cli) invalidCommandReceived(command string) {
 	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n\n", c.appName, command)
 	PrintHelp()
-}
-
-func printResult(w *tabwriter.Writer, res *response) {
-	header := ""
-	spaceRow := ""
-	columnLength := len(res.columns)
-
-	for i := range res.columns {
-		tab := " \t "
-		if columnLength == i+1 {
-			tab = " "
-		}
-		header += res.columns[i] + tab
-		spaceRow += " " + tab
-	}
-
-	fmt.Fprintln(w, header)
-	fmt.Fprintln(w, spaceRow)
-	for _, row := range res.result {
-		rowStr := ""
-		for range row {
-			rowStr += "%v \t "
-		}
-
-		rowStr = strings.TrimSuffix(rowStr, "\t ")
-		fmt.Fprintln(w, fmt.Sprintf(rowStr, row...))
-	}
-
-	w.Flush()
 }
