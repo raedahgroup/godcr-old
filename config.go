@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/raedahgroup/dcrcli/cli"
+
 	flags "github.com/btcsuite/go-flags"
 	"github.com/decred/dcrd/dcrutil"
 )
@@ -90,30 +92,37 @@ func cleanAndExpandPath(path string) string {
 	return filepath.Join(homeDir, path)
 }
 
+var helpString = cli.UsageString()
+
+func addParserSettings(parser *flags.Parser) {
+	parser.Usage = helpString
+	parser.UnknownOptionHandler = func(option string, arg flags.SplitArgument, args []string) ([]string, error) {
+		return nil, fmt.Errorf("unknown option %s", option)
+	}
+}
+
 func loadConfig() (*config, []string, error) {
 	cfg := config{
 		ConfigFile: defaultConfigFile,
 		RPCCert:    defaultRPCCertFile,
 	}
+	stdinReadMessage := "The special parameter `-` indicates that a parameter should be read " +
+		"from the\nnext unread line from standard input."
 
 	// Pre-parse command line arguments
 	preCfg := cfg
 	preParser := flags.NewParser(&preCfg, flags.HelpFlag)
+	addParserSettings(preParser)
+
 	_, err := preParser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
-			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintln(os.Stderr, "The special parameter `-` "+
-				"indicates that a parameter should be read "+
-				"from the\nnext unread line from standard input.")
+			cli.PrintHelp()
+			fmt.Fprintln(os.Stderr, stdinReadMessage)
 			os.Exit(1)
 		} else if ok && e.Type == flags.ErrHelp {
-			fmt.Fprintln(os.Stdout, err)
-			fmt.Fprintln(os.Stdout, "")
-			fmt.Fprintln(os.Stdout, "The special parameter `-` "+
-				"indicates that a parameter should be read "+
-				"from the\nnext unread line from standard input.")
+			preParser.WriteHelp(os.Stderr)
+			fmt.Fprintln(os.Stdout, stdinReadMessage)
 			os.Exit(0)
 		}
 	}
@@ -126,16 +135,16 @@ func loadConfig() (*config, []string, error) {
 		os.Exit(0)
 	}
 
-	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
-
 	// Load additional config from file
 	parser := flags.NewParser(&cfg, flags.Default)
+	addParserSettings(parser)
+
 	err = flags.NewIniParser(parser).ParseFile(preCfg.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
 			fmt.Fprintf(os.Stderr, "Error parsing config file: %v\n",
 				err)
-			fmt.Fprintln(os.Stderr, usageMessage)
+			parser.WriteHelp(os.Stderr)
 			return nil, nil, err
 		}
 	}
@@ -144,7 +153,7 @@ func loadConfig() (*config, []string, error) {
 	remainingArgs, err := parser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); !ok || e.Type != flags.ErrHelp {
-			fmt.Fprintln(os.Stderr, usageMessage)
+			cli.PrintHelp()
 		}
 		return nil, nil, err
 	}
