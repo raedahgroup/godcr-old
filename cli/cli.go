@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -29,6 +31,13 @@ type (
 		appName          string
 		walletrpcclient  *walletrpcclient.Client
 	}
+
+	// Command is an action that can be requested at the CLI
+	Command struct {
+		Name        string
+		Description string
+		handler     Handler
+	}
 )
 
 // New creates a new CLI object with the given arguments.
@@ -47,10 +56,21 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *CLI {
 	return client
 }
 
+// Commands provides the commands available from the CLI
+func Commands() []Command {
+	cli := &CLI{}
+	return []Command{
+		{"balance", "show your balance", cli.balance},
+		{"send", "send a transaction", cli.send},
+		{"receive", "show your address to receive funds", cli.receive},
+	}
+}
+
 func (c *CLI) registerHandlers() {
-	c.registerHandler("balance", "balance", "show your balance", c.balance)
-	c.registerHandler("send", "send", "send a transaction", c.send)
-	c.registerHandler("receive", "receive", "show your address to receive funds", c.receive)
+	commands := Commands()
+	for _, command := range commands {
+		c.registerHandler(command.Name, command.Name, command.Description, command.handler)
+	}
 }
 
 // registerHandler registers a command, its description and its handler
@@ -185,6 +205,52 @@ func (c *CLI) receive(commandArgs []string) (*response, error) {
 	return res, nil
 }
 
+var (
+	stderrHelpWriter = helpTabWriter(os.Stderr)
+
+	// PrintHelp outputs help message to os.Stderr
+	PrintHelp = helpPrinter(stderrHelpWriter)
+
+	// HelpMessageRecorder outputs help message to a buffer
+	HelpMessageRecorder = func(buf io.Writer) func() {
+		outputDest := helpTabWriter(buf)
+		return helpPrinter(outputDest)
+	}
+
+	usagePrefix = "Usage:\n  dcrcli "
+)
+
+// UsageString returns the CLI usage message as a string.
+func UsageString() string {
+	buf := bytes.NewBuffer([]byte{})
+	recorder := HelpMessageRecorder(buf)
+	recorder()
+	return strings.TrimPrefix(buf.String(), usagePrefix)
+}
+
+func helpTabWriter(w io.Writer) *tabwriter.Writer {
+	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
+}
+
+func helpPrinter(w *tabwriter.Writer) func() {
+	res := &response{
+		columns: []string{usagePrefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
+	}
+	commands := Commands()
+
+	for _, command := range commands {
+		item := []interface{}{
+			command.Name,
+			command.Description,
+		}
+		res.result = append(res.result, item)
+	}
+
+	return func() {
+		printResult(w, res)
+	}
+}
+
 // RunCommand invokes the handler function registered for the given
 // command in `commandArgs`.
 //
@@ -211,30 +277,12 @@ func (c *CLI) RunCommand(commandArgs []string) {
 		os.Exit(1)
 	}
 
-	printResult(res)
+	printResult(stderrHelpWriter, res)
 	os.Exit(0)
 }
 
 func (c *CLI) noCommandReceived() {
-	fmt.Printf("usage: %s [OPTIONS] <command> [<args...>]\n\n", c.appName)
-	fmt.Printf("available %s commands:\n", c.appName)
-	c.listCommands()
-}
-
-func (c *CLI) listCommands() {
-	res := &response{
-		columns: []string{"Command", "Description"},
-	}
-
-	for _, key := range c.commandListOrder {
-		item := []interface{}{
-			c.commands[key],
-			c.descriptions[key],
-		}
-
-		res.result = append(res.result, item)
-	}
-	printResult(res)
+	PrintHelp()
 }
 
 // IsCommandSupported returns true if the `command` specified is registered
@@ -246,11 +294,10 @@ func (c *CLI) isCommandSupported(command string) bool {
 
 func (c *CLI) invalidCommandReceived(command string) {
 	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n\n", c.appName, command)
-	c.noCommandReceived()
+	PrintHelp()
 }
 
-func printResult(res *response) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
+func printResult(w *tabwriter.Writer, res *response) {
 	header := ""
 	spaceRow := ""
 	columnLength := len(res.columns)
