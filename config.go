@@ -104,9 +104,6 @@ func loadConfig() (*config, []string, error) {
 		ConfigFile: defaultConfigFile,
 		RPCCert:    defaultRPCCertFile,
 	}
-	stdinReadMessage := "The special parameter `-` indicates that a parameter should be read " +
-		"from the\nnext unread line from standard input."
-
 	// Pre-parse command line arguments
 	preCfg := cfg
 	preParser := flags.NewParser(&preCfg, flags.HelpFlag)
