@@ -13,19 +13,17 @@
                     <thead>
                         <tr>
                             <th>Hash</th>
-                            <th>Type</th>
-                            <th>Amount</th>
+                            <th>Total</th>
+                            <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                       {{ range $txn := .result }}
-                            {{ range $summary := $txn.Summary}}
-                            <tr>
-                                    <td>{{ .Hash }}</td>
-                                    <td>{{ .TransactionType }}</td>
-                                    <td>{{ .Amount }} DCR</td>
-                                </tr>
-                            {{ end }}
+                       {{ range $txn := .result.Transactions }}
+                       <tr>
+                            <td>{{ .Hash }}</td>
+                            <td>{{ .Total }} DCR</td>
+                            <td>{{ .HumanTime }}</td>
+                        </tr>
                        {{ end }}
                     </tbody>
                 </table>
