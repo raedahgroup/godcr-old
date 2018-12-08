@@ -152,7 +152,7 @@ func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*respo
 }
 
 func receive(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
-	var recieveAddress uint32 = 0
+	var recieveAddress uint32
 
 	// if no address passed in
 	if len(commandArgs) == 0 {
