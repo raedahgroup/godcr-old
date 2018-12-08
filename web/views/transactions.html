@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                {{ if .error }}
+                <div class="alert alert-danger">{{ .error }}</div>
+                {{ else }}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Hash</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       {{ range $txn := .result }}
+                            {{ range $summary := $txn.Summary}}
+                            <tr>
+                                    <td>{{ .Hash }}</td>
+                                    <td>{{ .TransactionType }}</td>
+                                    <td>{{ .Amount }} DCR</td>
+                                </tr>
+                            {{ end }}
+                       {{ end }}
+                    </tbody>
+                </table>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -168,3 +168,44 @@ func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response
 	}
 	return res, nil
 }
+
+
+func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
+	transactions, err := walletrpcclient.GetTransactions()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &response{
+		columns: []string{
+			"Hash",
+			"Type",
+			"Amount (DCR)",
+		},
+	}
+
+	txns := []*rpcclient.TransactionSummary{}
+
+	for _, v := range transactions {
+		for _, k := range v.Summary {
+			summary := &rpcclient.TransactionSummary{
+				Hash:            k.Hash,
+				TransactionType: k.TransactionType,
+				Amount:          k.Amount,
+			}
+			txns = append(txns, summary)
+		}
+	}
+
+	res.result = make([][]interface{}, len(txns))
+
+	for i, v := range txns {
+		res.result[i] = []interface{}{
+			v.Hash,
+			v.TransactionType,
+			v.Amount,
+		}
+	}
+
+	return res, nil
+}
