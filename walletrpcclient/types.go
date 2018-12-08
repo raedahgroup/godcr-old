@@ -19,7 +19,6 @@ type AccountBalanceResult struct {
 type SendResult struct {
 	TransactionHash string `json:"transaction_hash"`
 }
-
 type UnspentOutputsResult struct {
 	OutputKey       string `json:"key"`
 	TransactionHash string `json:"transaction_hash"`
@@ -30,13 +29,6 @@ type UnspentOutputsResult struct {
 	Amount          string `json:"amount"`
 	PkScript        []byte `json:"-"`
 	AmountSum       string `json:"amount_sum"`
-}
-type FetchHeadersResult struct {
-	HeadersCount            uint32 `json:"headers_count"`
-	FirstNewBlockHash       []byte `json:"first_new_block_hash"`
-	FirstNewBlockHeight     int32  `json:"first_new_block_height"`
-	MainChainTipBlockHash   []byte `json:"main_chain_tip_block_hash"`
-	MainChainTipBlockHeight int32  `json:"main_chain_tip_block_height"`
 }
 type TransactionInput struct {
 	Index           uint32  `json:"index"`
@@ -70,20 +62,12 @@ type BlockDetails struct {
 }
 
 type TransactionSummary struct {
-	Hash            string  `json:"hash"`
-	TransactionType string  `json:"transaction_type"`
-	Amount          float64 `json:"amount"`
-	Index           uint32  `json:"index"`
-	PreviousAccount uint32  `json:"previous_account"`
-	PreviousAmount  float64 `json:"previous_amount"`
-	Account         uint32  `json:"account"`
-	Internal        bool    `json:"internal"`
-	Address         string  `json:"address"`
-	OutputScript    []byte  `json:"output_script"`
+	Hash      string  `json:"hash"`
+	Total     float64 `json:"amount"`
+	Timestamp int64   `json:"timestamp"`
+	HumanTime string  `json:"human_time"`
 }
 
 type GetTransactionsResult struct {
-	MinedTransactions   *BlockDetails         `json:"mined_transactions"`
-	UnminedTransactions []*TransactionDetails `json:"unmined_transactions"`
-	Summary             []*TransactionSummary `json:"summary"`
+	Transactions []*TransactionSummary
 }

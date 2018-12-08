@@ -311,7 +311,7 @@ func (c *CLI) balance(commandArgs []string) (*response, error) {
 }
 
 func (c *CLI) transactions(commandArgs []string) (*response, error) {
-	transactions, err := c.walletrpcclient.GetTransactions()
+	result, err := c.walletrpcclient.GetTransactions()
 	if err != nil {
 		return nil, err
 	}
@@ -319,31 +319,17 @@ func (c *CLI) transactions(commandArgs []string) (*response, error) {
 	res := &response{
 		columns: []string{
 			"Hash",
-			"Type",
 			"Amount (DCR)",
+			"Time",
 		},
 	}
 
-	txns := []*walletrpcclient.TransactionSummary{}
-
-	for _, v := range transactions {
-		for _, k := range v.Summary {
-			summary := &walletrpcclient.TransactionSummary{
-				Hash:            k.Hash,
-				TransactionType: k.TransactionType,
-				Amount:          k.Amount,
-			}
-			txns = append(txns, summary)
-		}
-	}
-
-	res.result = make([][]interface{}, len(txns))
-
-	for i, v := range txns {
+	res.result = make([][]interface{}, len(result.Transactions))
+	for i, v := range result.Transactions {
 		res.result[i] = []interface{}{
 			v.Hash,
-			v.TransactionType,
-			v.Amount,
+			v.Total,
+			v.HumanTime,
 		}
 	}
 

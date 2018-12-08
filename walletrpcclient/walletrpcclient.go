@@ -17,8 +17,7 @@ import (
 )
 
 type Client struct {
-	walletServiceClient       pb.WalletServiceClient
-	walletLoaderServiceClient pb.WalletLoaderServiceClient
+	walletServiceClient pb.WalletServiceClient
 }
 
 func New(address, cert string, noTLS bool) (*Client, error) {
@@ -30,7 +29,6 @@ func New(address, cert string, noTLS bool) (*Client, error) {
 
 	// register clients
 	c.walletServiceClient = pb.NewWalletServiceClient(conn)
-	c.walletLoaderServiceClient = pb.NewWalletLoaderServiceClient(conn)
 
 	return c, nil
 }
@@ -343,33 +341,15 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 
 	return outputs, nil
 }
-func (c *Client) FetchHeaders() (*FetchHeadersResult, error) {
-	req := &pb.FetchHeadersRequest{}
 
-	r, err := c.walletLoaderServiceClient.FetchHeaders(context.Background(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &FetchHeadersResult{
-		HeadersCount:            r.FetchedHeadersCount,
-		FirstNewBlockHash:       r.FirstNewBlockHash,
-		FirstNewBlockHeight:     r.FirstNewBlockHeight,
-		MainChainTipBlockHash:   r.MainChainTipBlockHash,
-		MainChainTipBlockHeight: r.MainChainTipBlockHeight,
-	}
-
-	return res, nil
-}
-
-func (c *Client) GetTransactions() ([]*GetTransactionsResult, error) {
+func (c *Client) GetTransactions() (*GetTransactionsResult, error) {
 	req := &pb.GetTransactionsRequest{}
 
 	stream, err := c.walletServiceClient.GetTransactions(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	txns := []*GetTransactionsResult{}
+	txns := &GetTransactionsResult{}
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -378,17 +358,10 @@ func (c *Client) GetTransactions() ([]*GetTransactionsResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		tx := &GetTransactionsResult{
-			Summary: []*TransactionSummary{},
-		}
+
 		if in.MinedTransactions != nil {
-			tx.MinedTransactions = getBlockDetails(in.MinedTransactions)
-			tx.Summary = append(tx.Summary, getSummary(tx.MinedTransactions)...)
+			txns.Transactions = append(txns.Transactions, getTransactionDetails(in.MinedTransactions))
 		}
-		if in.UnminedTransactions != nil {
-			tx.UnminedTransactions = getTransactionsDetails(in.UnminedTransactions)
-		}
-		txns = append(txns, tx)
 	}
 	return txns, nil
 }
