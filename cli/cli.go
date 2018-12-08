@@ -109,6 +109,7 @@ func (c *CLI) registerHandlers() {
 	c.RegisterHandler("send", "send", "Send DCR to address. Multi-step", c.send)
 	c.RegisterHandler("balance", "balance", "Check balance of an account", c.balance)
 	c.RegisterHandler("nextaccount", "nextaccount", "Generate next account for wallet", c.nextAccount)
+	c.RegisterHandler("transactions", "transactions", "Get wallet transactions", c.transactions)
 }
 
 func printResult(res *response) {
@@ -303,6 +304,46 @@ func (c *CLI) balance(commandArgs []string) (*response, error) {
 			v.LockedByTickets,
 			v.VotingAuthority,
 			v.Unconfirmed,
+		}
+	}
+
+	return res, nil
+}
+
+func (c *CLI) transactions(commandArgs []string) (*response, error) {
+	transactions, err := c.walletrpcclient.GetTransactions()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &response{
+		columns: []string{
+			"Hash",
+			"Type",
+			"Amount (DCR)",
+		},
+	}
+
+	txns := []*walletrpcclient.TransactionSummary{}
+
+	for _, v := range transactions {
+		for _, k := range v.Summary {
+			summary := &walletrpcclient.TransactionSummary{
+				Hash:            k.Hash,
+				TransactionType: k.TransactionType,
+				Amount:          k.Amount,
+			}
+			txns = append(txns, summary)
+		}
+	}
+
+	res.result = make([][]interface{}, len(txns))
+
+	for i, v := range txns {
+		res.result[i] = []interface{}{
+			v.Hash,
+			v.TransactionType,
+			v.Amount,
 		}
 	}
 
