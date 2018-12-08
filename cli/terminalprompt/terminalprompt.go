@@ -83,3 +83,27 @@ func RequestSelection(message string, options []string, validate ValidatorFuncti
 		return value, nil
 	}
 }
+
+// RequestMultipleSelection prompts the user to select 1 or more options from a printed list of options.
+// The user is expected to enter a number range that corresponds to the options to select in the list.
+// If an error other than EOF occurs while requesting input, the error is returned.
+// It calls `validate` on the received input. If `validate` returns an error, the user is prompted
+// again for a correct input.
+func RequestMultipleSelection(message string, options []string, validate ValidatorFunction) (string, error) {
+	var promptMessage = message + "\n"
+	for idx, opt := range options {
+		promptMessage += fmt.Sprintf(" [%d]: %s\n", idx+1, opt)
+	}
+	promptMessage += "=> "
+	for {
+		value, err := skipEOFError(getTextInput(promptMessage))
+		if err != nil {
+			return "", err
+		}
+		if err = validate(value); err != nil {
+			fmt.Printf("%s\n\n", err.Error())
+			continue
+		}
+		return value, nil
+	}
+}
