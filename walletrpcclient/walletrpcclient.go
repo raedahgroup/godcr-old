@@ -17,7 +17,8 @@ import (
 )
 
 type Client struct {
-	walletServiceClient pb.WalletServiceClient
+	walletServiceClient       pb.WalletServiceClient
+	walletLoaderServiceClient pb.WalletLoaderServiceClient
 }
 
 func New(address, cert string, noTLS bool) (*Client, error) {
@@ -29,6 +30,7 @@ func New(address, cert string, noTLS bool) (*Client, error) {
 
 	// register clients
 	c.walletServiceClient = pb.NewWalletServiceClient(conn)
+	c.walletLoaderServiceClient = pb.NewWalletLoaderServiceClient(conn)
 
 	return c, nil
 }
@@ -65,7 +67,7 @@ func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, er
 
 func (c *Client) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress,
 	passphrase string) (*SendResult, error) {
-	
+
 	// convert amount from float64 DCR to int64 Atom as required by dcrwallet ConstructTransaction implementation
 	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
 	if err != nil {
@@ -73,7 +75,7 @@ func (c *Client) SendFromAccount(amountInDCR float64, sourceAccount uint32, dest
 	}
 	// type of amountInAtom is `dcrutil.Amount` which is an int64 alias
 	amount := int64(amountInAtom)
-	
+
 	// construct transaction
 	pkScript, err := walletcore.GetPKScript(destinationAddress)
 	if err != nil {
@@ -100,7 +102,7 @@ func (c *Client) SendFromAccount(amountInDCR float64, sourceAccount uint32, dest
 
 func (c *Client) SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAccount uint32,
 	destinationAddress, passphrase string) (*SendResult, error) {
-	
+
 	// convert amount to atoms
 	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
 	amount := int64(amountInAtom)
@@ -145,12 +147,12 @@ func (c *Client) SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAcc
 			continue
 		}
 
-		outpoint := wire.NewOutPoint(transactionHash, item.OutputIndex, int8(item.Tree));
+		outpoint := wire.NewOutPoint(transactionHash, item.OutputIndex, int8(item.Tree))
 		input := wire.NewTxIn(outpoint, item.Amount, nil)
 		inputs = append(inputs, input)
 
 		if len(inputs) == len(utxoKeys) {
-			break;
+			break
 		}
 	}
 
@@ -165,7 +167,7 @@ func (c *Client) SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAcc
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// serialize unsigned tx
 	var txBuf bytes.Buffer
 	txBuf.Grow(unsignedTx.SerializeSize())
@@ -337,7 +339,7 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 		transactionHash, _ := chainhash.NewHash(item.TransactionHash)
 
 		outputItem := &UnspentOutputsResult{
-			OutputKey:		 fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex),
+			OutputKey:       fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex),
 			TransactionHash: transactionHash.String(),
 			OutputIndex:     item.OutputIndex,
 			Amount:		 item.Amount,
@@ -352,4 +354,53 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 	}
 
 	return outputs, nil
+}
+func (c *Client) FetchHeaders() (*FetchHeadersResult, error) {
+	req := &pb.FetchHeadersRequest{}
+
+	r, err := c.walletLoaderServiceClient.FetchHeaders(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &FetchHeadersResult{
+		HeadersCount:            r.FetchedHeadersCount,
+		FirstNewBlockHash:       r.FirstNewBlockHash,
+		FirstNewBlockHeight:     r.FirstNewBlockHeight,
+		MainChainTipBlockHash:   r.MainChainTipBlockHash,
+		MainChainTipBlockHeight: r.MainChainTipBlockHeight,
+	}
+
+	return res, nil
+}
+
+func (c *Client) GetTransactions() ([]*GetTransactionsResult, error) {
+	req := &pb.GetTransactionsRequest{}
+
+	stream, err := c.walletServiceClient.GetTransactions(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	txns := []*GetTransactionsResult{}
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		tx := &GetTransactionsResult{
+			Summary: []*TransactionSummary{},
+		}
+		if in.MinedTransactions != nil {
+			tx.MinedTransactions = getBlockDetails(in.MinedTransactions)
+			tx.Summary = append(tx.Summary, getSummary(tx.MinedTransactions)...)
+		}
+		if in.UnminedTransactions != nil {
+			tx.UnminedTransactions = getTransactionsDetails(in.UnminedTransactions)
+		}
+		txns = append(txns, tx)
+	}
+	return txns, nil
 }

@@ -49,9 +49,10 @@ func (s *Server) loadTemplates() {
 	utils := "web/views/utils.html"
 
 	tpls := map[string]string{
-		"balance.html": "web/views/balance.html",
-		"send.html":    "web/views/send.html",
-		"receive.html": "web/views/receive.html",
+		"balance.html":      "web/views/balance.html",
+		"send.html":         "web/views/send.html",
+		"receive.html":      "web/views/receive.html",
+		"transactions.html": "web/views/transactions.html",
 	}
 
 	for i, v := range tpls {
@@ -101,6 +102,8 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/receive", s.GetReceive)
 	r.Get("/receive/generate/{accountNumber}", s.GetReceiveGenerate)
 	r.Get("/outputs/unspent/{accountNumber}", s.GetUnspentOutputs)
+	r.Get("/transactions", s.GetTransactions)
+	r.Get("/transactions/{blockHeight}", s.GetTransactions)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {
