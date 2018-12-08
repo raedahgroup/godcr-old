@@ -198,36 +198,28 @@ func receive(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*re
 	return res, nil
 }
 
-// UsageString returns the cli usage message as a string.
-func UsageString() string {
+// HelpMessage returns the cli usage message as a string.
+func HelpMessage() string {
 	buf := bytes.NewBuffer([]byte{})
-	recordHelpMessage(buf)
-	return strings.TrimPrefix(buf.String(), usagePrefix)
+	writer := tabWriter(buf)
+	writeHelpMessage("", writer)
+	return buf.String()
 }
 
-// recordHelpMessage outputs help message to a buffer
-func recordHelpMessage(buf io.Writer) {
-	outputDest := helpTabWriter(buf)
-	writeHelpMessage(outputDest)
-}
-
-var (
-	stderrHelpWriter = helpTabWriter(os.Stderr)
-	usagePrefix      = "Usage:\n  dcrcli "
-)
-
-func helpTabWriter(w io.Writer) *tabwriter.Writer {
+func tabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 }
 
 // PrintHelp outputs help message to os.Stderr
 func PrintHelp() {
-	writeHelpMessage(stderrHelpWriter)
+	usagePrefix := "Usage:\n  dcrcli "
+	stderrTabWriter := tabWriter(os.Stderr)
+	writeHelpMessage(usagePrefix, stderrTabWriter)
 }
 
-func writeHelpMessage(w *tabwriter.Writer) {
+func writeHelpMessage(prefix string, w *tabwriter.Writer) {
 	res := &response{
-		columns: []string{usagePrefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
+		columns: []string{prefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
 	}
 	commands := supportedCommands()
 
@@ -250,7 +242,7 @@ func writeHelpMessage(w *tabwriter.Writer) {
 // commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *cli) RunCommand(commandArgs []string) {
 	if len(commandArgs) == 0 {
-		c.noCommandReceived()
+		PrintHelp()
 		os.Exit(1)
 	}
 
@@ -268,12 +260,8 @@ func (c *cli) RunCommand(commandArgs []string) {
 		os.Exit(1)
 	}
 
-	printResult(stderrHelpWriter, res)
+	printResult(tabWriter(os.Stdout), res)
 	os.Exit(0)
-}
-
-func (c *cli) noCommandReceived() {
-	PrintHelp()
 }
 
 // IsCommandSupported returns true if the `command` specified is registered

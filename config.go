@@ -93,7 +93,7 @@ func cleanAndExpandPath(path string) string {
 }
 
 func addParserSettings(parser *flags.Parser) {
-	parser.Usage = cli.UsageString()
+	parser.Usage = cli.HelpMessage()
 	parser.UnknownOptionHandler = func(option string, arg flags.SplitArgument, args []string) ([]string, error) {
 		return nil, fmt.Errorf("unknown option %s", option)
 	}
