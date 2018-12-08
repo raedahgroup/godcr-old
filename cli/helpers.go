@@ -121,11 +121,11 @@ func getUtxosForNewTransaction(c *walletrpcclient.Client, sourceAccount uint32) 
 			return r
 		}, str)
 	}
-	
+
 	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
 	validateUtxoSelection := func(selectedOptions string) error {
 		minAllowed, maxAllowed := 1, len(utxos)
-		errWrongInput := fmt.Errorf("Error: invalid input. Selection should be numbers between %d - %d", 
+		errWrongInput := fmt.Errorf("Error: invalid input. Selection should be numbers between %d - %d",
 			minAllowed, maxAllowed)
 
 		// remove white space and split user input into comma-delimited selection ranges
@@ -169,9 +169,9 @@ func getUtxosForNewTransaction(c *walletrpcclient.Client, sourceAccount uint32) 
 		}
 
 		for _, n := range selection {
-			selectedUtxos = append(selectedUtxos, utxos[n - 1].OutputKey)
+			selectedUtxos = append(selectedUtxos, utxos[n-1].OutputKey)
 		}
-		
+
 		return nil
 	}
 
