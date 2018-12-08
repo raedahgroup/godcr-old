@@ -20,13 +20,11 @@ type (
 	}
 	// handler carries out the action required by a command.
 	// commandArgs holds the arguments passed to the command.
-	handler func(commandArgs []string) (*response, error)
+	handler func(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error)
 
 	// cli holds data needed to run the program.
 	cli struct {
 		funcMap          map[string]handler
-		commands         map[string]string
-		descriptions     map[string]string
 		commandListOrder []string
 		appName          string
 		walletrpcclient  *walletrpcclient.Client
@@ -34,8 +32,8 @@ type (
 
 	// command is an action that can be requested at the cli
 	command struct {
-		Name        string
-		Description string
+		name        string
+		description string
 		handler     handler
 	}
 )
@@ -44,8 +42,6 @@ type (
 func New(walletrpcclient *walletrpcclient.Client, appName string) *cli {
 	client := &cli{
 		funcMap:         make(map[string]handler),
-		commands:        make(map[string]string),
-		descriptions:    make(map[string]string),
 		walletrpcclient: walletrpcclient,
 		appName:         appName,
 	}
@@ -56,20 +52,19 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *cli {
 	return client
 }
 
-// commands provides the commands available from the cli
-func commands() []command {
-	cli := &cli{}
+// supportedCommands provides the commands available from the cli
+func supportedCommands() []command {
 	return []command{
-		{"balance", "show your balance", cli.balance},
-		{"send", "send a transaction", cli.send},
-		{"receive", "show your address to receive funds", cli.receive},
+		{"balance", "show your balance", balance},
+		{"send", "send a transaction", send},
+		{"receive", "show your address to receive funds", receive},
 	}
 }
 
 func (c *cli) registerHandlers() {
-	commands := commands()
+	commands := supportedCommands()
 	for _, command := range commands {
-		c.registerHandler(command.Name, command.Name, command.Description, command.handler)
+		c.registerHandler(command.name, command.name, command.description, command.handler)
 	}
 }
 
@@ -80,13 +75,11 @@ func (c *cli) registerHandler(key, command, description string, h handler) {
 	}
 
 	c.funcMap[key] = h
-	c.commands[key] = command
-	c.descriptions[key] = description
 	c.commandListOrder = append(c.commandListOrder, key)
 }
 
-func (c *cli) balance(commandArgs []string) (*response, error) {
-	balances, err := c.walletrpcclient.Balance()
+func balance(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
+	balances, err := walletrpcclient.Balance()
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +109,13 @@ func (c *cli) balance(commandArgs []string) (*response, error) {
 	return res, nil
 }
 
-func (c *cli) send(commandArgs []string) (*response, error) {
-	sourceAccount, err := getSendSourceAccount(c.walletrpcclient)
+func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
+	sourceAccount, err := getSendSourceAccount(walletrpcclient)
 	if err != nil {
 		return nil, err
 	}
 
-	destinationAddress, err := getSendDestinationAddress(c.walletrpcclient)
+	destinationAddress, err := getSendDestinationAddress(walletrpcclient)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +130,7 @@ func (c *cli) send(commandArgs []string) (*response, error) {
 		return nil, err
 	}
 
-	result, err := c.walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+	result, err := walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +151,7 @@ func (c *cli) send(commandArgs []string) (*response, error) {
 	return res, nil
 }
 
-func (c *cli) receive(commandArgs []string) (*response, error) {
+func receive(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
 	var recieveAddress uint32 = 0
 
 	// if no address passed in
@@ -166,7 +159,7 @@ func (c *cli) receive(commandArgs []string) (*response, error) {
 
 		// display menu options to select account
 		var err error
-		recieveAddress, err = getSendSourceAccount(c.walletrpcclient)
+		recieveAddress, err = getSendSourceAccount(walletrpcclient)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +173,7 @@ func (c *cli) receive(commandArgs []string) (*response, error) {
 		recieveAddress = uint32(x)
 	}
 
-	r, err := c.walletrpcclient.Receive(recieveAddress)
+	r, err := walletrpcclient.Receive(recieveAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -205,50 +198,48 @@ func (c *cli) receive(commandArgs []string) (*response, error) {
 	return res, nil
 }
 
-var (
-	stderrHelpWriter = helpTabWriter(os.Stderr)
-
-	// PrintHelp outputs help message to os.Stderr
-	PrintHelp = helpPrinter(stderrHelpWriter)
-
-	// helpMessageRecorder outputs help message to a buffer
-	helpMessageRecorder = func(buf io.Writer) func() {
-		outputDest := helpTabWriter(buf)
-		return helpPrinter(outputDest)
-	}
-
-	usagePrefix = "Usage:\n  dcrcli "
-)
-
 // UsageString returns the cli usage message as a string.
 func UsageString() string {
 	buf := bytes.NewBuffer([]byte{})
-	recorder := helpMessageRecorder(buf)
-	recorder()
+	recordHelpMessage(buf)
 	return strings.TrimPrefix(buf.String(), usagePrefix)
 }
+
+// recordHelpMessage outputs help message to a buffer
+func recordHelpMessage(buf io.Writer) {
+	outputDest := helpTabWriter(buf)
+	writeHelpMessage(outputDest)
+}
+
+var (
+	stderrHelpWriter = helpTabWriter(os.Stderr)
+	usagePrefix      = "Usage:\n  dcrcli "
+)
 
 func helpTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 }
 
-func helpPrinter(w *tabwriter.Writer) func() {
+// PrintHelp outputs help message to os.Stderr
+func PrintHelp() {
+	writeHelpMessage(stderrHelpWriter)
+}
+
+func writeHelpMessage(w *tabwriter.Writer) {
 	res := &response{
 		columns: []string{usagePrefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
 	}
-	commands := commands()
+	commands := supportedCommands()
 
 	for _, command := range commands {
 		item := []interface{}{
-			command.Name,
-			command.Description,
+			command.name,
+			command.description,
 		}
 		res.result = append(res.result, item)
 	}
 
-	return func() {
-		printResult(w, res)
-	}
+	printResult(w, res)
 }
 
 // RunCommand invokes the handler function registered for the given
@@ -270,7 +261,7 @@ func (c *cli) RunCommand(commandArgs []string) {
 	}
 
 	handler := c.funcMap[command]
-	res, err := handler(commandArgs[1:])
+	res, err := handler(c.walletrpcclient, commandArgs[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error executing command '%s'\n", command)
 		fmt.Fprintln(os.Stderr, err.Error())

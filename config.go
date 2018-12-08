@@ -92,10 +92,8 @@ func cleanAndExpandPath(path string) string {
 	return filepath.Join(homeDir, path)
 }
 
-var helpString = cli.UsageString()
-
 func addParserSettings(parser *flags.Parser) {
-	parser.Usage = helpString
+	parser.Usage = cli.UsageString()
 	parser.UnknownOptionHandler = func(option string, arg flags.SplitArgument, args []string) ([]string, error) {
 		return nil, fmt.Errorf("unknown option %s", option)
 	}
@@ -106,8 +104,6 @@ func loadConfig() (*config, []string, error) {
 		ConfigFile: defaultConfigFile,
 		RPCCert:    defaultRPCCertFile,
 	}
-	stdinReadMessage := "The special parameter `-` indicates that a parameter should be read " +
-		"from the\nnext unread line from standard input."
 
 	// Pre-parse command line arguments
 	preCfg := cfg
@@ -118,11 +114,9 @@ func loadConfig() (*config, []string, error) {
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
 			cli.PrintHelp()
-			fmt.Fprintln(os.Stderr, stdinReadMessage)
 			os.Exit(1)
 		} else if ok && e.Type == flags.ErrHelp {
 			preParser.WriteHelp(os.Stderr)
-			fmt.Fprintln(os.Stdout, stdinReadMessage)
 			os.Exit(0)
 		}
 	}
