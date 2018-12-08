@@ -78,7 +78,7 @@ function submitSendForm(passphrase) {
         method: "POST",
         data: form.serialize(),
         success: function(response) {
-            if (typeof response.success != "undefined") {
+            if (response.success) {
                 var m = "The transaction was published successfully. Hash: <strong>" + response.success + "</strong>";
                 setSuccessMessage(m)
             } else {
@@ -90,6 +90,30 @@ function submitSendForm(passphrase) {
         },
         complete: function() {
             submit_btn.removeAttr("disabled").html("Send");
+        }
+    })
+}
+
+function getUnspentOutputs(account_number, success_callback) {
+    var next_btn = $(".next-btn");
+    next_btn.attr("disabled", "disabled").html("Loading...");
+
+    $.ajax({
+        url: "/outputs/unspent/" + account_number,
+        method: "GET",
+        data: {},
+        success: function(response) {
+            if (response.success) {
+                success_callback(response.message);
+            } else {
+                setErrorMessage(response.message);
+            }
+        },
+        error: function(error) {
+            setErrorMessage("A server error occurred")
+        },
+        complete: function() {
+            next_btn.removeAttr("disabled").html("Next");
         }
     })
 }
@@ -115,10 +139,59 @@ function clearMessages() {
     $(".alert-danger").hide();
 }
 
+function setProgressWidth(width) {
+    $(".stepper .progress-bar").css("width", width + "%");
+}
+
+function goToTab(tab_item) {
+    tab_item.trigger("click").addClass("stepper-active");
+}
+
+function closeTab(tab_tem) {
+    tab_item.trigger("click");
+}
+
 $(function(){
-    $("#submit-btn").on("click", function(){
-        if (validateSendForm()) {
-            getWalletPassphraseAndSubmit(submitSendForm);
+    var stepper_index = 0;
+    var steppers = $(".stepper .nav-link");
+
+    $(".next-btn").on("click", function(){
+        if (validateSendForm() && stepper_index <= steppers.length) {
+            var account_number = $("#sourceAccount").find(":selected").val();
+            var callback = function(txs) {
+                // populate outputs 
+                var utxoHtml = txs.map(tx => {
+                    var receiveDateTime = new Date(tx.receive_time * 1000)
+                    return  "<tr>" + 
+                                "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
+                                "<td width='60%'>" + tx.key + "</td>" + 
+                                "<td width='15%'>" + tx.amount + "</td>" + 
+                                "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
+                            "</tr>"
+                });
+                $("#wallet-outputs tbody").html(utxoHtml.join('\n'));
+
+                stepper_index += 1;
+                goToTab(steppers.eq(stepper_index));  
+                setProgressWidth((stepper_index+1 / steppers.length) * 100); 
+            }
+            getUnspentOutputs(account_number, callback);
         }
     });
+
+    $(".previous-btn").on("click", function(){
+        if (stepper_index > 0) {
+            steppers.eq(stepper_index).removeClass("stepper-active");
+            stepper_index -= 1;
+            goToTab(steppers.eq(stepper_index));
+            setProgressWidth((stepper_index+1 / steppers.length) * 100);     
+        }
+    })
+
+    $("#submit-btn").on("click", function(e){
+        e.preventDefault();
+        getWalletPassphraseAndSubmit(submitSendForm)
+    })
 });
+
+
