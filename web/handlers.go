@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
+
 	"github.com/go-chi/chi"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -38,6 +40,8 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
+	req.ParseForm()
+	utxos := req.Form["tx"]
 	amountStr := req.FormValue("amount")
 	sourceAccountStr := req.FormValue("sourceAccount")
 	destinationAddressStr := req.FormValue("destinationAddress")
@@ -55,7 +59,13 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := s.walletClient.Send(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	var result *walletrpcclient.SendResult
+	if len(utxos) > 0 {
+		result, err = s.walletClient.SendFromUTXOs(utxos, amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	} else {
+		result, err = s.walletClient.SendFromAccount(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+	}
+
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -111,4 +121,27 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 	data["success"] = true
 	data["address"] = addr.Address
 	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
+}
+
+func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	accountNumberStr := chi.URLParam(req, "accountNumber")
+	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 32)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	utxos, err := s.walletClient.UnspentOutputs(uint32(accountNumber), 0)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	data["success"] = true
+	data["message"] = utxos
 }
