@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"text/tabwriter"
 )
@@ -15,8 +16,8 @@ func HelpMessage() string {
 }
 
 // PrintHelp outputs help message to os.Stderr
-func PrintHelp() {
-	usagePrefix := "Usage:\n  dcrcli "
+func PrintHelp(appName string) {
+	usagePrefix := fmt.Sprintf("Usage:\n  %s ", appName)
 	stderrTabWriter := tabWriter(os.Stderr)
 	writeHelpMessage(usagePrefix, stderrTabWriter)
 }

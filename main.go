@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
@@ -26,8 +28,6 @@ var Ver = Version{
 // go build -ldflags "-X github.com/decred/dcrdata/version.CommitHash=`git describe --abbrev=8 --long | awk -F "-" '{print $(NF-1)"-"$NF}'`"
 var CommitHash string
 
-const AppName string = "dcrcli"
-
 func (v *Version) String() string {
 	var hashStr string
 	if CommitHash != "" {
@@ -42,7 +42,10 @@ func (v *Version) String() string {
 }
 
 func main() {
-	config, args, err := loadConfig()
+	appName := filepath.Base(os.Args[0])
+	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
+
+	config, args, err := loadConfig(appName)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -51,7 +54,7 @@ func main() {
 		fmt.Println("Running in http mode")
 		enterHttpMode(config)
 	} else {
-		enterCliMode(config, args)
+		enterCliMode(appName, config, args)
 	}
 }
 
@@ -71,7 +74,7 @@ func enterHttpMode(config *config) {
 	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
-func enterCliMode(config *config, args []string) {
+func enterCliMode(appName string, config *config, args []string) {
 	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
@@ -79,6 +82,6 @@ func enterCliMode(config *config, args []string) {
 		os.Exit(1)
 	}
 
-	c := cli.New(client, AppName)
+	c := cli.New(client, appName)
 	c.RunCommand(args)
 }
