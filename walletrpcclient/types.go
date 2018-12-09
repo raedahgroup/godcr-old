@@ -27,7 +27,8 @@ type UnspentOutputsResult struct {
 	ReceiveTime     int64  `json:"receive_time"`
 	FromCoinbase    bool   `json:"from_coinbase"`
 	Tree            int32  `json:"tree"`
-	Amount          string  `json:"amount"`
+	Amount			int64  `json:"amount"`
+	AmountString    string  `json:"amount_string"`
 	PkScript        []byte `json:"-"`
 	AmountSum       string  `json:"amount_sum"`
 }

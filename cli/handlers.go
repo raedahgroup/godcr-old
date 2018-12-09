@@ -78,7 +78,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 
 	var utxoSelection []string
 	if custom {
-		utxoSelection, err = getUtxosForNewTransaction(utxos)
+		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
 			return nil, err
 		}
