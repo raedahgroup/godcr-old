@@ -55,6 +55,17 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 		return nil, err
 	}
 
+	// fetch utxos from selected account and check if user can proceed with this custom send command
+	// get all utxos in account, pass 0 amount to get all
+	utxos, err := walletrpcclient.UnspentOutputs(sourceAccount, 0)
+	if err != nil {
+		return nil, err
+	}
+	if len(utxos) == 0 {
+		return nil, fmt.Errorf("Selected account does not have any unspent outputs. Cannot proceed")
+	}
+
+
 	destinationAddress, err := getSendDestinationAddress(walletrpcclient)
 	if err != nil {
 		return nil, err
@@ -67,7 +78,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 
 	var utxoSelection []string
 	if custom {
-		utxoSelection, err = getUtxosForNewTransaction(walletrpcclient, sourceAccount)
+		utxoSelection, err = getUtxosForNewTransaction(utxos)
 		if err != nil {
 			return nil, err
 		}

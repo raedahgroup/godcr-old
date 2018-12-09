@@ -103,15 +103,9 @@ func getWalletPassphrase() (string, error) {
 	return result, nil
 }
 
-func getUtxosForNewTransaction(c *walletrpcclient.Client, sourceAccount uint32) ([]string, error) {
+func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult) ([]string, error) {
 	var selectedUtxos []string
 	var err error
-
-	// get all utxos in account, pass 0 amount to get all
-	utxos, err := c.UnspentOutputs(sourceAccount, 0)
-	if err != nil {
-		return nil, err
-	}
 
 	var removeWhiteSpace = func(str string) string {
 		return strings.Map(func(r rune) rune {
