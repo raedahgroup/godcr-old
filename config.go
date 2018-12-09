@@ -99,7 +99,7 @@ func addParserSettings(parser *flags.Parser) {
 	}
 }
 
-func loadConfig() (*config, []string, error) {
+func loadConfig(appName string) (*config, []string, error) {
 	cfg := config{
 		ConfigFile: defaultConfigFile,
 		RPCCert:    defaultRPCCertFile,
@@ -112,7 +112,7 @@ func loadConfig() (*config, []string, error) {
 	_, err := preParser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
-			cli.PrintHelp()
+			cli.PrintHelp(appName)
 			os.Exit(1)
 		} else if ok && e.Type == flags.ErrHelp {
 			preParser.WriteHelp(os.Stderr)
@@ -121,8 +121,6 @@ func loadConfig() (*config, []string, error) {
 	}
 
 	// Show version and exit if the version flag was specified
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	if preCfg.ShowVersion {
 		fmt.Println(appName, "version", Ver.String())
 		os.Exit(0)
@@ -146,7 +144,7 @@ func loadConfig() (*config, []string, error) {
 	remainingArgs, err := parser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); !ok || e.Type != flags.ErrHelp {
-			cli.PrintHelp()
+			cli.PrintHelp(appName)
 		}
 		return nil, nil, err
 	}

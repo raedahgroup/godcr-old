@@ -62,7 +62,7 @@ func (c *cli) registerHandler(key string, h handler) {
 // commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *cli) RunCommand(commandArgs []string) {
 	if len(commandArgs) == 0 {
-		PrintHelp()
+		PrintHelp(c.appName)
 		os.Exit(1)
 	}
 
@@ -93,5 +93,5 @@ func (c *cli) isCommandSupported(command string) bool {
 
 func (c *cli) invalidCommandReceived(command string) {
 	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n\n", c.appName, command)
-	PrintHelp()
+	PrintHelp(c.appName)
 }
