@@ -119,15 +119,7 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
 	validateUtxoSelection := func(selectedOptions string) error {
 		minAllowed, maxAllowed := 1, len(utxos)
-		var errWrongInput error
-
-		if minAllowed == maxAllowed {
-			// only 1 utxo to select from
-			errWrongInput = fmt.Errorf("Error: invalid input. Expected '1' since you have only 1 unspent output in your selected account")
-		} else {
-			errWrongInput = fmt.Errorf("Error: invalid input. Expected a number range between %d - %d",
-				minAllowed, maxAllowed)
-		}
+		errWrongInput := errors.New("your selection does not match any available option")
 
 		// remove white space and split user input into comma-delimited selection ranges
 		selectionRanges := strings.Split(removeWhiteSpace(selectedOptions), ",")
