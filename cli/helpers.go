@@ -103,7 +103,7 @@ func getWalletPassphrase() (string, error) {
 	return result, nil
 }
 
-func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult) ([]string, error) {
+func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, sendAmount float64) ([]string, error) {
 	var selectedUtxos []string
 	var err error
 
@@ -162,8 +162,15 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult) ([
 			return errWrongInput
 		}
 
+		var totalAmountSelected float64
 		for _, n := range selection {
-			selectedUtxos = append(selectedUtxos, utxos[n-1].OutputKey)
+			utxo := utxos[n-1]
+			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
+			selectedUtxos = append(selectedUtxos, utxo.OutputKey)
+		}
+
+		if totalAmountSelected < sendAmount {
+			return errors.New("Invalid selection. Total amount from selected outputs is smaller than amount to send")
 		}
 
 		return nil
@@ -171,7 +178,7 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult) ([
 
 	options := make([]string, len(utxos))
 	for index, utxo := range utxos {
-		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.Amount)
+		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.AmountString)
 	}
 
 	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)

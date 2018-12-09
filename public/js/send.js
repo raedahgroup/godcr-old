@@ -165,7 +165,7 @@ $(function(){
                     return  "<tr>" + 
                                 "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
                                 "<td width='60%'>" + tx.key + "</td>" + 
-                                "<td width='15%'>" + tx.amount + "</td>" + 
+                                "<td width='15%'>" + tx.amount_string + "</td>" + 
                                 "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
                             "</tr>"
                 });
