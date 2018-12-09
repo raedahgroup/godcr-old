@@ -18,10 +18,9 @@ type (
 
 	// cli holds data needed to run the program.
 	cli struct {
-		funcMap          map[string]handler
-		commandListOrder []string
-		appName          string
-		walletrpcclient  *walletrpcclient.Client
+		funcMap         map[string]handler
+		appName         string
+		walletrpcclient *walletrpcclient.Client
 	}
 )
 
@@ -42,18 +41,17 @@ func New(walletrpcclient *walletrpcclient.Client, appName string) *cli {
 func (c *cli) registerHandlers() {
 	commands := supportedCommands()
 	for _, command := range commands {
-		c.registerHandler(command.name, command.name, command.description, command.handler)
+		c.registerHandler(command.name, command.handler)
 	}
 }
 
 // registerHandler registers a command, its description and its handler
-func (c *cli) registerHandler(key, command, description string, h handler) {
+func (c *cli) registerHandler(key string, h handler) {
 	if _, ok := c.funcMap[key]; ok {
 		panic("trying to register a handler twice: " + key)
 	}
 
 	c.funcMap[key] = h
-	c.commandListOrder = append(c.commandListOrder, key)
 }
 
 // RunCommand invokes the handler function registered for the given
