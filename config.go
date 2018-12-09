@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/raedahgroup/dcrcli/cli"
+
 	flags "github.com/btcsuite/go-flags"
 	"github.com/decred/dcrd/dcrutil"
 )
@@ -28,15 +30,14 @@ var (
 
 type config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
-	ListCommands      bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
-	RPCPassword       string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
+	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `short:"p" long:"httpserveraddress" description:"Http address to serve if mode is set to http"`
+	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
-	Mode              string `short:"m" long:"mode" description:"Toggles between 'http' and 'cli' modes"`
 }
 
 func cleanAndExpandPath(path string) string {
@@ -91,57 +92,50 @@ func cleanAndExpandPath(path string) string {
 	return filepath.Join(homeDir, path)
 }
 
-func loadConfig() (*config, []string, error) {
+func addParserSettings(parser *flags.Parser) {
+	parser.Usage = cli.HelpMessage()
+	parser.UnknownOptionHandler = func(option string, arg flags.SplitArgument, args []string) ([]string, error) {
+		return nil, fmt.Errorf("unknown option %s", option)
+	}
+}
+
+func loadConfig(appName string) (*config, []string, error) {
 	cfg := config{
 		ConfigFile: defaultConfigFile,
 		RPCCert:    defaultRPCCertFile,
 	}
-
 	// Pre-parse command line arguments
 	preCfg := cfg
 	preParser := flags.NewParser(&preCfg, flags.HelpFlag)
+	addParserSettings(preParser)
+
 	_, err := preParser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
-			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintln(os.Stderr, "The special parameter `-` "+
-				"indicates that a parameter should be read "+
-				"from the\nnext unread line from standard input.")
+			cli.PrintHelp(appName)
 			os.Exit(1)
 		} else if ok && e.Type == flags.ErrHelp {
-			fmt.Fprintln(os.Stdout, err)
-			fmt.Fprintln(os.Stdout, "")
-			fmt.Fprintln(os.Stdout, "The special parameter `-` "+
-				"indicates that a parameter should be read "+
-				"from the\nnext unread line from standard input.")
+			preParser.WriteHelp(os.Stderr)
 			os.Exit(0)
 		}
 	}
 
 	// Show version and exit if the version flag was specified
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	if preCfg.ShowVersion {
 		fmt.Println(appName, "version", Ver.String())
 		os.Exit(0)
 	}
 
-	usageMessage := fmt.Sprintf("Use %s -h to show options", appName)
-
-	// check if listcommand cmd was specified
-	if preCfg.ListCommands {
-		return &cfg, []string{"listcommands"}, nil
-	}
-
 	// Load additional config from file
 	parser := flags.NewParser(&cfg, flags.Default)
+	addParserSettings(parser)
+
 	err = flags.NewIniParser(parser).ParseFile(preCfg.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
 			fmt.Fprintf(os.Stderr, "Error parsing config file: %v\n",
 				err)
-			fmt.Fprintln(os.Stderr, usageMessage)
+			parser.WriteHelp(os.Stderr)
 			return nil, nil, err
 		}
 	}
@@ -150,7 +144,7 @@ func loadConfig() (*config, []string, error) {
 	remainingArgs, err := parser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); !ok || e.Type != flags.ErrHelp {
-			fmt.Fprintln(os.Stderr, usageMessage)
+			cli.PrintHelp(appName)
 		}
 		return nil, nil, err
 	}
