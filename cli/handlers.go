@@ -65,7 +65,6 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 		return nil, fmt.Errorf("Selected account does not have any unspent outputs. Cannot proceed")
 	}
 
-
 	destinationAddress, err := getSendDestinationAddress(walletrpcclient)
 	if err != nil {
 		return nil, err
