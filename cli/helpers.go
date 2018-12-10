@@ -136,7 +136,7 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 			}
 
 			if len(minMax) == 1 {
-				selection = append(selection, min)
+				selection = append(selection, min-1)
 				continue
 			}
 
@@ -147,13 +147,11 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 
 			// ensure min is actually smaller than max, swap if otherwise
 			if min > max {
-				temp := max
-				max = min
-				min = temp
+				min, max = max, min
 			}
 
 			for n := min; n <= max; n++ {
-				selection = append(selection, n)
+				selection = append(selection, n-1)
 			}
 		}
 
@@ -163,7 +161,7 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 
 		var totalAmountSelected float64
 		for _, n := range selection {
-			utxo := utxos[n-1]
+			utxo := utxos[n]
 			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
 			selectedUtxos = append(selectedUtxos, utxo.OutputKey)
 		}
