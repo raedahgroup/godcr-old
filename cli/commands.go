@@ -11,7 +11,8 @@ type command struct {
 func supportedCommands() []command {
 	return []command{
 		{"balance", "show your balance", balance},
-		{"send", "send a transaction", send},
+		{"send", "send a transaction", normalSend},
+		{"send-custom", "send a transaction, manually selecting inputs from unspent outputs", customSend},
 		{"receive", "show your address to receive funds", receive},
 	}
 }

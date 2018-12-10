@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
@@ -99,4 +101,87 @@ func getWalletPassphrase() (string, error) {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
 	return result, nil
+}
+
+func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, sendAmount float64) ([]string, error) {
+	var selectedUtxos []string
+	var err error
+
+	var removeWhiteSpace = func(str string) string {
+		return strings.Map(func(r rune) rune {
+			if unicode.IsSpace(r) {
+				return -1
+			}
+			return r
+		}, str)
+	}
+
+	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
+	validateUtxoSelection := func(selectedOptions string) error {
+		minAllowed, maxAllowed := 1, len(utxos)
+		errWrongInput := errors.New("your selection does not match any available option")
+
+		// remove white space and split user input into comma-delimited selection ranges
+		selectionRanges := strings.Split(removeWhiteSpace(selectedOptions), ",")
+		var selection []int
+
+		for _, minMaxRange := range selectionRanges {
+			minMax := strings.Split(minMaxRange, "-")
+			var min, max int
+			var err error
+
+			min, err = strconv.Atoi(minMax[0])
+			if err != nil || min < minAllowed || min > maxAllowed {
+				return errWrongInput
+			}
+
+			if len(minMax) == 1 {
+				selection = append(selection, min-1)
+				continue
+			}
+
+			max, err = strconv.Atoi(minMax[1])
+			if err != nil || max < minAllowed || max > maxAllowed {
+				return errWrongInput
+			}
+
+			// ensure min is actually smaller than max, swap if otherwise
+			if min > max {
+				min, max = max, min
+			}
+
+			for n := min; n <= max; n++ {
+				selection = append(selection, n-1)
+			}
+		}
+
+		if len(selection) == 0 {
+			return errWrongInput
+		}
+
+		var totalAmountSelected float64
+		for _, n := range selection {
+			utxo := utxos[n]
+			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
+			selectedUtxos = append(selectedUtxos, utxo.OutputKey)
+		}
+
+		if totalAmountSelected < sendAmount {
+			return errors.New("Invalid selection. Total amount from selected outputs is smaller than amount to send")
+		}
+
+		return nil
+	}
+
+	options := make([]string, len(utxos))
+	for index, utxo := range utxos {
+		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.AmountString)
+	}
+
+	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return nil, fmt.Errorf("error reading selection: %s", err.Error())
+	}
+	return selectedUtxos, nil
 }

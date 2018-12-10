@@ -210,44 +210,55 @@ func (c *Client) signAndPublishTransaction(serializedTx []byte, passphrase strin
 	return response, nil
 }
 
-func (c *Client) Balance() ([]AccountBalanceResult, error) {
+func (c *Client) Balance() ([]*AccountBalanceResult, error) {
 	ctx := context.Background()
 	accounts, err := c.walletServiceClient.Accounts(ctx, &pb.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	balanceResult := make([]AccountBalanceResult, 0, len(accounts.Accounts))
+	balanceResult := make([]*AccountBalanceResult, 0, len(accounts.Accounts))
 
 	for _, v := range accounts.Accounts {
-		req := &pb.BalanceRequest{
-			AccountNumber:         v.AccountNumber,
-			RequiredConfirmations: 0,
-		}
-
-		res, err := c.walletServiceClient.Balance(ctx, req)
+		accountBalance, err := c.SingleAccountBalance(v.AccountNumber, ctx)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching balance for account: %d :%s", v.AccountNumber, err.Error())
+			return nil, err
 		}
 
-		if v.AccountName == "imported" && dcrutil.Amount(res.Total) == 0 {
+		if v.AccountName == "imported" && accountBalance.Total == 0 {
 			continue
 		}
-
-		accountBalance := AccountBalanceResult{
-			AccountNumber:   v.AccountNumber,
-			AccountName:     v.AccountName,
-			Total:           dcrutil.Amount(res.Total),
-			Spendable:       dcrutil.Amount(res.Spendable),
-			LockedByTickets: dcrutil.Amount(res.LockedByTickets),
-			VotingAuthority: dcrutil.Amount(res.VotingAuthority),
-			Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
-		}
-
+	
+		accountBalance.AccountName = v.AccountName
 		balanceResult = append(balanceResult, accountBalance)
 	}
 
 	return balanceResult, nil
+}
+
+func (c *Client) SingleAccountBalance(accountNumber uint32, ctx context.Context) (*AccountBalanceResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	req := &pb.BalanceRequest{
+		AccountNumber:         accountNumber,
+		RequiredConfirmations: 0,
+	}
+
+	res, err := c.walletServiceClient.Balance(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching balance for account: %d :%s", accountNumber, err.Error())
+	}
+
+	return &AccountBalanceResult{
+		AccountNumber:   accountNumber,
+		Total:           dcrutil.Amount(res.Total),
+		Spendable:       dcrutil.Amount(res.Spendable),
+		LockedByTickets: dcrutil.Amount(res.LockedByTickets),
+		VotingAuthority: dcrutil.Amount(res.VotingAuthority),
+		Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
+	}, nil
 }
 
 func (c *Client) Receive(accountNumber uint32) (*ReceiveResult, error) {
@@ -329,7 +340,8 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 			OutputKey:		 fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex),
 			TransactionHash: transactionHash.String(),
 			OutputIndex:     item.OutputIndex,
-			Amount:          dcrutil.Amount(item.Amount).String(),
+			Amount:		 item.Amount,
+			AmountString:          dcrutil.Amount(item.Amount).String(),
 			PkScript:        item.PkScript,
 			AmountSum:       dcrutil.Amount(item.AmountSum).String(),
 			ReceiveTime:     item.ReceiveTime,
