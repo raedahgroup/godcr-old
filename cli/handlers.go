@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	rpcclient "github.com/raedahgroup/dcrcli/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func balance(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
+func balance(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
 	balances, err := walletrpcclient.Balance()
 	if err != nil {
 		return nil, err
@@ -39,10 +39,30 @@ func balance(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*re
 	return res, nil
 }
 
-func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
+func normalSend(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
+	return send(walletrpcclient, false)
+}
+
+func customSend(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
+	return send(walletrpcclient, true)
+}
+
+func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
+	var err error
+
 	sourceAccount, err := getSendSourceAccount(walletrpcclient)
 	if err != nil {
 		return nil, err
+	}
+
+	// check if account has positive non-zero balance before proceeding
+	// if balance is zero, there'd be no unspent outputs to use
+	accountBalance, err := walletrpcclient.SingleAccountBalance(sourceAccount, nil)
+	if err != nil {
+		return nil, err
+	}
+	if accountBalance.Total == 0 {
+		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
 	destinationAddress, err := getSendDestinationAddress(walletrpcclient)
@@ -55,12 +75,33 @@ func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*respo
 		return nil, err
 	}
 
+	var utxoSelection []string
+	if custom {
+		// get all utxos in account, pass 0 amount to get all
+		utxos, err := walletrpcclient.UnspentOutputs(sourceAccount, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmount)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+	var result *rpcclient.SendResult
+	if custom {
+		result, err = walletrpcclient.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount,
+			destinationAddress, passphrase)
+	} else {
+		result, err = walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +122,7 @@ func send(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*respo
 	return res, nil
 }
 
-func receive(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error) {
+func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
 	var recieveAddress uint32
 
 	// if no address passed in

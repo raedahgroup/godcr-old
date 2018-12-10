@@ -40,6 +40,10 @@ func NewUnsignedTx(inputs []*wire.TxIn, sendAmount int64, destinationAddress str
 	maxRequiredFee := txrules.FeeForSerializeSize(relayFeePerKb, maxSignedSize)
 	changeAmount := totalInputAmount - sendAmount - int64(maxRequiredFee)
 
+	if changeAmount < 0 {
+		return nil, errors.New("total amount from selected outputs not enough to cover transaction fee")
+	}
+
 	if changeAmount != 0 && !txrules.IsDustAmount(dcrutil.Amount(changeAmount), changeScriptSize, relayFeePerKb) {
 		if len(changeScript) > txscript.MaxScriptElementSize {
 			return nil, errors.New("script size exceed maximum bytes pushable to the stack")
