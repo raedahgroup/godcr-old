@@ -282,17 +282,21 @@ func (c *Client) Receive(accountNumber uint32) (*ReceiveResult, error) {
 	return res, nil
 }
 
-func (c *Client) ValidateAddress(address string) (bool, error) {
-	req := &pb.ValidateAddressRequest{
-		Address: address,
-	}
-
-	r, err := c.walletServiceClient.ValidateAddress(context.Background(), req)
+func (c *Client) IsAddressValid(address string) (bool, error) {
+	r, err := c.ValidateAddress(address)
 	if err != nil {
 		return false, err
 	}
 
 	return r.IsValid, nil
+}
+
+func (c *Client) ValidateAddress(address string) (*pb.ValidateAddressResponse, error) {
+	req := &pb.ValidateAddressRequest{
+		Address: address,
+	}
+
+	return c.walletServiceClient.ValidateAddress(context.Background(), req)
 }
 
 func (c *Client) NextAccount(accountName string, passphrase string) (uint32, error) {
@@ -354,14 +358,16 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 	return outputs, nil
 }
 
-func (c *Client) GetTransactions() (*GetTransactionsResult, error) {
+func (c *Client) GetTransactions() ([]*Transaction, error) {
 	req := &pb.GetTransactionsRequest{}
 
 	stream, err := c.walletServiceClient.GetTransactions(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	txns := &GetTransactionsResult{}
+	
+	var transactions []*Transaction
+
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -371,9 +377,21 @@ func (c *Client) GetTransactions() (*GetTransactionsResult, error) {
 			return nil, err
 		}
 
+		var transactionDetails []*pb.TransactionDetails
 		if in.MinedTransactions != nil {
-			txns.Transactions = append(txns.Transactions, getTransactionDetails(in.MinedTransactions))
+			transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
 		}
+		if in.UnminedTransactions != nil {
+			transactionDetails = append(transactionDetails, in.UnminedTransactions...)
+		}
+
+		txs, err := c.processTransactions(transactionDetails)
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, txs...)
 	}
-	return txns, nil
+	
+	return transactions, nil
 }
