@@ -12,17 +12,23 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Hash</th>
-                            <th>Total</th>
                             <th>Date</th>
+                            <th>Amount</th>
+                            <th>Fee</th>
+                            <th>Type</th>
+                            <th>Hash</th>
                         </tr>
                     </thead>
                     <tbody>
-                       {{ range $txn := .result.Transactions }}
+                       {{ range $txn := .result }}
                        <tr>
-                            <td>{{ .Hash }}</td>
-                            <td>{{ .Total }} DCR</td>
-                            <td>{{ .HumanTime }}</td>
+                            <td>{{ .FormattedTime }}</td>
+                            <td>{{ .Amount }} DCR</td>
+                            <td>{{ .Fee }} DCR</td>
+                            <td>{{ .Type }}</td>
+                            <td>
+                                <a href="{{ txExplorerLink . }}" target="_blank">{{ .Hash }}</a>
+                            </td>
                         </tr>
                        {{ end }}
                     </tbody>
