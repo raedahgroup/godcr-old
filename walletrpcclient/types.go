@@ -38,6 +38,7 @@ type Transaction struct {
 	Type	string 	`json:"type"`
 	Amount     float64 `json:"amount"`
 	Fee			float64 `json:"fee"`
+	Direction 	string `json:"direction"`
 	IsTestnet	bool `json"is_testnet"`
 	Timestamp int64   `json:"timestamp"`
 	FormattedTime string `json:"formatted_time"`
