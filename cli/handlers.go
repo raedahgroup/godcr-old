@@ -169,7 +169,6 @@ func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response
 	return res, nil
 }
 
-
 func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
 	transactions, err := walletrpcclient.GetTransactions()
 	if err != nil {
@@ -178,32 +177,22 @@ func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*respons
 
 	res := &response{
 		columns: []string{
+			"Date",
+			"Amount (DCR)",
+			"Direction",
 			"Hash",
 			"Type",
-			"Amount (DCR)",
 		},
+		result: make([][]interface{}, len(transactions)),
 	}
 
-	txns := []*rpcclient.TransactionSummary{}
-
-	for _, v := range transactions {
-		for _, k := range v.Summary {
-			summary := &rpcclient.TransactionSummary{
-				Hash:            k.Hash,
-				TransactionType: k.TransactionType,
-				Amount:          k.Amount,
-			}
-			txns = append(txns, summary)
-		}
-	}
-
-	res.result = make([][]interface{}, len(txns))
-
-	for i, v := range txns {
+	for i, tx := range transactions {
 		res.result[i] = []interface{}{
-			v.Hash,
-			v.TransactionType,
-			v.Amount,
+			tx.FormattedTime,
+			tx.Amount,
+			tx.Direction,
+			tx.Hash,
+			tx.Type,
 		}
 	}
 

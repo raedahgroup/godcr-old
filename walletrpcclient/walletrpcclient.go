@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -392,6 +393,11 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 
 		transactions = append(transactions, txs...)
 	}
+
+	// sort transactions by date (list newer first)
+	sort.SliceStable(transactions, func(i1, i2 int) bool {
+		return transactions[i1].Timestamp > transactions[i2].Timestamp
+	})
 	
 	return transactions, nil
 }
