@@ -15,6 +15,7 @@
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Fee</th>
+                            <th>Direction</th>
                             <th>Type</th>
                             <th>Hash</th>
                         </tr>
@@ -25,6 +26,7 @@
                             <td>{{ .FormattedTime }}</td>
                             <td>{{ .Amount }} DCR</td>
                             <td>{{ .Fee }} DCR</td>
+                            <td>{{ .Direction }}</td>
                             <td>{{ .Type }}</td>
                             <td>
                                 <a href="{{ txExplorerLink . }}" target="_blank">{{ .Hash }}</a>
