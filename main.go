@@ -11,6 +11,7 @@ import (
 	"github.com/raedahgroup/dcrcli/config"
 	ws "github.com/raedahgroup/dcrcli/walletsource"
 	"github.com/raedahgroup/dcrcli/walletsource/dcrwalletrpc"
+	"github.com/raedahgroup/dcrcli/walletsource/mobilewalletlib"
 	"github.com/raedahgroup/dcrcli/web"
 )
 
@@ -21,26 +22,40 @@ func main() {
 		os.Exit(1)
 	}
 
-	// open connection to a wallet via the selected source/medium
-	// default is mobile wallet
-	var walletSource ws.WalletSource
+	walletSource := makeWalletSource(appConfig)
 
-	if appConfig.UseWalletRPC {
-		walletSource, err = dcrwalletrpc.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS)
-		if err != nil {
-			fmt.Println("Failed to connect to wallet")
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-	} else {
-		err = fmt.Errorf("Only dcrwallet daemon is supported currently")
-	}
-
-	if appConfig.HTTPMode {
+	if config.HTTPMode {
 		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
 	} else {
 		enterCliMode(appConfig, walletSource)
 	}
+}
+
+// makeWalletSource opens connection to a wallet via the selected source/medium
+// default is mobile wallet library, alternative is dcrwallet rpc
+func makeWalletSource(config *config.Config) ws.WalletSource {
+	var walletSource ws.WalletSource
+	var err error
+
+	if config.UseWalletRPC {
+		walletSource, err = dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+		if err != nil {
+			fmt.Println("Connect to dcrwallet rpc failed")
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	} else {
+		var netType string
+		if config.TestNet {
+			netType = "testnet"
+		} else {
+			netType = "mainnet"
+		}
+	
+		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
+	}
+
+	return walletSource
 }
 
 func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {

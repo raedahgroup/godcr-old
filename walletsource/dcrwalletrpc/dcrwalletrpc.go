@@ -13,9 +13,6 @@ type WalletPRCClient struct {
 	walletService pb.WalletServiceClient
 }
 
-// New establishes gRPC connection to a running dcrwallet daemon at the specified address,
-// create a WalletServiceClient using the established connection and
-// returns an instance of `dcrwalletrpc.Client`
 func New(address, cert string, noTLS bool) (*WalletPRCClient, error) {
 	conn, err := connectToRPC(address, cert, noTLS)
 	if err != nil {

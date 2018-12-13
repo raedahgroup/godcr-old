@@ -27,6 +27,7 @@ var (
 // Config holds the top-level options for the CLI program.
 type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
+	AppDataDir        string `short:"A" long:"appdata" description:"Application data directory for wallet config, databases and logs"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	UseWalletRPC      bool   `long:"usewalletrpc" description:"Connect to a running drcwallet rpc"`
@@ -43,6 +44,7 @@ type Config struct {
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
+		AppDataDir:        defaultAppDataDir,
 		ConfigFile:        defaultConfigFile,
 		RPCCert:           defaultRPCCertFile,
 		HTTPServerAddress: defaultHTTPServerAddress,
