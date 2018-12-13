@@ -1,6 +1,6 @@
 package main
 
-import (
+import 	(
 	"fmt"
 	"os"
 	"sort"
@@ -10,7 +10,8 @@ import (
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/config"
 	"github.com/raedahgroup/godcr/desktop"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletsource"
+	"github.com/raedahgroup/godcr/walletsource/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/web"
 )
 
@@ -21,11 +22,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+	// open connection to a wallet via the selected source/medium
+	// default is mobile wallet
+	var walletSource ws.WalletSource
+
+	if appConfig.UseWalletRPC {
+		walletSource, err = dcrwalletrpc.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
+		if err != nil {
+			fmt.Println("Failed to connect to wallet")
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	} else {
+		err = fmt.Errorf("Only dcrwallet daemon is supported currently")
 	}
 
 	if appConfig.HTTPMode {
@@ -33,27 +42,28 @@ func main() {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		enterHTTPMode(appConfig.HTTPServerAddress, client)
+		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
 	} else if appConfig.DesktopMode {
-		enterDesktopMode(client)
+		enterDesktopMode(walletSource)
 	} else {
-		enterCliMode(appConfig, client)
+		enterCliMode(appConfig, walletSource)
 	}
 }
 
-func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
+func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
 	fmt.Println("Running in http mode")
-	web.StartHttpServer(serverAddress, client)
+	web.StartHttpServer(serverAddress, walletsource)
 }
 
-func enterDesktopMode(client *walletrpcclient.Client) {
+func enterDesktopMode(walletsource ws.WalletSource) {
 	fmt.Println("Running in desktop mode")
-	desktop.StartDesktopApp(client)
+	desktop.StartDesktopApp(walletsource)
 }
 
-func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
-	appRoot := cli.Root{Config: appConfig}
+func enterCliMode(appConfig config.Config, walletsource ws.WalletSource) {
+	cli.WalletSource = walletsource
 
+	appRoot := cli.Root{Config: appConfig}
 	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
 	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
 	if _, err := parser.Parse(); err != nil {

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/raedahgroup/godcr/cli/termio"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	ws "github.com/raedahgroup/godcr/walletsource"
 )
 
 // ShowTransactionCommand requests for transaction details with a transaction hash.
@@ -18,8 +18,8 @@ type ShowTransactionCommand struct {
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
-func (showTxCommand ShowTransactionCommand) Run(walletrpcclient *walletrpcclient.Client, args []string) error {
-	transaction, err := walletrpcclient.GetTransaction(showTxCommand.Args.TxHash)
+func (showTxCommand ShowTransactionCommand) Run(walletsource ws.WalletSource, args []string) error {
+	transaction, err := walletsource.GetTransaction(showTxCommand.Args.TxHash)
 	if err != nil {
 		return err
 	}

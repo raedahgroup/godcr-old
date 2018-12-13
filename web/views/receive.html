@@ -16,12 +16,14 @@
                             <div class="row">
                                 <div class="col-md-9 col-sm-12">
                                   <div class="form-group">
-                                      <label for="account">Account</label>
-                                      <select class="form-control" name="account" id="account">
-                                          {{ range $s := .accounts }}
-                                          <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
-                                          {{ end }}
-                                      </select>
+                                       <label for="account">Account</label>
+                                       <select class="form-control" name="account" id="account">
+                                            {{ range $account := .accounts }}
+                                            <option value="{{ $account.Number }}">
+                                                {{ $account.Name }} - {{ $account.Balance.Total }}
+                                            </option>
+                                            {{ end }}
+                                       </select>
                                   </div>
                                 </div>
                                 <div class="col-md-3 col-sm-12">

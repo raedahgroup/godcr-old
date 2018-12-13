@@ -9,24 +9,27 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	ws "github.com/raedahgroup/godcr/walletsource"
 )
 
-// getSendSourceAccount fetches the account number for an account selected by the user.
+// selectAccount lists accounts in wallet and prompts user to select an account, then returns the account number for that account.
 // If there is only one account available, it returns the account number for that account.
-func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
+func selectAccount(walletSource ws.WalletSource) (uint32, error) {
 	var selection int
 	var err error
+
 	// get send  accounts
-	accounts, err := c.Balance()
+	accounts, err := walletSource.AccountsOverview()
 	if err != nil {
 		return 0, err
 	}
+
 	// Proceed with default account if there's no other account.
 	if len(accounts) == 1 {
-		return accounts[0].AccountNumber, nil
+		return accounts[0].Number, nil
 	}
-	// validateAccountSelection  ensures that the input received is a number that corresponds to an account
+
+	// validateAccountSelection ensures that the input received is a number that corresponds to an account
 	validateAccountSelection := func(input string) error {
 		minAllowed, maxAllowed := 1, len(accounts)
 		errWrongInput := fmt.Errorf("Error: input must be between %d and %d", minAllowed, maxAllowed)
@@ -41,23 +44,23 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	}
 
 	options := make([]string, len(accounts))
-
 	for index, account := range accounts {
-		options[index] = fmt.Sprintf("%s (%s)", account.AccountName, dcrutil.Amount(account.Total).String())
+		options[index] = fmt.Sprintf("%s (%s)", account.Name, account.Balance.Total.String())
 	}
 
-	_, err = terminalprompt.RequestSelection("Select source account", options, validateAccountSelection)
+	_, err = terminalprompt.RequestSelection("Select account", options, validateAccountSelection)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return 0, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
-	return accounts[selection].AccountNumber, nil
+
+	return accounts[selection].Number, nil
 }
 
 // getSendDestinationAddress fetches the destination address to send DCRs to from the user.
-func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
+func getSendDestinationAddress(walletSource ws.WalletSource) (string, error) {
 	validateAddressInput := func(address string) error {
-		isValid, err := c.IsAddressValid(address)
+		isValid, err := walletSource.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}
@@ -109,7 +112,7 @@ func getWalletPassphrase() (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, sendAmount float64) ([]string, error) {
+func getUtxosForNewTransaction(utxos []*ws.UnspentOutput, sendAmount float64) ([]string, error) {
 	var selectedUtxos []string
 	var err error
 
@@ -181,7 +184,7 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 
 	options := make([]string, len(utxos))
 	for index, utxo := range utxos {
-		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.AmountString)
+		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.Amount.String())
 	}
 
 	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)

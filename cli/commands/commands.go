@@ -2,7 +2,7 @@ package commands
 
 import (
 	flags "github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	ws "github.com/raedahgroup/godcr/walletsource"
 )
 
 // CliCommands defines the commands and options available on the cli
@@ -18,7 +18,7 @@ type CliCommands struct {
 // WalletCommandRunner defines an interface that application commands dependent on
 // walletrpcclient.Client can satisfy in order to be provided their dependencies.
 type WalletCommandRunner interface {
-	Run(client *walletrpcclient.Client, args []string) error
+	Run(walletsource ws.WalletSource, args []string) error
 	flags.Commander
 }
 

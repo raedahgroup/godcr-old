@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/raedahgroup/godcr/cli/termio"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	ws "github.com/raedahgroup/godcr/walletsource"
 )
 
 // HistoryCommand enables the user view their transaction history.
@@ -11,8 +11,8 @@ type HistoryCommand struct {
 }
 
 // Run runs the `history` command.
-func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error {
-	transactions, err := client.GetTransactions()
+func (h HistoryCommand) Run(walletsource ws.WalletSource, args []string) error {
+	transactions, err := walletsource.TransactionHistory()
 	if err != nil {
 		return err
 	}
