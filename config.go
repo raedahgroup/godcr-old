@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	defaultConfigFilename = "dcrcli.conf"
-	defaultLogDirname     = "log"
-	defaultLogFilename    = "dcrcli.log"
+	defaultConfigFilename    = "dcrcli.conf"
+	defaultLogDirname        = "log"
+	defaultLogFilename       = "dcrcli.log"
+	defaultHTTPServerAddress = "127.0.0.1:1234"
 )
 
 var (
@@ -100,9 +101,11 @@ func addParserSettings(parser *flags.Parser) {
 }
 
 func loadConfig(appName string) (*config, []string, error) {
+	// load defaults first
 	cfg := config{
-		ConfigFile: defaultConfigFile,
-		RPCCert:    defaultRPCCertFile,
+		ConfigFile:        defaultConfigFile,
+		RPCCert:           defaultRPCCertFile,
+		HTTPServerAddress: defaultHTTPServerAddress,
 	}
 	// Pre-parse command line arguments
 	preCfg := cfg
