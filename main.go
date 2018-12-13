@@ -10,8 +10,9 @@ import 	(
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/config"
 	"github.com/raedahgroup/godcr/desktop"
-	"github.com/raedahgroup/godcr/walletsource"
+	ws "github.com/raedahgroup/godcr/walletsource"
 	"github.com/raedahgroup/godcr/walletsource/dcrwalletrpc"
+	"github.com/raedahgroup/godcr/walletsource/mobilewalletlib"
 	"github.com/raedahgroup/godcr/web"
 )
 
@@ -22,32 +23,46 @@ func main() {
 		os.Exit(1)
 	}
 
-	// open connection to a wallet via the selected source/medium
-	// default is mobile wallet
-	var walletSource ws.WalletSource
+	walletSource := makeWalletSource(appConfig)
 
-	if appConfig.UseWalletRPC {
-		walletSource, err = dcrwalletrpc.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
-		if err != nil {
-			fmt.Println("Failed to connect to wallet")
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-	} else {
-		err = fmt.Errorf("Only dcrwallet daemon is supported currently")
-	}
-
-	if appConfig.HTTPMode {
+	if config.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
-	} else if appConfig.DesktopMode {
+		enterHttpMode(config.HTTPServerAddress, walletSource)
+	} else if config.DesktopMode {
 		enterDesktopMode(walletSource)
 	} else {
 		enterCliMode(appConfig, walletSource)
 	}
+}
+
+// makeWalletSource opens connection to a wallet via the selected source/medium
+// default is mobile wallet library, alternative is dcrwallet rpc
+func makeWalletSource(config *config.Config) ws.WalletSource {
+	var walletSource ws.WalletSource
+	var err error
+
+	if config.UseWalletRPC {
+		walletSource, err = dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS, config.TestNet)
+		if err != nil {
+			fmt.Println("Connect to dcrwallet rpc failed")
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	} else {
+		var netType string
+		if config.TestNet {
+			netType = "testnet"
+		} else {
+			netType = "mainnet"
+		}
+	
+		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
+	}
+
+	return walletSource
 }
 
 func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
