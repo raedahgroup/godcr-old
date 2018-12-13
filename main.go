@@ -59,11 +59,6 @@ func main() {
 }
 
 func enterHttpMode(config *config) {
-	if config.HTTPServerAddress == "" {
-		fmt.Println("Cannot start http server. Server address not set")
-		os.Exit(1)
-	}
-
 	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
