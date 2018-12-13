@@ -9,7 +9,7 @@ type HistoryCommand struct{}
 
 // Execute runs the `history` command.
 func (h HistoryCommand) Execute(args []string) error {
-	transactions, err := cli.WalletClient.GetTransactions()
+	transactions, err := cli.WalletSource.TransactionHistory()
 	if err != nil {
 		return err
 	}

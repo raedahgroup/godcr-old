@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/raedahgroup/dcrcli/cli"
-	rpcclient "github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 // SendCommand lets the user send DCR.
@@ -12,7 +11,7 @@ type SendCommand struct{}
 
 // Execute runs the `send` command.
 func (s SendCommand) Execute(args []string) error {
-	res, err := send(cli.WalletClient, false)
+	res, err := send(false)
 	if err != nil {
 		return err
 	}
@@ -25,7 +24,7 @@ type SendCustomCommand struct{}
 
 // Execute runs the `send-custom` command.
 func (s SendCustomCommand) Execute(args []string) error {
-	res, err := send(cli.WalletClient, true)
+	res, err := send(true)
 	if err != nil {
 		return err
 	}
@@ -33,17 +32,17 @@ func (s SendCustomCommand) Execute(args []string) error {
 	return nil
 }
 
-func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error) {
+func send(custom bool) (*cli.Response, error) {
 	var err error
 
-	sourceAccount, err := cli.GetSendSourceAccount(walletrpcclient)
+	sourceAccount, err := cli.SelectAccount(cli.WalletSource)
 	if err != nil {
 		return nil, err
 	}
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := walletrpcclient.SingleAccountBalance(sourceAccount, nil)
+	accountBalance, err := cli.WalletSource.AccountBalance(sourceAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error)
 		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := cli.GetSendDestinationAddress(walletrpcclient)
+	destinationAddress, err := cli.GetSendDestinationAddress(cli.WalletSource)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +63,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error)
 	var utxoSelection []string
 	if custom {
 		// get all utxos in account, pass 0 amount to get all
-		utxos, err := walletrpcclient.UnspentOutputs(sourceAccount, 0)
+		utxos, err := cli.WalletSource.UnspentOutputs(sourceAccount, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -80,12 +79,11 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error)
 		return nil, err
 	}
 
-	var result *rpcclient.SendResult
+	var sentTransactionHash string
 	if custom {
-		result, err = walletrpcclient.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount,
-			destinationAddress, passphrase)
+		sentTransactionHash, err = cli.WalletSource.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
 	} else {
-		result, err = walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = cli.WalletSource.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	}
 
 	if err != nil {
@@ -100,7 +98,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error)
 		Result: [][]interface{}{
 			[]interface{}{
 				"The transaction was published successfully",
-				result.TransactionHash,
+				sentTransactionHash,
 			},
 		},
 	}

@@ -21,7 +21,7 @@ func (r ReceiveCommand) Execute(args []string) error {
 	if r.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = cli.GetSendSourceAccount(cli.WalletClient)
+		accountNumber, err = cli.SelectAccount(cli.WalletSource)
 		if err != nil {
 			return err
 		}
@@ -29,18 +29,18 @@ func (r ReceiveCommand) Execute(args []string) error {
 		// if an account name was passed in e.g. ./dcrcli receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = cli.WalletClient.AccountNumber(r.Args.Account)
+		accountNumber, err = cli.WalletSource.AccountNumber(r.Args.Account)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveResult, err := cli.WalletClient.Receive(accountNumber)
+	receiveAddress, err := cli.WalletSource.GenerateReceiveAddress(accountNumber)
 	if err != nil {
 		return err
 	}
 
-	qr, err := qrcode.New(receiveResult.Address, qrcode.Medium)
+	qr, err := qrcode.New(receiveAddress, qrcode.Medium)
 	if err != nil {
 		return fmt.Errorf("Error generating QR Code: %s", err.Error())
 	}
@@ -52,7 +52,7 @@ func (r ReceiveCommand) Execute(args []string) error {
 		},
 		Result: [][]interface{}{
 			[]interface{}{
-				receiveResult.Address,
+				receiveAddress,
 				qr.ToString(true),
 			},
 		},

@@ -5,6 +5,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/dcrcli/walletsource"
 )
 
 // BalanceCommand displays the user's account balance.
@@ -14,21 +15,21 @@ type BalanceCommand struct {
 
 // Execute runs the `balance` command, displaying the user's account balance.
 func (balanceCommand BalanceCommand) Execute(args []string) error {
-	accountBalances, err := cli.WalletClient.Balance()
+	accounts, err := cli.WalletSource.AccountsOverview()
 	if err != nil {
 		return err
 	}
 
 	if balanceCommand.Detailed {
-		showDetailedBalance(accountBalances)
+		showDetailedBalance(accounts)
 	} else {
-		showBalanceSummary(accountBalances)
+		showBalanceSummary(accounts)
 	}
 
 	return nil
 }
 
-func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult) {
+func showDetailedBalance(accounts []*walletsource.Account) {
 	res := &cli.Response{
 		Columns: []string{
 			"Account",
@@ -38,23 +39,23 @@ func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult
 			"Voting Authority",
 			"Unconfirmed",
 		},
-		Result: make([][]interface{}, len(accountBalances)),
+		Result: make([][]interface{}, len(accounts)),
 	}
-	for i, account := range accountBalances {
+	for i, account := range accounts {
 		res.Result[i] = []interface{}{
-			account.AccountName,
-			account.Total,
-			account.Spendable,
-			account.LockedByTickets,
-			account.VotingAuthority,
-			account.Unconfirmed,
+			account.Name,
+			account.Balance.Total,
+			account.Balance.Spendable,
+			account.Balance.LockedByTickets,
+			account.Balance.VotingAuthority,
+			account.Balance.Unconfirmed,
 		}
 	}
 
 	cli.PrintResult(cli.StdoutWriter, res)
 }
 
-func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult) {
+func showBalanceSummary(accounts []*walletsource.Account) {
 	summarizeBalance := func(total, spendable dcrutil.Amount) string {
 		if total == spendable {
 			return total.String()
@@ -63,14 +64,14 @@ func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult)
 		}
 	}
 
-	if len(accountBalances) == 1 {
-		commandOutput := summarizeBalance(accountBalances[0].Total, accountBalances[0].Spendable)
+	if len(accounts) == 1 {
+		commandOutput := summarizeBalance(accounts[0].Balance.Total, accounts[0].Balance.Spendable)
 		cli.PrintStringResult(commandOutput)
 	} else {
-		commandOutput := make([]string, len(accountBalances))
-		for i, accountBalance := range accountBalances {
-			balanceText := summarizeBalance(accountBalance.Total, accountBalance.Spendable)
-			commandOutput[i] = fmt.Sprintf("%s \t %s", accountBalance.AccountName, balanceText)
+		commandOutput := make([]string, len(accounts))
+		for i, account := range accounts {
+			balanceText := summarizeBalance(account.Balance.Total, account.Balance.Spendable)
+			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, balanceText)
 		}
 		cli.PrintStringResult(commandOutput...)
 	}

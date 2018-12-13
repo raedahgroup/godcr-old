@@ -9,7 +9,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/config"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	ws "github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/walletsource/dcrwalletrpc"
 	"github.com/raedahgroup/dcrcli/web"
 )
 
@@ -20,28 +21,36 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+	// open connection to a wallet via the selected source/medium
+	// default is mobile wallet
+	var walletSource ws.WalletSource
+
+	if appConfig.UseWalletRPC {
+		walletSource, err = dcrwalletrpc.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS)
+		if err != nil {
+			fmt.Println("Failed to connect to wallet")
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	} else {
+		err = fmt.Errorf("Only dcrwallet daemon is supported currently")
 	}
 
 	if appConfig.HTTPMode {
-		enterHTTPMode(appConfig.HTTPServerAddress, client)
+		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
 	} else {
-		enterCliMode(appConfig, client)
+		enterCliMode(appConfig, walletSource)
 	}
 }
 
-func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
+func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
 	fmt.Println("Running in http mode")
-	web.StartHttpServer(serverAddress, client)
+	web.StartHttpServer(serverAddress, walletsource)
 }
 
-func enterCliMode(appConfig *config.Config, client *walletrpcclient.Client) {
-	// Set the walletrpcclient.Client object that will be used by the command handlers
-	cli.WalletClient = client
+func enterCliMode(appConfig *config.Config, walletsource ws.WalletSource) {
+	// todo: correct comment Set the walletrpcclient.Client object that will be used by the command handlers
+	cli.WalletSource = walletsource
 
 	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
 	if _, err := parser.Parse(); err != nil {

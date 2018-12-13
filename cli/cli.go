@@ -3,7 +3,7 @@ package cli
 import (
 	"os"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	ws "github.com/raedahgroup/dcrcli/walletsource"
 )
 
 type Response struct {
@@ -12,6 +12,6 @@ type Response struct {
 }
 
 var (
-	WalletClient *walletrpcclient.Client
+	WalletSource ws.WalletSource
 	StdoutWriter = tabWriter(os.Stdout)
 )

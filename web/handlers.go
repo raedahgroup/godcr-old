@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-
 	"github.com/go-chi/chi"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -15,24 +13,26 @@ import (
 func (s *Server) GetBalance(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	result, err := s.walletClient.Balance()
+	result, err := s.walletSource.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
-		data["result"] = result
+		data["accounts"] = result
 	}
+
 	s.render("balance.html", data, res)
 }
 
 func (s *Server) GetSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	balances, err := s.walletClient.Balance()
+	accounts, err := s.walletSource.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
-		data["balances"] = balances
+		data["accounts"] = accounts
 	}
+
 	s.render("send.html", data, res)
 }
 
@@ -43,9 +43,9 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	utxos := req.Form["tx"]
 	amountStr := req.FormValue("amount")
-	sourceAccountStr := req.FormValue("sourceAccount")
-	destinationAddressStr := req.FormValue("destinationAddress")
-	passphraseStr := req.FormValue("walletPassphrase")
+	selectedAccount := req.FormValue("sourceAccount")
+	destAddress := req.FormValue("destinationAddress")
+	passphrase := req.FormValue("walletPassphrase")
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -53,17 +53,18 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sourceAccount, err := strconv.ParseUint(sourceAccountStr, 10, 32)
+	account, err := strconv.ParseUint(selectedAccount, 10, 32)
 	if err != nil {
 		data["error"] = err.Error()
 		return
 	}
+	sourceAccount := uint32(account)
 
-	var result *walletrpcclient.SendResult
+	var txHash string
 	if len(utxos) > 0 {
-		result, err = s.walletClient.SendFromUTXOs(utxos, amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+		txHash, err = s.walletSource.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
 	} else {
-		result, err = s.walletClient.SendFromAccount(amount, uint32(sourceAccount), destinationAddressStr, passphraseStr)
+		txHash, err = s.walletSource.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
 	}
 
 	if err != nil {
@@ -71,18 +72,19 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	data["success"] = result.TransactionHash
+	data["txHash"] = txHash
 }
 
 func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	accounts, err := s.walletClient.Balance()
+	accounts, err := s.walletSource.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["accounts"] = accounts
 	}
+
 	s.render("receive.html", data, res)
 }
 
@@ -100,14 +102,14 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	addr, err := s.walletClient.Receive(uint32(accountNumber))
+	address, err := s.walletSource.GenerateReceiveAddress(uint32(accountNumber))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
 		return
 	}
 
-	png, err := qrcode.Encode(addr.Address, qrcode.Medium, 256)
+	png, err := qrcode.Encode(address, qrcode.Medium, 256)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -119,7 +121,7 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 	imgStr := "data:image/png;base64," + encodedStr
 
 	data["success"] = true
-	data["address"] = addr.Address
+	data["address"] = address
 	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
 }
 
@@ -135,7 +137,7 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	utxos, err := s.walletClient.UnspentOutputs(uint32(accountNumber), 0)
+	utxos, err := s.walletSource.UnspentOutputs(uint32(accountNumber), 0)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
