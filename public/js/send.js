@@ -79,7 +79,7 @@ function submitSendForm(passphrase) {
         data: form.serialize(),
         success: function(response) {
             if (response.success) {
-                var m = "The transaction was published successfully. Hash: <strong>" + response.success + "</strong>";
+                var m = "The transaction was published successfully. Hash: <strong>" + response.txHash + "</strong>";
                 setSuccessMessage(m)
             } else {
                 setErrorMessage(response.error) 
@@ -158,14 +158,14 @@ $(function(){
     $(".next-btn").on("click", function(){
         if (validateSendForm() && stepper_index <= steppers.length) {
             var account_number = $("#sourceAccount").find(":selected").val();
-            var callback = function(txs) {
+            var callback = function(utxos) {
                 // populate outputs 
-                var utxoHtml = txs.map(tx => {
-                    var receiveDateTime = new Date(tx.receive_time * 1000)
+                var utxoHtml = utxos.map(utxo => {
+                    var receiveDateTime = new Date(utxo.receive_time * 1000)
                     return  "<tr>" + 
-                                "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
-                                "<td width='60%'>" + tx.key + "</td>" + 
-                                "<td width='15%'>" + tx.amount_string + "</td>" + 
+                                "<td width='5%'><input type='checkbox' name='tx' value="+ utxo.key+" /></td>" +
+                                "<td width='60%'>" + utxo.key + "</td>" + 
+                                "<td width='15%'>" + utxo.amount + "</td>" + 
                                 "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
                             "</tr>"
                 });

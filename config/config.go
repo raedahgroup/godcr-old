@@ -27,9 +27,10 @@ type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
+	UseWalletRPC      bool   `long:"usewalletrpc" description:"Connect to a running drcwallet rpc"`
+	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
 	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
-	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
