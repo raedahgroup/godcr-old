@@ -8,6 +8,53 @@ import (
 	"github.com/raedahgroup/dcrcli/walletsource"
 )
 
+func (lib *MobileWalletLib) WalletExists() (bool, error) {
+	return lib.walletLib.WalletExists()
+}
+
+func (lib *MobileWalletLib) GenerateNewWalletSeed() (string, error) {
+	return lib.walletLib.GenerateSeed()
+}
+
+func (lib *MobileWalletLib) CreateWallet(passphrase, seed string) error {
+	return lib.walletLib.CreateWallet(passphrase, seed)
+}
+
+func (lib *MobileWalletLib) OpenWallet() error {
+	walletExists, err := lib.WalletExists()
+	if err != nil {
+		return err
+	}
+
+	if !walletExists {
+		return fmt.Errorf("Wallet does not exist. Please create a wallet first")
+	}
+
+	// open wallet with default public passphrase: "public"
+	return lib.walletLib.OpenWallet([]byte("public"))
+}
+
+func (lib *MobileWalletLib) IsWalletOpen() bool {
+	return lib.walletLib.WalletOpened()
+}
+
+func (lib *MobileWalletLib) SyncBlockChain(listener *walletsource.BlockChainSyncListener) error {
+	syncResponse := SpvSyncResponse{
+		walletLib: lib.walletLib,
+		listener:  listener,
+		activeNet: lib.activeNet,
+	}
+	lib.walletLib.AddSyncResponse(syncResponse)
+
+	err := lib.walletLib.SpvSync("")
+	if err != nil {
+		return err
+	}
+
+	listener.SyncStarted()
+	return nil
+}
+
 func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletsource.Balance, error) {
 	// pass 0 as requiredConfirmations
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, 0)
@@ -16,8 +63,8 @@ func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletsource.
 	}
 
 	return &walletsource.Balance{
-		Total:           dcrutil.Amount(balance.Total),
-		Spendable:       dcrutil.Amount(balance.Spendable),
+		Total:     dcrutil.Amount(balance.Total),
+		Spendable: dcrutil.Amount(balance.Spendable),
 	}, nil
 }
 
@@ -42,10 +89,10 @@ func (lib *MobileWalletLib) AccountsOverview() ([]*walletsource.Account, error) 
 		if acc.Name == "imported" && balance.Total == 0 {
 			continue
 		}
-		
+
 		account := &walletsource.Account{
-			Name: acc.Name,
-			Number: accountNumber,
+			Name:    acc.Name,
+			Number:  accountNumber,
 			Balance: balance,
 		}
 		accountsOverview = append(accountsOverview, account)
@@ -81,8 +128,8 @@ func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount u
 		return "", err
 	}
 	amount := int64(amountInAtom)
-	
-	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount, 
+
+	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount,
 		int32(sourceAccount), 0, false)
 
 	if err != nil {
