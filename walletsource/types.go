@@ -2,6 +2,14 @@ package walletsource
 
 import "github.com/decred/dcrd/dcrutil"
 
+type BlockChainSyncListener struct {
+	SyncStarted         func()
+	SyncEnded           func(err error)
+	OnHeadersFetched    func(percentageProgress int64)
+	OnDiscoveredAddress func(state string)
+	OnRescanningBlocks  func(percentageProgress int64)
+}
+
 type Balance struct {
 	Total         dcrutil.Amount `json:"total"`
 	Spendable     dcrutil.Amount `json:"spendable"`
@@ -11,17 +19,17 @@ type Balance struct {
 }
 
 type Account struct {
-	Name   string         `json:"name"`
-	Number uint32         `json:"number"`
+	Name    string   `json:"name"`
+	Number  uint32   `json:"number"`
 	Balance *Balance `json:"balance"`
 }
 
 type UnspentOutput struct {
-	OutputKey       string `json:"key"`
-	TransactionHash string `json:"transaction_hash"`
-	OutputIndex     uint32 `json:"output_index"`
-	ReceiveTime     int64  `json:"receive_time"`
-	Amount          dcrutil.Amount  `json:"amount"`
+	OutputKey       string         `json:"key"`
+	TransactionHash string         `json:"transaction_hash"`
+	OutputIndex     uint32         `json:"output_index"`
+	ReceiveTime     int64          `json:"receive_time"`
+	Amount          dcrutil.Amount `json:"amount"`
 }
 
 type Transaction struct {

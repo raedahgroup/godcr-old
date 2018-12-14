@@ -27,7 +27,11 @@ func main() {
 	if config.HTTPMode {
 		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
 	} else {
+<<<<<<< HEAD
 		enterCliMode(appConfig, walletSource)
+=======
+		enterCliMode(appName, walletSource, args, config.SyncBlockchain)
+>>>>>>> cli and web interface functionailty restored
 	}
 }
 
@@ -51,7 +55,7 @@ func makeWalletSource(config *config.Config) ws.WalletSource {
 		} else {
 			netType = "mainnet"
 		}
-	
+
 		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
@@ -63,6 +67,7 @@ func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
 	web.StartHttpServer(serverAddress, walletsource)
 }
 
+<<<<<<< HEAD
 func enterCliMode(appConfig *config.Config, walletsource ws.WalletSource) {
 	// todo: correct comment Set the walletrpcclient.Client object that will be used by the command handlers
 	cli.WalletSource = walletsource
@@ -115,4 +120,9 @@ func printCommandHelp(appName string, command *flags.Command) {
 	helpParser.Active = command
 	helpParser.WriteHelp(os.Stderr)
 	fmt.Printf("To view application options, use '%s -h'\n", appName)
+=======
+func enterCliMode(appName string, walletsource ws.WalletSource, args []string, shouldSyncBlockchain bool) {
+	c := cli.New(walletsource, appName)
+	c.RunCommand(args, shouldSyncBlockchain)
+>>>>>>> cli and web interface functionailty restored
 }

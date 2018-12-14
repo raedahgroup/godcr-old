@@ -4,7 +4,19 @@ package walletsource
 // by the different mediums for connecting to a dcr wallet
 // Individual mediums may expose other functions but must implement these
 type WalletSource interface {
-	// Balance returns account balance for the accountNumbers passed in 
+	WalletExists() (bool, error)
+
+	GenerateNewWalletSeed() (string, error)
+
+	CreateWallet(passphrase, seed string) error
+
+	SyncBlockChain(listener *BlockChainSyncListener) error
+
+	OpenWallet() error
+
+	IsWalletOpen() bool
+
+	// Balance returns account balance for the accountNumbers passed in
 	// or for all accounts if no account number is passed in
 	AccountBalance(accountNumber uint32) (*Balance, error)
 
