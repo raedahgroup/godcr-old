@@ -27,19 +27,19 @@ type UnspentOutputsResult struct {
 	ReceiveTime     int64  `json:"receive_time"`
 	FromCoinbase    bool   `json:"from_coinbase"`
 	Tree            int32  `json:"tree"`
-	Amount			int64  `json:"amount"`
-	AmountString    string  `json:"amount_string"`
+	Amount          int64  `json:"amount"`
+	AmountString    string `json:"amount_string"`
 	PkScript        []byte `json:"-"`
 	AmountSum       string `json:"amount_sum"`
 }
 
 type Transaction struct {
-	Hash      string  `json:"hash"`
-	Type	string 	`json:"type"`
-	Amount     float64 `json:"amount"`
-	Fee			float64 `json:"fee"`
-	Direction 	string `json:"direction"`
-	IsTestnet	bool `json"is_testnet"`
-	Timestamp int64   `json:"timestamp"`
-	FormattedTime string `json:"formatted_time"`
+	Hash          string               `json:"hash"`
+	Type          string               `json:"type"`
+	Amount        float64              `json:"amount"`
+	Fee           float64              `json:"fee"`
+	Direction     TransactionDirection `json:"direction"`
+	Testnet       bool                 `json"testnet"`
+	Timestamp     int64                `json:"timestamp"`
+	FormattedTime string               `json:"formatted_time"`
 }
