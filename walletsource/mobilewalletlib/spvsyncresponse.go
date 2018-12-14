@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/decred/dcrwallet/netparams"
+	"github.com/raedahgroup/dcrcli/walletsource"
 	"github.com/raedahgroup/mobilewallet"
 )
 
@@ -14,9 +15,9 @@ const (
 )
 
 type SpvSyncResponse struct {
-	activeNet  *netparams.Params
-	walletLib   *mobilewallet.LibWallet
-	listener *BlockChainSyncListener
+	activeNet *netparams.Params
+	walletLib *mobilewallet.LibWallet
+	listener  *walletsource.BlockChainSyncListener
 }
 
 // following functions are used to implement mobilewallet.SpvSyncResponse interface
@@ -32,7 +33,13 @@ func (response SpvSyncResponse) OnFetchedHeaders(_ int32, lastHeaderTime int64, 
 func (response SpvSyncResponse) OnDiscoveredAddresses(state string) {
 	response.listener.OnDiscoveredAddress(state)
 }
-func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {}
+func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
+	if state == "progress" {
+		bestBlock := int64(response.walletLib.GetBestBlock())
+		scannedPercentage := int64(rescannedThrough) / bestBlock * 100
+		response.listener.OnRescanningBlocks(scannedPercentage)
+	}
+}
 func (response SpvSyncResponse) OnSynced(synced bool) {
 	var err error
 	if !synced {

@@ -9,13 +9,14 @@ import (
 // Method implementation of `WalletSource` interface are in functions.go
 // Other functions not related to `WalletSource` are in helpers.go
 type MobileWalletLib struct {
-	walletLib  *mobilewallet.LibWallet
-	activeNet     *netparams.Params
+	walletLib *mobilewallet.LibWallet
+	activeNet *netparams.Params
 }
 
 func New(appDataDir string, netType string) *MobileWalletLib {
 	// pass empty db driver to use default
 	lw := mobilewallet.NewLibWallet(appDataDir, "", netType)
+	lw.SetLogLevel("off")
 	lw.InitLoader()
 
 	var activeNet *netparams.Params
@@ -24,34 +25,9 @@ func New(appDataDir string, netType string) *MobileWalletLib {
 	} else {
 		activeNet = &netparams.TestNet3Params
 	}
-	
+
 	return &MobileWalletLib{
 		walletLib: lw,
 		activeNet: activeNet,
 	}
-}
-
-func (lib *MobileWalletLib) SyncBlockChain(listener *BlockChainSyncListener) error {
-	syncResponse := SpvSyncResponse{
-		walletLib:   lib.walletLib,
-		listener: listener,
-		activeNet: lib.activeNet,
-	}
-	lib.walletLib.AddSyncResponse(syncResponse)
-
-	err := lib.walletLib.SpvSync("")
-	if err != nil {
-		return err
-	}
-
-	listener.SyncStarted()
-	return nil
-}
-
-func (lib *MobileWalletLib) GenerateNewWalletSeed() (string, error) {
-	return lib.walletLib.GenerateSeed()
-}
-
-func (lib *MobileWalletLib) CreateWallet(passphrase, seed string) error {
-	return lib.walletLib.CreateWallet(passphrase, seed)
 }

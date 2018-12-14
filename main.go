@@ -25,16 +25,16 @@ func main() {
 
 	walletSource := makeWalletSource(appConfig)
 
-	if config.HTTPMode {
+	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		enterHttpMode(config.HTTPServerAddress, walletSource)
-	} else if config.DesktopMode {
+		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
+	} else if appConfig.DesktopMode {
 		enterDesktopMode(walletSource)
 	} else {
-		enterCliMode(appConfig, walletSource)
+		enterCliMode(cli.AppName(), walletSource, args, appConfig.SyncBlockchain)
 	}
 }
 
@@ -58,7 +58,7 @@ func makeWalletSource(config *config.Config) ws.WalletSource {
 		} else {
 			netType = "mainnet"
 		}
-	
+
 		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
@@ -74,29 +74,33 @@ func enterDesktopMode(walletsource ws.WalletSource) {
 	fmt.Println("Running in desktop mode")
 	desktop.StartDesktopApp(walletsource)
 }
-
-func enterCliMode(appConfig config.Config, walletsource ws.WalletSource) {
-	cli.WalletSource = walletsource
-
-	appRoot := cli.Root{Config: appConfig}
-	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
-	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
-	if _, err := parser.Parse(); err != nil {
-		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
-			// No command was specified, print the available commands.
-			var availableCommands []string
-			if parser.Active != nil {
-				availableCommands = supportedCommands(parser.Active)
-			} else {
-				availableCommands = supportedCommands(parser.Command)
-			}
-			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
-		} else {
-			handleParseError(err, parser)
-		}
-		os.Exit(1)
-	}
+func enterCliMode(appName string, walletsource ws.WalletSource, args []string, shouldSyncBlockchain bool) {
+	c := cli.New(walletsource, appName)
+	c.RunCommand(args, shouldSyncBlockchain)
 }
+
+//func enterCliMode(appConfig config.Config, walletsource ws.WalletSource) {
+//	cli.WalletSource = walletsource
+//
+//	appRoot := cli.Root{Config: appConfig}
+//	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
+//	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
+//	if _, err := parser.Parse(); err != nil {
+//		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+//			// No command was specified, print the available commands.
+//			var availableCommands []string
+//			if parser.Active != nil {
+//				availableCommands = supportedCommands(parser.Active)
+//			} else {
+//				availableCommands = supportedCommands(parser.Command)
+//			}
+//			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
+//		} else {
+//			handleParseError(err, parser)
+//		}
+//		os.Exit(1)
+//	}
+//}
 
 func supportedCommands(parser *flags.Command) []string {
 	registeredCommands := parser.Commands()

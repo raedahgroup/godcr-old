@@ -17,6 +17,39 @@ import (
 	"github.com/raedahgroup/mobilewallet/tx"
 )
 
+func (c *WalletPRCClient) WalletExists() (bool, error) {
+	// for now, assume that a wallet has been created since we're connecting through dcrwallet daemon
+	// ideally, we'd have to use dcrwallet's WalletLoaderService to do confirm
+	return true, nil
+}
+
+func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
+	return "", fmt.Errorf("not yet implemented")
+}
+
+func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
+	// since we're connecting through dcrwallet daemon, assume that the wallet's already been created
+	// calling create again should return an error
+	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
+	return fmt.Errorf("wallet should already be created by dcrwallet daemon")
+}
+
+func (c *WalletPRCClient) OpenWallet() error {
+	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
+	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
+	return nil
+}
+
+func (c *WalletPRCClient) IsWalletOpen() bool {
+	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
+	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
+	return true
+}
+
+func (c *WalletPRCClient) SyncBlockChain(listener *walletsource.BlockChainSyncListener) error {
+	return fmt.Errorf("not yet implemented")
+}
+
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletsource.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
@@ -55,10 +88,10 @@ func (c *WalletPRCClient) AccountsOverview() ([]*walletsource.Account, error) {
 		if acc.AccountName == "imported" && balance.Total == 0 {
 			continue
 		}
-		
+
 		account := &walletsource.Account{
-			Name: acc.AccountName,
-			Number: acc.AccountNumber,
+			Name:    acc.AccountName,
+			Number:  acc.AccountNumber,
 			Balance: balance,
 		}
 		accountsOverview = append(accountsOverview, account)
@@ -146,11 +179,11 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		txHash := hash.String()
 
 		unspentOutput := &walletsource.UnspentOutput{
-			OutputKey:		 fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
+			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
 			ReceiveTime:     utxo.ReceiveTime,
-			Amount:		 dcrutil.Amount(utxo.Amount),
+			Amount:          dcrutil.Amount(utxo.Amount),
 		}
 		unspentOutputs = append(unspentOutputs, unspentOutput)
 	}
@@ -164,13 +197,13 @@ func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uin
 	if err != nil {
 		return "", err
 	}
-	
+
 	// construct transaction
 	constructRequest := &walletrpc.ConstructTransactionRequest{
 		SourceAccount: sourceAccount,
 		NonChangeOutputs: []*walletrpc.ConstructTransactionRequest_Output{{
 			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Address:        destinationAddress,
+				Address: destinationAddress,
 			},
 			Amount: amount,
 		}},
@@ -190,7 +223,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	if err != nil {
 		return "", err
 	}
-	
+
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
 	utxoStream, err := c.unspentOutputStream(account, 0)
@@ -225,12 +258,12 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 			continue
 		}
 
-		outpoint := wire.NewOutPoint(transactionHash, utxo.OutputIndex, int8(utxo.Tree));
+		outpoint := wire.NewOutPoint(transactionHash, utxo.OutputIndex, int8(utxo.Tree))
 		input := wire.NewTxIn(outpoint, utxo.Amount, nil)
 		inputs = append(inputs, input)
 
 		if len(inputs) == len(utxoKeys) {
-			break;
+			break
 		}
 	}
 
@@ -244,7 +277,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	if err != nil {
 		return "", err
 	}
-	
+
 	// serialize unsigned tx
 	var txBuf bytes.Buffer
 	txBuf.Grow(unsignedTx.SerializeSize())

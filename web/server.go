@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,14 +24,18 @@ func StartHttpServer(address string, walletSource ws.WalletSource) {
 		walletSource: walletSource,
 		templates:    map[string]*template.Template{},
 	}
-
-	// load templates
-	server.loadTemplates()
-
 	router := chi.NewRouter()
+
+	// ensure wallet is loaded before executing following handlers
+	router.Use(server.makeWalletLoaderMiddleware())
+
+	// setup static file serving
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "public")
-	FileServer(router, "/static", http.Dir(filesDir))
+	makeStaticFileServer(router, "/static", http.Dir(filesDir))
+
+	// setup templated pages
+	server.loadTemplates()
 	server.registerHandlers(router)
 
 	fmt.Printf("starting http server on %s\n", address)
@@ -44,41 +47,7 @@ func StartHttpServer(address string, walletSource ws.WalletSource) {
 	}
 }
 
-func (s *Server) loadTemplates() {
-	layout := "web/views/layout.html"
-	utils := "web/views/utils.html"
-	funcMap := templateFuncMap()
-
-	tpls := map[string]string{
-		"balance.html": "web/views/balance.html",
-		"send.html":    "web/views/send.html",
-		"receive.html": "web/views/receive.html",
-		"history.html": "web/views/history.html",
-	}
-
-	for i, v := range tpls {
-		tpl, err := template.New(i).Funcs(funcMap).ParseFiles(v, layout, utils)
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
-
-		s.templates[i] = tpl
-	}
-}
-
-func (s *Server) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	if tpl, ok := s.templates[tplName]; ok {
-		err := tpl.Execute(res, data)
-		if err != nil {
-			log.Fatalf("error executing template: %s", err.Error())
-		}
-		return
-	}
-
-	log.Fatalf("template %s is not registered", tplName)
-}
-
-func FileServer(r chi.Router, path string, root http.FileSystem) {
+func makeStaticFileServer(r chi.Router, path string, root http.FileSystem) {
 	if strings.ContainsAny(path, "{}*") {
 		panic("FileServer does not permit URL parameters.")
 	}
@@ -96,6 +65,29 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	}))
 }
 
+func (s *Server) loadTemplates() {
+	layout := "web/views/layout.html"
+	utils := "web/views/utils.html"
+	funcMap := templateFuncMap()
+
+	tpls := map[string]string{
+		"error.html":   "web/views/error.html",
+		"balance.html": "web/views/balance.html",
+		"send.html":    "web/views/send.html",
+		"receive.html": "web/views/receive.html",
+		"history.html": "web/views/history.html",
+	}
+
+	for i, v := range tpls {
+		tpl, err := template.New(i).Funcs(funcMap).ParseFiles(v, layout, utils)
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+
+		s.templates[i] = tpl
+	}
+}
+
 func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/", s.GetBalance)
 	r.Get("/send", s.GetSend)
@@ -106,12 +98,40 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/history", s.GetHistory)
 }
 
-func renderJSON(data interface{}, res http.ResponseWriter) {
-	d, err := json.Marshal(data)
+func (s *Server) makeWalletLoaderMiddleware() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return s.walletLoaderFn(next)
+	}
+}
+
+func (s *Server) walletLoaderFn(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if !s.walletSource.IsWalletOpen() {
+			err := s.loadWallet()
+			if err != nil {
+				s.renderError(err.Error(), res)
+				return
+			}
+		}
+
+		next.ServeHTTP(res, req)
+	})
+}
+
+func (s *Server) loadWallet() error {
+	walletExists, err := s.walletSource.WalletExists()
 	if err != nil {
-		log.Fatalf("error marshalling data: %s", err.Error())
+		return fmt.Errorf("Error checking for wallet: %s", err.Error())
 	}
 
-	res.Header().Set("Content-Type", "application/json")
-	res.Write(d)
+	if !walletExists {
+		return fmt.Errorf("Wallet not created. Please create a wallet to continue. Use `dcrcli init` on terminal")
+	}
+
+	err = s.walletSource.OpenWallet()
+	if err != nil {
+		return fmt.Errorf("Failed to open wallet: %s", err.Error())
+	}
+
+	return nil
 }
