@@ -229,7 +229,7 @@ func (c *Client) Balance() ([]*AccountBalanceResult, error) {
 		if v.AccountName == "imported" && accountBalance.Total == 0 {
 			continue
 		}
-	
+
 		accountBalance.AccountName = v.AccountName
 		balanceResult = append(balanceResult, accountBalance)
 	}
@@ -345,8 +345,8 @@ func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentO
 			OutputKey:       fmt.Sprintf("%s:%v", transactionHash.String(), item.OutputIndex),
 			TransactionHash: transactionHash.String(),
 			OutputIndex:     item.OutputIndex,
-			Amount:		 item.Amount,
-			AmountString:          dcrutil.Amount(item.Amount).String(),
+			Amount:          item.Amount,
+			AmountString:    dcrutil.Amount(item.Amount).String(),
 			PkScript:        item.PkScript,
 			AmountSum:       dcrutil.Amount(item.AmountSum).String(),
 			ReceiveTime:     item.ReceiveTime,
@@ -366,7 +366,7 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var transactions []*Transaction
 
 	for {
@@ -398,6 +398,6 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 	sort.SliceStable(transactions, func(i1, i2 int) bool {
 		return transactions[i1].Timestamp > transactions[i2].Timestamp
 	})
-	
+
 	return transactions, nil
 }
