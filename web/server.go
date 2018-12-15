@@ -47,15 +47,17 @@ func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
 func (s *Server) loadTemplates() {
 	layout := "web/views/layout.html"
 	utils := "web/views/utils.html"
+	funcMap := templateFuncMap()
 
 	tpls := map[string]string{
-		"balance.html": "web/views/balance.html",
-		"send.html":    "web/views/send.html",
-		"receive.html": "web/views/receive.html",
+		"balance.html":      "web/views/balance.html",
+		"send.html":         "web/views/send.html",
+		"receive.html":      "web/views/receive.html",
+		"transactions.html": "web/views/transactions.html",
 	}
 
 	for i, v := range tpls {
-		tpl, err := template.New(i).ParseFiles(v, layout, utils)
+		tpl, err := template.New(i).Funcs(funcMap).ParseFiles(v, layout, utils)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
@@ -101,6 +103,8 @@ func (s *Server) registerHandlers(r *chi.Mux) {
 	r.Get("/receive", s.GetReceive)
 	r.Get("/receive/generate/{accountNumber}", s.GetReceiveGenerate)
 	r.Get("/outputs/unspent/{accountNumber}", s.GetUnspentOutputs)
+	r.Get("/transactions", s.GetTransactions)
+	r.Get("/transactions/{blockHeight}", s.GetTransactions)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {
