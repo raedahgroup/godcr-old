@@ -27,10 +27,10 @@ func NewUnsignedTx(inputs []*wire.TxIn, sendAmount int64, destinationAddress str
 		return nil, err
 	}
 	changeScriptSize := changeSource.ScriptSize()
-	
+
 	var totalInputAmount int64
 	scriptSizes := make([]int, 0, len(inputs))
-	for  _, txIn := range(inputs) {
+	for _, txIn := range inputs {
 		totalInputAmount += txIn.ValueIn
 		scriptSizes = append(scriptSizes, RedeemP2PKHSigScriptSize)
 	}

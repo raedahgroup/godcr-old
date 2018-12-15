@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                {{ if .error }}
+                <div class="alert alert-danger">{{ .error }}</div>
+                {{ else }}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Fee</th>
+                            <th>Direction</th>
+                            <th>Type</th>
+                            <th>Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       {{ range $txn := .result }}
+                       <tr>
+                            <td>{{ .FormattedTime }}</td>
+                            <td>{{ .Amount }} DCR</td>
+                            <td>{{ .Fee }} DCR</td>
+                            <td>{{ .Direction }}</td>
+                            <td>{{ .Type }}</td>
+                            <td>
+                                <a href="{{ txExplorerLink . }}" target="_blank">{{ .Hash }}</a>
+                            </td>
+                        </tr>
+                       {{ end }}
+                    </tbody>
+                </table>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
