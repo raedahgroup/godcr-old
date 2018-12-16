@@ -232,7 +232,7 @@ func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) 
 			return nil, fmt.Errorf("Invalid command, %s", cmdText)
 		}
 
-		text := fmt.Sprintf("%s - %s\n\nUsage:\n\n    ./dcrcli %s", command.name, command.description, command.name)
+		text := fmt.Sprintf("%s - %s\n\nUsage:\n\n    %s", command.name, command.description, command.usage)
 		res = &response{
 			columns:[]string{text},
 		}
