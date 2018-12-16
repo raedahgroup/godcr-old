@@ -13,22 +13,20 @@
                     <thead>
                         <tr>
                             <th>Account Name</th>
-                            <th>Total</th>
-                            <th>Spendable</th>
-                            <th>Locked By Tickets</th>
-                            <th>Voting Authority</th>
-                            <th>Unconfirmed</th>
+                            <th>Balance</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{ range $s := .result }}
                         <tr>
-                           <td>{{ $s.AccountName }}</td>
-                           <td>{{ $s.Total }}</td>
-                           <td>{{ $s.Spendable }}</td>
-                           <td>{{ $s.LockedByTickets }}</td>
-                           <td>{{ $s.VotingAuthority }}</td>
-                           <td>{{ $s.Unconfirmed }}</td>
+                            <td>{{ $s.AccountName }}</td>
+                            <td>
+                                {{ if eq .Total .Spendable }}
+                                {{ $s.Total }}
+                                {{ else }}
+                                Total {{ $s.Total }} (Spendable {{ $s.Spendable }})
+                                {{ end }}
+                            </td>
                         </tr>
                         {{ end }}
                     </tbody>
