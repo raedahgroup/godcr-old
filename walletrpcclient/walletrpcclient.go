@@ -269,7 +269,7 @@ func (c *Client) SingleAccountBalance(accountNumber uint32, ctx context.Context)
 	return &AccountBalanceResult{
 		AccountNumber:   accountNumber,
 		Total:           dcrutil.Amount(res.Total),
-		Spendable:       dcrutil.Amount(res.Spendable),
+		Spendable:       dcrutil.Amount(res.Spendable - 10000000),
 	}, nil
 }
 
