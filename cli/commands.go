@@ -18,5 +18,6 @@ func supportedCommands() []*command {
 		{"receive", "show your address to receive funds", "dcrcli receive [account]", receive, false},
 		{"history", "show your transaction history", "dcrcli history", transactionHistory, false},
 		{"help", "show the command line help", "dcrcli help [command]", help, false},
+
 	}
 }

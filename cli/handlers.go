@@ -204,7 +204,7 @@ func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) 
 		header := "Dcrcli is a command-line utility that interfaces with Dcrwallet rpc's methods.\n\n"
 		usageText := "Usage:\n\n    dcrcli [OPTIONS] <command> [<args...>]\n\nAvailable commands:"
 		res = &response{
-			columns:[]string{header + usageText},
+			columns: []string{header + usageText},
 		}
 		commands := supportedCommands()
 
@@ -217,7 +217,7 @@ func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) 
 		}
 		additionalHelp := "\n\nUse \"dcrcli help <command>\" for more information about a command."
 		res.result = append(res.result, []interface{}{additionalHelp})
-	}else {
+	} else {
 		cmdText := commandArgs[0]
 		commands := supportedCommands()
 		var command command
@@ -234,7 +234,7 @@ func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) 
 
 		text := fmt.Sprintf("%s - %s\n\nUsage:\n\n    %s", command.name, command.description, command.usage)
 		res = &response{
-			columns:[]string{text},
+			columns: []string{text},
 		}
 	}
 	return
