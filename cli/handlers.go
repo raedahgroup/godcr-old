@@ -201,22 +201,14 @@ func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*respons
 
 func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) {
 	if len(commandArgs) == 0 {
-		header := "Dcrcli is a command-line utility that interfaces with Dcrwallet rpc's methods.\n\n"
-		usageText := "Usage:\n\n    dcrcli [OPTIONS] <command> [<args...>]\n\nAvailable commands:"
-		res = &response{
-			columns: []string{header + usageText},
-		}
-		commands := supportedCommands()
+		header := "Dcrcli is a command-line utility that interfaces with Dcrwallet rpc's methods.\n"
+		fmt.Println(header)
+		PrintHelp("")
 
-		for _, command := range commands {
-			item := []interface{}{
-				command.name,
-				command.description,
-			}
-			res.result = append(res.result, item)
-		}
-		additionalHelp := "\n\nUse \"dcrcli help <command>\" for more information about a command."
-		res.result = append(res.result, []interface{}{additionalHelp})
+		additionalHelp := "\nUse \"dcrcli help <command>\" for more information about a command."
+		fmt.Println(additionalHelp)
+
+		return &response{}, nil
 	} else {
 		cmdText := commandArgs[0]
 		commands := supportedCommands()

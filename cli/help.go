@@ -44,7 +44,7 @@ func writeSimpleHelpMessage() {
 
 func writeHelpMessage(prefix string, w *tabwriter.Writer) {
 	res := &response{
-		columns: []string{prefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
+		columns: []string{prefix + "dcrcli [OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
 	}
 	commands := supportedCommands()
 
