@@ -8,8 +8,8 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func balance(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
-	balances, err := walletrpcclient.Balance()
+func balance(c *cli, commandArgs []string) (*response, error) {
+	balances, err := c.walletrpcclient.Balance()
 	if err != nil {
 		return nil, err
 	}
@@ -39,16 +39,17 @@ func balance(walletrpcclient *rpcclient.Client, commandArgs []string) (*response
 	return res, nil
 }
 
-func normalSend(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
-	return send(walletrpcclient, false)
+func normalSend(c *cli, _ []string) (*response, error) {
+	return send(c, false)
 }
 
-func customSend(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
-	return send(walletrpcclient, true)
+func customSend(c *cli, _ []string) (*response, error) {
+	return send(c, true)
 }
 
-func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
+func send(c *cli, custom bool) (*response, error) {
 	var err error
+	walletrpcclient := c.walletrpcclient
 
 	sourceAccount, err := getSendSourceAccount(walletrpcclient)
 	if err != nil {
@@ -122,7 +123,8 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 	return res, nil
 }
 
-func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
+func receive(c *cli, commandArgs []string) (*response, error) {
+	walletrpcclient := c.walletrpcclient
 	var recieveAddress uint32
 
 	// if no address passed in
@@ -169,8 +171,8 @@ func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response
 	return res, nil
 }
 
-func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*response, error) {
-	transactions, err := walletrpcclient.GetTransactions()
+func transactionHistory(c *cli, _ []string) (*response, error) {
+	transactions, err := c.walletrpcclient.GetTransactions()
 	if err != nil {
 		return nil, err
 	}
@@ -199,9 +201,9 @@ func transactionHistory(walletrpcclient *rpcclient.Client, _ []string) (*respons
 	return res, nil
 }
 
-func help(_ *rpcclient.Client, commandArgs []string) (res *response, err error) {
+func help(_ *cli, commandArgs []string) (res *response, err error) {
 	if len(commandArgs) == 0 {
-		header := "Dcrcli is a command-line utility that interfaces with Dcrwallet rpc's methods.\n"
+		header := "Dcrcli is a command-line utility that interfaces with the Decred wallet.\n"
 		fmt.Println(header)
 		PrintHelp("")
 

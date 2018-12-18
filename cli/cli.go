@@ -14,7 +14,7 @@ type (
 	}
 	// handler carries out the action required by a command.
 	// commandArgs holds the arguments passed to the command.
-	handler func(walletrpcclient *walletrpcclient.Client, commandArgs []string) (*response, error)
+	handler func(c *cli, commandArgs []string) (*response, error)
 
 	// cli holds data needed to run the program.
 	cli struct {
@@ -73,7 +73,7 @@ func (c *cli) RunCommand(commandArgs []string) {
 	}
 
 	handler := c.funcMap[command]
-	res, err := handler(c.walletrpcclient, commandArgs[1:])
+	res, err := handler(c, commandArgs[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error executing command '%s'\n", command)
 		fmt.Fprintln(os.Stderr, err.Error())
