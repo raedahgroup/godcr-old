@@ -201,9 +201,9 @@ func transactionHistory(c *cli, _ []string) (*response, error) {
 	return res, nil
 }
 
-func help(_ *cli, commandArgs []string) (res *response, err error) {
+func help(c *cli, commandArgs []string) (res *response, err error) {
 	if len(commandArgs) == 0 {
-		header := "Dcrcli is a command-line utility that interfaces with the Decred wallet.\n"
+		header := fmt.Sprintf("%s is a command-line utility that interfaces with the Decred wallet.\n", c.appName)
 		fmt.Println(header)
 		PrintHelp("")
 
