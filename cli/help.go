@@ -18,7 +18,6 @@ func HelpMessage() string {
 
 // PrintHelp outputs help message to os.Stderr
 func PrintHelp(appName string) {
-	fmt.Printf("Usage:\n  %s [OPTIONS] <command> [<args...>]\n\n", appName)
 	stderrTabWriter := tabWriter(os.Stderr)
 	writeHelpMessage(stderrTabWriter)
 }
