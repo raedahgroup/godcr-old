@@ -24,7 +24,7 @@ func PrintHelp(appName string) {
 
 func writeHelpMessage(prefix string, w *tabwriter.Writer) {
 	res := &response{
-		columns: []string{prefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
+		columns: []string{prefix + "[OPTIONS] <command> [<args...>]"},
 	}
 	commands := supportedCommands()
 
@@ -32,6 +32,7 @@ func writeHelpMessage(prefix string, w *tabwriter.Writer) {
 		item := []interface{}{
 			command.name,
 			command.description,
+			command.experimental,
 		}
 		res.result = append(res.result, item)
 	}

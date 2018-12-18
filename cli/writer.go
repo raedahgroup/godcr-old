@@ -24,18 +24,34 @@ func printResult(w *tabwriter.Writer, res *response) {
 		header += res.columns[i] + tab
 		spaceRow += " " + tab
 	}
-
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, spaceRow)
-	for _, row := range res.result {
-		rowStr := ""
-		for range row {
-			rowStr += "%v \t "
-		}
 
-		rowStr = strings.TrimSuffix(rowStr, "\t ")
-		fmt.Fprintln(w, fmt.Sprintf(rowStr, row...))
+
+	var availableCommands []interface{}
+	var experimentalCommands []interface{}
+
+	for _, row := range res.result {
+		if row[2] == false {
+			availableCommands = append(availableCommands, row[0])
+		} else {
+			experimentalCommands = append(experimentalCommands, row[0])
+		}
 	}
+
+	availableRowStr := "available cmds: "
+	for range availableCommands {
+		availableRowStr += "%v, "
+	}
+	availableRowStr = strings.TrimSuffix(availableRowStr, ", ")
+	fmt.Fprintln(w, fmt.Sprintf(availableRowStr, availableCommands...))
+
+	experimentalRowStr := "experimental: "
+	for range experimentalCommands {
+		experimentalRowStr += "%v, "
+	}
+	experimentalRowStr = strings.TrimSuffix(experimentalRowStr, ", ")
+	fmt.Fprintln(w, fmt.Sprintf(experimentalRowStr, experimentalCommands...))
 
 	w.Flush()
 }
