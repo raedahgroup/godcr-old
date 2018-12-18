@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 
@@ -204,32 +205,32 @@ func transactionHistory(c *cli, _ []string) (*response, error) {
 func help(c *cli, commandArgs []string) (res *response, err error) {
 	if len(commandArgs) == 0 {
 		header := fmt.Sprintf("%s is a command-line utility that interfaces with the Decred wallet.\n", c.appName)
+
+		buf := bytes.NewBuffer([]byte{})
+		writer := tabWriter(buf)
+		writeHelpMessage(fmt.Sprintf("Usage: \n%s ", c.appName), writer)
+		help := buf.String()
+
+		additionalHelp := fmt.Sprintf("Use \"%s help <command>\" for more information about a command.", c.appName)
+
 		fmt.Println(header)
-		PrintHelp("")
-
-		additionalHelp := "\nUse \"dcrcli help <command>\" for more information about a command."
+		fmt.Println(help)
 		fmt.Println(additionalHelp)
-
-		return &response{}, nil
 	} else {
-		cmdText := commandArgs[0]
+		cmdName := commandArgs[0]
 		commands := supportedCommands()
-		var command command
-		var found bool
+		var command *command
 		for _, cmd := range commands {
-			if cmd.name == cmdText {
+			if cmd.name == cmdName {
 				command = cmd
-				found = true
+				break
 			}
 		}
-		if !found {
-			return nil, fmt.Errorf("Invalid command, %s", cmdText)
+		if command == nil {
+			return nil, fmt.Errorf("Invalid command: %s", cmdName)
 		}
 
-		text := fmt.Sprintf("%s - %s\n\nUsage:\n\n    %s", command.name, command.description, command.usage)
-		res = &response{
-			columns: []string{text},
-		}
+		fmt.Println(fmt.Sprintf("%s - %s\nUsage: %s", command.name, command.description, command.usage))
 	}
 	return
 }

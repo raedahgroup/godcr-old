@@ -80,7 +80,9 @@ func (c *cli) RunCommand(commandArgs []string) {
 		os.Exit(1)
 	}
 
-	printResult(tabWriter(os.Stdout), res)
+	if res != nil {
+		printResult(tabWriter(os.Stdout), res)
+	}
 	os.Exit(0)
 }
 
