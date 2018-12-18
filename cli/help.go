@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -11,31 +12,42 @@ import (
 func HelpMessage() string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := tabWriter(buf)
-	writeHelpMessage("", writer)
+	writeHelpMessage(writer)
 	return buf.String()
 }
 
 // PrintHelp outputs help message to os.Stderr
 func PrintHelp(appName string) {
-	usagePrefix := fmt.Sprintf("Usage:\n  %s ", appName)
+	fmt.Printf("Usage:\n  %s [OPTIONS] <command> [<args...>]\n\n", appName)
 	stderrTabWriter := tabWriter(os.Stderr)
-	writeHelpMessage(usagePrefix, stderrTabWriter)
+	writeHelpMessage(stderrTabWriter)
 }
 
-func writeHelpMessage(prefix string, w *tabwriter.Writer) {
-	res := &response{
-		columns: []string{prefix + "[OPTIONS] <command> [<args...>]"},
-	}
-	commands := supportedCommands()
+func writeHelpMessage(w *tabwriter.Writer) {
+	var availableCommands []interface{}
+	var experimentalCommands []interface{}
 
-	for _, command := range commands {
-		item := []interface{}{
-			command.name,
-			command.description,
-			command.experimental,
+	for _, command := range supportedCommands() {
+		if command.experimental == false {
+			availableCommands = append(availableCommands, command.name)
+		} else {
+			experimentalCommands = append(experimentalCommands, command.name)
 		}
-		res.result = append(res.result, item)
 	}
 
-	printResult(w, res)
+	availableRowStr := "available cmds: "
+	for range availableCommands {
+		availableRowStr += "%v, "
+	}
+	availableRowStr = strings.TrimSuffix(availableRowStr, ", ")
+	fmt.Fprintln(w, fmt.Sprintf(availableRowStr, availableCommands...))
+
+	experimentalRowStr := "experimental: "
+	for range experimentalCommands {
+		experimentalRowStr += "%v, "
+	}
+	experimentalRowStr = strings.TrimSuffix(experimentalRowStr, ", ")
+	fmt.Fprintln(w, fmt.Sprintf(experimentalRowStr, experimentalCommands...))
+
+	w.Flush()
 }
