@@ -1,19 +1,56 @@
 package cli
 
-// command is an action that can be requested at the cli
-type command struct {
-	name        string
-	description string
-	handler     handler
+type BalanceCommand struct{}
+
+func (b BalanceCommand) Execute(args []string) error {
+	res, err := balance(walletClient, args)
+	if err != nil {
+		return err
+	}
+	printResult(stdoutWriter, res)
+	return nil
 }
 
-// supportedCommands provides the commands available from the cli
-func supportedCommands() []command {
-	return []command{
-		{"balance", "show your balance", balance},
-		{"send", "send a transaction", normalSend},
-		{"send-custom", "send a transaction, manually selecting inputs from unspent outputs", customSend},
-		{"receive", "show your address to receive funds", receive},
-		{"history", "show your transaction history", transactionHistory},
+type SendCommand struct{}
+
+func (s SendCommand) Execute(args []string) error {
+	res, err := normalSend(walletClient, args)
+	if err != nil {
+		return err
 	}
+	printResult(stdoutWriter, res)
+	return nil
+}
+
+type SendCustomCommand struct{}
+
+func (s SendCustomCommand) Execute(args []string) error {
+	res, err := customSend(walletClient, args)
+	if err != nil {
+		return err
+	}
+	printResult(stdoutWriter, res)
+	return nil
+}
+
+type ReceiveCommand struct{}
+
+func (r ReceiveCommand) Execute(args []string) error {
+	res, err := receive(walletClient, args)
+	if err != nil {
+		return err
+	}
+	printResult(stdoutWriter, res)
+	return nil
+}
+
+type HistoryCommand struct{}
+
+func (h HistoryCommand) Execute(args []string) error {
+	res, err := transactionHistory(walletClient, args)
+	if err != nil {
+		return err
+	}
+	printResult(stdoutWriter, res)
+	return nil
 }
