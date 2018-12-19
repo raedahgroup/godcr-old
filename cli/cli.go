@@ -62,7 +62,7 @@ func (c *cli) registerHandler(key string, h handler) {
 // commandArgs[0] is the command to run. commandArgs[1:] are the arguments to the command.
 func (c *cli) RunCommand(commandArgs []string) {
 	if len(commandArgs) == 0 {
-		PrintHelp(c.appName)
+		writeSimpleHelpMessage()
 		os.Exit(1)
 	}
 
