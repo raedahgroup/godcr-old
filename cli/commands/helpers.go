@@ -66,7 +66,11 @@ func getSendDestinationAddress(wallet walletcore.Wallet) (string, error) {
 		}
 
 		if !isValid {
-			return errors.New("invalid address")
+			if (address == "") {
+				return errors.New("You did not specify an address.")
+			}
+
+			return errors.New("That is not a valid address. Try again.")
 		}
 		return nil
 	}
@@ -88,6 +92,10 @@ func getSendAmount() (float64, error) {
 	validateAmount := func(input string) error {
 		amount, err = strconv.ParseFloat(input, 64)
 		if err != nil {
+			if (input == "") {
+				return errors.New("That is did a valid amount. Try again.")
+			}
+
 			return fmt.Errorf("error parsing amount: %s", err.Error())
 		}
 		return nil
