@@ -3,10 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
-	"runtime"
-	"strings"
 
 	"github.com/raedahgroup/dcrcli/cli"
 
@@ -29,7 +26,7 @@ var (
 	defaultLogDir              = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
-type config struct {
+type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
@@ -41,114 +38,63 @@ type config struct {
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
-func cleanAndExpandPath(path string) string {
-	// Do not try to clean the empty string
-	if path == "" {
-		return ""
-	}
-
-	// NOTE: The os.ExpandEnv doesn't work with Windows cmd.exe-style
-	// %VARIABLE%, but they variables can still be expanded via POSIX-style
-	// $VARIABLE.
-	path = os.ExpandEnv(path)
-
-	if !strings.HasPrefix(path, "~") {
-		return filepath.Clean(path)
-	}
-
-	// Expand initial ~ to the current user's home directory, or ~otheruser
-	// to otheruser's home directory.  On Windows, both forward and backward
-	// slashes can be used.
-	path = path[1:]
-
-	var pathSeparators string
-	if runtime.GOOS == "windows" {
-		pathSeparators = string(os.PathSeparator) + "/"
-	} else {
-		pathSeparators = string(os.PathSeparator)
-	}
-
-	userName := ""
-	if i := strings.IndexAny(path, pathSeparators); i != -1 {
-		userName = path[:i]
-		path = path[i:]
-	}
-
-	homeDir := ""
-	var u *user.User
-	var err error
-	if userName == "" {
-		u, err = user.Current()
-	} else {
-		u, err = user.Lookup(userName)
-	}
-	if err == nil {
-		homeDir = u.HomeDir
-	}
-	// Fallback to CWD if user lookup fails or user has no home directory.
-	if homeDir == "" {
-		homeDir = "."
-	}
-
-	return filepath.Join(homeDir, path)
+type AppCommands struct {
+	Config
+	Balance    cli.BalanceCommand    `command:"balance" description:"show your balance"`
+	Send       cli.SendCommand       `command:"send" description:"send a transaction"`
+	SendCustom cli.SendCustomCommand `command:"send-custom" description:"send a transaction, manually selecting inputs from unspent outputs"`
+	Receive    cli.ReceiveCommand    `command:"receive" description:"show your address to receive funds"`
+	History    cli.HistoryCommand    `command:"history" description:"show your transaction history"`
 }
 
-func addParserSettings(parser *flags.Parser) {
-	parser.Usage = cli.HelpMessage()
-	parser.UnknownOptionHandler = func(option string, arg flags.SplitArgument, args []string) ([]string, error) {
-		return nil, fmt.Errorf("unknown option %s", option)
-	}
-}
+var appCommands AppCommands
 
-func loadConfig(appName string) (*config, []string, error) {
+func loadConfig(appName string) (*Config, []string, error) {
 	// load defaults first
-	cfg := config{
+	cfg := Config{
 		ConfigFile:        defaultConfigFile,
 		RPCCert:           defaultRPCCertFile,
 		HTTPServerAddress: defaultHTTPServerAddress,
 	}
-	// Pre-parse command line arguments
-	preCfg := cfg
-	preParser := flags.NewParser(&preCfg, flags.HelpFlag)
-	addParserSettings(preParser)
+
+	// Pre-parse command line arguments.
+	//
+	// separate help parser (used for displaying help) from config parser.
+	// This is to prevent triggering the execution of any command encountered: the application is not
+	// fully initialized at this point.
+	preParser := flags.NewParser(&cfg, flags.HelpFlag)
+	helpParser := flags.NewParser(&AppCommands{Config: cfg}, flags.HelpFlag)
 
 	_, err := preParser.Parse()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type != flags.ErrHelp {
-			cli.PrintHelp(appName)
 			os.Exit(1)
 		} else if ok && e.Type == flags.ErrHelp {
-			preParser.WriteHelp(os.Stderr)
+			helpParser.WriteHelp(os.Stderr)
 			os.Exit(0)
 		}
 	}
 
 	// Show version and exit if the version flag was specified
-	if preCfg.ShowVersion {
+	if cfg.ShowVersion {
 		fmt.Println(appName, "version", Ver.String())
 		os.Exit(0)
 	}
 
 	// Load additional config from file
 	parser := flags.NewParser(&cfg, flags.Default)
-	addParserSettings(parser)
 
-	err = flags.NewIniParser(parser).ParseFile(preCfg.ConfigFile)
+	err = flags.NewIniParser(parser).ParseFile(cfg.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			fmt.Fprintf(os.Stderr, "Error parsing config file: %v\n",
-				err)
-			parser.WriteHelp(os.Stderr)
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("Error parsing configuration file: %v", err.Error())
 		}
+		return nil, nil, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
 	remainingArgs, err := parser.Parse()
 	if err != nil {
-		if e, ok := err.(*flags.Error); !ok || e.Type != flags.ErrHelp {
-			cli.PrintHelp(appName)
-		}
 		return nil, nil, err
 	}
 
