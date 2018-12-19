@@ -92,6 +92,5 @@ func (c *cli) isCommandSupported(command string) bool {
 }
 
 func (c *cli) invalidCommandReceived(command string) {
-	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n\n", c.appName, command)
-	PrintHelp(c.appName)
+	fmt.Fprintf(os.Stderr, "%s: '%s' is not a supported command.\n", c.appName, command)
 }

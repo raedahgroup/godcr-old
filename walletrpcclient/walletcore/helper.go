@@ -1,6 +1,8 @@
 package walletcore
 
-import "github.com/decred/dcrd/wire"
+import (
+	"github.com/decred/dcrd/wire"
+)
 
 // from "github.com/decred/dcrwallet/wallet/internal/txsizes"
 // RedeemP2PKHSigScriptSize is the worst case (largest) serialize size

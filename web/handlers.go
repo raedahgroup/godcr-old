@@ -145,3 +145,16 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 	data["success"] = true
 	data["message"] = utxos
 }
+
+func (s *Server) GetTransactions(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+
+	txns, err := s.walletClient.GetTransactions()
+	if err != nil {
+		data["error"] = err
+	} else {
+		data["result"] = txns
+	}
+
+	s.render("transactions.html", data, res)
+}
