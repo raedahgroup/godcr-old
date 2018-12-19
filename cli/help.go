@@ -12,17 +12,17 @@ import (
 func HelpMessage() string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := tabWriter(buf)
-	writeHelpMessage(writer)
+	writeHelpMessage("", writer)
 	return buf.String()
 }
 
 // PrintHelp outputs help message to os.Stderr
 func PrintHelp(appName string) {
 	stderrTabWriter := tabWriter(os.Stderr)
-	writeHelpMessage(stderrTabWriter)
+	writeSimpleHelpMessage(stderrTabWriter)
 }
 
-func writeHelpMessage(w *tabwriter.Writer) {
+func writeSimpleHelpMessage(w *tabwriter.Writer) {
 	var availableCommands []interface{}
 	var experimentalCommands []interface{}
 
@@ -49,4 +49,21 @@ func writeHelpMessage(w *tabwriter.Writer) {
 	fmt.Fprintln(w, fmt.Sprintf(experimentalRowStr, experimentalCommands...))
 
 	w.Flush()
+}
+
+func writeHelpMessage(prefix string, w *tabwriter.Writer) {
+	res := &response{
+		columns: []string{prefix + "[OPTIONS] <command> [<args...>]\n\nAvailable commands:"},
+	}
+	commands := supportedCommands()
+
+	for _, command := range commands {
+		item := []interface{}{
+			command.name,
+			command.description,
+		}
+		res.result = append(res.result, item)
+	}
+
+	printResult(w, res)
 }
