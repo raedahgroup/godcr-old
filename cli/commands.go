@@ -15,5 +15,6 @@ func supportedCommands() []command {
 		{"send", "send a transaction", normalSend, false},
 		{"send-custom", "send a transaction, manually selecting inputs from unspent outputs", customSend, true},
 		{"receive", "show your address to receive funds", receive, false},
+    {"history", "show your transaction history", transactionHistory, false},
 	}
 }

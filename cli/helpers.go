@@ -54,7 +54,7 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 
 func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	validateAddressInput := func(address string) error {
-		isValid, err := c.ValidateAddress(address)
+		isValid, err := c.IsAddressValid(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}
