@@ -80,7 +80,7 @@ func enterCliMode(appName string, config *Config, args []string) {
 		os.Exit(1)
 	}
 
-	cli.Setup(client, appName)
+	cli.Setup(client)
 	parser := flags.NewParser(&appCommands, flags.Default)
 	if _, err := parser.Parse(); err != nil {
 		os.Exit(1)
