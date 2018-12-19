@@ -18,13 +18,15 @@ func HelpMessage() string {
 
 // PrintHelp outputs help message to os.Stderr
 func PrintHelp(appName string) {
+	usagePrefix := fmt.Sprintf("Usage:\n  %s ", appName)
 	stderrTabWriter := tabWriter(os.Stderr)
-	writeSimpleHelpMessage(stderrTabWriter)
+	writeHelpMessage(usagePrefix, stderrTabWriter)
 }
 
-func writeSimpleHelpMessage(w *tabwriter.Writer) {
-	var availableCommands []interface{}
-	var experimentalCommands []interface{}
+func writeSimpleHelpMessage() {
+	stderrTabWriter := tabWriter(os.Stderr)
+	var availableCommands []string
+	var experimentalCommands []string
 
 	for _, command := range supportedCommands() {
 		if command.experimental == false {
@@ -34,21 +36,10 @@ func writeSimpleHelpMessage(w *tabwriter.Writer) {
 		}
 	}
 
-	availableRowStr := "available cmds: "
-	for range availableCommands {
-		availableRowStr += "%v, "
-	}
-	availableRowStr = strings.TrimSuffix(availableRowStr, ", ")
-	fmt.Fprintln(w, fmt.Sprintf(availableRowStr, availableCommands...))
+	fmt.Fprintln(stderrTabWriter, "available cmds: ", strings.Join(availableCommands, ", "))
+	fmt.Fprintln(stderrTabWriter, "experimental: ", strings.Join(experimentalCommands, ", "))
 
-	experimentalRowStr := "experimental: "
-	for range experimentalCommands {
-		experimentalRowStr += "%v, "
-	}
-	experimentalRowStr = strings.TrimSuffix(experimentalRowStr, ", ")
-	fmt.Fprintln(w, fmt.Sprintf(experimentalRowStr, experimentalCommands...))
-
-	w.Flush()
+	stderrTabWriter.Flush()
 }
 
 func writeHelpMessage(prefix string, w *tabwriter.Writer) {
