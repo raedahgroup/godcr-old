@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/btcsuite/go-flags"
+
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	"github.com/raedahgroup/dcrcli/web"
@@ -47,6 +49,7 @@ func main() {
 
 	config, args, err := loadConfig(appName)
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -58,7 +61,7 @@ func main() {
 	}
 }
 
-func enterHttpMode(config *config) {
+func enterHttpMode(config *Config) {
 	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
@@ -69,7 +72,7 @@ func enterHttpMode(config *config) {
 	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
-func enterCliMode(appName string, config *config, args []string) {
+func enterCliMode(appName string, config *Config, args []string) {
 	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
@@ -77,6 +80,9 @@ func enterCliMode(appName string, config *config, args []string) {
 		os.Exit(1)
 	}
 
-	c := cli.New(client, appName)
-	c.RunCommand(args)
+	cli.Setup(client, appName)
+	parser := flags.NewParser(&appCommands, flags.Default)
+	if _, err := parser.Parse(); err != nil {
+		os.Exit(1)
+	}
 }
