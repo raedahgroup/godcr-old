@@ -21,13 +21,19 @@ It is recommended to add `$GOPATH/bin` to your `PATH`.
 
 * [Install Git](https://git-scm.com)
 
+* [download decred executable files](https://github.com/decred/decred-binaries/releases)
+click on assets and download the package that best suite your device.
+
+* [Install drcd, dcrwallet and dcrctl](https://docs.decred.org/wallets/cli/cli-installation/)
+follow this guild to install, setup and run drcd, dcrwallet,dcrctl executable files
+
 * Clone this repo to somewhere on your computer. Please set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`
 
 ##### Example of obtaining and building from source in Linux 
 ```bash 
 $ git clone https://github.com/raedahgroup/dcrcli ~/src/dcrcli 
 $ cd ~/src/dcrcli 
-$ go install 
+$ go install or GO111MODULE=on go install   (if you are building from within `GOPATH`)
 ```
 
 ## Running dcrcli 
