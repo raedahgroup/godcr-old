@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -20,6 +21,25 @@ func PrintHelp(appName string) {
 	usagePrefix := fmt.Sprintf("Usage:\n  %s ", appName)
 	stderrTabWriter := tabWriter(os.Stderr)
 	writeHelpMessage(usagePrefix, stderrTabWriter)
+}
+
+func writeSimpleHelpMessage() {
+	stderrTabWriter := tabWriter(os.Stderr)
+	var availableCommands []string
+	var experimentalCommands []string
+
+	for _, command := range supportedCommands() {
+		if command.experimental == false {
+			availableCommands = append(availableCommands, command.name)
+		} else {
+			experimentalCommands = append(experimentalCommands, command.name)
+		}
+	}
+
+	fmt.Fprintln(stderrTabWriter, "available cmds: ", strings.Join(availableCommands, ", "))
+	fmt.Fprintln(stderrTabWriter, "experimental: ", strings.Join(experimentalCommands, ", "))
+
+	stderrTabWriter.Flush()
 }
 
 func writeHelpMessage(prefix string, w *tabwriter.Writer) {
