@@ -35,9 +35,11 @@ type Config struct {
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
 	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
+	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
+	CreateWallet      bool   `long:"createwallet" description:"Creates a new testnet or mainnet wallet if one doesn't already exist"`
+	SyncBlockchain    bool   `long:"sync" description:"Syncs blockchain. If used with a command, command is executed after blockchain syncs"`
 	commands.CliCommands
 }
 

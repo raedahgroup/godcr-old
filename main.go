@@ -24,38 +24,34 @@ func main() {
 
 	walletSource := makeWalletSource(appConfig)
 
-	if config.HTTPMode {
+	if appConfig.HTTPMode {
 		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
 	} else {
-<<<<<<< HEAD
 		enterCliMode(appConfig, walletSource)
-=======
-		enterCliMode(appName, walletSource, args, config.SyncBlockchain)
->>>>>>> cli and web interface functionailty restored
 	}
 }
 
 // makeWalletSource opens connection to a wallet via the selected source/medium
 // default is mobile wallet library, alternative is dcrwallet rpc
 func makeWalletSource(config *config.Config) ws.WalletSource {
+	var netType string
+	if config.TestNet {
+		netType = "testnet"
+	} else {
+		netType = "mainnet"
+	}
+
 	var walletSource ws.WalletSource
 	var err error
 
 	if config.UseWalletRPC {
-		walletSource, err = dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+		walletSource, err = dcrwalletrpc.New(netType, config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
 		if err != nil {
 			fmt.Println("Connect to dcrwallet rpc failed")
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 	} else {
-		var netType string
-		if config.TestNet {
-			netType = "testnet"
-		} else {
-			netType = "mainnet"
-		}
-
 		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
@@ -67,10 +63,21 @@ func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
 	web.StartHttpServer(serverAddress, walletsource)
 }
 
-<<<<<<< HEAD
 func enterCliMode(appConfig *config.Config, walletsource ws.WalletSource) {
 	// todo: correct comment Set the walletrpcclient.Client object that will be used by the command handlers
 	cli.WalletSource = walletsource
+
+	if appConfig.CreateWallet {
+		// perform first blockchain sync after creating wallet
+		cli.CreateWallet()
+		appConfig.SyncBlockchain = true
+	}
+
+	if appConfig.SyncBlockchain {
+		// open wallet then sync blockchain, before executing command
+		cli.OpenWallet()
+		cli.SyncBlockChain()
+	}
 
 	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
 	if _, err := parser.Parse(); err != nil {
@@ -120,9 +127,4 @@ func printCommandHelp(appName string, command *flags.Command) {
 	helpParser.Active = command
 	helpParser.WriteHelp(os.Stderr)
 	fmt.Printf("To view application options, use '%s -h'\n", appName)
-=======
-func enterCliMode(appName string, walletsource ws.WalletSource, args []string, shouldSyncBlockchain bool) {
-	c := cli.New(walletsource, appName)
-	c.RunCommand(args, shouldSyncBlockchain)
->>>>>>> cli and web interface functionailty restored
 }

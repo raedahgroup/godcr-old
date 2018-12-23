@@ -35,7 +35,7 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Printf("%s\n\n", err.Error())
+			fmt.Printf("%s\n", err.Error())
 			continue
 		}
 		return value, nil
@@ -53,7 +53,7 @@ func RequestInputSecure(message string, validate ValidatorFunction) (string, err
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Printf("%s\n\n", err.Error())
+			fmt.Printf("%s\n", err.Error())
 			continue
 		}
 		return value, nil
@@ -77,7 +77,7 @@ func RequestSelection(message string, options []string, validate ValidatorFuncti
 			return "", err
 		}
 		if err = validate(value); err != nil {
-			fmt.Printf("%s\n\n", err.Error())
+			fmt.Printf("%s\n", err.Error())
 			continue
 		}
 		return value, nil

@@ -66,8 +66,14 @@ func setTerminalEcho(on bool) {
 		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
 		Sys:   nil}
 	var ws syscall.WaitStatus
-	cmd := "echo"
-	if on == false {
+	var cmd string
+
+	if on {
+		// done reading sensitive input, move cursor to next line and send echo command
+		fmt.Println()
+		cmd = "echo"
+	} else {
+		// about to read sensitive input, send -echo command
 		cmd = "-echo"
 	}
 

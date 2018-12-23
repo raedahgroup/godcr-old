@@ -11,33 +11,35 @@ import (
 // Other functions not related to `WalletSource` are in helpers.go
 type WalletPRCClient struct {
 	walletService pb.WalletServiceClient
+	netType 	  string
 }
 
-func New(address, cert string, noTLS bool) (*WalletPRCClient, error) {
-	conn, err := connectToRPC(address, cert, noTLS)
+func New(netType, rpcAddress, rpcCert string, noTLS bool) (*WalletPRCClient, error) {
+	conn, err := connectToRPC(rpcAddress, rpcCert, noTLS)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &WalletPRCClient{
 		walletService: pb.NewWalletServiceClient(conn),
+		netType:       netType,
 	}
 
 	return client, nil
 }
 
 // todo remember to close grpc connection after usage
-func connectToRPC(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
+func connectToRPC(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	var err error
 
 	if noTLS {
-		conn, err = grpc.Dial(address, grpc.WithInsecure())
+		conn, err = grpc.Dial(rpcAddress, grpc.WithInsecure())
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		creds, err := credentials.NewClientTLSFromFile(cert, "")
+		creds, err := credentials.NewClientTLSFromFile(rpcCert, "")
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +50,7 @@ func connectToRPC(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
 			),
 		}
 
-		conn, err = grpc.Dial(address, opts...)
+		conn, err = grpc.Dial(rpcAddress, opts...)
 		if err != nil {
 			return nil, err
 		}
