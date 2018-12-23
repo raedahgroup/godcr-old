@@ -121,26 +121,27 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 }
 
 func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
-	var receiveAddress uint32
+	var accountNumber uint32
 
 	// if no address passed in
 	if len(commandArgs) == 0 {
 		// display menu options to select account
 		var err error
-		receiveAddress, err = getSendSourceAccount(walletrpcclient)
+		accountNumber, err = getSendSourceAccount(walletrpcclient)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		// if an address was passed in eg. ./dcrcli receive 0 use that address
-		accountNumber, err := walletrpcclient.AccountNumber(commandArgs[0])
+		// if an account name was passed in e.g. ./dcrcli receive default
+		// get the address corresponding to the account name and use it
+		var err error
+		accountNumber, err = walletrpcclient.AccountNumber(commandArgs[0])
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
-		receiveAddress = accountNumber
 	}
 
-	r, err := walletrpcclient.Receive(receiveAddress)
+	r, err := walletrpcclient.Receive(accountNumber)
 	if err != nil {
 		return nil, err
 	}
