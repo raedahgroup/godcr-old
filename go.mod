@@ -8,6 +8,7 @@ require (
 	github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7
 	github.com/decred/dcrwallet/rpc/walletrpc v0.1.0
 	github.com/go-chi/chi v3.3.3+incompatible
+	github.com/pkg/errors v0.8.0
 	github.com/raedahgroup/dcrcli/walletrpcclient v0.0.0-20181213135451-898d7ae57860
 	github.com/raedahgroup/mobilewallet v0.0.0-20181127040504-952c748fbd60
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8

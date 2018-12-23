@@ -17,6 +17,10 @@ import (
 	"github.com/raedahgroup/mobilewallet/tx"
 )
 
+func (c *WalletPRCClient) NetType() string {
+	return c.netType
+}
+
 func (c *WalletPRCClient) WalletExists() (bool, error) {
 	// for now, assume that a wallet has been created since we're connecting through dcrwallet daemon
 	// ideally, we'd have to use dcrwallet's WalletLoaderService to do confirm

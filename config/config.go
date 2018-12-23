@@ -37,6 +37,8 @@ type Config struct {
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
+	CreateWallet      bool   `long:"createwallet" description:"Creates a new testnet or mainnet wallet if one doesn't already exist"`
+	SyncBlockchain    bool   `long:"sync" description:"Syncs blockchain. If used with a command, command is executed after blockchain syncs"`
 }
 
 // defaultConfig an instance of Config with the defaults set.

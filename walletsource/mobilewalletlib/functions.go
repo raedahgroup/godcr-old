@@ -8,6 +8,15 @@ import (
 	"github.com/raedahgroup/dcrcli/walletsource"
 )
 
+func (lib *MobileWalletLib) NetType() string {
+	if lib.activeNet.Params.Name != "mainnet" {
+		// could be testnet3 or testnet, return "testnet" for both cases
+		return "testnet"
+	} else {
+		return lib.activeNet.Params.Name
+	}
+}
+
 func (lib *MobileWalletLib) WalletExists() (bool, error) {
 	return lib.walletLib.WalletExists()
 }

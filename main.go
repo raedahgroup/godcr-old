@@ -34,31 +34,35 @@ func main() {
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(walletSource)
 	} else {
-		enterCliMode(cli.AppName(), walletSource, args, appConfig.SyncBlockchain)
+		enterCliMode(appConfig, walletSource)
 	}
 }
 
 // makeWalletSource opens connection to a wallet via the selected source/medium
 // default is mobile wallet library, alternative is dcrwallet rpc
 func makeWalletSource(config *config.Config) ws.WalletSource {
+	var netType string
+	if config.TestNet {
+		netType = "testnet"
+	} else {
+		netType = "mainnet"
+	}
+
 	var walletSource ws.WalletSource
 	var err error
 
 	if config.UseWalletRPC {
+<<<<<<< HEAD
 		walletSource, err = dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS, config.TestNet)
+=======
+		walletSource, err = dcrwalletrpc.New(netType, config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+>>>>>>> update cli create wallet command
 		if err != nil {
 			fmt.Println("Connect to dcrwallet rpc failed")
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 	} else {
-		var netType string
-		if config.TestNet {
-			netType = "testnet"
-		} else {
-			netType = "mainnet"
-		}
-
 		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
@@ -74,33 +78,58 @@ func enterDesktopMode(walletsource ws.WalletSource) {
 	fmt.Println("Running in desktop mode")
 	desktop.StartDesktopApp(walletsource)
 }
-func enterCliMode(appName string, walletsource ws.WalletSource, args []string, shouldSyncBlockchain bool) {
-	c := cli.New(walletsource, appName)
-	c.RunCommand(args, shouldSyncBlockchain)
+
+func enterCliMode(appConfig *config.Config, walletsource ws.WalletSource) {
+	// todo: correct comment Set the walletrpcclient.Client object that will be used by the command handlers
+	cli.WalletSource = walletsource
+
+	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
+	if _, err := parser.Parse(); err != nil {
+		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+			// No command was specified, print the available commands.
+			availableCommands := supportedCommands(parser)
+			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
+		} else {
+			handleParseError(err, parser)
+		}
+		os.Exit(1)
+	}
 }
 
-//func enterCliMode(appConfig config.Config, walletsource ws.WalletSource) {
-//	cli.WalletSource = walletsource
-//
-//	appRoot := cli.Root{Config: appConfig}
-//	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
-//	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
-//	if _, err := parser.Parse(); err != nil {
-//		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
-//			// No command was specified, print the available commands.
-//			var availableCommands []string
-//			if parser.Active != nil {
-//				availableCommands = supportedCommands(parser.Active)
-//			} else {
-//				availableCommands = supportedCommands(parser.Command)
-//			}
-//			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
-//		} else {
-//			handleParseError(err, parser)
-//		}
-//		os.Exit(1)
-//	}
-//}
+func enterCliMode(appConfig config.Config, walletsource ws.WalletSource) {
+	cli.WalletSource = walletsource
+
+	if appConfig.CreateWallet {
+		// perform first blockchain sync after creating wallet
+		cli.CreateWallet()
+		appConfig.SyncBlockchain = true
+	}
+
+	if appConfig.SyncBlockchain {
+		// open wallet then sync blockchain, before executing command
+		cli.OpenWallet()
+		cli.SyncBlockChain()
+	}
+
+	appRoot := cli.Root{Config: appConfig}
+	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
+	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
+	if _, err := parser.Parse(); err != nil {
+		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+			// No command was specified, print the available commands.
+			var availableCommands []string
+			if parser.Active != nil {
+				availableCommands = supportedCommands(parser.Active)
+			} else {
+				availableCommands = supportedCommands(parser.Command)
+			}
+			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
+		} else {
+			handleParseError(err, parser)
+		}
+		os.Exit(1)
+	}
+}
 
 func supportedCommands(parser *flags.Command) []string {
 	registeredCommands := parser.Commands()
