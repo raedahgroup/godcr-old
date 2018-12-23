@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/raedahgroup/dcrcli/cli/core"
 
@@ -82,28 +84,35 @@ func enterHTTPMode(config *core.Config, client *walletrpcclient.Client) {
 
 func enterCliMode(config *core.Config, client *walletrpcclient.Client) {
 	cli.Setup(client)
-	parser := flags.NewParser(&cli.DcrcliCommands, flags.Default)
-	if _, err := parser.Parse(); err != nil {
+	parser := flags.NewParser(&cli.DcrcliCommands, flags.Default&(^flags.PrintErrors))
+	_, err := parser.Parse()
+	if isFlagErrorType(err, flags.ErrCommandRequired) {
+		commands := supportedCommands(parser)
+		fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commands, ", "))
+	} else {
 		handleParseError(err, parser)
-		os.Exit(1)
 	}
+	os.Exit(1)
+}
+
+func supportedCommands(parser *flags.Parser) []string {
+	registeredCommands := parser.Commands()
+	commands := make([]string, 0, len(registeredCommands))
+	for _, command := range registeredCommands {
+		commands = append(commands, command.Name)
+	}
+	sort.Strings(commands)
+	return commands
 }
 
 func loadConfig() (*core.Config, *flags.Parser, error) {
 	// load defaults first
-	cfg := core.DefaultConfig()
-	commands := cli.DcrcliCommands
-	commands.Config = cfg
+	commands := core.DefaultConfig()
 
 	parser := flags.NewParser(&commands, flags.HelpFlag)
-	// noop command handler to prevent commands from running.
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		return &flags.Error{Type: flags.ErrCommandRequired}
-	}
 
 	_, err := parser.Parse()
-	if !isCommandRequiredError(err) {
-		// ignore command required error here. We're intersted in flags and configuration.
+	if err != nil && !isFlagErrorType(err, flags.ErrHelp) {
 		return nil, parser, err
 	}
 
@@ -122,19 +131,18 @@ func loadConfig() (*core.Config, *flags.Parser, error) {
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
-	if !isCommandRequiredError(err) {
-		// ignore command required error here. We're intersted in flags and configuration.
+	if err != nil && !isFlagErrorType(err, flags.ErrHelp) {
 		return nil, parser, err
 	}
 
-	return &commands.Config, parser, nil
+	return &commands, parser, nil
 }
 
-func isCommandRequiredError(err error) bool {
+func isFlagErrorType(err error, errorType flags.ErrorType) bool {
 	if err == nil {
 		return false
 	}
-	if flagErr, ok := err.(*flags.Error); ok && flagErr.Type == flags.ErrCommandRequired {
+	if flagErr, ok := err.(*flags.Error); ok && flagErr.Type == errorType {
 		return true
 	}
 	return false
@@ -145,7 +153,7 @@ func handleParseError(err error, parser *flags.Parser) {
 		// error printing is already handled by go-flags.
 		return
 	}
-	if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
+	if isFlagErrorType(err, flags.ErrHelp) {
 		parser.WriteHelp(os.Stderr)
 	} else {
 		fmt.Println(err)
