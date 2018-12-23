@@ -149,6 +149,9 @@ func isFlagErrorType(err error, errorType flags.ErrorType) bool {
 }
 
 func handleParseError(err error, parser *flags.Parser) {
+	if err == nil {
+		return
+	}
 	if (parser.Options & flags.PrintErrors) != flags.None {
 		// error printing is already handled by go-flags.
 		return
