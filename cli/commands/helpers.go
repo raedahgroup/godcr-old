@@ -67,7 +67,7 @@ func getSendDestinationAddress(wallet walletcore.Wallet) (string, error) {
 
 		if !isValid {
 			if (address == "") {
-				return errors.New("You did not specify an address.")
+				return errors.New("You did not specify an address. Try again.")
 			}
 
 			return errors.New("That is not a valid address. Try again.")
