@@ -33,10 +33,14 @@ func (s SendCustomCommand) Execute(args []string) error {
 	return nil
 }
 
-type ReceiveCommand struct{}
+type ReceiveCommand struct {
+	Args struct {
+		Account string `positional-arg-name:"account"`
+	} `positional-args:"yes"`
+}
 
-func (r ReceiveCommand) Execute(args []string) error {
-	res, err := receive(walletClient, args)
+func (r ReceiveCommand) Execute(_ []string) error {
+	res, err := receive(walletClient, []string{r.Args.Account})
 	if err != nil {
 		return err
 	}
