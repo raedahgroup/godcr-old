@@ -123,7 +123,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
 	var accountNumber uint32
 
-	// if no address passed in
+	// if no account name was passed in
 	if len(commandArgs) == 0 {
 		// display menu options to select account
 		var err error
