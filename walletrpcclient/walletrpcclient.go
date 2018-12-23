@@ -314,6 +314,19 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
+func (c *Client) AccountNumber (accountName string) (uint32, error) {
+	req := &pb.AccountNumberRequest{
+		AccountName: accountName,
+	}
+
+	r, err := c.walletServiceClient.AccountNumber(context.Background(), req)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.AccountNumber, nil
+}
+
 func (c *Client) UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentOutputsResult, error) {
 	req := &pb.UnspentOutputsRequest{
 		Account:                  account,
