@@ -37,17 +37,17 @@ func New(address, cert string, noTLS, isTestnet bool) (*WalletPRCClient, error) 
 }
 
 // todo remember to close grpc connection after usage
-func connectToRPC(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
+func connectToRPC(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	var err error
 
 	if noTLS {
-		conn, err = grpc.Dial(address, grpc.WithInsecure())
+		conn, err = grpc.Dial(rpcAddress, grpc.WithInsecure())
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		creds, err := credentials.NewClientTLSFromFile(cert, "")
+		creds, err := credentials.NewClientTLSFromFile(rpcCert, "")
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func connectToRPC(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
 			),
 		}
 
-		conn, err = grpc.Dial(address, opts...)
+		conn, err = grpc.Dial(rpcAddress, opts...)
 		if err != nil {
 			return nil, err
 		}

@@ -4,6 +4,8 @@ package walletsource
 // by the different mediums for connecting to a dcr wallet
 // Individual mediums may expose other functions but must implement these
 type WalletSource interface {
+	NetType() string
+
 	WalletExists() (bool, error)
 
 	GenerateNewWalletSeed() (string, error)
