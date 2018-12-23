@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/raedahgroup/dcrcli/cli/core"
 
 	"github.com/jessevdk/go-flags"
 
@@ -43,13 +43,12 @@ func (v *Version) String() string {
 		v.Major, v.Minor, v.Patch, hashStr)
 }
 
-func main() {
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
+var appVersion = fmt.Sprintf("%s version: %s", core.AppName(), Ver.String())
 
-	config, _, err := loadConfig(appName)
+func main() {
+	config, parser, err := loadConfig()
 	if err != nil {
-		fmt.Println(err)
+		handleParseError(err, parser)
 		os.Exit(1)
 	}
 	if config == nil {
@@ -58,37 +57,30 @@ func main() {
 
 	// Show version and exit if the version flag was specified
 	if config.ShowVersion {
-		fmt.Fprintf(os.Stdout, "%s version: %s\n", cli.AppName(), Ver.String())
+		fmt.Println(appVersion)
 		os.Exit(0)
+	}
+
+	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 
 	if config.HTTPMode {
 		fmt.Println("Running in http mode")
-		enterHTTPMode(config)
+		enterHTTPMode(config, client)
 	} else {
-		enterCliMode(appName, config)
+		enterCliMode(config, client)
 	}
 }
 
-func enterHTTPMode(config *cli.Config) {
-	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
+func enterHTTPMode(config *core.Config, client *walletrpcclient.Client) {
 	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
-func enterCliMode(appName string, config *cli.Config) {
-	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
+func enterCliMode(config *core.Config, client *walletrpcclient.Client) {
 	cli.Setup(client)
 	parser := flags.NewParser(&cli.DcrcliCommands, flags.Default)
 	if _, err := parser.Parse(); err != nil {
@@ -97,40 +89,64 @@ func enterCliMode(appName string, config *cli.Config) {
 	}
 }
 
-func loadConfig(appName string) (*cli.Config, []string, error) {
+func loadConfig() (*core.Config, *flags.Parser, error) {
 	// load defaults first
-	cfg := cli.DefaultConfig()
+	cfg := core.DefaultConfig()
+	commands := cli.DcrcliCommands
+	commands.Config = cfg
+
+	parser := flags.NewParser(&commands, flags.HelpFlag)
+	// noop command handler to prevent commands from running.
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		return &flags.Error{Type: flags.ErrCommandRequired}
+	}
+
+	_, err := parser.Parse()
+	if !isCommandRequiredError(err) {
+		// ignore command required error here. We're intersted in flags and configuration.
+		return nil, parser, err
+	}
+
+	if commands.ShowVersion {
+		return nil, parser, fmt.Errorf(appVersion)
+	}
 
 	// Load additional config from file
-	parser := flags.NewParser(&cfg, flags.IgnoreUnknown)
-
-	// Errors here will be owing to unknown flags and commands, which are not of interest at this point.
-	parser.Parse()
-
-	err := flags.NewIniParser(parser).ParseFile(cfg.ConfigFile)
+	err = flags.NewIniParser(parser).ParseFile(commands.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			return nil, nil, fmt.Errorf("Error parsing configuration file: %v", err.Error())
+			return nil, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
 		}
-		return nil, nil, err
+		return nil, parser, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
-	remainingArgs, err := parser.Parse()
-	if err != nil {
-		return nil, nil, err
+	_, err = parser.Parse()
+	if !isCommandRequiredError(err) {
+		// ignore command required error here. We're intersted in flags and configuration.
+		return nil, parser, err
 	}
 
-	return &cfg, remainingArgs, nil
+	return &commands.Config, parser, nil
 }
 
-func handleParseError(err error, helpParser *flags.Parser) {
-	if (helpParser.Options & flags.PrintErrors) != flags.None {
+func isCommandRequiredError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if flagErr, ok := err.(*flags.Error); ok && flagErr.Type == flags.ErrCommandRequired {
+		return true
+	}
+	return false
+}
+
+func handleParseError(err error, parser *flags.Parser) {
+	if (parser.Options & flags.PrintErrors) != flags.None {
 		// error printing is already handled by go-flags.
 		return
 	}
 	if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
-		helpParser.WriteHelp(os.Stderr)
+		parser.WriteHelp(os.Stderr)
 	} else {
 		fmt.Println(err)
 	}
