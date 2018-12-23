@@ -1,7 +1,11 @@
 package cli
 
+import (
+	"github.com/raedahgroup/dcrcli/cli/core"
+)
+
 type AppCommands struct {
-	Config
+	core.Config
 	Balance    BalanceCommand    `command:"balance" description:"show your balance"`
 	Send       SendCommand       `command:"send" description:"send a transaction" subcommands-optional:"optional"`
 	SendCustom SendCustomCommand `command:"send-custom" description:"send a transaction, manually selecting inputs from unspent outputs"`
