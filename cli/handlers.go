@@ -2,10 +2,8 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
-
 	rpcclient "github.com/raedahgroup/dcrcli/walletrpcclient"
-	qrcode "github.com/skip2/go-qrcode"
+	"github.com/skip2/go-qrcode"
 )
 
 func balance(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
@@ -123,28 +121,26 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 }
 
 func receive(walletrpcclient *rpcclient.Client, commandArgs []string) (*response, error) {
-	var recieveAddress uint32
+	var receiveAddress uint32
 
 	// if no address passed in
 	if len(commandArgs) == 0 {
-
 		// display menu options to select account
 		var err error
-		recieveAddress, err = getSendSourceAccount(walletrpcclient)
+		receiveAddress, err = getSendSourceAccount(walletrpcclient)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		// if an address was passed in eg. ./dcrcli receive 0 use that address
-		x, err := strconv.ParseUint(commandArgs[0], 10, 32)
+		accountNumber, err := walletrpcclient.AccountNumber(commandArgs[0])
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing account number: %s", err.Error())
+			return nil, fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
-
-		recieveAddress = uint32(x)
+		receiveAddress = accountNumber
 	}
 
-	r, err := walletrpcclient.Receive(recieveAddress)
+	r, err := walletrpcclient.Receive(receiveAddress)
 	if err != nil {
 		return nil, err
 	}
