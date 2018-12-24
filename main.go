@@ -18,39 +18,36 @@ import (
 )
 
 func main() {
-	config, parser, err := config.LoadConfig()
+	appConfig, parser, err := config.LoadConfig()
 	if err != nil {
 		handleParseError(err, parser)
 		os.Exit(1)
 	}
-	if config == nil {
-		os.Exit(0)
-	}
 
-	client, err := walletrpcclient.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	if config.HTTPMode {
-		enterHTTPMode(config, client)
+	if appConfig.HTTPMode {
+		enterHTTPMode(appConfig.HTTPServerAddress, client)
 	} else {
 		enterCliMode(client)
 	}
 }
 
-func enterHTTPMode(config *config.Config, client *walletrpcclient.Client) {
+func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 	fmt.Println("Running in http mode")
-	web.StartHttpServer(config.HTTPServerAddress, client)
+	web.StartHttpServer(serverAddress, client)
 }
 
 func enterCliMode(client *walletrpcclient.Client) {
 	// Set the walletrpcclient.Client object that will be used by the command handlers
 	cli.WalletClient = client
 
-	parser := flags.NewParser(&commands.AppCommands{}, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(&commands.CliCommands{}, flags.HelpFlag|flags.PassDoubleDash)
 	_, err := parser.Parse()
 	if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 		// No command was specified, print the available commands.
@@ -64,12 +61,12 @@ func enterCliMode(client *walletrpcclient.Client) {
 
 func supportedCommands(parser *flags.Parser) []string {
 	registeredCommands := parser.Commands()
-	commands := make([]string, 0, len(registeredCommands))
+	commandNames := make([]string, 0, len(registeredCommands))
 	for _, command := range registeredCommands {
-		commands = append(commands, command.Name)
+		commandNames = append(commandNames, command.Name)
 	}
-	sort.Strings(commands)
-	return commands
+	sort.Strings(commandNames)
+	return commandNames
 }
 
 func handleParseError(err error, parser *flags.Parser) {
