@@ -2,13 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
-	"github.com/raedahgroup/dcrcli/config"
 	"os"
 	"strings"
 	"sync"
 
-	ws "github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"github.com/raedahgroup/dcrcli/config"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 type Response struct {
@@ -17,20 +17,20 @@ type Response struct {
 }
 
 var (
-	WalletSource ws.WalletSource
+	Wallet core.Wallet
 	StdoutWriter = tabWriter(os.Stdout)
 )
 
 func CreateWallet() {
 	// no need to make the user go through stress of providing following info if wallet already exists
-	walletExists, err := WalletSource.WalletExists()
+	walletExists, err := Wallet.WalletExists()
 	if err != nil {
-		errMsg := fmt.Sprintf("Error checking %s wallet", WalletSource.NetType())
+		errMsg := fmt.Sprintf("Error checking %s wallet", Wallet.NetType())
 		printErrorAndExit(errMsg, err)
 	}
 
 	if walletExists {
-		netType := strings.Title(WalletSource.NetType())
+		netType := strings.Title(Wallet.NetType())
 		errMsg := fmt.Sprintf("%s wallet already exists", netType)
 		printErrorAndExit(errMsg, nil)
 	}
@@ -51,7 +51,7 @@ func CreateWallet() {
 	}
 
 	// get seed and display to user to save/backup
-	seed, err := WalletSource.GenerateNewWalletSeed()
+	seed, err := Wallet.GenerateNewWalletSeed()
 	if err != nil {
 		printErrorAndExit("Error generating seed for new wallet", err)
 	}
@@ -89,7 +89,7 @@ func CreateWallet() {
 	}
 
 	// user entered "OK" in last prompt, finalize wallet creation
-	err = WalletSource.CreateWallet(passphrase, seed)
+	err = Wallet.CreateWallet(passphrase, seed)
 	if err != nil {
 		printErrorAndExit("Error creating wallet", err)
 	}
@@ -100,26 +100,26 @@ func CreateWallet() {
 // called whenever an action to be executed requires wallet to be loaded
 // exits the program is wallet doesn't exist or some other error occurs
 func OpenWallet() {
-	walletExists, err := WalletSource.WalletExists()
+	walletExists, err := Wallet.WalletExists()
 	if err != nil {
-		errMsg := fmt.Sprintf("Error checking %s wallet", WalletSource.NetType())
+		errMsg := fmt.Sprintf("Error checking %s wallet", Wallet.NetType())
 		printErrorAndExit(errMsg, err)
 	}
 
 	if !walletExists {
-		netType := strings.Title(WalletSource.NetType())
+		netType := strings.Title(Wallet.NetType())
 		errMsg := fmt.Sprintf("%s wallet does not exist. Use '%s create' to create a wallet", netType, config.AppName())
 		printErrorAndExit(errMsg, nil)
 	}
 
-	err = WalletSource.OpenWallet()
+	err = Wallet.OpenWallet()
 	if err != nil {
-		errMsg := fmt.Sprintf("Failed to open %s wallet", WalletSource.NetType())
+		errMsg := fmt.Sprintf("Failed to open %s wallet", Wallet.NetType())
 		printErrorAndExit(errMsg, err)
 	}
 }
 
-// syncBlockChain registers a progress listener with walletsource to download block updates
+// syncBlockChain registers a progress listener with core to download block updates
 // causes app to exit if an error is encountered
 func SyncBlockChain() {
 	var err error
@@ -135,7 +135,7 @@ func SyncBlockChain() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	err = WalletSource.SyncBlockChain(&ws.BlockChainSyncListener{
+	err = Wallet.SyncBlockChain(&core.BlockChainSyncListener{
 		SyncStarted: func() {
 			fmt.Println("Starting blockchain sync")
 		},

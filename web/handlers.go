@@ -13,7 +13,7 @@ import (
 func (s *Server) GetBalance(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	result, err := s.walletSource.AccountsOverview()
+	result, err := s.wallet.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
@@ -26,7 +26,7 @@ func (s *Server) GetBalance(res http.ResponseWriter, req *http.Request) {
 func (s *Server) GetSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	accounts, err := s.walletSource.AccountsOverview()
+	accounts, err := s.wallet.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
@@ -62,9 +62,9 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 
 	var txHash string
 	if len(utxos) > 0 {
-		txHash, err = s.walletSource.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
+		txHash, err = s.wallet.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
 	} else {
-		txHash, err = s.walletSource.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
+		txHash, err = s.wallet.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
 	}
 
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	accounts, err := s.walletSource.AccountsOverview()
+	accounts, err := s.wallet.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
@@ -102,7 +102,7 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	address, err := s.walletSource.GenerateReceiveAddress(uint32(accountNumber))
+	address, err := s.wallet.GenerateReceiveAddress(uint32(accountNumber))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -137,7 +137,7 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	utxos, err := s.walletSource.UnspentOutputs(uint32(accountNumber), 0)
+	utxos, err := s.wallet.UnspentOutputs(uint32(accountNumber), 0)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

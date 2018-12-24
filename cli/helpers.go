@@ -9,17 +9,17 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
-	ws "github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 // SelectAccount lists accounts in wallet and prompts user to select an account, then returns the account number for that account.
 // If there is only one account available, it returns the account number for that account.
-func SelectAccount(walletSource ws.WalletSource) (uint32, error) {
+func SelectAccount(wallet core.Wallet) (uint32, error) {
 	var selection int
 	var err error
 
 	// get send  accounts
-	accounts, err := walletSource.AccountsOverview()
+	accounts, err := wallet.AccountsOverview()
 	if err != nil {
 		return 0, err
 	}
@@ -58,9 +58,9 @@ func SelectAccount(walletSource ws.WalletSource) (uint32, error) {
 }
 
 // GetSendDestinationAddress fetches the destination address to send DCRs to from the user.
-func GetSendDestinationAddress(walletSource ws.WalletSource) (string, error) {
+func GetSendDestinationAddress(wallet core.Wallet) (string, error) {
 	validateAddressInput := func(address string) error {
-		isValid, err := walletSource.ValidateAddress(address)
+		isValid, err := wallet.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}
@@ -112,7 +112,7 @@ func GetWalletPassphrase() (string, error) {
 }
 
 // GetUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func GetUtxosForNewTransaction(utxos []*ws.UnspentOutput, sendAmount float64) ([]string, error) {
+func GetUtxosForNewTransaction(utxos []*core.UnspentOutput, sendAmount float64) ([]string, error) {
 	var selectedUtxos []string
 	var err error
 

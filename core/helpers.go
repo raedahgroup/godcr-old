@@ -1,4 +1,4 @@
-package walletsource
+package core
 
 type TransactionDirection int8
 

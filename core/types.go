@@ -1,4 +1,4 @@
-package walletsource
+package core
 
 import "github.com/decred/dcrd/dcrutil"
 

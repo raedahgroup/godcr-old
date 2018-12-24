@@ -5,7 +5,7 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 func (lib *MobileWalletLib) NetType() string {
@@ -47,7 +47,7 @@ func (lib *MobileWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *MobileWalletLib) SyncBlockChain(listener *walletsource.BlockChainSyncListener) error {
+func (lib *MobileWalletLib) SyncBlockChain(listener *core.BlockChainSyncListener) error {
 	// create wrapper around sync ended listener to deactivate logging
 	originalSyncEndListener := listener.SyncEnded
 	syncCompletedListener := func(err error) {
@@ -76,27 +76,30 @@ func (lib *MobileWalletLib) SyncBlockChain(listener *walletsource.BlockChainSync
 	return nil
 }
 
-func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletsource.Balance, error) {
+func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*core.Balance, error) {
 	// pass 0 as requiredConfirmations
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	return &walletsource.Balance{
+	return &core.Balance{
 		Total:     dcrutil.Amount(balance.Total),
 		Spendable: dcrutil.Amount(balance.Spendable),
+		LockedByTickets: dcrutil.Amount(balance.LockedByTickets),
+		VotingAuthority: dcrutil.Amount(balance.VotingAuthority),
+		Unconfirmed:     dcrutil.Amount(balance.UnConfirmed),
 	}, nil
 }
 
-func (lib *MobileWalletLib) AccountsOverview() ([]*walletsource.Account, error) {
+func (lib *MobileWalletLib) AccountsOverview() ([]*core.Account, error) {
 	// pass 0 as requiredConfirmations
 	accounts, err := lib.walletLib.GetAccountsRaw(0)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	accountsOverview := make([]*walletsource.Account, 0, len(accounts.Acc))
+	accountsOverview := make([]*core.Account, 0, len(accounts.Acc))
 
 	for _, acc := range accounts.Acc {
 		accountNumber := uint32(acc.Number)
@@ -111,7 +114,7 @@ func (lib *MobileWalletLib) AccountsOverview() ([]*walletsource.Account, error) 
 			continue
 		}
 
-		account := &walletsource.Account{
+		account := &core.Account{
 			Name:    acc.Name,
 			Number:  accountNumber,
 			Balance: balance,
@@ -138,7 +141,7 @@ func (lib *MobileWalletLib) ValidateAddress(address string) (bool, error) {
 	return lib.walletLib.IsAddressValid(address), nil
 }
 
-func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletsource.UnspentOutput, error) {
+func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*core.UnspentOutput, error) {
 	return nil, fmt.Errorf("not yet implemented")
 }
 

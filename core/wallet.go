@@ -1,9 +1,9 @@
-package walletsource
+package core
 
-// WalletSource interface defines the key functions that are implemented
-// by the different mediums for connecting to a dcr wallet
+// Wallet interface defines the key functions that are implemented
+// by the different mediums for connecting to a dcr wallet (the wallet middlewares)
 // Individual mediums may expose other functions but must implement these
-type WalletSource interface {
+type Wallet interface {
 	NetType() string
 
 	WalletExists() (bool, error)
