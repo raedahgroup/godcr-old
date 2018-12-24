@@ -16,7 +16,7 @@ type ReceiveCommand struct {
 }
 
 // Execute runs the `receive` command.
-func (r ReceiveCommand) Execute(_ []string) error {
+func (r ReceiveCommand) Execute(args []string) error {
 	var accountNumber uint32
 	walletrpcclient := cli.WalletClient
 
