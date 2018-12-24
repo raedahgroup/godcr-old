@@ -7,21 +7,20 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"text/template"
 
 	"github.com/go-chi/chi"
-	ws "github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 type Server struct {
-	walletSource ws.WalletSource
-	templates    map[string]*template.Template
+	wallet    core.Wallet
+	templates map[string]*template.Template
 }
 
-func StartHttpServer(address string, walletSource ws.WalletSource) {
+func StartHttpServer(address string, wallet core.Wallet) {
 	server := &Server{
-		walletSource: walletSource,
+		wallet: wallet,
 		templates:    map[string]*template.Template{},
 	}
 	router := chi.NewRouter()
@@ -31,7 +30,7 @@ func StartHttpServer(address string, walletSource ws.WalletSource) {
 
 	// setup static file serving
 	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "public")
+	filesDir := filepath.Join(workDir, "web/public")
 	makeStaticFileServer(router, "/static", http.Dir(filesDir))
 
 	// setup templated pages
@@ -106,7 +105,7 @@ func (s *Server) makeWalletLoaderMiddleware() func(http.Handler) http.Handler {
 
 func (s *Server) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if !s.walletSource.IsWalletOpen() {
+		if !s.wallet.IsWalletOpen() {
 			err := s.loadWallet()
 			if err != nil {
 				s.renderError(err.Error(), res)
@@ -119,16 +118,16 @@ func (s *Server) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (s *Server) loadWallet() error {
-	walletExists, err := s.walletSource.WalletExists()
+	walletExists, err := s.wallet.WalletExists()
 	if err != nil {
 		return fmt.Errorf("Error checking for wallet: %s", err.Error())
 	}
 
 	if !walletExists {
-		return fmt.Errorf("Wallet not created. Please create a wallet to continue. Use `dcrcli init` on terminal")
+		return fmt.Errorf("Wallet not created. Please create a wallet to continue. Use `dcrcli create` on terminal")
 	}
 
-	err = s.walletSource.OpenWallet()
+	err = s.wallet.OpenWallet()
 	if err != nil {
 		return fmt.Errorf("Failed to open wallet: %s", err.Error())
 	}

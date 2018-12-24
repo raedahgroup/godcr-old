@@ -14,6 +14,14 @@ import 	(
 	"github.com/raedahgroup/godcr/walletsource/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/walletsource/mobilewalletlib"
 	"github.com/raedahgroup/godcr/web"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/dcrcli/config"
+	"github.com/raedahgroup/dcrcli/core"
+	"github.com/raedahgroup/dcrcli/core/middlewares/dcrwalletrpc"
+	"github.com/raedahgroup/dcrcli/core/middlewares/mobilewalletlib"
+	"github.com/raedahgroup/dcrcli/web"
 )
 
 func main() {
@@ -23,24 +31,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	walletSource := makeWalletSource(appConfig)
+	wallet := connectToWallet(appConfig)
 
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		enterHttpMode(appConfig.HTTPServerAddress, walletSource)
+		enterHttpMode(appConfig.HTTPServerAddress, wallet)
 	} else if appConfig.DesktopMode {
-		enterDesktopMode(walletSource)
+		enterDesktopMode(wallet)
 	} else {
-		enterCliMode(appConfig, walletSource)
+		enterCliMode(appConfig, wallet)
 	}
 }
 
 // makeWalletSource opens connection to a wallet via the selected source/medium
 // default is mobile wallet library, alternative is dcrwallet rpc
-func makeWalletSource(config *config.Config) ws.WalletSource {
+func connectToWallet(config *config.Config) core.Wallet {
 	var netType string
 	if config.TestNet {
 		netType = "testnet"
@@ -48,30 +56,23 @@ func makeWalletSource(config *config.Config) ws.WalletSource {
 		netType = "mainnet"
 	}
 
-	var walletSource ws.WalletSource
-	var err error
-
-	if config.UseWalletRPC {
-<<<<<<< HEAD
-		walletSource, err = dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS, config.TestNet)
-=======
-		walletSource, err = dcrwalletrpc.New(netType, config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
->>>>>>> update cli create wallet command
-		if err != nil {
-			fmt.Println("Connect to dcrwallet rpc failed")
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-	} else {
-		walletSource = mobilewalletlib.New(config.AppDataDir, netType)
+	if !config.UseWalletRPC {
+		return mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
-	return walletSource
+	wallet, err := dcrwalletrpc.New(config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS, config.TestNet)
+	if err != nil {
+		fmt.Println("Connect to dcrwallet rpc failed")
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	return wallet
 }
 
-func enterHttpMode(serverAddress string, walletsource ws.WalletSource) {
+func enterHttpMode(serverAddress string, wallet core.Wallet) {
 	fmt.Println("Running in http mode")
-	web.StartHttpServer(serverAddress, walletsource)
+	web.StartHttpServer(serverAddress, wallet)
 }
 
 func enterDesktopMode(walletsource ws.WalletSource) {
@@ -79,9 +80,9 @@ func enterDesktopMode(walletsource ws.WalletSource) {
 	desktop.StartDesktopApp(walletsource)
 }
 
-func enterCliMode(appConfig *config.Config, walletsource ws.WalletSource) {
+func enterCliMode(appConfig *config.Config, wallet core.Wallet) {
 	// todo: correct comment Set the walletrpcclient.Client object that will be used by the command handlers
-	cli.WalletSource = walletsource
+	cli.Wallet = wallet
 
 	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
 	if _, err := parser.Parse(); err != nil {

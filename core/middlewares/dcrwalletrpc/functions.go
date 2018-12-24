@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
+	"github.com/raedahgroup/dcrcli/core"
 	"io"
 	"sort"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrcli/walletsource"
 	"github.com/raedahgroup/mobilewallet/tx"
 )
 
@@ -50,11 +50,11 @@ func (c *WalletPRCClient) IsWalletOpen() bool {
 	return true
 }
 
-func (c *WalletPRCClient) SyncBlockChain(listener *walletsource.BlockChainSyncListener) error {
+func (c *WalletPRCClient) SyncBlockChain(listener *core.BlockChainSyncListener) error {
 	return fmt.Errorf("not yet implemented")
 }
 
-func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletsource.Balance, error) {
+func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*core.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: 0,
@@ -65,7 +65,7 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletsource.Ba
 		return nil, fmt.Errorf("error fetching balance for account: %d \n:%s", accountNumber, err.Error())
 	}
 
-	return &walletsource.Balance{
+	return &core.Balance{
 		Total:           dcrutil.Amount(res.Total),
 		Spendable:       dcrutil.Amount(res.Spendable),
 		LockedByTickets: dcrutil.Amount(res.LockedByTickets),
@@ -74,13 +74,13 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletsource.Ba
 	}, nil
 }
 
-func (c *WalletPRCClient) AccountsOverview() ([]*walletsource.Account, error) {
+func (c *WalletPRCClient) AccountsOverview() ([]*core.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	accountsOverview := make([]*walletsource.Account, 0, len(accounts.Accounts))
+	accountsOverview := make([]*core.Account, 0, len(accounts.Accounts))
 
 	for _, acc := range accounts.Accounts {
 		balance, err := c.AccountBalance(acc.AccountNumber)
@@ -93,7 +93,7 @@ func (c *WalletPRCClient) AccountsOverview() ([]*walletsource.Account, error) {
 			continue
 		}
 
-		account := &walletsource.Account{
+		account := &core.Account{
 			Name:    acc.AccountName,
 			Number:  acc.AccountNumber,
 			Balance: balance,
@@ -159,13 +159,13 @@ func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
 	return validationResult.IsValid, nil
 }
 
-func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletsource.UnspentOutput, error) {
+func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*core.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	unspentOutputs := []*walletsource.UnspentOutput{}
+	unspentOutputs := []*core.UnspentOutput{}
 
 	for {
 		utxo, err := utxoStream.Recv()
@@ -182,7 +182,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
-		unspentOutput := &walletsource.UnspentOutput{
+		unspentOutput := &core.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
@@ -293,7 +293,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletPRCClient) TransactionHistory() ([]*walletsource.Transaction, error) {
+func (c *WalletPRCClient) TransactionHistory() ([]*core.Transaction, error) {
 	req := &walletrpc.GetTransactionsRequest{}
 
 	stream, err := c.walletService.GetTransactions(context.Background(), req)
@@ -301,7 +301,7 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletsource.Transaction, err
 		return nil, err
 	}
 
-	var transactions []*walletsource.Transaction
+	var transactions []*core.Transaction
 
 	for {
 		in, err := stream.Recv()
