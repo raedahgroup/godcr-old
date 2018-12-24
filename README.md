@@ -21,11 +21,11 @@ It is recommended to add `$GOPATH/bin` to your `PATH`.
 
 * [Install Git](https://git-scm.com)
 
-* [download decred executable files](https://github.com/decred/decred-binaries/releases)
-click on assets and download the package for your operating system.
+* Download dcrd and dcrwallet from [here](https://github.com/decred/decred-binaries/releases)
+Click on assets and download the package for your operating system.
 
-* [Install drcd, dcrwallet and dcrctl](https://docs.decred.org/wallets/cli/cli-installation/)
-follow this guide to install, setup and run drcd, dcrwallet, dcrctl executable files on your machine.
+* After downloading the file, unzip or unpack the file then [follow this link](https://docs.decred.org/wallets/cli/cli-installation/)
+ to install, setup and run drcd, dcrwallet on your machine.
 
 * Clone this repo to somewhere on your computer. Please set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`
 
