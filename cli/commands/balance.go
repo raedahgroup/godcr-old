@@ -9,8 +9,7 @@ type BalanceCommand struct{}
 
 // Execute runs the `balance` command, displaying the user's account balance.
 func (b BalanceCommand) Execute(args []string) error {
-	walletrpcclient := cli.WalletClient
-	balances, err := walletrpcclient.Balance()
+	balances, err := cli.WalletClient.Balance()
 	if err != nil {
 		return err
 	}
