@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli/core"
+	"github.com/raedahgroup/dcrcli/config"
 
 	"github.com/jessevdk/go-flags"
 
@@ -45,7 +45,7 @@ func (v *Version) String() string {
 		v.Major, v.Minor, v.Patch, hashStr)
 }
 
-var appVersion = fmt.Sprintf("%s version: %s", core.AppName(), Ver.String())
+var appVersion = fmt.Sprintf("%s version: %s", config.AppName(), Ver.String())
 
 func main() {
 	config, parser, err := loadConfig()
@@ -78,13 +78,13 @@ func main() {
 	}
 }
 
-func enterHTTPMode(config *core.Config, client *walletrpcclient.Client) {
+func enterHTTPMode(config *config.Config, client *walletrpcclient.Client) {
 	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
-func enterCliMode(config *core.Config, client *walletrpcclient.Client) {
+func enterCliMode(config *config.Config, client *walletrpcclient.Client) {
 	cli.Setup(client)
-	parser := flags.NewParser(&cli.DcrcliCommands, flags.Default&(^flags.PrintErrors))
+	parser := flags.NewParser(&cli.AppCommands{}, flags.Default&(^flags.PrintErrors))
 	_, err := parser.Parse()
 	if isFlagErrorType(err, flags.ErrCommandRequired) {
 		commands := supportedCommands(parser)
@@ -105,9 +105,9 @@ func supportedCommands(parser *flags.Parser) []string {
 	return commands
 }
 
-func loadConfig() (*core.Config, *flags.Parser, error) {
+func loadConfig() (*config.Config, *flags.Parser, error) {
 	// load defaults first
-	commands := core.DefaultConfig()
+	commands := config.DefaultConfig()
 
 	parser := flags.NewParser(&commands, flags.HelpFlag)
 
