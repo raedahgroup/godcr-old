@@ -4,7 +4,8 @@ import (
 	"github.com/raedahgroup/dcrcli/config"
 )
 
-type AppCommands struct {
+// CliCommands defines the commands and options available on the cli
+type CliCommands struct {
 	config.Config
 	Balance    BalanceCommand    `command:"balance" description:"show your balance"`
 	Send       SendCommand       `command:"send" description:"send a transaction"`
