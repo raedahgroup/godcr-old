@@ -1,6 +1,8 @@
 package commands
 
-import "github.com/raedahgroup/dcrcli/config"
+import (
+	"github.com/raedahgroup/dcrcli/config"
+)
 
 type AppCommands struct {
 	config.Config

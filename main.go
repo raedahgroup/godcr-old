@@ -78,7 +78,14 @@ func handleParseError(err error, parser *flags.Parser) {
 		return
 	}
 	if cli.IsFlagErrorType(err, flags.ErrHelp) {
-		parser.WriteHelp(os.Stderr)
+		if parser.Active == nil {
+			parser.WriteHelp(os.Stderr)
+		} else {
+			helpParser := flags.NewParser(nil, flags.HelpFlag)
+			helpParser.Name = parser.Name
+			helpParser.Active = parser.Active
+			helpParser.WriteHelp(os.Stderr)
+		}
 	} else {
 		fmt.Println(err)
 	}
