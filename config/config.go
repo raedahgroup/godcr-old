@@ -8,8 +8,6 @@ import (
 
 	"github.com/jessevdk/go-flags"
 
-	"github.com/raedahgroup/dcrcli/cli"
-
 	"github.com/decred/dcrd/dcrutil"
 )
 
@@ -62,7 +60,7 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 	parser := flags.NewParser(&commands, flags.HelpFlag)
 
 	_, err := parser.Parse()
-	if err != nil && !cli.IsFlagErrorType(err, flags.ErrHelp) {
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
 		return nil, parser, err
 	}
 
@@ -81,7 +79,7 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
-	if err != nil && !cli.IsFlagErrorType(err, flags.ErrHelp) {
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
 		return nil, parser, err
 	}
 
