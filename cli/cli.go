@@ -143,15 +143,9 @@ func SyncBlockChain() {
 			err = e
 			wg.Done()
 		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			fmt.Printf("1/3 fetching headers %d%% \n", percentageProgress)
-		},
-		OnDiscoveredAddress: func(state string) {
-			fmt.Printf("2/3 %s discovering addresses\n", state)
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			fmt.Printf("3/3 rescanning blocks %d%% \n", percentageProgress)
-		},
+		OnHeadersFetched: func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
+		OnDiscoveredAddress: func(state string) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+		OnRescanningBlocks: func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
 	})
 
 	if err != nil {
