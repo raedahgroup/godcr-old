@@ -47,12 +47,15 @@ func enterHTTPMode(config *config.Config, client *walletrpcclient.Client) {
 }
 
 func enterCliMode(client *walletrpcclient.Client) {
+	// Set the walletrpcclient.Client object that will be used by the command handlers
 	cli.WalletClient = client
+
 	parser := flags.NewParser(&commands.AppCommands{}, flags.HelpFlag|flags.PassDoubleDash)
 	_, err := parser.Parse()
-	if cli.IsFlagErrorType(err, flags.ErrCommandRequired) {
-		commands := supportedCommands(parser)
-		fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commands, ", "))
+	if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+		// No command was specified, print the available commands.
+		availableCommands := supportedCommands(parser)
+		fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
 	} else {
 		handleParseError(err, parser)
 	}
@@ -77,7 +80,7 @@ func handleParseError(err error, parser *flags.Parser) {
 		// error printing is already handled by go-flags.
 		return
 	}
-	if cli.IsFlagErrorType(err, flags.ErrHelp) {
+	if config.IsFlagErrorType(err, flags.ErrHelp) {
 		if parser.Active == nil {
 			parser.WriteHelp(os.Stderr)
 		} else {
