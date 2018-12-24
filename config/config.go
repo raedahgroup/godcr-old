@@ -1,9 +1,14 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
+
+	"github.com/raedahgroup/dcrcli/cli"
 
 	"github.com/decred/dcrd/dcrutil"
 )
@@ -33,8 +38,8 @@ type Config struct {
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
-// DefaultConfig an instance of Config with the defaults set.
-func DefaultConfig() Config {
+// defaultConfig an instance of Config with the defaults set.
+func defaultConfig() Config {
 	return Config{
 		ConfigFile:        defaultConfigFile,
 		RPCCert:           defaultRPCCertFile,
@@ -47,4 +52,38 @@ func AppName() string {
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	return appName
+}
+
+// LoadConfig parses program configuration from both the CLI flags and the config file.
+func LoadConfig() (*Config, *flags.Parser, error) {
+	// load defaults first
+	commands := defaultConfig()
+
+	parser := flags.NewParser(&commands, flags.HelpFlag)
+
+	_, err := parser.Parse()
+	if err != nil && !cli.IsFlagErrorType(err, flags.ErrHelp) {
+		return nil, parser, err
+	}
+
+	if commands.ShowVersion {
+		return nil, parser, fmt.Errorf(AppVersion())
+	}
+
+	// Load additional config from file
+	err = flags.NewIniParser(parser).ParseFile(commands.ConfigFile)
+	if err != nil {
+		if _, ok := err.(*os.PathError); !ok {
+			return nil, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
+		}
+		return nil, parser, err
+	}
+
+	// Parse command line options again to ensure they take precedence.
+	_, err = parser.Parse()
+	if err != nil && !cli.IsFlagErrorType(err, flags.ErrHelp) {
+		return nil, parser, err
+	}
+
+	return &commands, parser, nil
 }
