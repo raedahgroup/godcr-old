@@ -6,17 +6,12 @@ import (
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
-type response struct {
-	columns []string
-	result  [][]interface{}
+type Response struct {
+	Columns []string
+	Result  [][]interface{}
 }
 
 var (
-	walletClient *walletrpcclient.Client
-	stdoutWriter = tabWriter(os.Stdout)
+	WalletClient *walletrpcclient.Client
+	StdoutWriter = tabWriter(os.Stdout)
 )
-
-// Setup initializes the states of variables used by this package.
-func Setup(walletrpcclient *walletrpcclient.Client) {
-	walletClient = walletrpcclient
-}
