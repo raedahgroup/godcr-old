@@ -2,26 +2,16 @@ package commands
 
 import (
 	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct{}
 
 // Execute runs the `history` command.
-func (h HistoryCommand) Execute(_ []string) error {
-	res, err := transactionHistory(cli.WalletClient)
+func (h HistoryCommand) Execute(args []string) error {
+	transactions, err := cli.WalletClient.GetTransactions()
 	if err != nil {
 		return err
-	}
-	cli.PrintResult(cli.StdoutWriter, res)
-	return nil
-}
-
-func transactionHistory(walletrpcclient *walletrpcclient.Client) (*cli.Response, error) {
-	transactions, err := walletrpcclient.GetTransactions()
-	if err != nil {
-		return nil, err
 	}
 
 	res := &cli.Response{
@@ -45,5 +35,6 @@ func transactionHistory(walletrpcclient *walletrpcclient.Client) (*cli.Response,
 		}
 	}
 
-	return res, nil
+	cli.PrintResult(cli.StdoutWriter, res)
+	return nil
 }
