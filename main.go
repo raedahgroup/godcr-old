@@ -6,13 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli/commands"
-
-	"github.com/raedahgroup/dcrcli/config"
-
 	"github.com/jessevdk/go-flags"
-
 	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/dcrcli/cli/commands"
+	"github.com/raedahgroup/dcrcli/config"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	"github.com/raedahgroup/dcrcli/web"
 )

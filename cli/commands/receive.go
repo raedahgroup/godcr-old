@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/raedahgroup/dcrcli/cli"
-
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -18,13 +17,11 @@ type ReceiveCommand struct {
 // Execute runs the `receive` command.
 func (r ReceiveCommand) Execute(args []string) error {
 	var accountNumber uint32
-	walletrpcclient := cli.WalletClient
-
 	// if no account name was passed in
 	if r.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = cli.GetSendSourceAccount(walletrpcclient)
+		accountNumber, err = cli.GetSendSourceAccount(cli.WalletClient)
 		if err != nil {
 			return err
 		}
@@ -32,13 +29,13 @@ func (r ReceiveCommand) Execute(args []string) error {
 		// if an account name was passed in e.g. ./dcrcli receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = walletrpcclient.AccountNumber(r.Args.Account)
+		accountNumber, err = cli.WalletClient.AccountNumber(r.Args.Account)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveResult, err := walletrpcclient.Receive(accountNumber)
+	receiveResult, err := cli.WalletClient.Receive(accountNumber)
 	if err != nil {
 		return err
 	}

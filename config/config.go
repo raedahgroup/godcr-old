@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jessevdk/go-flags"
-
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/jessevdk/go-flags"
 )
 
 const (
