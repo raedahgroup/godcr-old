@@ -12,7 +12,9 @@ import (
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
-func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
+// GetSendSourceAccount fetches the account number for an account selected by the user.
+// If there is only one account available, it returns the account number for that account.
+func GetSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	var selection int
 	var err error
 	// get send  accounts
@@ -52,7 +54,8 @@ func getSendSourceAccount(c *walletrpcclient.Client) (uint32, error) {
 	return accounts[selection].AccountNumber, nil
 }
 
-func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
+// GetSendDestinationAddress fetches the destination address to send DCRs to from the user.
+func GetSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	validateAddressInput := func(address string) error {
 		isValid, err := c.IsAddressValid(address)
 		if err != nil {
@@ -74,7 +77,8 @@ func getSendDestinationAddress(c *walletrpcclient.Client) (string, error) {
 	return address, nil
 }
 
-func getSendAmount() (float64, error) {
+// GetSendAmount fetches the amout of DCRs to send from the user.
+func GetSendAmount() (float64, error) {
 	var amount float64
 	var err error
 
@@ -95,7 +99,8 @@ func getSendAmount() (float64, error) {
 	return amount, nil
 }
 
-func getWalletPassphrase() (string, error) {
+// GetWalletPassphrase fetches the user's wallet passphrase from the user.
+func GetWalletPassphrase() (string, error) {
 	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
@@ -103,7 +108,8 @@ func getWalletPassphrase() (string, error) {
 	return result, nil
 }
 
-func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, sendAmount float64) ([]string, error) {
+// GetUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
+func GetUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, sendAmount float64) ([]string, error) {
 	var selectedUtxos []string
 	var err error
 

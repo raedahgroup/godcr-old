@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/raedahgroup/dcrcli/cli/commands"
+
 	"github.com/raedahgroup/dcrcli/config"
 
 	"github.com/jessevdk/go-flags"
@@ -71,20 +73,20 @@ func main() {
 	}
 
 	if config.HTTPMode {
-		fmt.Println("Running in http mode")
 		enterHTTPMode(config, client)
 	} else {
-		enterCliMode(config, client)
+		enterCliMode(client)
 	}
 }
 
 func enterHTTPMode(config *config.Config, client *walletrpcclient.Client) {
+	fmt.Println("Running in http mode")
 	web.StartHttpServer(config.HTTPServerAddress, client)
 }
 
-func enterCliMode(config *config.Config, client *walletrpcclient.Client) {
-	cli.Setup(client)
-	parser := flags.NewParser(&cli.AppCommands{}, flags.Default&(^flags.PrintErrors))
+func enterCliMode(client *walletrpcclient.Client) {
+	cli.WalletClient = client
+	parser := flags.NewParser(&commands.AppCommands{}, flags.HelpFlag|flags.PassDoubleDash)
 	_, err := parser.Parse()
 	if isFlagErrorType(err, flags.ErrCommandRequired) {
 		commands := supportedCommands(parser)

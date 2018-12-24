@@ -10,8 +10,6 @@ import (
 
 const (
 	defaultConfigFilename    = "dcrcli.conf"
-	defaultLogDirname        = "log"
-	defaultLogFilename       = "dcrcli.log"
 	defaultHTTPServerAddress = "127.0.0.1:1234"
 )
 
@@ -20,9 +18,9 @@ var (
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
-	defaultLogDir              = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
+// Config holds the top-level options for the CLI program.
 type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
@@ -35,6 +33,7 @@ type Config struct {
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
+// DefaultConfig an instance of Config with the defaults set.
 func DefaultConfig() Config {
 	return Config{
 		ConfigFile:        defaultConfigFile,
@@ -43,6 +42,7 @@ func DefaultConfig() Config {
 	}
 }
 
+// AppName returns the name of the program binary file that started the process.
 func AppName() string {
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
