@@ -14,7 +14,7 @@ import (
 // Other functions not related to `WalletSource` are in helpers.go
 type WalletPRCClient struct {
 	walletService pb.WalletServiceClient
-	netType 	  string
+	netType       string
 }
 
 func New(netType, rpcAddress, rpcCert string, noTLS bool) (*WalletPRCClient, error) {
