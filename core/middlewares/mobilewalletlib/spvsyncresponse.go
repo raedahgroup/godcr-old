@@ -23,7 +23,8 @@ type SpvSyncResponse struct {
 // following functions are used to implement mobilewallet.SpvSyncResponse interface
 func (response SpvSyncResponse) OnPeerConnected(peerCount int32)    {}
 func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {}
-func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {}
+func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {
+}
 func (response SpvSyncResponse) OnFetchedHeaders(_ int32, lastHeaderTime int64, state string) {
 	if state == "progress" {
 		response.calculateProgress(lastHeaderTime)

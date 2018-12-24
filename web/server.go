@@ -20,8 +20,8 @@ type Server struct {
 
 func StartHttpServer(address string, wallet core.Wallet) {
 	server := &Server{
-		wallet: wallet,
-		templates:    map[string]*template.Template{},
+		wallet:    wallet,
+		templates: map[string]*template.Template{},
 	}
 	router := chi.NewRouter()
 
