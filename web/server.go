@@ -50,9 +50,9 @@ func (s *Server) loadTemplates() {
 	funcMap := templateFuncMap()
 
 	tpls := map[string]string{
-		"balance.html":      "web/views/balance.html",
-		"send.html":         "web/views/send.html",
-		"receive.html":      "web/views/receive.html",
+		"balance.html": "web/views/balance.html",
+		"send.html":    "web/views/send.html",
+		"receive.html": "web/views/receive.html",
 		"history.html": "web/views/history.html",
 	}
 
