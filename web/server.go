@@ -10,15 +10,15 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/dcrcli/core"
+	"github.com/raedahgroup/dcrcli/app"
 )
 
 type Server struct {
-	wallet    core.Wallet
+	wallet    app.WalletMiddleware
 	templates map[string]*template.Template
 }
 
-func StartHttpServer(wallet core.Wallet, address string) {
+func StartHttpServer(wallet app.WalletMiddleware, address string) {
 	server := &Server{
 		wallet:    wallet,
 		templates: map[string]*template.Template{},

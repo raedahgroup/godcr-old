@@ -1,26 +1,25 @@
 package dcrwalletrpc
 
 import (
-	"fmt"
+	"net"
+
 	"github.com/decred/dcrwallet/netparams"
-	pb "github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"net"
 )
 
-// WalletPRCClient implements `WalletSource` using dcrwallet's `walletrpc.WalletServiceClient`
-// Method implementation of `WalletSource` interface are in functions.go
-// Other functions not related to `WalletSource` are in utils.go
+// WalletPRCClient implements `WalletMiddleware` using `mobilewallet.LibWallet` as medium for connecting to a decred wallet
+// Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
+// Other wallet-related functions are defined in `walletloader.go`
 type WalletPRCClient struct {
-	walletService pb.WalletServiceClient
+	walletService walletrpc.WalletServiceClient
 	netType       string
 }
 
 func New(netType, rpcAddress, rpcCert string, noTLS bool) (*WalletPRCClient, error) {
 	if rpcAddress == "" {
 		rpcAddress = defaultDcrWalletRPCAddress(netType)
-		fmt.Println(rpcAddress)
 	}
 
 	conn, err := connectToRPC(rpcAddress, rpcCert, noTLS)
@@ -29,7 +28,7 @@ func New(netType, rpcAddress, rpcCert string, noTLS bool) (*WalletPRCClient, err
 	}
 
 	client := &WalletPRCClient{
-		walletService: pb.NewWalletServiceClient(conn),
+		walletService: walletrpc.NewWalletServiceClient(conn),
 		netType:       netType,
 	}
 
@@ -37,17 +36,13 @@ func New(netType, rpcAddress, rpcCert string, noTLS bool) (*WalletPRCClient, err
 }
 
 func defaultDcrWalletRPCAddress(netType string) string {
-	var activeNet *netparams.Params
 	if netType == "mainnet" {
-		activeNet = &netparams.MainNetParams
+		return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 	} else {
-		activeNet = &netparams.TestNet3Params
+		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
 	}
-
-	return net.JoinHostPort("localhost", activeNet.GRPCServerPort)
 }
 
-// todo remember to close grpc connection after usage
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	var err error

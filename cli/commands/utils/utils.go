@@ -3,13 +3,24 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrcli/app/walletcore"
 	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
-	"github.com/raedahgroup/dcrcli/core"
+)
+
+type Response struct {
+	Columns []string
+	Result  [][]interface{}
+}
+
+var (
+	Wallet          walletcore.Wallet
+	StdoutTabWriter = tabWriter(os.Stdout)
 )
 
 // SelectAccount lists accounts in wallet and prompts user to select an account, then returns the account number for that account.
@@ -18,13 +29,13 @@ func SelectAccount() (uint32, error) {
 	var selection int
 	var err error
 
-	// get send  accounts
+	// get accounts
 	accounts, err := Wallet.AccountsOverview()
 	if err != nil {
 		return 0, err
 	}
 
-	// Proceed with default account if there's no other account.
+	// return default account if there's no other account
 	if len(accounts) == 1 {
 		return accounts[0].Number, nil
 	}
@@ -57,7 +68,7 @@ func SelectAccount() (uint32, error) {
 	return accounts[selection].Number, nil
 }
 
-// GetSendDestinationAddress fetches the destination address to send DCRs to from the user.
+// GetSendDestinationAddress prompts user for a destination address to send DCRs to
 func GetSendDestinationAddress() (string, error) {
 	validateAddressInput := func(address string) error {
 		isValid, err := Wallet.ValidateAddress(address)
@@ -80,7 +91,7 @@ func GetSendDestinationAddress() (string, error) {
 	return address, nil
 }
 
-// GetSendAmount fetches the amout of DCRs to send from the user.
+// GetSendAmount asks user to enter the amount of DCRs to send
 func GetSendAmount() (float64, error) {
 	var amount float64
 	var err error
@@ -111,8 +122,8 @@ func GetWalletPassphrase() (string, error) {
 	return result, nil
 }
 
-// GetUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func GetUtxosForNewTransaction(utxos []*core.UnspentOutput, sendAmount float64) ([]string, error) {
+// GetUtxosForNewTransaction fetches unspent transaction outputs to be used in a new send transaction.
+func GetUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) ([]string, error) {
 	var selectedUtxos []string
 	var err error
 

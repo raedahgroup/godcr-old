@@ -42,7 +42,7 @@ func PrintResult(w *tabwriter.Writer, res *Response) {
 	w.Flush()
 }
 
-// PrintStringResult prints simple string message(s) to a fresh instance of stdOut tabWriter
+// PrintStringResult creates an instance of stdOut tabWriter and prints simple string message(s) to the writer
 func PrintStringResult(output ...string) {
 	writer := tabWriter(os.Stdout)
 	for _, str := range output {

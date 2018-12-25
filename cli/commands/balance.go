@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/utils"
-	"github.com/raedahgroup/dcrcli/core"
+	"github.com/raedahgroup/dcrcli/app/walletcore"
+	"github.com/raedahgroup/dcrcli/cli/commands/utils"
 )
 
 // BalanceCommand displays the user's account balance.
@@ -28,7 +29,7 @@ func (balanceCommand BalanceCommand) Execute(args []string) error {
 	return nil
 }
 
-func showDetailedBalance(accounts []*core.Account) {
+func showDetailedBalance(accounts []*walletcore.Account) {
 	res := &utils.Response{
 		Columns: []string{
 			"Account",
@@ -54,7 +55,7 @@ func showDetailedBalance(accounts []*core.Account) {
 	utils.PrintResult(utils.StdoutTabWriter, res)
 }
 
-func showBalanceSummary(accounts []*core.Account) {
+func showBalanceSummary(accounts []*walletcore.Account) {
 	summarizeBalance := func(total, spendable dcrutil.Amount) string {
 		if total == spendable {
 			return total.String()

@@ -1,18 +1,23 @@
-package core
+package walletcore
 
 import "github.com/decred/dcrd/dcrutil"
 
-type BlockChainSyncListener struct {
-	SyncStarted         func()
-	SyncEnded           func(err error)
-	OnHeadersFetched    func(percentageProgress int64)
-	OnDiscoveredAddress func(state string)
-	OnRescanningBlocks  func(percentageProgress int64)
-}
+const (
+	// TransactionDirectionSent for transactions sent to external address(es) from wallet
+	TransactionDirectionSent TransactionDirection = iota
+
+	// TransactionDirectionReceived for transactions received from external address(es) into wallet
+	TransactionDirectionReceived
+
+	// TransactionDirectionTransferred for transactions sent from wallet to internal address(es)
+	TransactionDirectionTransferred
+)
+
+type TransactionDirection int8
 
 type Balance struct {
-	Total         dcrutil.Amount `json:"total"`
-	Spendable     dcrutil.Amount `json:"spendable"`
+	Total           dcrutil.Amount `json:"total"`
+	Spendable       dcrutil.Amount `json:"spendable"`
 	LockedByTickets dcrutil.Amount `json:"locked_by_tickets"`
 	VotingAuthority dcrutil.Amount `json:"voting_authority"`
 	Unconfirmed     dcrutil.Amount `json:"unconfirmed"`

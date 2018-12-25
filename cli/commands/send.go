@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli/utils"
+	"github.com/raedahgroup/dcrcli/cli/commands/utils"
 )
 
 // SendCommand lets the user send DCR.

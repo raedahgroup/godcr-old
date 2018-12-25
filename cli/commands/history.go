@@ -1,6 +1,6 @@
 package commands
 
-import "github.com/raedahgroup/dcrcli/cli/utils"
+import "github.com/raedahgroup/dcrcli/cli/commands/utils"
 
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct{}

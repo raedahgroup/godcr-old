@@ -2,27 +2,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli"
 	"os"
 
-	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/cli/commands"
-	"github.com/raedahgroup/dcrcli/config"
-	"github.com/raedahgroup/dcrcli/core"
-	"github.com/raedahgroup/dcrcli/core/middlewares/dcrwalletrpc"
-	"github.com/raedahgroup/dcrcli/core/middlewares/mobilewalletlib"
+	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/dcrcli/app/config"
+	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrwalletrpc"
+	"github.com/raedahgroup/dcrcli/app/walletmediums/mobilewalletlib"
+	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/web"
 )
 
 func main() {
-	appConfig := config.Default()
-
-	// create parser to parse flags/options from config and commands
-	parser := flags.NewParser(&commands.CliCommands{Config: appConfig}, flags.HelpFlag)
-
-	// continueExecution will be false if an error is encountered while parsing or if `-h` or `-v` is encountered
-	continueExecution := config.ParseConfig(appConfig, parser)
-	if !continueExecution {
+	appConfig := config.LoadConfig()
+	if appConfig == nil {
 		os.Exit(1)
 	}
 
@@ -35,11 +27,11 @@ func main() {
 	}
 }
 
-// makeWalletSource opens connection to a wallet via the selected source/medium
-// default is mobile wallet library, alternative is dcrwallet rpc
-func connectToWallet(config *config.Config) core.Wallet {
+// connectToWallet opens connection to a wallet via any of the available walletmiddleware
+// default walletmiddleware is mobilewallet library, alternative is dcrwallet rpc
+func connectToWallet(config *config.Config) app.WalletMiddleware {
 	var netType string
-	if config.TestNet {
+	if config.UseTestNet {
 		netType = "testnet"
 	} else {
 		netType = "mainnet"
@@ -49,12 +41,12 @@ func connectToWallet(config *config.Config) core.Wallet {
 		return mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
-	wallet, err := dcrwalletrpc.New(netType, config.WalletRPCServer, config.RPCCert, config.NoDaemonTLS)
+	walletMiddleware, err := dcrwalletrpc.New(netType, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
 		fmt.Println("Connect to dcrwallet rpc failed")
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	return wallet
+	return walletMiddleware
 }
