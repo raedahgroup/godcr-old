@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/decred/dcrwallet/netparams"
-	"github.com/raedahgroup/dcrcli/core"
+	"github.com/raedahgroup/dcrcli/app"
 	"github.com/raedahgroup/mobilewallet"
 )
 
@@ -17,7 +17,7 @@ const (
 type SpvSyncResponse struct {
 	activeNet *netparams.Params
 	walletLib *mobilewallet.LibWallet
-	listener  *core.BlockChainSyncListener
+	listener  *app.BlockChainSyncListener
 }
 
 // following functions are used to implement mobilewallet.SpvSyncResponse interface

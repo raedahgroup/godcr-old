@@ -1,23 +1,8 @@
-package core
+package walletcore
 
-// Wallet interface defines the key functions that are implemented
-// by the different mediums for connecting to a dcr wallet (the wallet middlewares)
-// Individual mediums may expose other functions but must implement these
+// Wallet defines key functions for performing operations on a decred wallet
+// These functions are implemented by the different mediums that provide access to a decred wallet
 type Wallet interface {
-	NetType() string
-
-	WalletExists() (bool, error)
-
-	GenerateNewWalletSeed() (string, error)
-
-	CreateWallet(passphrase, seed string) error
-
-	SyncBlockChain(listener *BlockChainSyncListener) error
-
-	OpenWallet() error
-
-	IsWalletOpen() bool
-
 	// Balance returns account balance for the accountNumbers passed in
 	// or for all accounts if no account number is passed in
 	AccountBalance(accountNumber uint32) (*Balance, error)

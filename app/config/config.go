@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
@@ -22,7 +21,7 @@ var (
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
-// Config holds the top-level options for the CLI program.
+// Config holds the top-level options for the application and cli-only command options/flags/args
 type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	AppDataDir        string `short:"A" long:"appdata" description:"Application data directory for wallet config, databases and logs"`
@@ -42,20 +41,13 @@ type Config struct {
 }
 
 // defaultConfig an instance of Config with the defaults set.
-func Default() *Config {
-	return &Config{
+func defaultConfig() Config {
+	return Config{
 		AppDataDir:        defaultAppDataDir,
 		ConfigFile:        defaultConfigFile,
-		RPCCert:           defaultRPCCertFile,
+		WalletRPCCert:     defaultRPCCertFile,
 		HTTPServerAddress: defaultHTTPServerAddress,
 	}
-}
-
-// AppName returns the name of the program binary file that started the process.
-func AppName() string {
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
-	return appName
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
@@ -91,12 +83,12 @@ func ParseConfig(config *Config, parser *flags.Parser) bool {
 	_, err := parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
 		handleParseError(err, parser)
-		return false
+		return nil
 	}
 
 	if config.ShowVersion {
-		displayAppVersion()
-		return false
+		fmt.Printf("%s version: %s\n", app.Name(), app.Version())
+		return nil
 	}
 
 	// Load additional config from file
@@ -130,36 +122,28 @@ func parseConfigFile(parser *flags.Parser, file string) error {
 	return nil
 		// error parsing from file
 		fmt.Printf("Error parsing configuration file: %s", err.Error())
-		return false
+		return nil
 	}
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
 		handleParseError(err, parser)
-		return false
+		return nil
 	}
 
-	return true
+	return &config
 }
 
 func handleParseError(err error, parser *flags.Parser) {
-	if err == nil {
-		return
-	}
-	if (parser.Options & flags.PrintErrors) != flags.None {
-		// error printing is already handled by go-flags.
-		return
-	}
 	if IsFlagErrorType(err, flags.ErrHelp) {
-		PrintHelp(parser)
+		printHelp(parser)
 	} else {
 		fmt.Println(err)
 	}
 }
 
-
-func PrintHelp(parser *flags.Parser) {
+func printHelp(parser *flags.Parser) {
 	if parser.Active == nil {
 		// Print help for the root command (general help with all the options and commands).
 		parser.WriteHelp(os.Stderr)
@@ -176,4 +160,3 @@ func printCommandHelp(appName string, command *flags.Command) {
 	helpParser.WriteHelp(os.Stderr)
 	fmt.Printf("To view application options, use '%s -h'\n", appName)
 }
-
