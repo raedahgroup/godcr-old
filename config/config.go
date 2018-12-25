@@ -28,6 +28,7 @@ var (
 type Config struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
+	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
 	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
@@ -57,9 +58,9 @@ func AppName() string {
 // LoadConfig parses program configuration from both the CLI flags and the config file.
 func LoadConfig() (*Config, *flags.Parser, error) {
 	// load defaults first
-	commands := defaultConfig()
+	config := defaultConfig()
 
-	parser := flags.NewParser(&commands, flags.HelpFlag)
+	parser := flags.NewParser(&config, flags.HelpFlag)
 
 	// stub out the command handler so that the commands are not run at while loading configuration.
 	parser.CommandHandler = func(command flags.Commander, args []string) error {
@@ -71,12 +72,12 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 		return nil, parser, err
 	}
 
-	if commands.ShowVersion {
+	if config.ShowVersion {
 		return nil, parser, fmt.Errorf(AppVersion())
 	}
 
 	// Load additional config from file
-	err = flags.NewIniParser(parser).ParseFile(commands.ConfigFile)
+	err = flags.NewIniParser(parser).ParseFile(config.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
 			return nil, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
@@ -90,5 +91,5 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 		return nil, parser, err
 	}
 
-	return &commands, parser, nil
+	return &config, parser, nil
 }

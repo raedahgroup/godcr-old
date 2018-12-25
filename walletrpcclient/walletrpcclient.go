@@ -5,11 +5,13 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"sort"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrwallet/netparams"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -21,9 +23,13 @@ type Client struct {
 	walletServiceClient pb.WalletServiceClient
 }
 
-func New(address, cert string, noTLS bool) (*Client, error) {
+func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
+	if rpcAddress == "" {
+		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
+	}
+
 	c := &Client{}
-	conn, err := c.connect(address, cert, noTLS)
+	conn, err := c.connect(rpcAddress, rpcCert, noTLS)
 	if err != nil {
 		return nil, err
 	}
@@ -34,17 +40,25 @@ func New(address, cert string, noTLS bool) (*Client, error) {
 	return c, nil
 }
 
-func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, error) {
+func defaultDcrWalletRPCAddress(isTestnet bool) string {
+	if isTestnet {
+		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
+	} else {
+		return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
+	}
+}
+
+func (c *Client) connect(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	var err error
 
 	if noTLS {
-		conn, err = grpc.Dial(address, grpc.WithInsecure())
+		conn, err = grpc.Dial(rpcAddress, grpc.WithInsecure())
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		creds, err := credentials.NewClientTLSFromFile(cert, "")
+		creds, err := credentials.NewClientTLSFromFile(rpcCert, "")
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +69,7 @@ func (c *Client) connect(address, cert string, noTLS bool) (*grpc.ClientConn, er
 			),
 		}
 
-		conn, err = grpc.Dial(address, opts...)
+		conn, err = grpc.Dial(rpcAddress, opts...)
 		if err != nil {
 			return nil, err
 		}
