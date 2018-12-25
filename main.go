@@ -20,7 +20,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS)
+	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error connecting to RPC server")
 		fmt.Fprintln(os.Stderr, err.Error())
