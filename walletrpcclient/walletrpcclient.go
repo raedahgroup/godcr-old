@@ -270,6 +270,9 @@ func (c *Client) SingleAccountBalance(accountNumber uint32, ctx context.Context)
 		AccountNumber:   accountNumber,
 		Total:           dcrutil.Amount(res.Total),
 		Spendable:       dcrutil.Amount(res.Spendable),
+		LockedByTickets: dcrutil.Amount(res.LockedByTickets),
+		VotingAuthority: dcrutil.Amount(res.VotingAuthority),
+		Unconfirmed:     dcrutil.Amount(res.Unconfirmed),
 	}, nil
 }
 
