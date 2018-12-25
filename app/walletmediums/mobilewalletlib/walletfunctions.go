@@ -62,7 +62,7 @@ func (lib *MobileWalletLib) NextAccount(accountName string, passphrase string) (
 }
 
 func (lib *MobileWalletLib) AccountNumber(accountName string) (uint32, error) {
-	return 0, fmt.Errorf("not yet implemented")
+	return lib.walletLib.AccountNumber(accountName)
 }
 
 func (lib *MobileWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
