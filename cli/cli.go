@@ -68,7 +68,7 @@ func commandName(command *flags.Command) string {
 func Run(walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
 	if appConfig.CreateWallet {
 		createWallet(walletMiddleware)
-		appConfig.SyncBlockchain = true // perform first blockchain sync after creating wallet
+		os.Exit(0)
 	}
 
 	// open wallet, subsequent operations including blockchain sync and command handlers need wallet to be open
