@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"text/tabwriter"
 )
@@ -39,4 +40,13 @@ func PrintResult(w *tabwriter.Writer, res *Response) {
 	}
 
 	w.Flush()
+}
+
+// PrintStringResult prints simple string message(s) to a fresh instance of stdOut tabWriter
+func PrintStringResult(output ...string) {
+	writer := tabWriter(os.Stdout)
+	for _, str := range output {
+		fmt.Fprintln(writer, str)
+	}
+	writer.Flush()
 }
