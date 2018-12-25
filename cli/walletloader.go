@@ -65,7 +65,10 @@ func createWallet(walletMiddleware app.WalletMiddleware) {
 		printErrorAndExit("Error creating wallet", err)
 	}
 
-	fmt.Println("Your wallet has been created successfully.")
+	fmt.Println("Your wallet has been created successfully")
+
+	// perform first blockchain sync after creating wallet
+	syncBlockChain(walletMiddleware)
 }
 
 // openWallet is called whenever an action to be executed requires wallet to be loaded
@@ -79,7 +82,7 @@ func openWallet(walletMiddleware app.WalletMiddleware) {
 
 	if !walletExists {
 		netType := strings.Title(walletMiddleware.NetType())
-		errMsg := fmt.Sprintf("%s wallet does not exist. Use '%s create' to create a wallet", netType, app.Name())
+		errMsg := fmt.Sprintf("%s wallet does not exist. Create it using '%s --createwallet'", netType, app.Name())
 		printErrorAndExit(errMsg, nil)
 	}
 
