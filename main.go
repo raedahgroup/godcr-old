@@ -74,16 +74,23 @@ func handleParseError(err error, parser *flags.Parser) {
 		// error printing is already handled by go-flags.
 		return
 	}
-	if config.IsFlagErrorType(err, flags.ErrHelp) {
-		if parser.Active == nil {
-			parser.WriteHelp(os.Stderr)
-		} else {
-			helpParser := flags.NewParser(nil, flags.HelpFlag)
-			helpParser.Name = parser.Name
-			helpParser.Active = parser.Active
-			helpParser.WriteHelp(os.Stderr)
-		}
-	} else {
+	if !config.IsFlagErrorType(err, flags.ErrHelp) {
 		fmt.Println(err)
+		return
 	}
+	if parser.Active == nil {
+		// Print help for the root command (general help with all the options and commands).
+		parser.WriteHelp(os.Stderr)
+	} else {
+		// Print a concise command-specific help.
+		printCommandHelp(parser.Name, parser.Active)
+	}
+}
+
+func printCommandHelp(appName string, command *flags.Command) {
+	helpParser := flags.NewParser(nil, flags.HelpFlag)
+	helpParser.Name = appName
+	helpParser.Active = command
+	helpParser.WriteHelp(os.Stderr)
+	fmt.Printf("To view application options, use '%s -h'\n", appName)
 }
