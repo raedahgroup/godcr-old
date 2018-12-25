@@ -18,7 +18,7 @@ type Server struct {
 	templates map[string]*template.Template
 }
 
-func StartHttpServer(address string, wallet core.Wallet) {
+func StartHttpServer(wallet core.Wallet, address string) {
 	server := &Server{
 		wallet:    wallet,
 		templates: map[string]*template.Template{},

@@ -151,7 +151,7 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 func (s *Server) GetHistory(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	txns, err := s.walletClient.GetTransactions()
+	txns, err := s.wallet.TransactionHistory()
 	if err != nil {
 		data["error"] = err
 	} else {

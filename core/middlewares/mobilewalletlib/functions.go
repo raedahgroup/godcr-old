@@ -172,6 +172,6 @@ func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, 
 	return "", fmt.Errorf("not yet implemented")
 }
 
-func (lib *MobileWalletLib) TransactionHistory() ([]*Transaction, error) {
+func (lib *MobileWalletLib) TransactionHistory() ([]*core.Transaction, error) {
 	return nil, fmt.Errorf("not yet implemented")
 }

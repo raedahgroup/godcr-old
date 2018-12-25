@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"txExplorerLink": func(tx walletrpcclient.Transaction) string {
+		"txExplorerLink": func(tx core.Transaction) string {
 			if tx.Testnet {
 				return fmt.Sprintf("https://testnet.dcrdata.org/tx/%s", tx.Hash)
 			} else {
