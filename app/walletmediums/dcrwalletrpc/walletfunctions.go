@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+<<<<<<< HEAD:core/middlewares/dcrwalletrpc/functions.go
 	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrcli/core"
+=======
+>>>>>>> rebase master, fix conflicts, refactor project code:app/walletmediums/dcrwalletrpc/walletfunctions.go
 	"io"
 	"sort"
 
@@ -14,47 +17,11 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrcli/app/walletcore"
 	"github.com/raedahgroup/mobilewallet/tx"
 )
 
-func (c *WalletPRCClient) NetType() string {
-	return c.netType
-}
-
-func (c *WalletPRCClient) WalletExists() (bool, error) {
-	// for now, assume that a wallet has been created since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do confirm
-	return true, nil
-}
-
-func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
-	return "", fmt.Errorf("not yet implemented")
-}
-
-func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
-	// since we're connecting through dcrwallet daemon, assume that the wallet's already been created
-	// calling create again should return an error
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
-	return fmt.Errorf("wallet should already be created by dcrwallet daemon")
-}
-
-func (c *WalletPRCClient) OpenWallet() error {
-	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
-	return nil
-}
-
-func (c *WalletPRCClient) IsWalletOpen() bool {
-	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
-	return true
-}
-
-func (c *WalletPRCClient) SyncBlockChain(listener *core.BlockChainSyncListener) error {
-	return fmt.Errorf("not yet implemented")
-}
-
-func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*core.Balance, error) {
+func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: 0,
@@ -65,7 +32,7 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*core.Balance, e
 		return nil, fmt.Errorf("error fetching balance for account: %d \n:%s", accountNumber, err.Error())
 	}
 
-	return &core.Balance{
+	return &walletcore.Balance{
 		Total:           dcrutil.Amount(res.Total),
 		Spendable:       dcrutil.Amount(res.Spendable),
 		LockedByTickets: dcrutil.Amount(res.LockedByTickets),
@@ -74,13 +41,13 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*core.Balance, e
 	}, nil
 }
 
-func (c *WalletPRCClient) AccountsOverview() ([]*core.Account, error) {
+func (c *WalletPRCClient) AccountsOverview() ([]*walletcore.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	accountsOverview := make([]*core.Account, 0, len(accounts.Accounts))
+	accountsOverview := make([]*walletcore.Account, 0, len(accounts.Accounts))
 
 	for _, acc := range accounts.Accounts {
 		balance, err := c.AccountBalance(acc.AccountNumber)
@@ -93,7 +60,7 @@ func (c *WalletPRCClient) AccountsOverview() ([]*core.Account, error) {
 			continue
 		}
 
-		account := &core.Account{
+		account := &walletcore.Account{
 			Name:    acc.AccountName,
 			Number:  acc.AccountNumber,
 			Balance: balance,
@@ -159,13 +126,13 @@ func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
 	return validationResult.IsValid, nil
 }
 
-func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*core.UnspentOutput, error) {
+func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	unspentOutputs := []*core.UnspentOutput{}
+	var unspentOutputs []*walletcore.UnspentOutput
 
 	for {
 		utxo, err := utxoStream.Recv()
@@ -182,7 +149,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
-		unspentOutput := &core.UnspentOutput{
+		unspentOutput := &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
@@ -293,7 +260,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletPRCClient) TransactionHistory() ([]*core.Transaction, error) {
+func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
 	req := &walletrpc.GetTransactionsRequest{}
 
 	stream, err := c.walletService.GetTransactions(context.Background(), req)
@@ -301,7 +268,7 @@ func (c *WalletPRCClient) TransactionHistory() ([]*core.Transaction, error) {
 		return nil, err
 	}
 
-	var transactions []*core.Transaction
+	var transactions []*walletcore.Transaction
 
 	for {
 		in, err := stream.Recv()
