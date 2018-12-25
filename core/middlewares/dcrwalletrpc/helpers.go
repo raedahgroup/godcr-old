@@ -3,13 +3,14 @@ package dcrwalletrpc
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/decred/dcrwallet/netparams"
 	"math"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 func amountToAtom(amountInDCR float64) (int64, error) {
@@ -65,8 +66,8 @@ func (c *WalletPRCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
-func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*walletsource.Transaction, error) {
-	transactions := make([]*walletsource.Transaction, 0, len(transactionDetails))
+func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*core.Transaction, error) {
+	transactions := make([]*core.Transaction, 0, len(transactionDetails))
 
 	for _, txDetail := range transactionDetails {
 		// use any of the addresses in inputs/outputs to determine if this is a testnet tx
@@ -88,7 +89,7 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 
 		amount, direction := transactionAmountAndDirection(txDetail)
 
-		tx := &walletsource.Transaction{
+		tx := &core.Transaction{
 			Hash:          hash.String(),
 			Amount:        dcrutil.Amount(amount).ToCoin(),
 			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
@@ -105,7 +106,7 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 	return transactions, nil
 }
 
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletsource.TransactionDirection) {
+func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, core.TransactionDirection) {
 	var outputAmounts int64
 	for _, credit := range txDetail.Credits {
 		outputAmounts += int64(credit.Amount)
@@ -117,24 +118,24 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	var amount int64
-	var direction walletsource.TransactionDirection
+	var direction core.TransactionDirection
 
 	if txDetail.TransactionType == walletrpc.TransactionDetails_REGULAR {
 		amountDifference := outputAmounts - inputAmounts
 		if amountDifference < 0 && (float64(txDetail.Fee) == math.Abs(float64(amountDifference))) {
-			// transfered internally, the only real amount spent was transaction fee
-			direction = walletsource.TransactionDirectionTransferred
+			// transferred internally, the only real amount spent was transaction fee
+			direction = core.TransactionDirectionTransferred
 			amount = int64(txDetail.Fee)
 		} else if amountDifference > 0 {
 			// received
-			direction = walletsource.TransactionDirectionReceived
+			direction = core.TransactionDirectionReceived
 
 			for _, credit := range txDetail.Credits {
 				amount += int64(credit.Amount)
 			}
 		} else {
 			// sent
-			direction = walletsource.TransactionDirectionSent
+			direction = core.TransactionDirectionSent
 
 			for _, debit := range txDetail.Debits {
 				amount += int64(debit.PreviousAmount)

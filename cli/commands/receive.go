@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
+	"github.com/raedahgroup/dcrcli/cli/utils"
 
-	"github.com/raedahgroup/dcrcli/cli"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -15,13 +15,13 @@ type ReceiveCommand struct {
 }
 
 // Execute runs the `receive` command.
-func (r ReceiveCommand) Execute(args []string) error {
+func (receiveCommand ReceiveCommand) Execute(args []string) error {
 	var accountNumber uint32
 	// if no account name was passed in
-	if r.Args.Account == "" {
+	if receiveCommand.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = cli.SelectAccount(cli.WalletSource)
+		accountNumber, err = utils.SelectAccount()
 		if err != nil {
 			return err
 		}
@@ -29,13 +29,13 @@ func (r ReceiveCommand) Execute(args []string) error {
 		// if an account name was passed in e.g. ./dcrcli receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = cli.WalletSource.AccountNumber(r.Args.Account)
+		accountNumber, err = utils.Wallet.AccountNumber(receiveCommand.Args.Account)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveAddress, err := cli.WalletSource.GenerateReceiveAddress(accountNumber)
+	receiveAddress, err := utils.Wallet.GenerateReceiveAddress(accountNumber)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (r ReceiveCommand) Execute(args []string) error {
 		return fmt.Errorf("Error generating QR Code: %s", err.Error())
 	}
 
-	res := &cli.Response{
+	res := &utils.Response{
 		Columns: []string{
 			"Address",
 			"QR Code",
@@ -57,6 +57,6 @@ func (r ReceiveCommand) Execute(args []string) error {
 			},
 		},
 	}
-	cli.PrintResult(cli.StdoutWriter, res)
+	utils.PrintResult(utils.StdoutTabWriter, res)
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 
 // MobileWalletClient implements `WalletSource` using `mobilewallet.LibWallet`
 // Method implementation of `WalletSource` interface are in functions.go
-// Other functions not related to `WalletSource` are in helpers.go
+// Other functions not related to `WalletSource` are in utils.go
 type MobileWalletLib struct {
 	walletLib *mobilewallet.LibWallet
 	activeNet *netparams.Params

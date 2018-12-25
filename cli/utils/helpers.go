@@ -1,4 +1,4 @@
-package cli
+package utils
 
 import (
 	"errors"
@@ -14,12 +14,12 @@ import (
 
 // SelectAccount lists accounts in wallet and prompts user to select an account, then returns the account number for that account.
 // If there is only one account available, it returns the account number for that account.
-func SelectAccount(wallet core.Wallet) (uint32, error) {
+func SelectAccount() (uint32, error) {
 	var selection int
 	var err error
 
 	// get send  accounts
-	accounts, err := wallet.AccountsOverview()
+	accounts, err := Wallet.AccountsOverview()
 	if err != nil {
 		return 0, err
 	}
@@ -58,9 +58,9 @@ func SelectAccount(wallet core.Wallet) (uint32, error) {
 }
 
 // GetSendDestinationAddress fetches the destination address to send DCRs to from the user.
-func GetSendDestinationAddress(wallet core.Wallet) (string, error) {
+func GetSendDestinationAddress() (string, error) {
 	validateAddressInput := func(address string) error {
-		isValid, err := wallet.ValidateAddress(address)
+		isValid, err := Wallet.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}

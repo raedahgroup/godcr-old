@@ -3,9 +3,8 @@ package commands
 import (
 	"fmt"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-	"github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/dcrcli/cli/utils"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 // BalanceCommand displays the user's account balance.
@@ -15,7 +14,7 @@ type BalanceCommand struct {
 
 // Execute runs the `balance` command, displaying the user's account balance.
 func (balanceCommand BalanceCommand) Execute(args []string) error {
-	accounts, err := cli.WalletSource.AccountsOverview()
+	accounts, err := utils.Wallet.AccountsOverview()
 	if err != nil {
 		return err
 	}
@@ -29,8 +28,8 @@ func (balanceCommand BalanceCommand) Execute(args []string) error {
 	return nil
 }
 
-func showDetailedBalance(accounts []*walletsource.Account) {
-	res := &cli.Response{
+func showDetailedBalance(accounts []*core.Account) {
+	res := &utils.Response{
 		Columns: []string{
 			"Account",
 			"Total",
@@ -52,10 +51,10 @@ func showDetailedBalance(accounts []*walletsource.Account) {
 		}
 	}
 
-	cli.PrintResult(cli.StdoutWriter, res)
+	utils.PrintResult(utils.StdoutTabWriter, res)
 }
 
-func showBalanceSummary(accounts []*walletsource.Account) {
+func showBalanceSummary(accounts []*core.Account) {
 	summarizeBalance := func(total, spendable dcrutil.Amount) string {
 		if total == spendable {
 			return total.String()
@@ -66,13 +65,13 @@ func showBalanceSummary(accounts []*walletsource.Account) {
 
 	if len(accounts) == 1 {
 		commandOutput := summarizeBalance(accounts[0].Balance.Total, accounts[0].Balance.Spendable)
-		cli.PrintStringResult(commandOutput)
+		utils.PrintStringResult(commandOutput)
 	} else {
 		commandOutput := make([]string, len(accounts))
 		for i, account := range accounts {
 			balanceText := summarizeBalance(account.Balance.Total, account.Balance.Spendable)
 			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, balanceText)
 		}
-		cli.PrintStringResult(commandOutput...)
+		utils.PrintStringResult(commandOutput...)
 	}
 }

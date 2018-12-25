@@ -11,7 +11,7 @@ import (
 
 // WalletPRCClient implements `WalletSource` using dcrwallet's `walletrpc.WalletServiceClient`
 // Method implementation of `WalletSource` interface are in functions.go
-// Other functions not related to `WalletSource` are in helpers.go
+// Other functions not related to `WalletSource` are in utils.go
 type WalletPRCClient struct {
 	walletService pb.WalletServiceClient
 	netType       string

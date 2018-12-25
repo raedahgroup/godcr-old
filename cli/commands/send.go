@@ -2,8 +2,7 @@ package commands
 
 import (
 	"fmt"
-
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/dcrcli/cli/utils"
 )
 
 // SendCommand lets the user send DCR.
@@ -15,7 +14,7 @@ func (s SendCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	cli.PrintResult(cli.StdoutWriter, res)
+	utils.PrintResult(utils.StdoutTabWriter, res)
 	return nil
 }
 
@@ -28,21 +27,21 @@ func (s SendCustomCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	cli.PrintResult(cli.StdoutWriter, res)
+	utils.PrintResult(utils.StdoutTabWriter, res)
 	return nil
 }
 
-func send(custom bool) (*cli.Response, error) {
+func send(custom bool) (*utils.Response, error) {
 	var err error
 
-	sourceAccount, err := cli.SelectAccount(cli.WalletSource)
+	sourceAccount, err := utils.SelectAccount()
 	if err != nil {
 		return nil, err
 	}
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := cli.WalletSource.AccountBalance(sourceAccount)
+	accountBalance, err := utils.Wallet.AccountBalance(sourceAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +49,12 @@ func send(custom bool) (*cli.Response, error) {
 		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := cli.GetSendDestinationAddress(cli.WalletSource)
+	destinationAddress, err := utils.GetSendDestinationAddress()
 	if err != nil {
 		return nil, err
 	}
 
-	sendAmount, err := cli.GetSendAmount()
+	sendAmount, err := utils.GetSendAmount()
 	if err != nil {
 		return nil, err
 	}
@@ -63,34 +62,34 @@ func send(custom bool) (*cli.Response, error) {
 	var utxoSelection []string
 	if custom {
 		// get all utxos in account, pass 0 amount to get all
-		utxos, err := cli.WalletSource.UnspentOutputs(sourceAccount, 0)
+		utxos, err := utils.Wallet.UnspentOutputs(sourceAccount, 0)
 		if err != nil {
 			return nil, err
 		}
 
-		utxoSelection, err = cli.GetUtxosForNewTransaction(utxos, sendAmount)
+		utxoSelection, err = utils.GetUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	passphrase, err := cli.GetWalletPassphrase()
+	passphrase, err := utils.GetWalletPassphrase()
 	if err != nil {
 		return nil, err
 	}
 
 	var sentTransactionHash string
 	if custom {
-		sentTransactionHash, err = cli.WalletSource.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = utils.Wallet.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
 	} else {
-		sentTransactionHash, err = cli.WalletSource.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = utils.Wallet.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	res := &cli.Response{
+	res := &utils.Response{
 		Columns: []string{
 			"Result",
 			"Hash",
