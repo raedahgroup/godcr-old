@@ -25,9 +25,6 @@ func StartHttpServer(wallet core.Wallet, address string) {
 	}
 	router := chi.NewRouter()
 
-	// ensure wallet is loaded before executing following handlers
-	router.Use(server.makeWalletLoaderMiddleware())
-
 	// setup static file serving
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "web/public")
@@ -35,7 +32,8 @@ func StartHttpServer(wallet core.Wallet, address string) {
 
 	// setup templated pages
 	server.loadTemplates()
-	server.registerHandlers(router)
+	// create route group for page handlers
+	router.Group(server.registerHandlers)
 
 	fmt.Printf("starting http server on %s\n", address)
 	err := http.ListenAndServe(address, router)
@@ -44,6 +42,8 @@ func StartHttpServer(wallet core.Wallet, address string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+
+	// todo begin blockchain sync, after which subscribe to receive block updates while the server is running
 }
 
 func makeStaticFileServer(r chi.Router, path string, root http.FileSystem) {
@@ -87,7 +87,10 @@ func (s *Server) loadTemplates() {
 	}
 }
 
-func (s *Server) registerHandlers(r *chi.Mux) {
+func (s *Server) registerHandlers(r chi.Router) {
+	// ensure wallet is loaded before executing handlers for following routes
+	r.Use(s.makeWalletLoaderMiddleware())
+
 	r.Get("/", s.GetBalance)
 	r.Get("/send", s.GetSend)
 	r.Post("/send", s.PostSend)
