@@ -2,8 +2,8 @@ package main
 
 import 	(
 	"fmt"
+	"github.com/raedahgroup/dcrcli/cli"
 	"os"
-	"sort"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -16,7 +16,7 @@ import 	(
 	"github.com/raedahgroup/godcr/web"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/dcrcli/cli/commands"
 	"github.com/raedahgroup/dcrcli/config"
 	"github.com/raedahgroup/dcrcli/core"
 	"github.com/raedahgroup/dcrcli/core/middlewares/dcrwalletrpc"
@@ -28,6 +28,14 @@ func main() {
 	args, appConfig, parser, err := config.LoadConfig(true)
 	if err != nil {
 		handleParseError(err, parser)
+	appConfig := config.Default()
+
+	// create parser to parse flags/options from config and commands
+	parser := flags.NewParser(&commands.CliCommands{Config: appConfig}, flags.HelpFlag)
+
+	// continueExecution will be false if an error is encountered while parsing or if `-h` or `-v` is encountered
+	continueExecution := config.ParseConfig(appConfig, parser)
+	if !continueExecution {
 		os.Exit(1)
 	}
 
@@ -41,8 +49,9 @@ func main() {
 		enterHttpMode(appConfig.HTTPServerAddress, wallet)
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
+		web.StartHttpServer(wallet, appConfig.HTTPServerAddress)
 	} else {
-		enterCliMode(appConfig, wallet)
+		cli.Run(wallet, appConfig)
 	}
 }
 

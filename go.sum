@@ -46,8 +46,6 @@ github.com/decred/dcrd/certgen v1.0.1/go.mod h1:NxEyGwzPHak+h3tNLYAXU4vWuL98HrY9
 github.com/decred/dcrd/chaincfg v1.0.1/go.mod h1:O+443mQNPjci+WqWkKta3v2MgJn2u20YWy5mW3c2T7M=
 github.com/decred/dcrd/chaincfg v1.1.1 h1:qRZkiA7ucsfsQPE/G/U1OnEUFozDl1MvM4ysJCUndLU=
 github.com/decred/dcrd/chaincfg v1.1.1/go.mod h1:UlGtnp8Xx9YK+etBTybGjoFGoGXSw2bxZQuAnwfKv6I=
-github.com/decred/dcrd/chaincfg v1.2.0 h1:Vj0xr85wmqOdQDxKLkpP9TqwK1RykqY2eC0fWcCsl0k=
-github.com/decred/dcrd/chaincfg v1.2.0/go.mod h1:kpoGTMIriKn5hHRSu5b65+Q9LlGUdbQcMzGujac1BVs=
 github.com/decred/dcrd/chaincfg/chainhash v1.0.1 h1:0vG7U9+dSjSCaHQKdoSKURK2pOb47+b+8FK5q4+Je7M=
 github.com/decred/dcrd/chaincfg/chainhash v1.0.1/go.mod h1:OVfvaOsNLS/A1y4Eod0Ip/Lf8qga7VXCQjUQLbkY0Go=
 github.com/decred/dcrd/connmgr v1.0.1 h1:43QY9lVm6vFKUqLTVyYOUqhyaUoBjqj6evnyJJWA1Gk=
@@ -84,8 +82,6 @@ github.com/decred/dcrd/dcrec/edwards v0.0.0-20180809193022-9536f0c88fa8 h1:X6VrL
 github.com/decred/dcrd/dcrec/edwards v0.0.0-20180809193022-9536f0c88fa8/go.mod h1:+ehP0Hk/mesyZXttxCtBbhPX23BMpZJ1pcVBqUfbmvU=
 github.com/decred/dcrd/dcrec/edwards v0.0.0-20180816212643-20eda7ec9229 h1:P4lG1WayQHRBlNcTPbSwhijom93V8kDUZ8k9YmmCoHA=
 github.com/decred/dcrd/dcrec/edwards v0.0.0-20180816212643-20eda7ec9229/go.mod h1:+ehP0Hk/mesyZXttxCtBbhPX23BMpZJ1pcVBqUfbmvU=
-github.com/decred/dcrd/dcrec/edwards v0.0.0-20181208004914-a0816cf4301f h1:NF7vp3nZ4MsAiXswGmE//m83jCN0lDsQrLI7IwLCTlo=
-github.com/decred/dcrd/dcrec/edwards v0.0.0-20181208004914-a0816cf4301f/go.mod h1:+ehP0Hk/mesyZXttxCtBbhPX23BMpZJ1pcVBqUfbmvU=
 github.com/decred/dcrd/dcrec/secp256k1 v1.0.0 h1:Le54WTGdTQv7XYXpS31uhFE8LZE7ypwsIL+FgDP2x5Q=
 github.com/decred/dcrd/dcrec/secp256k1 v1.0.0/go.mod h1:JPMFscGlgXTV684jxQNDijae2qrh0fLG7pJBimaYotE=
 github.com/decred/dcrd/dcrec/secp256k1 v1.0.1 h1:EFWVd1p0t0Y5tnsm/dJujgV0ORogRJ6vo7CMAjLseAc=
@@ -107,7 +103,6 @@ github.com/decred/dcrd/hdkeychain v1.1.0 h1:6bFdL672dCmtg/JEzb3Jw0dTRO2jLxcA7BK2
 github.com/decred/dcrd/hdkeychain v1.1.0/go.mod h1:zyUZtZ3PdnTPHt2XUr1x76b8ZuiM+9aVkP8Rq8Scp1k=
 github.com/decred/dcrd/hdkeychain v1.1.1 h1:6+BwOmPfEyw/Krm+91RXysc76F1jqCta3m45DyD5+s4=
 github.com/decred/dcrd/hdkeychain v1.1.1/go.mod h1:CLBVXLoO63fIiqkv38KR23zXGSgrfiAWOybOKTneLhA=
-github.com/decred/dcrd/mempool v1.0.1 h1:xZOfwGmVbWfKDNztVgsVO/GkMmiZn3MMfDDVE07ZKKs=
 github.com/decred/dcrd/mempool v1.0.1/go.mod h1:r+/DGiiluXi1EyMCCPPH58Qu+rsr8nZv0DialAG5VZQ=
 github.com/decred/dcrd/mempool v1.1.1 h1:ysFIS3HzEIJ88B1Y4OfL6wjzBurlChbKkzq54hPglGo=
 github.com/decred/dcrd/mempool v1.1.1/go.mod h1:u1I2KRv9UHhx2crlbZXYoLDabWyQ8VnnHDSG53UdhCA=
@@ -139,9 +134,12 @@ github.com/decred/dcrwallet/chain v1.0.0/go.mod h1:KpZFaKlKajfUZt36+RmBn2HKwTbwo
 github.com/decred/dcrd/wire v1.2.0 h1:HqJVB7vcklIguzFWgRXw/WYCQ9cD3bUC5TKj53i1Hng=
 github.com/decred/dcrd/wire v1.2.0/go.mod h1:/JKOsLInOJu6InN+/zH5AyCq3YDIOW/EqcffvU8fJHM=
 github.com/decred/dcrwallet v1.2.2 h1:NdI13wxP+OsWKXPqjWQQ9VSGAl4VoSLBfAunzFreeJg=
+github.com/decred/dcrwallet v1.2.2 h1:NdI13wxP+OsWKXPqjWQQ9VSGAl4VoSLBfAunzFreeJg=
+github.com/decred/dcrwallet v1.2.2/go.mod h1:BrSus0F+Rx8UhvPNBfuRMIjRJBNrW2sLspN9iQR5hm8=
 github.com/decred/dcrwallet v1.2.2/go.mod h1:BrSus0F+Rx8UhvPNBfuRMIjRJBNrW2sLspN9iQR5hm8=
 github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7 h1:U4n2p1WgKikOrO7EdtTt6/jieTHtFIAIPmLXmxHnoWI=
 github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7/go.mod h1:BrSus0F+Rx8UhvPNBfuRMIjRJBNrW2sLspN9iQR5hm8=
+github.com/decred/dcrwallet/chain v1.0.0/go.mod h1:KpZFaKlKajfUZt36+RmBn2HKwTbwoa3yt9HPALqlShI=
 github.com/decred/dcrwallet/chain v1.0.0/go.mod h1:KpZFaKlKajfUZt36+RmBn2HKwTbwoa3yt9HPALqlShI=
 github.com/decred/dcrwallet/chain v1.0.1-0.20181109211527-ca582da21c08 h1:f5icB7i9mNKK2/CVmznOpUG6msbR2h2aTAQzZIGexj4=
 github.com/decred/dcrwallet/chain v1.0.1-0.20181109211527-ca582da21c08/go.mod h1:YWbBkaP8TRIVowXBCT6Xpv9ERG93mBulSYOYuOY2VqU=
@@ -300,6 +298,8 @@ gopkg.in/fsnotify.v1 v1.4.7 h1:xOHLXZwVvI9hhs+cLKq5+I5onOuwQLhQwiu63xxlHs4=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
+gopkg.in/urfave/cli.v1 v1.20.0 h1:NdAVW6RYxDif9DhDHaAortIu956m2c0v+09AZBPTbE0=
+gopkg.in/urfave/cli.v1 v1.20.0/go.mod h1:vuBzUtMdQeixQj8LVd+/98pzhxNGQoyuPBlsXHOQNO0=
 gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=

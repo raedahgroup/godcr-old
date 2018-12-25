@@ -42,8 +42,8 @@ type Config struct {
 }
 
 // defaultConfig an instance of Config with the defaults set.
-func defaultConfig() Config {
-	return Config{
+func Default() *Config {
+	return &Config{
 		AppDataDir:        defaultAppDataDir,
 		ConfigFile:        defaultConfigFile,
 		RPCCert:           defaultRPCCertFile,
@@ -79,6 +79,24 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 
 	if config.ShowVersion {
 		return args, config, parser, fmt.Errorf(AppVersion())
+
+// ParseConfig parses program configuration from both the CLI command flags and the config file.
+// Returns false if an error occurs or version flag was specified
+func ParseConfig(config *Config, parser *flags.Parser) bool {
+	// stub out the command handler so that the commands are not executed while loading configuration
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		return nil
+	}
+
+	_, err := parser.Parse()
+	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
+		handleParseError(err, parser)
+		return false
+	}
+
+	if config.ShowVersion {
+		displayAppVersion()
+		return false
 	}
 
 	// Load additional config from file
@@ -110,4 +128,52 @@ func parseConfigFile(parser *flags.Parser, file string) error {
 		return err
 	}
 	return nil
+		// error parsing from file
+		fmt.Printf("Error parsing configuration file: %s", err.Error())
+		return false
+	}
+
+	// Parse command line options again to ensure they take precedence.
+	_, err = parser.Parse()
+	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
+		handleParseError(err, parser)
+		return false
+	}
+
+	return true
 }
+
+func handleParseError(err error, parser *flags.Parser) {
+	if err == nil {
+		return
+	}
+	if (parser.Options & flags.PrintErrors) != flags.None {
+		// error printing is already handled by go-flags.
+		return
+	}
+	if IsFlagErrorType(err, flags.ErrHelp) {
+		PrintHelp(parser)
+	} else {
+		fmt.Println(err)
+	}
+}
+
+
+func PrintHelp(parser *flags.Parser) {
+	if parser.Active == nil {
+		// Print help for the root command (general help with all the options and commands).
+		parser.WriteHelp(os.Stderr)
+	} else {
+		// Print a concise command-specific help.
+		printCommandHelp(parser.Name, parser.Active)
+	}
+}
+
+func printCommandHelp(appName string, command *flags.Command) {
+	helpParser := flags.NewParser(nil, flags.HelpFlag)
+	helpParser.Name = appName
+	helpParser.Active = command
+	helpParser.WriteHelp(os.Stderr)
+	fmt.Printf("To view application options, use '%s -h'\n", appName)
+}
+

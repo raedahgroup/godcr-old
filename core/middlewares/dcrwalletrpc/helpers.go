@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+<<<<<<< HEAD
+=======
+	"github.com/decred/dcrwallet/netparams"
+>>>>>>> little refactor
 	"math"
 	"time"
 
@@ -14,7 +18,11 @@ import (
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+<<<<<<< HEAD
 	"github.com/raedahgroup/dcrcli/walletsource"
+=======
+	"github.com/raedahgroup/dcrcli/core"
+>>>>>>> little refactor
 )
 
 func amountToAtom(amountInDCR float64) (int64, error) {
@@ -70,8 +78,8 @@ func (c *WalletPRCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
-func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*walletsource.Transaction, error) {
-	transactions := make([]*walletsource.Transaction, 0, len(transactionDetails))
+func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*core.Transaction, error) {
+	transactions := make([]*core.Transaction, 0, len(transactionDetails))
 
 	for _, txDetail := range transactionDetails {
 		// use any of the addresses in inputs/outputs to determine if this is a testnet tx
@@ -90,12 +98,29 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 			return nil, err
 		}
 
+<<<<<<< HEAD
+=======
+		amount, direction := transactionAmountAndDirection(txDetail)
+
+		tx := &core.Transaction{
+			Hash:          hash.String(),
+			Amount:        dcrutil.Amount(amount).ToCoin(),
+			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
+			Type:          txDetail.TransactionType.String(),
+			Direction:     direction,
+			Testnet:       isTestnet,
+			Timestamp:     txDetail.Timestamp,
+			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		}
+
+>>>>>>> little refactor
 		transactions = append(transactions, tx)
 	}
 
 	return transactions, nil
 }
 
+<<<<<<< HEAD
 func processTransaction(txDetail *walletrpc.TransactionDetails, isTestnet bool) (*walletsource.Transaction, error) {
 	hash, err := chainhash.NewHash(txDetail.Hash)
 	if err != nil {
@@ -126,6 +151,9 @@ func addressIsForNet(address string, net *chaincfg.Params) (bool, error) {
 }
 
 func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletsource.TransactionDirection) {
+=======
+func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, core.TransactionDirection) {
+>>>>>>> little refactor
 	var outputAmounts int64
 	for _, credit := range txDetail.Credits {
 		outputAmounts += int64(credit.Amount)
@@ -137,24 +165,24 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	var amount int64
-	var direction walletsource.TransactionDirection
+	var direction core.TransactionDirection
 
 	if txDetail.TransactionType == walletrpc.TransactionDetails_REGULAR {
 		amountDifference := outputAmounts - inputAmounts
 		if amountDifference < 0 && (float64(txDetail.Fee) == math.Abs(float64(amountDifference))) {
-			// transfered internally, the only real amount spent was transaction fee
-			direction = walletsource.TransactionDirectionTransferred
+			// transferred internally, the only real amount spent was transaction fee
+			direction = core.TransactionDirectionTransferred
 			amount = int64(txDetail.Fee)
 		} else if amountDifference > 0 {
 			// received
-			direction = walletsource.TransactionDirectionReceived
+			direction = core.TransactionDirectionReceived
 
 			for _, credit := range txDetail.Credits {
 				amount += int64(credit.Amount)
 			}
 		} else {
 			// sent
-			direction = walletsource.TransactionDirectionSent
+			direction = core.TransactionDirectionSent
 
 			for _, debit := range txDetail.Debits {
 				amount += int64(debit.PreviousAmount)

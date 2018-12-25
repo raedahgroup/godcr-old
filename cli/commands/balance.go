@@ -7,6 +7,9 @@ import (
 	"github.com/raedahgroup/dcrcli/walletsource"
 	"github.com/raedahgroup/godcr/cli/termio"
 	ws "github.com/raedahgroup/godcr/walletsource"
+
+	"github.com/raedahgroup/dcrcli/cli/utils"
+	"github.com/raedahgroup/dcrcli/core"
 )
 
 // BalanceCommand displays the user's account balance.
@@ -55,7 +58,7 @@ func showDetailedBalance(accountBalances []*walletsource.Account) {
 	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 }
 
-func showBalanceSummary(accounts []*walletsource.Account) {
+func showBalanceSummary(accounts []*core.Account) {
 	summarizeBalance := func(total, spendable dcrutil.Amount) string {
 		if total == spendable {
 			return total.String()

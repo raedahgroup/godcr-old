@@ -36,6 +36,6 @@ func (v *version) String() string {
 }
 
 // AppVersion provides the version string for the program.
-func AppVersion() string {
-	return fmt.Sprintf("%s version: %s", AppName(), ver.String())
+func displayAppVersion() {
+	fmt.Printf("%s version: %s\n", AppName(), ver.String())
 }
