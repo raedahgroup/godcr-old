@@ -8,7 +8,6 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/cli/commands"
 	"github.com/raedahgroup/dcrcli/config"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	"github.com/raedahgroup/dcrcli/web"
@@ -31,7 +30,7 @@ func main() {
 	if appConfig.HTTPMode {
 		enterHTTPMode(appConfig.HTTPServerAddress, client)
 	} else {
-		enterCliMode(client)
+		enterCliMode(appConfig, client)
 	}
 }
 
@@ -40,20 +39,21 @@ func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 	web.StartHttpServer(serverAddress, client)
 }
 
-func enterCliMode(client *walletrpcclient.Client) {
+func enterCliMode(appConfig *config.Config, client *walletrpcclient.Client) {
 	// Set the walletrpcclient.Client object that will be used by the command handlers
 	cli.WalletClient = client
 
-	parser := flags.NewParser(&commands.CliCommands{}, flags.HelpFlag|flags.PassDoubleDash)
-	_, err := parser.Parse()
-	if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
-		// No command was specified, print the available commands.
-		availableCommands := supportedCommands(parser)
-		fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
-	} else {
-		handleParseError(err, parser)
+	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
+	if _, err := parser.Parse(); err != nil {
+		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+			// No command was specified, print the available commands.
+			availableCommands := supportedCommands(parser)
+			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
+		} else {
+			handleParseError(err, parser)
+		}
+		os.Exit(1)
 	}
-	os.Exit(1)
 }
 
 func supportedCommands(parser *flags.Parser) []string {
@@ -76,9 +76,7 @@ func handleParseError(err error, parser *flags.Parser) {
 	}
 	if !config.IsFlagErrorType(err, flags.ErrHelp) {
 		fmt.Println(err)
-		return
-	}
-	if parser.Active == nil {
+	} else if parser.Active == nil {
 		// Print help for the root command (general help with all the options and commands).
 		parser.WriteHelp(os.Stderr)
 	} else {
