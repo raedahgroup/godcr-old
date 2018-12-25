@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/raedahgroup/dcrcli/cli/commands"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/jessevdk/go-flags"
 )
@@ -33,6 +35,7 @@ type Config struct {
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
+	commands.CliCommands
 }
 
 // defaultConfig an instance of Config with the defaults set.
@@ -58,8 +61,13 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 
 	parser := flags.NewParser(&commands, flags.HelpFlag)
 
+	// stub out the command handler so that the commands are not run at while loading configuration.
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		return nil
+	}
+
 	_, err := parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
 		return nil, parser, err
 	}
 
@@ -78,7 +86,7 @@ func LoadConfig() (*Config, *flags.Parser, error) {
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
 		return nil, parser, err
 	}
 
