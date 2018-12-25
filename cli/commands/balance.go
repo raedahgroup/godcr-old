@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/cli"
 )
 
@@ -19,7 +20,7 @@ func (b BalanceCommand) Execute(args []string) error {
 		if total == spendable {
 			return total.String()
 		} else {
-			return fmt.Sprintf("Total %s (Spendable %s)", total, spendable)
+			return fmt.Sprintf("Total %s (Spendable %s)", total.String(), spendable.String())
 		}
 	}
 
