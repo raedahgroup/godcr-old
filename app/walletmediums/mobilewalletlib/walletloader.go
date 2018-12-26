@@ -40,6 +40,10 @@ func (lib *MobileWalletLib) OpenWallet() error {
 	return lib.walletLib.OpenWallet([]byte("public"))
 }
 
+func (lib *MobileWalletLib) CloseWallet() {
+	lib.walletLib.Shutdown()
+}
+
 func (lib *MobileWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }

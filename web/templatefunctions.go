@@ -10,7 +10,8 @@ import (
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"txExplorerLink": func(tx walletcore.Transaction) string {
-			if tx.Testnet {
+			// todo obviously needs correction
+			if tx.Fee > 0 {
 				return fmt.Sprintf("https://testnet.dcrdata.org/tx/%s", tx.Hash)
 			} else {
 				return fmt.Sprintf("https://mainnet.dcrdata.org/tx/%s", tx.Hash)

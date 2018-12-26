@@ -2,6 +2,8 @@ package mobilewalletlib
 
 import (
 	"fmt"
+	"sort"
+	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -58,7 +60,7 @@ func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 }
 
 func (lib *MobileWalletLib) NextAccount(accountName string, passphrase string) (uint32, error) {
-	return 0, fmt.Errorf("not yet implemented")
+	return lib.walletLib.NextAccountRaw(accountName, []byte(passphrase))
 }
 
 func (lib *MobileWalletLib) AccountNumber(accountName string) (uint32, error) {
@@ -89,7 +91,7 @@ func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount u
 		int32(sourceAccount), 0, false)
 
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	transactionHash, err := chainhash.NewHash(txHash)
@@ -105,5 +107,36 @@ func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, 
 }
 
 func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {
-	return nil, fmt.Errorf("not yet implemented")
+	txs, err := lib.walletLib.GetTransactionsRaw()
+	if err != nil {
+		return nil, err
+	}
+
+	txDirection := func(direction int32) walletcore.TransactionDirection {
+		if direction < int32(walletcore.TransactionDirectionUnclear) {
+			return walletcore.TransactionDirection(direction)
+		} else {
+			return walletcore.TransactionDirectionUnclear
+		}
+	}
+
+	transactions := make([]*walletcore.Transaction, len(txs))
+	for i, tx := range txs {
+		transactions[i] = &walletcore.Transaction{
+			Hash:          tx.Hash,
+			Amount:        dcrutil.Amount(tx.Amount).ToCoin(),
+			Fee:           dcrutil.Amount(tx.Fee).ToCoin(),
+			Type:          tx.Type,
+			Direction:     txDirection(tx.Direction),
+			Timestamp:     tx.Timestamp,
+			FormattedTime: time.Unix(tx.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		}
+	}
+
+	// sort transactions by date (list newer first)
+	sort.SliceStable(transactions, func(i1, i2 int) bool {
+		return transactions[i1].Timestamp > transactions[i2].Timestamp
+	})
+
+	return transactions, nil
 }

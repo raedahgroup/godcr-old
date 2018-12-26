@@ -5,7 +5,7 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/app/walletcore"
-	"github.com/raedahgroup/dcrcli/cli/commands/utils"
+	"github.com/raedahgroup/dcrcli/cli/utils"
 )
 
 // BalanceCommand displays the user's account balance.

@@ -8,7 +8,6 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrcli/app/walletcore"
 )
@@ -70,18 +69,6 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 	transactions := make([]*walletcore.Transaction, 0, len(transactionDetails))
 
 	for _, txDetail := range transactionDetails {
-		// use any of the addresses in inputs/outputs to determine if this is a testnet tx
-		var isTestnet bool
-		for _, output := range txDetail.Credits {
-			addr, err := dcrutil.DecodeAddress(output.Address)
-			if err != nil {
-				continue
-			}
-
-			isTestnet = !addr.IsForNet(netparams.MainNetParams.Params)
-			break
-		}
-
 		hash, err := chainhash.NewHash(txDetail.Hash)
 		if err != nil {
 			return nil, err
@@ -95,7 +82,6 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
 			Type:          txDetail.TransactionType.String(),
 			Direction:     direction,
-			Testnet:       isTestnet,
 			Timestamp:     txDetail.Timestamp,
 			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
