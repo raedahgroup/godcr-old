@@ -90,7 +90,12 @@ func Run(walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
 	}
 
 	// help flag error should have been caught and handled in config.LoadConfig, so only check for ErrCommandRequired
-	if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
+	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
+
+	if noCommandPassed && appConfig.SyncBlockchain {
+		// command mustn't be passed with --sync flag
+		os.Exit(0)
+	} else if noCommandPassed {
 		displayAvailableCommandsHelpMessage(parser)
 	} else {
 		fmt.Println(err)

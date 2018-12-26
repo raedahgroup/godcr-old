@@ -82,17 +82,6 @@ func send(walletsource ws.WalletSource, custom bool) (err error) {
 		return err
 	}
 
-	columns := []string{
-		"Result",
-		"Hash",
-	}
-	rows := [][]interface{}{
-		[]interface{}{
-			"The transaction was published successfully",
-			sentTransactionHash,
-		},
-	}
-
-	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
+	fmt.Printf("Sent. Txid: %s\n", sentTransactionHash)
 	return nil
 }

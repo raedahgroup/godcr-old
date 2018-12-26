@@ -4,34 +4,20 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-<<<<<<< HEAD:core/middlewares/dcrwalletrpc/helpers.go
-<<<<<<< HEAD
-=======
 	"github.com/decred/dcrwallet/netparams"
->>>>>>> little refactor
-=======
->>>>>>> rebase master, fix conflicts, refactor project code:app/walletmediums/dcrwalletrpc/helpers.go
 	"math"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-<<<<<<< HEAD:core/middlewares/dcrwalletrpc/helpers.go
 	"github.com/decred/dcrd/txscript"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-<<<<<<< HEAD
 	"github.com/raedahgroup/dcrcli/walletsource"
-=======
-	"github.com/raedahgroup/dcrcli/core"
->>>>>>> little refactor
-=======
-	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrcli/app/walletcore"
->>>>>>> rebase master, fix conflicts, refactor project code:app/walletmediums/dcrwalletrpc/helpers.go
 )
 
 func amountToAtom(amountInDCR float64) (int64, error) {
@@ -106,31 +92,12 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 		if err != nil {
 			return nil, err
 		}
-
-<<<<<<< HEAD
-=======
-		amount, direction := transactionAmountAndDirection(txDetail)
-
-		tx := &walletcore.Transaction{
-			Hash:          hash.String(),
-			Amount:        dcrutil.Amount(amount).ToCoin(),
-			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
-			Type:          txDetail.TransactionType.String(),
-			Direction:     direction,
-			Testnet:       isTestnet,
-			Timestamp:     txDetail.Timestamp,
-			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
-		}
-
->>>>>>> little refactor
 		transactions = append(transactions, tx)
 	}
 
 	return transactions, nil
 }
 
-<<<<<<< HEAD:core/middlewares/dcrwalletrpc/helpers.go
-<<<<<<< HEAD
 func processTransaction(txDetail *walletrpc.TransactionDetails, isTestnet bool) (*walletsource.Transaction, error) {
 	hash, err := chainhash.NewHash(txDetail.Hash)
 	if err != nil {
@@ -160,13 +127,7 @@ func addressIsForNet(address string, net *chaincfg.Params) (bool, error) {
 	return addr.IsForNet(net), nil
 }
 
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletsource.TransactionDirection) {
-=======
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, core.TransactionDirection) {
->>>>>>> little refactor
-=======
 func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletcore.TransactionDirection) {
->>>>>>> rebase master, fix conflicts, refactor project code:app/walletmediums/dcrwalletrpc/helpers.go
 	var outputAmounts int64
 	for _, credit := range txDetail.Credits {
 		outputAmounts += int64(credit.Amount)

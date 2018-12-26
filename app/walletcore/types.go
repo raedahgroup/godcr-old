@@ -4,6 +4,10 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 )
 
+var (
+	transactionDirectionNames = []string{"Sent", "Received", "Transferred", "Unclear"}
+)
+
 const (
 	// TransactionDirectionSent for transactions sent to external address(es) from wallet
 	TransactionDirectionSent TransactionDirection = iota
@@ -13,9 +17,20 @@ const (
 
 	// TransactionDirectionTransferred for transactions sent from wallet to internal address(es)
 	TransactionDirectionTransferred
+
+	// TransactionDirectionUnclear for unrecognized transaction directions
+	TransactionDirectionUnclear
 )
 
 type TransactionDirection int8
+
+func (direction TransactionDirection) String() string {
+	if direction <= TransactionDirectionUnclear {
+		return transactionDirectionNames[direction]
+	} else {
+		return transactionDirectionNames[TransactionDirectionUnclear]
+	}
+}
 
 type Balance struct {
 	Total           dcrutil.Amount `json:"total"`
@@ -46,7 +61,6 @@ type Transaction struct {
 	Fee           dcrutil.Amount       `json:"fee"`
 	Rate          dcrutil.Amount       `json:"rate,omitempty"`
 	Direction     TransactionDirection `json:"direction"`
-	Testnet       bool                 `json:"testnet"`
 	Timestamp     int64                `json:"timestamp"`
 	FormattedTime string               `json:"formatted_time"`
 	Size          int                  `json:"size"`

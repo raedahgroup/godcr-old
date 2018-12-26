@@ -17,6 +17,11 @@ type WalletMiddleware interface {
 
 	OpenWallet() error
 
+	// CloseWallet is triggered whenever the dcrcli program is about to be terminated
+	// Usually such termination attempts are halted to allow this function perform shutdown and cleanup operations
+	// All implementations of CloseWallet should end with os.Exit(0) to ensure the program is terminated after cleaning up
+	CloseWallet()
+
 	IsWalletOpen() bool
 
 	walletcore.Wallet
