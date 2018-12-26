@@ -10,9 +10,13 @@ import (
 	"github.com/raedahgroup/dcrcli/app/walletcore"
 )
 
+// ideally, we should let user provide this info in settings and use the user provided value
+// using a constant now to make it easier to update the code where this value is required/used
+const requiredConfirmations = 0
+
 func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	// pass 0 as requiredConfirmations
-	balance, err := lib.walletLib.GetAccountBalance(accountNumber, 0)
+	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +32,7 @@ func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Ba
 
 func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	// pass 0 as requiredConfirmations
-	accounts, err := lib.walletLib.GetAccountsRaw(0)
+	accounts, err := lib.walletLib.GetAccountsRaw(requiredConfirmations)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
@@ -76,7 +80,29 @@ func (lib *MobileWalletLib) ValidateAddress(address string) (bool, error) {
 }
 
 func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
-	return nil, fmt.Errorf("not yet implemented")
+	utxos, err := lib.walletLib.UnspentOutputs(account, requiredConfirmations, targetAmount)
+	if err != nil {
+		return nil, err
+	}
+
+	unspentOutputs := make([]*walletcore.UnspentOutput, len(utxos))
+	for i, utxo := range utxos {
+		hash, err := chainhash.NewHash(utxo.TransactionHash)
+		if err != nil {
+			return nil, err
+		}
+		txHash := hash.String()
+
+		unspentOutputs[i] = &walletcore.UnspentOutput{
+			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
+			TransactionHash: txHash,
+			OutputIndex:     utxo.OutputIndex,
+			ReceiveTime:     utxo.ReceiveTime,
+			Amount:          dcrutil.Amount(utxo.Amount),
+		}
+	}
+
+	return unspentOutputs, nil
 }
 
 func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
