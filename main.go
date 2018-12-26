@@ -13,6 +13,8 @@ import 	(
 	"github.com/raedahgroup/godcr/walletsource/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/walletsource/mobilewalletlib"
 	"github.com/raedahgroup/godcr/web"
+	"os/signal"
+	"syscall"
 
 	"github.com/raedahgroup/dcrcli/app"
 	"github.com/raedahgroup/dcrcli/app/config"
@@ -39,19 +41,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	wallet := connectToWallet(appConfig)
+	walletMiddleware := connectToWallet(appConfig)
+
+	// listen for shutdown signals and trigger walletMiddleware.CloseWallet
+	go listenForShutdown(walletMiddleware.CloseWallet)
 
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		enterHttpMode(appConfig.HTTPServerAddress, wallet)
+		web.StartHttpServer(walletMiddleware, appConfig.HTTPServerAddress)
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
-		web.StartHttpServer(wallet, appConfig.HTTPServerAddress)
 	} else {
-		cli.Run(wallet, appConfig)
+		cli.Run(walletMiddleware, appConfig)
 	}
 }
 
@@ -77,11 +81,6 @@ func connectToWallet(config *config.Config) app.WalletMiddleware {
 	}
 
 	return walletMiddleware
-}
-
-func enterHttpMode(serverAddress string, wallet core.Wallet) {
-	fmt.Println("Running in http mode")
-	web.StartHttpServer(serverAddress, wallet)
 }
 
 func enterDesktopMode(walletsource ws.WalletSource) {
@@ -176,4 +175,21 @@ func printCommandHelp(appName string, command *flags.Command) {
 	helpParser.Active = command
 	helpParser.WriteHelp(os.Stderr)
 	fmt.Printf("To view application options, use '%s -h'\n", appName)
+}
+
+func listenForShutdown(shutdown func()) {
+	interruptChannel := make(chan os.Signal, 1)
+	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM)
+
+	// listen for the initial shutdown signal and begin shutdown/cleanup process in separate goroutine
+	// that way, we are able to continue listening for repeated shutdown signals and remind user that a shutdown operation is ongoing
+	sig := <-interruptChannel
+	fmt.Printf("\nReceived %s signal. Shutting down...\n", sig)
+	go shutdown()
+
+	// continue to listen for any more shutdown signals and log that shutdown has already been signaled
+	for {
+		<-interruptChannel
+		fmt.Println("Already shutting down... Please wait")
+	}
 }

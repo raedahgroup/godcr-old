@@ -15,10 +15,9 @@ type MobileWalletLib struct {
 
 // New connects to mobilewallet and returns an instance of MobileWalletLib
 func New(appDataDir string, netType string) *MobileWalletLib {
-	// pass empty db driver to use default
-	lw := mobilewallet.NewLibWallet(appDataDir, "", netType)
+	lw := mobilewallet.NewLibWallet(appDataDir, mobilewallet.DefaultDbDriver, netType)
 	lw.SetLogLevel("off")
-	lw.InitLoader()
+	lw.InitLoaderWithoutShutdownListener()
 
 	var activeNet *netparams.Params
 	if netType == "mainnet" {

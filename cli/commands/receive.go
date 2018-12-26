@@ -3,9 +3,9 @@ package commands
 import (
 	"fmt"
 	"github.com/raedahgroup/dcrcli/cli/utils"
-
 	"github.com/raedahgroup/godcr/cli/termio"
 	ws "github.com/raedahgroup/godcr/walletsource"
+
 	qrcode "github.com/skip2/go-qrcode"
 )
 

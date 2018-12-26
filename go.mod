@@ -9,10 +9,15 @@ require (
 	github.com/decred/dcrwallet/rpc/walletrpc v0.1.0
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
+	github.com/labstack/gommon v0.2.8
+	github.com/mattn/go-colorable v0.0.9 // indirect
+	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/raedahgroup/dcrcli/walletrpcclient v0.0.0-20181213135451-898d7ae57860
 	github.com/raedahgroup/mobilewallet v0.0.0-20181127040504-952c748fbd60
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 // indirect
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
 	google.golang.org/grpc v1.14.0
 	gopkg.in/urfave/cli.v1 v1.20.0
