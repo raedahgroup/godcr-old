@@ -1,4 +1,4 @@
-package web
+package routes
 
 import (
 	"encoding/base64"
@@ -10,33 +10,33 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func (s *Server) GetBalance(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetBalance(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	result, err := s.wallet.AccountsOverview()
+	result, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["accounts"] = result
 	}
 
-	s.render("balance.html", data, res)
+	routes.render("balance.html", data, res)
 }
 
-func (s *Server) GetSend(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	accounts, err := s.wallet.AccountsOverview()
+	accounts, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["accounts"] = accounts
 	}
 
-	s.render("send.html", data, res)
+	routes.render("send.html", data, res)
 }
 
-func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) PostSend(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -62,9 +62,9 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 
 	var txHash string
 	if len(utxos) > 0 {
-		txHash, err = s.wallet.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
 	} else {
-		txHash, err = s.wallet.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
 	}
 
 	if err != nil {
@@ -75,22 +75,22 @@ func (s *Server) PostSend(res http.ResponseWriter, req *http.Request) {
 	data["txHash"] = txHash
 }
 
-func (s *Server) GetReceive(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetReceive(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	accounts, err := s.wallet.AccountsOverview()
+	accounts, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["accounts"] = accounts
 	}
 
-	s.render("receive.html", data, res)
+	routes.render("receive.html", data, res)
 }
 
 // GetReceiveGenerate calls walletrpcclient to  generate an address where DCR can be sent to
 // this function is called via ajax
-func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -102,7 +102,7 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	address, err := s.wallet.GenerateReceiveAddress(uint32(accountNumber))
+	address, err := routes.walletMiddleware.GenerateReceiveAddress(uint32(accountNumber))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -125,7 +125,7 @@ func (s *Server) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) 
 	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
 }
 
-func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -137,7 +137,7 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	utxos, err := s.wallet.UnspentOutputs(uint32(accountNumber), 0)
+	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -148,15 +148,15 @@ func (s *Server) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 	data["message"] = utxos
 }
 
-func (s *Server) GetHistory(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GetHistory(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
-	txns, err := s.wallet.TransactionHistory()
+	txns, err := routes.walletMiddleware.TransactionHistory()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["result"] = txns
 	}
 
-	s.render("history.html", data, res)
+	routes.render("history.html", data, res)
 }
