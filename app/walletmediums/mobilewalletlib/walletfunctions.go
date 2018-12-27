@@ -1,12 +1,15 @@
 package mobilewalletlib
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/raedahgroup/mobilewallet/txhelper"
 	"sort"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/wire"
 	"github.com/raedahgroup/dcrcli/app/walletcore"
 )
 
@@ -97,6 +100,7 @@ func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) (
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
+			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
 		}
@@ -129,7 +133,76 @@ func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount u
 }
 
 func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
-	return "", fmt.Errorf("not yet implemented")
+	// convert amount from float64 DCR to int64 Atom
+	amountInAtom, err := dcrutil.NewAmount(dcrAmount)
+	if err != nil {
+		return "", err
+	}
+	amount := int64(amountInAtom)
+
+	// fetch all utxos in account to extract details for the utxos selected by user
+	// use targetAmount = 0 to fetch ALL utxos in account
+	unspentOutputs, err := lib.UnspentOutputs(account, 0)
+	if err != nil {
+		return "", err
+	}
+
+	// loop through unspentOutputs to find user selected utxos
+	inputs := make([]*wire.TxIn, 0, len(utxoKeys))
+	for _, utxo := range unspentOutputs {
+		useUtxo := false
+		for _, key := range utxoKeys {
+			if utxo.OutputKey == key {
+				useUtxo = true
+			}
+		}
+		if !useUtxo {
+			continue
+		}
+
+		// this is a reverse conversion and should not throw an error
+		// this string hash was originally chainhash.Hash and was converted to string in `lib.UnspentOutputs`
+		txHash, _ := chainhash.NewHashFromStr(utxo.TransactionHash)
+
+		outpoint := wire.NewOutPoint(txHash, utxo.OutputIndex, int8(utxo.Tree))
+		input := wire.NewTxIn(outpoint, int64(utxo.Amount), nil)
+		inputs = append(inputs, input)
+
+		if len(inputs) == len(utxoKeys) {
+			break
+		}
+	}
+
+	// generate address from sourceAccount to receive change
+	changeAddress, err := lib.GenerateReceiveAddress(account)
+	if err != nil {
+		return "", err
+	}
+
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	if err != nil {
+		return "", err
+	}
+
+	// serialize unsigned tx
+	var txBuf bytes.Buffer
+	txBuf.Grow(unsignedTx.SerializeSize())
+	err = unsignedTx.Serialize(&txBuf)
+	if err != nil {
+		return "", fmt.Errorf("error serializing transaction: %s", err.Error())
+	}
+
+	txHash, err := lib.walletLib.SignAndPublishTransaction(txBuf.Bytes(), []byte(passphrase))
+	if err != nil {
+		return "", err
+	}
+
+	transactionHash, err := chainhash.NewHash(txHash)
+	if err != nil {
+		return "", fmt.Errorf("error parsing successful transaction hash: %s", err.Error())
+	}
+
+	return transactionHash.String(), nil
 }
 
 func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {

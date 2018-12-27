@@ -88,7 +88,8 @@ func (s *Server) loadTemplates() {
 }
 
 func (s *Server) registerHandlers(r chi.Router) {
-	// ensure wallet is loaded before executing handlers for following routes
+	// this middleware checks if wallet is loaded before executing handlers for following routes
+	// if wallet is not loaded, it tries to load it, if that fails, it shows an error page instead
 	r.Use(s.makeWalletLoaderMiddleware())
 
 	r.Get("/", s.GetBalance)
@@ -106,6 +107,8 @@ func (s *Server) makeWalletLoaderMiddleware() func(http.Handler) http.Handler {
 	}
 }
 
+// walletLoaderFn checks if wallet is not open and attempts to open it
+// if an error occurs while attempting to open wallet, an error page is displayed and the actual route handler is not called
 func (s *Server) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !s.wallet.IsWalletOpen() {
