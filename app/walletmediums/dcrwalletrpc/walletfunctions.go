@@ -18,7 +18,7 @@ import (
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrcli/app/walletcore"
-	"github.com/raedahgroup/mobilewallet/tx"
+	"github.com/raedahgroup/mobilewallet/txhelper"
 )
 
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
@@ -153,6 +153,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
+			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
 		}
@@ -244,7 +245,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 		return "", err
 	}
 
-	unsignedTx, err := tx.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
 	if err != nil {
 		return "", err
 	}
