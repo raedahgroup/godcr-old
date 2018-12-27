@@ -22,7 +22,7 @@ type Blockchain struct {
 	_report string
 }
 
-func (routes *Routes) makeWalletLoaderMiddleware() func(http.Handler) http.Handler {
+func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return routes.walletLoaderFn(next)
 	}

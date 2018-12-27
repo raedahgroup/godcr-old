@@ -10,7 +10,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func (routes *Routes) GetBalance(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) BalancePage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	result, err := routes.walletMiddleware.AccountsOverview()
@@ -23,7 +23,7 @@ func (routes *Routes) GetBalance(res http.ResponseWriter, req *http.Request) {
 	routes.render("balance.html", data, res)
 }
 
-func (routes *Routes) GetSend(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) SendPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	accounts, err := routes.walletMiddleware.AccountsOverview()
@@ -36,7 +36,7 @@ func (routes *Routes) GetSend(res http.ResponseWriter, req *http.Request) {
 	routes.render("send.html", data, res)
 }
 
-func (routes *Routes) PostSend(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) SubmitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -75,7 +75,7 @@ func (routes *Routes) PostSend(res http.ResponseWriter, req *http.Request) {
 	data["txHash"] = txHash
 }
 
-func (routes *Routes) GetReceive(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) ReceivePage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	accounts, err := routes.walletMiddleware.AccountsOverview()
@@ -88,9 +88,7 @@ func (routes *Routes) GetReceive(res http.ResponseWriter, req *http.Request) {
 	routes.render("receive.html", data, res)
 }
 
-// GetReceiveGenerate calls walletrpcclient to  generate an address where DCR can be sent to
-// this function is called via ajax
-func (routes *Routes) GetReceiveGenerate(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) GenerateReceiveAddress(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -148,7 +146,7 @@ func (routes *Routes) GetUnspentOutputs(res http.ResponseWriter, req *http.Reque
 	data["message"] = utxos
 }
 
-func (routes *Routes) GetHistory(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) HistoryPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	txns, err := routes.walletMiddleware.TransactionHistory()

@@ -46,13 +46,13 @@ func (routes *Routes) loadTemplates() {
 func (routes *Routes) handlers(router chi.Router) {
 	// this middleware checks if wallet is loaded before executing handlers for following routes
 	// if wallet is not loaded, it tries to load it, if that fails, it shows an error page instead
-	router.Use(routes.makeWalletLoaderMiddleware())
+	router.Use(routes.walletLoaderMiddleware())
 
-	router.Get("/", routes.GetBalance)
-	router.Get("/send", routes.GetSend)
-	router.Post("/send", routes.PostSend)
-	router.Get("/receive", routes.GetReceive)
-	router.Get("/receive/generate/{accountNumber}", routes.GetReceiveGenerate)
-	router.Get("/outputs/unspent/{accountNumber}", routes.GetUnspentOutputs)
-	router.Get("/history", routes.GetHistory)
+	router.Get("/", routes.BalancePage)
+	router.Get("/send", routes.SendPage)
+	router.Post("/send", routes.SubmitSendTxForm)
+	router.Get("/receive", routes.ReceivePage)
+	router.Get("/generate-address/{accountNumber}", routes.GenerateReceiveAddress)
+	router.Get("/unspent-outputs/{accountNumber}", routes.GetUnspentOutputs)
+	router.Get("/history", routes.HistoryPage)
 }
