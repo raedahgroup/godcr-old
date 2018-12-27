@@ -96,7 +96,9 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	// Load additional config from file
 	err = parseConfigFile(parser, config.ConfigFile)
 	if err != nil {
-		return args, config, parser, err
+		if _, ok := err.(*os.PathError); !ok {
+			return args, config, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
+		}
 	}
 
 	// Parse command line options again to ensure they take precedence.
