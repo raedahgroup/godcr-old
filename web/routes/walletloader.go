@@ -10,7 +10,8 @@ import (
 
 type syncStatus uint8
 const (
-	syncStatusSuccess syncStatus = iota
+	syncStatusNotStarted syncStatus = iota
+	syncStatusSuccess
 	syncStatusError
 	syncStatusInProgress
 )
@@ -49,12 +50,16 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		switch blockchainSyncStatus {
 		case syncStatusSuccess:
 			next.ServeHTTP(res, req)
+		case syncStatusNotStarted:
+			routes.renderError("Cannot display page. Blockchain hasn't been synced", res)
 		case syncStatusInProgress:
-			msg := fmt.Sprintf("Blockchain status: %s. Refresh after a while to access this page", routes.blockchain.report())
+			msg := fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
 			routes.renderError(msg, res)
 		case syncStatusError:
-			msg := fmt.Sprintf("Cannot display page. Blockchain status: %s", routes.blockchain.report())
+			msg := fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
 			routes.renderError(msg, res)
+		default:
+			routes.renderError("Cannot display page. Blockchain sync status cannot be determined", res)
 		}
 	})
 }
@@ -83,28 +88,28 @@ func (routes *Routes) syncBlockchain() {
 
 	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
-			updateStatus("Starting sync...", syncStatusInProgress)
+			updateStatus("Starting blockchain sync...", syncStatusInProgress)
 		},
 		SyncEnded: func(err error) {
 			if err != nil {
-				updateStatus(fmt.Sprintf("Sync completed with error: %s", err.Error()), syncStatusError)
+				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), syncStatusError)
 			} else {
-				updateStatus("Sync completed successfully", syncStatusSuccess)
+				updateStatus("Blockchain sync completed successfully", syncStatusSuccess)
 			}
 		},
 		OnHeadersFetched:    func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Sync in progress. Fetching headers (1/3): %d%%", percentageProgress), syncStatusInProgress)
+			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), syncStatusInProgress)
 		},
-		OnDiscoveredAddress: func(state string) {
-			updateStatus(fmt.Sprintf("Sync in progress. Discovering addresses (2/3): %s%%", state), syncStatusInProgress)
+		OnDiscoveredAddress: func(_ string) {
+			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", syncStatusInProgress)
 		},
 		OnRescanningBlocks:  func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
+			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
 		},
 	}, false)
 
 	if err != nil {
-		updateStatus(fmt.Sprintf("Sync error: %s", err.Error()), syncStatusError)
+		updateStatus(fmt.Sprintf("Blockchain sync error: %s", err.Error()), syncStatusError)
 	}
 }
 
