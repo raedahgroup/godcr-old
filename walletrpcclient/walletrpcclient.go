@@ -11,6 +11,7 @@ import (
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
@@ -328,7 +329,7 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
-func (c *Client) AccountNumber (accountName string) (uint32, error) {
+func (c *Client) AccountNumber(accountName string) (uint32, error) {
 	req := &pb.AccountNumberRequest{
 		AccountName: accountName,
 	}
@@ -427,4 +428,39 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 	})
 
 	return transactions, nil
+}
+
+func (c *Client) GetTransaction(transactionHash string) (*GetTransactionResponse, error) {
+	ctx := context.Background()
+
+	hash, err := chainhash.NewHashFromStr(transactionHash)
+	if err != nil {
+		return nil, err
+	}
+	getTransactionRequest := &pb.GetTransactionRequest{TransactionHash: hash[:]}
+	transactionResponse, err := c.walletServiceClient.GetTransaction(ctx, getTransactionRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionHex := fmt.Sprintf("%x", transactionResponse.GetTransaction().GetTransaction())
+	msgTx, err := txhelpers.MsgTxFromHex(transactionHex)
+	if err != nil {
+		return nil, err
+	}
+	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
+
+	txInfos, err := c.processTransactions([]*pb.TransactionDetails{transactionResponse.GetTransaction()})
+	if err != nil {
+		return nil, err
+	}
+	transaction := txInfos[0]
+
+	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
+
+	return &GetTransactionResponse{
+		BlockHash:     fmt.Sprintf("%x", transactionResponse.GetBlockHash()),
+		Confirmations: transactionResponse.GetConfirmations(),
+		Transaction:   transaction,
+	}, nil
 }

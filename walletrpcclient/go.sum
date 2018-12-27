@@ -2,12 +2,16 @@ github.com/aead/siphash v0.0.0-20170329201724-e404fcfc8885/go.mod h1:Nywa3cDsYNN
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 h1:w1UutsfOrms1J05zt7ISrnJIXKzwaspym5BTKGx93EI=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412/go.mod h1:WPjqKcmVOxf0XSf3YxCJs6N6AOSrOx3obionmG7T0y0=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
+github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd h1:R/opQEbFEy9JGkIguV40SvRY1uliPX8ifOvi6ICsFCw=
 github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd/go.mod h1:HHNXQzUsZCxOoE+CPiyCTO6x34Zs86zZUiwtpXoGdtg=
+github.com/btcsuite/goleveldb v1.0.0 h1:Tvd0BfvqX9o823q1j2UZ/epQo09eJh6dTcRp79ilIN4=
 github.com/btcsuite/goleveldb v1.0.0/go.mod h1:QiK9vBlgftBg6rWQIj6wFzbPfRjiykIEhBH4obrXJ/I=
+github.com/btcsuite/snappy-go v1.0.0 h1:ZxaA6lo2EpxGddsA8JwWOcxlzRybb444sgmeJQMJGQE=
 github.com/btcsuite/snappy-go v1.0.0/go.mod h1:8woku9dyThutzjeg+3xrA5iCpBRH8XEEg3lh6TiUghc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/blake256 v1.0.0 h1:6gUgI5MHdz9g0TdrgKqXsoDX+Zjxmm1Sc6OsoGru50I=
 github.com/dchest/blake256 v1.0.0/go.mod h1:xXNWCE1jsAP8DAjP+rKw2MbeqLczjI3TRx2VK+9OEYY=
+github.com/dchest/siphash v1.2.0 h1:YWOShuhvg0GqbQpMa60QlCGtEyf7O7HC1Jf0VjdQ60M=
 github.com/dchest/siphash v1.2.0/go.mod h1:q+IRvb2gOSrUnYoPqHiyHXS0FOBBOdl6tONBlVnOnt4=
 github.com/decred/base58 v1.0.0 h1:BVi1FQCThIjZ0ehG+I99NJ51o0xcc9A/fDKhmJxY6+w=
 github.com/decred/base58 v1.0.0/go.mod h1:LLY1p5e3g91byL/UO1eiZaYd+uRoVRarybgcoymu9Ks=
@@ -59,11 +63,13 @@ github.com/decred/dcrd/dcrutil v1.1.1 h1:zOkGiumN/JkobhAgpG/zfFgUoolGKVGYT5na1hb
 github.com/decred/dcrd/dcrutil v1.1.1/go.mod h1:Jsttr0pEvzPAw+qay1kS1/PsbZYPyhluiNwwY6yBJS4=
 github.com/decred/dcrd/gcs v1.0.0/go.mod h1:5uHIPAzn4SdGP2/FhVBK2YdAoKmufds3ZI8yNzojUCM=
 github.com/decred/dcrd/gcs v1.0.1/go.mod h1:YwutGzusSdJM79CJtxCo9t7WRCvnkLtWSD19TPo1i9g=
+github.com/decred/dcrd/gcs v1.0.2 h1:wZjxeC9WPBoRApaAQpBrzvN9NA0iS2KWrTJa9IiDgc8=
 github.com/decred/dcrd/gcs v1.0.2/go.mod h1:eLCvrzUsWro48TlTyrmFcZAZqnllYFz0vEv5VZtufF4=
 github.com/decred/dcrd/hdkeychain v1.1.0/go.mod h1:zyUZtZ3PdnTPHt2XUr1x76b8ZuiM+9aVkP8Rq8Scp1k=
 github.com/decred/dcrd/mempool v1.0.1/go.mod h1:r+/DGiiluXi1EyMCCPPH58Qu+rsr8nZv0DialAG5VZQ=
 github.com/decred/dcrd/mining v1.0.0/go.mod h1:VA5H4zhJgXb8LK5lqM5H58dhMRXJRcaQQoX3G8QRpP8=
 github.com/decred/dcrd/mining v1.0.1/go.mod h1:+CSOLPi7TM8OlQg7mJ7XzWLXCDb4nHK8R6cvXOzhEoU=
+github.com/decred/dcrd/rpcclient v1.0.1 h1:mSkVtOQKXnMJ2P08xPFnD2J9w54+YFQuMeBd5tC9iBI=
 github.com/decred/dcrd/rpcclient v1.0.1/go.mod h1:tApXK3wwrAQtz7lcXeeqBwuktUZesvrFfvhAdedYqdM=
 github.com/decred/dcrd/txscript v1.0.0/go.mod h1:9byvrOaBSBVVnDG7Cm0JgN8bZytl1oi9Ba245VBeI18=
 github.com/decred/dcrd/txscript v1.0.1 h1:IMgxZFCw3AyG4EbKwywE3SDNshOSHsoUK1Wk/5GqWJ0=
@@ -71,6 +77,8 @@ github.com/decred/dcrd/txscript v1.0.1/go.mod h1:FqUX07Y+u3cJ1eIGPoyWbJg+Wk1NTll
 github.com/decred/dcrd/wire v1.0.1/go.mod h1:zpKZnBiN59CrzfXFigwgXmUDVYf34OLbEr8xwAwriHc=
 github.com/decred/dcrd/wire v1.1.0 h1:G+3CugtxNbToUN8RKWqm74yLfzJJ2BKMOr2RgWc4TyY=
 github.com/decred/dcrd/wire v1.1.0/go.mod h1:/JKOsLInOJu6InN+/zH5AyCq3YDIOW/EqcffvU8fJHM=
+github.com/decred/dcrdata v2.1.3+incompatible h1:DLzrqgOOgHwrUSbuOVDAUzfQePhCGl9UsjEgZI1D0Kg=
+github.com/decred/dcrdata v2.1.3+incompatible/go.mod h1:9dhUy80j3VCCh0JNYaW3b960hqkxATNq65FxGMYB7mA=
 github.com/decred/dcrwallet v1.2.2 h1:NdI13wxP+OsWKXPqjWQQ9VSGAl4VoSLBfAunzFreeJg=
 github.com/decred/dcrwallet v1.2.2/go.mod h1:BrSus0F+Rx8UhvPNBfuRMIjRJBNrW2sLspN9iQR5hm8=
 github.com/decred/dcrwallet/chain v1.0.0/go.mod h1:KpZFaKlKajfUZt36+RmBn2HKwTbwoa3yt9HPALqlShI=
@@ -100,6 +108,7 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/protobuf v1.1.0 h1:0iH4Ffd/meGoXqF2lSAhZHt8X+cPgkfn/cb6Cce5Vpc=
 github.com/golang/protobuf v1.1.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
+github.com/gorilla/websocket v1.2.0 h1:VJtLvh6VQym50czpZzx07z/kw9EgAxI3x1ZB8taTMQQ=
 github.com/gorilla/websocket v1.2.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

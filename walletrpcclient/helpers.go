@@ -63,13 +63,13 @@ func (c *Client) processTransactions(transactionDetails []*pb.TransactionDetails
 
 		tx := &Transaction{
 			Hash:          hash.String(),
-			Amount:        dcrutil.Amount(amount).ToCoin(),
-			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
+			Amount:        dcrutil.Amount(amount),
+			Fee:           dcrutil.Amount(txDetail.Fee),
 			Type:          txDetail.TransactionType.String(),
 			Direction:     direction,
 			Testnet:       isTestnet,
 			Timestamp:     txDetail.Timestamp,
-			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+			FormattedTime: time.Unix(txDetail.Timestamp, 0).UTC().Format("Mon Jan 2, 2006 3:04PM"),
 		}
 
 		transactions = append(transactions, tx)
