@@ -20,13 +20,13 @@ function validatePassphrase() {
     return true
 }
 
-function getWalletPassphraseAndSubmit(submitFunc) {
+function getWalletPassphraseAndSubmit() {
     var passphraseModal = $("#passphrase-modal");
     
     $("#passphrase-submit").on("click", function(){
         if (validatePassphrase()) {
             passphraseModal.modal('hide');
-            submitFunc($("#walletPassphrase").val());
+            submitSendForm();
         }
     });
     
@@ -68,7 +68,7 @@ function validateSendForm() {
     return isClean;
 }
 
-function submitSendForm(passphrase) {
+function submitSendForm() {
     var form = $("#send-form");
     var submit_btn = $("#send-form #submit-btn");
     submit_btn.attr("disabled", "disabled").html("Sending...");
@@ -78,11 +78,11 @@ function submitSendForm(passphrase) {
         method: "POST",
         data: form.serialize(),
         success: function(response) {
-            if (response.success) {
-                var m = "The transaction was published successfully. Hash: <strong>" + response.txHash + "</strong>";
-                setSuccessMessage(m)
+            if (response.error) {
+                setErrorMessage(response.error)
             } else {
-                setErrorMessage(response.error) 
+                var txHash = "The transaction was published successfully. Hash: <strong>" + response.txHash + "</strong>";
+                setSuccessMessage(txHash)
             }
         },
         error: function(error) {
@@ -190,7 +190,7 @@ $(function(){
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
-        getWalletPassphraseAndSubmit(submitSendForm)
+        getWalletPassphraseAndSubmit()
     })
 });
 
