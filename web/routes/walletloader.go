@@ -3,7 +3,23 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"sync"
+
+	"github.com/raedahgroup/dcrcli/app"
 )
+
+type syncStatus uint8
+const (
+	syncStatusSuccess syncStatus = iota
+	syncStatusError
+	syncStatusInProgress
+)
+
+type Blockchain struct {
+	sync.RWMutex
+	_status syncStatus
+	_report string
+}
 
 func (routes *Routes) makeWalletLoaderMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -11,23 +27,39 @@ func (routes *Routes) makeWalletLoaderMiddleware() func(http.Handler) http.Handl
 	}
 }
 
-// walletLoaderFn checks if wallet is not open and attempts to open it
-// if an error occurs while attempting to open wallet, an error page is displayed and the actual route handler is not called
+// walletLoaderFn checks if wallet is not open, attempts to open it and also perform sync the blockchain
+// an error page is displayed and the actual route handler is not called, if ...
+// - an error occurs while opening wallet or syncing blockchain
+// - wallet is open but blockchain isn't synced
 func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if !routes.walletMiddleware.IsWalletOpen() {
-			err := routes.loadWallet()
+		walletOpen := routes.walletMiddleware.IsWalletOpen()
+
+		// wallet is not open, attempt to open wallet and sync blockchain
+		if !walletOpen {
+			err := routes.loadWalletAndSyncBlockchain()
 			if err != nil {
 				routes.renderError(err.Error(), res)
 				return
 			}
 		}
 
-		next.ServeHTTP(res, req)
+		// wallet is open, check if blockchain is synced
+		blockchainSyncStatus := routes.blockchain.status()
+		switch blockchainSyncStatus {
+		case syncStatusSuccess:
+			next.ServeHTTP(res, req)
+		case syncStatusInProgress:
+			msg := fmt.Sprintf("Blockchain status: %s. Refresh after a while to access this page", routes.blockchain.report())
+			routes.renderError(msg, res)
+		case syncStatusError:
+			msg := fmt.Sprintf("Cannot display page. Blockchain status: %s", routes.blockchain.report())
+			routes.renderError(msg, res)
+		}
 	})
 }
 
-func (routes *Routes) loadWallet() error {
+func (routes *Routes) loadWalletAndSyncBlockchain() error {
 	walletExists, err := routes.walletMiddleware.WalletExists()
 	if err != nil {
 		return fmt.Errorf("Error checking for wallet: %s", err.Error())
@@ -42,5 +74,55 @@ func (routes *Routes) loadWallet() error {
 		return fmt.Errorf("Failed to open wallet: %s", err.Error())
 	}
 
+	routes.syncBlockchain()
 	return nil
+}
+
+func (routes *Routes) syncBlockchain() {
+	updateStatus := routes.blockchain.updateStatus
+
+	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
+		SyncStarted: func() {
+			updateStatus("Starting sync...", syncStatusInProgress)
+		},
+		SyncEnded: func(err error) {
+			if err != nil {
+				updateStatus(fmt.Sprintf("Sync completed with error: %s", err.Error()), syncStatusError)
+			} else {
+				updateStatus("Sync completed successfully", syncStatusSuccess)
+			}
+		},
+		OnHeadersFetched:    func(percentageProgress int64) {
+			updateStatus(fmt.Sprintf("Sync in progress. Fetching headers (1/3): %d%%", percentageProgress), syncStatusInProgress)
+		},
+		OnDiscoveredAddress: func(state string) {
+			updateStatus(fmt.Sprintf("Sync in progress. Discovering addresses (2/3): %s%%", state), syncStatusInProgress)
+		},
+		OnRescanningBlocks:  func(percentageProgress int64) {
+			updateStatus(fmt.Sprintf("Sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
+		},
+	}, false)
+
+	if err != nil {
+		updateStatus(fmt.Sprintf("Sync error: %s", err.Error()), syncStatusError)
+	}
+}
+
+func (b *Blockchain) updateStatus(report string, status syncStatus) {
+	b.Lock()
+	b._status = status
+	b._report = report
+	b.Unlock()
+}
+
+func (b *Blockchain) status() syncStatus {
+	b.RLock()
+	defer b.RUnlock()
+	return b._status
+}
+
+func (b *Blockchain) report() string {
+	b.RLock()
+	defer b.RUnlock()
+	return b._report
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,10 +24,16 @@ func main() {
 	walletMiddleware := connectToWallet(appConfig)
 
 	// listen for shutdown signals and trigger walletMiddleware.CloseWallet
-	go listenForShutdown(walletMiddleware.CloseWallet)
+	ctx, cancel := context.WithCancel(context.Background())
+	shutdown := func() {
+		cancel()
+		walletMiddleware.CloseWallet()
+		os.Exit(1)
+	}
+	go listenForShutdown(shutdown)
 
 	if appConfig.HTTPMode {
-		web.StartHttpServer(walletMiddleware, appConfig.HTTPServerAddress)
+		web.StartHttpServer(walletMiddleware, appConfig.HTTPServerAddress, ctx)
 	} else {
 		cli.Run(walletMiddleware, appConfig)
 	}
