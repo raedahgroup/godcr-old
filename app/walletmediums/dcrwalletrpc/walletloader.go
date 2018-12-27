@@ -41,5 +41,8 @@ func (c *WalletPRCClient) IsWalletOpen() bool {
 }
 
 func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
-	return fmt.Errorf("not yet implemented")
+	// pretend to start and successfully complete sync
+	listener.SyncStarted()
+	listener.SyncEnded(nil)
+	return nil
 }

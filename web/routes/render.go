@@ -7,9 +7,6 @@ import (
 )
 
 func (routes *Routes) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	// append blockchain status to data
-	data["blockchainStatus"] = routes.blockchain.report()
-
 	if tpl, ok := routes.templates[tplName]; ok {
 		err := tpl.Execute(res, data)
 		if err != nil {
