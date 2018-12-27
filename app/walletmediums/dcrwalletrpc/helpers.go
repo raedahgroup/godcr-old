@@ -78,8 +78,8 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 
 		tx := &walletcore.Transaction{
 			Hash:          hash.String(),
-			Amount:        dcrutil.Amount(amount).ToCoin(),
-			Fee:           dcrutil.Amount(txDetail.Fee).ToCoin(),
+			Amount:        dcrutil.Amount(amount).String(),
+			Fee:           dcrutil.Amount(txDetail.Fee).String(),
 			Type:          txDetail.TransactionType.String(),
 			Direction:     direction,
 			Timestamp:     txDetail.Timestamp,

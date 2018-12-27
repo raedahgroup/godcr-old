@@ -223,8 +223,8 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 	for i, tx := range txs {
 		transactions[i] = &walletcore.Transaction{
 			Hash:          tx.Hash,
-			Amount:        dcrutil.Amount(tx.Amount).ToCoin(),
-			Fee:           dcrutil.Amount(tx.Fee).ToCoin(),
+			Amount:        dcrutil.Amount(tx.Amount).String(),
+			Fee:           dcrutil.Amount(tx.Fee).String(),
 			Type:          tx.Type,
 			Direction:     txDirection(tx.Direction),
 			Timestamp:     tx.Timestamp,
