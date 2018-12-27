@@ -1,4 +1,4 @@
-package web
+package routes
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func (s *Server) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	if tpl, ok := s.templates[tplName]; ok {
+func (routes *Routes) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
+	if tpl, ok := routes.templates[tplName]; ok {
 		err := tpl.Execute(res, data)
 		if err != nil {
 			log.Fatalf("error executing template: %s", err.Error())
@@ -18,8 +18,8 @@ func (s *Server) render(tplName string, data map[string]interface{}, res http.Re
 	log.Fatalf("template %s is not registered", tplName)
 }
 
-func (s *Server) renderError(errorMessage string, res http.ResponseWriter) {
-	errorTemplate := s.templates["error.html"]
+func (routes *Routes) renderError(errorMessage string, res http.ResponseWriter) {
+	errorTemplate := routes.templates["error.html"]
 	err := errorTemplate.Execute(res, errorMessage)
 	if err != nil {
 		log.Fatalf("error executing template: %s", err.Error())
