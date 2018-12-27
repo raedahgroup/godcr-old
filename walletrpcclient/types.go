@@ -36,10 +36,18 @@ type UnspentOutputsResult struct {
 type Transaction struct {
 	Hash          string               `json:"hash"`
 	Type          string               `json:"type"`
-	Amount        float64              `json:"amount"`
-	Fee           float64              `json:"fee"`
+	Amount        dcrutil.Amount       `json:"amount"`
+	Fee           dcrutil.Amount       `json:"fee"`
+	Rate          dcrutil.Amount       `json:"rate,omitempty"`
 	Direction     TransactionDirection `json:"direction"`
-	Testnet       bool                 `json"testnet"`
+	Testnet       bool                 `json:"testnet"`
 	Timestamp     int64                `json:"timestamp"`
 	FormattedTime string               `json:"formatted_time"`
+	Size          int                  `json:"size"`
+}
+
+type GetTransactionResponse struct {
+	BlockHash     string `json:"blockHash"`
+	Confirmations int32  `json:"confirmations"`
+	*Transaction
 }

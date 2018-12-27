@@ -9,7 +9,7 @@ import (
 )
 
 func tabWriter(w io.Writer) *tabwriter.Writer {
-	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
+	return tabwriter.NewWriter(w, 0, 0, 1, ' ', 0)
 }
 
 // PrintResult formats and prints the content of `res` to `w`
