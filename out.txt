@@ -1,9 +1,0 @@
-Transaction       c3b6b67284ab25208008838e6cbb965c0da1fd33f57e14257b24d00579487ff2 
-Confirmations     17205                                                            
-Included in block f27f487905d0247b25147ef533fda10d5c96bb6c8e8308802025ab8472b6b6c3 
-Type              REGULAR                                                          
-Total sent        200 DCR                                                          
-Time              Wed Nov 28, 2018 9:13PM                                          
-Size              3.4 kB                                                           
-Fee               0.003407 DCR                                                     
-Rate              0.00100948 DCR/kB                                                
