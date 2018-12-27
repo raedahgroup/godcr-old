@@ -99,7 +99,7 @@ function getUnspentOutputs(account_number, success_callback) {
     next_btn.attr("disabled", "disabled").html("Loading...");
 
     $.ajax({
-        url: "/outputs/unspent/" + account_number,
+        url: "/unspent-outputs/" + account_number,
         method: "GET",
         data: {},
         success: function(response) {
