@@ -28,9 +28,7 @@
                             <td>{{ .Fee }} DCR</td>
                             <td>{{ .Direction }}</td>
                             <td>{{ .Type }}</td>
-                            <td>
-                                <a href="{{ txExplorerLink . }}" target="_blank">{{ .Hash }}</a>
-                            </td>
+                            <td>{{ .Hash }}</td>
                         </tr>
                        {{ end }}
                     </tbody>
