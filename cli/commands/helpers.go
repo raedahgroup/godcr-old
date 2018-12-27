@@ -3,6 +3,8 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
@@ -99,9 +101,9 @@ func getSendAmount() (float64, error) {
 	return amount, nil
 }
 
-// getWalletPassphrase fetches the user's wallet passphrase from the user.
+
 func getWalletPassphrase() (string, error) {
-	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
+	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", nil)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -190,4 +192,10 @@ func getUtxosForNewTransaction(utxos []*walletrpcclient.UnspentOutputsResult, se
 		return nil, fmt.Errorf("error reading selection: %s", err.Error())
 	}
 	return selectedUtxos, nil
+}
+
+func AppName() string {
+	appName := filepath.Base(os.Args[0])
+	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
+	return appName
 }

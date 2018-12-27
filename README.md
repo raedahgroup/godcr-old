@@ -36,7 +36,6 @@ $ go install
 $ GO111MODULE=on go build
 $ GO111MODULE=on go install
 ```
-
 ## Running godcr
 * Create the godcr configuration file. Use the following godcr command to do this. Follow the command prompt and input your configuration values.
 ```bash

@@ -2,9 +2,11 @@ package config
 
 import (
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
@@ -13,6 +15,11 @@ import (
 const (
 	defaultConfigFilename    = "godcr.conf"
 	defaultHTTPServerAddress = "127.0.0.1:1234"
+
+	defaultRpcAddress  = "localhost:19111"
+	defaultRpcUsername = "rpcuser"
+	defaultRpcPassword = "rpcpass"
+	ServerAddress      = "127.0.0.1:7778"
 )
 
 var (
@@ -21,6 +28,7 @@ var (
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
+
 
 // Config holds the top-level options for the CLI program.
 type Config struct {
@@ -34,6 +42,7 @@ type Config struct {
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. This flag cannot be used with a command."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
+	Init              bool   `long:"init" description:"Create the config file"`
 }
 
 // defaultConfig an instance of Config with the defaults set.
@@ -75,6 +84,15 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		return args, config, parser, fmt.Errorf(AppVersion())
 	}
 
+	//config
+	if config.Init {
+		err = configure(config)
+		if err != nil {
+			fmt.Println(err)
+		}
+		os.Exit(0)
+	}
+
 	// Load additional config from file
 	err = parseConfigFile(parser, config.ConfigFile)
 	if err != nil {
@@ -103,5 +121,71 @@ func parseConfigFile(parser *flags.Parser, file string) error {
 		}
 		return err
 	}
+	return nil
+}
+
+
+func configure(cfg Config) (err error) {
+	inputErr := func(error) error {
+		return fmt.Errorf("error receiving input: %s", err.Error())
+	}
+
+	var rpcAddress, rpcUsername, rpcPassword string
+
+	// Todo load config from dcrwallet to auto collect the values below instead of requesting user input
+	rpcAddress, err = terminalprompt.RequestInput(fmt.Sprintf("Wallet RPC server (default = %s)", defaultRpcAddress), nil)
+	if err != nil {
+		return inputErr(err)
+	}
+
+	if rpcAddress == "" {
+		rpcAddress = defaultRpcAddress
+	}
+
+	rpcUsername, err = terminalprompt.RequestInput(fmt.Sprintf("RPC username (default = %s)", defaultRpcUsername), nil)
+	if err != nil {
+		return inputErr(err)
+	}
+	if rpcUsername == "" {
+		rpcUsername = defaultRpcUsername
+	}
+
+	rpcPassword, err = terminalprompt.RequestInputSecure(fmt.Sprintf("RPC password (default = %s)", defaultRpcPassword), nil)
+	if err != nil {
+		return inputErr(err)
+	}
+	if rpcPassword == "" {
+		rpcPassword = defaultRpcPassword
+	}
+
+	config := struct {
+		RpcAddress    string
+		RpcUsername   string
+		RpcPassword   string
+		ServerAddress string
+	}{
+		RpcAddress: rpcAddress, RpcUsername: rpcUsername, RpcPassword: rpcPassword,
+		ServerAddress: ServerAddress,
+	}
+
+	f, err := os.Create(cfg.ConfigFile)
+	if err != nil {
+		return fmt.Errorf("error in creating config file: %v", err)
+	}
+	defer f.Close()
+
+	tmpl := template.New("config")
+
+	tmpl, err = tmpl.Parse(configText())
+	if err != nil {
+		return fmt.Errorf("error in parsing the config template: %v", err.Error())
+	}
+
+	err = tmpl.Execute(f, config)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\n\nThe config file has been set successfully\n")
 	return nil
 }

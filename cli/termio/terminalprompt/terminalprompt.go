@@ -8,11 +8,6 @@ import (
 // ValidatorFunction  validates the input string according to its custom logic.
 type ValidatorFunction func(string) error
 
-// EmptyValidator is a noop validator that can be used if no validation is needed.
-var EmptyValidator = func(v string) error {
-	return nil
-}
-
 func skipEOFError(value string, err error) (string, error) {
 	switch err {
 	case io.EOF:
@@ -34,6 +29,9 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if validate == nil {
+			return value, nil
+		}
 		if err = validate(value); err != nil {
 			fmt.Printf("%s\n\n", err.Error())
 			continue
@@ -51,6 +49,9 @@ func RequestInputSecure(message string, validate ValidatorFunction) (string, err
 		value, err := skipEOFError(getPasswordInput(fmt.Sprintf("%s: ", message)))
 		if err != nil {
 			return "", err
+		}
+		if validate == nil {
+			return value, nil
 		}
 		if err = validate(value); err != nil {
 			fmt.Printf("%s\n\n", err.Error())
@@ -75,6 +76,9 @@ func RequestSelection(message string, options []string, validate ValidatorFuncti
 		value, err := skipEOFError(getTextInput(promptMessage))
 		if err != nil {
 			return "", err
+		}
+		if validate == nil {
+			return value, nil
 		}
 		if err = validate(value); err != nil {
 			fmt.Printf("%s\n\n", err.Error())
