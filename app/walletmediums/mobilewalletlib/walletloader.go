@@ -48,15 +48,18 @@ func (lib *MobileWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *MobileWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener) error {
-	// create wrapper around sync ended listener to deactivate logging after syncing ends and publish any pending transactions
-	originalSyncEndedListener := listener.SyncEnded
-	syncEndedListener := func(err error) {
-		lib.walletLib.SetLogLevel("off")
-		lib.walletLib.PublishUnminedTransactions()
-		originalSyncEndedListener(err)
+func (lib *MobileWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+	if showLog {
+		lib.walletLib.SetLogLevel("info")
+
+		// create wrapper around sync ended listener to deactivate logging after syncing ends
+		originalSyncEndedListener := listener.SyncEnded
+		syncEndedListener := func(err error) {
+			lib.walletLib.SetLogLevel("off")
+			originalSyncEndedListener(err)
+		}
+		listener.SyncEnded = syncEndedListener
 	}
-	listener.SyncEnded = syncEndedListener
 
 	syncResponse := SpvSyncResponse{
 		walletLib: lib.walletLib,
@@ -64,9 +67,6 @@ func (lib *MobileWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener)
 		activeNet: lib.activeNet,
 	}
 	lib.walletLib.AddSyncResponse(syncResponse)
-
-	// log info messages to show progress report on terminal
-	lib.walletLib.SetLogLevel("info")
 
 	err := lib.walletLib.SpvSync("")
 	if err != nil {

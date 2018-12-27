@@ -3,7 +3,6 @@ package dcrwalletrpc
 import (
 	"fmt"
 	"github.com/raedahgroup/dcrcli/app"
-	"os"
 )
 
 func (c *WalletPRCClient) NetType() string {
@@ -33,9 +32,7 @@ func (c *WalletPRCClient) OpenWallet() error {
 	return nil
 }
 
-func (c *WalletPRCClient) CloseWallet() {
-	os.Exit(0)
-}
+func (c *WalletPRCClient) CloseWallet() {}
 
 func (c *WalletPRCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
@@ -43,6 +40,6 @@ func (c *WalletPRCClient) IsWalletOpen() bool {
 	return true
 }
 
-func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener) error {
+func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
 	return fmt.Errorf("not yet implemented")
 }

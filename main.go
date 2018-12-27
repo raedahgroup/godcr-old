@@ -1,6 +1,7 @@
 package main
 
-import 	(
+import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -44,14 +45,20 @@ func main() {
 	walletMiddleware := connectToWallet(appConfig)
 
 	// listen for shutdown signals and trigger walletMiddleware.CloseWallet
-	go listenForShutdown(walletMiddleware.CloseWallet)
+	ctx, cancel := context.WithCancel(context.Background())
+	shutdown := func() {
+		cancel()
+		walletMiddleware.CloseWallet()
+		os.Exit(1)
+	}
+	go listenForShutdown(shutdown)
 
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		web.StartHttpServer(walletMiddleware, appConfig.HTTPServerAddress)
+		web.StartHttpServer(walletMiddleware, appConfig.HTTPServerAddress, ctx)
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
 	} else {

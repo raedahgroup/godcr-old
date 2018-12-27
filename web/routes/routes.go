@@ -12,17 +12,21 @@ import (
 type Routes struct {
 	walletMiddleware    app.WalletMiddleware
 	templates map[string]*template.Template
+	blockchain *Blockchain
 }
 
-// Setup prepares page templates and creates route handlers
-func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) {
+// Setup prepares page templates and creates route handlers, returns wallet loader function
+func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() error {
 	routes := &Routes{
 		walletMiddleware:walletMiddleware,
 		templates: map[string]*template.Template{},
+		blockchain: &Blockchain{},
 	}
 
 	routes.loadTemplates()
 	router.Group(routes.handlers) // use router group for page handlers
+
+	return routes.loadWalletAndSyncBlockchain
 }
 
 func (routes *Routes) loadTemplates() {

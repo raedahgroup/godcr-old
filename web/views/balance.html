@@ -3,7 +3,7 @@
 {{ template "html-head" }}
 <body>
     <div class="body">
-        {{ template "header" }}
+        {{ template "header" .blockchainStatus }}
         <div class="content">
             <div class="container">
                 {{ if .error }}
