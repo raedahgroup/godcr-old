@@ -12,7 +12,7 @@
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Generate Receive Address</h5>
-                       <form method="POST" action="/generate-address" id="generate-form">
+                       <form id="generate-form">
                             <div class="row">
                                 <div class="col-md-9 col-sm-12">
                                   <div class="form-group">
@@ -57,19 +57,18 @@
     </style>
     <script>
         $(function(){
-            var form = $("#generate-form");
             $("#result-text").hide();
 
-            form.submit(function(e){
+            $("#generate-form").submit(function(e){
                 e.preventDefault()
                 $.ajax({
                     type: 'GET',
-                    url: '/receive/generate/' + $("#account").val(),
+                    url: '/generate-address/' + $("#account").val(),
                     data: {},
                     success: function(response) {
                         if (response.success) {
-                            $("#address").text(response.address)
-                            $("#result-img").html(response.imageStr)
+                            $("#address").text(response.address);
+                            $("#result-img").html(response.imageStr);
                             $("#result-text").show();
                         } else {
                             alert(response.message);
