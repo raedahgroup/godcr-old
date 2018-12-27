@@ -49,10 +49,11 @@ func (lib *MobileWalletLib) IsWalletOpen() bool {
 }
 
 func (lib *MobileWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener) error {
-	// create wrapper around sync ended listener to deactivate logging after syncing ends
+	// create wrapper around sync ended listener to deactivate logging after syncing ends and publish any pending transactions
 	originalSyncEndedListener := listener.SyncEnded
 	syncEndedListener := func(err error) {
 		lib.walletLib.SetLogLevel("off")
+		lib.walletLib.PublishUnminedTransactions()
 		originalSyncEndedListener(err)
 	}
 	listener.SyncEnded = syncEndedListener

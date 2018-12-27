@@ -19,12 +19,12 @@
                     <tbody>
                         {{ range $account := .accounts }}
                         <tr>
-                            <td>{{ $s.AccountName }}</td>
+                            <td>{{ $account.Name }}</td>
                             <td>
-                                {{ if eq .Total .Spendable }}
-                                {{ $s.Total }}
+                                {{ if eq $account.Balance.Total $account.Balance.Spendable }}
+                                {{ $account.Balance.Total }}
                                 {{ else }}
-                                Total {{ $s.Total }} (Spendable {{ $s.Spendable }})
+                                Total {{ $account.Balance.Total }} (Spendable {{ $account.Balance.Spendable }})
                                 {{ end }}
                             </td>
                         </tr>
