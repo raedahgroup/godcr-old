@@ -1,6 +1,9 @@
 package walletrpcclient
 
-import "github.com/decred/dcrd/dcrutil"
+import (
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/wire"
+)
 
 type ReceiveResult struct {
 	Address string
@@ -46,8 +49,22 @@ type Transaction struct {
 	Size          int                  `json:"size"`
 }
 
+type TxInput struct {
+	Value            dcrutil.Amount `json:"value"`
+	PreviousOutpoint wire.OutPoint  `json:"previousOutpoint"`
+}
+
+type TxOutput struct {
+	Address     string         `json:"address"`
+	Internal    bool           `json:"internal"`
+	Value       dcrutil.Amount `json:"value"`
+	ScriptClass string         `json:"scriptClass"`
+}
+
 type GetTransactionResponse struct {
-	BlockHash     string `json:"blockHash"`
-	Confirmations int32  `json:"confirmations"`
+	BlockHash     string     `json:"blockHash"`
+	Confirmations int32      `json:"confirmations"`
+	Inputs        []TxInput  `json:"inputs"`
+	Outputs       []TxOutput `json:"outputs"`
 	*Transaction
 }
