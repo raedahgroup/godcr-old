@@ -2,16 +2,11 @@ package mobilewalletlib
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/dcrcli/app/walletmediums"
 	"github.com/raedahgroup/mobilewallet"
-)
-
-const (
-	MainNetTargetTimePerBlock = 300
-	TestNetTargetTimePerBlock = 120
 )
 
 type SpvSyncResponse struct {
@@ -53,20 +48,7 @@ func (response SpvSyncResponse) OnSyncError(code int, err error) {
 }
 
 func (response SpvSyncResponse) calculateProgress(lastHeaderTime int64) {
-	var targetTimePerBlock int64
-	if response.activeNet.Params.Name == "mainnet" {
-		targetTimePerBlock = MainNetTargetTimePerBlock
-	} else {
-		targetTimePerBlock = TestNetTargetTimePerBlock
-	}
-
 	bestBlock := int64(response.walletLib.GetBestBlock())
-	estimatedBlocks := ((time.Now().Unix() - lastHeaderTime) / targetTimePerBlock) + bestBlock
-	fetchedPercentage := bestBlock / estimatedBlocks * 100
-
-	if fetchedPercentage >= 100 {
-		fetchedPercentage = 100
-	}
-
+	fetchedPercentage := walletmediums.CalculateBlockSyncProgress(response.activeNet.Params.Name, bestBlock, lastHeaderTime)
 	response.listener.OnHeadersFetched(fetchedPercentage)
 }

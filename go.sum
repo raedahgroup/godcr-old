@@ -164,6 +164,8 @@ github.com/decred/dcrwallet/pgpwordlist v1.0.0 h1:H7Y3+yRZq7PXMPfpKLMnY5TKTjTWhc
 github.com/decred/dcrwallet/pgpwordlist v1.0.0/go.mod h1:Fek3uYn+9DnEFIreA/8PnTIXUl2lBO64JpEBkL9BXtk=
 github.com/decred/dcrwallet/rpc/walletrpc v0.1.0 h1:lz6Gisglb6Gn+wbeyv+NRPYAdUjw29LdL7X+X00TRRo=
 github.com/decred/dcrwallet/rpc/walletrpc v0.1.0/go.mod h1:Zp1ZFTCUo7S6MJvUyS5tYfaDUxGAMHkZ+vbsLgAdd4A=
+github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08 h1:utxL1FSRN1Mpa6kLj/JRUYH8WdGYEYaRAWCAi+5s9rE=
+github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08/go.mod h1:Zp1ZFTCUo7S6MJvUyS5tYfaDUxGAMHkZ+vbsLgAdd4A=
 github.com/decred/dcrwallet/spv v1.0.0 h1:TrSDQ8689E5xAJLpBek85Z4ESJu3U4RiVz2Ne81LjLs=
 github.com/decred/dcrwallet/spv v1.0.0/go.mod h1:lz39nz9P/HVoxYa4XAT6ithyR3WgdF0oVu4jtFwnCxE=
 github.com/decred/dcrwallet/spv v1.0.1-0.20181120205657-8690f1096aa7 h1:woOLPZoO/gUWGUfXH2jJpUHCZVCMO9ssZTrp08e4oaA=
