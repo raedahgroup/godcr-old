@@ -8,6 +8,9 @@ import (
 	"net"
 	"sort"
 
+	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrd/txscript"
+
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
@@ -22,6 +25,7 @@ import (
 
 type Client struct {
 	walletServiceClient pb.WalletServiceClient
+	isTestNet           bool
 }
 
 func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
@@ -29,7 +33,7 @@ func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
 		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
 	}
 
-	c := &Client{}
+	c := &Client{isTestNet: isTestnet}
 	conn, err := c.connect(rpcAddress, rpcCert, noTLS)
 	if err != nil {
 		return nil, err
@@ -44,9 +48,8 @@ func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
 func defaultDcrWalletRPCAddress(isTestnet bool) string {
 	if isTestnet {
 		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
-	} else {
-		return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 	}
+	return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 }
 
 func (c *Client) connect(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
@@ -431,36 +434,71 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 }
 
 func (c *Client) GetTransaction(transactionHash string) (*GetTransactionResponse, error) {
-	ctx := context.Background()
-
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, err
 	}
-	getTransactionRequest := &pb.GetTransactionRequest{TransactionHash: hash[:]}
-	transactionResponse, err := c.walletServiceClient.GetTransaction(ctx, getTransactionRequest)
+	getTxRequest := &pb.GetTransactionRequest{TransactionHash: hash[:]}
+	getTxResponse, err := c.walletServiceClient.GetTransaction(context.Background(), getTxRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	transactionHex := fmt.Sprintf("%x", transactionResponse.GetTransaction().GetTransaction())
+	transactionHex := fmt.Sprintf("%x", getTxResponse.GetTransaction().GetTransaction())
 	msgTx, err := txhelpers.MsgTxFromHex(transactionHex)
 	if err != nil {
 		return nil, err
 	}
-	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
 
-	txInfos, err := c.processTransactions([]*pb.TransactionDetails{transactionResponse.GetTransaction()})
+	txInfos, err := c.processTransactions([]*pb.TransactionDetails{getTxResponse.GetTransaction()})
 	if err != nil {
 		return nil, err
 	}
 	transaction := txInfos[0]
-
+	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
 	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
 
+	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, getTxResponse.GetTransaction().GetCredits(), chainCfgParams(*c))
+	if err != nil {
+		return nil, err
+	}
 	return &GetTransactionResponse{
-		BlockHash:     fmt.Sprintf("%x", transactionResponse.GetBlockHash()),
-		Confirmations: transactionResponse.GetConfirmations(),
+		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
+		Confirmations: getTxResponse.GetConfirmations(),
 		Transaction:   transaction,
+		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
+		Outputs:       txOutputs,
 	}, nil
+}
+
+func chainCfgParams(c Client) *chaincfg.Params {
+	if c.isTestNet {
+		return &chaincfg.TestNet3Params
+	}
+	return &chaincfg.MainNetParams
+}
+
+func inputsFromMsgTxIn(txIn []*wire.TxIn) []TxInput {
+	txInputs := make([]TxInput, len(txIn))
+	for i, input := range txIn {
+		txInputs[i] = TxInput{Value: dcrutil.Amount(input.ValueIn), PreviousOutpoint: input.PreviousOutPoint}
+	}
+	return txInputs
+}
+
+func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*pb.TransactionDetails_Output, chainParams *chaincfg.Params) ([]TxOutput, error) {
+	txOutputs := make([]TxOutput, len(txOut))
+	for i, output := range txOut {
+		scriptClass, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
+		if err != nil {
+			return nil, err
+		}
+		txOutputs[i] = TxOutput{Value: dcrutil.Amount(output.Value), Address: addrs[0].String(), ScriptClass: scriptClass.String()}
+		for _, credit := range walletCredits {
+			if bytes.Equal(output.PkScript, credit.GetOutputScript()) {
+				txOutputs[i].Internal = credit.GetInternal()
+			}
+		}
+	}
+	return txOutputs, nil
 }
