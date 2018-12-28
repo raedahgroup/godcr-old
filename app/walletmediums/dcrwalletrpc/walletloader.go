@@ -38,7 +38,18 @@ func (c *WalletPRCClient) OpenWallet() error {
 	return nil
 }
 
-func (c *WalletPRCClient) CloseWallet() {}
+func (c *WalletPRCClient) CloseWallet() {
+	walletClosed := make(chan bool)
+
+	// walletLoader.CloseWallet causes program to exit abruptly, run in separate goroutine
+	go func() {
+		c.walletLoader.CloseWallet(context.Background(), &walletrpc.CloseWalletRequest{})
+		walletClosed <- true
+	}()
+
+	<- walletClosed
+	fmt.Println("Wallet closed")
+}
 
 func (c *WalletPRCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
