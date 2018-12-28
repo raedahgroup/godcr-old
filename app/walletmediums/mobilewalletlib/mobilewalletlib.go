@@ -17,7 +17,7 @@ type MobileWalletLib struct {
 func New(appDataDir string, netType string) *MobileWalletLib {
 	lw := mobilewallet.NewLibWallet(appDataDir, mobilewallet.DefaultDbDriver, netType)
 	lw.SetLogLevel("off")
-	lw.InitLoader(false)
+	lw.InitLoaderWithoutShutdownListener()
 
 	var activeNet *netparams.Params
 	if netType == "mainnet" {
