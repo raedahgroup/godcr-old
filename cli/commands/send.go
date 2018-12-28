@@ -3,41 +3,54 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/cli/io"
-	"github.com/raedahgroup/dcrcli/cli/walletclient"
+	"github.com/raedahgroup/dcrcli/cli/termio"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 // SendCommand lets the user send DCR.
 type SendCommand struct{}
 
+// Execute is a stub method to satisfy the commander interface, so that
+// it can be passed to the custom command handler which will inject the
+// necessary dependencies to run the command.
+func (h SendCommand) Execute(args []string) error {
+	return nil
+}
+
 // Execute runs the `send` command.
-func (s SendCommand) Execute(args []string) error {
-	res, err := send(walletclient.WalletClient, false)
+func (s SendCommand) Run(client *walletrpcclient.Client, args []string) error {
+	res, err := send(client, false)
 	if err != nil {
 		return err
 	}
-	io.PrintResult(io.StdoutWriter, res)
+	termio.PrintResult(termio.StdoutWriter, res)
 	return nil
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct{}
 
-// Execute runs the `send-custom` command.
-func (s SendCustomCommand) Execute(args []string) error {
-	res, err := send(walletclient.WalletClient, true)
-	if err != nil {
-		return err
-	}
-	io.PrintResult(io.StdoutWriter, res)
+// Execute is a stub method to satisfy the commander interface, so that
+// it can be passed to the custom command handler which will inject the
+// necessary dependencies to run the command.
+func (h SendCustomCommand) Execute(args []string) error {
 	return nil
 }
 
-func send(rpcclient *walletrpcclient.Client, custom bool) (*io.Response, error) {
+// Execute runs the `send-custom` command.
+func (s SendCustomCommand) Run(client *walletrpcclient.Client, args []string) error {
+	res, err := send(client, true)
+	if err != nil {
+		return err
+	}
+	termio.PrintResult(termio.StdoutWriter, res)
+	return nil
+}
+
+func send(rpcclient *walletrpcclient.Client, custom bool) (*termio.Response, error) {
 	var err error
 
-	sourceAccount, err := io.GetSendSourceAccount(rpcclient)
+	sourceAccount, err := termio.GetSendSourceAccount(rpcclient)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +65,12 @@ func send(rpcclient *walletrpcclient.Client, custom bool) (*io.Response, error) 
 		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := io.GetSendDestinationAddress(rpcclient)
+	destinationAddress, err := termio.GetSendDestinationAddress(rpcclient)
 	if err != nil {
 		return nil, err
 	}
 
-	sendAmount, err := io.GetSendAmount()
+	sendAmount, err := termio.GetSendAmount()
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +83,13 @@ func send(rpcclient *walletrpcclient.Client, custom bool) (*io.Response, error) 
 			return nil, err
 		}
 
-		utxoSelection, err = io.GetUtxosForNewTransaction(utxos, sendAmount)
+		utxoSelection, err = termio.GetUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	passphrase, err := io.GetWalletPassphrase()
+	passphrase, err := termio.GetWalletPassphrase()
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +106,7 @@ func send(rpcclient *walletrpcclient.Client, custom bool) (*io.Response, error) 
 		return nil, err
 	}
 
-	res := &io.Response{
+	res := &termio.Response{
 		Columns: []string{
 			"Result",
 			"Hash",

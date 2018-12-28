@@ -58,10 +58,6 @@ func LoadConfig() (Config, *flags.Parser, error) {
 	config := defaultConfig()
 
 	parser := flags.NewParser(&config, flags.HelpFlag)
-	// stub out the command handler so that the commands are not run at while loading configuration.
-	//parser.CommandHandler = func(command flags.Commander, args []string) error {
-	//	return nil
-	//}
 
 	_, err := parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
