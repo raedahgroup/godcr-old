@@ -117,7 +117,7 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 	}()
 
 	select {
-	case <- loadWalletDone:
+	case <-loadWalletDone:
 		if errMsg != "" {
 			fmt.Fprintln(os.Stderr, errMsg)
 		}
@@ -126,7 +126,7 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 		}
 		return err
 
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return ctx.Err()
 	}
 }

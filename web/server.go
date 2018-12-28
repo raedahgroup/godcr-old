@@ -82,7 +82,7 @@ func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddlewar
 	}()
 
 	select {
-	case <- loadWalletDone:
+	case <-loadWalletDone:
 		if errMsg != "" {
 			fmt.Fprintln(os.Stderr, errMsg)
 		}
@@ -91,7 +91,7 @@ func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddlewar
 		}
 		return err
 
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
@@ -137,7 +137,7 @@ func startServer(ctx context.Context, address string, router chi.Router) error {
 	case err := <-errChan:
 		fmt.Fprintf(os.Stderr, "Web server failed to start: %s\n", err.Error())
 		return err
-	case <- ctx.Done():
+	case <-ctx.Done():
 		fmt.Fprintln(os.Stderr, "Web server not started")
 		return ctx.Err()
 	case <-t.C:

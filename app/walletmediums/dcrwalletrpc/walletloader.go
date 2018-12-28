@@ -68,7 +68,7 @@ func (c *WalletPRCClient) CloseWallet() {
 		walletClosed <- true
 	}()
 
-	<- walletClosed
+	<-walletClosed
 	fmt.Println("Wallet closed")
 }
 
