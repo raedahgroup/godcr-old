@@ -1,8 +1,8 @@
 package cli
 
 import (
+	"context"
 	"fmt"
-	"os"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/dcrcli/app"
@@ -11,17 +11,22 @@ import (
 )
 
 // Run starts the app in cli interface mode
-func Run(walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
+func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) error {
 	if appConfig.CreateWallet {
-		createWallet(walletMiddleware)
-		os.Exit(0)
+		return createWallet(walletMiddleware)
 	}
 
 	// open wallet, subsequent operations including blockchain sync and command handlers need wallet to be open
-	openWallet(walletMiddleware)
+	err := openWallet(ctx, walletMiddleware)
+	if err != nil {
+		return err
+	}
 
 	if appConfig.SyncBlockchain {
-		syncBlockChain(walletMiddleware)
+		err = syncBlockChain(walletMiddleware)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Set the core wallet object that will be used by the command handlers
@@ -30,21 +35,17 @@ func Run(walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
 	// parser.Parse checks if a command is passed and invokes the Execute method of the command
 	// if no command is passed, parser.Parse returns an error of type ErrCommandRequired
 	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
-	_, err := parser.Parse()
-	if err == nil {
-		os.Exit(0)
-	}
+	_, err = parser.Parse()
 
 	// help flag error should have been caught and handled in config.LoadConfig, so only check for ErrCommandRequired
-	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
+	noCommandPassedError := config.IsFlagErrorType(err, flags.ErrCommandRequired)
 
-	if noCommandPassed && appConfig.SyncBlockchain {
-		// command mustn't be passed with --sync flag
-		os.Exit(0)
-	} else if noCommandPassed {
+	// command mustn't be passed with --sync flag
+	if noCommandPassedError && !appConfig.SyncBlockchain {
 		displayAvailableCommandsHelpMessage(parser)
-	} else {
+	} else if err != nil && !noCommandPassedError {
 		fmt.Println(err)
 	}
-	os.Exit(1)
+
+	return err
 }
