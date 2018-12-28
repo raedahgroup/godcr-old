@@ -23,6 +23,7 @@ func (s spvSync) streamBlockchainSyncUpdates(showLog bool) {
 
 	s.listener.SyncStarted()
 
+	// todo this seems to not be updating...
 	for {
 		update, err := s.client.Recv()
 		if err != nil {
