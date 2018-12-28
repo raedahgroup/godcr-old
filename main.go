@@ -32,12 +32,13 @@ func main() {
 	go listenForInterruptRequests()
 	go handleShutdown(shutdownWaitGroup)
 
-	// use ctx to monitor interface operation lifecycle
+	// use ctx to monitor potentially long running operations
+	// such operations should listen for ctx.Done and stop further processing
 	ctx, cancel := context.WithCancel(context.Background())
 	shutdownOps = append(shutdownOps, cancel)
 
 	// open connection to wallet and add wallet close function to shutdownOps
-	walletMiddleware := connectToWallet(appConfig)
+	walletMiddleware := connectToWallet(ctx, appConfig)
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	if appConfig.HTTPMode {
@@ -52,7 +53,7 @@ func main() {
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is mobilewallet library, alternative is dcrwallet rpc
-func connectToWallet(config *config.Config) app.WalletMiddleware {
+func connectToWallet(ctx context.Context, config *config.Config) app.WalletMiddleware {
 	var netType string
 	if config.UseTestNet {
 		netType = "testnet"
@@ -64,7 +65,7 @@ func connectToWallet(config *config.Config) app.WalletMiddleware {
 		return mobilewalletlib.New(config.AppDataDir, netType)
 	}
 
-	walletMiddleware, err := dcrwalletrpc.New(netType, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
+	walletMiddleware, err := dcrwalletrpc.New(ctx, netType, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
 		fmt.Println("Connect to dcrwallet rpc failed")
 		fmt.Println(err.Error())
@@ -80,13 +81,13 @@ func listenForInterruptRequests() {
 
 	// listen for the initial interrupt request and trigger shutdown signal
 	sig := <-interruptChannel
-	fmt.Printf("\nReceived %s signal. Shutting down...\n", sig)
+	fmt.Printf(" Received %s signal. Shutting down...\n", sig)
 	close(shutdownSignal)
 
 	// continue to listen for interrupt requests and log that shutdown has already been signaled
 	for {
 		<-interruptChannel
-		fmt.Println("Already shutting down... Please wait")
+		fmt.Println(" Already shutting down... Please wait")
 	}
 }
 
