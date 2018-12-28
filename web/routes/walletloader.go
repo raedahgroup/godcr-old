@@ -30,14 +30,32 @@ func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 
 // walletLoaderFn checks if wallet is not open, attempts to open it and also perform sync the blockchain
 // an error page is displayed and the actual route handler is not called, if ...
-// - an error occurs while opening wallet or syncing blockchain
+// - wallet doesn't exist (hasn't been created)
+// - wallet exists, but an error occurs while trying to open it or while syncing blockchain
 // - wallet is open but blockchain isn't synced
 func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		walletOpen := routes.walletMiddleware.IsWalletOpen()
+		// render error on page if errMsg != ""
+		var errMsg string
+		defer func() {
+			if errMsg != "" {
+				routes.renderError(errMsg, res)
+			}
+		}()
 
-		// wallet is not open, attempt to open wallet and sync blockchain
-		if !walletOpen {
+		// check if wallet exists
+		walletExists, err := routes.walletMiddleware.WalletExists()
+		if err != nil {
+			errMsg = fmt.Sprintf("Error checking for wallet: %s", err.Error())
+			return
+		}
+		if !walletExists {
+			routes.renderNoWalletError(res)
+			return
+		}
+
+		// if wallet is not open, attempt to open wallet and sync blockchain
+		if !routes.walletMiddleware.IsWalletOpen() {
 			err := routes.loadWalletAndSyncBlockchain()
 			if err != nil {
 				routes.renderError(err.Error(), res)
@@ -51,15 +69,13 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		case syncStatusSuccess:
 			next.ServeHTTP(res, req)
 		case syncStatusNotStarted:
-			routes.renderError("Cannot display page. Blockchain hasn't been synced", res)
+			errMsg = "Cannot display page. Blockchain hasn't been synced"
 		case syncStatusInProgress:
-			msg := fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
-			routes.renderError(msg, res)
+			errMsg = fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
 		case syncStatusError:
-			msg := fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
-			routes.renderError(msg, res)
+			errMsg = fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
 		default:
-			routes.renderError("Cannot display page. Blockchain sync status cannot be determined", res)
+			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
 		}
 	})
 }

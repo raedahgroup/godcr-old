@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (routes *Routes) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
+func (routes *Routes) render(tplName string, data interface{}, res http.ResponseWriter) {
 	if tpl, ok := routes.templates[tplName]; ok {
 		err := tpl.Execute(res, data)
 		if err != nil {
@@ -19,11 +19,17 @@ func (routes *Routes) render(tplName string, data map[string]interface{}, res ht
 }
 
 func (routes *Routes) renderError(errorMessage string, res http.ResponseWriter) {
-	errorTemplate := routes.templates["error.html"]
-	err := errorTemplate.Execute(res, errorMessage)
-	if err != nil {
-		log.Fatalf("error executing template: %s", err.Error())
+	data := map[string]interface{}{
+		"error": errorMessage,
 	}
+	routes.render("error.html", data, res)
+}
+
+func (routes *Routes) renderNoWalletError(res http.ResponseWriter) {
+	data := map[string]interface{}{
+		"noWallet": true,
+	}
+	routes.render("error.html", data, res)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {

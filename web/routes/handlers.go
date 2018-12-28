@@ -10,7 +10,35 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func (routes *Routes) BalancePage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
+	seed, err := routes.walletMiddleware.GenerateNewWalletSeed()
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error generating seed for new wallet: %s", err.Error()), res)
+		return
+	}
+
+	data := struct { Seed string }{ seed }
+	routes.render("createwallet.html", data, res)
+}
+
+func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	seed := req.FormValue("seed")
+	passhprase := req.FormValue("password")
+
+	err := routes.walletMiddleware.CreateWallet(passhprase, seed)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error creating wallet: %s", err.Error()), res)
+		return
+	}
+
+	// wallet created successfully, wallet is now open, perform first sync
+	routes.syncBlockchain()
+
+	http.Redirect(res, req, "/", 303)
+}
+
+func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	result, err := routes.walletMiddleware.AccountsOverview()
@@ -23,7 +51,7 @@ func (routes *Routes) BalancePage(res http.ResponseWriter, req *http.Request) {
 	routes.render("balance.html", data, res)
 }
 
-func (routes *Routes) SendPage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	accounts, err := routes.walletMiddleware.AccountsOverview()
@@ -36,7 +64,7 @@ func (routes *Routes) SendPage(res http.ResponseWriter, req *http.Request) {
 	routes.render("send.html", data, res)
 }
 
-func (routes *Routes) SubmitSendTxForm(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -75,7 +103,7 @@ func (routes *Routes) SubmitSendTxForm(res http.ResponseWriter, req *http.Reques
 	data["txHash"] = txHash
 }
 
-func (routes *Routes) ReceivePage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	accounts, err := routes.walletMiddleware.AccountsOverview()
@@ -88,7 +116,7 @@ func (routes *Routes) ReceivePage(res http.ResponseWriter, req *http.Request) {
 	routes.render("receive.html", data, res)
 }
 
-func (routes *Routes) GenerateReceiveAddress(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -123,7 +151,7 @@ func (routes *Routes) GenerateReceiveAddress(res http.ResponseWriter, req *http.
 	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
 }
 
-func (routes *Routes) GetUnspentOutputs(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
@@ -146,7 +174,7 @@ func (routes *Routes) GetUnspentOutputs(res http.ResponseWriter, req *http.Reque
 	data["message"] = utxos
 }
 
-func (routes *Routes) HistoryPage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
 	txns, err := routes.walletMiddleware.TransactionHistory()
