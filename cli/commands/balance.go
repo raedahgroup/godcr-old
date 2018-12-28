@@ -3,8 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/io"
-	"github.com/raedahgroup/dcrcli/cli/walletclient"
+	"github.com/raedahgroup/dcrcli/cli/termio"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
@@ -13,9 +12,16 @@ type BalanceCommand struct {
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed account balance report"`
 }
 
-// Execute runs the `balance` command, displaying the user's account balance.
+// Execute is a stub method to satisfy the commander interface, so that
+// it can be passed to the custom command handler which will inject the
+// necessary dependencies to run the command.
 func (balanceCommand BalanceCommand) Execute(args []string) error {
-	accountBalances, err := walletclient.WalletClient.Balance()
+	return nil
+}
+
+// Run runs the `balance` command, displaying the user's account balance.
+func (balanceCommand BalanceCommand) Run(client *walletrpcclient.Client, args []string) error {
+	accountBalances, err := client.Balance()
 	if err != nil {
 		return err
 	}
@@ -30,7 +36,7 @@ func (balanceCommand BalanceCommand) Execute(args []string) error {
 }
 
 func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult) {
-	res := &io.Response{
+	res := &termio.Response{
 		Columns: []string{
 			"Account",
 			"Total",
@@ -52,7 +58,7 @@ func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult
 		}
 	}
 
-	io.PrintResult(io.StdoutWriter, res)
+	termio.PrintResult(termio.StdoutWriter, res)
 }
 
 func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult) {
@@ -66,13 +72,13 @@ func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult)
 
 	if len(accountBalances) == 1 {
 		commandOutput := summarizeBalance(accountBalances[0].Total, accountBalances[0].Spendable)
-		io.PrintStringResult(commandOutput)
+		termio.PrintStringResult(commandOutput)
 	} else {
 		commandOutput := make([]string, len(accountBalances))
 		for i, accountBalance := range accountBalances {
 			balanceText := summarizeBalance(accountBalance.Total, accountBalance.Spendable)
 			commandOutput[i] = fmt.Sprintf("%s \t %s", accountBalance.AccountName, balanceText)
 		}
-		io.PrintStringResult(commandOutput...)
+		termio.PrintStringResult(commandOutput...)
 	}
 }

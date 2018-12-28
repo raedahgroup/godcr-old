@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/cli/walletclient"
 	"os"
 	"sort"
 	"strings"
@@ -41,11 +40,10 @@ func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 }
 
 func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
-	// Set the walletclient.Client object that will be used by the command handlers
-	walletclient.WalletClient = client
 	appRoot := cli.AppRoot{Config: appConfig}
 
 	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
+	parser.CommandHandler = cli.DefaultCommandHandler(client)
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.

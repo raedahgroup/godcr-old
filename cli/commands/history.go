@@ -1,21 +1,28 @@
 package commands
 
 import (
-	"github.com/raedahgroup/dcrcli/cli/io"
-	"github.com/raedahgroup/dcrcli/cli/walletclient"
+	"github.com/raedahgroup/dcrcli/cli/termio"
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct{}
 
-// Execute runs the `history` command.
+// Execute is a stub method to satisfy the commander interface, so that
+// it can be passed to the custom command handler which will inject the
+// necessary dependencies to run the command.
 func (h HistoryCommand) Execute(args []string) error {
-	transactions, err := walletclient.WalletClient.GetTransactions()
+	return nil
+}
+
+// Execute runs the `history` command.
+func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error {
+	transactions, err := client.GetTransactions()
 	if err != nil {
 		return err
 	}
 
-	res := &io.Response{
+	res := &termio.Response{
 		Columns: []string{
 			"Date",
 			"Amount (DCR)",
@@ -36,6 +43,6 @@ func (h HistoryCommand) Execute(args []string) error {
 		}
 	}
 
-	io.PrintResult(io.StdoutWriter, res)
+	termio.PrintResult(termio.StdoutWriter, res)
 	return nil
 }

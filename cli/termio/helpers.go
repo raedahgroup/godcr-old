@@ -1,4 +1,4 @@
-package io
+package termio
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/io/terminalprompt"
+	"github.com/raedahgroup/dcrcli/cli/termio/terminalprompt"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 

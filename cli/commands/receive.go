@@ -2,8 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli/io"
-	"github.com/raedahgroup/dcrcli/cli/walletclient"
+
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
+
+	"github.com/raedahgroup/dcrcli/cli/termio"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -14,14 +16,14 @@ type ReceiveCommand struct {
 	} `positional-args:"yes"`
 }
 
-// Execute runs the `receive` command.
-func (r ReceiveCommand) Execute(args []string) error {
+// Run runs the `receive` command.
+func (r ReceiveCommand) Run(client *walletrpcclient.Client, args []string) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if r.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = io.GetSendSourceAccount(walletclient.WalletClient)
+		accountNumber, err = termio.GetSendSourceAccount(client)
 		if err != nil {
 			return err
 		}
@@ -29,13 +31,13 @@ func (r ReceiveCommand) Execute(args []string) error {
 		// if an account name was passed in e.g. ./dcrcli receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = walletclient.WalletClient.AccountNumber(r.Args.Account)
+		accountNumber, err = client.AccountNumber(r.Args.Account)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveResult, err := walletclient.WalletClient.Receive(accountNumber)
+	receiveResult, err := client.Receive(accountNumber)
 	if err != nil {
 		return err
 	}
@@ -45,7 +47,7 @@ func (r ReceiveCommand) Execute(args []string) error {
 		return fmt.Errorf("Error generating QR Code: %s", err.Error())
 	}
 
-	res := &io.Response{
+	res := &termio.Response{
 		Columns: []string{
 			"Address",
 			"QR Code",
@@ -57,6 +59,13 @@ func (r ReceiveCommand) Execute(args []string) error {
 			},
 		},
 	}
-	io.PrintResult(io.StdoutWriter, res)
+	termio.PrintResult(termio.StdoutWriter, res)
+	return nil
+}
+
+// Execute is a stub method to satisfy the commander interface, so that
+// it can be passed to the custom command handler which will inject the
+// necessary dependencies to run the command.
+func (r ReceiveCommand) Execute(args []string) error {
 	return nil
 }
