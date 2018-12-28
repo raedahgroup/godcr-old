@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli/commands"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/jessevdk/go-flags"
 )
@@ -36,7 +34,6 @@ type Config struct {
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
-	commands.CliCommands
 }
 
 // defaultConfig an instance of Config with the defaults set.
@@ -56,40 +53,39 @@ func AppName() string {
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
-func LoadConfig() (*Config, *flags.Parser, error) {
+func LoadConfig() (Config, *flags.Parser, error) {
 	// load defaults first
 	config := defaultConfig()
 
 	parser := flags.NewParser(&config, flags.HelpFlag)
-
 	// stub out the command handler so that the commands are not run at while loading configuration.
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		return nil
-	}
+	//parser.CommandHandler = func(command flags.Commander, args []string) error {
+	//	return nil
+	//}
 
 	_, err := parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
-		return nil, parser, err
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+		return config, parser, err
 	}
 
 	if config.ShowVersion {
-		return nil, parser, fmt.Errorf(AppVersion())
+		return config, parser, fmt.Errorf(AppVersion())
 	}
 
 	// Load additional config from file
 	err = flags.NewIniParser(parser).ParseFile(config.ConfigFile)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			return nil, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
+			return config, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
 		}
-		return nil, parser, err
+		return config, parser, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
-		return nil, parser, err
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+		return config, parser, err
 	}
 
-	return &config, parser, nil
+	return config, parser, nil
 }

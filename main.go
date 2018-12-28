@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/dcrcli/cli/walletclient"
 	"os"
 	"sort"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/config"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	"github.com/raedahgroup/dcrcli/web"
@@ -39,11 +40,12 @@ func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 	web.StartHttpServer(serverAddress, client)
 }
 
-func enterCliMode(appConfig *config.Config, client *walletrpcclient.Client) {
-	// Set the walletrpcclient.Client object that will be used by the command handlers
-	cli.WalletClient = client
+func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
+	// Set the walletclient.Client object that will be used by the command handlers
+	walletclient.WalletClient = client
+	appRoot := cli.AppRoot{Config: appConfig}
 
-	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.

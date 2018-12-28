@@ -1,4 +1,4 @@
-package cli
+package io
 
 import (
 	"fmt"
@@ -8,9 +8,13 @@ import (
 	"text/tabwriter"
 )
 
-func tabWriter(w io.Writer) *tabwriter.Writer {
+//TabWriter creates a tabwriter object that writes tab-aligned text.
+func TabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 }
+
+// StdoutWriter writes tab-aligned text to os.Stdout
+var StdoutWriter = TabWriter(os.Stdout)
 
 // PrintResult formats and prints the content of `res` to `w`
 func PrintResult(w *tabwriter.Writer, res *Response) {
@@ -44,9 +48,15 @@ func PrintResult(w *tabwriter.Writer, res *Response) {
 
 // PrintStringResult prints simple string message(s) to a fresh instance of stdOut tabWriter
 func PrintStringResult(output ...string) {
-	writer := tabWriter(os.Stdout)
+	writer := TabWriter(os.Stdout)
 	for _, str := range output {
 		fmt.Fprintln(writer, str)
 	}
 	writer.Flush()
 }
+
+type Response struct {
+	Columns []string
+	Result  [][]interface{}
+}
+

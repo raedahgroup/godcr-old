@@ -1,4 +1,4 @@
-package cli
+package io
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"github.com/raedahgroup/dcrcli/cli/io/terminalprompt"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
