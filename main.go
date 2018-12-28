@@ -42,7 +42,10 @@ func main() {
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	if appConfig.HTTPMode {
-		web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		err := web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		if err != nil && ctx.Err() == nil {
+			close(shutdownSignal)
+		}
 	} else {
 		cli.Run(walletMiddleware, appConfig)
 	}
