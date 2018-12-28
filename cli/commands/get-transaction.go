@@ -9,7 +9,8 @@ import (
 
 // GetTransactionCommand requests for transaction details with a transaction hash.
 type GetTransactionCommand struct {
-	Args struct {
+	Detailed bool `short:"d" long:"detailed" description:"Display detailed transaction information"`
+	Args     struct {
 		Hash string `positional-arg-name:"transaction hash" required:"yes"`
 	} `positional-args:"yes"`
 }
@@ -20,7 +21,7 @@ func (g GetTransactionCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	output := "Transaction\t%s\t\n" +
+	basicOutput := "Transaction\t%s\t\n" +
 		"Confirmations\t%d\t\n" +
 		"Included in block\t%s\t\n" +
 		"Type\t%s\t\n" +
@@ -28,31 +29,35 @@ func (g GetTransactionCommand) Execute(args []string) error {
 		"Time\t%s\t\n" +
 		"Size\t%s\t\n" +
 		"Fee\t%s\t\n" +
-		"Rate\t%s/kB\t\n"
+		"Rate\t%s/kB\t"
 
 	txSize := fmt.Sprintf("%.1f kB", float64(transaction.Size)/1000)
-	output = fmt.Sprintf(output, transaction.Hash, transaction.Confirmations, transaction.BlockHash,
+	basicOutput = fmt.Sprintf(basicOutput, transaction.Hash, transaction.Confirmations, transaction.BlockHash,
 		transaction.Type, transaction.Amount, transaction.FormattedTime, txSize, transaction.Fee, transaction.Rate)
 
 	inputsBuilder := strings.Builder{}
-	inputsBuilder.Grow(len(transaction.Inputs))
-	txInputs := "Inputs\t\n"
-	inputsBuilder.WriteString(txInputs)
-	for _, input := range transaction.Inputs {
-		inputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Value))
-	}
-
 	outputsBuilder := strings.Builder{}
-	outputsBuilder.Grow(len(transaction.Outputs))
-	txOutputs := "Outputs\t\n"
-	outputsBuilder.WriteString(txOutputs)
-	for _, out := range transaction.Outputs {
-		outputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t%s", out.Address, out.ScriptClass, out.Value.String()))
-		if out.Internal {
-			outputsBuilder.WriteString(" (internal)")
+
+	if g.Detailed {
+		inputsBuilder.Grow(len(transaction.Inputs))
+		txInputs := "\nInputs\t\n"
+		inputsBuilder.WriteString(txInputs)
+		for _, input := range transaction.Inputs {
+			inputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Value))
 		}
-		outputsBuilder.WriteString("\t\n")
+		outputsBuilder.Grow(len(transaction.Outputs))
+		txOutputs := "Outputs\t\n"
+		outputsBuilder.WriteString(txOutputs)
+		for _, out := range transaction.Outputs {
+			outputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t%s", out.Address, out.ScriptClass, out.Value.String()))
+			if out.Internal {
+				outputsBuilder.WriteString(" (internal)")
+			}
+			outputsBuilder.WriteString("\t\n")
+		}
+		cli.PrintStringResult(basicOutput, inputsBuilder.String(), strings.TrimSpace(outputsBuilder.String()))
+	} else {
+		cli.PrintStringResult(basicOutput)
 	}
-	cli.PrintStringResult(output, inputsBuilder.String(), strings.TrimSpace(outputsBuilder.String()))
 	return nil
 }
