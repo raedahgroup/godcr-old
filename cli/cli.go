@@ -13,7 +13,7 @@ import (
 // Run starts the app in cli interface mode
 func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) error {
 	if appConfig.CreateWallet {
-		return createWallet(walletMiddleware)
+		return createWallet(ctx, walletMiddleware)
 	}
 
 	// open wallet, subsequent operations including blockchain sync and command handlers need wallet to be open
@@ -23,7 +23,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 	}
 
 	if appConfig.SyncBlockchain {
-		err = syncBlockChain(walletMiddleware)
+		err = syncBlockChain(ctx, walletMiddleware)
 		if err != nil {
 			return err
 		}
