@@ -9,6 +9,8 @@ import (
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/dcrcli/app"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (c *WalletPRCClient) NetType() string {
@@ -39,9 +41,15 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 	return fmt.Errorf("wallet should already be created by dcrwallet daemon")
 }
 
+// ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
+// or dcrcli opened the wallet without closing it
 func (c *WalletPRCClient) OpenWallet() error {
 	_, err := c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
 	if err != nil {
+		if e, ok := status.FromError(err); ok && e.Code() == codes.AlreadyExists {
+			// wallet already open
+			return nil
+		}
 		return err
 	}
 	return nil
