@@ -14,9 +14,9 @@ type CliCommands struct {
 	History    HistoryCommand    `command:"history" description:"show your transaction history"`
 }
 
-// WalletCommander defines an optional interface that application commands dependent on
+// WalletCommandRunner defines an optional interface that application commands dependent on
 // walletrpcclient.Client can satisfy in order to be provided their dependencies.
-type WalletCommander interface {
+type WalletCommandRunner interface {
 	Run(client *walletrpcclient.Client, args []string) error
 	flags.Commander
 }

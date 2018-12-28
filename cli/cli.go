@@ -20,7 +20,7 @@ type AppRoot struct {
 type CommandHandler func(flags.Commander, []string) error
 
 // DefaultCommandHandler provides a command handler that provides walletrpcclient.Client
-// to commands.WalletCommander types. Other command that satisfy flags.Commander and do not
+// to commands.WalletCommandRunner types. Other command that satisfy flags.Commander and do not
 // depend on walletrpcclient.Client will be run as well.
 // If the command does not satisfy any of these types, ErrNotSupported will be returned.
 func DefaultCommandHandler(client *walletrpcclient.Client) CommandHandler {
@@ -28,8 +28,8 @@ func DefaultCommandHandler(client *walletrpcclient.Client) CommandHandler {
 		if command == nil {
 			return fmt.Errorf("unsupported command")
 		}
-		if walletCommander, ok := command.(commands.WalletCommander); ok {
-			return walletCommander.Run(client, args)
+		if commandRunner, ok := command.(commands.WalletCommandRunner); ok {
+			return commandRunner.Run(client, args)
 		}
 		return command.Execute(args)
 	}
