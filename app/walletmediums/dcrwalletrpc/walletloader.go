@@ -43,16 +43,19 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 
 // ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
 // or dcrcli opened the wallet without closing it
-func (c *WalletPRCClient) OpenWallet() error {
-	_, err := c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
+func (c *WalletPRCClient) OpenWallet() (err error) {
+	defer func() {
+		c.walletOpen = err != nil
+	}()
+
+	_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
 	if err != nil {
 		if e, ok := status.FromError(err); ok && e.Code() == codes.AlreadyExists {
 			// wallet already open
-			return nil
+			err = nil
 		}
-		return err
 	}
-	return nil
+	return
 }
 
 // don't actually close dcrwallet
@@ -73,9 +76,7 @@ func (c *WalletPRCClient) CloseWallet() {
 }
 
 func (c *WalletPRCClient) IsWalletOpen() bool {
-	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
-	return true
+	return c.walletOpen
 }
 
 func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
@@ -108,10 +109,10 @@ func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	}
 
 	s := &spvSync{
-		listener:listener,
-		netType:c.netType,
-		client:syncStream,
-		bestBlock:int64(bestBlock.Height),
+		listener:  listener,
+		netType:   c.netType,
+		client:    syncStream,
+		bestBlock: int64(bestBlock.Height),
 	}
 
 	// receive sync updates from stream and send to listener in separate goroutine
