@@ -35,27 +35,21 @@ func (g GetTransactionCommand) Execute(args []string) error {
 	basicOutput = fmt.Sprintf(basicOutput, transaction.Hash, transaction.Confirmations, transaction.BlockHash,
 		transaction.Type, transaction.Amount, transaction.FormattedTime, txSize, transaction.Fee, transaction.Rate)
 
-	inputsBuilder := strings.Builder{}
-	outputsBuilder := strings.Builder{}
-
+	detailedOutput := strings.Builder{}
 	if g.Detailed {
-		inputsBuilder.Grow(len(transaction.Inputs))
-		txInputs := "\nInputs\t\n"
-		inputsBuilder.WriteString(txInputs)
+		detailedOutput.WriteString("\nInputs\t\n")
 		for _, input := range transaction.Inputs {
-			inputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Value))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Value))
 		}
-		outputsBuilder.Grow(len(transaction.Outputs))
-		txOutputs := "Outputs\t\n"
-		outputsBuilder.WriteString(txOutputs)
+		detailedOutput.WriteString("\nOutputs\t\n")
 		for _, out := range transaction.Outputs {
-			outputsBuilder.WriteString(fmt.Sprintf("%s\t%s\t%s", out.Address, out.ScriptClass, out.Value.String()))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t%s", out.Address, out.ScriptClass, out.Value.String()))
 			if out.Internal {
-				outputsBuilder.WriteString(" (internal)")
+				detailedOutput.WriteString(" (internal)")
 			}
-			outputsBuilder.WriteString("\t\n")
+			detailedOutput.WriteString("\t\n")
 		}
-		cli.PrintStringResult(basicOutput, inputsBuilder.String(), strings.TrimSpace(outputsBuilder.String()))
+		cli.PrintStringResult(basicOutput, strings.TrimRight(detailedOutput.String(), " \n\r"))
 	} else {
 		cli.PrintStringResult(basicOutput)
 	}
