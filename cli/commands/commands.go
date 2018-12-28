@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
@@ -17,5 +18,5 @@ type CliCommands struct {
 // walletrpcclient.Client can satisfy in order to be provided their dependencies.
 type WalletCommander interface {
 	Run(client *walletrpcclient.Client, args []string) error
-	Execute(args []string) error
+	flags.Commander
 }
