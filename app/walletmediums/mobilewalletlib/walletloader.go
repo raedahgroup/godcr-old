@@ -42,7 +42,6 @@ func (lib *MobileWalletLib) OpenWallet() error {
 
 func (lib *MobileWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
-	fmt.Println("Wallet closed")
 }
 
 func (lib *MobileWalletLib) IsWalletOpen() bool {
