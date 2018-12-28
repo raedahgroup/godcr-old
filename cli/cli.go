@@ -1,17 +1,13 @@
 package cli
 
 import (
-	"os"
-
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/dcrcli/cli/commands"
+	"github.com/raedahgroup/dcrcli/config"
 )
 
-type Response struct {
-	Columns []string
-	Result  [][]interface{}
+// AppRoot is the entrypoint to the cli application.
+// It defines both the commands and the options available.
+type AppRoot struct {
+	Commands commands.CliCommands
+	Config   config.Config
 }
-
-var (
-	WalletClient *walletrpcclient.Client
-	StdoutWriter = tabWriter(os.Stdout)
-)
