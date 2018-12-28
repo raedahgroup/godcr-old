@@ -17,7 +17,7 @@ func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	data := struct { Seed string }{ seed }
+	data := struct{ Seed string }{seed}
 	routes.render("createwallet.html", data, res)
 }
 
