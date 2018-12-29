@@ -104,7 +104,7 @@ func (routes *Routes) syncBlockchain() {
 
 	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
-			updateStatus("Starting blockchain sync...", syncStatusInProgress)
+			updateStatus("Blockchain sync started...", syncStatusInProgress)
 		},
 		SyncEnded: func(err error) {
 			if err != nil {
