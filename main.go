@@ -14,10 +14,14 @@ import (
 )
 
 func main() {
-	appConfig, parser, err := config.LoadConfig()
+	args, appConfig, parser, err := config.LoadConfig(true)
 	if err != nil {
 		handleParseError(err, parser)
 		os.Exit(1)
+	}
+	if appConfig.ShowVersion {
+		fmt.Println(config.AppVersion())
+		os.Exit(0)
 	}
 
 	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
@@ -28,6 +32,10 @@ func main() {
 	}
 
 	if appConfig.HTTPMode {
+		if len(args) > 0 {
+			fmt.Println("cannot use --http with a command")
+			os.Exit(1)
+		}
 		enterHTTPMode(appConfig.HTTPServerAddress, client)
 	} else {
 		enterCliMode(appConfig, client)
