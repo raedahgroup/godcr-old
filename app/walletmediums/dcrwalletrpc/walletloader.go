@@ -3,6 +3,7 @@ package dcrwalletrpc
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -46,12 +47,16 @@ func (c *WalletPRCClient) OpenWallet() error {
 	return nil
 }
 
+// don't actually close dcrwallet
+// - if wallet wasn't opened by dcrcli, closing it could cause troubles for user
+// - even if wallet was opened by dcrcli, closing it without closing dcrwallet would cause troubles for user when they next launch dcrcli
 func (c *WalletPRCClient) CloseWallet() {
 	walletClosed := make(chan bool)
 
 	// walletLoader.CloseWallet causes program to exit abruptly, run in separate goroutine
 	go func() {
-		c.walletLoader.CloseWallet(context.Background(), &walletrpc.CloseWalletRequest{})
+		//c.walletLoader.CloseWallet(context.Background(), &walletrpc.CloseWalletRequest{})
+		time.Sleep(500 * time.Millisecond)
 		walletClosed <- true
 	}()
 
