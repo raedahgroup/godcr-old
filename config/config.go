@@ -53,35 +53,51 @@ func AppName() string {
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
-func LoadConfig() (Config, *flags.Parser, error) {
+// It returns any non-option arguments encountered, the Config parsed, the parser used, and any
+// error, except errors of type flags.ErrHelp.
+// If ignoreUnknownOptions is true, then unknown options seen on the command line are ignored.
+// However, unknown options in the configuration file must return an error.
+func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
 	// load defaults first
 	config := defaultConfig()
 
 	parser := flags.NewParser(&config, flags.HelpFlag)
-
-	_, err := parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return config, parser, err
+	if ignoreUnknownOptions {
+		parser.Options = parser.Options | flags.IgnoreUnknown
 	}
 
-	if config.ShowVersion {
-		return config, parser, fmt.Errorf(AppVersion())
+	args, err := parser.Parse()
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+		return args, config, parser, err
 	}
 
 	// Load additional config from file
-	err = flags.NewIniParser(parser).ParseFile(config.ConfigFile)
+	err = parseConfigFile(parser, config.ConfigFile)
 	if err != nil {
-		if _, ok := err.(*os.PathError); !ok {
-			return config, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
-		}
-		return config, parser, err
+		return args, config, parser, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
-	_, err = parser.Parse()
+	args, err = parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return config, parser, err
+		return args, config, parser, err
 	}
 
-	return config, parser, nil
+	return args, config, parser, nil
+}
+
+func parseConfigFile(parser *flags.Parser, file string) error {
+	if (parser.Options & flags.IgnoreUnknown) != flags.None {
+		options := parser.Options
+		parser.Options = flags.IgnoreUnknown
+		defer func() { parser.Options = options }()
+	}
+	err := flags.NewIniParser(parser).ParseFile(file)
+	if err != nil {
+		if _, ok := err.(*os.PathError); !ok {
+			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
+		}
+		return err
+	}
+	return nil
 }
