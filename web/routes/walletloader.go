@@ -103,7 +103,7 @@ func (routes *Routes) syncBlockchain() {
 	}, false)
 
 	if err != nil {
-		updateStatus(fmt.Sprintf("Blockchain sync error: %s", err.Error()), syncStatusError)
+		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), syncStatusError)
 	}
 }
 
