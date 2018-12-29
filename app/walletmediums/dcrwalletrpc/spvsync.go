@@ -8,10 +8,10 @@ import (
 )
 
 type spvSync struct {
-	client walletrpc.WalletLoaderService_SpvSyncClient
+	client    walletrpc.WalletLoaderService_SpvSyncClient
 	bestBlock int64
-	listener *app.BlockChainSyncListener
-	netType string
+	listener  *app.BlockChainSyncListener
+	netType   string
 }
 
 func (s spvSync) streamBlockchainSyncUpdates(showLog bool) {

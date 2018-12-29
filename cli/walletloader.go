@@ -158,9 +158,9 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	}()
 
 	select {
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return ctx.Err()
-	case err := <- syncDone:
+	case err := <-syncDone:
 		return err
 	}
 }
