@@ -48,7 +48,7 @@ func (response SpvSyncResponse) OnSynced(synced bool) {
 	response.listener.SyncEnded(err)
 }
 func (response SpvSyncResponse) OnSyncError(code int, err error) {
-	e := fmt.Errorf("Error syncing. Code: %d, Error: %s", code, err.Error())
+	e := fmt.Errorf("Code: %d, Error: %s", code, err.Error())
 	response.listener.SyncEnded(e)
 }
 
