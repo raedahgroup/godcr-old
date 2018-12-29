@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrcli/cli/termio"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
@@ -9,14 +10,8 @@ import (
 
 // BalanceCommand displays the user's account balance.
 type BalanceCommand struct {
+	CommanderStub
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed account balance report"`
-}
-
-// Execute is a stub method to satisfy the commander interface, so that
-// it can be passed to the custom command handler which will inject the
-// necessary dependencies to run the command.
-func (balanceCommand BalanceCommand) Execute(args []string) error {
-	return nil
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
@@ -36,19 +31,17 @@ func (balanceCommand BalanceCommand) Run(client *walletrpcclient.Client, args []
 }
 
 func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult) {
-	res := &termio.Response{
-		Columns: []string{
-			"Account",
-			"Total",
-			"Spendable",
-			"Locked By Tickets",
-			"Voting Authority",
-			"Unconfirmed",
-		},
-		Result: make([][]interface{}, len(accountBalances)),
+	columns := []string{
+		"Account",
+		"Total",
+		"Spendable",
+		"Locked By Tickets",
+		"Voting Authority",
+		"Unconfirmed",
 	}
+	rows := make([][]interface{}, len(accountBalances))
 	for i, account := range accountBalances {
-		res.Result[i] = []interface{}{
+		rows[i] = []interface{}{
 			account.AccountName,
 			account.Total,
 			account.Spendable,
@@ -58,7 +51,7 @@ func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult
 		}
 	}
 
-	termio.PrintResult(termio.StdoutWriter, res)
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 }
 
 func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult) {

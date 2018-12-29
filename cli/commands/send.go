@@ -8,71 +8,51 @@ import (
 )
 
 // SendCommand lets the user send DCR.
-type SendCommand struct{}
-
-// Execute is a stub method to satisfy the commander interface, so that
-// it can be passed to the custom command handler which will inject the
-// necessary dependencies to run the command.
-func (h SendCommand) Execute(args []string) error {
-	return nil
+type SendCommand struct {
+	CommanderStub
 }
 
-// Execute runs the `send` command.
+// Run runs the `send` command.
 func (s SendCommand) Run(client *walletrpcclient.Client, args []string) error {
-	res, err := send(client, false)
-	if err != nil {
-		return err
-	}
-	termio.PrintResult(termio.StdoutWriter, res)
-	return nil
+	return send(client, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
-type SendCustomCommand struct{}
-
-// Execute is a stub method to satisfy the commander interface, so that
-// it can be passed to the custom command handler which will inject the
-// necessary dependencies to run the command.
-func (h SendCustomCommand) Execute(args []string) error {
-	return nil
+type SendCustomCommand struct {
+	CommanderStub
 }
 
-// Execute runs the `send-custom` command.
+// Run runs the `send-custom` command.
 func (s SendCustomCommand) Run(client *walletrpcclient.Client, args []string) error {
-	res, err := send(client, true)
-	if err != nil {
-		return err
-	}
-	termio.PrintResult(termio.StdoutWriter, res)
-	return nil
+	return send(client, true)
 }
 
-func send(rpcclient *walletrpcclient.Client, custom bool) (*termio.Response, error) {
+func send(rpcclient *walletrpcclient.Client, custom bool) error {
 	var err error
 
 	sourceAccount, err := termio.GetSendSourceAccount(rpcclient)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
 	accountBalance, err := rpcclient.SingleAccountBalance(sourceAccount, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if accountBalance.Total == 0 {
-		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
+		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
 	destinationAddress, err := termio.GetSendDestinationAddress(rpcclient)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sendAmount, err := termio.GetSendAmount()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var utxoSelection []string
@@ -80,18 +60,18 @@ func send(rpcclient *walletrpcclient.Client, custom bool) (*termio.Response, err
 		// get all utxos in account, pass 0 amount to get all
 		utxos, err := rpcclient.UnspentOutputs(sourceAccount, 0)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		utxoSelection, err = termio.GetUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	passphrase, err := termio.GetWalletPassphrase()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var result *walletrpcclient.SendResult
@@ -103,21 +83,20 @@ func send(rpcclient *walletrpcclient.Client, custom bool) (*termio.Response, err
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	res := &termio.Response{
-		Columns: []string{
-			"Result",
-			"Hash",
-		},
-		Result: [][]interface{}{
-			[]interface{}{
-				"The transaction was published successfully",
-				result.TransactionHash,
-			},
+	columns := []string{
+		"Result",
+		"Hash",
+	}
+	rows := [][]interface{}{
+		[]interface{}{
+			"The transaction was published successfully",
+			result.TransactionHash,
 		},
 	}
 
-	return res, nil
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
+	return nil
 }

@@ -6,13 +6,8 @@ import (
 )
 
 // HistoryCommand enables the user view their transaction history.
-type HistoryCommand struct{}
-
-// Execute is a stub method to satisfy the commander interface, so that
-// it can be passed to the custom command handler which will inject the
-// necessary dependencies to run the command.
-func (h HistoryCommand) Execute(args []string) error {
-	return nil
+type HistoryCommand struct {
+	CommanderStub
 }
 
 // Execute runs the `history` command.
@@ -22,19 +17,17 @@ func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error
 		return err
 	}
 
-	res := &termio.Response{
-		Columns: []string{
-			"Date",
-			"Amount (DCR)",
-			"Direction",
-			"Hash",
-			"Type",
-		},
-		Result: make([][]interface{}, len(transactions)),
+	columns := []string{
+		"Date",
+		"Amount (DCR)",
+		"Direction",
+		"Hash",
+		"Type",
 	}
+	rows := make([][]interface{}, len(transactions))
 
 	for i, tx := range transactions {
-		res.Result[i] = []interface{}{
+		rows[i] = []interface{}{
 			tx.FormattedTime,
 			tx.Amount,
 			tx.Direction,
@@ -43,6 +36,6 @@ func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error
 		}
 	}
 
-	termio.PrintResult(termio.StdoutWriter, res)
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 	return nil
 }

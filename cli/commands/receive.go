@@ -3,14 +3,14 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-
 	"github.com/raedahgroup/dcrcli/cli/termio"
-	"github.com/skip2/go-qrcode"
+	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 // ReceiveCommand generates and address for a user to receive DCR.
 type ReceiveCommand struct {
+	CommanderStub
 	Args struct {
 		Account string `positional-arg-name:"account"`
 	} `positional-args:"yes"`
@@ -47,25 +47,16 @@ func (r ReceiveCommand) Run(client *walletrpcclient.Client, args []string) error
 		return fmt.Errorf("Error generating QR Code: %s", err.Error())
 	}
 
-	res := &termio.Response{
-		Columns: []string{
-			"Address",
-			"QR Code",
-		},
-		Result: [][]interface{}{
-			[]interface{}{
-				receiveResult.Address,
-				qr.ToString(true),
-			},
+	columns := []string{
+		"Address",
+		"QR Code",
+	}
+	rows := [][]interface{}{
+		[]interface{}{
+			receiveResult.Address,
+			qr.ToString(true),
 		},
 	}
-	termio.PrintResult(termio.StdoutWriter, res)
-	return nil
-}
-
-// Execute is a stub method to satisfy the commander interface, so that
-// it can be passed to the custom command handler which will inject the
-// necessary dependencies to run the command.
-func (r ReceiveCommand) Execute(args []string) error {
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 	return nil
 }

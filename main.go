@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/config"
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 	"github.com/raedahgroup/dcrcli/web"
@@ -43,7 +43,7 @@ func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
 	appRoot := cli.AppRoot{Config: appConfig}
 
 	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
-	parser.CommandHandler = cli.DefaultCommandHandler(client)
+	parser.CommandHandler = cli.CommandHandlerWrapper(client)
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.
