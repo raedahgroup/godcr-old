@@ -10,17 +10,17 @@ import (
 
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
-	walletMiddleware    app.WalletMiddleware
-	templates map[string]*template.Template
-	blockchain *Blockchain
+	walletMiddleware app.WalletMiddleware
+	templates        map[string]*template.Template
+	blockchain       *Blockchain
 }
 
 // Setup prepares page templates and creates route handlers, returns wallet loader function
 func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() error {
 	routes := &Routes{
-		walletMiddleware:walletMiddleware,
-		templates: map[string]*template.Template{},
-		blockchain: &Blockchain{},
+		walletMiddleware: walletMiddleware,
+		templates:        map[string]*template.Template{},
+		blockchain:       &Blockchain{},
 	}
 
 	routes.loadTemplates()

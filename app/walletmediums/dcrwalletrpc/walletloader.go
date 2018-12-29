@@ -1,7 +1,9 @@
 package dcrwalletrpc
 
 import (
+	"context"
 	"fmt"
+	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrcli/app"
 )
 
@@ -10,9 +12,11 @@ func (c *WalletPRCClient) NetType() string {
 }
 
 func (c *WalletPRCClient) WalletExists() (bool, error) {
-	// for now, assume that a wallet has been created since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do confirm
-	return true, nil
+	res, err := c.walletLoader.WalletExists(context.Background(), &walletrpc.WalletExistsRequest{})
+	if err != nil {
+		return false, err
+	}
+	return res.Exists, nil
 }
 
 func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
