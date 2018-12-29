@@ -38,8 +38,10 @@ func getPasswordInput(prompt string) (string, error) {
 	go func() {
 		<-signalChannel
 		setTerminalEcho(true)
-		os.Exit(1)
 	}()
+
+	// when this function returns (after reading password input), stop listening for interrupt requests on `signalChannel`
+	defer signal.Stop(signalChannel)
 
 	// disable terminal echo
 	setTerminalEcho(false)
