@@ -19,6 +19,7 @@ type WalletPRCClient struct {
 	walletLoader  walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
 	activeNet     *chaincfg.Params
+	walletOpen    bool
 }
 
 type rpcConnectionResult struct {
