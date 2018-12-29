@@ -61,6 +61,7 @@ func send(walletrpcclient *rpcclient.Client, custom bool) (*response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if accountBalance.Total == 0 {
 		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}

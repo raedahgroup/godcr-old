@@ -27,12 +27,12 @@ Click on assets and download the package for your operating system.
 * After downloading the file, unzip or unpack the file then [follow this link](https://docs.decred.org/wallets/cli/cli-installation/)
  to install, setup and run drcd and dcrwallet on your machine.
 
-* Clone this repo to somewhere on your computer. Please set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`.
+* Clone this repo to somewhere on your computer. Set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`.
 
 ##### Example of obtaining and building from source in Linux 
 ```bash 
-$ git clone https://github.com/raedahgroup/dcrcli ~/src/dcrcli 
-$ cd ~/src/dcrcli 
+$ git clone https://github.com/raedahgroup/dcrcli
+$ cd dcrcli
 $ go install or GO111MODULE=on go install   (if you are building from within `GOPATH`)
 ```
 
