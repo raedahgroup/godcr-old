@@ -35,17 +35,29 @@ func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
 }
 
 func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
-	// since we're connecting through dcrwallet daemon, assume that the wallet's already been created
-	// calling create again should return an error
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
-	return fmt.Errorf("wallet should already be created by dcrwallet daemon")
+	seedBytes, err := walletseed.DecodeUserInput(seed)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.walletLoader.CreateWallet(context.Background(), &walletrpc.CreateWalletRequest{
+		PrivatePassphrase: []byte(passphrase),
+		Seed: seedBytes,
+	})
+
+	// wallet will be opened if the create operation was successful
+	if err == nil {
+		c.walletOpen = true
+	}
+
+	return err
 }
 
 // ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
 // or dcrcli opened the wallet without closing it
 func (c *WalletPRCClient) OpenWallet() (err error) {
 	defer func() {
-		c.walletOpen = err != nil
+		c.walletOpen = err == nil
 	}()
 
 	_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
