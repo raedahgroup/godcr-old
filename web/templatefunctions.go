@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 func templateFuncMap() template.FuncMap {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 
 	"github.com/go-chi/chi"
 	qrcode "github.com/skip2/go-qrcode"

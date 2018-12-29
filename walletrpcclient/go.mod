@@ -1,4 +1,4 @@
-module github.com/raedahgroup/dcrcli/walletrpcclient
+module github.com/raedahgroup/godcr/walletrpcclient
 
 require (
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1

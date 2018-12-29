@@ -3,7 +3,7 @@ package cli
 import (
 	"os"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 type Response struct {

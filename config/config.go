@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli/commands"
+	"github.com/raedahgroup/godcr/cli/commands"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/jessevdk/go-flags"

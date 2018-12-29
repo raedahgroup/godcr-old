@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/godcr/cli"
 	qrcode "github.com/skip2/go-qrcode"
 )
 

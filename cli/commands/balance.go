@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // BalanceCommand displays the user's account balance.

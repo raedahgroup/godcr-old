@@ -4,6 +4,7 @@
 .idea/
 vendor/
 dcrcli
+godcr
 go.mod
 go.sum
 dcrcli.conf

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/godcr/cli"
 )
 
 // HistoryCommand enables the user view their transaction history.
