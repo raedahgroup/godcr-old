@@ -21,8 +21,8 @@ import (
 
 	"github.com/raedahgroup/dcrcli/app"
 	"github.com/raedahgroup/dcrcli/app/config"
-	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/web"
 	"os"

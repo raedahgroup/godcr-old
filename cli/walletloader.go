@@ -77,16 +77,17 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 }
 
 // openWallet is called whenever an action to be executed requires wallet to be loaded
-// exits the program if wallet doesn't exist or some other error occurs
+// notifies the program to exit if wallet doesn't exist or some other error occurs by returning a non-nil error
 //
 // this method may stall until previous dcrcli instances are closed (especially in cases of multiple mobilewallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
 func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	// notify user of the current operation so if takes too long, they have an idea what the cause is
-	fmt.Println("Opening wallet...")
+	fmt.Println("Looking for wallets...")
 
 	var err error
 	var errMsg string
+	var noWalletFound bool
 	loadWalletDone := make(chan bool)
 
 	go func() {
@@ -102,8 +103,7 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 		}
 
 		if !walletExists {
-			netType := strings.Title(walletMiddleware.NetType())
-			errMsg = fmt.Sprintf("%s wallet does not exist. Create it using '%s --createwallet'", netType, app.Name())
+			noWalletFound = true
 			return
 		}
 
@@ -115,6 +115,10 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 
 	select {
 	case <-loadWalletDone:
+		if noWalletFound {
+			return attemptToCreateWallet(ctx, walletMiddleware)
+		}
+
 		if errMsg != "" {
 			fmt.Fprintln(os.Stderr, errMsg)
 		}
@@ -126,6 +130,32 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	createWalletPrompt := "No wallet found. Would you like to create one now? [y/N]"
+	validateUserResponse := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		userResponse = strings.Trim(userResponse, `"`)
+		if userResponse == "" || strings.EqualFold("y", userResponse) || strings.EqualFold("N", userResponse) {
+			return nil
+		} else {
+			return fmt.Errorf("invalid option, try again")
+		}
+	}
+
+	userResponse, err := terminalprompt.RequestInput(createWalletPrompt, validateUserResponse)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		return err
+	}
+
+	if userResponse == "" || strings.EqualFold("N", userResponse) {
+		fmt.Println("Maybe later. Bye.")
+		return fmt.Errorf("Wallet doesn't exist")
+	}
+
+	return createWallet(ctx, walletMiddleware)
 }
 
 // syncBlockChain uses the WalletMiddleware provided to download block updates
