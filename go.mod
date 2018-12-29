@@ -7,7 +7,7 @@ require (
 	github.com/decred/dcrd/hdkeychain v1.1.1
 	github.com/decred/dcrd/wire v1.2.0
 	github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7
-	github.com/decred/dcrwallet/rpc/walletrpc v0.1.0
+	github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08
 	github.com/decred/dcrwallet/walletseed v1.0.0
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
