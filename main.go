@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"os"
 	"strings"
 
@@ -24,6 +25,10 @@ import (
 	"github.com/raedahgroup/dcrcli/app/walletmediums/mobilewalletlib"
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/web"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
 
 // triggered after successful program execution or if interrupt signal is received
@@ -63,23 +68,31 @@ func main() {
 	walletMiddleware := connectToWallet(ctx, appConfig)
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
+	var err error
+
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		err := web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
-		if err != nil && ctx.Err() == nil {
-			close(shutdownSignal)
-		}
+		err = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
 	} else {
-		cli.Run(walletMiddleware, appConfig)
+		err = cli.Run(ctx, walletMiddleware, appConfig)
+	}
+
+	if err != nil && ctx.Err() == nil {
+		close(shutdownSignal)
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
+	if err != nil {
+		// process didn't end properly
+		fmt.Println("error", err.Error())
+		os.Exit(1)
+	}
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware

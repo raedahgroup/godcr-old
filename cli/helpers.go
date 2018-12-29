@@ -37,11 +37,3 @@ func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
 	sort.Strings(commandNames)
 	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
 }
-
-func printErrorAndExit(message string, err error) {
-	fmt.Fprintln(os.Stderr, message)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
-	os.Exit(1)
-}
