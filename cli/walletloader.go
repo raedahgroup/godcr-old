@@ -3,10 +3,11 @@ package cli
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/dcrcli/app"
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
 	"os"
 	"strings"
+
+	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
 )
 
 // createWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
@@ -70,9 +71,30 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 		fmt.Fprintf(os.Stderr, "Error creating wallet: %s", err.Error())
 		return
 	}
-	fmt.Println("Your wallet has been created successfully")
+	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
 
-	// perform first blockchain sync after creating wallet
+	// sync blockchain?
+	syncBlockchainPrompt := "Would you like to sync the blockchain now? (Y/n)"
+	validateUserResponse := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		userResponse = strings.Trim(userResponse, `"`)
+		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
+			return nil
+		} else {
+			return fmt.Errorf("invalid option, try again")
+		}
+	}
+
+	syncBlockchainResponse, err := terminalprompt.RequestInput(syncBlockchainPrompt, validateUserResponse)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		return err
+	}
+
+	if strings.EqualFold("n", syncBlockchainResponse) {
+		return nil
+	}
+
 	return syncBlockChain(ctx, walletMiddleware)
 }
 
@@ -81,13 +103,11 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 //
 // this method may stall until previous dcrcli instances are closed (especially in cases of multiple mobilewallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
-func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
 	// notify user of the current operation so if takes too long, they have an idea what the cause is
 	fmt.Println("Looking for wallets...")
 
-	var err error
 	var errMsg string
-	var noWalletFound bool
 	loadWalletDone := make(chan bool)
 
 	go func() {
@@ -95,15 +115,12 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 			loadWalletDone <- true
 		}()
 
-		var walletExists bool
 		walletExists, err = walletMiddleware.WalletExists()
 		if err != nil {
 			errMsg = fmt.Sprintf("Error checking %s wallet", walletMiddleware.NetType())
 			return
 		}
-
 		if !walletExists {
-			noWalletFound = true
 			return
 		}
 
@@ -115,8 +132,9 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 
 	select {
 	case <-loadWalletDone:
-		if noWalletFound {
-			return attemptToCreateWallet(ctx, walletMiddleware)
+		if !walletExists {
+			err = attemptToCreateWallet(ctx, walletMiddleware)
+			return
 		}
 
 		if errMsg != "" {
@@ -125,15 +143,16 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
-		return err
+		return
 
 	case <-ctx.Done():
-		return ctx.Err()
+		err = ctx.Err()
+		return
 	}
 }
 
 func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	createWalletPrompt := "No wallet found. Would you like to create one now? [y/N]"
+	createWalletPrompt := "No wallet found. Would you like to create one now? (y/N)"
 	validateUserResponse := func(userResponse string) error {
 		userResponse = strings.TrimSpace(userResponse)
 		userResponse = strings.Trim(userResponse, `"`)
@@ -143,7 +162,6 @@ func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddl
 			return fmt.Errorf("invalid option, try again")
 		}
 	}
-
 	userResponse, err := terminalprompt.RequestInput(createWalletPrompt, validateUserResponse)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
@@ -152,7 +170,7 @@ func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddl
 
 	if userResponse == "" || strings.EqualFold("N", userResponse) {
 		fmt.Println("Maybe later. Bye.")
-		return fmt.Errorf("Wallet doesn't exist")
+		return nil
 	}
 
 	return createWallet(ctx, walletMiddleware)

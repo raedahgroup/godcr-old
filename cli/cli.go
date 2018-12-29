@@ -71,8 +71,8 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 	}
 
 	// open wallet, subsequent operations including blockchain sync and command handlers need wallet to be open
-	err := openWallet(ctx, walletMiddleware)
-	if err != nil {
+	walletExists, err := openWallet(ctx, walletMiddleware)
+	if err != nil || !walletExists {
 		return err
 	}
 
