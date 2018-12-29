@@ -14,7 +14,7 @@ import (
 	"github.com/raedahgroup/dcrcli/web/routes"
 )
 
-func StartHttpServer(walletMiddleware app.WalletMiddleware, address string, ctx context.Context) {
+func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) {
 	router := chi.NewRouter()
 
 	// setup static file serving
@@ -26,9 +26,9 @@ func StartHttpServer(walletMiddleware app.WalletMiddleware, address string, ctx 
 	loadWalletAndSyncBlockchain := routes.Setup(walletMiddleware, router)
 
 	fmt.Println("Starting web server")
-	err := startServer(address, router)
+	err := startServer(ctx, address, router)
 	if err != nil {
-		os.Exit(1)
+		return
 	}
 
 	// check if context has been canceled before attempting to load wallet
@@ -37,7 +37,7 @@ func StartHttpServer(walletMiddleware app.WalletMiddleware, address string, ctx 
 		fmt.Println("Web server stopped")
 		return
 	}
-	loadWalletAndSyncBlockchain()
+	go loadWalletAndSyncBlockchain()
 
 	// keep alive till ctx is canceled
 	<-ctx.Done()
@@ -66,19 +66,28 @@ func makeStaticFileServer(router chi.Router, path string, root http.FileSystem) 
 // any error that occur during the attempt are broadcasted to `errChan`
 // startServer waits 2 seconds to catch error sent to `errChan` and returns the error
 // startServer returns nil, if no error was received during the 2-seconds window
-func startServer(address string, router chi.Router) error {
-	errChan := make(chan error)
+// startServer returns error if ctx is canceled while waiting
+func startServer(ctx context.Context, address string, router chi.Router) error {
+	// check if context has been canceled before attempting to start server
+	err := ctx.Err()
+	if err != nil {
+		return err
+	}
 
+	errChan := make(chan error)
 	go func() {
 		errChan <- http.ListenAndServe(address, router)
 	}()
 
-	// Briefly wait for an error and then return
+	// briefly wait for an error and then return
 	t := time.NewTimer(2 * time.Second)
 	select {
 	case err := <-errChan:
 		fmt.Fprintf(os.Stderr, "Web server failed to start: %s\n", err.Error())
 		return err
+	case <- ctx.Done():
+		fmt.Fprintln(os.Stderr, "Web server not started")
+		return ctx.Err()
 	case <-t.C:
 		fmt.Printf("Web server running on %s\n", address)
 		return nil
