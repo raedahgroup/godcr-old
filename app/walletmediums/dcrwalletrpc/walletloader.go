@@ -2,8 +2,6 @@ package dcrwalletrpc
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -42,7 +40,7 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 
 	_, err = c.walletLoader.CreateWallet(context.Background(), &walletrpc.CreateWalletRequest{
 		PrivatePassphrase: []byte(passphrase),
-		Seed: seedBytes,
+		Seed:              seedBytes,
 	})
 
 	// wallet will be opened if the create operation was successful
@@ -74,19 +72,7 @@ func (c *WalletPRCClient) OpenWallet() (err error) {
 // don't actually close dcrwallet
 // - if wallet wasn't opened by dcrcli, closing it could cause troubles for user
 // - even if wallet was opened by dcrcli, closing it without closing dcrwallet would cause troubles for user when they next launch dcrcli
-func (c *WalletPRCClient) CloseWallet() {
-	walletClosed := make(chan bool)
-
-	// walletLoader.CloseWallet causes program to exit abruptly, run in separate goroutine
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		//c.walletLoader.CloseWallet(context.Background(), &walletrpc.CloseWalletRequest{})
-		walletClosed <- true
-	}()
-
-	<-walletClosed
-	fmt.Println("Wallet closed")
-}
+func (c *WalletPRCClient) CloseWallet() {}
 
 func (c *WalletPRCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
