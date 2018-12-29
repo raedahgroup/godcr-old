@@ -15,6 +15,7 @@ type WalletMiddleware interface {
 
 	SyncBlockChain(listener *BlockChainSyncListener, showLog bool) error
 
+	// todo some wallets may not use default public passphrase, in such cases request public passphrase from user to use in OpenWallet
 	OpenWallet() error
 
 	// CloseWallet is triggered whenever the dcrcli program is about to be terminated

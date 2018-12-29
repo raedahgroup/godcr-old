@@ -31,8 +31,10 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 }
 
 func (c *WalletPRCClient) OpenWallet() error {
-	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
-	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
+	_, err := c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
