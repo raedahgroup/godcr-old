@@ -14,7 +14,7 @@ import (
 	"github.com/raedahgroup/dcrcli/web/routes"
 )
 
-func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) {
+func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) error {
 	router := chi.NewRouter()
 
 	// setup static file serving
@@ -28,20 +28,21 @@ func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware,
 	fmt.Println("Starting web server")
 	err := startServer(ctx, address, router)
 	if err != nil {
-		return
+		return err
 	}
 
 	// check if context has been canceled before attempting to load wallet
 	err = ctx.Err()
 	if err != nil {
 		fmt.Println("Web server stopped")
-		return
+		return err
 	}
 	go loadWalletAndSyncBlockchain()
 
 	// keep alive till ctx is canceled
 	<-ctx.Done()
 	fmt.Println("Web server stopped")
+	return nil
 }
 
 func makeStaticFileServer(router chi.Router, path string, root http.FileSystem) {

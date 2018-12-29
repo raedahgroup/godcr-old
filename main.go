@@ -68,7 +68,10 @@ func main() {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		err := web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		if err != nil && ctx.Err() == nil {
+			close(shutdownSignal)
+		}
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
 	} else {
