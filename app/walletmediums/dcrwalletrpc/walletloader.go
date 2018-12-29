@@ -3,7 +3,10 @@ package dcrwalletrpc
 import (
 	"context"
 	"fmt"
+
+	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/dcrcli/app"
 )
 
@@ -20,7 +23,12 @@ func (c *WalletPRCClient) WalletExists() (bool, error) {
 }
 
 func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
-	return "", fmt.Errorf("not yet implemented")
+	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
+	if err != nil {
+		return "", err
+	}
+
+	return walletseed.EncodeMnemonic(seed), nil
 }
 
 func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {

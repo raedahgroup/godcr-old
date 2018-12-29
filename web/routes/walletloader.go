@@ -84,7 +84,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 func (routes *Routes) loadWalletAndSyncBlockchain() error {
 	walletExists, err := routes.walletMiddleware.WalletExists()
 	if err != nil {
-		return fmt.Errorf("Error checking for wallet: %s", err.Error())
+		return fmt.Errorf("Error checking wallet: %s", err.Error())
 	}
 
 	if !walletExists {
