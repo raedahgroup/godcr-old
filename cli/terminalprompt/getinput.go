@@ -9,10 +9,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	//"os/signal"
+	"os/signal"
 	"strings"
-	"syscall"
-	"golang.org/x/crypto/ssh/terminal"
+	"os/exec"
 )
 
 // getTextInput - Prompt for text input.
@@ -34,59 +33,46 @@ func getPasswordInput(prompt string) (string, error) {
 
 	// Catch a ^C interrupt.
 	// Make sure that we reset term echo before exiting.
-	//signalChannel := make(chan os.Signal, 1)
-	//signal.Notify(signalChannel, os.Interrupt)
-	//go func() {
-	//	<-signalChannel
-	//	setTerminalEcho(true)
-	//	os.Exit(1)
-	//}()
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+	go func() {
+		<-signalChannel
+		setTerminalEcho(true)
+		os.Exit(1)
+	}()
 
 	// disable terminal echo
-	//setTerminalEcho(false)
+	setTerminalEcho(false)
 
 	// Echo is disabled, now grab the data.
-	//reader := bufio.NewReader(os.Stdin)
-	//text, err := reader.ReadString('\n')
+	reader := bufio.NewReader(os.Stdin)
+	text, err := reader.ReadString('\n')
 
 	// re-enable terminal echo
-	//setTerminalEcho(true)
-
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-	password := string(bytePassword)
+	setTerminalEcho(true)
 
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimRight(password, "\n"), nil
+
+	return strings.TrimRight(text, "\n"), nil
 }
 
-//// techEcho() - turns terminal echo on or off.
-//func setTerminalEcho(on bool) {
-//	// Common settings and variables for both stty calls.
-//	attrs := syscall.ProcAttr{
-//		Dir:   "",
-//		Env:   []string{},
-//		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-//		Sys:   nil}
-//	var ws syscall.WaitStatus
-//	cmd := "echo"
-//	if on == false {
-//		cmd = "-echo"
-//	}
-//
-//	// Enable/disable echoing.
-//	pid, err := syscall.ForkExec(
-//		"/bin/stty",
-//		[]string{"stty", cmd},
-//		&attrs)
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	// Wait for the stty process to complete.
-//	_, err = syscall.Wait4(pid, &ws, 0, nil)
-//	if err != nil {
-//		panic(err)
-//	}
-//}
+func setTerminalEcho(on bool) error {
+
+	var cmdToExecute string
+	if on{
+		fmt.Println()
+		cmdToExecute = "echo"
+	}else {
+		cmdToExecute = "-echo"
+	}
+
+	cmd := exec.Command("stty", cmdToExecute)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	cmd.Run()
+
+	return cmd.Wait()
+}
