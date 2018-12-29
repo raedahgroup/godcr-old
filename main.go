@@ -33,8 +33,10 @@ import (
 
 // triggered after program execution is complete or if interrupt signal is received
 var beginShutdown = make(chan bool)
+
 // shutdownOps holds cleanup/shutdown functions that should be executed when shutdown signal is triggered
 var shutdownOps []func()
+
 // opError stores any error that occurs while performing an operation
 var opError error
 
@@ -230,7 +232,7 @@ func handleShutdown(wg *sync.WaitGroup) {
 	// make wait group wait till shutdownSignal is received and shutdownOps performed
 	wg.Add(1)
 
-	<- beginShutdown
+	<-beginShutdown
 	for _, shutdownOp := range shutdownOps {
 		shutdownOp()
 	}

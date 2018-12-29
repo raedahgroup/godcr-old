@@ -16,17 +16,18 @@ import (
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
 type WalletPRCClient struct {
-	walletLoader walletrpc.WalletLoaderServiceClient
+	walletLoader  walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
 	activeNet     *chaincfg.Params
 }
 
 type rpcConnectionResult struct {
-	err error
+	err  error
 	conn *grpc.ClientConn
 }
+
 var (
-	rpcConnectionDone = make(chan *rpcConnectionResult)
+	rpcConnectionDone    = make(chan *rpcConnectionResult)
 	rpcConnectionTimeout = 5 * time.Second
 )
 
@@ -42,10 +43,10 @@ func New(ctx context.Context, address, cert string, noTLS, isTestnet bool) (*Wal
 	go connectToRPC(rpcAddress, rpcCert, noTLS)
 
 	select {
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return nil, ctx.Err()
 
-	case connectionResult := <- rpcConnectionDone:
+	case connectionResult := <-rpcConnectionDone:
 		if connectionResult.err != nil {
 			return nil, connectionResult.err
 		}
@@ -78,7 +79,7 @@ func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
 			err = fmt.Errorf("Error connecting to %s. Connection attempt timed out after %s", rpcAddress, rpcConnectionTimeout)
 		}
 		connectionResult := &rpcConnectionResult{
-			err: err,
+			err:  err,
 			conn: conn,
 		}
 		rpcConnectionDone <- connectionResult
