@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 )
 
 const (
@@ -89,7 +89,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 func parseConfigFile(parser *flags.Parser, file string) error {
 	if (parser.Options & flags.IgnoreUnknown) != flags.None {
 		options := parser.Options
-		parser.Options = flags.IgnoreUnknown
+		parser.Options = flags.None
 		defer func() { parser.Options = options }()
 	}
 	err := flags.NewIniParser(parser).ParseFile(file)
