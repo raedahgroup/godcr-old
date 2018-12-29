@@ -108,7 +108,6 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 		err = walletMiddleware.OpenWallet()
 		if err != nil {
 			errMsg = fmt.Sprintf("Failed to open %s wallet", walletMiddleware.NetType())
-			return
 		}
 	}()
 
