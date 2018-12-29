@@ -238,6 +238,8 @@ github.com/raedahgroup/dcrcli/walletrpcclient v0.0.0-20181213135451-898d7ae57860
 github.com/raedahgroup/dcrcli/walletrpcclient v0.0.0-20181213135451-898d7ae57860/go.mod h1:EIcOUdyNnq7gRwgLdDzIE1WK6FPxwcXews8PJg6dtec=
 github.com/raedahgroup/mobilewallet v0.0.0-20181127040504-952c748fbd60 h1:kDm+XdFjnnxz67dmwPGssnp5lopp+QnE5cAGBu3qIt0=
 github.com/raedahgroup/mobilewallet v0.0.0-20181127040504-952c748fbd60/go.mod h1:uZt1/8Kih8t+ol/bagi5QD0vrtktfaXnFlVt7ZsEcOs=
+github.com/raedahgroup/mobilewallet v1.0.0-rc1.0.20181228083835-ea62e1bb09f1 h1:gzY35diYtTAGwhRbdk5zb26h2wGKWwUJB/edMyFFfkQ=
+github.com/raedahgroup/mobilewallet v1.0.0-rc1.0.20181228083835-ea62e1bb09f1/go.mod h1:5Jn0dy7t0Bpgko/PDNMGkHGZr6l3MeyKEvP8QaZEZco=
 github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8 h1:5C4yAeYifeRO+7z2/H2kxL8tJZE9ZE9LpxK6YUZPByo=
 github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
