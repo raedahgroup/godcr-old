@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/raedahgroup/dcrcli/walletrpcclient v0.0.0-20181213135451-898d7ae57860
-	github.com/raedahgroup/mobilewallet v0.0.0-20181127040504-952c748fbd60
+	github.com/raedahgroup/mobilewallet v1.0.0-rc1.0.20181228083835-ea62e1bb09f1
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 // indirect
