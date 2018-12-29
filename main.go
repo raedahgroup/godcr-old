@@ -22,7 +22,7 @@ import (
 	"github.com/raedahgroup/dcrcli/app"
 	"github.com/raedahgroup/dcrcli/app/config"
 	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrwalletrpc"
-	"github.com/raedahgroup/dcrcli/app/walletmediums/mobilewalletlib"
+	"github.com/raedahgroup/dcrcli/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/dcrcli/cli"
 	"github.com/raedahgroup/dcrcli/web"
 	"os"
@@ -95,7 +95,7 @@ func main() {
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
-// default walletmiddleware is mobilewallet library, alternative is dcrwallet rpc
+// default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
 func connectToWallet(ctx context.Context, config *config.Config) app.WalletMiddleware {
 	var netType string
 	if config.UseTestNet {
@@ -105,7 +105,7 @@ func connectToWallet(ctx context.Context, config *config.Config) app.WalletMiddl
 	}
 
 	if !config.UseWalletRPC {
-		return mobilewalletlib.New(config.AppDataDir, netType)
+		return dcrlibwallet.New(config.AppDataDir, netType)
 	}
 
 	walletMiddleware, err := dcrwalletrpc.New(ctx, netType, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)

@@ -1,4 +1,4 @@
-package mobilewalletlib
+package dcrlibwallet
 
 import (
 	"github.com/decred/dcrwallet/netparams"

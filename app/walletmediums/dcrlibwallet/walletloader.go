@@ -1,4 +1,4 @@
-package mobilewalletlib
+package dcrlibwallet
 
 import (
 	"fmt"
