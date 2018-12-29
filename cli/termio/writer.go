@@ -16,24 +16,24 @@ func TabWriter(w io.Writer) *tabwriter.Writer {
 // StdoutWriter writes tab-aligned text to os.Stdout
 var StdoutWriter = TabWriter(os.Stdout)
 
-// PrintResult formats and prints the content of `res` to `w`
-func PrintResult(w *tabwriter.Writer, res *Response) {
+// PrintTabularResult formats and prints the content of `res` to `w`
+func PrintTabularResult(w *tabwriter.Writer, columnsHeaders []string, rows [][]interface{}) {
 	header := ""
 	spaceRow := ""
-	columnLength := len(res.Columns)
+	columnLength := len(columnsHeaders)
 
-	for i := range res.Columns {
+	for i := range columnsHeaders {
 		tab := " \t "
 		if columnLength == i+1 {
 			tab = " "
 		}
-		header += res.Columns[i] + tab
+		header += columnsHeaders[i] + tab
 		spaceRow += " " + tab
 	}
 
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, spaceRow)
-	for _, row := range res.Result {
+	for _, row := range rows {
 		rowStr := ""
 		for range row {
 			rowStr += "%v \t "
@@ -54,9 +54,3 @@ func PrintStringResult(output ...string) {
 	}
 	writer.Flush()
 }
-
-type Response struct {
-	Columns []string
-	Result  [][]interface{}
-}
-
