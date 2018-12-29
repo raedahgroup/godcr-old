@@ -1,7 +1,10 @@
 package dcrwalletrpc
 
 import (
+	"context"
+	"fmt"
 	"net"
+	"time"
 
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -13,36 +16,48 @@ import (
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
 type WalletPRCClient struct {
-	walletLoader  walletrpc.WalletLoaderServiceClient
+	walletLoader walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
 	activeNet     *chaincfg.Params
 }
 
+type rpcConnectionResult struct {
+	err error
+	conn *grpc.ClientConn
+}
+var (
+	rpcConnectionDone = make(chan *rpcConnectionResult)
+	rpcConnectionTimeout = 5 * time.Second
+)
+
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(address, cert string, noTLS, isTestnet bool) (*WalletPRCClient, error) {
+func New(ctx context.Context, address, cert string, noTLS, isTestnet bool) (*WalletPRCClient, error) {
 	if rpcAddress == "" {
 		rpcAddress = defaultDcrWalletRPCAddress(netType)
 	}
 
-	conn, err := connectToRPC(rpcAddress, rpcCert, noTLS)
-	if err != nil {
-		return nil, err
-	}
+	// perform rpc connection in background, user might shutdown before connection is complete
+	go connectToRPC(rpcAddress, rpcCert, noTLS)
 
-	activeNet := &chaincfg.MainNetParams
-	if isTestnet {
-		activeNet = &chaincfg.TestNet3Params
-	}
+	select {
+	case <- ctx.Done():
+		return nil, ctx.Err()
 
-	client := &WalletPRCClient{
-		walletLoader:  walletrpc.NewWalletLoaderServiceClient(conn),
-		walletService: walletrpc.NewWalletServiceClient(conn),
-		activeNet: activeNet,
-	}
+	case connectionResult := <- rpcConnectionDone:
+		if connectionResult.err != nil {
+			return nil, connectionResult.err
+		}
 
-	return client, nil
+		client := &WalletPRCClient{
+			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
+			walletService: walletrpc.NewWalletServiceClient(connectionResult.conn),
+			activeNet: activeNet,
+		}
+
+		return client, nil
+	}
 }
 
 func defaultDcrWalletRPCAddress(netType string) string {
@@ -53,32 +68,39 @@ func defaultDcrWalletRPCAddress(netType string) string {
 	}
 }
 
-func connectToRPC(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
+func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
 	var conn *grpc.ClientConn
 	var err error
 
-	if noTLS {
-		conn, err = grpc.Dial(rpcAddress, grpc.WithInsecure())
-		if err != nil {
-			return nil, err
+	defer func() {
+		if conn == nil && err == nil {
+			// connection timeout
+			err = fmt.Errorf("Error connecting to %s. Connection attempt timed out after %s", rpcAddress, rpcConnectionTimeout)
 		}
+		connectionResult := &rpcConnectionResult{
+			err: err,
+			conn: conn,
+		}
+		rpcConnectionDone <- connectionResult
+	}()
+
+	// block until connection is established
+	// return error if connection cannot be established after `rpcConnectionTimeoutSeconds` seconds
+	grpcConnectionOptions := []grpc.DialOption{
+		grpc.WithBlock(),
+		grpc.WithTimeout(rpcConnectionTimeout),
+	}
+
+	if noTLS {
+		grpcConnectionOptions = append(grpcConnectionOptions, grpc.WithInsecure())
+		conn, err = grpc.Dial(rpcAddress, grpcConnectionOptions...)
 	} else {
 		creds, err := credentials.NewClientTLSFromFile(rpcCert, "")
 		if err != nil {
-			return nil, err
+			return
 		}
 
-		opts := []grpc.DialOption{
-			grpc.WithTransportCredentials(
-				creds,
-			),
-		}
-
-		conn, err = grpc.Dial(rpcAddress, opts...)
-		if err != nil {
-			return nil, err
-		}
+		grpcConnectionOptions = append(grpcConnectionOptions, grpc.WithTransportCredentials(creds))
+		conn, err = grpc.Dial(rpcAddress, grpcConnectionOptions...)
 	}
-
-	return conn, nil
 }
