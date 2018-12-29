@@ -3,16 +3,14 @@ package cli
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
-	"sync"
-
 	"github.com/raedahgroup/dcrcli/app"
 	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"os"
+	"strings"
 )
 
 // createWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
-func createWallet(walletMiddleware app.WalletMiddleware) (err error) {
+func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (err error) {
 	// first check if wallet already exists
 	walletExists, err := walletMiddleware.WalletExists()
 	if err != nil {
@@ -72,11 +70,10 @@ func createWallet(walletMiddleware app.WalletMiddleware) (err error) {
 		fmt.Fprintf(os.Stderr, "Error creating wallet: %s", err.Error())
 		return
 	}
-
 	fmt.Println("Your wallet has been created successfully")
 
 	// perform first blockchain sync after creating wallet
-	return syncBlockChain(walletMiddleware)
+	return syncBlockChain(ctx, walletMiddleware)
 }
 
 // openWallet is called whenever an action to be executed requires wallet to be loaded
@@ -132,35 +129,38 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 }
 
 // syncBlockChain uses the WalletMiddleware provided to download block updates
-func syncBlockChain(walletMiddleware app.WalletMiddleware) (err error) {
-	// use wait group to wait for go routine process to complete before exiting this function
-	var wg sync.WaitGroup
-	wg.Add(1)
+// this is a long running operation, listen for ctx.Done and stop processing
+func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	syncDone := make(chan error)
+	go func() {
+		syncListener := &app.BlockChainSyncListener{
+			SyncStarted: func() {
+				fmt.Println("Blockchain sync started")
+			},
+			SyncEnded: func(err error) {
+				if err == nil {
+					fmt.Println("Blockchain synced successfully")
+				} else {
+					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s", err.Error())
+				}
+				syncDone <- err
+			},
+			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
+			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
+			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+		}
 
-	err = walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			fmt.Println("Blockchain sync started")
-		},
-		SyncEnded: func(e error) {
-			err = e
-			if err == nil {
-				fmt.Println("Blockchain synced successfully")
-			} else {
-				fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s", err.Error())
-			}
-			wg.Done()
-		},
-		OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
-		OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
-		OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
-	}, true)
+		err := walletMiddleware.SyncBlockChain(syncListener, true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s", err.Error())
+			syncDone <- err
+		}
+	}()
 
-	if err != nil {
-		// sync go routine failed to start, nothing to wait for
-		wg.Done()
-	} else {
-		// sync in progress, wait for BlockChainSyncListener.OnComplete
-		wg.Wait()
+	select {
+	case <- ctx.Done():
+		return ctx.Err()
+	case err := <- syncDone:
+		return err
 	}
-	return
 }
