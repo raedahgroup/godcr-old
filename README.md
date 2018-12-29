@@ -1,9 +1,9 @@
-# dcrcli
+# godcr
 ====
 
 ## Dcrcli Overview 
 
-Dcrcli is a command-line utility that interfaces with [Dcrwallet](https://github.com/decred/dcrwallet) rpc's methods.
+godcr is a command-line utility that interfaces with [Dcrwallet](https://github.com/decred/dcrwallet) rpc's methods.
 
 ## Requirements 
 * [Go](http://golang.org) 1.11 
@@ -31,26 +31,26 @@ Click on assets and download the package for your operating system.
 
 ##### Example of obtaining and building from source in Linux 
 ```bash 
-$ git clone https://github.com/raedahgroup/dcrcli
-$ cd dcrcli
+$ git clone https://github.com/raedahgroup/godcr
+$ cd godcr
 $ go install or GO111MODULE=on go install (if you are building from within `GOPATH`)
 ```
 
-## Running dcrcli 
+## Running godcr 
 
 ### Create configuration file 
 
 Begin with the sample configuration file:
 
 ```bash 
-cp sample-dcrcli.conf dcrcli.conf 
+cp sample-godcr.conf godcr.conf 
 ``` 
 
-Then edit dcrcli.conf and input your RPC settings. After you are finished, move dcrcli.conf to the `appdata` folder (default is `~/.dcrcli` on Linux, `%localappdata%\Dcrcli` on Windows). See the output of `dcrcli -h` for a list of all options.
+Then edit godcr.conf and input your RPC settings. After you are finished, move godcr.conf to the `appdata` folder (default is `~/.godcr` on Linux, `%localappdata%\Godcr` on Windows). See the output of `godcr -h` for a list of all options.
 
-### Using dcrcli
+### Using godcr
 
-Run `dcrcli <command> <options>`. See the output of `dcrcli -l` for a list of all commands.
+Run `godcr <command> <options>`. See the output of `godcr -l` for a list of all commands.
 
 ## Contributing 
 
@@ -60,6 +60,6 @@ See the CONTRIBUTING.md file for details. Here's an overview of it:
 1. Create a branch for your work (`git branch -b branch`).
 3. Write your codes 
 4. Commit and push to your repo
-5. Create a [pull request](https://github.com/raedahgroup/dcrcli)
+5. Create a [pull request](https://github.com/raedahgroup/godcr)
 
 ## License
