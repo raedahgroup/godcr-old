@@ -9,9 +9,9 @@ import (
 	"github.com/raedahgroup/dcrcli/walletrpcclient"
 )
 
-// AppRoot is the entrypoint to the cli application.
+// CliRoot is the entrypoint to the cli application.
 // It defines both the commands and the options available.
-type AppRoot struct {
+type CliRoot struct {
 	Commands commands.CliCommands
 	Config   config.Config
 }
