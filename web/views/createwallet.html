@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+<div class="body">
+    <div class="content">
+        <div class="container">
+            <h1 class="display-4">Create Wallet</h1>
+
+            <form method="post" onsubmit="return checkForm()">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="password">Wallet Password</label>
+                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="confirmPassword">
+                            Confirm Password
+                            <span class="text-danger d-none" id="passwordMatchError">(Doesn't match)</span>
+                        </label>
+                        <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" placeholder="Re-enter Password" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="seed">Wallet Seed</label>
+                    <input type="hidden" name="seed" id="seed" value="{{ .Seed }}">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="lead m-0">{{ .Seed }}</p>
+                        </div>
+                    </div>
+                    <small class="form-text text-danger">
+                        IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it.
+                        <br>
+                        Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them
+                        access to all your funds, so it is imperative that you keep it in a secure location.
+                    </small>
+                </div>
+
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="seedBackupCheck" required>
+                    <label class="form-check-label" for="seedBackupCheck">
+                        I've stored the seed in a safe and secure location
+                    </label>
+                </div>
+
+                <button class="btn btn-danger mt-3">Create Wallet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function checkForm() {
+        var passwordMatch = $('#password').val() === $('#confirmPassword').val();
+        if (passwordMatch) {
+            $('#passwordMatchError').addClass("d-none")
+        } else {
+            $('#passwordMatchError').removeClass("d-none")
+        }
+        return passwordMatch
+    }
+</script>
+</body>
+</html>
