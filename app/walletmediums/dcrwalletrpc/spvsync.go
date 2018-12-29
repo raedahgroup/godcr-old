@@ -21,6 +21,8 @@ func (s spvSync) streamBlockchainSyncUpdates(showLog bool) {
 		}
 	}
 
+	s.listener.SyncStarted()
+
 	for {
 		update, err := s.client.Recv()
 		if err != nil {
