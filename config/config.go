@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 )
 
 const (
@@ -53,15 +53,15 @@ func AppName() string {
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
-func LoadConfig() (config Config, parser *flags.Parser, err error) {
+func LoadConfig() (Config, *flags.Parser, error) {
 	// load defaults first
-	config = defaultConfig()
+	config := defaultConfig()
 
-	parser = flags.NewParser(&config, flags.HelpFlag)
+	parser := flags.NewParser(&config, flags.HelpFlag)
 
-	_, err = parser.Parse()
+	_, err := parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return
+		return config, parser, err
 	}
 
 	if config.ShowVersion {
@@ -74,14 +74,14 @@ func LoadConfig() (config Config, parser *flags.Parser, err error) {
 		if _, ok := err.(*os.PathError); !ok {
 			return config, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
 		}
-		return
+		return config, parser, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return
+		return config, parser, err
 	}
 
-	return
+	return config, parser, nil
 }
