@@ -32,7 +32,7 @@ func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 // walletLoaderFn checks if wallet is not open, attempts to open it and also perform sync the blockchain
 // an error page is displayed and the actual route handler is not called, if ...
 // - wallet doesn't exist (hasn't been created)
-// - wallet exists, but an error occurs while trying to open it or while syncing blockchain
+// - wallet exists but is not open
 // - wallet is open but blockchain isn't synced
 func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -55,13 +55,9 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			return
 		}
 
-		// if wallet is not open, attempt to open wallet and sync blockchain
 		if !routes.walletMiddleware.IsWalletOpen() {
-			err := routes.loadWalletAndSyncBlockchain()
-			if err != nil {
-				routes.renderError(err.Error(), res)
-				return
-			}
+			errMsg = "Wallet is not open. Restart the server"
+			return
 		}
 
 		// wallet is open, check if blockchain is synced
@@ -79,25 +75,6 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
 		}
 	})
-}
-
-func (routes *Routes) loadWalletAndSyncBlockchain() error {
-	walletExists, err := routes.walletMiddleware.WalletExists()
-	if err != nil {
-		return fmt.Errorf("Error checking wallet: %s", err.Error())
-	}
-
-	if !walletExists {
-		return fmt.Errorf("Wallet not created. Please create a wallet to continue. Use `dcrcli create` on terminal")
-	}
-
-	err = routes.walletMiddleware.OpenWallet()
-	if err != nil {
-		return fmt.Errorf("Failed to open wallet: %s", err.Error())
-	}
-
-	routes.syncBlockchain()
-	return nil
 }
 
 func (routes *Routes) syncBlockchain() {

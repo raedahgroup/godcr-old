@@ -15,8 +15,8 @@ type Routes struct {
 	blockchain       *Blockchain
 }
 
-// Setup prepares page templates and creates route handlers, returns wallet loader function
-func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() error {
+// Setup prepares page templates and creates route handlers, returns syncBlockchain function
+func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() {
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
@@ -26,7 +26,7 @@ func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() erro
 	routes.loadTemplates()
 	routes.loadRoutes(router)
 
-	return routes.loadWalletAndSyncBlockchain
+	return routes.syncBlockchain
 }
 
 func (routes *Routes) loadTemplates() {

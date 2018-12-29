@@ -81,8 +81,13 @@ func createWallet(walletMiddleware app.WalletMiddleware) (err error) {
 
 // openWallet is called whenever an action to be executed requires wallet to be loaded
 // exits the program if wallet doesn't exist or some other error occurs
-// especially in cases of multiple mobilewallet instances, this method may stall until previous dcrcli instances are closed
+//
+// this method may stall until previous dcrcli instances are closed (especially in cases of multiple mobilewallet instances)
+// hence the need for ctx, so user can cancel the operation if it's taking too long
 func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	// notify user of the current operation so if takes too long, they have an idea what the cause is
+	fmt.Println("Opening wallet...")
+
 	var err error
 	var errMsg string
 	loadWalletDone := make(chan bool)
@@ -112,7 +117,7 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 	}()
 
 	select {
-	case <- loadWalletDone:
+	case <-loadWalletDone:
 		if errMsg != "" {
 			fmt.Fprintln(os.Stderr, errMsg)
 		}
@@ -121,7 +126,7 @@ func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) erro
 		}
 		return err
 
-	case <- ctx.Done():
+	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
