@@ -19,15 +19,21 @@ The following guide assumes a Unix-like shell (e.g bash).
 * [Install Go](http://golang.org/doc/install).
 It is recommended to add `$GOPATH/bin` to your `PATH`.
 
-* [Install Git](https://git-scm.com)
+* [Install Git](https://git-scm.com).
 
-* Clone this repo to somewhere on your computer. Please set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`
+* Download dcrd and dcrwallet from [here](https://github.com/decred/decred-binaries/releases).
+Click on assets and download the package for your operating system.
+
+* After downloading the file, unzip or unpack the file then [follow this link](https://docs.decred.org/wallets/cli/cli-installation/)
+ to install, setup and run drcd and dcrwallet on your machine.
+
+* Clone this repo to somewhere on your computer. Set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`.
 
 ##### Example of obtaining and building from source in Linux 
 ```bash 
-$ git clone https://github.com/raedahgroup/dcrcli ~/src/dcrcli 
-$ cd ~/src/dcrcli 
-$ go install 
+$ git clone https://github.com/raedahgroup/dcrcli
+$ cd dcrcli
+$ go install or GO111MODULE=on go install (if you are building from within `GOPATH`)
 ```
 
 ## Running dcrcli 
@@ -40,11 +46,11 @@ Begin with the sample configuration file:
 cp sample-dcrcli.conf dcrcli.conf 
 ``` 
 
-Then edit dcrcli.conf and input your RPC settings. After you are finished, move dcrcli.conf to the `appdata` folder (default is `~/.dcrcli` on Linux, `%localappdata%\Dcrcli` on Windows). See the output of `dcrcli -h` for a list of all options
+Then edit dcrcli.conf and input your RPC settings. After you are finished, move dcrcli.conf to the `appdata` folder (default is `~/.dcrcli` on Linux, `%localappdata%\Dcrcli` on Windows). See the output of `dcrcli -h` for a list of all options.
 
 ### Using dcrcli
 
-Run `dcrcli <command> <options>`. See the output of `dcrcli -l` for a list of all commands
+Run `dcrcli <command> <options>`. See the output of `dcrcli -l` for a list of all commands.
 
 ## Contributing 
 
