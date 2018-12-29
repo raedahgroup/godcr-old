@@ -33,7 +33,7 @@ Click on assets and download the package for your operating system.
 ```bash 
 $ git clone https://github.com/raedahgroup/dcrcli
 $ cd dcrcli
-$ go install or GO111MODULE=on go install   (if you are building from within `GOPATH`)
+$ go install or GO111MODULE=on go install (if you are building from within `GOPATH`)
 ```
 
 ## Running dcrcli 
