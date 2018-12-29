@@ -13,6 +13,7 @@ import (
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
 type WalletPRCClient struct {
+	walletLoader  walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
 	activeNet     *chaincfg.Params
 }
@@ -36,6 +37,7 @@ func New(address, cert string, noTLS, isTestnet bool) (*WalletPRCClient, error) 
 	}
 
 	client := &WalletPRCClient{
+		walletLoader:  walletrpc.NewWalletLoaderServiceClient(conn),
 		walletService: walletrpc.NewWalletServiceClient(conn),
 		activeNet: activeNet,
 	}

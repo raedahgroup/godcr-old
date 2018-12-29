@@ -9,6 +9,7 @@ import (
 )
 
 type syncStatus uint8
+
 const (
 	syncStatusNotStarted syncStatus = iota
 	syncStatusSuccess
@@ -113,13 +114,13 @@ func (routes *Routes) syncBlockchain() {
 				updateStatus("Blockchain sync completed successfully", syncStatusSuccess)
 			}
 		},
-		OnHeadersFetched:    func(percentageProgress int64) {
+		OnHeadersFetched: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), syncStatusInProgress)
 		},
 		OnDiscoveredAddress: func(_ string) {
 			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", syncStatusInProgress)
 		},
-		OnRescanningBlocks:  func(percentageProgress int64) {
+		OnRescanningBlocks: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
 		},
 	}, false)

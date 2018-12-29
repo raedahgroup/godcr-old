@@ -40,7 +40,7 @@ func StartHttpServer(walletMiddleware app.WalletMiddleware, address string, ctx 
 	loadWalletAndSyncBlockchain()
 
 	// keep alive till ctx is canceled
-	<- ctx.Done()
+	<-ctx.Done()
 	fmt.Println("Web server stopped")
 }
 

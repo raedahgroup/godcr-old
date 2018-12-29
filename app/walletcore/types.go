@@ -58,8 +58,8 @@ type UnspentOutput struct {
 type Transaction struct {
 	Hash          string               `json:"hash"`
 	Type          string               `json:"type"`
-	Amount        dcrutil.Amount       `json:"amount"`
-	Fee           dcrutil.Amount       `json:"fee"`
+	Amount        string       `json:"amount"`
+	Fee           string       `json:"fee"`
 	Rate          dcrutil.Amount       `json:"rate,omitempty"`
 	Direction     TransactionDirection `json:"direction"`
 	Timestamp     int64                `json:"timestamp"`
