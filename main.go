@@ -31,10 +31,12 @@ import (
 	"syscall"
 )
 
-// triggered after successful program execution or if interrupt signal is received
-var shutdownSignal = make(chan bool)
+// triggered after program execution is complete or if interrupt signal is received
+var beginShutdown = make(chan bool)
 // shutdownOps holds cleanup/shutdown functions that should be executed when shutdown signal is triggered
 var shutdownOps []func()
+// opError stores any error that occurs while performing an operation
+var opError error
 
 func main() {
 	args, appConfig, parser, err := config.LoadConfig(true)
@@ -68,31 +70,26 @@ func main() {
 	walletMiddleware := connectToWallet(ctx, appConfig)
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
-	var err error
-
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
 			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
-		err = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+		// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
+		if opError != nil && ctx.Err() == nil {
+			beginShutdown <- true
+		}
 	} else if appConfig.DesktopMode {
 		enterDesktopMode(wallet)
 	} else {
-		err = cli.Run(ctx, walletMiddleware, appConfig)
-	}
-
-	if err != nil && ctx.Err() == nil {
-		close(shutdownSignal)
+		opError = cli.Run(ctx, walletMiddleware, appConfig)
+		// cli run done, trigger shutdown
+		beginShutdown <- true
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
-	if err != nil {
-		// process didn't end properly
-		fmt.Println("error", err.Error())
-		os.Exit(1)
-	}
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
@@ -220,7 +217,7 @@ func listenForShutdown() {
 	// listen for the initial interrupt request and trigger shutdown signal
 	sig := <-interruptChannel
 	fmt.Printf(" Received %s signal. Shutting down...\n", sig)
-	close(shutdownSignal)
+	beginShutdown <- true
 
 	// continue to listen for interrupt requests and log that shutdown has already been signaled
 	for {
@@ -233,11 +230,16 @@ func handleShutdown(wg *sync.WaitGroup) {
 	// make wait group wait till shutdownSignal is received and shutdownOps performed
 	wg.Add(1)
 
-	<- shutdownSignal
+	<- beginShutdown
 	for _, shutdownOp := range shutdownOps {
 		shutdownOp()
 	}
 
 	// shutdown complete
 	wg.Done()
+
+	// check if error occurred while program was running
+	if opError != nil {
+		os.Exit(1)
+	}
 }
