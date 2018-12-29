@@ -24,7 +24,7 @@ func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() erro
 	}
 
 	routes.loadTemplates()
-	router.Group(routes.handlers) // use router group for page handlers
+	routes.loadRoutes(router)
 
 	return routes.loadWalletAndSyncBlockchain
 }
@@ -43,16 +43,24 @@ func (routes *Routes) loadTemplates() {
 	}
 }
 
-func (routes *Routes) handlers(router chi.Router) {
+func (routes *Routes) loadRoutes(router chi.Router) {
+	router.Get("/createwallet", routes.createWalletPage)
+	router.Post("/createwallet", routes.createWallet)
+
+	// use router group for routes that require wallet to be loaded before being accessed
+	router.Group(routes.registerRoutesRequiringWallet)
+}
+
+func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	// this middleware checks if wallet is loaded before executing handlers for following routes
 	// if wallet is not loaded, it tries to load it, if that fails, it shows an error page instead
 	router.Use(routes.walletLoaderMiddleware())
 
-	router.Get("/", routes.BalancePage)
-	router.Get("/send", routes.SendPage)
-	router.Post("/send", routes.SubmitSendTxForm)
-	router.Get("/receive", routes.ReceivePage)
-	router.Get("/generate-address/{accountNumber}", routes.GenerateReceiveAddress)
-	router.Get("/unspent-outputs/{accountNumber}", routes.GetUnspentOutputs)
-	router.Get("/history", routes.HistoryPage)
+	router.Get("/", routes.balancePage)
+	router.Get("/send", routes.sendPage)
+	router.Post("/send", routes.submitSendTxForm)
+	router.Get("/receive", routes.receivePage)
+	router.Get("/generate-address/{accountNumber}", routes.generateReceiveAddress)
+	router.Get("/unspent-outputs/{accountNumber}", routes.getUnspentOutputs)
+	router.Get("/history", routes.historyPage)
 }
