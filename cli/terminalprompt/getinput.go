@@ -9,9 +9,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
-	"os/exec"
 )
 
 // getTextInput - Prompt for text input.
@@ -59,12 +59,11 @@ func getPasswordInput(prompt string) (string, error) {
 }
 
 func setTerminalEcho(on bool) error {
-
 	var sttyEchoArg string
-	if on{
+	if on {
 		fmt.Println()
 		sttyEchoArg = "echo"
-	}else {
+	} else {
 		sttyEchoArg = "-echo"
 	}
 
