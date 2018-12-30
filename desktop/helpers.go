@@ -1,8 +1,10 @@
 package desktop
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
@@ -16,6 +18,10 @@ var (
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
 	fontSize               = 13
 	defaultFont            font.Face
+)
+
+const (
+	scaling = 1.8
 )
 
 var colorTable = nstyle.ColorTable{
@@ -138,4 +144,9 @@ func (d *Desktop) setPageStyle() {
 	style.GroupWindow.FixedBackground.Data.Color = contentBackgroundColor
 
 	d.window.SetStyle(style)
+}
+
+func amountToString(amount float64) string {
+	amount = math.Round(amount)
+	return fmt.Sprintf("%d DCR", int(amount))
 }

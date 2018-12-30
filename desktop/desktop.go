@@ -18,10 +18,8 @@ type Desktop struct {
 }
 
 const (
-	scaling      = 1.8
-	navWidth     = 260
-	contentWidth = 1000
-	homePage     = "balance"
+	navWidth = 260
+	homePage = "balance"
 )
 
 var (
@@ -62,20 +60,6 @@ func (d *Desktop) registerHandlers() {
 	d.pageHandlers["generateaddress"] = d.generateAddressHandler
 }
 
-func resetVars() {
-	err = nil
-	accountBalanceResponse = nil
-	accountsResponse = nil
-	generateAddressResponse = nil
-	transactionsResponse = nil
-	sendAmount = 0.0
-	sendAddress = ""
-	selectedAccountIndex = 0
-	selectedAccountNumber = uint32(0)
-	selectedUTXOS = nil
-	checkedUTXOS = nil
-}
-
 func (d *Desktop) changePage(page string) {
 	d.currentPage = page
 	d.window.Changed()
@@ -106,7 +90,7 @@ func (d *Desktop) createNavPane(w *nucular.Window, height int) {
 		if sw.Button(label.TA("Balance", "LC"), false) {
 			d.gotoPage("balance")
 		}
-		if sw.Button(label.TA("Send", "LC"), false) {
+		if sw.Button(label.TA("Send (WIP)", "LC"), false) {
 			d.gotoPage("send")
 		}
 		if sw.Button(label.TA("Receive", "LC"), false) {
