@@ -50,7 +50,7 @@ type Transaction struct {
 }
 
 type TxInput struct {
-	Value            dcrutil.Amount `json:"value"`
+	Amount           dcrutil.Amount `json:"value"`
 	PreviousOutpoint wire.OutPoint  `json:"previousOutpoint"`
 }
 
@@ -61,7 +61,7 @@ type TxOutput struct {
 	ScriptClass string         `json:"scriptClass"`
 }
 
-type GetTransactionResponse struct {
+type TransactionDetails struct {
 	BlockHash     string     `json:"blockHash"`
 	Confirmations int32      `json:"confirmations"`
 	Inputs        []TxInput  `json:"inputs"`

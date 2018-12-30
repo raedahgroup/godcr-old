@@ -9,18 +9,16 @@ import (
 	"sort"
 
 	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/txscript"
-
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/txscript"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/godcr/walletrpcclient/walletcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/raedahgroup/godcr/walletrpcclient/walletcore"
 )
 
 type Client struct {
@@ -433,7 +431,7 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 	return transactions, nil
 }
 
-func (c *Client) GetTransaction(transactionHash string) (*GetTransactionResponse, error) {
+func (c *Client) GetTransaction(transactionHash string) (*TransactionDetails, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, err
@@ -462,7 +460,7 @@ func (c *Client) GetTransaction(transactionHash string) (*GetTransactionResponse
 	if err != nil {
 		return nil, err
 	}
-	return &GetTransactionResponse{
+	return &TransactionDetails{
 		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
 		Confirmations: getTxResponse.GetConfirmations(),
 		Transaction:   transaction,
@@ -481,7 +479,7 @@ func chainCfgParams(c Client) *chaincfg.Params {
 func inputsFromMsgTxIn(txIn []*wire.TxIn) []TxInput {
 	txInputs := make([]TxInput, len(txIn))
 	for i, input := range txIn {
-		txInputs[i] = TxInput{Value: dcrutil.Amount(input.ValueIn), PreviousOutpoint: input.PreviousOutPoint}
+		txInputs[i] = TxInput{Amount: dcrutil.Amount(input.ValueIn), PreviousOutpoint: input.PreviousOutPoint}
 	}
 	return txInputs
 }

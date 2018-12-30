@@ -69,7 +69,7 @@ func (c *Client) processTransactions(transactionDetails []*pb.TransactionDetails
 			Direction:     direction,
 			Testnet:       isTestnet,
 			Timestamp:     txDetail.Timestamp,
-			FormattedTime: time.Unix(txDetail.Timestamp, 0).UTC().Format("Mon Jan 2, 2006 3:04PM"),
+			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
 
 		transactions = append(transactions, tx)
