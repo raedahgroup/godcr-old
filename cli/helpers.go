@@ -8,8 +8,8 @@ import (
 	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/terminalprompt"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // GetSendSourceAccount fetches the account number for an account selected by the user.

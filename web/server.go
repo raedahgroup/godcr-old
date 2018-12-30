@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 type Server struct {

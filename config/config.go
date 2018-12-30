@@ -6,19 +6,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli/commands"
+	"github.com/raedahgroup/godcr/cli/commands"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/jessevdk/go-flags"
 )
 
 const (
-	defaultConfigFilename    = "dcrcli.conf"
+	defaultConfigFilename    = "godcr.conf"
 	defaultHTTPServerAddress = "127.0.0.1:1234"
 )
 
 var (
-	defaultAppDataDir          = dcrutil.AppDataDir("dcrcli", false)
+	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)

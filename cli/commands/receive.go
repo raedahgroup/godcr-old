@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/godcr/cli"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -26,7 +26,7 @@ func (r ReceiveCommand) Execute(args []string) error {
 			return err
 		}
 	} else {
-		// if an account name was passed in e.g. ./dcrcli receive default
+		// if an account name was passed in e.g. ./godcr receive default
 		// get the address corresponding to the account name and use it
 		var err error
 		accountNumber, err = cli.WalletClient.AccountNumber(r.Args.Account)

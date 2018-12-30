@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/raedahgroup/dcrcli/walletrpcclient/walletcore"
+	"github.com/raedahgroup/godcr/walletrpcclient/walletcore"
 )
 
 type Client struct {
