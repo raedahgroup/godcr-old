@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/config"
@@ -26,7 +25,7 @@ type commandHandler func(flags.Commander, []string) error
 func CommandHandlerWrapper(parser *flags.Parser, client *walletrpcclient.Client) commandHandler {
 	return func(command flags.Commander, args []string) error {
 		if command == nil {
-			return brokenCommandError(parser.Active.Name)
+			return brokenCommandError(parser.Command)
 		}
 		if commandRunner, ok := command.(commands.WalletCommandRunner); ok {
 			return commandRunner.Run(client, args)
@@ -35,7 +34,16 @@ func CommandHandlerWrapper(parser *flags.Parser, client *walletrpcclient.Client)
 	}
 }
 
-func brokenCommandError(commandName string) error {
-	return fmt.Errorf("the command %s was not properly setup." +
-		" Please report this bug at https://github.com/raedahgroup/godcr/issues", commandName)
+func brokenCommandError(command *flags.Command) error {
+	return fmt.Errorf("The command %q was not properly setup.\n" +
+		"Please report this bug at https://github.com/raedahgroup/godcr/issues",
+		commandName(command))
+}
+
+func commandName(command *flags.Command) string {
+	name := command.Name
+	if command.Active != nil {
+		return fmt.Sprintf("%s %s", name, commandName(command.Active))
+	}
+	return name
 }
