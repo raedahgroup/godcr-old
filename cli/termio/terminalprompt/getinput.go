@@ -9,9 +9,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
-	"syscall"
 )
 
 // getTextInput - Prompt for text input.
@@ -54,35 +54,24 @@ func getPasswordInput(prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimRight(text, "\n"), nil
 }
 
-// techEcho() - turns terminal echo on or off.
-func setTerminalEcho(on bool) {
-	// Common settings and variables for both stty calls.
-	attrs := syscall.ProcAttr{
-		Dir:   "",
-		Env:   []string{},
-		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-		Sys:   nil}
-	var ws syscall.WaitStatus
-	cmd := "echo"
-	if on == false {
-		cmd = "-echo"
+func setTerminalEcho(on bool) error {
+	var sttyEchoArg string
+	if on {
+		fmt.Println()
+		sttyEchoArg = "echo"
+	} else {
+		sttyEchoArg = "-echo"
 	}
 
-	// Enable/disable echoing.
-	pid, err := syscall.ForkExec(
-		"/bin/stty",
-		[]string{"stty", cmd},
-		&attrs)
-	if err != nil {
-		panic(err)
-	}
+	cmd := exec.Command("stty", sttyEchoArg)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	cmd.Run()
 
-	// Wait for the stty process to complete.
-	_, err = syscall.Wait4(pid, &ws, 0, nil)
-	if err != nil {
-		panic(err)
-	}
+	return cmd.Wait()
 }
