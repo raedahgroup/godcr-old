@@ -3,107 +3,100 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/godcr/cli"
-	rpcclient "github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // SendCommand lets the user send DCR.
-type SendCommand struct{}
+type SendCommand struct {
+	CommanderStub
+}
 
-// Execute runs the `send` command.
-func (s SendCommand) Execute(args []string) error {
-	res, err := send(cli.WalletClient, false)
-	if err != nil {
-		return err
-	}
-	cli.PrintResult(cli.StdoutWriter, res)
-	return nil
+// Run runs the `send` command.
+func (s SendCommand) Run(client *walletrpcclient.Client, args []string) error {
+	return send(client, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
-type SendCustomCommand struct{}
-
-// Execute runs the `send-custom` command.
-func (s SendCustomCommand) Execute(args []string) error {
-	res, err := send(cli.WalletClient, true)
-	if err != nil {
-		return err
-	}
-	cli.PrintResult(cli.StdoutWriter, res)
-	return nil
+type SendCustomCommand struct {
+	CommanderStub
 }
 
-func send(walletrpcclient *rpcclient.Client, custom bool) (*cli.Response, error) {
+// Run runs the `send-custom` command.
+func (s SendCustomCommand) Run(client *walletrpcclient.Client, args []string) error {
+	return send(client, true)
+}
+
+func send(rpcclient *walletrpcclient.Client, custom bool) error {
 	var err error
 
-	sourceAccount, err := cli.GetSendSourceAccount(walletrpcclient)
+	sourceAccount, err := getSendSourceAccount(rpcclient)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := walletrpcclient.SingleAccountBalance(sourceAccount, nil)
+	accountBalance, err := rpcclient.SingleAccountBalance(sourceAccount, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if accountBalance.Total == 0 {
-		return nil, fmt.Errorf("Selected account has 0 balance. Cannot proceed")
+		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := cli.GetSendDestinationAddress(walletrpcclient)
+	destinationAddress, err := getSendDestinationAddress(rpcclient)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	sendAmount, err := cli.GetSendAmount()
+	sendAmount, err := getSendAmount()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var utxoSelection []string
 	if custom {
 		// get all utxos in account, pass 0 amount to get all
-		utxos, err := walletrpcclient.UnspentOutputs(sourceAccount, 0)
+		utxos, err := rpcclient.UnspentOutputs(sourceAccount, 0)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		utxoSelection, err = cli.GetUtxosForNewTransaction(utxos, sendAmount)
+		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	passphrase, err := cli.GetWalletPassphrase()
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var result *rpcclient.SendResult
+	var result *walletrpcclient.SendResult
 	if custom {
-		result, err = walletrpcclient.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount,
+		result, err = rpcclient.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount,
 			destinationAddress, passphrase)
 	} else {
-		result, err = walletrpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+		result, err = rpcclient.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	res := &cli.Response{
-		Columns: []string{
-			"Result",
-			"Hash",
-		},
-		Result: [][]interface{}{
-			[]interface{}{
-				"The transaction was published successfully",
-				result.TransactionHash,
-			},
+	columns := []string{
+		"Result",
+		"Hash",
+	}
+	rows := [][]interface{}{
+		[]interface{}{
+			"The transaction was published successfully",
+			result.TransactionHash,
 		},
 	}
 
-	return res, nil
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
+	return nil
 }

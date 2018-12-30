@@ -6,10 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/godcr/cli/commands"
-
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 )
 
 const (
@@ -26,7 +24,7 @@ var (
 
 // Config holds the top-level options for the CLI program.
 type Config struct {
-	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
+	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
@@ -34,9 +32,8 @@ type Config struct {
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. This flag cannot be used with a command."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
-	commands.CliCommands
 }
 
 // defaultConfig an instance of Config with the defaults set.
@@ -56,40 +53,55 @@ func AppName() string {
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
-func LoadConfig() (*Config, *flags.Parser, error) {
+// It returns any non-option arguments encountered, the Config parsed, the parser used, and any
+// error, except errors of type flags.ErrHelp.
+// If ignoreUnknownOptions is true, then unknown options seen on the command line are ignored.
+// However, unknown options in the configuration file must return an error.
+func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
 	// load defaults first
 	config := defaultConfig()
 
 	parser := flags.NewParser(&config, flags.HelpFlag)
-
-	// stub out the command handler so that the commands are not run at while loading configuration.
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		return nil
+	if ignoreUnknownOptions {
+		parser.Options = parser.Options | flags.IgnoreUnknown
 	}
 
-	_, err := parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
-		return nil, parser, err
+	args, err := parser.Parse()
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+		return args, config, parser, err
 	}
 
 	if config.ShowVersion {
-		return nil, parser, fmt.Errorf(AppVersion())
+		return args, config, parser, fmt.Errorf(AppVersion())
 	}
 
 	// Load additional config from file
-	err = flags.NewIniParser(parser).ParseFile(config.ConfigFile)
+	err = parseConfigFile(parser, config.ConfigFile)
 	if err != nil {
-		if _, ok := err.(*os.PathError); !ok {
-			return nil, parser, fmt.Errorf("Error parsing configuration file: %v", err.Error())
-		}
-		return nil, parser, err
+		return args, config, parser, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
-	_, err = parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrCommandRequired) {
-		return nil, parser, err
+	args, err = parser.Parse()
+	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
+		return args, config, parser, err
 	}
 
-	return &config, parser, nil
+	return args, config, parser, nil
+}
+
+func parseConfigFile(parser *flags.Parser, file string) error {
+	if (parser.Options & flags.IgnoreUnknown) != flags.None {
+		options := parser.Options
+		parser.Options = flags.None
+		defer func() { parser.Options = options }()
+	}
+	err := flags.NewIniParser(parser).ParseFile(file)
+	if err != nil {
+		if _, ok := err.(*os.PathError); !ok {
+			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
+		}
+		return err
+	}
+	return nil
 }

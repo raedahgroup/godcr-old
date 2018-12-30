@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/config"
 	"github.com/raedahgroup/godcr/walletrpcclient"
@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	appConfig, parser, err := config.LoadConfig()
+	args, appConfig, parser, err := config.LoadConfig(true)
 	if err != nil {
 		handleParseError(err, parser)
 		os.Exit(1)
@@ -28,6 +28,10 @@ func main() {
 	}
 
 	if appConfig.HTTPMode {
+		if len(args) > 0 {
+			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
+			os.Exit(1)
+		}
 		enterHTTPMode(appConfig.HTTPServerAddress, client)
 	} else {
 		enterCliMode(appConfig, client)
@@ -39,11 +43,11 @@ func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 	web.StartHttpServer(serverAddress, client)
 }
 
-func enterCliMode(appConfig *config.Config, client *walletrpcclient.Client) {
-	// Set the walletrpcclient.Client object that will be used by the command handlers
-	cli.WalletClient = client
+func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
+	appRoot := cli.Root{Config: appConfig}
 
-	parser := flags.NewParser(appConfig, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
+	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.
