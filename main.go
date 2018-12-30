@@ -33,7 +33,7 @@ func main() {
 
 	if appConfig.HTTPMode {
 		if len(args) > 0 {
-			fmt.Println("cannot use --http with a command")
+			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
 			os.Exit(1)
 		}
 		enterHTTPMode(appConfig.HTTPServerAddress, client)

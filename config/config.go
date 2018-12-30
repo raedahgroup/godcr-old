@@ -24,7 +24,7 @@ var (
 
 // Config holds the top-level options for the CLI program.
 type Config struct {
-	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit"`
+	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Every other flag or command is ignored."`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
@@ -32,7 +32,7 @@ type Config struct {
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. This flag cannot be used with a command."`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
