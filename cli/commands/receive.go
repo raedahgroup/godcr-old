@@ -3,10 +3,11 @@ package commands
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
-	"github.com/raedahgroup/godcr/cli/termio"
-	qrcode "github.com/skip2/go-qrcode"
+	"os"
+
+	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"github.com/mdp/qrterminal"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
@@ -44,21 +45,22 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 		return err
 	}
 
-	qr, err := qrcode.New(receiveAddress, qrcode.Medium)
-	if err != nil {
-		return fmt.Errorf("Error generating QR Code: %s", err.Error())
+	// Print out address as string
+	fmt.Printf("%s\n", receiveResult.Address)
+
+	// Print out QR code
+	validateConfirm := func(address string) error {
+		return  nil
+	}
+	confirm, _ := terminalprompt.RequestInput("Would you like to a generate QR code? (y/n) ", validateConfirm)
+
+	if confirm == "Yes" || confirm == "yes" {
+		confirm = "y"
 	}
 
-	columns := []string{
-		"Address",
-		"QR Code",
+	if confirm == "y" {
+		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
 	}
-	rows := [][]interface{}{
-		[]interface{}{
-			receiveAddress,
-			qr.ToString(true),
-		},
-	}
-	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
+
 	return nil
 }
