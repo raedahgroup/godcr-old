@@ -44,7 +44,7 @@ func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 }
 
 func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
-	appRoot := cli.CliRoot{Config: appConfig}
+	appRoot := cli.Root{Config: appConfig}
 
 	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
 	parser.CommandHandler = cli.CommandHandlerWrapper(client)

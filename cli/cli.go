@@ -9,21 +9,21 @@ import (
 	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
-// CliRoot is the entrypoint to the cli application.
+// Root is the entrypoint to the cli application.
 // It defines both the commands and the options available.
-type CliRoot struct {
+type Root struct {
 	Commands commands.CliCommands
 	Config   config.Config
 }
 
-// CommandHandler provides a type name for the command handler to register on flags.Parser
-type CommandHandler func(flags.Commander, []string) error
+// commandHandler provides a type name for the command handler to register on flags.Parser
+type commandHandler func(flags.Commander, []string) error
 
 // CommandHandlerWrapper provides a command handler that provides walletrpcclient.Client
 // to commands.WalletCommandRunner types. Other command that satisfy flags.Commander and do not
 // depend on walletrpcclient.Client will be run as well.
 // If the command does not satisfy any of these types, ErrNotSupported will be returned.
-func CommandHandlerWrapper(client *walletrpcclient.Client) CommandHandler {
+func CommandHandlerWrapper(client *walletrpcclient.Client) commandHandler {
 	return func(command flags.Commander, args []string) error {
 		if command == nil {
 			return fmt.Errorf("unsupported command")
