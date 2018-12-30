@@ -51,6 +51,20 @@ var (
 	}
 )
 
+func resetVars() {
+	err = nil
+	accountBalanceResponse = nil
+	accountsResponse = nil
+	generateAddressResponse = nil
+	transactionsResponse = nil
+	sendAmount = 0.0
+	sendAddress = ""
+	selectedAccountIndex = 0
+	selectedAccountNumber = uint32(0)
+	selectedUTXOS = nil
+	checkedUTXOS = nil
+}
+
 func (d *Desktop) BalanceHandler(w *nucular.Window) {
 	// check if already fetched. If so, do not fetch again
 	if accountBalanceResponse == nil && err == nil {
@@ -114,8 +128,8 @@ func (d *Desktop) TransactionsHandler(w *nucular.Window) {
 
 				for _, tx := range transactionsResponse {
 					content.Row(20).Ratio(0.18, 0.12, 0.1, 0.15, 0.15, 0.3)
-					amount := strconv.Itoa(int(tx.Amount))
-					fee := strconv.Itoa(int(tx.Fee))
+					amount := amountToString(tx.Amount)
+					fee := amountToString(tx.Fee)
 
 					content.Label(tx.FormattedTime, "LC")
 					content.Label(amount, "LC")
@@ -174,18 +188,18 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 			if err != nil {
 				content.setErrorMessage(err.Error())
 			} else {
-				accounts := make([]string, len(accountsResponse))
+				accountNames := make([]string, len(accountsResponse))
 				for index, account := range accountsResponse {
-					accounts[index] = account.AccountName
+					accountNames[index] = account.AccountName
 				}
 
 				content.Row(30).Ratio(0.75, 0.25)
 				// draw select account combo
-				selectedAccountIndex = content.ComboSimple(accounts, selectedAccountIndex, 30)
+				selectedAccountIndex = content.ComboSimple(accountNames, selectedAccountIndex, 30)
 				// draw submit button
 				if content.Button(label.T("Generate"), false) {
 					// get selected account by index
-					accountName := accounts[selectedAccountIndex]
+					accountName := accountNames[selectedAccountIndex]
 					for _, account := range accountsResponse {
 						if account.AccountName == accountName {
 							selectedAccountNumber = account.AccountNumber
