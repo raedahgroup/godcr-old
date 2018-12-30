@@ -4,20 +4,22 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/cli"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
-// GetTransactionCommand requests for transaction details with a transaction hash.
-type GetTransactionCommand struct {
+// ShowTransactionCommand requests for transaction details with a transaction hash.
+type ShowTransactionCommand struct {
+	CommanderStub
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed transaction information"`
 	Args     struct {
-		Hash string `positional-arg-name:"transaction hash" required:"yes"`
+		TxHash string `positional-arg-name:"transaction hash" required:"yes"`
 	} `positional-args:"yes"`
 }
 
-// Execute runs the get-transaction command, displaying the transaction details to the client.
-func (g GetTransactionCommand) Execute(args []string) error {
-	transaction, err := cli.WalletClient.GetTransaction(g.Args.Hash)
+// Run runs the get-transaction command, displaying the transaction details to the client.
+func (showTxCommand ShowTransactionCommand) Run(walletrpcclient *walletrpcclient.Client, args []string) error {
+	transaction, err := walletrpcclient.GetTransaction(showTxCommand.Args.TxHash)
 	if err != nil {
 		return err
 	}
@@ -36,10 +38,10 @@ func (g GetTransactionCommand) Execute(args []string) error {
 		transaction.Type, transaction.Amount, transaction.FormattedTime, txSize, transaction.Fee, transaction.Rate)
 
 	detailedOutput := strings.Builder{}
-	if g.Detailed {
+	if showTxCommand.Detailed {
 		detailedOutput.WriteString("\nInputs\t\n")
 		for _, input := range transaction.Inputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Value))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Amount))
 		}
 		detailedOutput.WriteString("\nOutputs\t\n")
 		for _, out := range transaction.Outputs {
@@ -49,9 +51,9 @@ func (g GetTransactionCommand) Execute(args []string) error {
 			}
 			detailedOutput.WriteString("\t\n")
 		}
-		cli.PrintStringResult(basicOutput, strings.TrimRight(detailedOutput.String(), " \n\r"))
+		termio.PrintStringResult(basicOutput, strings.TrimRight(detailedOutput.String(), " \n\r"))
 	} else {
-		cli.PrintStringResult(basicOutput)
+		termio.PrintStringResult(basicOutput)
 	}
 	return nil
 }
