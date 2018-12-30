@@ -23,14 +23,19 @@ type commandHandler func(flags.Commander, []string) error
 // to commands.WalletCommandRunner types. Other command that satisfy flags.Commander and do not
 // depend on walletrpcclient.Client will be run as well.
 // If the command does not satisfy any of these types, ErrNotSupported will be returned.
-func CommandHandlerWrapper(client *walletrpcclient.Client) commandHandler {
+func CommandHandlerWrapper(parser *flags.Parser, client *walletrpcclient.Client) commandHandler {
 	return func(command flags.Commander, args []string) error {
 		if command == nil {
-			return fmt.Errorf("unsupported command")
+			return brokenCommandError(parser.Active.Name)
 		}
 		if commandRunner, ok := command.(commands.WalletCommandRunner); ok {
 			return commandRunner.Run(client, args)
 		}
 		return command.Execute(args)
 	}
+}
+
+func brokenCommandError(commandName string) error {
+	return fmt.Errorf("the command %s was not properly setup." +
+		" Please report this bug at https://github.com/raedahgroup/godcr/issues", commandName)
 }

@@ -47,7 +47,7 @@ func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
 	appRoot := cli.Root{Config: appConfig}
 
 	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
-	parser.CommandHandler = cli.CommandHandlerWrapper(client)
+	parser.CommandHandler = cli.CommandHandlerWrapper(parser, client)
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.
