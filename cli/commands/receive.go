@@ -23,7 +23,7 @@ func (r ReceiveCommand) Run(client *walletrpcclient.Client, args []string) error
 	if r.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = termio.GetSendSourceAccount(client)
+		accountNumber, err = getSendSourceAccount(client)
 		if err != nil {
 			return err
 		}

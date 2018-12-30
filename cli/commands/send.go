@@ -30,7 +30,7 @@ func (s SendCustomCommand) Run(client *walletrpcclient.Client, args []string) er
 func send(rpcclient *walletrpcclient.Client, custom bool) error {
 	var err error
 
-	sourceAccount, err := termio.GetSendSourceAccount(rpcclient)
+	sourceAccount, err := getSendSourceAccount(rpcclient)
 	if err != nil {
 		return err
 	}
@@ -45,12 +45,12 @@ func send(rpcclient *walletrpcclient.Client, custom bool) error {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := termio.GetSendDestinationAddress(rpcclient)
+	destinationAddress, err := getSendDestinationAddress(rpcclient)
 	if err != nil {
 		return err
 	}
 
-	sendAmount, err := termio.GetSendAmount()
+	sendAmount, err := getSendAmount()
 	if err != nil {
 		return err
 	}
@@ -63,13 +63,13 @@ func send(rpcclient *walletrpcclient.Client, custom bool) error {
 			return err
 		}
 
-		utxoSelection, err = termio.GetUtxosForNewTransaction(utxos, sendAmount)
+		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmount)
 		if err != nil {
 			return err
 		}
 	}
 
-	passphrase, err := termio.GetWalletPassphrase()
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err
 	}
