@@ -59,7 +59,12 @@ func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
 	if _, err := parser.Parse(); err != nil {
 		if config.IsFlagErrorType(err, flags.ErrCommandRequired) {
 			// No command was specified, print the available commands.
-			availableCommands := supportedCommands(parser)
+			var availableCommands []string
+			if parser.Active != nil {
+				availableCommands = supportedCommands(parser.Active)
+			} else {
+				availableCommands = supportedCommands(parser.Command)
+			}
 			fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(availableCommands, ", "))
 		} else {
 			handleParseError(err, parser)
@@ -68,7 +73,7 @@ func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
 	}
 }
 
-func supportedCommands(parser *flags.Parser) []string {
+func supportedCommands(parser *flags.Command) []string {
 	registeredCommands := parser.Commands()
 	commandNames := make([]string, 0, len(registeredCommands))
 	for _, command := range registeredCommands {

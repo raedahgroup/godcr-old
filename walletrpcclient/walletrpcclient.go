@@ -8,19 +8,21 @@ import (
 	"net"
 	"sort"
 
+	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
 	pb "github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/godcr/walletrpcclient/walletcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/raedahgroup/godcr/walletrpcclient/walletcore"
 )
 
 type Client struct {
 	walletServiceClient pb.WalletServiceClient
+	activeNet           *chaincfg.Params
 }
 
 func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
@@ -28,7 +30,13 @@ func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
 		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
 	}
 
-	c := &Client{}
+	activeNet := &chaincfg.MainNetParams
+	if isTestnet {
+		activeNet = &chaincfg.TestNet3Params
+	}
+
+	c := &Client{activeNet: activeNet}
+
 	conn, err := c.connect(rpcAddress, rpcCert, noTLS)
 	if err != nil {
 		return nil, err
@@ -43,9 +51,8 @@ func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
 func defaultDcrWalletRPCAddress(isTestnet bool) string {
 	if isTestnet {
 		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
-	} else {
-		return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 	}
+	return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 }
 
 func (c *Client) connect(rpcAddress, rpcCert string, noTLS bool) (*grpc.ClientConn, error) {
@@ -328,7 +335,7 @@ func (c *Client) NextAccount(accountName string, passphrase string) (uint32, err
 	return r.AccountNumber, nil
 }
 
-func (c *Client) AccountNumber (accountName string) (uint32, error) {
+func (c *Client) AccountNumber(accountName string) (uint32, error) {
 	req := &pb.AccountNumberRequest{
 		AccountName: accountName,
 	}
@@ -427,4 +434,47 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 	})
 
 	return transactions, nil
+}
+
+func (c *Client) GetTransaction(transactionHash string) (*TransactionDetails, error) {
+	hash, err := chainhash.NewHashFromStr(transactionHash)
+	if err != nil {
+		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
+	}
+	getTxRequest := &pb.GetTransactionRequest{TransactionHash: hash[:]}
+	getTxResponse, err := c.walletServiceClient.GetTransaction(context.Background(), getTxRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionHex := fmt.Sprintf("%x", getTxResponse.GetTransaction().GetTransaction())
+	msgTx, err := txhelpers.MsgTxFromHex(transactionHex)
+	if err != nil {
+		return nil, err
+	}
+
+	credits := getTxResponse.GetTransaction().GetCredits()
+	isMainNetTx, err := addressIsForNet(credits[0].GetAddress(), c.activeNet)
+	if err != nil {
+		return nil, err
+	}
+	txInfo, err := processTransaction(getTxResponse.GetTransaction(), !isMainNetTx)
+	if err != nil {
+		return nil, err
+	}
+	transaction := txInfo
+	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
+	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
+
+	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, credits, c.activeNet)
+	if err != nil {
+		return nil, err
+	}
+	return &TransactionDetails{
+		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
+		Confirmations: getTxResponse.GetConfirmations(),
+		Transaction:   transaction,
+		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
+		Outputs:       txOutputs,
+	}, nil
 }
