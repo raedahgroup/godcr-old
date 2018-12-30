@@ -23,35 +23,47 @@ func (showTxCommand ShowTransactionCommand) Run(walletrpcclient *walletrpcclient
 	if err != nil {
 		return err
 	}
-	basicOutput := "Transaction\t%s\t\n" +
-		"Confirmations\t%d\t\n" +
-		"Included in block\t%s\t\n" +
-		"Type\t%s\t\n" +
-		"Total sent\t%s\t\n" +
-		"Time\t%s\t\n" +
-		"Size\t%s\t\n" +
-		"Fee\t%s\t\n" +
-		"Rate\t%s/kB\t"
 
+	basicOutput := "Hash\t%s\n" +
+		"Confirmations\t%d\n" +
+		"Included in block\t%s\n" +
+		"Type\t%s\n" +
+		"Amount %s\t%s\n" +
+		"Date\t%s\n" +
+		"Size\t%s\n" +
+		"Fee\t%s\n" +
+		"Rate\t%s/kB\n"
+
+	txDirection := strings.ToLower(transaction.Direction.String())
 	txSize := fmt.Sprintf("%.1f kB", float64(transaction.Size)/1000)
-	basicOutput = fmt.Sprintf(basicOutput, transaction.Hash, transaction.Confirmations, transaction.BlockHash,
-		transaction.Type, transaction.Amount, transaction.FormattedTime, txSize, transaction.Fee, transaction.Rate)
+	basicOutput = fmt.Sprintf(basicOutput,
+		transaction.Hash,
+		transaction.Confirmations,
+		transaction.BlockHash,
+		transaction.Type,
+		txDirection, transaction.Amount,
+		transaction.FormattedTime,
+		txSize,
+		transaction.Fee,
+		transaction.Rate)
 
-	detailedOutput := strings.Builder{}
 	if showTxCommand.Detailed {
-		detailedOutput.WriteString("\nInputs\t\n")
+		detailedOutput := strings.Builder{}
+		detailedOutput.WriteString("General Info\n")
+		detailedOutput.WriteString(basicOutput)
+		detailedOutput.WriteString("\nInputs\n")
 		for _, input := range transaction.Inputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t\n", input.PreviousOutpoint, input.Amount))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\n", input.Amount, input.PreviousOutpoint))
 		}
-		detailedOutput.WriteString("\nOutputs\t\n")
+		detailedOutput.WriteString("\nOutputs\n")
 		for _, out := range transaction.Outputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\t%s", out.Address, out.ScriptClass, out.Value.String()))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s", out.Value, out.Address))
 			if out.Internal {
 				detailedOutput.WriteString(" (internal)")
 			}
-			detailedOutput.WriteString("\t\n")
+			detailedOutput.WriteString("\n")
 		}
-		termio.PrintStringResult(basicOutput, strings.TrimRight(detailedOutput.String(), " \n\r"))
+		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))
 	} else {
 		termio.PrintStringResult(basicOutput)
 	}

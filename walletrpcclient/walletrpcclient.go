@@ -11,7 +11,6 @@ import (
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/netparams"
@@ -23,7 +22,7 @@ import (
 
 type Client struct {
 	walletServiceClient pb.WalletServiceClient
-	isTestNet           bool
+	activeNet           *chaincfg.Params
 }
 
 func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
@@ -31,7 +30,13 @@ func New(rpcAddress, rpcCert string, noTLS, isTestnet bool) (*Client, error) {
 		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
 	}
 
-	c := &Client{isTestNet: isTestnet}
+	activeNet := &chaincfg.MainNetParams
+	if isTestnet {
+		activeNet = &chaincfg.TestNet3Params
+	}
+
+	c := &Client{activeNet: activeNet}
+
 	conn, err := c.connect(rpcAddress, rpcCert, noTLS)
 	if err != nil {
 		return nil, err
@@ -434,7 +439,7 @@ func (c *Client) GetTransactions() ([]*Transaction, error) {
 func (c *Client) GetTransaction(transactionHash string) (*TransactionDetails, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
 	}
 	getTxRequest := &pb.GetTransactionRequest{TransactionHash: hash[:]}
 	getTxResponse, err := c.walletServiceClient.GetTransaction(context.Background(), getTxRequest)
@@ -448,15 +453,20 @@ func (c *Client) GetTransaction(transactionHash string) (*TransactionDetails, er
 		return nil, err
 	}
 
-	txInfos, err := c.processTransactions([]*pb.TransactionDetails{getTxResponse.GetTransaction()})
+	credits := getTxResponse.GetTransaction().GetCredits()
+	isMainNetTx, err := addressIsForNet(credits[0].GetAddress(), c.activeNet)
 	if err != nil {
 		return nil, err
 	}
-	transaction := txInfos[0]
+	txInfo, err := processTransaction(getTxResponse.GetTransaction(), !isMainNetTx)
+	if err != nil {
+		return nil, err
+	}
+	transaction := txInfo
 	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
 	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
 
-	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, getTxResponse.GetTransaction().GetCredits(), chainCfgParams(*c))
+	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, credits, c.activeNet)
 	if err != nil {
 		return nil, err
 	}
@@ -467,36 +477,4 @@ func (c *Client) GetTransaction(transactionHash string) (*TransactionDetails, er
 		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
 		Outputs:       txOutputs,
 	}, nil
-}
-
-func chainCfgParams(c Client) *chaincfg.Params {
-	if c.isTestNet {
-		return &chaincfg.TestNet3Params
-	}
-	return &chaincfg.MainNetParams
-}
-
-func inputsFromMsgTxIn(txIn []*wire.TxIn) []TxInput {
-	txInputs := make([]TxInput, len(txIn))
-	for i, input := range txIn {
-		txInputs[i] = TxInput{Amount: dcrutil.Amount(input.ValueIn), PreviousOutpoint: input.PreviousOutPoint}
-	}
-	return txInputs
-}
-
-func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*pb.TransactionDetails_Output, chainParams *chaincfg.Params) ([]TxOutput, error) {
-	txOutputs := make([]TxOutput, len(txOut))
-	for i, output := range txOut {
-		scriptClass, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
-		if err != nil {
-			return nil, err
-		}
-		txOutputs[i] = TxOutput{Value: dcrutil.Amount(output.Value), Address: addrs[0].String(), ScriptClass: scriptClass.String()}
-		for _, credit := range walletCredits {
-			if bytes.Equal(output.PkScript, credit.GetOutputScript()) {
-				txOutputs[i].Internal = credit.GetInternal()
-			}
-		}
-	}
-	return txOutputs, nil
 }
