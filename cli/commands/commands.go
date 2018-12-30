@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // CliCommands defines the commands and options available on the cli

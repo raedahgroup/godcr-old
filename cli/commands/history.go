@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/raedahgroup/dcrcli/cli/termio"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // HistoryCommand enables the user view their transaction history.

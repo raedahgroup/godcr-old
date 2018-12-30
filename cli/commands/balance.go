@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/cli/termio"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // BalanceCommand displays the user's account balance.

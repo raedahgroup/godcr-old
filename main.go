@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/cli"
-	"github.com/raedahgroup/dcrcli/config"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
-	"github.com/raedahgroup/dcrcli/web"
+	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/config"
+	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/web"
 )
 
 func main() {

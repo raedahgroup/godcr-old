@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/dcrcli/cli/commands"
-	"github.com/raedahgroup/dcrcli/config"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/config"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // CliRoot is the entrypoint to the cli application.

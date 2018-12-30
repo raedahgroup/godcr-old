@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/cli/termio"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // SendCommand lets the user send DCR.

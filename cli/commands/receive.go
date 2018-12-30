@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/dcrcli/cli/termio"
-	"github.com/raedahgroup/dcrcli/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -28,7 +28,7 @@ func (r ReceiveCommand) Run(client *walletrpcclient.Client, args []string) error
 			return err
 		}
 	} else {
-		// if an account name was passed in e.g. ./dcrcli receive default
+		// if an account name was passed in e.g. ./godcr receive default
 		// get the address corresponding to the account name and use it
 		var err error
 		accountNumber, err = client.AccountNumber(r.Args.Account)
