@@ -1,65 +1,71 @@
 # godcr
-====
 
-## Dcrcli Overview 
+## Overview
+**godcr** is a decred wallet application for Linux, macOS and Windows that interfaces with [dcrwallet](https://github.com/decred/dcrwallet) via RPC to provide wallet access and control functionality. The godcr app can be run in either of the following interface modes:
+- Web (web app running on an http server)
+- Cli (command-line utility)
 
-godcr is a command-line utility that interfaces with [Dcrwallet](https://github.com/decred/dcrwallet) rpc's methods.
+## Requirements
+To run **godcr** on your PC, you'll need a running **dcrwallet** daemon.
+* Download the **decred** release binaries for your operating system from [here](https://github.com/decred/decred-binaries/releases). Check under **Assets**.
+* **dcrwallet** requires **dcrd** to work. The decred archive downloaded from the release page contains both binaries.
+* After downloading and extracting **dcrd** and **dcrwallet**, [go here](https://docs.decred.org/wallets/cli/cli-installation/) to learn how to setup and run both binaries.
 
-## Requirements 
-* [Go](http://golang.org) 1.11 
-* Git
-* Running `dcrwallet` instance 
+## Installation
 
-## Installation 
+### Option 1: Get the binary
+**godcr** is not released yet. This doc will be updated with links to download the godcr binary when a release is ready. For now, build from source.
 
-### Build from source
-
-The following guide assumes a Unix-like shell (e.g bash).
-
-* [Install Go](http://golang.org/doc/install).
-It is recommended to add `$GOPATH/bin` to your `PATH`.
-
-* [Install Git](https://git-scm.com).
-
-* Download dcrd and dcrwallet from [here](https://github.com/decred/decred-binaries/releases).
-Click on assets and download the package for your operating system.
-
-* After downloading the file, unzip or unpack the file then [follow this link](https://docs.decred.org/wallets/cli/cli-installation/)
- to install, setup and run drcd and dcrwallet on your machine.
-
-* Clone this repo to somewhere on your computer. Set the `GO111MODULE=on` environment variable if you are building from within `GOPATH`.
-
-##### Example of obtaining and building from source in Linux 
-```bash 
-$ git clone https://github.com/raedahgroup/godcr
-$ cd godcr
-$ go install or GO111MODULE=on go install (if you are building from within `GOPATH`)
+### Option 2: Build from source
+* Install Go. Installation instructions can be found [here](https://golang.org/doc/install). It is recommended to add $GOPATH/bin to your PATH as part of the installation process.
+* Clone this repository. It is conventional to clone to $GOPATH, but not necessary.
+```bash
+$ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
+```
+* If you clone to $GOPATH, set the `GO111MODULE=on` environment variable when building. On Unix systems, you can add the following line to `~/.bash_profile` to persist the variable
+```bash
+export GO111MODULE=on
+```
+* `cd` to the cloned project directory and build or install godcr. Building will place the godcr binary in your working directory while install will place the binary in $GOPATH/bin
+```bash
+$ go build
+$ go install
+```
+* If you cloned the source code to $GOPATH but have not set the GO111MODULE=on environment variable, build/install like this
+```bash
+$ GO111MODULE=on go build
+$ GO111MODULE=on go install
 ```
 
-## Running godcr 
-
-### Create configuration file 
-
-Begin with the sample configuration file:
-
-```bash 
-cp sample-godcr.conf godcr.conf 
-``` 
-
-Then edit godcr.conf and input your RPC settings. After you are finished, move godcr.conf to the `appdata` folder (default is `~/.godcr` on Linux, `%localappdata%\Godcr` on Windows). See the output of `godcr -h` for a list of all options.
-
-### Using godcr
-
-Run `godcr <command> <options>`. See the output of `godcr -l` for a list of all commands.
+## Running godcr
+* Create the godcr configuration file. Use the following godcr command to do this. Follow the command prompt and input your configuration values.
+```bash
+$ godcr --init
+```
+* The above command will create a `godcr.conf` file in the default `appdata` directory for godcr. Use `godcr -h` to view the default `appdata` directory for your operating system. To use a different `appdata` directory:
+```bash
+$ godcr --init -C="path/to/desired/app/data/folder"
+```
+* Once you've configured godcr, you can perform various wallet-related operations by running
+```bash
+$ godcr [options] <command> [args]
+```
+* To view available commands and options at any time:
+```bash
+$ godcr -h
+```
+* To get detailed help information for a command:
+```bash
+$ godcr <command> -h
+```
 
 ## Contributing 
 
-See the CONTRIBUTING.md file for details. Here's an overview of it: 
+See the CONTRIBUTING.md file for details. Here's an overview:
 
-1. Fork the repo
-1. Create a branch for your work (`git branch -b branch`).
-3. Write your codes 
-4. Commit and push to your repo
-5. Create a [pull request](https://github.com/raedahgroup/godcr)
-
-## License
+1. Fork this repo to your github account
+2. Before starting any work, ensure the master branch of your forked repo is even with this repo's master branch
+2. Create a branch for your work (`git checkout -b my-work master`)
+3. Write your codes
+4. Commit and push to the newly created branch on your forked repo
+5. Create a [pull request](https://github.com/raedahgroup/godcr/pulls) from your new branch to this repo's master branch
