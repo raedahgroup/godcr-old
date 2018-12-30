@@ -6,4 +6,4 @@ vendor/
 godcr
 go.mod
 go.sum
-dcrcli.conf
+godcr.conf

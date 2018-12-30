@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	defaultConfigFilename    = "dcrcli.conf"
+	defaultConfigFilename    = "godcr.conf"
 	defaultHTTPServerAddress = "127.0.0.1:1234"
 )
 
 var (
-	defaultAppDataDir          = dcrutil.AppDataDir("dcrcli", false)
+	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
