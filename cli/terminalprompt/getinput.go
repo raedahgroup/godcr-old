@@ -60,15 +60,15 @@ func getPasswordInput(prompt string) (string, error) {
 
 func setTerminalEcho(on bool) error {
 
-	var cmdToExecute string
+	var sttyEchoArg string
 	if on{
 		fmt.Println()
-		cmdToExecute = "echo"
+		sttyEchoArg = "echo"
 	}else {
-		cmdToExecute = "-echo"
+		sttyEchoArg = "-echo"
 	}
 
-	cmd := exec.Command("stty", cmdToExecute)
+	cmd := exec.Command("stty", sttyEchoArg)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
