@@ -4,11 +4,9 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"strconv"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
-	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -22,10 +20,6 @@ var (
 	generateAddressResponse *walletrpcclient.ReceiveResult
 	transactionsResponse    []*walletrpcclient.Transaction
 	utxosResponse           []*walletrpcclient.UnspentOutputsResult
-
-	// form values
-	sendAmount  float64
-	sendAddress string
 
 	// form inputs
 	amountInput   nucular.TextEditor
@@ -41,14 +35,6 @@ var (
 
 	// form checkbox values
 	checkedUTXOS []bool
-
-	// passphrase modal bounds
-	passphraseModalBounds = rect.Rect{
-		H: 200,
-		W: 250,
-		X: 270,
-		Y: 50,
-	}
 )
 
 func resetVars() {
@@ -57,8 +43,6 @@ func resetVars() {
 	accountsResponse = nil
 	generateAddressResponse = nil
 	transactionsResponse = nil
-	sendAmount = 0.0
-	sendAddress = ""
 	selectedAccountIndex = 0
 	selectedAccountNumber = uint32(0)
 	selectedUTXOS = nil
@@ -91,11 +75,11 @@ func (d *Desktop) BalanceHandler(w *nucular.Window) {
 				// rows
 				for _, v := range accountBalanceResponse {
 					content.Label(v.AccountName, "LC")
-					content.Label(strconv.Itoa(int(v.Total/100000000)), "LC")
-					content.Label(strconv.Itoa(int(v.Spendable/100000000)), "LC")
-					content.Label(strconv.Itoa(int(v.LockedByTickets/100000000)), "LC")
-					content.Label(strconv.Itoa(int(v.VotingAuthority/100000000)), "LC")
-					content.Label(strconv.Itoa(int(v.Unconfirmed/100000000)), "LC")
+					content.Label(amountToString(v.Total.ToCoin()), "LC")
+					content.Label(amountToString(v.Spendable.ToCoin()), "LC")
+					content.Label(amountToString(v.LockedByTickets.ToCoin()), "LC")
+					content.Label(amountToString(v.VotingAuthority.ToCoin()), "LC")
+					content.Label(amountToString(v.Unconfirmed.ToCoin()), "LC")
 				}
 			}
 			content.end()
@@ -128,12 +112,10 @@ func (d *Desktop) TransactionsHandler(w *nucular.Window) {
 
 				for _, tx := range transactionsResponse {
 					content.Row(20).Ratio(0.18, 0.12, 0.1, 0.15, 0.15, 0.3)
-					amount := amountToString(tx.Amount)
-					fee := amountToString(tx.Fee)
 
 					content.Label(tx.FormattedTime, "LC")
-					content.Label(amount, "LC")
-					content.Label(fee, "LC")
+					content.Label(amountToString(tx.Amount), "LC")
+					content.Label(amountToString(tx.Fee), "LC")
 					content.Label(tx.Direction.String(), "LC")
 					content.Label(tx.Type, "LC")
 					content.Label(tx.Hash, "LC")
@@ -275,22 +257,7 @@ func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 				if submitButtonGroup := content.GroupBegin("SubmitButtonGroup", nucular.WindowNoHScrollbar); submitButtonGroup != nil {
 					submitButtonGroup.Row(50).Static(150)
 					if submitButtonGroup.Button(label.T("Next"), false) {
-						// get passphrase
-						walletPassphrase := ""
 
-						getPassphraseHandler := func(w *nucular.Window) {
-							w.Row(25).Dynamic(1)
-							w.Label("Wallet Passphrase", "LC")
-
-							w.Row(30).Dynamic(1)
-							passwordInput.Edit(w)
-
-							w.Row(25).Dynamic(1)
-							if w.Button(label.T("Submit"), false) {
-								walletPassphrase = string(passwordInput.Buffer)
-							}
-						}
-						submitButtonGroup.Master().PopupOpen("Wallet Passphrase", nucular.WindowTitle, passphraseModalBounds, true, getPassphraseHandler)
 					}
 					submitButtonGroup.GroupEnd()
 				}
