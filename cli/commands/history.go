@@ -10,7 +10,7 @@ type HistoryCommand struct {
 	CommanderStub
 }
 
-// Execute runs the `history` command.
+// Run runs the `history` command.
 func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error {
 	transactions, err := client.GetTransactions()
 	if err != nil {
