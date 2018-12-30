@@ -3,25 +3,27 @@ package commands
 import (
 	"fmt"
 
-	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
 // ReceiveCommand generates and address for a user to receive DCR.
 type ReceiveCommand struct {
+	CommanderStub
 	Args struct {
 		Account string `positional-arg-name:"account"`
 	} `positional-args:"yes"`
 }
 
-// Execute runs the `receive` command.
-func (r ReceiveCommand) Execute(args []string) error {
+// Run runs the `receive` command.
+func (r ReceiveCommand) Run(client *walletrpcclient.Client, args []string) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if r.Args.Account == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = cli.GetSendSourceAccount(cli.WalletClient)
+		accountNumber, err = getSendSourceAccount(client)
 		if err != nil {
 			return err
 		}
@@ -29,13 +31,13 @@ func (r ReceiveCommand) Execute(args []string) error {
 		// if an account name was passed in e.g. ./godcr receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = cli.WalletClient.AccountNumber(r.Args.Account)
+		accountNumber, err = client.AccountNumber(r.Args.Account)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveResult, err := cli.WalletClient.Receive(accountNumber)
+	receiveResult, err := client.Receive(accountNumber)
 	if err != nil {
 		return err
 	}
@@ -45,18 +47,16 @@ func (r ReceiveCommand) Execute(args []string) error {
 		return fmt.Errorf("Error generating QR Code: %s", err.Error())
 	}
 
-	res := &cli.Response{
-		Columns: []string{
-			"Address",
-			"QR Code",
-		},
-		Result: [][]interface{}{
-			[]interface{}{
-				receiveResult.Address,
-				qr.ToString(true),
-			},
+	columns := []string{
+		"Address",
+		"QR Code",
+	}
+	rows := [][]interface{}{
+		[]interface{}{
+			receiveResult.Address,
+			qr.ToString(true),
 		},
 	}
-	cli.PrintResult(cli.StdoutWriter, res)
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 	return nil
 }

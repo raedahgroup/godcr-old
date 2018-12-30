@@ -1,32 +1,33 @@
 package commands
 
 import (
-	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
 // HistoryCommand enables the user view their transaction history.
-type HistoryCommand struct{}
+type HistoryCommand struct {
+	CommanderStub
+}
 
 // Execute runs the `history` command.
-func (h HistoryCommand) Execute(args []string) error {
-	transactions, err := cli.WalletClient.GetTransactions()
+func (h HistoryCommand) Run(client *walletrpcclient.Client, args []string) error {
+	transactions, err := client.GetTransactions()
 	if err != nil {
 		return err
 	}
 
-	res := &cli.Response{
-		Columns: []string{
-			"Date",
-			"Amount (DCR)",
-			"Direction",
-			"Hash",
-			"Type",
-		},
-		Result: make([][]interface{}, len(transactions)),
+	columns := []string{
+		"Date",
+		"Amount (DCR)",
+		"Direction",
+		"Hash",
+		"Type",
 	}
+	rows := make([][]interface{}, len(transactions))
 
 	for i, tx := range transactions {
-		res.Result[i] = []interface{}{
+		rows[i] = []interface{}{
 			tx.FormattedTime,
 			tx.Amount,
 			tx.Direction,
@@ -35,6 +36,6 @@ func (h HistoryCommand) Execute(args []string) error {
 		}
 	}
 
-	cli.PrintResult(cli.StdoutWriter, res)
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 	return nil
 }
