@@ -24,7 +24,7 @@ var (
 
 // Config holds the top-level options for the CLI program.
 type Config struct {
-	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Every other flag or command is ignored."`
+	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
@@ -72,7 +72,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	}
 
 	if config.ShowVersion {
-		return  args, config, parser, fmt.Errorf(AppVersion())
+		return args, config, parser, fmt.Errorf(AppVersion())
 	}
 
 	// Load additional config from file
