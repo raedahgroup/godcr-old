@@ -32,7 +32,8 @@ type Config struct {
 	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
 	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
 	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode. This flag cannot be used with a command."`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
+	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
 	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
