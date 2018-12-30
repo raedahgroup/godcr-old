@@ -1,6 +1,10 @@
 package walletrpcclient
 
 import (
+	"bytes"
+	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrd/txscript"
+	"github.com/decred/dcrd/wire"
 	"math"
 	"time"
 
@@ -45,16 +49,27 @@ func (c *Client) processTransactions(transactionDetails []*pb.TransactionDetails
 		// use any of the addresses in inputs/outputs to determine if this is a testnet tx
 		var isTestnet bool
 		for _, output := range txDetail.Credits {
-			addr, err := dcrutil.DecodeAddress(output.Address)
+			isMainNet, err := addressIsForNet(output.GetAddress(), netparams.MainNetParams.Params)
 			if err != nil {
 				continue
 			}
-
-			isTestnet = !addr.IsForNet(netparams.MainNetParams.Params)
+			isTestnet = !isMainNet
 			break
 		}
 
-		hash, err := chainhash.NewHash(txDetail.Hash)
+		tx, err := processTransaction(txDetail, isTestnet)
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, tx)
+	}
+
+	return transactions, nil
+}
+
+func processTransaction(txDetail *pb.TransactionDetails, isTestnet bool) (*Transaction, error) {
+	hash, err := chainhash.NewHash(txDetail.Hash)
 		if err != nil {
 			return nil, err
 		}
@@ -71,11 +86,15 @@ func (c *Client) processTransactions(transactionDetails []*pb.TransactionDetails
 			Timestamp:     txDetail.Timestamp,
 			FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
+		return tx, nil
+}
 
-		transactions = append(transactions, tx)
+func addressIsForNet(address string, net *chaincfg.Params) (bool, error) {
+	addr, err := dcrutil.DecodeAddress(address)
+	if err != nil {
+		return false, err
 	}
-
-	return transactions, nil
+	return addr.IsForNet(net), nil
 }
 
 func transactionAmountAndDirection(txDetail *pb.TransactionDetails) (int64, TransactionDirection) {
@@ -120,4 +139,32 @@ func transactionAmountAndDirection(txDetail *pb.TransactionDetails) (int64, Tran
 	}
 
 	return amount, direction
+}
+
+func inputsFromMsgTxIn(txIn []*wire.TxIn) []TxInput {
+	txInputs := make([]TxInput, len(txIn))
+	for i, input := range txIn {
+		txInputs[i] = TxInput{
+			Amount: dcrutil.Amount(input.ValueIn),
+			PreviousOutpoint: input.PreviousOutPoint.String(),
+		}
+	}
+	return txInputs
+}
+
+func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*pb.TransactionDetails_Output, chainParams *chaincfg.Params) ([]TxOutput, error) {
+	txOutputs := make([]TxOutput, len(txOut))
+	for i, output := range txOut {
+		_, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
+		if err != nil {
+			return nil, err
+		}
+		txOutputs[i] = TxOutput{Value: dcrutil.Amount(output.Value), Address: addrs[0].String()}
+		for _, credit := range walletCredits {
+			if bytes.Equal(output.PkScript, credit.GetOutputScript()) {
+				txOutputs[i].Internal = credit.GetInternal()
+			}
+		}
+	}
+	return txOutputs, nil
 }

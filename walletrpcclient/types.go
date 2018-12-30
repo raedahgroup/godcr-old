@@ -2,7 +2,6 @@ package walletrpcclient
 
 import (
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/wire"
 )
 
 type ReceiveResult struct {
@@ -51,14 +50,13 @@ type Transaction struct {
 
 type TxInput struct {
 	Amount           dcrutil.Amount `json:"value"`
-	PreviousOutpoint wire.OutPoint  `json:"previousOutpoint"`
+	PreviousOutpoint string  `json:"previousOutpoint"`
 }
 
 type TxOutput struct {
 	Address     string         `json:"address"`
 	Internal    bool           `json:"internal"`
 	Value       dcrutil.Amount `json:"value"`
-	ScriptClass string         `json:"scriptClass"`
 }
 
 type TransactionDetails struct {
