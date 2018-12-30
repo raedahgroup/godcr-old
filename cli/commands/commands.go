@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
