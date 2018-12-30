@@ -9,6 +9,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/config"
+	"github.com/raedahgroup/godcr/desktop"
 	"github.com/raedahgroup/godcr/walletrpcclient"
 	"github.com/raedahgroup/godcr/web"
 )
@@ -33,6 +34,8 @@ func main() {
 			os.Exit(1)
 		}
 		enterHTTPMode(appConfig.HTTPServerAddress, client)
+	} else if appConfig.DesktopMode {
+		enterDesktopMode(client)
 	} else {
 		enterCliMode(appConfig, client)
 	}
@@ -41,6 +44,11 @@ func main() {
 func enterHTTPMode(serverAddress string, client *walletrpcclient.Client) {
 	fmt.Println("Running in http mode")
 	web.StartHttpServer(serverAddress, client)
+}
+
+func enterDesktopMode(client *walletrpcclient.Client) {
+	fmt.Println("Running in desktop mode")
+	desktop.StartDesktopApp(client)
 }
 
 func enterCliMode(appConfig config.Config, client *walletrpcclient.Client) {
