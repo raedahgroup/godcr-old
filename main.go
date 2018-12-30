@@ -19,10 +19,6 @@ func main() {
 		handleParseError(err, parser)
 		os.Exit(1)
 	}
-	if appConfig.ShowVersion {
-		fmt.Println(config.AppVersion())
-		os.Exit(0)
-	}
 
 	client, err := walletrpcclient.New(appConfig.WalletRPCServer, appConfig.RPCCert, appConfig.NoDaemonTLS, appConfig.TestNet)
 	if err != nil {

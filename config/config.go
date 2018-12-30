@@ -71,6 +71,10 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		return args, config, parser, err
 	}
 
+	if config.ShowVersion {
+		return  args, config, parser, fmt.Errorf(AppVersion())
+	}
+
 	// Load additional config from file
 	err = parseConfigFile(parser, config.ConfigFile)
 	if err != nil {
