@@ -61,7 +61,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 		}
 	}
 
-	confirm, err := terminalprompt.RequestInput("Would you like to a generate QR code? (y/N) ", validateConfirm)
+	confirm, err := terminalprompt.RequestInput("Would you like to generate a QR code? (y/N) ", validateConfirm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
 		return err
