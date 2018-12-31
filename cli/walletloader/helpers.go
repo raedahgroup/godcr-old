@@ -29,23 +29,14 @@ func displayWalletSeed(seed string) {
 }
 
 func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	createWalletPrompt := "No wallet found. Would you like to create one now? (y/N)"
-	validateUserResponse := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if userResponse == "" || strings.EqualFold("y", userResponse) || strings.EqualFold("N", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-	userResponse, err := terminalprompt.RequestInput(createWalletPrompt, validateUserResponse)
+	createWalletPrompt := "No wallet found. Would you like to create one now?"
+	userResponse, err := terminalprompt.RequestYesNoOption(createWalletPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
 		return err
 	}
 
-	if userResponse == "" || strings.EqualFold("N", userResponse) {
+	if strings.EqualFold("n", userResponse) {
 		fmt.Println("Maybe later. Bye.")
 		return nil
 	}

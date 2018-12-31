@@ -74,18 +74,8 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
 
 	// sync blockchain?
-	syncBlockchainPrompt := "Would you like to sync the blockchain now? (Y/n)"
-	validateUserResponse := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-
-	syncBlockchainResponse, err := terminalprompt.RequestInput(syncBlockchainPrompt, validateUserResponse)
+	syncBlockchainPrompt := "Would you like to sync the blockchain now?"
+	syncBlockchainResponse, err := terminalprompt.RequestYesNoOption(syncBlockchainPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s\n", err.Error())
 		return err
