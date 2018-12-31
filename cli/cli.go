@@ -3,69 +3,92 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/runner"
 )
 
-// Root is the entrypoint to the cli application.
-// It defines both the commands and the options available.
-type Root struct {
-	Commands commands.Commands
-	Config   config.Config
+// appConfigWithCliCommands is the entrypoint to the cli application.
+// It defines general app options, cli commands with their command-specific options and general cli options
+type appConfigWithCliCommands struct {
+	commands.Commands
+	config.Config
+	runner.CliOptions
 }
 
 // Run starts the app in cli interface mode
 func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) error {
-	parser, err := runCliParse(appConfig)
-	if err != nil {
-		return err
+	configWithCommands := &appConfigWithCliCommands{
+		Config: appConfig,
+	}
+	parser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
+
+	// use command handler wrapper function to provide wallet dependency injection to command handlers at execution time
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		commandRunner := runner.New(ctx, walletMiddleware)
+		return commandRunner.Run(parser, command, args, configWithCommands.CliOptions)
 	}
 
-	if appConfig.CreateWallet {
-		return createWallet(ctx, walletMiddleware)
+	// parser.Parse invokes parser.CommandHandler if a command is provided
+	// returns an error of type ErrCommandRequired
+	_, err := parser.Parse()
+	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
+	helpFlagPassed := config.IsFlagErrorType(err, flags.ErrHelp)
+
+	// if no command is passed but --sync flag was passed, perform sync operation and return
+	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
+		return syncBlockChain(ctx, walletMiddleware)
 	}
 
-	// open wallet, subsequent operations including blockchain sync and command handlers need wallet to be open
-	walletExists, err := openWallet(ctx, walletMiddleware)
+	if noCommandPassed {
+		displayAvailableCommandsHelpMessage(parser)
+	} else if helpFlagPassed {
+		displayHelpMessage(parser)
+	} else {
+		fmt.Println(err)
+	}
+
+	return err
+}
+
+func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	walletExists, err := runner.OpenWallet(ctx, walletMiddleware)
 	if err != nil || !walletExists {
 		return err
 	}
 
-	if appConfig.SyncBlockchain {
-		err = syncBlockChain(ctx, walletMiddleware)
-		if err != nil {
-			return err
-		}
-	}
-
-	// parser.Parse checks if a command is passed and invokes the Execute method of the command
-	// if no command is passed, parser.Parse returns an error of type ErrCommandRequired
-	parser.CommandHandler = commands.CommandHandlerWrapper(parser, walletMiddleware)
-	_, err = parser.Parse()
-	return err
+	return runner.SyncBlockChain(ctx, walletMiddleware)
 }
 
-func runCliParse(appConfig config.Config) (*flags.Parser, error) {
-	appRoot := Root{Config: appConfig}
-	parser := flags.NewParser(&appRoot, flags.HelpFlag|flags.PassDoubleDash)
-
-	// stub out the command handler so that the commands are not executed while loading configuration
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		return nil
+// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
+func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
+	registeredCommands := parser.Commands()
+	commandNames := make([]string, 0, len(registeredCommands))
+	for _, command := range registeredCommands {
+		commandNames = append(commandNames, command.Name)
 	}
+	sort.Strings(commandNames)
+	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
+}
 
-	_, err := parser.Parse()
-	noCommandPassedError := config.IsFlagErrorType(err, flags.ErrCommandRequired)
-
-	// command mustn't be passed with --sync flag
-	if noCommandPassedError && !appConfig.SyncBlockchain {
-		displayAvailableCommandsHelpMessage(parser)
-	} else if err != nil && !noCommandPassedError {
-		fmt.Println(err)
+func displayHelpMessage(parser *flags.Parser) {
+	if parser.Active == nil {
+		parser.WriteHelp(os.Stdout)
+	} else {
+		printCommandHelp(parser.Name, parser.Active)
 	}
+}
 
-	return parser, err
+func printCommandHelp(appName string, command *flags.Command) {
+	helpParser := flags.NewParser(nil, flags.HelpFlag)
+	helpParser.Name = appName
+	helpParser.Active = command
+	helpParser.WriteHelp(os.Stdout)
+	fmt.Printf("To view application options, use '%s -h'\n", appName)
 }

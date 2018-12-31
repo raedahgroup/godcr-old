@@ -27,8 +27,6 @@ type Config struct {
 	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
-	CreateWallet      bool   `long:"createwallet" description:"Create a new testnet or mainnet wallet if one doesn't already exist"`
-	SyncBlockchain    bool   `long:"sync" description:"Syncs blockchain. If used with a cli command, command is executed after blockchain syncs"`
 	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
 	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`

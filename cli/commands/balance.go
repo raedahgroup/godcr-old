@@ -1,21 +1,23 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/runner"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
-// BalanceCommand displays the user's account balance.
+// Balance displays the user's account balance.
 type BalanceCommand struct {
-	CommanderStub
+	runner.WalletCommand
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed account balance report"`
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
-func (balanceCommand BalanceCommand) Run(wallet walletcore.Wallet, args []string) error {
+func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
 	accounts, err := wallet.AccountsOverview()
 	if err != nil {
 		return err

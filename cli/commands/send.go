@@ -1,27 +1,29 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/cli/runner"
 )
 
 // SendCommand lets the user send DCR.
 type SendCommand struct {
-	CommanderStub
+	runner.WalletCommand
 }
 
 // Run runs the `send` command.
-func (s SendCommand) Run(wallet walletcore.Wallet, args []string) error {
+func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
 	return send(wallet, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
-	CommanderStub
+	runner.WalletCommand
 }
 
 // Run runs the `send-custom` command.
-func (s SendCustomCommand) Run(wallet walletcore.Wallet, args []string) error {
+func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
 	return send(wallet, true)
 }
 
