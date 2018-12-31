@@ -20,14 +20,14 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 	}
 	if walletExists {
 		netType := strings.Title(walletMiddleware.NetType())
-		fmt.Fprintf(os.Stderr, "%s wallet already exists", netType)
+		fmt.Fprintf(os.Stderr, "%s wallet already exists\n", netType)
 		return fmt.Errorf("wallet already exists")
 	}
 
 	// ask user to enter passphrase twice
 	passphrase, err := terminalprompt.RequestInputSecure("Enter private passphrase for new wallet", terminalprompt.EmptyValidator)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading input: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error reading input: %s\n", err.Error())
 		return
 	}
 	confirmPassphrase, err := terminalprompt.RequestInputSecure("Confirm passphrase", terminalprompt.EmptyValidator)
@@ -61,14 +61,14 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 	}
 	_, err = terminalprompt.RequestInput(backupPrompt, backupValidator)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading input: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error reading input: %s\n", err.Error())
 		return
 	}
 
 	// user entered "OK" in last prompt, finalize wallet creation
 	err = walletMiddleware.CreateWallet(passphrase, seed)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating wallet: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error creating wallet: %s\n", err.Error())
 		return
 	}
 	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
@@ -87,7 +87,7 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 
 	syncBlockchainResponse, err := terminalprompt.RequestInput(syncBlockchainPrompt, validateUserResponse)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s\n", err.Error())
 		return err
 	}
 
@@ -164,7 +164,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 				if err == nil {
 					fmt.Println("Blockchain synced successfully")
 				} else {
-					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s", err.Error())
+					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", err.Error())
 				}
 				syncDone <- err
 			},
@@ -175,7 +175,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 
 		err := walletMiddleware.SyncBlockChain(syncListener, true)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s", err.Error())
+			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
 			syncDone <- err
 		}
 	}()

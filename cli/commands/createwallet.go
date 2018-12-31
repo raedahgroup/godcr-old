@@ -11,5 +11,7 @@ type CreateWalletCommand struct {
 }
 
 func (c CreateWalletCommand) Run(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	return walletloader.CreateWallet(ctx, walletMiddleware)
+	// any errors encountered are printed to terminal directly, no need to return the error to parser
+	walletloader.CreateWallet(ctx, walletMiddleware)
+	return nil
 }
