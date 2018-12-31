@@ -10,3 +10,13 @@ type Commands struct {
 	History         HistoryCommand         `command:"history" description:"show your transaction history"`
 	ShowTransaction ShowTransactionCommand `command:"show-transaction" description:"show details of a transaction"`
 }
+
+// commanderStub implements `flags.Commander`, using a noop Execute method to satisfy `flags.Commander` interface
+// Commands embedding this struct should ideally implement any of the interfaces in `runners.go`
+// The `Run` method of such commands will be invoked by `CommandRunner.Run`, providing specific dependencies required by the command
+type commanderStub struct{}
+
+// Noop Execute method added to satisfy `flags.Commander` interface
+func (w commanderStub) Execute(args []string) error {
+	return nil
+}

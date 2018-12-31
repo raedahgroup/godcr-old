@@ -1,18 +1,16 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
-	runner.WalletCommand
+	commanderStub
 	Detailed bool                       `short:"d" long:"detailed" description:"Display detailed transaction information"`
 	Args     ShowTransactionCommandArgs `positional-args:"yes"`
 }
@@ -21,7 +19,7 @@ type ShowTransactionCommandArgs struct {
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
-func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (showTxCommand ShowTransactionCommand) Run(wallet walletcore.Wallet) error {
 	transaction, err := wallet.GetTransaction(showTxCommand.Args.TxHash)
 	if err != nil {
 		return err
