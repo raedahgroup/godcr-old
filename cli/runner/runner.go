@@ -38,6 +38,11 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 		return runner.processWalletCommand(commandRunner, args, options)
 	}
 
+	// try running the command by injecting parser dependency
+	if commandRunner, ok := command.(ParserCommandRunner); ok {
+		return commandRunner.Run(runner.ctx, parser, args)
+	}
+
 	return command.Execute(args)
 }
 
