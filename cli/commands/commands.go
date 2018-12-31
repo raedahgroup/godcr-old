@@ -9,7 +9,7 @@ type Commands struct {
 	Receive         ReceiveCommand         `command:"receive" description:"show your address to receive funds"`
 	History         HistoryCommand         `command:"history" description:"show your transaction history"`
 	ShowTransaction ShowTransactionCommand `command:"show-transaction" description:"show details of a transaction"`
-	Help            HelpCommand            `command:"help" description:"show help for a command"`
+	Help            HelpCommand            `command:"help" description:"application help. You can run 'help <command-name>' for command-specific help."`
 }
 
 // commanderStub implements `flags.Commander`, using a noop Execute method to satisfy `flags.Commander` interface
