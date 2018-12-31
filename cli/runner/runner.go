@@ -30,7 +30,7 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 
 	// attempt to run the command by injecting walletMiddleware dependency
 	if commandRunner, ok := command.(WalletMiddlewareCommandRunner); ok {
-		return commandRunner.Run(runner.ctx, runner.walletMiddleware, args)
+		return commandRunner.Run(runner.ctx, runner.walletMiddleware)
 	}
 
 	// attempt to run the command by injecting wallet dependencies
@@ -58,7 +58,7 @@ func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunn
 		}
 	}
 
-	return commandRunner.Run(runner.ctx, runner.walletMiddleware, args)
+	return commandRunner.Run(runner.walletMiddleware)
 }
 
 func brokenCommandError(command *flags.Command) error {

@@ -1,20 +1,18 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
 type ReceiveCommand struct {
-	runner.WalletCommand
+	commanderStub
 	Args ReceiveCommandArgs `positional-args:"yes"`
 }
 type ReceiveCommandArgs struct {
@@ -22,7 +20,7 @@ type ReceiveCommandArgs struct {
 }
 
 // Run runs the `receive` command.
-func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if receiveCommand.Args.AccountName == "" {

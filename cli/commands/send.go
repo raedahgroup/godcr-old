@@ -1,33 +1,31 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // SendCommand lets the user send DCR.
 type SendCommand struct {
-	runner.WalletCommand
+	commanderStub
 }
 
 // Run runs the `send` command.
-func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (s SendCommand) Run(wallet walletcore.Wallet) error {
 	return send(wallet, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
-	runner.WalletCommand
+	commanderStub
 }
 
 // Run runs the `send-custom` command.
-func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
 	return send(wallet, true)
 }
 
