@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/raedahgroup/dcrcli/app"
-	"github.com/raedahgroup/dcrcli/cli/terminalprompt"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // createWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
@@ -101,7 +101,7 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 // openWallet is called whenever an action to be executed requires wallet to be loaded
 // notifies the program to exit if wallet doesn't exist or some other error occurs by returning a non-nil error
 //
-// this method may stall until previous dcrcli instances are closed (especially in cases of multiple mobilewallet instances)
+// this method may stall until previous godcr instances are closed (especially in cases of multiple mobilewallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
 func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
 	// notify user of the current operation so if takes too long, they have an idea what the cause is

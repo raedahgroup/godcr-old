@@ -2,7 +2,7 @@ package dcrlibwallet
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/godcr/app"
 )
 
 func (lib *MobileWalletLib) NetType() string {

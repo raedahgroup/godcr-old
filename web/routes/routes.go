@@ -5,7 +5,7 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/godcr/app"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page

@@ -10,7 +10,7 @@ import (
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
-	"github.com/raedahgroup/dcrcli/app/walletcore"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 // ideally, we should let user provide this info in settings and use the user provided value
@@ -223,8 +223,8 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 	for i, tx := range txs {
 		transactions[i] = &walletcore.Transaction{
 			Hash:          tx.Hash,
-			Amount:        dcrutil.Amount(tx.Amount).String(),
-			Fee:           dcrutil.Amount(tx.Fee).String(),
+			Amount:        dcrutil.Amount(tx.Amount),
+			Fee:           dcrutil.Amount(tx.Fee),
 			Type:          tx.Type,
 			Direction:     txDirection(tx.Direction),
 			Timestamp:     tx.Timestamp,
@@ -238,4 +238,8 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 	})
 
 	return transactions, nil
+}
+
+func (lib *MobileWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+	return nil, fmt.Errorf("not implemented")
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrwallet/netparams"
-	"github.com/raedahgroup/dcrcli/app"
-	"github.com/raedahgroup/dcrcli/app/walletmediums"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletmediums"
 	"github.com/raedahgroup/mobilewallet"
 )
 

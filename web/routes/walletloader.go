@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/godcr/app"
 )
 
 type syncStatus uint8

@@ -3,8 +3,8 @@ package dcrwalletrpc
 import (
 	"fmt"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrcli/app"
-	"github.com/raedahgroup/dcrcli/app/walletmediums"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletmediums"
 )
 
 type spvSync struct {

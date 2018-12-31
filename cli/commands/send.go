@@ -2,8 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio"
-	ws "github.com/raedahgroup/godcr/walletsource"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 // SendCommand lets the user send DCR.
@@ -12,8 +11,8 @@ type SendCommand struct {
 }
 
 // Run runs the `send` command.
-func (s SendCommand) Run(walletsource ws.WalletSource, args []string) error {
-	return send(walletsource, false)
+func (s SendCommand) Run(wallet walletcore.Wallet, args []string) error {
+	return send(wallet, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
@@ -22,19 +21,19 @@ type SendCustomCommand struct {
 }
 
 // Run runs the `send-custom` command.
-func (s SendCustomCommand) Run(walletsource ws.WalletSource, args []string) error {
-	return send(walletsource, true)
+func (s SendCustomCommand) Run(wallet walletcore.Wallet, args []string) error {
+	return send(wallet, true)
 }
 
-func send(walletsource ws.WalletSource, custom bool) (err error) {
-	sourceAccount, err := selectAccount(walletsource)
+func send(wallet walletcore.Wallet, custom bool) (err error) {
+	sourceAccount, err := selectAccount(wallet)
 	if err != nil {
 		return err
 	}
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := walletsource.AccountBalance(sourceAccount)
+	accountBalance, err := wallet.AccountBalance(sourceAccount)
 	if err != nil {
 		return err
 	}
@@ -42,7 +41,7 @@ func send(walletsource ws.WalletSource, custom bool) (err error) {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := getSendDestinationAddress(walletsource)
+	destinationAddress, err := getSendDestinationAddress(wallet)
 	if err != nil {
 		return err
 	}
@@ -55,7 +54,7 @@ func send(walletsource ws.WalletSource, custom bool) (err error) {
 	var utxoSelection []string
 	if custom {
 		// get all utxos in account, pass 0 amount to get all
-		utxos, err := walletsource.UnspentOutputs(sourceAccount, 0)
+		utxos, err := wallet.UnspentOutputs(sourceAccount, 0)
 		if err != nil {
 			return err
 		}
@@ -73,9 +72,9 @@ func send(walletsource ws.WalletSource, custom bool) (err error) {
 
 	var sentTransactionHash string
 	if custom {
-		sentTransactionHash, err = walletsource.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = wallet.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
 	} else {
-		sentTransactionHash, err = walletsource.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = wallet.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
 	}
 
 	if err != nil {

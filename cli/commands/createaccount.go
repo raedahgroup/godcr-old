@@ -2,23 +2,24 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli/utils"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type CreateAccountCommand struct {
+	CommanderStub
 	Args CreateAccountArgs `positional-args:"yes"`
 }
 type CreateAccountArgs struct {
 	AccountName string `positional-arg-name:"account-name" required:"yes"`
 }
 
-func (c CreateAccountCommand) Execute(args []string) error {
-	passphrase, err := utils.GetWalletPassphrase()
+func (c CreateAccountCommand) Run(wallet walletcore.Wallet, args []string) error {
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err
 	}
 
-	_, err = utils.Wallet.NextAccount(c.Args.AccountName, passphrase)
+	_, err = wallet.NextAccount(c.Args.AccountName, passphrase)
 	if err != nil {
 		return err
 	}

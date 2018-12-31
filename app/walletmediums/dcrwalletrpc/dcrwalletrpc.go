@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
@@ -35,9 +36,9 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, address, cert string, noTLS, isTestnet bool) (*WalletPRCClient, error) {
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool) (*WalletPRCClient, error) {
 	if rpcAddress == "" {
-		rpcAddress = defaultDcrWalletRPCAddress(netType)
+		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
 	}
 
 	// perform rpc connection in background, user might shutdown before connection is complete
@@ -52,6 +53,11 @@ func New(ctx context.Context, address, cert string, noTLS, isTestnet bool) (*Wal
 			return nil, connectionResult.err
 		}
 
+		activeNet := &chaincfg.MainNetParams
+		if isTestnet {
+			activeNet = &chaincfg.TestNet3Params
+		}
+
 		client := &WalletPRCClient{
 			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
 			walletService: walletrpc.NewWalletServiceClient(connectionResult.conn),
@@ -62,12 +68,11 @@ func New(ctx context.Context, address, cert string, noTLS, isTestnet bool) (*Wal
 	}
 }
 
-func defaultDcrWalletRPCAddress(netType string) string {
-	if netType == "mainnet" {
-		return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
-	} else {
+func defaultDcrWalletRPCAddress(isTestnet bool) string {
+	if isTestnet {
 		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
 	}
+	return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {

@@ -27,7 +27,7 @@ func displayWalletSeed(seed string) {
 		"giving them access to all your funds, so it is imperative that you keep it in a secure location.")
 }
 
-// displayAvailableCommandsHelpMessage prints a simple list of available commands when dcrcli is run without any command
+// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
 func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
 	registeredCommands := parser.Commands()
 	commandNames := make([]string, 0, len(registeredCommands))

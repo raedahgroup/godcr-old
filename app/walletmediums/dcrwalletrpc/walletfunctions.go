@@ -4,20 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-<<<<<<< HEAD:core/middlewares/dcrwalletrpc/functions.go
-	"github.com/decred/dcrdata/txhelpers"
-	"github.com/decred/dcrwallet/netparams"
-	"github.com/raedahgroup/dcrcli/core"
-=======
->>>>>>> rebase master, fix conflicts, refactor project code:app/walletmediums/dcrwalletrpc/walletfunctions.go
 	"io"
 	"sort"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrcli/app/walletcore"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/mobilewallet/txhelper"
 )
 
@@ -305,7 +300,7 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error
 }
 
 
-func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletsource.TransactionDetails, error) {
+func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
@@ -322,24 +317,19 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletsource.
 		return nil, err
 	}
 
-	credits := getTxResponse.GetTransaction().GetCredits()
-	isMainNetTx, err := addressIsForNet(credits[0].GetAddress(), netparams.MainNetParams.Params)
+	transaction, err := processTransaction(getTxResponse.GetTransaction())
 	if err != nil {
 		return nil, err
 	}
-	txInfo, err := processTransaction(getTxResponse.GetTransaction(), !isMainNetTx)
-	if err != nil {
-		return nil, err
-	}
-	transaction := txInfo
 	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
 	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
 
+	credits := getTxResponse.GetTransaction().GetCredits()
 	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, credits, c.activeNet)
 	if err != nil {
 		return nil, err
 	}
-	return &walletsource.TransactionDetails{
+	return &walletcore.TransactionDetails{
 		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
 		Confirmations: getTxResponse.GetConfirmations(),
 		Transaction:   transaction,

@@ -7,7 +7,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -15,16 +15,14 @@ var (
 	err error
 
 	// walletrpcclient responses
-	accountBalanceResponse  []*walletrpcclient.AccountBalanceResult
-	accountsResponse        []*walletrpcclient.AccountBalanceResult
-	generateAddressResponse *walletrpcclient.ReceiveResult
-	transactionsResponse    []*walletrpcclient.Transaction
-	utxosResponse           []*walletrpcclient.UnspentOutputsResult
+	accountsResponse        []*walletcore.Account
+	generateAddressResponse string
+	transactionsResponse    []*walletcore.Transaction
+	utxosResponse           []*walletcore.UnspentOutput
 
 	// form inputs
 	amountInput   nucular.TextEditor
 	addressInput  nucular.TextEditor
-	passwordInput nucular.TextEditor
 
 	// form selector index
 	selectedAccountIndex  = 0
@@ -39,9 +37,8 @@ var (
 
 func resetVars() {
 	err = nil
-	accountBalanceResponse = nil
 	accountsResponse = nil
-	generateAddressResponse = nil
+	generateAddressResponse = ""
 	transactionsResponse = nil
 	selectedAccountIndex = 0
 	selectedAccountNumber = uint32(0)
@@ -51,8 +48,8 @@ func resetVars() {
 
 func (d *Desktop) BalanceHandler(w *nucular.Window) {
 	// check if already fetched. If so, do not fetch again
-	if accountBalanceResponse == nil && err == nil {
-		accountBalanceResponse, err = d.walletClient.Balance()
+	if accountsResponse == nil && err == nil {
+		accountsResponse, err = d.wallet.AccountsOverview()
 	}
 
 	// draw page
@@ -73,13 +70,13 @@ func (d *Desktop) BalanceHandler(w *nucular.Window) {
 				content.Label("Unconfirmed", "LC")
 
 				// rows
-				for _, v := range accountBalanceResponse {
-					content.Label(v.AccountName, "LC")
-					content.Label(amountToString(v.Total.ToCoin()), "LC")
-					content.Label(amountToString(v.Spendable.ToCoin()), "LC")
-					content.Label(amountToString(v.LockedByTickets.ToCoin()), "LC")
-					content.Label(amountToString(v.VotingAuthority.ToCoin()), "LC")
-					content.Label(amountToString(v.Unconfirmed.ToCoin()), "LC")
+				for _, v := range accountsResponse {
+					content.Label(v.Name, "LC")
+					content.Label(amountToString(v.Balance.Total.ToCoin()), "LC")
+					content.Label(amountToString(v.Balance.Spendable.ToCoin()), "LC")
+					content.Label(amountToString(v.Balance.LockedByTickets.ToCoin()), "LC")
+					content.Label(amountToString(v.Balance.VotingAuthority.ToCoin()), "LC")
+					content.Label(amountToString(v.Balance.Unconfirmed.ToCoin()), "LC")
 				}
 			}
 			content.end()
@@ -90,7 +87,7 @@ func (d *Desktop) BalanceHandler(w *nucular.Window) {
 
 func (d *Desktop) TransactionsHandler(w *nucular.Window) {
 	if transactionsResponse == nil && err == nil {
-		transactionsResponse, err = d.walletClient.GetTransactions()
+		transactionsResponse, err = d.wallet.TransactionHistory()
 	}
 
 	if page := newWindow("Transactions Page", w, 0); page != nil {
@@ -135,10 +132,10 @@ func (d *Desktop) generateAddressHandler(w *nucular.Window) {
 		// content area
 		if content := page.contentWindow("Generate Address Result Content"); content != nil {
 			content.Row(50).Dynamic(1)
-			content.LabelWrap("Address: " + generateAddressResponse.Address)
+			content.LabelWrap("Address: " + generateAddressResponse)
 
 			// generate qrcode
-			png, err := qrcode.New(generateAddressResponse.Address, qrcode.Medium)
+			png, err := qrcode.New(generateAddressResponse, qrcode.Medium)
 			if err != nil {
 				content.Row(300).Dynamic(1)
 				content.LabelWrap(err.Error())
@@ -158,7 +155,7 @@ func (d *Desktop) generateAddressHandler(w *nucular.Window) {
 func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 	// check if already fetched. If so, do not fetch again
 	if accountsResponse == nil && err == nil {
-		accountsResponse, err = d.walletClient.Balance()
+		accountsResponse, err = d.wallet.AccountsOverview()
 	}
 
 	// draw page
@@ -172,7 +169,7 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 			} else {
 				accountNames := make([]string, len(accountsResponse))
 				for index, account := range accountsResponse {
-					accountNames[index] = account.AccountName
+					accountNames[index] = account.Name
 				}
 
 				content.Row(30).Ratio(0.75, 0.25)
@@ -183,15 +180,15 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 					// get selected account by index
 					accountName := accountNames[selectedAccountIndex]
 					for _, account := range accountsResponse {
-						if account.AccountName == accountName {
-							selectedAccountNumber = account.AccountNumber
+						if account.Name == accountName {
+							selectedAccountNumber = account.Number
 							break
 						}
 					}
 
 					// get address
-					if generateAddressResponse == nil && err == nil {
-						generateAddressResponse, err = d.walletClient.Receive(selectedAccountNumber)
+					if generateAddressResponse == "" && err == nil {
+						generateAddressResponse, err = d.wallet.GenerateReceiveAddress(selectedAccountNumber)
 						if err != nil {
 							content.setErrorMessage(err.Error())
 						} else {
@@ -208,7 +205,7 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 
 func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 	if utxosResponse == nil && err == nil {
-		utxosResponse, err = d.walletClient.UnspentOutputs(selectedAccountNumber, 0)
+		utxosResponse, err = d.wallet.UnspentOutputs(selectedAccountNumber, 0)
 	}
 
 	// draw page
@@ -247,7 +244,7 @@ func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 							}
 						}
 						txGroup.Label(v.TransactionHash, "LC")
-						txGroup.Label(v.AmountString, "LC")
+						txGroup.Label(v.Amount.String(), "LC")
 						//txGroup.Label("time", "LC")
 					}
 					txGroup.GroupEnd()
@@ -271,7 +268,7 @@ func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 
 func (d *Desktop) SendHandler(w *nucular.Window) {
 	if accountsResponse == nil && err == nil {
-		accountsResponse, err = d.walletClient.Balance()
+		accountsResponse, err = d.wallet.AccountsOverview()
 	}
 
 	// draw page
@@ -285,7 +282,7 @@ func (d *Desktop) SendHandler(w *nucular.Window) {
 			} else {
 				accounts := make([]string, len(accountsResponse))
 				for index, account := range accountsResponse {
-					accounts[index] = account.AccountName
+					accounts[index] = account.Name
 				}
 
 				content.Row(15).Dynamic(2)
@@ -314,8 +311,8 @@ func (d *Desktop) SendHandler(w *nucular.Window) {
 					// get account number from selected index
 					accountName := accounts[selectedAccountIndex]
 					for _, account := range accountsResponse {
-						if account.AccountName == accountName {
-							selectedAccountNumber = account.AccountNumber
+						if account.Name == accountName {
+							selectedAccountNumber = account.Number
 							break
 						}
 					}
