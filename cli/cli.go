@@ -85,4 +85,3 @@ func displayHelpMessage(parser *flags.Parser) {
 		commands.PrintCommandHelp(parser.Name, parser.Active)
 	}
 }
-

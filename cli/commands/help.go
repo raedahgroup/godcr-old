@@ -11,7 +11,7 @@ import (
 
 type HelpCommand struct {
 	runner.ParserCommand
-	Args struct{
+	Args struct {
 		CommandName string `positional-arg-name:"command-name"`
 	} `positional-args:"yes"`
 }
@@ -20,7 +20,7 @@ func (h HelpCommand) Run(ctx context.Context, parser *flags.Parser, args []strin
 	if h.Args.CommandName == "" {
 		active := parser.Active
 		parser.Active = nil
-		defer func() {parser.Active = active}()
+		defer func() { parser.Active = active }()
 		parser.WriteHelp(termio.StdoutWriter)
 		return nil
 	}
@@ -42,8 +42,3 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	helpParser.WriteHelp(os.Stdout)
 	fmt.Printf("To view application options, use '%s help'\n", appName)
 }
-
-/*
-I have looked for how to get command-specific options but did
-find a way around it and so went back to this. I will be happy to have a pointer to this
-*/
