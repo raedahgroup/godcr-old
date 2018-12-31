@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"github.com/mdp/qrterminal"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
@@ -51,15 +52,11 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 
 	// Print out QR code
 	validateConfirm := func(address string) error {
-		return  nil
+		return nil
 	}
-	confirm, _ := terminalprompt.RequestInput("Would you like to a generate QR code? (y/n) ", validateConfirm)
+	confirm, _ := terminalprompt.RequestInput("Would you like to a generate QR code? (y/N) ", validateConfirm)
 
-	if confirm == "Yes" || confirm == "yes" {
-		confirm = "y"
-	}
-
-	if confirm == "y" {
+	if strings.EqualFold(confirm, "yes") || strings.EqualFold(confirm, "y") {
 		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
 
 	}
