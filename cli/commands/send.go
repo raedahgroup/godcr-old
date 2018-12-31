@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/raedahgroup/godcr/walletrpcclient"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -75,16 +76,9 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 
 	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
 
-	validateConfirm := func(address string) error {
-		return  nil
-	}
-	confirm, _ := terminalprompt.RequestInput("Are you sure? (y/n) ", validateConfirm)
+	confirm, _ := terminalprompt.RequestInput("Are you sure? (y/n) ", nil)
 
-	if confirm == "Yes" || confirm == "yes" {
-		confirm = "y"
-	}
-
-	if confirm != "y" {
+	if strings.EqualFold(confirm, "yes") || strings.EqualFold(confirm, "y") {
 		fmt.Printf("Operation cancelled\n")
 		return  nil
 	}

@@ -46,7 +46,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 	}
 
 	// Print out address as string
-	fmt.Printf("%s\n", receiveResult.Address)
+	fmt.Println(receiveResult.Address)
 
 	// Print out QR code
 	validateConfirm := func(address string) error {
