@@ -1,36 +1,38 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/runner"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
-	"github.com/raedahgroup/godcr/walletrpcclient"
 )
 
-// BalanceCommand displays the user's account balance.
+// Balance displays the user's account balance.
 type BalanceCommand struct {
-	CommanderStub
+	runner.WalletCommand
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed account balance report"`
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
-func (balanceCommand BalanceCommand) Run(client *walletrpcclient.Client, args []string) error {
-	accountBalances, err := client.Balance()
+func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+	accounts, err := wallet.AccountsOverview()
 	if err != nil {
 		return err
 	}
 
 	if balanceCommand.Detailed {
-		showDetailedBalance(accountBalances)
+		showDetailedBalance(accounts)
 	} else {
-		showBalanceSummary(accountBalances)
+		showBalanceSummary(accounts)
 	}
 
 	return nil
 }
 
-func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult) {
+func showDetailedBalance(accountBalances []*walletcore.Account) {
 	columns := []string{
 		"Account",
 		"Total",
@@ -42,19 +44,19 @@ func showDetailedBalance(accountBalances []*walletrpcclient.AccountBalanceResult
 	rows := make([][]interface{}, len(accountBalances))
 	for i, account := range accountBalances {
 		rows[i] = []interface{}{
-			account.AccountName,
-			account.Total,
-			account.Spendable,
-			account.LockedByTickets,
-			account.VotingAuthority,
-			account.Unconfirmed,
+			account.Name,
+			account.Balance.Total,
+			account.Balance.Spendable,
+			account.Balance.LockedByTickets,
+			account.Balance.VotingAuthority,
+			account.Balance.Unconfirmed,
 		}
 	}
 
 	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 }
 
-func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult) {
+func showBalanceSummary(accounts []*walletcore.Account) {
 	summarizeBalance := func(total, spendable dcrutil.Amount) string {
 		if total == spendable {
 			return total.String()
@@ -63,14 +65,14 @@ func showBalanceSummary(accountBalances []*walletrpcclient.AccountBalanceResult)
 		}
 	}
 
-	if len(accountBalances) == 1 {
-		commandOutput := summarizeBalance(accountBalances[0].Total, accountBalances[0].Spendable)
+	if len(accounts) == 1 {
+		commandOutput := summarizeBalance(accounts[0].Balance.Total, accounts[0].Balance.Spendable)
 		termio.PrintStringResult(commandOutput)
 	} else {
-		commandOutput := make([]string, len(accountBalances))
-		for i, accountBalance := range accountBalances {
-			balanceText := summarizeBalance(accountBalance.Total, accountBalance.Spendable)
-			commandOutput[i] = fmt.Sprintf("%s \t %s", accountBalance.AccountName, balanceText)
+		commandOutput := make([]string, len(accounts))
+		for i, account := range accounts {
+			balanceText := summarizeBalance(account.Balance.Total, account.Balance.Spendable)
+			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, balanceText)
 		}
 		termio.PrintStringResult(commandOutput...)
 	}

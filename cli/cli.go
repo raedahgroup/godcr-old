@@ -1,49 +1,94 @@
 package cli
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+
 	"github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
-	"github.com/raedahgroup/godcr/config"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/cli/runner"
 )
 
-// Root is the entrypoint to the cli application.
-// It defines both the commands and the options available.
-type Root struct {
-	Commands commands.CliCommands
-	Config   config.Config
+// appConfigWithCliCommands is the entrypoint to the cli application.
+// It defines general app options, cli commands with their command-specific options and general cli options
+type appConfigWithCliCommands struct {
+	commands.Commands
+	config.Config
+	runner.CliOptions
 }
 
-// commandHandler provides a type name for the command handler to register on flags.Parser
-type commandHandler func(flags.Commander, []string) error
+// Run starts the app in cli interface mode
+func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) error {
+	configWithCommands := &appConfigWithCliCommands{
+		Config: appConfig,
+	}
+	parser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
 
-// CommandHandlerWrapper provides a command handler that provides walletrpcclient.Client
-// to commands.WalletCommandRunner types. Other command that satisfy flags.Commander and do not
-// depend on walletrpcclient.Client will be run as well.
-// If the command does not satisfy any of these types, ErrNotSupported will be returned.
-func CommandHandlerWrapper(parser *flags.Parser, client *walletrpcclient.Client) commandHandler {
-	return func(command flags.Commander, args []string) error {
-		if command == nil {
-			return brokenCommandError(parser.Command)
-		}
-		if commandRunner, ok := command.(commands.WalletCommandRunner); ok {
-			return commandRunner.Run(client, args)
-		}
-		return command.Execute(args)
+	// use command handler wrapper function to provide wallet dependency injection to command handlers at execution time
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		commandRunner := runner.New(ctx, walletMiddleware)
+		return commandRunner.Run(parser, command, args, configWithCommands.CliOptions)
+	}
+
+	// parser.Parse invokes parser.CommandHandler if a command is provided
+	// returns an error of type ErrCommandRequired
+	_, err := parser.Parse()
+	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
+	helpFlagPassed := config.IsFlagErrorType(err, flags.ErrHelp)
+
+	// if no command is passed but --sync flag was passed, perform sync operation and return
+	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
+		return syncBlockChain(ctx, walletMiddleware)
+	}
+
+	if noCommandPassed {
+		displayAvailableCommandsHelpMessage(parser)
+	} else if helpFlagPassed {
+		displayHelpMessage(parser)
+	} else if err != nil {
+		fmt.Println(err)
+	}
+
+	return err
+}
+
+func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	walletExists, err := runner.OpenWallet(ctx, walletMiddleware)
+	if err != nil || !walletExists {
+		return err
+	}
+
+	return runner.SyncBlockChain(ctx, walletMiddleware)
+}
+
+// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
+func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
+	registeredCommands := parser.Commands()
+	commandNames := make([]string, 0, len(registeredCommands))
+	for _, command := range registeredCommands {
+		commandNames = append(commandNames, command.Name)
+	}
+	sort.Strings(commandNames)
+	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
+}
+
+func displayHelpMessage(parser *flags.Parser) {
+	if parser.Active == nil {
+		parser.WriteHelp(os.Stdout)
+	} else {
+		printCommandHelp(parser.Name, parser.Active)
 	}
 }
 
-func brokenCommandError(command *flags.Command) error {
-	return fmt.Errorf("The command %q was not properly setup.\n" +
-		"Please report this bug at https://github.com/raedahgroup/godcr/issues",
-		commandName(command))
-}
-
-func commandName(command *flags.Command) string {
-	name := command.Name
-	if command.Active != nil {
-		return fmt.Sprintf("%s %s", name, commandName(command.Active))
-	}
-	return name
+func printCommandHelp(appName string, command *flags.Command) {
+	helpParser := flags.NewParser(nil, flags.HelpFlag)
+	helpParser.Name = appName
+	helpParser.Active = command
+	helpParser.WriteHelp(os.Stdout)
+	fmt.Printf("To view application options, use '%s -h'\n", appName)
 }

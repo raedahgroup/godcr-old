@@ -1,84 +1,102 @@
 package web
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"text/template"
+	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/web/routes"
 )
 
-type Server struct {
-	walletClient *walletrpcclient.Client
-	templates    map[string]*template.Template
-}
-
-func StartHttpServer(address string, walletClient *walletrpcclient.Client) {
-	server := &Server{
-		walletClient: walletClient,
-		templates:    map[string]*template.Template{},
-	}
-
-	// load templates
-	server.loadTemplates()
-
+func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) error {
 	router := chi.NewRouter()
-	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "public")
-	FileServer(router, "/static", http.Dir(filesDir))
-	server.registerHandlers(router)
 
-	fmt.Printf("starting http server on %s\n", address)
-	err := http.ListenAndServe(address, router)
+	// first try to load wallet if it exists
+	err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
-		fmt.Println("Error starting web server")
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return err
 	}
+
+	// setup static file serving
+	workDir, _ := os.Getwd()
+	filesDir := filepath.Join(workDir, "web/public")
+	makeStaticFileServer(router, "/static", http.Dir(filesDir))
+
+	// setup routes for templated pages, returns wallet loader function
+	syncBlockchain := routes.Setup(walletMiddleware, router)
+
+	fmt.Println("Starting web server")
+	err = startServer(ctx, address, router)
+	if err != nil {
+		return err
+	}
+
+	// check if context has been canceled before starting blockchain sync
+	err = ctx.Err()
+	if err != nil {
+		fmt.Println("Web server stopped")
+		return err
+	}
+	syncBlockchain()
+
+	// keep alive till ctx is canceled
+	<-ctx.Done()
+	fmt.Println("Web server stopped")
+	return nil
 }
 
-func (s *Server) loadTemplates() {
-	layout := "web/views/layout.html"
-	utils := "web/views/utils.html"
-	funcMap := templateFuncMap()
+// this method may stall until previous godcr instances are closed (especially in cases of multiple mobilewallet instances)
+// hence the need for ctx, so user can cancel the operation if it's taking too long
+func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	// notify user of the current operation so if takes too long, they have an idea what the cause is
+	fmt.Println("Opening wallet...")
 
-	tpls := map[string]string{
-		"balance.html": "web/views/balance.html",
-		"send.html":    "web/views/send.html",
-		"receive.html": "web/views/receive.html",
-		"history.html": "web/views/history.html",
-	}
+	var err error
+	var errMsg string
+	loadWalletDone := make(chan bool)
 
-	for i, v := range tpls {
-		tpl, err := template.New(i).Funcs(funcMap).ParseFiles(v, layout, utils)
+	go func() {
+		defer func() {
+			loadWalletDone <- true
+		}()
+
+		var walletExists bool
+		walletExists, err = walletMiddleware.WalletExists()
 		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
+			errMsg = fmt.Sprintf("Error checking %s wallet", walletMiddleware.NetType())
+		}
+		if err != nil || !walletExists {
+			return
 		}
 
-		s.templates[i] = tpl
-	}
-}
-
-func (s *Server) render(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	if tpl, ok := s.templates[tplName]; ok {
-		err := tpl.Execute(res, data)
+		err = walletMiddleware.OpenWallet()
 		if err != nil {
-			log.Fatalf("error executing template: %s", err.Error())
+			errMsg = fmt.Sprintf("Failed to open %s wallet", walletMiddleware.NetType())
 		}
-		return
-	}
+	}()
 
-	log.Fatalf("template %s is not registered", tplName)
+	select {
+	case <-loadWalletDone:
+		if errMsg != "" {
+			fmt.Fprintln(os.Stderr, errMsg)
+		}
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+		}
+		return err
+
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-func FileServer(r chi.Router, path string, root http.FileSystem) {
+func makeStaticFileServer(router chi.Router, path string, root http.FileSystem) {
 	if strings.ContainsAny(path, "{}*") {
 		panic("FileServer does not permit URL parameters.")
 	}
@@ -86,32 +104,44 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	fs := http.StripPrefix(path, http.FileServer(root))
 
 	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		router.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
 		path += "/"
 	}
 	path += "*"
 
-	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	}))
 }
 
-func (s *Server) registerHandlers(r *chi.Mux) {
-	r.Get("/", s.GetBalance)
-	r.Get("/send", s.GetSend)
-	r.Post("/send", s.PostSend)
-	r.Get("/receive", s.GetReceive)
-	r.Get("/receive/generate/{accountNumber}", s.GetReceiveGenerate)
-	r.Get("/outputs/unspent/{accountNumber}", s.GetUnspentOutputs)
-	r.Get("/history", s.GetHistory)
-}
-
-func renderJSON(data interface{}, res http.ResponseWriter) {
-	d, err := json.Marshal(data)
+// startServer attempts to listen for connections on `address` in a goroutine
+// any error that occur during the attempt are broadcasted to `errChan`
+// startServer waits 2 seconds to catch error sent to `errChan` and returns the error
+// startServer returns nil, if no error was received during the 2-seconds window
+// startServer returns error if ctx is canceled while waiting
+func startServer(ctx context.Context, address string, router chi.Router) error {
+	// check if context has been canceled before attempting to start server
+	err := ctx.Err()
 	if err != nil {
-		log.Fatalf("error marshalling data: %s", err.Error())
+		return err
 	}
 
-	res.Header().Set("Content-Type", "application/json")
-	res.Write(d)
+	errChan := make(chan error)
+	go func() {
+		errChan <- http.ListenAndServe(address, router)
+	}()
+
+	// briefly wait for an error and then return
+	t := time.NewTimer(2 * time.Second)
+	select {
+	case err := <-errChan:
+		fmt.Fprintf(os.Stderr, "Web server failed to start: %s\n", err.Error())
+		return err
+	case <-ctx.Done():
+		fmt.Fprintln(os.Stderr, "Web server not started")
+		return ctx.Err()
+	case <-t.C:
+		fmt.Printf("Web server running on %s\n", address)
+		return nil
+	}
 }

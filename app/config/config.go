@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/godcr/app"
 )
 
 const (
@@ -22,35 +22,29 @@ var (
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
-// Config holds the top-level options for the CLI program.
+// Config holds the top-level options for the application and cli-only command options/flags/args
 type Config struct {
-	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
+	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
-	TestNet           bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
-	RPCUser           string `short:"u" long:"rpcuser" description:"RPC username"`
-	RPCPassword       string `short:"p" long:"rpcpass" default-mask:"-" description:"RPC password"`
-	WalletRPCServer   string `short:"w" long:"walletrpcserver" description:"Wallet RPC server to connect to"`
-	RPCCert           string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	HTTPServerAddress string `short:"s" long:"serveraddress" description:"Address and port of the HTTP server."`
-	HTTPMode          bool   `long:"http" description:"Run in HTTP mode."`
+	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
+	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
+	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
+	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
+	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
+	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
+	HTTPMode          bool   `long:"http" description:"Run in HTTP mode"`
+	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
 	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
-	NoDaemonTLS       bool   `long:"nodaemontls" description:"Disable TLS"`
 }
 
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
+		AppDataDir:        defaultAppDataDir,
 		ConfigFile:        defaultConfigFile,
-		RPCCert:           defaultRPCCertFile,
+		WalletRPCCert:     defaultRPCCertFile,
 		HTTPServerAddress: defaultHTTPServerAddress,
 	}
-}
-
-// AppName returns the name of the program binary file that started the process.
-func AppName() string {
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
-	return appName
 }
 
 // LoadConfig parses program configuration from both the CLI flags and the config file.
@@ -73,7 +67,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	}
 
 	if config.ShowVersion {
-		return args, config, parser, fmt.Errorf(AppVersion())
+		return args, config, parser, fmt.Errorf("%s version: %s\n", app.Name(), app.Version())
 	}
 
 	// Load additional config from file
