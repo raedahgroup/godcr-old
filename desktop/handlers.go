@@ -114,8 +114,8 @@ func (d *Desktop) TransactionsHandler(w *nucular.Window) {
 					content.Row(20).Ratio(0.18, 0.12, 0.1, 0.15, 0.15, 0.3)
 
 					content.Label(tx.FormattedTime, "LC")
-					content.Label(amountToString(tx.Amount), "LC")
-					content.Label(amountToString(tx.Fee), "LC")
+					content.Label(amountToString(tx.Amount.ToCoin()), "LC")
+					content.Label(amountToString(tx.Fee.ToCoin()), "LC")
 					content.Label(tx.Direction.String(), "LC")
 					content.Label(tx.Type, "LC")
 					content.Label(tx.Hash, "LC")
