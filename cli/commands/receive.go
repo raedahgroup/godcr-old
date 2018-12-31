@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"github.com/mdp/qrterminal"
 )
@@ -46,7 +47,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 	}
 
 	// Print out address as string
-	fmt.Println(receiveResult.Address)
+	fmt.Println(receiveAddress)
 
 	// Print out QR code
 	validateConfirm := func(address string) error {
@@ -60,6 +61,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 
 	if confirm == "y" {
 		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
+
 	}
 
 	return nil

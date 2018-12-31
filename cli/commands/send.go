@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raedahgroup/godcr/walletrpcclient"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/cli/runner"
 )
 
 // SendCommand lets the user send DCR.
@@ -83,7 +84,8 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return  nil
 	}
 
-	var result *walletrpcclient.SendResult
+	var sentTransactionHash string
+
 	if custom {
 		sentTransactionHash, err = wallet.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
 	} else {
@@ -94,6 +96,6 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	fmt.Println("sent. txid %s", result.TransactionHash)
+	fmt.Printf("Sent. Txid: %s\n", sentTransactionHash)
 	return nil
 }
