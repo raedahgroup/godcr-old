@@ -61,7 +61,7 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool)
 		client := &WalletPRCClient{
 			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
 			walletService: walletrpc.NewWalletServiceClient(connectionResult.conn),
-			activeNet: activeNet,
+			activeNet:     activeNet,
 		}
 
 		return client, nil

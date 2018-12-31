@@ -13,7 +13,7 @@ import (
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	runner.WalletCommand
-	Detailed bool `short:"d" long:"detailed" description:"Display detailed transaction information"`
+	Detailed bool                       `short:"d" long:"detailed" description:"Display detailed transaction information"`
 	Args     ShowTransactionCommandArgs `positional-args:"yes"`
 }
 type ShowTransactionCommandArgs struct {

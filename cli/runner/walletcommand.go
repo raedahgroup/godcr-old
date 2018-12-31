@@ -16,7 +16,7 @@ type WalletCommandRunner interface {
 // WalletCommand implements `flags.Commander`, using a noop Execute method to satisfy `flags.Commander` interface
 // Commands embedding this struct should ideally implement `WalletCommandRunner` so that their `Run` method can
 // be invoked by `CommandRunner.Run` which will inject the necessary dependencies to run the command
-type WalletCommand struct {}
+type WalletCommand struct{}
 
 // Noop Execute method added to satisfy `flags.Commander` interface
 func (w WalletCommand) Execute(args []string) error {

@@ -8,7 +8,7 @@ import (
 )
 
 type CommandRunner struct {
-	ctx context.Context
+	ctx              context.Context
 	walletMiddleware app.WalletMiddleware
 }
 
@@ -56,7 +56,7 @@ func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunn
 }
 
 func brokenCommandError(command *flags.Command) error {
-	return fmt.Errorf("The command %q was not properly setup.\n" +
+	return fmt.Errorf("The command %q was not properly setup.\n"+
 		"Please report this bug at https://github.com/raedahgroup/godcr/issues",
 		commandName(command))
 }
