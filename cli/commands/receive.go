@@ -59,7 +59,3 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 
 	return nil
 }
-/*
-func (ReceiveCommand) Usage() string {
-	return "Usage: dcrcli receive [account]"
-}*/
