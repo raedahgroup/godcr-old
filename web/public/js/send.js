@@ -20,13 +20,13 @@ function validatePassphrase() {
     return true
 }
 
-function getWalletPassphraseAndSubmit(submitFunc) {
+function getWalletPassphraseAndSubmit() {
     var passphraseModal = $("#passphrase-modal");
     
     $("#passphrase-submit").on("click", function(){
         if (validatePassphrase()) {
             passphraseModal.modal('hide');
-            submitFunc($("#walletPassphrase").val());
+            submitSendForm();
         }
     });
     
@@ -68,7 +68,7 @@ function validateSendForm() {
     return isClean;
 }
 
-function submitSendForm(passphrase) {
+function submitSendForm() {
     var form = $("#send-form");
     var submit_btn = $("#send-form #submit-btn");
     submit_btn.attr("disabled", "disabled").html("Sending...");
@@ -78,11 +78,11 @@ function submitSendForm(passphrase) {
         method: "POST",
         data: form.serialize(),
         success: function(response) {
-            if (response.success) {
-                var m = "The transaction was published successfully. Hash: <strong>" + response.success + "</strong>";
-                setSuccessMessage(m)
+            if (response.error) {
+                setErrorMessage(response.error)
             } else {
-                setErrorMessage(response.error) 
+                var txHash = "The transaction was published successfully. Hash: <strong>" + response.txHash + "</strong>";
+                setSuccessMessage(txHash)
             }
         },
         error: function(error) {
@@ -99,7 +99,7 @@ function getUnspentOutputs(account_number, success_callback) {
     next_btn.attr("disabled", "disabled").html("Loading...");
 
     $.ajax({
-        url: "/outputs/unspent/" + account_number,
+        url: "/unspent-outputs/" + account_number,
         method: "GET",
         data: {},
         success: function(response) {
@@ -158,14 +158,14 @@ $(function(){
     $(".next-btn").on("click", function(){
         if (validateSendForm() && stepper_index <= steppers.length) {
             var account_number = $("#sourceAccount").find(":selected").val();
-            var callback = function(txs) {
+            var callback = function(utxos) {
                 // populate outputs 
-                var utxoHtml = txs.map(tx => {
-                    var receiveDateTime = new Date(tx.receive_time * 1000)
+                var utxoHtml = utxos.map(utxo => {
+                    var receiveDateTime = new Date(utxo.receive_time * 1000)
                     return  "<tr>" + 
-                                "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
-                                "<td width='60%'>" + tx.key + "</td>" + 
-                                "<td width='15%'>" + tx.amount_string + "</td>" + 
+                                "<td width='5%'><input type='checkbox' name='tx' value="+ utxo.key+" /></td>" +
+                                "<td width='60%'>" + utxo.key + "</td>" + 
+                                "<td width='15%'>" + utxo.amount / 100000000 + " DCR</td>" + 
                                 "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
                             "</tr>"
                 });
@@ -190,7 +190,7 @@ $(function(){
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
-        getWalletPassphraseAndSubmit(submitSendForm)
+        getWalletPassphraseAndSubmit()
     })
 });
 

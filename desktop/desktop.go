@@ -1,11 +1,14 @@
 package desktop
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
-	"github.com/raedahgroup/godcr/config"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type pageHandler func(*nucular.Window)
@@ -13,7 +16,7 @@ type pageHandler func(*nucular.Window)
 type Desktop struct {
 	window       nucular.MasterWindow
 	currentPage  string
-	walletClient *walletrpcclient.Client
+	wallet       walletcore.Wallet
 	pageHandlers map[string]pageHandler
 }
 
@@ -26,21 +29,36 @@ var (
 	contentArea rect.Rect
 )
 
-func StartDesktopApp(walletClient *walletrpcclient.Client) {
+func StartDesktopApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	d := &Desktop{
-		walletClient: walletClient,
+		wallet:       walletMiddleware,
 		pageHandlers: make(map[string]pageHandler),
 	}
 
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, config.AppName(), d.updateFn)
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name(), d.updateFn)
 	window.SetStyle(getStyle())
 	d.window = window
 
 	d.registerHandlers()
 	d.currentPage = homePage
 
+	// open wallet and start blockchain syncing in background
+	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
+	if err != nil {
+		return err
+	}
+	if !walletExists {
+		// todo add ui to create wallet
+		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
+		fmt.Println(err.Error())
+		return err
+	}
+
+	// todo run sync and show progress
+
 	// draw window
 	d.window.Main()
+	return nil
 }
 
 func (d *Desktop) updateFn(w *nucular.Window) {

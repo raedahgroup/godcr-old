@@ -35,8 +35,9 @@
                                         <div class="form-group">
                                             <label for="sourceAccount">Source Account</label>
                                             <select class="form-control" id="sourceAccount" name="sourceAccount">
-                                                {{ range $s := .balances }}
-                                                <option value="{{ $s.AccountNumber }}">{{ $s.AccountName }} - {{ $s.Total }}</option>
+                                                {{ range $account := .accounts }}
+                                                <option value="{{ $account.Number }}">
+                                                    {{ $account.Name }} - {{ $account.Balance.Total }}</option>
                                                 {{ end }}
                                             </select>
                                         </div>
