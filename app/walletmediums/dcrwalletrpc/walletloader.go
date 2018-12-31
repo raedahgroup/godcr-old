@@ -6,13 +6,16 @@ import (
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
-	"github.com/raedahgroup/dcrcli/app"
+	"github.com/raedahgroup/godcr/app"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (c *WalletPRCClient) NetType() string {
-	return c.netType
+	if c.activeNet.Name == "mainnet" {
+		return "mainnet"
+	}
+	return "testnet"
 }
 
 func (c *WalletPRCClient) WalletExists() (bool, error) {
@@ -52,7 +55,7 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 }
 
 // ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
-// or dcrcli opened the wallet without closing it
+// or godcr opened the wallet without closing it
 func (c *WalletPRCClient) OpenWallet() (err error) {
 	defer func() {
 		c.walletOpen = err == nil
@@ -70,8 +73,8 @@ func (c *WalletPRCClient) OpenWallet() (err error) {
 }
 
 // don't actually close dcrwallet
-// - if wallet wasn't opened by dcrcli, closing it could cause troubles for user
-// - even if wallet was opened by dcrcli, closing it without closing dcrwallet would cause troubles for user when they next launch dcrcli
+// - if wallet wasn't opened by godcr, closing it could cause troubles for user
+// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user when they next launch godcr
 func (c *WalletPRCClient) CloseWallet() {}
 
 func (c *WalletPRCClient) IsWalletOpen() bool {
@@ -111,7 +114,7 @@ func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 
 	s := &spvSync{
 		listener:  listener,
-		netType:   c.netType,
+		netType:   c.NetType(),
 		client:    syncStream,
 		bestBlock: int64(bestBlock.Height),
 	}

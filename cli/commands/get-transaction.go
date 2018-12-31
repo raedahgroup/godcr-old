@@ -4,22 +4,23 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
-	ws "github.com/raedahgroup/godcr/walletsource"
 )
 
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	CommanderStub
 	Detailed bool `short:"d" long:"detailed" description:"Display detailed transaction information"`
-	Args     struct {
-		TxHash string `positional-arg-name:"transaction hash" required:"yes"`
-	} `positional-args:"yes"`
+	Args     ShowTransactionCommandArgs `positional-args:"yes"`
+}
+type ShowTransactionCommandArgs struct {
+	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
-func (showTxCommand ShowTransactionCommand) Run(walletsource ws.WalletSource, args []string) error {
-	transaction, err := walletsource.GetTransaction(showTxCommand.Args.TxHash)
+func (showTxCommand ShowTransactionCommand) Run(wallet walletcore.Wallet, args []string) error {
+	transaction, err := wallet.GetTransaction(showTxCommand.Args.TxHash)
 	if err != nil {
 		return err
 	}

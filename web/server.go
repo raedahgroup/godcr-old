@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/dcrcli/app"
-	"github.com/raedahgroup/dcrcli/web/routes"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/web/routes"
 )
 
 func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) error {
@@ -51,7 +51,7 @@ func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware,
 	return nil
 }
 
-// this method may stall until previous dcrcli instances are closed (especially in cases of multiple mobilewallet instances)
+// this method may stall until previous godcr instances are closed (especially in cases of multiple mobilewallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
 func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	// notify user of the current operation so if takes too long, they have an idea what the cause is

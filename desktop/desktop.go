@@ -4,8 +4,8 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
-	"github.com/raedahgroup/godcr/config"
-	"github.com/raedahgroup/godcr/walletrpcclient"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type pageHandler func(*nucular.Window)
@@ -13,7 +13,7 @@ type pageHandler func(*nucular.Window)
 type Desktop struct {
 	window       nucular.MasterWindow
 	currentPage  string
-	walletClient *walletrpcclient.Client
+	wallet       walletcore.Wallet
 	pageHandlers map[string]pageHandler
 }
 
@@ -26,13 +26,13 @@ var (
 	contentArea rect.Rect
 )
 
-func StartDesktopApp(walletClient *walletrpcclient.Client) {
+func StartDesktopApp(walletMiddleware app.WalletMiddleware) {
 	d := &Desktop{
-		walletClient: walletClient,
+		wallet: walletMiddleware,
 		pageHandlers: make(map[string]pageHandler),
 	}
 
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, config.AppName(), d.updateFn)
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name(), d.updateFn)
 	window.SetStyle(getStyle())
 	d.window = window
 

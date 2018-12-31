@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/decred/dcrwallet/netparams"
 	"math"
 	"time"
 
@@ -13,11 +12,8 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/txscript"
 	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrcli/walletsource"
-	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrcli/app/walletcore"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func amountToAtom(amountInDCR float64) (int64, error) {
@@ -77,18 +73,7 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 	transactions := make([]*walletcore.Transaction, 0, len(transactionDetails))
 
 	for _, txDetail := range transactionDetails {
-		// use any of the addresses in inputs/outputs to determine if this is a testnet tx
-		var isTestnet bool
-		for _, output := range txDetail.Credits {
-			isMainNet, err := addressIsForNet(output.GetAddress(), netparams.MainNetParams.Params)
-			if err != nil {
-				continue
-			}
-			isTestnet = !isMainNet
-			break
-		}
-
-		tx, err := processTransaction(txDetail, isTestnet)
+		tx, err := processTransaction(txDetail)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +83,7 @@ func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]
 	return transactions, nil
 }
 
-func processTransaction(txDetail *walletrpc.TransactionDetails, isTestnet bool) (*walletsource.Transaction, error) {
+func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Transaction, error) {
 	hash, err := chainhash.NewHash(txDetail.Hash)
 	if err != nil {
 		return nil, err
@@ -106,25 +91,16 @@ func processTransaction(txDetail *walletrpc.TransactionDetails, isTestnet bool) 
 
 	amount, direction := transactionAmountAndDirection(txDetail)
 
-	tx := &walletsource.Transaction{
+	tx := &walletcore.Transaction{
 		Hash:          hash.String(),
 		Amount:        dcrutil.Amount(amount),
 		Fee:           dcrutil.Amount(txDetail.Fee),
 		Type:          txDetail.TransactionType.String(),
 		Direction:     direction,
-		Testnet:       isTestnet,
 		Timestamp:     txDetail.Timestamp,
 		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 	}
 	return tx, nil
-}
-
-func addressIsForNet(address string, net *chaincfg.Params) (bool, error) {
-	addr, err := dcrutil.DecodeAddress(address)
-	if err != nil {
-		return false, err
-	}
-	return addr.IsForNet(net), nil
 }
 
 func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletcore.TransactionDirection) {
@@ -171,10 +147,10 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	return amount, direction
 }
 
-func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletsource.TxInput {
-	txInputs := make([]*walletsource.TxInput, len(txIn))
+func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletcore.TxInput {
+	txInputs := make([]*walletcore.TxInput, len(txIn))
 	for i, input := range txIn {
-		txInputs[i] = &walletsource.TxInput{
+		txInputs[i] = &walletcore.TxInput{
 			Amount: dcrutil.Amount(input.ValueIn),
 			PreviousOutpoint: input.PreviousOutPoint.String(),
 		}
@@ -182,14 +158,14 @@ func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletsource.TxInput {
 	return txInputs
 }
 
-func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*walletrpc.TransactionDetails_Output, chainParams *chaincfg.Params) ([]*walletsource.TxOutput, error) {
-	txOutputs := make([]*walletsource.TxOutput, len(txOut))
+func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*walletrpc.TransactionDetails_Output, chainParams *chaincfg.Params) ([]*walletcore.TxOutput, error) {
+	txOutputs := make([]*walletcore.TxOutput, len(txOut))
 	for i, output := range txOut {
 		_, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
 		if err != nil {
 			return nil, err
 		}
-		txOutputs[i] = &walletsource.TxOutput{
+		txOutputs[i] = &walletcore.TxOutput{
 			Value: dcrutil.Amount(output.Value),
 			Address: addrs[0].String(),
 		}

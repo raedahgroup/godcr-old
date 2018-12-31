@@ -4,11 +4,8 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrcli/walletsource"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
-	ws "github.com/raedahgroup/godcr/walletsource"
-
-	"github.com/raedahgroup/dcrcli/app/walletcore"
 )
 
 // BalanceCommand displays the user's account balance.
@@ -18,8 +15,8 @@ type BalanceCommand struct {
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
-func (balanceCommand BalanceCommand) Run(walletsource ws.WalletSource, args []string) error {
-	accounts, err := walletsource.AccountsOverview()
+func (balanceCommand BalanceCommand) Run(wallet walletcore.Wallet, args []string) error {
+	accounts, err := wallet.AccountsOverview()
 	if err != nil {
 		return err
 	}
@@ -33,7 +30,7 @@ func (balanceCommand BalanceCommand) Run(walletsource ws.WalletSource, args []st
 	return nil
 }
 
-func showDetailedBalance(accountBalances []*walletsource.Account) {
+func showDetailedBalance(accountBalances []*walletcore.Account) {
 	columns := []string{
 		"Account",
 		"Total",

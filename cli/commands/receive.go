@@ -2,17 +2,14 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrcli/cli/utils"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
-	ws "github.com/raedahgroup/godcr/walletsource"
-
 	qrcode "github.com/skip2/go-qrcode"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
 type ReceiveCommand struct {
 	CommanderStub
-	Args struct {
 	Args ReceiveCommandArgs `positional-args:"yes"`
 }
 type ReceiveCommandArgs struct {
@@ -20,13 +17,13 @@ type ReceiveCommandArgs struct {
 }
 
 // Run runs the `receive` command.
-func (r ReceiveCommand) Run(walletsource ws.WalletSource, args []string) error {
+func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet, args []string) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if receiveCommand.Args.AccountName == "" {
 		// display menu options to select account
 		var err error
-		accountNumber, err = selectAccount(walletsource)
+		accountNumber, err = selectAccount(wallet)
 		if err != nil {
 			return err
 		}
@@ -34,13 +31,13 @@ func (r ReceiveCommand) Run(walletsource ws.WalletSource, args []string) error {
 		// if an account name was passed in e.g. ./godcr receive default
 		// get the address corresponding to the account name and use it
 		var err error
-		accountNumber, err = walletsource.AccountNumber(r.Args.Account)
+		accountNumber, err = wallet.AccountNumber(receiveCommand.Args.AccountName)
 		if err != nil {
 			return fmt.Errorf("Error fetching account number: %s", err.Error())
 		}
 	}
 
-	receiveAddress, err := walletsource.GenerateReceiveAddress(accountNumber)
+	receiveAddress, err := wallet.GenerateReceiveAddress(accountNumber)
 	if err != nil {
 		return err
 	}
