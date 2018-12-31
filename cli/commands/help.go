@@ -30,11 +30,20 @@ func (h HelpCommand) Run(ctx context.Context, parser *flags.Parser, args []strin
 		return fmt.Errorf("unknown command %q", h.Args.CommandName)
 	}
 
-	helpParser := flags.NewParser(nil, flags.HelpFlag)
-	helpParser.Name = parser.Name
-	helpParser.Active = targetCommand
-	helpParser.WriteHelp(os.Stderr)
-	fmt.Printf("To view application options, use '%s help'\n", parser.Name)
+	PrintCommandHelp(parser.Name, targetCommand)
 
 	return nil
 }
+
+func PrintCommandHelp(appName string, command *flags.Command) {
+	helpParser := flags.NewParser(nil, flags.HelpFlag)
+	helpParser.Name = appName
+	helpParser.Active = command
+	helpParser.WriteHelp(os.Stdout)
+	fmt.Printf("To view application options, use '%s help'\n", appName)
+}
+
+/*
+I have looked for how to get command-specific options but did
+find a way around it and so went back to this. I will be happy to have a pointer to this
+*/
