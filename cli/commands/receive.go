@@ -51,10 +51,21 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 	fmt.Println(receiveAddress)
 
 	// Print out QR code
-	validateConfirm := func(address string) error {
-		return nil
+	validateConfirm := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		userResponse = strings.Trim(userResponse, `"`)
+		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
+			return nil
+		} else {
+			return fmt.Errorf("invalid option, try again")
+		}
 	}
-	confirm, _ := terminalprompt.RequestInput("Would you like to a generate QR code? (y/N) ", validateConfirm)
+
+	confirm, err := terminalprompt.RequestInput("Would you like to a generate QR code? (y/N) ", validateConfirm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		return err
+	}
 
 	if strings.EqualFold(confirm, "yes") || strings.EqualFold(confirm, "y") {
 		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
