@@ -1,6 +1,9 @@
 package desktop
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
@@ -26,7 +29,7 @@ var (
 	contentArea rect.Rect
 )
 
-func StartDesktopApp(walletMiddleware app.WalletMiddleware) {
+func StartDesktopApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	d := &Desktop{
 		wallet:       walletMiddleware,
 		pageHandlers: make(map[string]pageHandler),
@@ -39,8 +42,23 @@ func StartDesktopApp(walletMiddleware app.WalletMiddleware) {
 	d.registerHandlers()
 	d.currentPage = homePage
 
+	// open wallet and start blockchain syncing in background
+	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
+	if err != nil {
+		return err
+	}
+	if !walletExists {
+		// todo add ui to create wallet
+		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
+		fmt.Println(err.Error())
+		return err
+	}
+
+	// todo run sync and show progress
+
 	// draw window
 	d.window.Main()
+	return nil
 }
 
 func (d *Desktop) updateFn(w *nucular.Window) {
