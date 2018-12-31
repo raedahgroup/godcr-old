@@ -50,7 +50,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 		displayAvailableCommandsHelpMessage(parser)
 	} else if helpFlagPassed {
 		displayHelpMessage(parser)
-	} else {
+	} else if err != nil {
 		fmt.Println(err)
 	}
 

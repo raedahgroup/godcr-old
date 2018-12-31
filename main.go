@@ -117,7 +117,7 @@ func listenForInterruptRequests() {
 
 	// listen for the initial interrupt request and trigger shutdown signal
 	sig := <-interruptChannel
-	fmt.Printf(" Received %s signal. Shutting down...\n", sig)
+	fmt.Printf("\nReceived %s signal. Shutting down...\n", sig)
 	beginShutdown <- true
 
 	// continue to listen for interrupt requests and log that shutdown has already been signaled
@@ -142,5 +142,7 @@ func handleShutdown(wg *sync.WaitGroup) {
 	// check if error occurred while program was running
 	if opError != nil {
 		os.Exit(1)
+	} else {
+		os.Exit(0)
 	}
 }
