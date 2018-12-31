@@ -21,8 +21,8 @@ var (
 	utxosResponse           []*walletcore.UnspentOutput
 
 	// form inputs
-	amountInput   nucular.TextEditor
-	addressInput  nucular.TextEditor
+	amountInput  nucular.TextEditor
+	addressInput nucular.TextEditor
 
 	// form selector index
 	selectedAccountIndex  = 0

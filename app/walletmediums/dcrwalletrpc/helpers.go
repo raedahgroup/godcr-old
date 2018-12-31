@@ -151,7 +151,7 @@ func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletcore.TxInput {
 	txInputs := make([]*walletcore.TxInput, len(txIn))
 	for i, input := range txIn {
 		txInputs[i] = &walletcore.TxInput{
-			Amount: dcrutil.Amount(input.ValueIn),
+			Amount:           dcrutil.Amount(input.ValueIn),
 			PreviousOutpoint: input.PreviousOutPoint.String(),
 		}
 	}
@@ -166,7 +166,7 @@ func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*walletrpc.Transac
 			return nil, err
 		}
 		txOutputs[i] = &walletcore.TxOutput{
-			Value: dcrutil.Amount(output.Value),
+			Value:   dcrutil.Amount(output.Value),
 			Address: addrs[0].String(),
 		}
 		for _, credit := range walletCredits {

@@ -28,7 +28,7 @@ var (
 
 func StartDesktopApp(walletMiddleware app.WalletMiddleware) {
 	d := &Desktop{
-		wallet: walletMiddleware,
+		wallet:       walletMiddleware,
 		pageHandlers: make(map[string]pageHandler),
 	}
 

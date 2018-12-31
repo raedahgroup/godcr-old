@@ -69,18 +69,18 @@ type Transaction struct {
 
 type TxInput struct {
 	Amount           dcrutil.Amount `json:"value"`
-	PreviousOutpoint string  `json:"previousOutpoint"`
+	PreviousOutpoint string         `json:"previousOutpoint"`
 }
 
 type TxOutput struct {
-	Address     string         `json:"address"`
-	Internal    bool           `json:"internal"`
-	Value       dcrutil.Amount `json:"value"`
+	Address  string         `json:"address"`
+	Internal bool           `json:"internal"`
+	Value    dcrutil.Amount `json:"value"`
 }
 
 type TransactionDetails struct {
-	BlockHash     string     `json:"blockHash"`
-	Confirmations int32      `json:"confirmations"`
+	BlockHash     string      `json:"blockHash"`
+	Confirmations int32       `json:"confirmations"`
 	Inputs        []*TxInput  `json:"inputs"`
 	Outputs       []*TxOutput `json:"outputs"`
 	*Transaction

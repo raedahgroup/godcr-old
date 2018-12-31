@@ -299,7 +299,6 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error
 	return transactions, nil
 }
 
-
 func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
