@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/desktop"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/desktop"
 	"github.com/raedahgroup/godcr/web"
 )
 
@@ -50,21 +50,11 @@ func main() {
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	if appConfig.HTTPMode {
-		if len(args) > 0 {
-			fmt.Println("unexpected command or flag:", strings.Join(args, " "))
-			os.Exit(1)
-		}
-		opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
-		// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
-		if opError != nil && ctx.Err() == nil {
-			beginShutdown <- true
-		}
+		enterHttpMode(ctx, walletMiddleware, args, appConfig)
 	} else if appConfig.DesktopMode {
-		desktop.StartDesktopApp(walletMiddleware)
+		enterDesktopMode(walletMiddleware)
 	} else {
-		opError = cli.Run(ctx, walletMiddleware, appConfig)
-		// cli run done, trigger shutdown
-		beginShutdown <- true
+		enterCliMode(ctx, walletMiddleware, appConfig)
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
@@ -93,6 +83,32 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 	}
 
 	return walletMiddleware
+}
+
+func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, args []string, appConfig config.Config) {
+	if len(args) > 0 {
+		fmt.Println("unexpected command or flag:", strings.Join(args, " "))
+		beginShutdown <- true
+		return
+	}
+
+	opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPServerAddress)
+	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
+	if opError != nil && ctx.Err() == nil {
+		beginShutdown <- true
+	}
+}
+
+// todo need to add shutdown functionality to this mode
+func enterDesktopMode(walletMiddleware app.WalletMiddleware) {
+	fmt.Println("Launching desktop app")
+	desktop.StartDesktopApp(walletMiddleware)
+}
+
+func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
+	opError = cli.Run(ctx, walletMiddleware, appConfig)
+	// cli run done, trigger shutdown
+	beginShutdown <- true
 }
 
 func listenForInterruptRequests() {

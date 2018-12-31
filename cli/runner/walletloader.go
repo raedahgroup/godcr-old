@@ -1,4 +1,4 @@
-package cli
+package runner
 
 import (
 	"context"
@@ -95,7 +95,25 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 		return nil
 	}
 
-	return syncBlockChain(ctx, walletMiddleware)
+	return SyncBlockChain(ctx, walletMiddleware)
+}
+
+// displayWalletSeed prints the generated seed for a new wallet
+func displayWalletSeed(seed string) {
+	fmt.Println("Your wallet generation seed is:")
+	fmt.Println("-------------------------------")
+	seedWords := strings.Split(seed, " ")
+	for i, word := range seedWords {
+		fmt.Printf("%s ", word)
+
+		if (i+1)%6 == 0 {
+			fmt.Printf("\n")
+		}
+	}
+	fmt.Println("\n-------------------------------")
+	fmt.Println("IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it.")
+	fmt.Println("Please keep in mind that anyone who has access to the seed can also restore your wallet thereby " +
+		"giving them access to all your funds, so it is imperative that you keep it in a secure location.")
 }
 
 // openWallet is called whenever an action to be executed requires wallet to be loaded
@@ -103,7 +121,7 @@ func createWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 //
 // this method may stall until previous godcr instances are closed (especially in cases of multiple mobilewallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
-func openWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
+func OpenWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
 	// notify user of the current operation so if takes too long, they have an idea what the cause is
 	fmt.Println("Looking for wallets...")
 
@@ -178,7 +196,7 @@ func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddl
 
 // syncBlockChain uses the WalletMiddleware provided to download block updates
 // this is a long running operation, listen for ctx.Done and stop processing
-func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	syncDone := make(chan error)
 	go func() {
 		syncListener := &app.BlockChainSyncListener{
