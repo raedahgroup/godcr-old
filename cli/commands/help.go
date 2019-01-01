@@ -34,67 +34,47 @@ func (h HelpCommand) Run(parser *flags.Parser, args []string) error {
 }
 
 func PrintCommandHelp(appName string, command *flags.Command) {
-	fmt.Printf("%s. %s\n", command.ShortDescription, command.LongDescription)
-	fmt.Println()
+	tabWriter := termio.StdoutWriter
+	fmt.Fprintln(tabWriter ,fmt.Sprintf("%s. %s\n", command.ShortDescription, command.LongDescription))
 
-	args := command.Args()
-	options := command.Options()
 	usageText := fmt.Sprintf("Usage: %s %s", appName, command.Name)
+	args := command.Args()
 	if args != nil && len(args) > 0 {
 		usageText += " [args]"
 	}
 	usageText += " [options]"
-	fmt.Println(usageText)
-	fmt.Println()
+	fmt.Fprintln(tabWriter, usageText)
+	fmt.Fprintln(tabWriter)
 
 	if args != nil && len(args) > 0 {
-		fmt.Println("Arguments:")
-		longestNameLength := 0
-		for _, arg := range args {
-			argNameLength := len(arg.Name)
-			// required args takes extra 10 space for printing the text '(required)'
-			if arg.Required == 1 {
-				argNameLength += 10
-			}
-			if argNameLength > longestNameLength {
-				longestNameLength = argNameLength
-			}
-		}
-
-		writer := termio.StdoutWriter
+		fmt.Fprintln(tabWriter,"Arguments:")
 		for _, arg := range args {
 			required := ""
 			if arg.Required == 1 {
 				required = "(required)"
 			}
-			fmt.Fprintln(writer,fmt.Sprintf("%s %s \t %s", arg.Name, required, arg.Description))
+			fmt.Fprintln(tabWriter,fmt.Sprintf("%s %s \t %s", arg.Name, required, arg.Description))
 		}
-		writer.Flush()
-		fmt.Println()
+		fmt.Fprintln(tabWriter)
 	}
 
+	options := command.Options()
 	if options != nil && len(options) > 0 {
-		fmt.Println("Options:")
-		longestNameLength := 0
+		fmt.Fprintln(tabWriter,"Options:")
+		// option printout attempts to add 2 whitespace for options with short name and 4 for those without in order to
+		// This is an attempt to stay consistent with the output of parser.WriteHelp
 		for _, option := range options {
-			if len(option.LongName) > longestNameLength {
-				longestNameLength = len(option.LongName)
-			}
-		}
-		writer := termio.StdoutWriter
-		for _, option := range options {
-			name := "  "
+			optionUsage := " " + " "
 			if option.ShortName != 0 {
-				name += "-" + string(option.ShortName) + ", "
+				optionUsage += "-" + string(option.ShortName) + ", "
 			}else {
-				name += " " + " " + " " + " "
+				optionUsage += " " + " " + " " + " "
 			}
-			fmt.Fprintln(writer,fmt.Sprintf("%s--%s \t %s", name, option.LongName, option.Description))
+			fmt.Fprintln(tabWriter,fmt.Sprintf("%s--%s \t %s", optionUsage, option.LongName, option.Description))
 		}
-		writer.Flush()
-		fmt.Println()
+		fmt.Fprintln(tabWriter)
 	}
 
-	fmt.Println(fmt.Sprintf("Use %s -h to view application options", appName))
-
+	fmt.Fprintln(tabWriter, fmt.Sprintf("Use %s -h to view application options", appName))
+	tabWriter.Flush()
 }
