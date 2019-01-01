@@ -47,25 +47,6 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	fmt.Println(usageText)
 	fmt.Println()
 
-	generateWhiteSpace := func(inputLength, inputLengthCap int) string {
-		makeSpace := func(count int) (output string) {
-			for i := 0; i < count; i++ {
-				output += " "
-			}
-			return
-		}
-		maxSpaces := 2
-		if inputLength == inputLengthCap {
-			return makeSpace(maxSpaces)
-		}
-
-		spacesToMake := maxSpaces - (inputLength - inputLengthCap)
-		if spacesToMake < 1 {
-			spacesToMake = 1
-		}
-		return makeSpace(spacesToMake)
-	}
-
 	if args != nil && len(args) > 0 {
 		fmt.Println("Arguments:")
 		longestNameLength := 0
@@ -80,13 +61,15 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 			}
 		}
 
+		writer := termio.StdoutWriter
 		for _, arg := range args {
 			required := ""
 			if arg.Required == 1 {
 				required = "(required)"
 			}
-			fmt.Println(fmt.Sprintf("%s %s%s %s", arg.Name, required, generateWhiteSpace(len(arg.Name), longestNameLength), arg.Description))
+			fmt.Fprintln(writer,fmt.Sprintf("%s %s \t %s", arg.Name, required, arg.Description))
 		}
+		writer.Flush()
 		fmt.Println()
 	}
 
@@ -98,19 +81,17 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 				longestNameLength = len(option.LongName)
 			}
 		}
-		var rows [][]interface{}
+		writer := termio.StdoutWriter
 		for _, option := range options {
-			rows = append(rows, []interface{}{option.LongName, option.Description})
-			output := "  "
+			name := "  "
 			if option.ShortName != 0 {
-				output += "-" + string(option.ShortName) + ", "
+				name += "-" + string(option.ShortName) + ", "
 			}else {
-				output += " " + " " + " " + " "
+				name += " " + " " + " " + " "
 			}
-			// the length of the name determines the number of extrapaces
-			output += fmt.Sprintf("--%s %s %s", option.LongName, generateWhiteSpace(len(option.LongName), longestNameLength), option.Description)
-			fmt.Println(output)
+			fmt.Fprintln(writer,fmt.Sprintf("%s--%s \t %s", name, option.LongName, option.Description))
 		}
+		writer.Flush()
 		fmt.Println()
 	}
 
