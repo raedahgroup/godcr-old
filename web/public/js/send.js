@@ -139,59 +139,63 @@ function clearMessages() {
     $(".alert-danger").hide();
 }
 
-function setProgressWidth(width) {
-    $(".stepper .progress-bar").css("width", width + "%");
+function openCustomizePanel() {
+    $("#customize-checkbox").prop("checked", false);
+    if (!$("#customize-panel").hasClass("show") && validateSendForm()) {
+        $("form .collapse").slideUp().removeClass("show");
+        $("#customize-panel").slideDown();
+
+        $("#customize-checkbox").prop("checked", true);
+        $("#customize-panel .status").show();
+
+        var account_number = $("#sourceAccount").find(":selected").val();
+        var callback = function(txs) {
+            // populate outputs 
+            var utxoHtml = txs.map(tx => {
+                var receiveDateTime = new Date(tx.receive_time * 1000)
+                return  "<tr>" + 
+                            "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
+                            "<td width='60%'>" + tx.key + "</td>" + 
+                            "<td width='15%'>" + tx.amount_string + "</td>" + 
+                            "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
+                        "</tr>"
+            });
+            $("#customize-panel tbody").html(utxoHtml.join('\n'));
+            $("#customize-panel .status").hide();
+        }
+        getUnspentOutputs(account_number, callback);
+    }
 }
 
-function goToTab(tab_item) {
-    tab_item.trigger("click").addClass("stepper-active");
-}
-
-function closeTab(tab_tem) {
-    tab_item.trigger("click");
-}
 
 $(function(){
-    var stepper_index = 0;
-    var steppers = $(".stepper .nav-link");
-
-    $(".next-btn").on("click", function(){
-        if (validateSendForm() && stepper_index <= steppers.length) {
-            var account_number = $("#sourceAccount").find(":selected").val();
-            var callback = function(utxos) {
-                // populate outputs 
-                var utxoHtml = utxos.map(utxo => {
-                    var receiveDateTime = new Date(utxo.receive_time * 1000)
-                    return  "<tr>" + 
-                                "<td width='5%'><input type='checkbox' name='tx' value="+ utxo.key+" /></td>" +
-                                "<td width='60%'>" + utxo.key + "</td>" + 
-                                "<td width='15%'>" + utxo.amount / 100000000 + " DCR</td>" + 
-                                "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
-                            "</tr>"
-                });
-                $("#wallet-outputs tbody").html(utxoHtml.join('\n'));
-
-                stepper_index += 1;
-                goToTab(steppers.eq(stepper_index));  
-                setProgressWidth((stepper_index+1 / steppers.length) * 100); 
-            }
-            getUnspentOutputs(account_number, callback);
+    $("#form-panel-card button").on("click", function(){
+        if (!$("#form-panel").hasClass("show")) {
+            $("form .collapse").slideUp().removeClass("show");
+            $("#form-panel").slideDown();
         }
     });
 
-    $(".previous-btn").on("click", function(){
-        if (stepper_index > 0) {
-            steppers.eq(stepper_index).removeClass("stepper-active");
-            stepper_index -= 1;
-            goToTab(steppers.eq(stepper_index));
-            setProgressWidth((stepper_index+1 / steppers.length) * 100);     
+    $("#customize-panel-card button").on("click", function(){
+        openCustomizePanel();
+    });
+
+    $("#customize-checkbox").on("change", function(){
+        if (this.checked) {
+            openCustomizePanel();
         }
     })
 
+
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
-        getWalletPassphraseAndSubmit()
+        if (validateSendForm()) {
+            getWalletPassphraseAndSubmit(submitSendForm)
+        }
     })
+
+    // set current nav item 
+    $("#nav-send").addClass("active");
 });
 
 

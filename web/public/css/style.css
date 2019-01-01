@@ -20,6 +20,10 @@ body {
     padding: 10px 22px !important;
 }
 
+.nav-link.active {
+    font-weight: bold;
+}
+
 .nav-link span, .nav-link i {
     display: inline-block;
     height: 100%;
@@ -31,10 +35,19 @@ body {
     padding: 25px 0;
 }
 
+.collapsible-panel {
+    margin-bottom: 10px;
+}
+
 
 .table.inverse tbody td {
     background-color: #f5f5f5 !important;
     border-color: #fff !important;
+}
+
+.table.scrollable {
+    max-height: 400px; 
+    overflow-y: auto;
 }
 .card {
     border-radius: 0;
