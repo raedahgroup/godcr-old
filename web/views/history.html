@@ -6,9 +6,6 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                {{ if .error }}
-                <div class="alert alert-danger">{{ .error }}</div>
-                {{ else }}
                 <table class="table">
                     <thead>
                         <tr>
@@ -33,7 +30,6 @@
                        {{ end }}
                     </tbody>
                 </table>
-                {{ end }}
             </div>
         </div>
     </div>

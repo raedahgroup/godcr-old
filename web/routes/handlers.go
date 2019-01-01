@@ -41,31 +41,27 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 	accounts, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
-		routes.renderError(fmt.Sprintf("Error fetching account balance:\n%s", err.Error()), res)
+		routes.renderError(fmt.Sprintf("Error fetching account balance: %s", err.Error()), res)
 		return
 	}
 
-	req.ParseForm()
-	detailed := req.FormValue("detailed")
-
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"detailed": detailed != "",
+		"detailed": chi.URLParam(req, "detailed") != "",
 	}
-
 	routes.render("balance.html", data, res)
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-
 	accounts, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
-		data["error"] = err
-	} else {
-		data["accounts"] = accounts
+		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
+		return
 	}
 
+	data := map[string]interface{}{
+		"accounts": accounts,
+	}
 	routes.render("send.html", data, res)
 }
 
@@ -109,15 +105,15 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 }
 
 func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-
 	accounts, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
-		data["error"] = err
-	} else {
-		data["accounts"] = accounts
+		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
+		return
 	}
 
+	data := map[string]interface{}{
+		"accounts": accounts,
+	}
 	routes.render("receive.html", data, res)
 }
 
@@ -180,14 +176,14 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-
 	txns, err := routes.walletMiddleware.TransactionHistory()
 	if err != nil {
-		data["error"] = err
-	} else {
-		data["result"] = txns
+		routes.renderError(fmt.Sprintf("Error fetching history: %s", err.Error()), res)
+		return
 	}
 
+	data := map[string]interface{}{
+		"result": txns,
+	}
 	routes.render("history.html", data, res)
 }
