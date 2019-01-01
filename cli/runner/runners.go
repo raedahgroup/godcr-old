@@ -24,6 +24,6 @@ type WalletMiddlewareCommandRunner interface {
 // ParserCommandRunner defines the Run method that cli commands that depends on
 // flags.Parser can implement to have it injected at run time
 type ParserCommandRunner interface {
-	Run(parser *flags.Parser, args []string) error
+	Run(parser *flags.Parser) error
 	flags.Commander
 }
