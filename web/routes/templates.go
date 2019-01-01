@@ -1,5 +1,12 @@
 package routes
 
+import (
+	"fmt"
+	"html/template"
+
+	"github.com/raedahgroup/godcr/app/walletcore"
+)
+
 type templateData struct {
 	name string
 	path string
@@ -13,5 +20,17 @@ func templates() []templateData {
 		{"send.html", "web/views/send.html"},
 		{"receive.html", "web/views/receive.html"},
 		{"history.html", "web/views/history.html"},
+	}
+}
+
+func templateFuncMap() template.FuncMap {
+	return template.FuncMap{
+		"simpleBalance": func(balance *walletcore.Balance, detailed bool) string {
+			if detailed || balance.Total == balance.Spendable {
+				return balance.Total.String()
+			} else {
+				return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
+			}
+		},
 	}
 }
