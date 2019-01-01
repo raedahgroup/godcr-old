@@ -76,7 +76,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
+	fmt.Println("You are about to send %f DCR to %s", sendAmount, destinationAddress)
 
 	validateConfirm := func(userResponse string) error {
 		userResponse = strings.TrimSpace(userResponse)
@@ -93,12 +93,8 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	if strings.EqualFold(confirm, "yes") || strings.EqualFold(confirm, "y") {
-		confirm = "y"
-	}
-
-	if confirm != "y" {
-		fmt.Printf("Operation cancelled\n")
+	if strings.EqualFold(confirm, "n") {
+		fmt.Println("Operation cancelled")
 		return nil
 	}
 
