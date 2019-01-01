@@ -12,6 +12,7 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
 // appConfigWithCliCommands is the entrypoint to the cli application.
@@ -58,12 +59,12 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 }
 
 func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	walletExists, err := runner.OpenWallet(ctx, walletMiddleware)
+	walletExists, err := walletloader.OpenWallet(ctx, walletMiddleware)
 	if err != nil || !walletExists {
 		return err
 	}
 
-	return runner.SyncBlockChain(ctx, walletMiddleware)
+	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 
 // displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command

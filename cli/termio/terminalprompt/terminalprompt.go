@@ -3,6 +3,7 @@ package terminalprompt
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 // ValidatorFunction  validates the input string according to its custom logic.
@@ -82,4 +83,48 @@ func RequestSelection(message string, options []string, validate ValidatorFuncti
 		}
 		return value, nil
 	}
+}
+
+func RequestYesNoConfirmation(message, defaultOption string) (bool, error) {
+	isYesOption := func(option string) bool {
+		return strings.EqualFold(option, "y") || strings.EqualFold(option, "yes")
+	}
+	isNoOption := func(option string) bool {
+		return strings.EqualFold(option, "n") || strings.EqualFold(option, "no")
+	}
+
+	validateUserResponse := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		if defaultOption != "" && userResponse == "" {
+			return nil
+		}
+		if isYesOption(userResponse) || isNoOption(userResponse) {
+			return nil
+		}
+		return fmt.Errorf("Invalid option, try again")
+	}
+
+	var options string
+	if isYesOption(defaultOption) {
+		options = "Y/n"
+	} else if isNoOption(defaultOption) {
+		options = "y/N"
+	} else {
+		options = "y/n"
+		defaultOption = ""
+	}
+
+	// append options to message for display
+	message = fmt.Sprintf("%s (%s)", message, options)
+	userResponse, err := RequestInput(message, validateUserResponse)
+	if err != nil {
+		return false, err
+	}
+
+	userResponse = strings.TrimSpace(userResponse)
+	if userResponse == "" {
+		userResponse = defaultOption
+	}
+
+	return isYesOption(userResponse), nil
 }
