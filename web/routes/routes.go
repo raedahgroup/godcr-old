@@ -1,8 +1,8 @@
 package routes
 
 import (
+	"html/template"
 	"log"
-	"text/template"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
