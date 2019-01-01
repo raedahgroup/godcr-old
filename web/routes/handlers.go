@@ -49,7 +49,7 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 		data["error"] = err
 	} else {
 		data["accounts"] = result
-		data["detailed"] = detailed
+		data["detailed"] = detailed != ""
 	}
 
 	routes.render("balance.html", data, res)
