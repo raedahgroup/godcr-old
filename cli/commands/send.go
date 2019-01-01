@@ -87,14 +87,14 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return fmt.Errorf("invalid option, try again")
 		}
 	}
-	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n) ", validateConfirm)
+	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n)", validateConfirm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
 		return err
 	}
 
 	if strings.EqualFold(confirm, "n") {
-		fmt.Println("Operation cancelled")
+		fmt.Println("Canceled")
 		return nil
 	}
 
