@@ -14,6 +14,7 @@ require (
 	github.com/decred/dcrwallet/walletseed v1.0.0
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
+	github.com/mdp/qrterminal v1.0.1
 	github.com/raedahgroup/mobilewallet v1.0.0-rc1.0.20181228083835-ea62e1bb09f1
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
