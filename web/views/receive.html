@@ -6,9 +6,6 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                {{ if .error }}
-                <div class="alert alert-danger">{{ .error }}</div>
-                {{ else }}
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Generate Receive Address</h5>
@@ -42,7 +39,6 @@
                         </div>
                    </div>
                 </div>
-               {{ end }}
             </div>
         </div>
     </div>
