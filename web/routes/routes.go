@@ -34,7 +34,7 @@ func (routes *Routes) loadTemplates() {
 	utils := "web/views/utils.html"
 
 	for _, tmpl := range templates() {
-		parsedTemplate, err := template.New(tmpl.name).ParseFiles(tmpl.path, layout, utils)
+		parsedTemplate, err := template.New(tmpl.name).Funcs(templateFuncMap()).ParseFiles(tmpl.path, layout, utils)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
