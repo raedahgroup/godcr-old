@@ -66,7 +66,7 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	}
 
 	if strings.EqualFold(confirm, "y") {
-		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
+		qrterminal.GenerateHalfBlock(receiveAddress, qrterminal.L, os.Stdout)
 
 	}
 
