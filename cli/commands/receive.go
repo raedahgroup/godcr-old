@@ -15,7 +15,7 @@ type ReceiveCommand struct {
 	Args ReceiveCommandArgs `positional-args:"yes"`
 }
 type ReceiveCommandArgs struct {
-	AccountName string `positional-arg-name:"account-name" description:"The name of the account to receive into"`
+	AccountName string `positional-arg-name:"account-name" description:"the account into which you would like to receive the Dcr"`
 }
 
 // Run runs the `receive` command.

@@ -34,11 +34,7 @@ func (h HelpCommand) Run(parser *flags.Parser, args []string) error {
 }
 
 func PrintCommandHelp(appName string, command *flags.Command) {
-	if len(command.LongDescription) > 0 {
-		fmt.Println(command.LongDescription)
-	}else{
-		fmt.Println(command.ShortDescription)
-	}
+	fmt.Printf("%s. %s\n", command.ShortDescription, command.LongDescription)
 	fmt.Println()
 
 	args := command.Args()
@@ -47,9 +43,7 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	if args != nil && len(args) > 0 {
 		usageText += " [args]"
 	}
-	if options != nil && len(options) > 0 {
-		usageText += " [options]"
-	}
+	usageText += " [options]"
 	fmt.Println(usageText)
 	fmt.Println()
 
@@ -104,7 +98,9 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 				longestNameLength = len(option.LongName)
 			}
 		}
+		var rows [][]interface{}
 		for _, option := range options {
+			rows = append(rows, []interface{}{option.LongName, option.Description})
 			output := "  "
 			if option.ShortName != 0 {
 				output += "-" + string(option.ShortName) + ", "
