@@ -81,8 +81,8 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 			if arg.Required == 1 {
 				argNameLength += 10
 			}
-			if len(arg.Name) > longestNameLength {
-				longestNameLength = len(arg.Name)
+			if argNameLength > longestNameLength {
+				longestNameLength = argNameLength
 			}
 		}
 
