@@ -67,7 +67,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 		return err
 	}
 
-	if strings.EqualFold(confirm, "yes") || strings.EqualFold(confirm, "y") {
+	if strings.EqualFold(confirm, "y") {
 		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
 
 	}

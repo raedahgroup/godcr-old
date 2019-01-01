@@ -96,7 +96,7 @@ func getSendAmount() (float64, error) {
 
 		amount, err = strconv.ParseFloat(input, 64)
 		if err != nil {
-			return fmt.Errorf("error parsing amount: %s", err.Error())
+			return fmt.Errorf("Invalid amount. Try again")
 		}
 		return nil
 	}
