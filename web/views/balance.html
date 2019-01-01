@@ -9,28 +9,57 @@
                 {{ if .error }}
                 <div class="alert alert-danger">{{ .error }}</div>
                 {{ else }}
-                <table class="table">
-                    <thead>
+                <div>
+                    <form class="mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   value="yes"
+                                   name="detailed"
+                                   id="detailed"
+                                   {{ if .detailed }}
+                                   checked
+                                   {{ end }}
+                                   onChange="this.form.submit()">
+                            <label class="form-check-label" for="detailed">Show detailed balance</label>
+                        </div>
+                    </form>
+
+                    <table class="table">
+                        <thead>
                         <tr>
                             <th>Account Name</th>
                             <th>Balance</th>
+                            {{ if .detailed }}
+                            <th>Spendable</th>
+                            <th>Locked By Tickets</th>
+                            <th>Voting Authority</th>
+                            <th>Unconfirmed</th>
+                            {{ end }}
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         {{ range $account := .accounts }}
                         <tr>
                             <td>{{ $account.Name }}</td>
                             <td>
-                                {{ if eq $account.Balance.Total $account.Balance.Spendable }}
+                            {{ if or ($.detailed) (eq $account.Balance.Total $account.Balance.Spendable) }}
                                 {{ $account.Balance.Total }}
-                                {{ else }}
+                            {{ else }}
                                 Total {{ $account.Balance.Total }} (Spendable {{ $account.Balance.Spendable }})
-                                {{ end }}
+                            {{ end }}
                             </td>
+                            {{ if $.detailed }}
+                                <td> {{ $account.Balance.Spendable }}</td>
+                                <td> {{ $account.Balance.LockedByTickets }}</td>
+                                <td> {{ $account.Balance.VotingAuthority }}</td>
+                                <td> {{ $account.Balance.Unconfirmed }}</td>
+                            {{ end }}
                         </tr>
                         {{ end }}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
                 {{ end }}
             </div>
         </div>
