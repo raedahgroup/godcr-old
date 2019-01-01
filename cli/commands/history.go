@@ -1,19 +1,17 @@
 package commands
 
 import (
-	"context"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct {
-	runner.WalletCommand
+	commanderStub
 }
 
 // Run runs the `history` command.
-func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (h HistoryCommand) Run(wallet walletcore.Wallet) error {
 	transactions, err := wallet.TransactionHistory()
 	if err != nil {
 		return err

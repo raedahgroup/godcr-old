@@ -1,33 +1,28 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"strings"
-
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // SendCommand lets the user send DCR.
 type SendCommand struct {
-	runner.WalletCommand
+	commanderStub
 }
 
 // Run runs the `send` command.
-func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (s SendCommand) Run(wallet walletcore.Wallet) error {
 	return send(wallet, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
-	runner.WalletCommand
+	commanderStub
 }
 
 // Run runs the `send-custom` command.
-func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
 	return send(wallet, true)
 }
 
@@ -77,23 +72,12 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	}
 
 	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
-
-	validateConfirm := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n)", validateConfirm)
+	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Are you sure?", "")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return err
+		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
-	if strings.EqualFold(confirm, "n") {
+	if !sendConfirmed {
 		fmt.Println("Canceled")
 		return nil
 	}

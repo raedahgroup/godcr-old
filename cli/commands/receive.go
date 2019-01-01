@@ -1,20 +1,17 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
 type ReceiveCommand struct {
-	runner.WalletCommand
+	commanderStub
 	Args ReceiveCommandArgs `positional-args:"yes"`
 }
 type ReceiveCommandArgs struct {
@@ -22,7 +19,7 @@ type ReceiveCommandArgs struct {
 }
 
 // Run runs the `receive` command.
-func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.Wallet, args []string) error {
+func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if receiveCommand.Args.AccountName == "" {
@@ -50,26 +47,14 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 	// Print out address as string
 	fmt.Println(receiveAddress)
 
-	// Print out QR code
-	validateConfirm := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-
-	confirm, err := terminalprompt.RequestInput("Would you like to generate a QR code? (y/N)", validateConfirm)
+	// Print out QR code?
+	printQR, err := terminalprompt.RequestYesNoConfirmation("Would you like to generate a QR code?", "N")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return err
+		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
-	if strings.EqualFold(confirm, "y") {
-		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
-
+	if printQR {
+		qrterminal.GenerateHalfBlock(receiveAddress, qrterminal.L, os.Stdout)
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
 type CommandRunner struct {
@@ -27,6 +28,11 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 		return brokenCommandError(parser.Command)
 	}
 
+	// attempt to run the command by injecting walletMiddleware dependency
+	if commandRunner, ok := command.(WalletMiddlewareCommandRunner); ok {
+		return commandRunner.Run(runner.ctx, runner.walletMiddleware)
+	}
+
 	// attempt to run the command by injecting wallet dependencies
 	if commandRunner, ok := command.(WalletCommandRunner); ok {
 		return runner.processWalletCommand(commandRunner, args, options)
@@ -40,19 +46,19 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 // The wallet is opened using the provided walletMiddleware, sync operations performed (if requested)
 // then, the command is executed using the Run method of the WalletCommandRunner interface
 func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, args []string, options CliOptions) error {
-	walletExists, err := OpenWallet(runner.ctx, runner.walletMiddleware)
+	walletExists, err := walletloader.OpenWallet(runner.ctx, runner.walletMiddleware)
 	if err != nil || !walletExists {
 		return err
 	}
 
 	if options.SyncBlockchain {
-		err = SyncBlockChain(runner.ctx, runner.walletMiddleware)
+		err = walletloader.SyncBlockChain(runner.ctx, runner.walletMiddleware)
 		if err != nil {
 			return err
 		}
 	}
 
-	return commandRunner.Run(runner.ctx, runner.walletMiddleware, args)
+	return commandRunner.Run(runner.walletMiddleware)
 }
 
 func brokenCommandError(command *flags.Command) error {
