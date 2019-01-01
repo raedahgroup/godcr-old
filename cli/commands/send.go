@@ -76,18 +76,18 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	fmt.Println("You are about to send %f DCR to %s", sendAmount, destinationAddress)
+	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
 
 	validateConfirm := func(userResponse string) error {
 		userResponse = strings.TrimSpace(userResponse)
 		userResponse = strings.Trim(userResponse, `"`)
-		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
+		if strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
 			return nil
 		} else {
 			return fmt.Errorf("invalid option, try again")
 		}
 	}
-	confirm, err := terminalprompt.RequestInput("Are you sure? (y/N) ", validateConfirm)
+	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n) ", validateConfirm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
 		return err
