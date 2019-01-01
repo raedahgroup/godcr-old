@@ -48,21 +48,10 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	// Print out address as string
 	fmt.Println(receiveAddress)
 
-	// Print out QR code
-	validateConfirm := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-
-	confirm, err := terminalprompt.RequestInput("Would you like to generate a QR code? (y/N)", validateConfirm)
+	// Print out QR code?
+	confirm, err := terminalprompt.RequestYesNoOption("Would you like to generate a QR code?", "N")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return err
+		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if strings.EqualFold(confirm, "y") {
