@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -75,20 +74,9 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	}
 
 	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
-
-	validateConfirm := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid option, try again")
-		}
-	}
-	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n)", validateConfirm)
+	confirm, err := terminalprompt.RequestYesNoOption("Are you sure?", "")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return err
+		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if strings.EqualFold(confirm, "n") {
