@@ -34,7 +34,7 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 
 func PrintCommandHelp(appName string, command *flags.Command) {
 	tabWriter := termio.StdoutWriter
-	fmt.Fprintln(tabWriter ,fmt.Sprintf("%s. %s\n", command.ShortDescription, command.LongDescription))
+	fmt.Fprintln(tabWriter, fmt.Sprintf("%s. %s\n", command.ShortDescription, command.LongDescription))
 
 	usageText := fmt.Sprintf("Usage:\n  %s %s", appName, command.Name)
 	args := command.Args()
@@ -46,20 +46,20 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	fmt.Fprintln(tabWriter)
 
 	if args != nil && len(args) > 0 {
-		fmt.Fprintln(tabWriter,"Arguments:")
+		fmt.Fprintln(tabWriter, "Arguments:")
 		for _, arg := range args {
 			required := ""
 			if arg.Required == 1 {
 				required = "(required)"
 			}
-			fmt.Fprintln(tabWriter,fmt.Sprintf("  %s %s \t %s", arg.Name, required, arg.Description))
+			fmt.Fprintln(tabWriter, fmt.Sprintf("  %s %s \t %s", arg.Name, required, arg.Description))
 		}
 		fmt.Fprintln(tabWriter)
 	}
 
 	options := command.Options()
 	if options != nil && len(options) > 0 {
-		fmt.Fprintln(tabWriter,"Options:")
+		fmt.Fprintln(tabWriter, "Options:")
 		// option printout attempts to add 2 whitespace for options with short name and 6 for those without
 		// This is an attempt to stay consistent with the output of parser.WriteHelp
 		for _, option := range options {
@@ -73,7 +73,7 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 				optionUsage = fmt.Sprintf("      --%s", option.LongName)
 			}
 
-			fmt.Fprintln(tabWriter,fmt.Sprintf("%s \t %s", optionUsage, option.Description))
+			fmt.Fprintln(tabWriter, fmt.Sprintf("%s \t %s", optionUsage, option.Description))
 		}
 		fmt.Fprintln(tabWriter)
 	}
