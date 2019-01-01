@@ -45,8 +45,8 @@ body {
     border-color: #fff !important;
 }
 
-.table.scrollable {
-    max-height: 400px; 
+.scrollable {
+    max-height: 300px; 
     overflow-y: auto;
 }
 .card {
