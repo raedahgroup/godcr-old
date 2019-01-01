@@ -3,12 +3,11 @@ package commands
 import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
 type HelpCommand struct {
-	runner.ParserCommand
+	commanderStub
 	Args struct {
 		CommandName string `positional-arg-name:"command-name"`
 	} `positional-args:"yes"`
@@ -37,7 +36,7 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	tabWriter := termio.StdoutWriter
 	fmt.Fprintln(tabWriter ,fmt.Sprintf("%s. %s\n", command.ShortDescription, command.LongDescription))
 
-	usageText := fmt.Sprintf("Usage: %s %s", appName, command.Name)
+	usageText := fmt.Sprintf("Usage:\n  %s %s", appName, command.Name)
 	args := command.Args()
 	if args != nil && len(args) > 0 {
 		usageText += " [args]"
@@ -53,7 +52,7 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 			if arg.Required == 1 {
 				required = "(required)"
 			}
-			fmt.Fprintln(tabWriter,fmt.Sprintf("%s %s \t %s", arg.Name, required, arg.Description))
+			fmt.Fprintln(tabWriter,fmt.Sprintf("  %s %s \t %s", arg.Name, required, arg.Description))
 		}
 		fmt.Fprintln(tabWriter)
 	}
@@ -61,16 +60,20 @@ func PrintCommandHelp(appName string, command *flags.Command) {
 	options := command.Options()
 	if options != nil && len(options) > 0 {
 		fmt.Fprintln(tabWriter,"Options:")
-		// option printout attempts to add 2 whitespace for options with short name and 4 for those without in order to
+		// option printout attempts to add 2 whitespace for options with short name and 6 for those without
 		// This is an attempt to stay consistent with the output of parser.WriteHelp
 		for _, option := range options {
-			optionUsage := " " + " "
-			if option.ShortName != 0 {
-				optionUsage += "-" + string(option.ShortName) + ", "
-			}else {
-				optionUsage += " " + " " + " " + " "
+			var optionUsage string
+
+			if option.ShortName != 0 && option.LongName != "" {
+				optionUsage = fmt.Sprintf("  -%c, --%s", option.ShortName, option.LongName)
+			} else if option.ShortName != 0 {
+				optionUsage = fmt.Sprintf("  -%c", option.ShortName)
+			} else {
+				optionUsage = fmt.Sprintf("      --%s", option.LongName)
 			}
-			fmt.Fprintln(tabWriter,fmt.Sprintf("%s--%s \t %s", optionUsage, option.LongName, option.Description))
+
+			fmt.Fprintln(tabWriter,fmt.Sprintf("%s \t %s", optionUsage, option.Description))
 		}
 		fmt.Fprintln(tabWriter)
 	}

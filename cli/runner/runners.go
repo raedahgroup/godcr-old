@@ -20,3 +20,10 @@ type WalletMiddlewareCommandRunner interface {
 	Run(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	flags.Commander
 }
+
+// ParserCommandRunner defines the Run method that cli commands that depends on
+// flags.Parser can implement to have it injected at run time
+type ParserCommandRunner interface {
+	Run(parser *flags.Parser, args []string) error
+	flags.Commander
+}
