@@ -30,13 +30,13 @@ func displayWalletSeed(seed string) {
 
 func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	createWalletPrompt := "No wallet found. Would you like to create one now?"
-	userResponse, err := terminalprompt.RequestYesNoOption(createWalletPrompt, "Y")
+	createWallet, err := terminalprompt.RequestYesNoConfirmation(createWalletPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
 		return err
 	}
 
-	if strings.EqualFold("n", userResponse) {
+	if !createWallet {
 		fmt.Println("Maybe later. Bye.")
 		return nil
 	}

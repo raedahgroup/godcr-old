@@ -75,13 +75,13 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 
 	// sync blockchain?
 	syncBlockchainPrompt := "Would you like to sync the blockchain now?"
-	syncBlockchainResponse, err := terminalprompt.RequestYesNoOption(syncBlockchainPrompt, "Y")
+	syncBlockchain, err := terminalprompt.RequestYesNoConfirmation(syncBlockchainPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s\n", err.Error())
 		return err
 	}
 
-	if strings.EqualFold("n", syncBlockchainResponse) {
+	if !syncBlockchain {
 		return nil
 	}
 

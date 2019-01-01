@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -49,12 +48,12 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	fmt.Println(receiveAddress)
 
 	// Print out QR code?
-	confirm, err := terminalprompt.RequestYesNoOption("Would you like to generate a QR code?", "N")
+	printQR, err := terminalprompt.RequestYesNoConfirmation("Would you like to generate a QR code?", "N")
 	if err != nil {
 		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
-	if strings.EqualFold(confirm, "y") {
+	if printQR {
 		qrterminal.GenerateHalfBlock(receiveAddress, qrterminal.L, os.Stdout)
 	}
 

@@ -2,8 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
@@ -74,12 +72,12 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	}
 
 	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
-	confirm, err := terminalprompt.RequestYesNoOption("Are you sure?", "")
+	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Are you sure?", "")
 	if err != nil {
 		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
-	if strings.EqualFold(confirm, "n") {
+	if !sendConfirmed {
 		fmt.Println("Canceled")
 		return nil
 	}
