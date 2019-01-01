@@ -82,14 +82,6 @@ func displayHelpMessage(parser *flags.Parser) {
 	if parser.Active == nil {
 		parser.WriteHelp(os.Stdout)
 	} else {
-		printCommandHelp(parser.Name, parser.Active)
+		commands.PrintCommandHelp(parser.Name, parser.Active)
 	}
-}
-
-func printCommandHelp(appName string, command *flags.Command) {
-	helpParser := flags.NewParser(nil, flags.HelpFlag)
-	helpParser.Name = appName
-	helpParser.Active = command
-	helpParser.WriteHelp(os.Stdout)
-	fmt.Printf("To view application options, use '%s -h'\n", appName)
 }
