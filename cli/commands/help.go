@@ -13,7 +13,7 @@ type HelpCommand struct {
 	} `positional-args:"yes"`
 }
 
-func (h HelpCommand) Run(parser *flags.Parser, args []string) error {
+func (h HelpCommand) Run(parser *flags.Parser) error {
 	if h.Args.CommandName == "" {
 		active := parser.Active
 		parser.Active = nil
