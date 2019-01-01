@@ -3,8 +3,12 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // SendCommand lets the user send DCR.
@@ -72,7 +76,30 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
+	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
+
+	validateConfirm := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		userResponse = strings.Trim(userResponse, `"`)
+		if strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
+			return nil
+		} else {
+			return fmt.Errorf("invalid option, try again")
+		}
+	}
+	confirm, err := terminalprompt.RequestInput("Are you sure? (y/n)", validateConfirm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		return err
+	}
+
+	if strings.EqualFold(confirm, "n") {
+		fmt.Println("Canceled")
+		return nil
+	}
+
 	var sentTransactionHash string
+
 	if custom {
 		sentTransactionHash, err = wallet.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
 	} else {
@@ -83,6 +110,6 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	fmt.Printf("Sent. Txid: %s\n", sentTransactionHash)
+	fmt.Println("Sent. Txid", sentTransactionHash)
 	return nil
 }

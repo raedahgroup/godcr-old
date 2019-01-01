@@ -3,10 +3,13 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
+	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/runner"
-	"github.com/raedahgroup/godcr/cli/termio"
-	qrcode "github.com/skip2/go-qrcode"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
@@ -44,21 +47,30 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 		return err
 	}
 
-	qr, err := qrcode.New(receiveAddress, qrcode.Medium)
-	if err != nil {
-		return fmt.Errorf("Error generating QR Code: %s", err.Error())
+	// Print out address as string
+	fmt.Println(receiveAddress)
+
+	// Print out QR code
+	validateConfirm := func(userResponse string) error {
+		userResponse = strings.TrimSpace(userResponse)
+		userResponse = strings.Trim(userResponse, `"`)
+		if userResponse == "" || strings.EqualFold("Y", userResponse) || strings.EqualFold("n", userResponse) {
+			return nil
+		} else {
+			return fmt.Errorf("invalid option, try again")
+		}
 	}
 
-	columns := []string{
-		"Address",
-		"QR Code",
+	confirm, err := terminalprompt.RequestInput("Would you like to generate a QR code? (y/N)", validateConfirm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
+		return err
 	}
-	rows := [][]interface{}{
-		[]interface{}{
-			receiveAddress,
-			qr.ToString(true),
-		},
+
+	if strings.EqualFold(confirm, "y") {
+		qrterminal.GenerateHalfBlock("https://github.com/mdp/qrterminal", qrterminal.L, os.Stdout)
+
 	}
-	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
+
 	return nil
 }

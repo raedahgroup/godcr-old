@@ -100,7 +100,7 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 }
 
 // todo need to add shutdown functionality to this mode
-func enterDesktopMode (ctx context.Context, walletMiddleware app.WalletMiddleware) {
+func enterDesktopMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching desktop app")
 	desktop.StartDesktopApp(ctx, walletMiddleware)
 	// desktop app closed, trigger shutdown

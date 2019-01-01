@@ -60,13 +60,17 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 // getSendDestinationAddress fetches the destination address to send DCRs to from the user.
 func getSendDestinationAddress(wallet walletcore.Wallet) (string, error) {
 	validateAddressInput := func(address string) error {
+		if address == "" {
+			return errors.New("You did not specify an address. Try again.")
+		}
+
 		isValid, err := wallet.ValidateAddress(address)
 		if err != nil {
 			return fmt.Errorf("error validating address: %s", err.Error())
 		}
 
 		if !isValid {
-			return errors.New("invalid address")
+			return errors.New("That is not a valid address. Try again.")
 		}
 		return nil
 	}
@@ -86,9 +90,13 @@ func getSendAmount() (float64, error) {
 	var err error
 
 	validateAmount := func(input string) error {
+		if input == "" {
+			return errors.New("You did not specify an amount. Try again.")
+		}
+
 		amount, err = strconv.ParseFloat(input, 64)
 		if err != nil {
-			return fmt.Errorf("error parsing amount: %s", err.Error())
+			return fmt.Errorf("Invalid amount. Try again")
 		}
 		return nil
 	}
