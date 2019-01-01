@@ -6,32 +6,53 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                {{ if .error }}
-                <div class="alert alert-danger">{{ .error }}</div>
-                {{ else }}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Account Name</th>
-                            <th>Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{ range $account := .accounts }}
-                        <tr>
-                            <td>{{ $account.Name }}</td>
-                            <td>
-                                {{ if eq $account.Balance.Total $account.Balance.Spendable }}
-                                {{ $account.Balance.Total }}
-                                {{ else }}
-                                Total {{ $account.Balance.Total }} (Spendable {{ $account.Balance.Spendable }})
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Balance
+                            {{ if .detailed }}
+                            <small><a href="/">(Hide details)</a></small>
+                            {{ else }}
+                            <small><a href="/?detailed=yes">(Show details)</a></small>
+                            {{end}}
+                        </h5>
+
+                        <!-- if just one account and not detailed, show simple balance -->
+                        {{ if and (not .detailed) (eq (len .accounts) 1) }}
+                        {{ $account := index .accounts 0 }}
+                        <h3 class="mb-0">{{ simpleBalance $account.Balance false }}</h3>
+                        {{ else }}
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Account Name</th>
+                                    <th>Balance</th>
+                                    {{ if .detailed }}
+                                    <th>Spendable</th>
+                                    <th>Locked By Tickets</th>
+                                    <th>Voting Authority</th>
+                                    <th>Unconfirmed</th>
+                                    {{ end }}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range $account := .accounts }}
+                                <tr>
+                                    <td>{{ $account.Name }}</td>
+                                    <td>{{ simpleBalance $account.Balance $.detailed }}</td>
+                                    {{ if $.detailed }}
+                                    <td> {{ $account.Balance.Spendable }}</td>
+                                    <td> {{ $account.Balance.LockedByTickets }}</td>
+                                    <td> {{ $account.Balance.VotingAuthority }}</td>
+                                    <td> {{ $account.Balance.Unconfirmed }}</td>
+                                    {{ end }}
+                                </tr>
                                 {{ end }}
-                            </td>
-                        </tr>
+                            </tbody>
+                        </table>
                         {{ end }}
-                    </tbody>
-                </table>
-                {{ end }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
