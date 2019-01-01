@@ -40,7 +40,7 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 
 	// try running the command by injecting parser dependency
 	if commandRunner, ok := command.(ParserCommandRunner); ok {
-		return commandRunner.Run(runner.ctx, parser, args)
+		return commandRunner.Run(parser, args)
 	}
 
 	return command.Execute(args)

@@ -1,14 +1,13 @@
 package runner
 
 import (
-	"context"
 	"github.com/jessevdk/go-flags"
 )
 
 // ParserCommandRunner defines the Run method that cli commands that depends on
 // flags.Parser can implement to have it injected at run time
 type ParserCommandRunner interface {
-	Run(ctx context.Context, parser *flags.Parser, args []string) error
+	Run(parser *flags.Parser, args []string) error
 	flags.Commander
 }
 
