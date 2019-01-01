@@ -85,44 +85,46 @@ func RequestSelection(message string, options []string, validate ValidatorFuncti
 	}
 }
 
-func RequestYesNoOption(message, defaultOption string) (string, error) {
-	yesNoOptions := []string{ "y", "yes", "n", "no" }
+func RequestYesNoConfirmation(message, defaultOption string) (bool, error) {
+	isYesOption := func(option string) bool {
+		return strings.EqualFold(option, "y") || strings.EqualFold(option, "yes")
+	}
+	isNoOption := func(option string) bool {
+		return strings.EqualFold(option, "n") || strings.EqualFold(option, "no")
+	}
 
 	validateUserResponse := func(userResponse string) error {
 		userResponse = strings.TrimSpace(userResponse)
 		if defaultOption != "" && userResponse == "" {
 			return nil
 		}
-
-		for _, option := range yesNoOptions {
-			if strings.EqualFold(option, userResponse) {
-				return nil
-			}
+		if isYesOption(userResponse) || isNoOption(userResponse) {
+			return nil
 		}
-
 		return fmt.Errorf("Invalid option, try again")
 	}
 
 	var options string
-	if strings.EqualFold(defaultOption, "Y") || strings.EqualFold(defaultOption, "Yes") {
+	if isYesOption(defaultOption) {
 		options = "Y/n"
-	} else if strings.EqualFold(defaultOption, "N") || strings.EqualFold(defaultOption, "No") {
+	} else if isNoOption(defaultOption) {
 		options = "y/N"
 	} else {
 		options = "y/n"
+		defaultOption = ""
 	}
 
 	// append options to message for display
 	message = fmt.Sprintf("%s (%s)", message, options)
 	userResponse, err := RequestInput(message, validateUserResponse)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
 	userResponse = strings.TrimSpace(userResponse)
-	if defaultOption != "" && userResponse == "" {
-		return defaultOption, nil
+	if userResponse == "" {
+		userResponse = defaultOption
 	}
 
-	return userResponse, nil
+	return isYesOption(userResponse), nil
 }
