@@ -41,11 +41,15 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 
+	req.ParseForm()
+	detailed := req.FormValue("detailed")
+
 	result, err := routes.walletMiddleware.AccountsOverview()
 	if err != nil {
 		data["error"] = err
 	} else {
 		data["accounts"] = result
+		data["detailed"] = detailed
 	}
 
 	routes.render("balance.html", data, res)
