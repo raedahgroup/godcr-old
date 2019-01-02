@@ -19,7 +19,7 @@ type AvailableCommands struct {
 
 // AvailableCommands defines experimental commands and options available on the cli
 type ExperimentalCommands struct {
-	SendCustom      SendCustomCommand      `command:"send-custom" description:"Send a transaction, manually selecting inputs from unspent outputs"`
+	SendCustom SendCustomCommand `command:"send-custom" description:"Send a transaction, manually selecting inputs from unspent outputs"`
 }
 
 // Categories return information for the different categories of commands defined in this file
@@ -35,8 +35,8 @@ func Categories() []*help.CommandCategory {
 	}
 
 	return []*help.CommandCategory{
-		{ Name: "Available Commands", ShortName: "available cmds", CommandNames: parseCommandNames(&AvailableCommands{}) },
-		{ Name: "Experimental Commands", ShortName: "experimental", CommandNames: parseCommandNames(&ExperimentalCommands{}) },
+		{Name: "Available Commands", ShortName: "available cmds", CommandNames: parseCommandNames(&AvailableCommands{})},
+		{Name: "Experimental Commands", ShortName: "experimental", CommandNames: parseCommandNames(&ExperimentalCommands{})},
 	}
 }
 
