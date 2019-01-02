@@ -2,13 +2,11 @@ package help
 
 import (
 	"fmt"
-	"github.com/raedahgroup/godcr/app"
 	"io"
-	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
@@ -48,16 +46,6 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 	printCommands(tabWriter, commandGroups)
 }
 
-func printOptionGroups(output io.Writer, groups []*flags.Group) {
-	for _, optionGroup := range groups {
-		if len(optionGroup.Groups()) > 0 {
-			printOptionGroups(output, optionGroup.Groups())
-		} else {
-			printOptions(output, optionGroup.ShortDescription, optionGroup.Options())
-		}
-	}
-}
-
 func PrintCommandHelp(output io.Writer, appName string, command *flags.Command) {
 	tabWriter := termio.TabWriter(output)
 
@@ -91,80 +79,22 @@ func PrintCommandHelp(output io.Writer, appName string, command *flags.Command) 
 	tabWriter.Flush()
 }
 
-// option printout attempts to add 2 whitespace for options with short name and 6 for those without
-// This is an attempt to stay consistent with the output of parser.WriteHelp
-func printOptions(tabWriter io.Writer, optionDescription string, options []*flags.Option) {
-	if options != nil && len(options) > 0 {
-		fmt.Fprintln(tabWriter, optionDescription)
+// printOptionsSimple prints options in one line per option group, without the description for each option
+func PrintOptionsSimple(output io.Writer, groups []*flags.Group) {
+	for _, optionGroup := range groups {
+		if len(optionGroup.Groups()) > 0 {
+			PrintOptionsSimple(output, optionGroup.Groups())
+			continue
+		}
 
-		// check if there's any option in this group with short and long name
-		// this will help to decide whether or not to pad options without short name to maintain readability
-		var hasOptionsWithShortName bool
-		for _, option := range options {
-			if option.ShortName != 0 && option.LongName != "" {
-				hasOptionsWithShortName = true
-				break
+		options := optionGroup.Options()
+		if options != nil && len(options) > 0 {
+			optionUsages := make([]string, len(options))
+			for i, option := range options {
+				optionUsages[i] = parseOptionUsageText(option, false)
 			}
+
+			fmt.Fprintf(output, "%s %s\n", optionGroup.ShortDescription, strings.Join(optionUsages, ", "))
 		}
-
-		for _, option := range options {
-			optionUsage := parseOptionUsageText(option, hasOptionsWithShortName)
-			description := parseOptionDescription(option)
-			fmt.Fprintln(tabWriter, fmt.Sprintf("  %s \t %s", optionUsage, description))
-		}
-
-		fmt.Fprintln(tabWriter)
-	}
-}
-
-func parseOptionUsageText(option *flags.Option, hasOptionsWithShortName bool) (optionUsage string) {
-	if option.ShortName != 0 && option.LongName != "" {
-		optionUsage = fmt.Sprintf("-%c, --%s", option.ShortName, option.LongName)
-	} else if option.ShortName != 0 {
-		optionUsage = fmt.Sprintf("-%c", option.ShortName)
-	} else if hasOptionsWithShortName {
-		// pad long name with 4 spaces to align with options having short and long names
-		optionUsage = fmt.Sprintf("    --%s", option.LongName)
-	} else {
-		optionUsage = fmt.Sprintf("--%s", option.LongName)
-	}
-
-	if option.Field().Type.Kind() != reflect.Bool {
-		optionUsage += "="
-	}
-
-	if len(option.Choices) > 0 {
-		optionUsage += fmt.Sprintf("[%s]", strings.Join(option.Choices, ","))
-	}
-
-	return
-}
-
-func parseOptionDescription(option *flags.Option) (description string) {
-	description = option.Description
-	optionDefaultValue := reflect.ValueOf(option.Value())
-	if optionDefaultValue.Kind() == reflect.String && optionDefaultValue.String() != "" {
-		description += fmt.Sprintf(" (default: %s)", optionDefaultValue.String())
-	}
-	return
-}
-
-func printCommands(tabWriter io.Writer, commandGroups map[string][]*flags.Command) {
-	// sort first to ensure consistent display order
-	categories := make([]string, 0, len(commandGroups))
-	for category := range commandGroups {
-		categories = append(categories, category)
-	}
-	sort.Strings(categories)
-
-	for _, category := range categories {
-		fmt.Fprintf(tabWriter, "%s:\n", category)
-
-		commands := commandGroups[category]
-		for _, command := range commands {
-			fmt.Fprintln(tabWriter, fmt.Sprintf("  %s \t %s", command.Name, command.ShortDescription))
-		}
-
-		fmt.Fprintln(tabWriter)
 	}
 }

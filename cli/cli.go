@@ -69,6 +69,7 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 
 // listCommands prints a simple list of available commands when godcr is run without any command
 func listCommands() {
+	help.PrintOptionsSimple(os.Stdout, commands.HelpParser().Groups())
 	for _, category := range commands.Categories() {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", category.ShortName, strings.Join(category.CommandNames, ", "))
 	}
