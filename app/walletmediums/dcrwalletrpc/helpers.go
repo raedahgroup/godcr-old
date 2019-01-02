@@ -16,21 +16,11 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func amountToAtom(amountInDCR float64) (int64, error) {
-	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
-	if err != nil {
-		return 0, err
-	}
-
-	// type of amountInAtom is `dcrutil.Amount` which is an int64 alias
-	return int64(amountInAtom), nil
-}
-
-func (c *WalletRPCClient) unspentOutputStream(account uint32, targetAmount int64) (walletrpc.WalletService_UnspentOutputsClient, error) {
+func (c *WalletRPCClient) unspentOutputStream(account uint32, targetAmount int64, requiredConfirmations int32) (walletrpc.WalletService_UnspentOutputsClient, error) {
 	req := &walletrpc.UnspentOutputsRequest{
 		Account:                  account,
 		TargetAmount:             targetAmount,
-		RequiredConfirmations:    0,
+		RequiredConfirmations:    requiredConfirmations,
 		IncludeImmatureCoinbases: true,
 	}
 
