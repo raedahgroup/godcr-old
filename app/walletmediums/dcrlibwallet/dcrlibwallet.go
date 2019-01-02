@@ -5,16 +5,16 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 )
 
-// MobileWalletLib implements `WalletMiddleware` using `dcrlibwallet.LibWallet` as medium for connecting to a decred wallet
+// DcrWalletLib implements `WalletMiddleware` using `dcrlibwallet.LibWallet` as medium for connecting to a decred wallet
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
-type MobileWalletLib struct {
+type DcrWalletLib struct {
 	walletLib *dcrlibwallet.LibWallet
 	activeNet *netparams.Params
 }
 
-// New connects to dcrlibwallet and returns an instance of MobileWalletLib
-func New(appDataDir string, netType string) *MobileWalletLib {
+// New connects to dcrlibwallet and returns an instance of DcrWalletLib
+func New(appDataDir string, netType string) *DcrWalletLib {
 	lw := dcrlibwallet.NewLibWallet(appDataDir, dcrlibwallet.DefaultDbDriver, netType)
 	lw.SetLogLevel("off")
 	lw.InitLoaderWithoutShutdownListener()
@@ -26,7 +26,7 @@ func New(appDataDir string, netType string) *MobileWalletLib {
 		activeNet = &netparams.TestNet3Params
 	}
 
-	return &MobileWalletLib{
+	return &DcrWalletLib{
 		walletLib: lw,
 		activeNet: activeNet,
 	}
