@@ -1,14 +1,14 @@
 # godcr
 
 ## Overview
-**godcr** is a decred wallet application for Linux, macOS and Windows that provides wallet access and control functionality using `libdcrwallet`. It can also interface with [dcrwallet](https://github.com/decred/dcrwallet) via RPC as an alternative to `libdcrwallet`. The godcr app can be run in either of the following interface modes:
+**godcr** is a decred wallet application for Linux, macOS and Windows that provides wallet access and control functionality using [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88). It can also interface with [dcrwallet](https://github.com/decred/dcrwallet) via RPC as an alternative to dcrlibwallet. The godcr app can be run in any of the following interface modes:
 - Web (web app running on an http server)
 - Cli (command-line utility)
 - Desktop (native desktop application, currently work in progress)
 
 ## Requirements
-You can run **godcr** without installing any other software. By default **godcr** uses `libdcrwallet`.
-To run **godcr** using **dcrwallet** instead of `libdcrwallet`, the following is required.
+You can run **godcr** without installing any other software. By default **godcr** uses dcrlibwallet.
+To run **godcr** using **dcrwallet** instead of [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88), the following is required.
 * Download the **decred** release binaries for your operating system from [here](https://github.com/decred/decred-binaries/releases). Check under **Assets**.
 * **dcrwallet** requires **dcrd** to work. The decred archive downloaded from the release page contains both binaries.
 * After downloading and extracting **dcrd** and **dcrwallet**, [go here](https://docs.decred.org/wallets/cli/cli-installation/) to learn how to setup and run both binaries.
