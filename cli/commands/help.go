@@ -3,7 +3,10 @@ package commands
 import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio"
+	"os"
 )
 
 type HelpCommand struct {
@@ -15,10 +18,7 @@ type HelpCommand struct {
 
 func (h HelpCommand) Run(parser *flags.Parser) error {
 	if h.Args.CommandName == "" {
-		active := parser.Active
-		parser.Active = nil
-		defer func() { parser.Active = active }()
-		parser.WriteHelp(termio.StdoutWriter)
+		DisplayGeneralHelpMessage()
 		return nil
 	}
 
@@ -27,12 +27,27 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 		return fmt.Errorf("unknown command %q", h.Args.CommandName)
 	}
 
-	PrintCommandHelp(parser.Name, targetCommand)
+	DisplayCommandHelp(parser.Name, targetCommand)
 
 	return nil
 }
 
-func PrintCommandHelp(appName string, command *flags.Command) {
+
+// DisplayGeneralHelpMessage creates a help parser with command line options and cli commands to display general help message
+func DisplayGeneralHelpMessage() {
+	commandLineConfigWithCliCommands := struct{
+		config.CommandLineOptions
+		Commands
+		runner.CliOptions
+	}{
+		CommandLineOptions: config.DefaultCommandLineOptions(),
+	}
+
+	helpParser := flags.NewParser(&commandLineConfigWithCliCommands, flags.HelpFlag|flags.PassDoubleDash)
+	helpParser.WriteHelp(os.Stdout)
+}
+
+func DisplayCommandHelp(appName string, command *flags.Command) {
 	tabWriter := termio.StdoutWriter
 	fmt.Fprintln(tabWriter, fmt.Sprintf("%s. %s\n", command.ShortDescription, command.LongDescription))
 
