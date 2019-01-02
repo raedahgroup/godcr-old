@@ -11,6 +11,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/help"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
@@ -18,7 +19,8 @@ import (
 // appConfigWithCliCommands is the entrypoint to the cli application.
 // It defines general app options, cli commands with their command-specific options and general cli options
 type appConfigWithCliCommands struct {
-	commands.Commands
+	commands.AvailableCommands
+	commands.ExperimentalCommands
 	config.Config
 }
 
@@ -47,11 +49,9 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	}
 
 	if noCommandPassed {
-		displayAvailableCommandsHelpMessage(parser)
-	} else if helpFlagPassed && parser.Active == nil {
-		commands.DisplayGeneralHelpMessage()
+		listCommands()
 	} else if helpFlagPassed {
-		commands.DisplayCommandHelp(parser.Name, parser.Active)
+		displayHelpMessage(parser.Name, parser.Active)
 	} else if err != nil {
 		fmt.Println(err)
 	}
@@ -68,13 +68,18 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 
-// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
-func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
-	registeredCommands := parser.Commands()
-	commandNames := make([]string, 0, len(registeredCommands))
-	for _, command := range registeredCommands {
-		commandNames = append(commandNames, command.Name)
+// listCommands prints a simple list of available commands when godcr is run without any command
+func listCommands() {
+	for _, category := range commands.Categories() {
+		sort.Strings(category.CommandNames)
+		fmt.Fprintf(os.Stderr, "%s: %s\n", category.ShortName, strings.Join(category.CommandNames, ", "))
 	}
-	sort.Strings(commandNames)
-	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
+}
+
+func displayHelpMessage(appName string, activeCommand *flags.Command) {
+	if activeCommand == nil {
+		help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
+	} else {
+		help.PrintCommandHelp(os.Stdout, appName, activeCommand)
+	}
 }
