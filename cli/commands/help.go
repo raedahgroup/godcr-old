@@ -34,14 +34,14 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 }
 
 type GeneralHelpData struct {
-	config.CommandLineOptions
+	config.CommandLineOptions `group:"Options"`
 	Commands
 }
 
 // DisplayGeneralHelpMessage creates a help parser with command line options and cli commands to display general help message
 func DisplayGeneralHelpMessage() {
 	// print version text first
-	fmt.Printf("%s version: %s\n", app.Name(), app.Version())
+	fmt.Printf("%s v%s\n", app.Name(), app.Version())
 
 	helpData := GeneralHelpData{}
 
