@@ -32,18 +32,19 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 	return nil
 }
 
+type GeneralHelpData struct {
+	config.CommandLineOptions
+	Commands
+	runner.CliOptions `group:"CLI Interface Options"`
+}
 
 // DisplayGeneralHelpMessage creates a help parser with command line options and cli commands to display general help message
 func DisplayGeneralHelpMessage() {
-	commandLineConfigWithCliCommands := struct{
-		config.CommandLineOptions
-		Commands
-		runner.CliOptions
-	}{
+	helpData := GeneralHelpData{
 		CommandLineOptions: config.DefaultCommandLineOptions(),
 	}
 
-	helpParser := flags.NewParser(&commandLineConfigWithCliCommands, flags.HelpFlag|flags.PassDoubleDash)
+	helpParser := flags.NewParser(&helpData, flags.HelpFlag|flags.PassDoubleDash)
 	helpParser.WriteHelp(os.Stdout)
 }
 
