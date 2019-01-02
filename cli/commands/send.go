@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
@@ -82,12 +83,16 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return nil
 	}
 
-	var sentTransactionHash string
+	sendDestinations := []txhelper.TransactionDestination{{
+		Amount:  sendAmount,
+		Address: destinationAddress,
+	}}
 
+	var sentTransactionHash string
 	if custom {
-		sentTransactionHash, err = wallet.SendFromUTXOs(utxoSelection, sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxoSelection, sendDestinations, passphrase)
 	} else {
-		sentTransactionHash, err = wallet.SendFromAccount(sendAmount, sourceAccount, destinationAddress, passphrase)
+		sentTransactionHash, err = wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 	}
 
 	if err != nil {

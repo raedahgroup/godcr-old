@@ -109,17 +109,8 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 	return unspentOutputs, nil
 }
 
-func (lib *DcrWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
-	if err != nil {
-		return "", err
-	}
-	amount := int64(amountInAtom)
-
-	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount,
-		int32(sourceAccount), 0, false)
-
+func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -132,17 +123,10 @@ func (lib *DcrWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint
 	return transactionHash.String(), nil
 }
 
-func (lib *DcrWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(dcrAmount)
-	if err != nil {
-		return "", err
-	}
-	amount := int64(amountInAtom)
-
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
-	unspentOutputs, err := lib.UnspentOutputs(account, 0)
+	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0)
 	if err != nil {
 		return "", err
 	}
@@ -174,12 +158,12 @@ func (lib *DcrWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, acc
 	}
 
 	// generate address from sourceAccount to receive change
-	changeAddress, err := lib.GenerateReceiveAddress(account)
+	changeAddress, err := lib.GenerateReceiveAddress(sourceAccount)
 	if err != nil {
 		return "", err
 	}
 
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
 	if err != nil {
 		return "", err
 	}
