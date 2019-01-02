@@ -2,11 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"github.com/raedahgroup/godcr/app"
+	"os"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio"
-	"os"
 )
 
 type HelpCommand struct {
@@ -35,14 +36,14 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 type GeneralHelpData struct {
 	config.CommandLineOptions
 	Commands
-	runner.CliOptions `group:"CLI Interface Options"`
 }
 
 // DisplayGeneralHelpMessage creates a help parser with command line options and cli commands to display general help message
 func DisplayGeneralHelpMessage() {
-	helpData := GeneralHelpData{
-		CommandLineOptions: config.DefaultCommandLineOptions(),
-	}
+	// print version text first
+	fmt.Printf("%s version: %s\n", app.Name(), app.Version())
+
+	helpData := GeneralHelpData{}
 
 	helpParser := flags.NewParser(&helpData, flags.HelpFlag|flags.PassDoubleDash)
 	helpParser.WriteHelp(os.Stdout)
