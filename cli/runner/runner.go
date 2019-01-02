@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
@@ -23,7 +24,7 @@ func New(ctx context.Context, walletMiddleware app.WalletMiddleware) *CommandRun
 // Run checks if a command implements `IWalletRunner` and executes the command using the command's Run method
 // Other commands are executed using the Execute method implemented by those commands
 // If the command does not implement either Run or Execute method, a broken command error is returned
-func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, args []string, options CliOptions) error {
+func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, args []string, options config.CliOptions) error {
 	if command == nil {
 		return brokenCommandError(parser.Command)
 	}
@@ -50,7 +51,7 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 // Such commands must implement `WalletCommandRunner` by providing a Run function
 // The wallet is opened using the provided walletMiddleware, sync operations performed (if requested)
 // then, the command is executed using the Run method of the WalletCommandRunner interface
-func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, args []string, options CliOptions) error {
+func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, args []string, options config.CliOptions) error {
 	walletExists, err := walletloader.OpenWallet(runner.ctx, runner.walletMiddleware)
 	if err != nil || !walletExists {
 		return err
