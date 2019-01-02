@@ -203,7 +203,7 @@ func (c *WalletPRCClient) BulkSendFromAccount(sourceAccount uint32, destinations
 
 	// construct transaction
 	constructRequest := &walletrpc.ConstructTransactionRequest{
-		SourceAccount: sourceAccount,
+		SourceAccount:    sourceAccount,
 		NonChangeOutputs: outputs,
 	}
 
