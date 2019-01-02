@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// WalletPRCClient implements `WalletMiddleware` using `mobilewallet.LibWallet` as medium for connecting to a decred wallet
+// WalletPRCClient implements `WalletMiddleware` using `dcrwalletrpc` as medium for connecting to a decred wallet
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
 type WalletPRCClient struct {
