@@ -32,8 +32,6 @@ type Config struct {
 type CommandLineOptions struct {
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	ConfigFile        string `short:"c" long:"configfile" description:"Path to configuration file"`
-	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
-	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode"`
 	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
 }
@@ -41,6 +39,8 @@ type CommandLineOptions struct {
 // CommandLineOptions holds the top-level options/flags that are best set in config file rather than in command-line
 type ConfFileOptions struct {
 	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
+	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
+	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
 	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
 	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
 	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
