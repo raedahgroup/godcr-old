@@ -19,7 +19,7 @@ var (
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 
-	configFilePath          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
+	configFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
 // Config holds the top-level options/flags for the application
@@ -41,12 +41,12 @@ type ConfFileOptions struct {
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
 type CommandLineOptions struct {
-	InterfaceMode     string   `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear"`
+	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear"`
 	CliOptions
 }
 
 type CliOptions struct {
-	SyncBlockchain    bool	 `long:"sync" description:"Syncs blockchain when running in cli mode. If used with a command, command is executed after blockchain syncs"`
+	SyncBlockchain bool `long:"sync" description:"Syncs blockchain when running in cli mode. If used with a command, command is executed after blockchain syncs"`
 }
 
 func defaultFileOptions() ConfFileOptions {
