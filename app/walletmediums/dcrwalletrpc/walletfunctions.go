@@ -194,16 +194,10 @@ func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []t
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
-func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amount, err := txhelper.AmountToAtom(dcrAmount)
-	if err != nil {
-		return "", err
-	}
-
+func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
-	utxoStream, err := c.unspentOutputStream(account, 0, requiredConfirmations)
+	utxoStream, err := c.unspentOutputStream(sourceAccount, 0, requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -245,12 +239,12 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	}
 
 	// generate address from sourceAccount to receive change
-	changeAddress, err := c.GenerateReceiveAddress(account)
+	changeAddress, err := c.GenerateReceiveAddress(sourceAccount)
 	if err != nil {
 		return "", err
 	}
 
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
 	if err != nil {
 		return "", err
 	}
