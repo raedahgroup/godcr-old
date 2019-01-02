@@ -43,14 +43,34 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	destinationAddress, err := getSendDestinationAddress(wallet)
-	if err != nil {
-		return err
+	var destinationAddresses []string
+	sendAmounts := make(map[string]float64)
+
+	for {
+		destinationAddress, err := getSendDestinationAddress(wallet, len(destinationAddresses))
+		if err != nil {
+			return err
+		}
+		if destinationAddress == "" {
+			break
+		}
+
+		destinationAddresses = append(destinationAddresses, destinationAddress)
+
+		sendAmount, err := getSendAmount()
+		if err != nil {
+			return err
+		}
+		sendAmounts[destinationAddress] = sendAmount
 	}
 
-	sendAmount, err := getSendAmount()
-	if err != nil {
-		return err
+	var sendAmountTotal float64
+	for _, amount := range sendAmounts {
+		sendAmountTotal += amount
+	}
+
+	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
+		return fmt.Errorf("Selected account has low balance. Cannot proceed")
 	}
 
 	var utxoSelection []string
@@ -61,7 +81,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return err
 		}
 
-		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmount)
+		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
 		if err != nil {
 			return err
 		}
@@ -72,7 +92,11 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return err
 	}
 
-	fmt.Printf("You are about to send %f DCR to %s\n", sendAmount, destinationAddress)
+	fmt.Println("You are about to send")
+	for _, address := range destinationAddresses {
+		fmt.Println(fmt.Sprintf("%f DCR to %s", sendAmounts[address], address))
+	}
+
 	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Are you sure?", "")
 	if err != nil {
 		return fmt.Errorf("error reading your response: %s", err.Error())
@@ -83,10 +107,10 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		return nil
 	}
 
-	sendDestinations := []txhelper.TransactionDestination{{
-		Amount:  sendAmount,
-		Address: destinationAddress,
-	}}
+	var sendDestinations []txhelper.TransactionDestination
+	for _, address := range destinationAddresses {
+		sendDestinations = append(sendDestinations, txhelper.TransactionDestination{Amount: sendAmounts[address], Address: address})
+	}
 
 	var sentTransactionHash string
 	if custom {

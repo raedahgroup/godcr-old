@@ -53,6 +53,7 @@ type UnspentOutput struct {
 	Tree            int32          `json:"tree"`
 	ReceiveTime     int64          `json:"receive_time"`
 	Amount          dcrutil.Amount `json:"amount"`
+	PkScript        []byte
 }
 
 type Transaction struct {

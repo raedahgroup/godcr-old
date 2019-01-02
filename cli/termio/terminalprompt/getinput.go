@@ -8,6 +8,7 @@ package terminalprompt
 import (
 	"bufio"
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/termio"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -16,7 +17,10 @@ import (
 
 // getTextInput - Prompt for text input.
 func getTextInput(prompt string) (string, error) {
-	fmt.Print(prompt)
+	// printing the prompt with tabWriter to ensure adequate formatting of tabulated list of options
+	tabWriter := termio.StdoutWriter
+	fmt.Fprintln(tabWriter, prompt)
+	tabWriter.Flush()
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')
