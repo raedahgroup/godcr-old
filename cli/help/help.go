@@ -12,6 +12,7 @@ import (
 
 type CommandCategory struct {
 	Name string
+	ShortName string
 	CommandNames []string
 }
 
