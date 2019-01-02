@@ -16,11 +16,11 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func (c *WalletPRCClient) unspentOutputStream(account uint32, targetAmount int64) (walletrpc.WalletService_UnspentOutputsClient, error) {
+func (c *WalletPRCClient) unspentOutputStream(account uint32, targetAmount int64, requiredConfirmations int32) (walletrpc.WalletService_UnspentOutputsClient, error) {
 	req := &walletrpc.UnspentOutputsRequest{
 		Account:                  account,
 		TargetAmount:             targetAmount,
-		RequiredConfirmations:    0,
+		RequiredConfirmations:    requiredConfirmations,
 		IncludeImmatureCoinbases: true,
 	}
 
