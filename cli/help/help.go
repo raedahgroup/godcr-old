@@ -6,6 +6,7 @@ import (
 	"io"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -99,34 +100,45 @@ func printOptions(tabWriter io.Writer, optionDescription string, options []*flag
 		}
 
 		for _, option := range options {
-			var optionUsage string
-
-			if option.ShortName != 0 && option.LongName != "" {
-				optionUsage = fmt.Sprintf("-%c, --%s", option.ShortName, option.LongName)
-			} else if option.ShortName != 0 {
-				optionUsage = fmt.Sprintf("-%c", option.ShortName)
-			} else if hasOptionsWithShortName {
-				// pad long name with 4 spaces to align with options having short and long names
-				optionUsage = fmt.Sprintf("    --%s", option.LongName)
-			} else {
-				optionUsage = fmt.Sprintf("--%s", option.LongName)
-			}
-
-			if option.Field().Type.Kind() != reflect.Bool {
-				optionUsage += "="
-			}
-
-			description := option.Description
-			optionDefaultValue := reflect.ValueOf(option.Value())
-			if optionDefaultValue.Kind() == reflect.String && optionDefaultValue.String() != "" {
-				description += fmt.Sprintf(" (default: %s)", optionDefaultValue.String())
-			}
-
+			optionUsage := parseOptionUsageText(option, hasOptionsWithShortName)
+			description := parseOptionDescription(option)
 			fmt.Fprintln(tabWriter, fmt.Sprintf("  %s \t %s", optionUsage, description))
 		}
 
 		fmt.Fprintln(tabWriter)
 	}
+}
+
+func parseOptionUsageText(option *flags.Option, hasOptionsWithShortName bool) (optionUsage string) {
+	if option.ShortName != 0 && option.LongName != "" {
+		optionUsage = fmt.Sprintf("-%c, --%s", option.ShortName, option.LongName)
+	} else if option.ShortName != 0 {
+		optionUsage = fmt.Sprintf("-%c", option.ShortName)
+	} else if hasOptionsWithShortName {
+		// pad long name with 4 spaces to align with options having short and long names
+		optionUsage = fmt.Sprintf("    --%s", option.LongName)
+	} else {
+		optionUsage = fmt.Sprintf("--%s", option.LongName)
+	}
+
+	if option.Field().Type.Kind() != reflect.Bool {
+		optionUsage += "="
+	}
+
+	if len(option.Choices) > 0 {
+		optionUsage += fmt.Sprintf("[%s]", strings.Join(option.Choices, ","))
+	}
+
+	return
+}
+
+func parseOptionDescription(option *flags.Option) (description string) {
+	description = option.Description
+	optionDefaultValue := reflect.ValueOf(option.Value())
+	if optionDefaultValue.Kind() == reflect.String && optionDefaultValue.String() != "" {
+		description += fmt.Sprintf(" (default: %s)", optionDefaultValue.String())
+	}
+	return
 }
 
 func printCommands(tabWriter io.Writer, commandGroups map[string][]*flags.Command) {
