@@ -45,8 +45,16 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 	printCommands(tabWriter, commandGroups)
 
 	// print general app options
-	for _, optionGroup := range parser.Groups() {
-		printOptions(tabWriter, optionGroup.ShortDescription, optionGroup.Options())
+	printOptionGroups(tabWriter, parser.Groups())
+}
+
+func printOptionGroups(output io.Writer, groups []*flags.Group) {
+	for _, optionGroup := range groups {
+		if len(optionGroup.Groups()) > 0 {
+			printOptionGroups(output, optionGroup.Groups())
+		} else {
+			printOptions(output, optionGroup.ShortDescription, optionGroup.Options())
+		}
 	}
 }
 
