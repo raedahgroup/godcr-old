@@ -3,8 +3,10 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/decred/dcrd/chaincfg"
@@ -186,7 +188,7 @@ func getUseRandomAmount() (bool, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) ([]*walletcore.UnspentOutput, error) {
+func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64) ([]*walletcore.UnspentOutput, error) {
 	var selectedUtxos []*walletcore.UnspentOutput
 	var err error
 
@@ -257,12 +259,20 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 	}
 
 	options := make([]string, len(utxos))
+	sort.Slice(utxos, func(i, j int) bool {
+		return utxos[i].Amount < utxos[j].Amount
+	})
 	for index, utxo := range utxos {
 		address, err := getAddressFromUnspentOutputsResult(utxo)
 		if err != nil {
-			fmt.Println(err)
+			return nil, fmt.Errorf("error reading address: %s", err.Error())
 		}
-		options[index] = fmt.Sprintf("%s (%s)", address, utxo.Amount.String())
+		date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
+		txn, err := wallet.GetTransaction(utxo.TransactionHash)
+		if err != nil {
+			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
+		}
+		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", address, utxo.Amount.String(), date, txn.Confirmations)
 	}
 
 	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)

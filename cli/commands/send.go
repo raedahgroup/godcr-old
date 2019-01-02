@@ -83,7 +83,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return err
 		}
 
-		utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
+		utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
 		if err != nil {
 			return err
 		}
