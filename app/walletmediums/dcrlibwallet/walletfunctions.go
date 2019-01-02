@@ -2,6 +2,7 @@ package dcrlibwallet
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/raedahgroup/mobilewallet/txhelper"
 	"sort"
@@ -241,5 +242,13 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 }
 
 func (lib *MobileWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (lib *MobileWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (lib *MobileWalletLib) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
 	return nil, fmt.Errorf("not implemented")
 }
