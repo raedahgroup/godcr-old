@@ -181,8 +181,8 @@ func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []t
 
 	// construct transaction
 	constructRequest := &walletrpc.ConstructTransactionRequest{
-		SourceAccount:    sourceAccount,
-		NonChangeOutputs: outputs,
+		SourceAccount:         sourceAccount,
+		NonChangeOutputs:      outputs,
 		RequiredConfirmations: requiredConfirmations,
 	}
 
