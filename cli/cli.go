@@ -50,9 +50,9 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	if noCommandPassed {
 		displayAvailableCommandsHelpMessage(parser)
 	} else if helpFlagPassed && parser.Active == nil {
-		displayGeneralHelpMessage()
+		commands.DisplayGeneralHelpMessage()
 	} else if helpFlagPassed {
-		commands.PrintCommandHelp(parser.Name, parser.Active)
+		commands.DisplayCommandHelp(parser.Name, parser.Active)
 	} else if err != nil {
 		fmt.Println(err)
 	}
@@ -78,18 +78,4 @@ func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
 	}
 	sort.Strings(commandNames)
 	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
-}
-
-// displayGeneralHelpMessage creates a help parser with command line options and cli commands to display general help message
-func displayGeneralHelpMessage() {
-	commandLineConfigWithCliCommands := struct{
-		config.CommandLineOptions
-		commands.Commands
-		runner.CliOptions
-	}{
-		CommandLineOptions: config.DefaultCommandLineOptions(),
-	}
-
-	helpParser := flags.NewParser(&commandLineConfigWithCliCommands, flags.HelpFlag|flags.PassDoubleDash)
-	helpParser.WriteHelp(os.Stdout)
 }
