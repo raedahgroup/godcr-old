@@ -57,11 +57,6 @@ func defaultFileOptions() ConfFileOptions {
 	}
 }
 
-// DefaultCommandLineOptions returns a CommandLineOptions object populated with default values
-func DefaultCommandLineOptions() CommandLineOptions {
-	return CommandLineOptions{}
-}
-
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
