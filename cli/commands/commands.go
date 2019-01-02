@@ -35,8 +35,8 @@ func Categories() []*help.CommandCategory {
 	}
 
 	return []*help.CommandCategory{
-		{ Name: "Available Commands", CommandNames: parseCommandNames(&AvailableCommands{}) },
-		{ Name: "Experimental Commands", CommandNames: parseCommandNames(&ExperimentalCommands{}) },
+		{ Name: "Available Commands", ShortName: "available cmds", CommandNames: parseCommandNames(&AvailableCommands{}) },
+		{ Name: "Experimental Commands", ShortName: "experimental", CommandNames: parseCommandNames(&ExperimentalCommands{}) },
 	}
 }
 

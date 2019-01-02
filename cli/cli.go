@@ -50,7 +50,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	}
 
 	if noCommandPassed {
-		displayAvailableCommandsHelpMessage(parser)
+		listCommands()
 	} else if helpFlagPassed {
 		displayHelpMessage(parser.Name, parser.Active)
 	} else if err != nil {
@@ -69,15 +69,12 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 
-// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
-func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
-	registeredCommands := parser.Commands()
-	commandNames := make([]string, 0, len(registeredCommands))
-	for _, command := range registeredCommands {
-		commandNames = append(commandNames, command.Name)
+// listCommands prints a simple list of available commands when godcr is run without any command
+func listCommands() {
+	for _, category := range commands.Categories() {
+		sort.Strings(category.CommandNames)
+		fmt.Fprintf(os.Stderr, "%s: %s\n", category.ShortName, strings.Join(category.CommandNames, ", "))
 	}
-	sort.Strings(commandNames)
-	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
 }
 
 func displayHelpMessage(appName string, activeCommand *flags.Command) {
