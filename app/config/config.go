@@ -25,11 +25,7 @@ var (
 // Config holds the top-level options/flags for the application
 type Config struct {
 	CommandLineOptions
-	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
-	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
-	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
-	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
-	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
+	ConfFileOptions
 }
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
@@ -42,9 +38,26 @@ type CommandLineOptions struct {
 	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
 }
 
+// CommandLineOptions holds the top-level options/flags that are best set in config file rather than in command-line
+type ConfFileOptions struct {
+	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
+	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
+	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
+	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
+	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
+}
+
 func DefaultCommandLineOptions() CommandLineOptions {
 	return CommandLineOptions{
 		ConfigFile:        defaultConfigFile,
+	}
+}
+
+func defaultFileOptions() ConfFileOptions {
+	return ConfFileOptions{
+		AppDataDir:        defaultAppDataDir,
+		WalletRPCCert:     defaultRPCCertFile,
+		HTTPServerAddress: defaultHTTPServerAddress,
 	}
 }
 
@@ -52,9 +65,7 @@ func DefaultCommandLineOptions() CommandLineOptions {
 func defaultConfig() Config {
 	return Config{
 		CommandLineOptions: DefaultCommandLineOptions(),
-		AppDataDir:        defaultAppDataDir,
-		WalletRPCCert:     defaultRPCCertFile,
-		HTTPServerAddress: defaultHTTPServerAddress,
+		ConfFileOptions: defaultFileOptions(),
 	}
 }
 
