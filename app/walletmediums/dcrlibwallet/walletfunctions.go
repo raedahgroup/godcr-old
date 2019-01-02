@@ -111,15 +111,28 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 
 func (lib *DcrWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
+	amount, err := txhelper.AmountToAtom(amountInDCR)
 	if err != nil {
 		return "", err
 	}
-	amount := int64(amountInAtom)
 
 	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount,
 		int32(sourceAccount), 0, false)
 
+	if err != nil {
+		return "", err
+	}
+
+	transactionHash, err := chainhash.NewHash(txHash)
+	if err != nil {
+		return "", fmt.Errorf("error parsing successful transaction hash: %s", err.Error())
+	}
+
+	return transactionHash.String(), nil
+}
+
+func (lib *DcrWalletLib) BulkSendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), 0)
 	if err != nil {
 		return "", err
 	}
