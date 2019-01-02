@@ -109,6 +109,26 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 	return unspentOutputs, nil
 }
 
+func (lib *DcrWalletLib) GenerateChangeAddresses(sourceAccount uint32, nChangeOutputs, nInputs int, totalInputAmount int64, destinations []txhelper.TransactionDestination) ([]string, int64, error) {
+	// generate addresses for account
+	changeAddresses := make([]string, nChangeOutputs)
+	for i := 0; i < nChangeOutputs; i++ {
+		address, err := lib.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			return nil, 0, err
+		}
+		changeAddresses[i] = address
+	}
+
+	// use generated addresses together with other provided info to estimate change from transaction after subtracting fee
+	changeAmount, err := txhelper.EstimateChange(nInputs, totalInputAmount, destinations, changeAddresses)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return changeAddresses, changeAmount, nil
+}
+
 func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), requiredConfirmations)
 	if err != nil {
