@@ -13,10 +13,10 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// WalletPRCClient implements `WalletMiddleware` using `mobilewallet.LibWallet` as medium for connecting to a decred wallet
+// WalletRPCClient implements `WalletMiddleware` using `mobilewallet.LibWallet` as medium for connecting to a decred wallet
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
-type WalletPRCClient struct {
+type WalletRPCClient struct {
 	walletLoader  walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
 	activeNet     *chaincfg.Params
@@ -36,7 +36,7 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool) (*WalletPRCClient, error) {
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool) (*WalletRPCClient, error) {
 	if rpcAddress == "" {
 		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
 	}
@@ -58,7 +58,7 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool)
 			activeNet = &chaincfg.TestNet3Params
 		}
 
-		client := &WalletPRCClient{
+		client := &WalletRPCClient{
 			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
 			walletService: walletrpc.NewWalletServiceClient(connectionResult.conn),
 			activeNet:     activeNet,

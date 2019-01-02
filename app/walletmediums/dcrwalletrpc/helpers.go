@@ -26,7 +26,7 @@ func amountToAtom(amountInDCR float64) (int64, error) {
 	return int64(amountInAtom), nil
 }
 
-func (c *WalletPRCClient) unspentOutputStream(account uint32, targetAmount int64) (walletrpc.WalletService_UnspentOutputsClient, error) {
+func (c *WalletRPCClient) unspentOutputStream(account uint32, targetAmount int64) (walletrpc.WalletService_UnspentOutputsClient, error) {
 	req := &walletrpc.UnspentOutputsRequest{
 		Account:                  account,
 		TargetAmount:             targetAmount,
@@ -37,7 +37,7 @@ func (c *WalletPRCClient) unspentOutputStream(account uint32, targetAmount int64
 	return c.walletService.UnspentOutputs(context.Background(), req)
 }
 
-func (c *WalletPRCClient) signAndPublishTransaction(serializedTx []byte, passphrase string) (string, error) {
+func (c *WalletRPCClient) signAndPublishTransaction(serializedTx []byte, passphrase string) (string, error) {
 	ctx := context.Background()
 
 	// sign transaction

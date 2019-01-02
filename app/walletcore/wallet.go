@@ -1,5 +1,7 @@
 package walletcore
 
+import "context"
+
 // Wallet defines key functions for performing operations on a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
 type Wallet interface {
@@ -39,5 +41,13 @@ type Wallet interface {
 	// TransactionHistory
 	TransactionHistory() ([]*Transaction, error)
 
+	// GetTransaction returns information about the transaction witht the given hash.
+	// An error is returned if the no transaction with the given hash is found.
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
+
+	// StakeInfo returns information about wallet sakes, tickets and their statuses.
+	StakeInfo(ctx context.Context) (*StakeInfo, error)
+
+	// PurchaseTicket is used to purchase tickets.
+	PurchaseTicket(ctx context.Context, request PurchaseTicketRequest) (ticketHashes []string, err error)
 }

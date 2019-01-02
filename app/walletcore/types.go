@@ -85,3 +85,29 @@ type TransactionDetails struct {
 	Outputs       []*TxOutput `json:"outputs"`
 	*Transaction
 }
+
+// StakeInfo holds ticket information summary related to the wallet.
+type StakeInfo struct {
+	Total   uint     `json:"total"`
+	Tickets []Ticket `json:"tickets"`
+}
+
+// Ticket represents a ticket related to the wallet.
+type Ticket struct {
+	Hash   string
+	Status string
+}
+
+type PurchaseTicketRequest struct {
+	Expiry           uint32
+	FromAccount      uint32
+	TicketFee        int64
+	TxFee            int64
+	MinConfirmations uint32
+	NumTickets       uint32
+	Passphrase       []byte
+	PoolAddress      string
+	PoolFees         float64
+	SpendLimit       int64
+	TicketAddress    string
+}

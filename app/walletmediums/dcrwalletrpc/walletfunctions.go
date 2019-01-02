@@ -16,7 +16,7 @@ import (
 	"github.com/raedahgroup/mobilewallet/txhelper"
 )
 
-func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
+func (c *WalletRPCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: 0,
@@ -36,7 +36,7 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Bala
 	}, nil
 }
 
-func (c *WalletPRCClient) AccountsOverview() ([]*walletcore.Account, error) {
+func (c *WalletRPCClient) AccountsOverview() ([]*walletcore.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
@@ -66,7 +66,7 @@ func (c *WalletPRCClient) AccountsOverview() ([]*walletcore.Account, error) {
 	return accountsOverview, nil
 }
 
-func (c *WalletPRCClient) NextAccount(accountName string, passphrase string) (uint32, error) {
+func (c *WalletRPCClient) NextAccount(accountName string, passphrase string) (uint32, error) {
 	req := &walletrpc.NextAccountRequest{
 		AccountName: accountName,
 		Passphrase:  []byte(passphrase),
@@ -80,7 +80,7 @@ func (c *WalletPRCClient) NextAccount(accountName string, passphrase string) (ui
 	return nextAccount.AccountNumber, nil
 }
 
-func (c *WalletPRCClient) AccountNumber(accountName string) (uint32, error) {
+func (c *WalletRPCClient) AccountNumber(accountName string) (uint32, error) {
 	req := &walletrpc.AccountNumberRequest{
 		AccountName: accountName,
 	}
@@ -93,7 +93,7 @@ func (c *WalletPRCClient) AccountNumber(accountName string) (uint32, error) {
 	return r.AccountNumber, nil
 }
 
-func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error) {
+func (c *WalletRPCClient) GenerateReceiveAddress(account uint32) (string, error) {
 	req := &walletrpc.NextAddressRequest{
 		Account:   account,
 		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,
@@ -108,7 +108,7 @@ func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error)
 	return nextAddress.Address, nil
 }
 
-func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
+func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
 	req := &walletrpc.ValidateAddressRequest{
 		Address: address,
 	}
@@ -121,7 +121,7 @@ func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
 	return validationResult.IsValid, nil
 }
 
-func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
+func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount)
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 	return unspentOutputs, nil
 }
 
-func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
+func (c *WalletRPCClient) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
 	amount, err := amountToAtom(amountInDCR)
 	if err != nil {
@@ -184,7 +184,7 @@ func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uin
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
-func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
+func (c *WalletRPCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
 	amount, err := amountToAtom(dcrAmount)
 	if err != nil {
@@ -256,7 +256,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
+func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
 	req := &walletrpc.GetTransactionsRequest{}
 
 	stream, err := c.walletService.GetTransactions(context.Background(), req)
@@ -299,7 +299,7 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error
 	return transactions, nil
 }
 
-func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
@@ -335,4 +335,65 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
 		Outputs:       txOutputs,
 	}, nil
+}
+
+func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+	stakeInfoResponse, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	totalTickets := stakeInfoResponse.GetOwnMempoolTix() + stakeInfoResponse.GetLive() + stakeInfoResponse.GetImmature()
+
+	ticketsResponse, err := c.walletService.GetTickets(ctx, &walletrpc.GetTicketsRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	stakeInfo := &walletcore.StakeInfo{Tickets: make([]walletcore.Ticket, 0), Total: uint(totalTickets)}
+	for response, err := ticketsResponse.Recv(); err != io.EOF; response, err = ticketsResponse.Recv() {
+		if err != nil {
+			return nil, err
+		}
+		ticketHash := response.GetTicket().GetTicket().GetHash()
+		ticketStatus := response.GetTicket().GetTicketStatus().String()
+		hash, err := chainhash.NewHash(ticketHash)
+		if err != nil {
+			return nil, err
+		}
+		stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{Hash: hash.String(), Status: ticketStatus})
+	}
+	return stakeInfo, nil
+}
+
+func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
+	amount, err := dcrutil.NewAmount(float64(request.SpendLimit))
+	if err != nil {
+		return nil, err
+	}
+	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
+		Account:               request.FromAccount,
+		Expiry:                request.Expiry,
+		NumTickets:            request.NumTickets,
+		Passphrase:            request.Passphrase,
+		PoolAddress:           request.PoolAddress,
+		PoolFees:              request.PoolFees,
+		RequiredConfirmations: request.MinConfirmations,
+		SpendLimit:            int64(amount),
+		TicketAddress:         request.TicketAddress,
+		TicketFee:             request.TicketFee,
+		TxFee:                 request.TxFee,
+	})
+	if err != nil {
+		return nil, err
+	}
+	ticketHashes = make([]string, len(response.GetTicketHashes()))
+	for i, ticketHash := range response.GetTicketHashes() {
+		hash, err := chainhash.NewHash(ticketHash)
+		if err != nil {
+			return nil, err
+		}
+		ticketHashes[i] = hash.String()
+	}
+	return ticketHashes, nil
 }

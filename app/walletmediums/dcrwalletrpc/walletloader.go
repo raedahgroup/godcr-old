@@ -11,14 +11,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (c *WalletPRCClient) NetType() string {
+func (c *WalletRPCClient) NetType() string {
 	if c.activeNet.Name == "mainnet" {
 		return "mainnet"
 	}
 	return "testnet"
 }
 
-func (c *WalletPRCClient) WalletExists() (bool, error) {
+func (c *WalletRPCClient) WalletExists() (bool, error) {
 	res, err := c.walletLoader.WalletExists(context.Background(), &walletrpc.WalletExistsRequest{})
 	if err != nil {
 		return false, err
@@ -26,7 +26,7 @@ func (c *WalletPRCClient) WalletExists() (bool, error) {
 	return res.Exists, nil
 }
 
-func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
+func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
 	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
 	if err != nil {
 		return "", err
@@ -35,7 +35,7 @@ func (c *WalletPRCClient) GenerateNewWalletSeed() (string, error) {
 	return walletseed.EncodeMnemonic(seed), nil
 }
 
-func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
+func (c *WalletRPCClient) CreateWallet(passphrase, seed string) error {
 	seedBytes, err := walletseed.DecodeUserInput(seed)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (c *WalletPRCClient) CreateWallet(passphrase, seed string) error {
 
 // ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
 // or godcr opened the wallet without closing it
-func (c *WalletPRCClient) OpenWallet() (err error) {
+func (c *WalletRPCClient) OpenWallet() (err error) {
 	defer func() {
 		c.walletOpen = err == nil
 	}()
@@ -75,15 +75,15 @@ func (c *WalletPRCClient) OpenWallet() (err error) {
 // don't actually close dcrwallet
 // - if wallet wasn't opened by godcr, closing it could cause troubles for user
 // - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user when they next launch godcr
-func (c *WalletPRCClient) CloseWallet() {}
+func (c *WalletRPCClient) CloseWallet() {}
 
-func (c *WalletPRCClient) IsWalletOpen() bool {
+func (c *WalletRPCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
 	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
 	return c.walletOpen
 }
 
-func (c *WalletPRCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
 	ctx := context.Background()
 
 	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
