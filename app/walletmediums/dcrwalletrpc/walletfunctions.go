@@ -16,10 +16,14 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
+// ideally, we should let user provide this info in settings and use the user provided value
+// using a constant now to make it easier to update the code where this value is required/used
+const requiredConfirmations = 0
+
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
-		RequiredConfirmations: 0,
+		RequiredConfirmations: requiredConfirmations,
 	}
 
 	res, err := c.walletService.Balance(context.Background(), req)
@@ -122,7 +126,7 @@ func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
 }
 
 func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
-	utxoStream, err := c.unspentOutputStream(account, targetAmount)
+	utxoStream, err := c.unspentOutputStream(account, targetAmount, requiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +183,7 @@ func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []t
 	constructRequest := &walletrpc.ConstructTransactionRequest{
 		SourceAccount:    sourceAccount,
 		NonChangeOutputs: outputs,
+		RequiredConfirmations: requiredConfirmations,
 	}
 
 	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
@@ -198,7 +203,7 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
-	utxoStream, err := c.unspentOutputStream(account, 0)
+	utxoStream, err := c.unspentOutputStream(account, 0, requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
