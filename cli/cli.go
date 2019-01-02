@@ -20,7 +20,6 @@ import (
 type appConfigWithCliCommands struct {
 	commands.Commands
 	config.Config
-	runner.CliOptions
 }
 
 // Run starts the app in cli interface mode
