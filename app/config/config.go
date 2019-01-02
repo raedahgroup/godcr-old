@@ -12,7 +12,7 @@ import (
 
 const (
 	defaultConfigFilename    = "godcr.conf"
-	defaultHTTPServerAddress = "127.0.0.1:1234"
+	defaultHTTPServerAddress = "127.0.0.1:7778"
 )
 
 var (
