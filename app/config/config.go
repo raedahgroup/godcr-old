@@ -22,26 +22,37 @@ var (
 	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
-// Config holds the top-level options for the application and cli-only command options/flags/args
+// Config holds the top-level options/flags for the application
 type Config struct {
+	CommandLineOptions
 	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
+	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
+	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
+	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
+	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
+}
+
+// CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
+type CommandLineOptions struct {
 	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
 	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
-	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
-	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
-	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode"`
-	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
 	DesktopMode       bool   `long:"desktop" description:"Run in Desktop mode"`
+}
+
+func DefaultCommandLineOptions() CommandLineOptions {
+	return CommandLineOptions{
+		ConfigFile:        defaultConfigFile,
+	}
 }
 
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
+		CommandLineOptions: DefaultCommandLineOptions(),
 		AppDataDir:        defaultAppDataDir,
-		ConfigFile:        defaultConfigFile,
 		WalletRPCCert:     defaultRPCCertFile,
 		HTTPServerAddress: defaultHTTPServerAddress,
 	}
