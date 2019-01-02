@@ -229,10 +229,10 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (lib *MobileWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (lib *MobileWalletLib) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
+func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
 	return nil, fmt.Errorf("not implemented")
 }
