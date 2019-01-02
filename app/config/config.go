@@ -38,7 +38,7 @@ type Config struct {
 }
 
 // defaultConfig an instance of Config with the defaults set.
-func defaultConfig() Config {
+func DefaultConfig() Config {
 	return Config{
 		AppDataDir:        defaultAppDataDir,
 		ConfigFile:        defaultConfigFile,
@@ -54,7 +54,7 @@ func defaultConfig() Config {
 // However, unknown options in the configuration file must return an error.
 func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
 	// load defaults first
-	config := defaultConfig()
+	config := DefaultConfig()
 
 	parser := flags.NewParser(&config, flags.HelpFlag)
 	if ignoreUnknownOptions {

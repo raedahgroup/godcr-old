@@ -11,6 +11,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/help"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
@@ -18,7 +19,8 @@ import (
 // appConfigWithCliCommands is the entrypoint to the cli application.
 // It defines general app options, cli commands with their command-specific options and general cli options
 type appConfigWithCliCommands struct {
-	commands.Commands
+	commands.AvailableCommands
+	commands.ExperimentalCommands
 	config.Config
 	runner.CliOptions
 }
@@ -50,7 +52,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	if noCommandPassed {
 		displayAvailableCommandsHelpMessage(parser)
 	} else if helpFlagPassed {
-		displayHelpMessage(parser)
+		displayHelpMessage(parser.Name, parser.Active)
 	} else if err != nil {
 		fmt.Println(err)
 	}
@@ -78,10 +80,16 @@ func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
 	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
 }
 
-func displayHelpMessage(parser *flags.Parser) {
-	if parser.Active == nil {
-		parser.WriteHelp(os.Stdout)
+func displayHelpMessage(appName string, activeCommand *flags.Command) {
+	// help parser should use default app config values, not parsed values
+	configWithCommands := &appConfigWithCliCommands{
+		Config: config.DefaultConfig(),
+	}
+	helpParser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
+
+	if activeCommand == nil {
+		help.PrintGeneralHelp(os.Stdout, helpParser, commands.Categories())
 	} else {
-		commands.PrintCommandHelp(parser.Name, parser.Active)
+		help.PrintCommandHelp(os.Stdout, appName, activeCommand)
 	}
 }
