@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/help"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
@@ -18,9 +18,9 @@ import (
 // appConfigWithCliCommands is the entrypoint to the cli application.
 // It defines general app options, cli commands with their command-specific options and general cli options
 type appConfigWithCliCommands struct {
-	commands.Commands
+	commands.AvailableCommands
+	commands.ExperimentalCommands
 	config.Config
-	runner.CliOptions
 }
 
 // Run starts the app in cli interface mode
@@ -48,9 +48,9 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	}
 
 	if noCommandPassed {
-		displayAvailableCommandsHelpMessage(parser)
+		listCommands()
 	} else if helpFlagPassed {
-		displayHelpMessage(parser)
+		displayHelpMessage(parser.Name, parser.Active)
 	} else if err != nil {
 		fmt.Println(err)
 	}
@@ -67,21 +67,18 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 
-// displayAvailableCommandsHelpMessage prints a simple list of available commands when godcr is run without any command
-func displayAvailableCommandsHelpMessage(parser *flags.Parser) {
-	registeredCommands := parser.Commands()
-	commandNames := make([]string, 0, len(registeredCommands))
-	for _, command := range registeredCommands {
-		commandNames = append(commandNames, command.Name)
+// listCommands prints a simple list of available commands when godcr is run without any command
+func listCommands() {
+	help.PrintOptionsSimple(os.Stdout, commands.HelpParser().Groups())
+	for _, category := range commands.Categories() {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", category.ShortName, strings.Join(category.CommandNames, ", "))
 	}
-	sort.Strings(commandNames)
-	fmt.Fprintln(os.Stderr, "Available Commands: ", strings.Join(commandNames, ", "))
 }
 
-func displayHelpMessage(parser *flags.Parser) {
-	if parser.Active == nil {
-		parser.WriteHelp(os.Stdout)
+func displayHelpMessage(appName string, activeCommand *flags.Command) {
+	if activeCommand == nil {
+		help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
 	} else {
-		commands.PrintCommandHelp(parser.Name, parser.Active)
+		help.PrintCommandHelp(os.Stdout, appName, activeCommand)
 	}
 }

@@ -49,9 +49,9 @@ func main() {
 	walletMiddleware := connectToWallet(ctx, appConfig)
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
-	if appConfig.HTTPMode {
+	if appConfig.InterfaceMode == "http" {
 		enterHttpMode(ctx, walletMiddleware, args, appConfig)
-	} else if appConfig.DesktopMode {
+	} else if appConfig.InterfaceMode == "nuklear" {
 		enterDesktopMode(ctx, walletMiddleware)
 	} else {
 		enterCliMode(ctx, walletMiddleware, appConfig)
