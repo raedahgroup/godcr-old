@@ -1,5 +1,7 @@
 package walletcore
 
+import "github.com/raedahgroup/dcrlibwallet/txhelper"
+
 // Wallet defines key functions for performing operations on a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
 type Wallet interface {
@@ -31,6 +33,10 @@ type Wallet interface {
 	// by automatically selecting 1 or more unspent outputs from the specified account
 	// Returns the transaction hash as string if successful
 	SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error)
+
+	// BulkSendFromAccount sends funds to 1 or more destination addresses, each with a specified amount
+	// Returns the transaction hash as string if successful
+	BulkSendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
 	// UTXOSend sends funds to the destination address using unspent outputs matching the keys sent in []utxoKeys
 	// Returns the transaction hash as string if successful

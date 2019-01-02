@@ -160,7 +160,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 
 func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
-	amount, err := amountToAtom(amountInDCR)
+	amount, err := txhelper.AmountToAtom(amountInDCR)
 	if err != nil {
 		return "", err
 	}
@@ -184,9 +184,40 @@ func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uin
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
+func (c *WalletPRCClient) BulkSendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	// construct non-change outputs for all recipients
+	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
+	for i, destination := range destinations {
+		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
+		if err != nil {
+			return "", err
+		}
+
+		outputs[i] = &walletrpc.ConstructTransactionRequest_Output{
+			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
+				Address: destination.Address,
+			},
+			Amount: amountInAtom,
+		}
+	}
+
+	// construct transaction
+	constructRequest := &walletrpc.ConstructTransactionRequest{
+		SourceAccount: sourceAccount,
+		NonChangeOutputs: outputs,
+	}
+
+	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
+	if err != nil {
+		return "", fmt.Errorf("error constructing transaction: %s", err.Error())
+	}
+
+	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
+}
+
 func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
-	amount, err := amountToAtom(dcrAmount)
+	amount, err := txhelper.AmountToAtom(dcrAmount)
 	if err != nil {
 		return "", err
 	}
