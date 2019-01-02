@@ -158,33 +158,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 	return unspentOutputs, nil
 }
 
-func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amount, err := txhelper.AmountToAtom(amountInDCR)
-	if err != nil {
-		return "", err
-	}
-
-	// construct transaction
-	constructRequest := &walletrpc.ConstructTransactionRequest{
-		SourceAccount: sourceAccount,
-		NonChangeOutputs: []*walletrpc.ConstructTransactionRequest_Output{{
-			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Address: destinationAddress,
-			},
-			Amount: amount,
-		}},
-	}
-
-	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
-	if err != nil {
-		return "", fmt.Errorf("error constructing transaction: %s", err.Error())
-	}
-
-	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
-}
-
-func (c *WalletPRCClient) BulkSendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// construct non-change outputs for all recipients
 	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
 	for i, destination := range destinations {
