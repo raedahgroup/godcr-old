@@ -4,18 +4,18 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrwallet/netparams"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletmediums"
-	"github.com/raedahgroup/mobilewallet"
 )
 
 type SpvSyncResponse struct {
 	activeNet *netparams.Params
-	walletLib *mobilewallet.LibWallet
+	walletLib *dcrlibwallet.LibWallet
 	listener  *app.BlockChainSyncListener
 }
 
-// following functions are used to implement mobilewallet.SpvSyncResponse interface
+// following functions are used to implement dcrlibwallet.SpvSyncResponse interface
 func (response SpvSyncResponse) OnPeerConnected(peerCount int32)    {}
 func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {}
 func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {
