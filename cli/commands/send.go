@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"sort"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -15,20 +16,21 @@ type SendCommand struct {
 
 // Run runs the `send` command.
 func (s SendCommand) Run(wallet walletcore.Wallet) error {
-	return send(wallet, false)
+	return send(wallet, false, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
 	commanderStub
+	ManuallySelectInputs bool `short:"l" long:"list" description:"Display a list of unspent output to select for the transaction"`
 }
 
 // Run runs the `send-custom` command.
 func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
-	return send(wallet, true)
+	return send(wallet, true, s.ManuallySelectInputs)
 }
 
-func send(wallet walletcore.Wallet, custom bool) (err error) {
+func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err error) {
 	sourceAccount, err := selectAccount(wallet)
 	if err != nil {
 		return err
@@ -83,9 +85,23 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return err
 		}
 
-		utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
-		if err != nil {
-			return err
+		if manuallySelectInputs {
+			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
+			if err != nil {
+				return err
+			}
+		}else {
+			sort.Slice(utxos, func(i, j int) bool {
+				return utxos[i].Amount < utxos[j].Amount
+			})
+			var amountAdded float64
+			for _, utxo := range utxos {
+				if amountAdded >= sendAmountTotal {
+					break
+				}
+				utxoSelection = append(utxoSelection, utxo)
+				amountAdded += utxo.Amount.ToCoin()
+			}
 		}
 	}
 
