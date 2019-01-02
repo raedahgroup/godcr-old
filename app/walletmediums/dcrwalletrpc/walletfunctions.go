@@ -12,8 +12,8 @@ import (
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/mobilewallet/txhelper"
 )
 
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
