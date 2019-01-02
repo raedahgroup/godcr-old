@@ -1,12 +1,14 @@
 # godcr
 
 ## Overview
-**godcr** is a decred wallet application for Linux, macOS and Windows that interfaces with [dcrwallet](https://github.com/decred/dcrwallet) via RPC to provide wallet access and control functionality. The godcr app can be run in either of the following interface modes:
+**godcr** is a decred wallet application for Linux, macOS and Windows that provides wallet access and control functionality using [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88). It can also interface with [dcrwallet](https://github.com/decred/dcrwallet) via RPC as an alternative to dcrlibwallet. The godcr app can be run in any of the following interface modes:
 - Web (web app running on an http server)
 - Cli (command-line utility)
+- Desktop (native desktop application, currently work in progress)
 
 ## Requirements
-To run **godcr** on your PC, you'll need a running **dcrwallet** daemon.
+You can run **godcr** without installing any other software. By default **godcr** uses dcrlibwallet.
+To run **godcr** using **dcrwallet** instead of [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88), the following is required.
 * Download the **decred** release binaries for your operating system from [here](https://github.com/decred/decred-binaries/releases). Check under **Assets**.
 * **dcrwallet** requires **dcrd** to work. The decred archive downloaded from the release page contains both binaries.
 * After downloading and extracting **dcrd** and **dcrwallet**, [go here](https://docs.decred.org/wallets/cli/cli-installation/) to learn how to setup and run both binaries.
@@ -38,14 +40,8 @@ $ GO111MODULE=on go install
 ```
 
 ## Running godcr
-* Create the godcr configuration file. Use the following godcr command to do this. Follow the command prompt and input your configuration values.
-```bash
-$ godcr --init
-```
-* The above command will create a `godcr.conf` file in the default `appdata` directory for godcr. Use `godcr -h` to view the default `appdata` directory for your operating system. To use a different `appdata` directory:
-```bash
-$ godcr --init -C="path/to/desired/app/data/folder"
-```
+* Create the godcr configuration file by copying the sample configuration file (`sample-godcr.conf`) to the default config location and editing as necessary. The default config location can be gotten by running `godcr -h`.
+The settings in the configuration file can also be provided on the command line as options to the program. Flags passed on the command line override those set in the configuration file. Run `godcr -h` to see the available options.
 * Once you've configured godcr, you can perform various wallet-related operations by running
 ```bash
 $ godcr [options] <command> [args]
