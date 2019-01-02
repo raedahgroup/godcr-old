@@ -5,7 +5,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 )
 
-func (lib *MobileWalletLib) NetType() string {
+func (lib *DcrWalletLib) NetType() string {
 	if lib.activeNet.Params.Name != "mainnet" {
 		// could be testnet3 or testnet, return "testnet" for both cases
 		return "testnet"
@@ -14,19 +14,19 @@ func (lib *MobileWalletLib) NetType() string {
 	}
 }
 
-func (lib *MobileWalletLib) WalletExists() (bool, error) {
+func (lib *DcrWalletLib) WalletExists() (bool, error) {
 	return lib.walletLib.WalletExists()
 }
 
-func (lib *MobileWalletLib) GenerateNewWalletSeed() (string, error) {
+func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
 	return lib.walletLib.GenerateSeed()
 }
 
-func (lib *MobileWalletLib) CreateWallet(passphrase, seed string) error {
+func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
 	return lib.walletLib.CreateWallet(passphrase, seed)
 }
 
-func (lib *MobileWalletLib) OpenWallet() error {
+func (lib *DcrWalletLib) OpenWallet() error {
 	walletExists, err := lib.WalletExists()
 	if err != nil {
 		return err
@@ -40,15 +40,15 @@ func (lib *MobileWalletLib) OpenWallet() error {
 	return lib.walletLib.OpenWallet([]byte("public"))
 }
 
-func (lib *MobileWalletLib) CloseWallet() {
+func (lib *DcrWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
 }
 
-func (lib *MobileWalletLib) IsWalletOpen() bool {
+func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *MobileWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
 	if showLog {
 		lib.walletLib.SetLogLevel("info")
 

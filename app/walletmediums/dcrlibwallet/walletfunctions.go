@@ -17,7 +17,7 @@ import (
 // using a constant now to make it easier to update the code where this value is required/used
 const requiredConfirmations = 0
 
-func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
+func (lib *DcrWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	// pass 0 as requiredConfirmations
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
@@ -33,7 +33,7 @@ func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Ba
 	}, nil
 }
 
-func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
+func (lib *DcrWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	// pass 0 as requiredConfirmations
 	accounts, err := lib.walletLib.GetAccountsRaw(requiredConfirmations)
 	if err != nil {
@@ -66,23 +66,23 @@ func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	return accountsOverview, nil
 }
 
-func (lib *MobileWalletLib) NextAccount(accountName string, passphrase string) (uint32, error) {
+func (lib *DcrWalletLib) NextAccount(accountName string, passphrase string) (uint32, error) {
 	return lib.walletLib.NextAccountRaw(accountName, []byte(passphrase))
 }
 
-func (lib *MobileWalletLib) AccountNumber(accountName string) (uint32, error) {
+func (lib *DcrWalletLib) AccountNumber(accountName string) (uint32, error) {
 	return lib.walletLib.AccountNumber(accountName)
 }
 
-func (lib *MobileWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
+func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
 	return lib.walletLib.CurrentAddress(int32(account))
 }
 
-func (lib *MobileWalletLib) ValidateAddress(address string) (bool, error) {
+func (lib *DcrWalletLib) ValidateAddress(address string) (bool, error) {
 	return lib.walletLib.IsAddressValid(address), nil
 }
 
-func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
+func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
 	utxos, err := lib.walletLib.UnspentOutputs(account, requiredConfirmations, targetAmount)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) (
 	return unspentOutputs, nil
 }
 
-func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
 	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
 	if err != nil {
@@ -132,7 +132,7 @@ func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount u
 	return transactionHash.String(), nil
 }
 
-func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
 	amountInAtom, err := dcrutil.NewAmount(dcrAmount)
 	if err != nil {
@@ -205,7 +205,7 @@ func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, 
 	return transactionHash.String(), nil
 }
 
-func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {
+func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {
 	txs, err := lib.walletLib.GetTransactionsRaw()
 	if err != nil {
 		return nil, err
@@ -240,6 +240,6 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 	return transactions, nil
 }
 
-func (lib *MobileWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	return nil, fmt.Errorf("not implemented")
 }
