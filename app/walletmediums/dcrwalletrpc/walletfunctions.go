@@ -16,10 +16,14 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
+// ideally, we should let user provide this info in settings and use the user provided value
+// using a constant now to make it easier to update the code where this value is required/used
+const requiredConfirmations = 0
+
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
-		RequiredConfirmations: 0,
+		RequiredConfirmations: requiredConfirmations,
 	}
 
 	res, err := c.walletService.Balance(context.Background(), req)
@@ -122,7 +126,7 @@ func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
 }
 
 func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
-	utxoStream, err := c.unspentOutputStream(account, targetAmount)
+	utxoStream, err := c.unspentOutputStream(account, targetAmount, requiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
@@ -158,22 +162,28 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 	return unspentOutputs, nil
 }
 
-func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amount, err := amountToAtom(amountInDCR)
-	if err != nil {
-		return "", err
+func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	// construct non-change outputs for all recipients
+	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
+	for i, destination := range destinations {
+		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
+		if err != nil {
+			return "", err
+		}
+
+		outputs[i] = &walletrpc.ConstructTransactionRequest_Output{
+			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
+				Address: destination.Address,
+			},
+			Amount: amountInAtom,
+		}
 	}
 
 	// construct transaction
 	constructRequest := &walletrpc.ConstructTransactionRequest{
-		SourceAccount: sourceAccount,
-		NonChangeOutputs: []*walletrpc.ConstructTransactionRequest_Output{{
-			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Address: destinationAddress,
-			},
-			Amount: amount,
-		}},
+		SourceAccount:         sourceAccount,
+		NonChangeOutputs:      outputs,
+		RequiredConfirmations: requiredConfirmations,
 	}
 
 	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
@@ -184,16 +194,10 @@ func (c *WalletPRCClient) SendFromAccount(amountInDCR float64, sourceAccount uin
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
-func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amount, err := amountToAtom(dcrAmount)
-	if err != nil {
-		return "", err
-	}
-
+func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
-	utxoStream, err := c.unspentOutputStream(account, 0)
+	utxoStream, err := c.unspentOutputStream(sourceAccount, 0, requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -235,12 +239,12 @@ func (c *WalletPRCClient) SendFromUTXOs(utxoKeys []string, dcrAmount float64, ac
 	}
 
 	// generate address from sourceAccount to receive change
-	changeAddress, err := c.GenerateReceiveAddress(account)
+	changeAddress, err := c.GenerateReceiveAddress(sourceAccount)
 	if err != nil {
 		return "", err
 	}
 
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
 	if err != nil {
 		return "", err
 	}
