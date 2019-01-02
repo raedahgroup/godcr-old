@@ -1,6 +1,7 @@
 package walletcore
 
 import "context"
+import "github.com/raedahgroup/dcrlibwallet/txhelper"
 
 // Wallet defines key functions for performing operations on a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
@@ -29,14 +30,15 @@ type Wallet interface {
 	// If `targetAmount` is 0, all unspent outputs in account are returned
 	UnspentOutputs(account uint32, targetAmount int64) ([]*UnspentOutput, error)
 
-	// SendFromAccount sends funds to the destination address
-	// by automatically selecting 1 or more unspent outputs from the specified account
+	// SendFromAccount sends funds to 1 or more destination addresses, each with a specified amount
+	// The inputs to the transaction are automatically selected from all unspent outputs in the account
 	// Returns the transaction hash as string if successful
-	SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error)
+	SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
-	// UTXOSend sends funds to the destination address using unspent outputs matching the keys sent in []utxoKeys
+	// UTXOSend sends funds to 1 or more destination addresses, each with a specified amount
+	// The inputs to the transaction are unspent outputs in the account, matching the keys sent in []utxoKeys
 	// Returns the transaction hash as string if successful
-	SendFromUTXOs(utxoKeys []string, amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error)
+	SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
 	// TransactionHistory
 	TransactionHistory() ([]*Transaction, error)

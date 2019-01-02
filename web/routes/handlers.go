@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -89,11 +90,16 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 	sourceAccount := uint32(account)
 
+	sendDestinations := []txhelper.TransactionDestination{{
+		Amount:  amount,
+		Address: destAddress,
+	}}
+
 	var txHash string
 	if len(utxos) > 0 {
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(utxos, amount, sourceAccount, destAddress, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, utxos, sendDestinations, passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(amount, sourceAccount, destAddress, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 	}
 
 	if err != nil {

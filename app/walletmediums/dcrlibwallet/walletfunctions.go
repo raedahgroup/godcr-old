@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/raedahgroup/mobilewallet/txhelper"
 	"sort"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -18,7 +18,7 @@ import (
 // using a constant now to make it easier to update the code where this value is required/used
 const requiredConfirmations = 0
 
-func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
+func (lib *DcrWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	// pass 0 as requiredConfirmations
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
@@ -34,7 +34,7 @@ func (lib *MobileWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Ba
 	}, nil
 }
 
-func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
+func (lib *DcrWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	// pass 0 as requiredConfirmations
 	accounts, err := lib.walletLib.GetAccountsRaw(requiredConfirmations)
 	if err != nil {
@@ -67,23 +67,23 @@ func (lib *MobileWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	return accountsOverview, nil
 }
 
-func (lib *MobileWalletLib) NextAccount(accountName string, passphrase string) (uint32, error) {
+func (lib *DcrWalletLib) NextAccount(accountName string, passphrase string) (uint32, error) {
 	return lib.walletLib.NextAccountRaw(accountName, []byte(passphrase))
 }
 
-func (lib *MobileWalletLib) AccountNumber(accountName string) (uint32, error) {
+func (lib *DcrWalletLib) AccountNumber(accountName string) (uint32, error) {
 	return lib.walletLib.AccountNumber(accountName)
 }
 
-func (lib *MobileWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
+func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
 	return lib.walletLib.CurrentAddress(int32(account))
 }
 
-func (lib *MobileWalletLib) ValidateAddress(address string) (bool, error) {
+func (lib *DcrWalletLib) ValidateAddress(address string) (bool, error) {
 	return lib.walletLib.IsAddressValid(address), nil
 }
 
-func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
+func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
 	utxos, err := lib.walletLib.UnspentOutputs(account, requiredConfirmations, targetAmount)
 	if err != nil {
 		return nil, err
@@ -110,17 +110,8 @@ func (lib *MobileWalletLib) UnspentOutputs(account uint32, targetAmount int64) (
 	return unspentOutputs, nil
 }
 
-func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(amountInDCR)
-	if err != nil {
-		return "", err
-	}
-	amount := int64(amountInAtom)
-
-	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount,
-		int32(sourceAccount), 0, false)
-
+func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -133,17 +124,10 @@ func (lib *MobileWalletLib) SendFromAccount(amountInDCR float64, sourceAccount u
 	return transactionHash.String(), nil
 }
 
-func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(dcrAmount)
-	if err != nil {
-		return "", err
-	}
-	amount := int64(amountInAtom)
-
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
-	unspentOutputs, err := lib.UnspentOutputs(account, 0)
+	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0)
 	if err != nil {
 		return "", err
 	}
@@ -175,12 +159,12 @@ func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, 
 	}
 
 	// generate address from sourceAccount to receive change
-	changeAddress, err := lib.GenerateReceiveAddress(account)
+	changeAddress, err := lib.GenerateReceiveAddress(sourceAccount)
 	if err != nil {
 		return "", err
 	}
 
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, amount, destAddress, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +190,7 @@ func (lib *MobileWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, 
 	return transactionHash.String(), nil
 }
 
-func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {
+func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error) {
 	txs, err := lib.walletLib.GetTransactionsRaw()
 	if err != nil {
 		return nil, err
@@ -241,7 +225,7 @@ func (lib *MobileWalletLib) TransactionHistory() ([]*walletcore.Transaction, err
 	return transactions, nil
 }
 
-func (lib *MobileWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
