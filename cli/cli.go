@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
@@ -71,7 +70,6 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 // listCommands prints a simple list of available commands when godcr is run without any command
 func listCommands() {
 	for _, category := range commands.Categories() {
-		sort.Strings(category.CommandNames)
 		fmt.Fprintf(os.Stderr, "%s: %s\n", category.ShortName, strings.Join(category.CommandNames, ", "))
 	}
 }

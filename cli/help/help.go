@@ -36,6 +36,9 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 	fmt.Fprintf(tabWriter, "%s v%s\n", app.Name(), app.Version())
 	fmt.Fprintln(tabWriter)
 
+	// print general app options
+	printOptionGroups(tabWriter, parser.Groups())
+
 	// loop through all commands registered on parser and separate into groups
 	commandGroups := map[string][]*flags.Command{}
 	for _, command := range parser.Commands() {
@@ -43,9 +46,6 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 		commandGroups[commandCategory] = append(commandGroups[commandCategory], command)
 	}
 	printCommands(tabWriter, commandGroups)
-
-	// print general app options
-	printOptionGroups(tabWriter, parser.Groups())
 }
 
 func printOptionGroups(output io.Writer, groups []*flags.Group) {
@@ -160,7 +160,8 @@ func printCommands(tabWriter io.Writer, commandGroups map[string][]*flags.Comman
 	for _, category := range categories {
 		fmt.Fprintf(tabWriter, "%s:\n", category)
 
-		for _, command := range commandGroups[category] {
+		commands := commandGroups[category]
+		for _, command := range commands {
 			fmt.Fprintln(tabWriter, fmt.Sprintf("  %s \t %s", command.Name, command.ShortDescription))
 		}
 
