@@ -33,7 +33,7 @@ func (h HelpCommand) Run(parser *flags.Parser) error {
 }
 
 type GeneralHelpData struct {
-	config.CommandLineOptions
+	config.CommandLineOptions `group:"Options"`
 	AvailableCommands
 	ExperimentalCommands
 }
