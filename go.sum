@@ -2,7 +2,7 @@ github.com/AndreasBriese/bbloom v0.0.0-20180913140656-343706a395b7 h1:PqzgE6kAMi
 github.com/AndreasBriese/bbloom v0.0.0-20180913140656-343706a395b7/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/xgb v0.0.0-20160522221800-27f122750802 h1:otE7gFP0KwnPTKtMvPLOcWDZxx6rXYyJGlrXbhoD7og=
 github.com/BurntSushi/xgb v0.0.0-20160522221800-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d h1:F486Q0BO+uFwzGSCfNkuQYr86h0Oap7zYdimuCyr0/0=
+github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d h1:BLhrKkQNOBeRDRJdevy7tE7ca2+sp3daQ6xG7vagEzg=
 github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d/go.mod h1:rh/rFeChsox144sAUJaD7obyj+JFIUqag6QnvRyAZJQ=
 github.com/aead/siphash v0.0.0-20170329201724-e404fcfc8885/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 h1:w1UutsfOrms1J05zt7ISrnJIXKzwaspym5BTKGx93EI=
