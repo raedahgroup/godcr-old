@@ -109,30 +109,8 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 	return unspentOutputs, nil
 }
 
-func (lib *DcrWalletLib) SendFromAccount(amountInDCR float64, sourceAccount uint32, destinationAddress, passphrase string) (string, error) {
-	// convert amount from float64 DCR to int64 Atom
-	amount, err := txhelper.AmountToAtom(amountInDCR)
-	if err != nil {
-		return "", err
-	}
-
-	txHash, err := lib.walletLib.SendTransaction([]byte(passphrase), destinationAddress, amount,
-		int32(sourceAccount), 0, false)
-
-	if err != nil {
-		return "", err
-	}
-
-	transactionHash, err := chainhash.NewHash(txHash)
-	if err != nil {
-		return "", fmt.Errorf("error parsing successful transaction hash: %s", err.Error())
-	}
-
-	return transactionHash.String(), nil
-}
-
-func (lib *DcrWalletLib) BulkSendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
-	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), 0)
+func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -147,11 +125,10 @@ func (lib *DcrWalletLib) BulkSendFromAccount(sourceAccount uint32, destinations 
 
 func (lib *DcrWalletLib) SendFromUTXOs(utxoKeys []string, dcrAmount float64, account uint32, destAddress, passphrase string) (string, error) {
 	// convert amount from float64 DCR to int64 Atom
-	amountInAtom, err := dcrutil.NewAmount(dcrAmount)
+	amount, err := txhelper.AmountToAtom(dcrAmount)
 	if err != nil {
 		return "", err
 	}
-	amount := int64(amountInAtom)
 
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
