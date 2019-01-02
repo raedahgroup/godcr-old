@@ -34,8 +34,8 @@ type Config struct {
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
 type CommandLineOptions struct {
-	ConfigFile        string `short:"C" long:"configfile" description:"Path to configuration file"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Display version information and exit. Any other flag or command is ignored."`
+	ConfigFile        string `short:"c" long:"configfile" description:"Path to configuration file"`
 	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
 	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
 	HTTPMode          bool   `long:"http" description:"Run in HTTP mode"`
