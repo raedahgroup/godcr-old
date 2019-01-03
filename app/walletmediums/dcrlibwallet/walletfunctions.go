@@ -7,6 +7,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
@@ -230,9 +232,60 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 }
 
 func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
-	return nil, fmt.Errorf("not implemented")
+	data, err := lib.walletLib.StakeInfo()
+	if err != nil {
+		return nil, fmt.Errorf("error getting stake info: %v", err.Error())
+	}
+
+	total := data.OwnMempoolTix + data.Live + data.Immature
+	stakeInfo := &walletcore.StakeInfo{Total: total}
+
+	responseCh, errorCh, err := lib.walletLib.GetTickets(&dcrlibwallet.GetTicketsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("error getting stake info: %v", err.Error())
+	}
+
+	select {
+	case err := <-errorCh:
+		return nil, err
+	case response := <-responseCh:
+		stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{
+			Hash: response.Ticket.Ticket.Hash.String(),
+			Status: response.TicketStatus.String(),
+		})
+	}
+
+	return stakeInfo, nil
 }
 
 func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
-	return nil, fmt.Errorf("not implemented")
+	sendAmount, err := dcrutil.NewAmount(float64(request.SpendLimit))
+	if err != nil {
+		return nil, fmt.Errorf("invalid amount for spend limit: %s", err.Error())
+	}
+	response, err := lib.walletLib.PurchaseTickets(&dcrlibwallet.PurchaseTicketsRequest{
+		Account:               request.FromAccount,
+		Expiry:                request.Expiry,
+		NumTickets:            request.NumTickets,
+		Passphrase:            request.Passphrase,
+		PoolAddress:           request.PoolAddress,
+		PoolFees:              request.PoolFees,
+		RequiredConfirmations: request.MinConfirmations,
+		SpendLimit:            int64(sendAmount),
+		TicketAddress:         request.TicketAddress,
+		TicketFee:             request.TicketFee,
+		TxFee:                 request.TxFee,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())
+	}
+	ticketHashes = make([]string, len(response))
+	for i, ticketHash := range response {
+		hash, err := chainhash.NewHash(ticketHash)
+		if err != nil {
+			return ticketHashes, fmt.Errorf("error purchasing tickets: %s", err.Error())
+		}
+		ticketHashes[i] = hash.String()
+	}
+	return ticketHashes, nil
 }

@@ -88,7 +88,7 @@ type TransactionDetails struct {
 
 // StakeInfo holds ticket information summary related to the wallet.
 type StakeInfo struct {
-	Total   uint     `json:"total"`
+	Total   uint32     `json:"total"`
 	Tickets []Ticket `json:"tickets"`
 }
 
