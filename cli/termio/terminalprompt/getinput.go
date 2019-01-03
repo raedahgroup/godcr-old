@@ -8,11 +8,12 @@ package terminalprompt
 import (
 	"bufio"
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio"
 	"os"
 	"os/exec"
 	"os/signal"
 	"strings"
+
+	"github.com/raedahgroup/godcr/cli/termio"
 )
 
 // getTextInput - Prompt for text input.

@@ -2,8 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"sort"
+
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -48,6 +49,7 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 
 	var destinationAddresses []string
 	sendAmounts := make(map[string]float64)
+	var sendAmountTotal float64
 
 	for {
 		destinationAddress, err := getSendDestinationAddress(wallet, len(destinationAddresses))
@@ -58,18 +60,25 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			break
 		}
 
-		destinationAddresses = append(destinationAddresses, destinationAddress)
+		if _, addressExists := sendAmounts[destinationAddress]; addressExists {
+			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount", destinationAddress)
+			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "Y")
+			if err != nil {
+				return err
+			}
+			if !changeAmountConfirmed {
+				continue
+			}
+		} else {
+			destinationAddresses = append(destinationAddresses, destinationAddress)
+		}
 
 		sendAmount, err := getSendAmount()
 		if err != nil {
 			return err
 		}
 		sendAmounts[destinationAddress] = sendAmount
-	}
-
-	var sendAmountTotal float64
-	for _, amount := range sendAmounts {
-		sendAmountTotal += amount
+		sendAmountTotal += sendAmount
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
@@ -104,13 +113,12 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			return
 		}
 
+		utxoSelection = bestSizedInput()
 		if manuallySelectInputs {
-			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal, bestSizedInput())
+			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal, utxoSelection)
 			if err != nil {
 				return err
 			}
-		}else {
-			utxoSelection = bestSizedInput()
 		}
 	}
 
@@ -130,10 +138,17 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 		}
 		fmt.Println("and send it to")
 		for _, address := range destinationAddresses {
-			fmt.Println(fmt.Sprintf(" %f DCR to %s", sendAmounts[address], address))
+			fmt.Println(fmt.Sprintf(" %v DCR to %s", sendAmounts[address], address))
 		}
-	}else {
-		fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendAmountTotal, destinationAddresses[0]))
+	} else {
+		if len(destinationAddresses) == 1 {
+			fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendAmountTotal, destinationAddresses[0]))
+		} else {
+			fmt.Println("You are about to send")
+			for _, address := range destinationAddresses {
+				fmt.Println(fmt.Sprintf(" %v DCR to %s", sendAmounts[address], address))
+			}
+		}
 	}
 
 	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Are you sure?", "")
@@ -148,7 +163,7 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 
 	var sendDestinations []txhelper.TransactionDestination
 	for _, address := range destinationAddresses {
-		sendDestinations = append(sendDestinations, txhelper.TransactionDestination{Amount:sendAmounts[address], Address:address})
+		sendDestinations = append(sendDestinations, txhelper.TransactionDestination{Amount: sendAmounts[address], Address: address})
 	}
 
 	var sentTransactionHash string
