@@ -85,23 +85,32 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			return err
 		}
 
+		bestSizedInput := func() (result []*walletcore.UnspentOutput) {
+			sort.Slice(utxos, func(i, j int) bool {
+				return utxos[i].Amount < utxos[j].Amount
+			})
+			var accumulatedAmount float64
+			for _, utxo := range utxos {
+				if utxo.Amount.ToCoin() > sendAmountTotal {
+					result = []*walletcore.UnspentOutput{utxo}
+					return
+				}
+				if accumulatedAmount <= sendAmountTotal {
+					result = append(result, utxo)
+					accumulatedAmount += utxo.Amount.ToCoin()
+				}
+			}
+
+			return
+		}
+
 		if manuallySelectInputs {
-			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
+			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal, bestSizedInput())
 			if err != nil {
 				return err
 			}
 		}else {
-			sort.Slice(utxos, func(i, j int) bool {
-				return utxos[i].Amount < utxos[j].Amount
-			})
-			var amountAdded float64
-			for _, utxo := range utxos {
-				if amountAdded >= sendAmountTotal {
-					break
-				}
-				utxoSelection = append(utxoSelection, utxo)
-				amountAdded += utxo.Amount.ToCoin()
-			}
+			utxoSelection = bestSizedInput()
 		}
 	}
 
@@ -117,11 +126,11 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			if err != nil {
 				fmt.Println(fmt.Sprintf("Cannot extract address from output: %v", err))
 			}
-			fmt.Println(fmt.Sprintf("%s from %s (%s)", output.Amount.String(), address, output.Amount.String()))
+			fmt.Println(fmt.Sprintf(" %s from %s (%s)", output.Amount.String(), address, output.Amount.String()))
 		}
 		fmt.Println("and send it to")
 		for _, address := range destinationAddresses {
-			fmt.Println(fmt.Sprintf("%f DCR to %s", sendAmounts[address], address))
+			fmt.Println(fmt.Sprintf(" %f DCR to %s", sendAmounts[address], address))
 		}
 	}else {
 		fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendAmountTotal, destinationAddresses[0]))
