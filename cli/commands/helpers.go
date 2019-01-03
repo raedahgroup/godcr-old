@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/decred/dcrd/txscript"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
@@ -132,62 +132,6 @@ func getWalletPassphrase() (string, error) {
 	return result, nil
 }
 
-func getSendUtxoCount(maxCount int64) (int64, error) {
-	var count int64
-	var err error
-
-	validateCount := func(input string) error {
-		if input == "" {
-			count = 1
-			return nil
-		}
-		count, err = strconv.ParseInt(input, 10, 64)
-		if err != nil {
-			return fmt.Errorf("error parsing number: %s", err.Error())
-		}
-		if count > maxCount {
-			return fmt.Errorf("you cannot select more than %d", maxCount)
-		}
-		return nil
-	}
-
-	_, err = terminalprompt.RequestInput("How many change outputs would you like to use? (default: 1)", validateCount)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return 0, fmt.Errorf("error receiving input: %s", err.Error())
-	}
-
-	return count, nil
-}
-
-func getUseRandomAmount() (bool, error) {
-	var yes bool
-	var err error
-
-	validate := func(input string) error {
-		if input == "" {
-			input = "y"
-		}
-		switch strings.ToLower(input) {
-		case "y":
-			yes = true
-			return nil
-		case "n":
-			return nil
-		default:
-			return errors.New("invalid entry")
-		}
-	}
-
-	_, err = terminalprompt.RequestInput("Use random amounts for the change outputs? (Y/n)", validate)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return false, fmt.Errorf("error receiving input: %s", err.Error())
-	}
-
-	return yes, nil
-}
-
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
 func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64, defaultOptions []*walletcore.UnspentOutput) ([]*walletcore.UnspentOutput, error) {
 	var selectedUtxos []*walletcore.UnspentOutput
@@ -272,7 +216,7 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 			if err != nil {
 				return nil, fmt.Errorf("error reading transaction: %s", err.Error())
 			}
-			fmt.Fprintln(tabWriter, fmt.Sprintf(" [%v]: %s (%s) \t %s \t %v confirmation(s)", (index + 1), address, utxo.Amount.String(), date, txn.Confirmations))
+			fmt.Fprintln(tabWriter, fmt.Sprintf(" [%v]: %s (%s) \t %s \t %v confirmation(s)", (index+1), address, utxo.Amount.String(), date, txn.Confirmations))
 		}
 		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
 			switch strings.ToLower(input) {
