@@ -100,16 +100,16 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			})
 			var accumulatedAmount float64
 			for _, utxo := range utxos {
-				if utxo.Amount.ToCoin() > sendAmountTotal {
+				/*if utxo.Amount.ToCoin() > sendAmountTotal {
 					result = []*walletcore.UnspentOutput{utxo}
 					return
+				}*/
+				if accumulatedAmount > sendAmountTotal {
+					break
 				}
-				if accumulatedAmount <= sendAmountTotal {
-					result = append(result, utxo)
-					accumulatedAmount += utxo.Amount.ToCoin()
-				}
+				result = append(result, utxo)
+				accumulatedAmount += utxo.Amount.ToCoin()
 			}
-
 			return
 		}
 
