@@ -51,7 +51,7 @@ func (ptc PurchaseTicketCommand) Run(ctx context.Context, middleware app.WalletM
 	}
 	output := strings.Builder{}
 	for _, ticketHash := range tickets {
-		output.WriteString(ticketHash+"\n")
+		output.WriteString(ticketHash + "\n")
 	}
 	termio.PrintStringResult(strings.TrimSpace(output.String()))
 	return nil

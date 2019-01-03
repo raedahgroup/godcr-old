@@ -354,7 +354,7 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 		return nil, err
 	}
 
-	stakeInfo := &walletcore.StakeInfo{Tickets: make([]walletcore.Ticket, 0), Total: uint(totalTickets)}
+	stakeInfo := &walletcore.StakeInfo{Tickets: make([]walletcore.Ticket, 0), Total: totalTickets}
 	for response, err := ticketsResponse.Recv(); err != io.EOF; response, err = ticketsResponse.Recv() {
 		if err != nil {
 			return nil, err

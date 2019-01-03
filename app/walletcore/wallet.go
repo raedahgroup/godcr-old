@@ -47,7 +47,7 @@ type Wallet interface {
 	// An error is returned if the no transaction with the given hash is found.
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
 
-	// StakeInfo returns information about wallet sakes, tickets and their statuses.
+	// StakeInfo returns information about wallet stakes, tickets and their statuses.
 	StakeInfo(ctx context.Context) (*StakeInfo, error)
 
 	// PurchaseTicket is used to purchase tickets.
