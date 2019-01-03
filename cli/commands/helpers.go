@@ -12,7 +12,7 @@ import (
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/txscript"
-
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
@@ -62,8 +62,9 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 	return accounts[selection].Number, nil
 }
 
-// getSendDestinationAddress fetches the destination address to send DCRs to from the user.
-func getSendDestinationAddress(wallet walletcore.Wallet, index int) (string, error) {
+// getSendTxDestinations fetches the destinations info to send DCRs to from the user.
+func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.TransactionDestination, err error) {
+	var index int
 	validateAddressInput := func(address string) error {
 		if address == "" && index > 0 {
 			return nil
@@ -83,17 +84,49 @@ func getSendDestinationAddress(wallet walletcore.Wallet, index int) (string, err
 		return nil
 	}
 
-	label := "Destination Address"
-	if index > 0 {
-		label = fmt.Sprintf("Destination Address %d (or blank to continue)", index+1)
-	}
-	address, err := terminalprompt.RequestInput(label, validateAddressInput)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return "", fmt.Errorf("error receiving input: %s", err.Error())
+	var destinationAddresses []string
+	sendAmounts := make(map[string]float64)
+
+	for {
+		label := "Destination Address"
+		if index > 0 {
+			label = fmt.Sprintf("Destination Address %d (or blank to continue)", index+1)
+		}
+
+		destinationAddress, err := terminalprompt.RequestInput(label, validateAddressInput)
+		if err != nil {
+			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+		}
+
+		if destinationAddress == "" {
+			break
+		}
+
+		if _, addressExists := sendAmounts[destinationAddress]; addressExists {
+			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount", destinationAddress)
+			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "Y")
+			if err != nil {
+				return nil, fmt.Errorf("error receiving input: %s", err.Error())
+			}
+			if !changeAmountConfirmed {
+				continue
+			}
+		} else {
+			destinationAddresses = append(destinationAddresses, destinationAddress)
+		}
+
+		sendAmount, err := getSendAmount()
+		if err != nil {
+			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+		}
+		sendAmounts[destinationAddress] = sendAmount
+		index++
 	}
 
-	return address, nil
+	for _, address := range destinationAddresses {
+		destinations = append(destinations, txhelper.TransactionDestination{Address:address, Amount: sendAmounts[address]})
+	}
+	return
 }
 
 // getSendAmount fetches the amout of DCRs to send from the user.
