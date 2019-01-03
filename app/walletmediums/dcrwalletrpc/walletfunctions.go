@@ -320,6 +320,7 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
+
 	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
 	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
 
@@ -328,6 +329,7 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
+
 	return &walletcore.TransactionDetails{
 		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
 		Confirmations: getTxResponse.GetConfirmations(),

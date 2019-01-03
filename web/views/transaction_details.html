@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <div class="row justify-content-between">
+                    <div class="col-md-8 col-sm-6">
+                        <h3>Transactions</h3>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                  <td>Confirmations</td>
+                                  <td>{{ .result.Confirmations }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Hash</td>
+                                  <td>{{ .result.Transaction.Hash }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Block Hash</td>
+                                  <td>{{ .result.BlockHash }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Direction</td>
+                                  <td>{{ .result.Transaction.Direction }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Type</td>
+                                  <td>{{ .result.Transaction.Type }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
+                    <div class="col-md-4 col-sm-6 py-5">
+                      <table class="table">
+                          <tbody>
+                          <tr>
+                              <td>Amount</td>
+                              <td>{{ .result.Transaction.Amount }}</td>
+                          </tr>
+                          <tr>
+                              <td>Size</td>
+                              <td>{{ .result.Transaction.Size }}</td>
+                          </tr>
+                          <tr>
+                              <td>Fee</td>
+                              <td>{{ .result.Transaction.Fee }}</td>
+                          </tr>
+                          <tr>
+                              <td>Rate</td>
+                              <td>{{ .result.Transaction.Rate }}</td>
+                          </tr>
+                          <tr>
+                              <td>Timestamp</td>
+                              <td>{{ .result.Transaction.Timestamp }}</td>
+                          </tr>
+                          <tr>
+                              <td>FormattedTime</td>
+                              <td>{{ .result.Transaction.FormattedTime }}</td>
+                          </tr>
+                          </tbody>
+                      </table>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 col-sm-6">
+                        <h3>Input</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Previous Outpoint</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {{ range $txn := .result.Inputs }}
+                            <tr>
+                                <td>{{ .PreviousOutpoint }}</td>
+                                <td>{{ .Amount }}</td>
+                            </tr>
+                            {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <h3>Output</h3>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Internal</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{ range $txn := .result.Outputs }}
+                            <tr>
+                                <td>{{ .Address }}</td>
+                                <td>{{ .Internal }}</td>
+                                <td>{{ .Value }}</td>
+                            </tr>
+                            {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
