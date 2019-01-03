@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,16 +10,19 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
-// GetStakeInfoCommand requests statistics about the wallet stakes.
-type GetStakeInfoCommand struct {
+// StakeInfoCommand requests statistics about the wallet stakes.
+type StakeInfoCommand struct {
 	commanderStub
 }
 
-// Run displays information about wallet sakes, tickets and their statuses.
-func (g GetStakeInfoCommand) Run(ctx context.Context, wallet app.WalletMiddleware) error {
+// Run displays information about wallet stakes, tickets and their statuses.
+func (g StakeInfoCommand) Run(ctx context.Context, wallet app.WalletMiddleware) error {
 	stakeInfo, err := wallet.StakeInfo(ctx)
 	if err != nil {
 		return err
+	}
+	if stakeInfo == nil {
+		return errors.New("no tickets in wallet")
 	}
 	output := strings.Builder{}
 	output.WriteString(fmt.Sprintf("Tickets: %d\n", stakeInfo.Total))

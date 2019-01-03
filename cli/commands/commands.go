@@ -15,7 +15,7 @@ type AvailableCommands struct {
 	History         HistoryCommand         `command:"history" description:"Show your transaction history"`
 	ShowTransaction ShowTransactionCommand `command:"show-transaction" description:"Show details of a transaction"`
 	Help            HelpCommand            `command:"help" description:"Show general application help. Run help <command-name> to get help message for a specific command"`
-	StakeInfo       GetStakeInfoCommand    `command:"getstakeinfo" description:"Show information about the wallet stakes, tickets and their statuses"`
+	StakeInfo       StakeInfoCommand       `command:"stakeinfo" description:"Show information about the wallet stakes, tickets and their statuses"`
 	PurchaseTicket  PurchaseTicketCommand  `command:"purchaseticket" description:"Purchase a ticket"`
 }
 
