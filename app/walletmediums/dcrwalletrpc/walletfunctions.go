@@ -368,14 +368,21 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 		return nil, err
 	}
 
-	totalTickets := stakeInfoResponse.GetOwnMempoolTix() + stakeInfoResponse.GetLive() + stakeInfoResponse.GetImmature()
+	totalTickets := stakeInfoResponse.OwnMempoolTix +
+		stakeInfoResponse.Live + stakeInfoResponse.Immature + stakeInfoResponse.Unspent
 
 	ticketsResponse, err := c.walletService.GetTickets(ctx, &walletrpc.GetTicketsRequest{})
 	if err != nil {
 		return nil, err
 	}
 
-	stakeInfo := &walletcore.StakeInfo{Tickets: make([]walletcore.Ticket, 0), Total: totalTickets}
+	stakeInfo := &walletcore.StakeInfo{
+		Immature: stakeInfoResponse.GetImmature(),
+		Live: stakeInfoResponse.Live,
+		Tickets: make([]walletcore.Ticket, 0),
+		Total: totalTickets,
+		Unspent: stakeInfoResponse.Unspent,
+	}
 
 	for {
 		response, err := ticketsResponse.Recv()

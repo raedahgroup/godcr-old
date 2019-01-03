@@ -25,7 +25,17 @@ func (g StakeInfoCommand) Run(ctx context.Context, wallet app.WalletMiddleware) 
 		return errors.New("no tickets in wallet")
 	}
 	output := strings.Builder{}
-	output.WriteString(fmt.Sprintf("Tickets: %d\n", stakeInfo.Total))
+	stakes := "\nStake Info\n" +
+		"Total tickets:\t%d\n" +
+		"Immature:\t%d\n" +
+		"Live:\t%d\n" +
+		"Unspent:\t%d\n"
+	output.WriteString(fmt.Sprintf(stakes,
+		stakeInfo.Total,
+		stakeInfo.Immature,
+		stakeInfo.Live,
+		stakeInfo.Unspent))
+	output.WriteString("\nTickets\n")
 	for _, ticket := range stakeInfo.Tickets {
 		output.WriteString(fmt.Sprintf("%s\t%s\n", ticket.Hash, ticket.Status))
 	}
