@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -68,25 +67,6 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return err
 		}
 
-		bestSizedInput := func() (result []*walletcore.UnspentOutput) {
-			sort.Slice(utxos, func(i, j int) bool {
-				return utxos[i].Amount < utxos[j].Amount
-			})
-			var accumulatedAmount float64
-			for _, utxo := range utxos {
-				/*if utxo.Amount.ToCoin() > sendAmountTotal {
-					result = []*walletcore.UnspentOutput{utxo}
-					return
-				}*/
-				if accumulatedAmount > sendAmountTotal {
-					break
-				}
-				result = append(result, utxo)
-				accumulatedAmount += utxo.Amount.ToCoin()
-			}
-			return
-		}
-
 		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
 			switch strings.ToLower(input) {
 			case "":
@@ -102,11 +82,10 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 			return fmt.Errorf("error in reading choice: %s", err.Error())
 		}
 		if strings.ToLower(choice) == "a" || choice == "" {
-			utxoSelection = bestSizedInput()
+			utxoSelection = bestSizedInput(utxos, sendAmountTotal)
 		} else {
 			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
 		}
-
 	}
 
 	passphrase, err := getWalletPassphrase()
