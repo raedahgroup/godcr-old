@@ -6,9 +6,9 @@ import (
 	"github.com/decred/dcrd/txscript"
 )
 
-func GetAddressFromPkScript(pkScript []byte) (address string, err error) {
+func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (address string, err error) {
 	_, addresses, _, err := txscript.ExtractPkScriptAddrs(txscript.DefaultScriptVersion,
-		pkScript, currentNet())
+		pkScript, activeNet)
 	if err != nil {
 		return
 	}
@@ -16,8 +16,4 @@ func GetAddressFromPkScript(pkScript []byte) (address string, err error) {
 		return "", errors.New("Cannot extract any address from output")
 	}
 	return addresses[0].EncodeAddress(), nil
-}
-
-func currentNet() *chaincfg.Params {
-	return &chaincfg.TestNet3Params //Todo check config to see if testnet is active
 }

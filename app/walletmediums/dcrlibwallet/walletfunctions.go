@@ -96,7 +96,7 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 		}
 		txHash := hash.String()
 
-		address, err := walletcore.GetAddressFromPkScript(utxo.PkScript)
+		address, err := walletcore.GetAddressFromPkScript(lib.activeNet.Params, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
