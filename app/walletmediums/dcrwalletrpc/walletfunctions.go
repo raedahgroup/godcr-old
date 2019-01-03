@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/raedahgroup/dcrlibwallet"
 	"io"
 	"sort"
 
@@ -375,7 +376,12 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 	}
 
 	stakeInfo := &walletcore.StakeInfo{Tickets: make([]walletcore.Ticket, 0), Total: totalTickets}
-	for response, err := ticketsResponse.Recv(); err != io.EOF; response, err = ticketsResponse.Recv() {
+
+	for {
+		response, err := ticketsResponse.Recv()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -387,38 +393,40 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 		}
 		stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{Hash: hash.String(), Status: ticketStatus})
 	}
-	return stakeInfo, nil
+
+	return stakeInfo, err
 }
 
-func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
+func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error) {
 	amount, err := dcrutil.NewAmount(float64(request.SpendLimit))
 	if err != nil {
 		return nil, fmt.Errorf("invalid amount for spend limit: %s", err.Error())
 	}
+	request.SpendLimit = int64(amount)
 	priceResponse, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket ticketPrice: %s", err.Error())
 	}
-	ticketPrice := dcrutil.Amount(priceResponse.GetTicketPrice())
-	if amount < ticketPrice {
+	ticketPrice := priceResponse.GetTicketPrice()
+	if request.SpendLimit < ticketPrice {
 		return nil, fmt.Errorf("insufficient funds: spend limit %v is less that ticket ticketPrice %v", amount, ticketPrice)
 	}
-	balance, err := c.AccountBalance(request.FromAccount)
+	balance, err := c.AccountBalance(request.Account)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
 	}
-	if balance.Spendable < ticketPrice {
+	if balance.Spendable < dcrutil.Amount(ticketPrice) {
 		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v", balance.Spendable, ticketPrice)
 	}
 	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
-		Account:               request.FromAccount,
+		Account:               request.Account,
 		Expiry:                request.Expiry,
 		NumTickets:            request.NumTickets,
 		Passphrase:            request.Passphrase,
 		PoolAddress:           request.PoolAddress,
 		PoolFees:              request.PoolFees,
-		RequiredConfirmations: request.MinConfirmations,
-		SpendLimit:            int64(amount),
+		RequiredConfirmations: request.RequiredConfirmations,
+		SpendLimit:            request.SpendLimit,
 		TicketAddress:         request.TicketAddress,
 		TicketFee:             request.TicketFee,
 		TxFee:                 request.TxFee,
