@@ -2,10 +2,10 @@ package commands
 
 import (
 	"context"
-	"github.com/raedahgroup/godcr/app"
+	"strings"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
-	"strings"
 )
 
 type PurchaseTicketCommand struct {
@@ -24,7 +24,7 @@ type PurchaseTicketCommand struct {
 	} `positional-args:"yes"`
 }
 
-func (ptc PurchaseTicketCommand) Run(ctx context.Context, middleware app.WalletMiddleware) error {
+func (ptc PurchaseTicketCommand) Run(ctx context.Context, middleware walletcore.Wallet) error {
 	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err

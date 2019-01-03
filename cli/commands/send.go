@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -13,7 +15,7 @@ type SendCommand struct {
 }
 
 // Run runs the `send` command.
-func (s SendCommand) Run(wallet walletcore.Wallet) error {
+func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	return send(wallet, false)
 }
 
@@ -23,7 +25,7 @@ type SendCustomCommand struct {
 }
 
 // Run runs the `send-custom` command.
-func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
+func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	return send(wallet, true)
 }
 

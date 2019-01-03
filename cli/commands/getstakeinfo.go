@@ -3,9 +3,10 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/cli/termio"
-	"strings"
 )
 
 // GetStakeInfoCommand requests statistics about the wallet stakes.

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -15,7 +16,7 @@ type BalanceCommand struct {
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
-func (balanceCommand BalanceCommand) Run(wallet walletcore.Wallet) error {
+func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	accounts, err := wallet.AccountsOverview()
 	if err != nil {
 		return err

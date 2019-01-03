@@ -26,7 +26,7 @@ require (
 	github.com/mdp/qrterminal v1.0.1
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
-	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190102215219-497892e692815b32cbd80623373fcaa91394d7bb
+	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190103070035-39aa1da04a3ba8c11ec3191ade40464fc655c5bf
 	github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8
 	golang.org/x/crypto v0.0.0-20190102171810-8d7daa0c54b3 // indirect
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
