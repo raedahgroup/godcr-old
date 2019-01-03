@@ -88,8 +88,11 @@ type TransactionDetails struct {
 
 // StakeInfo holds ticket information summary related to the wallet.
 type StakeInfo struct {
-	Total   uint32   `json:"total"`
+	Immature uint32 `json:"inMemPool"`
+	Live uint32 `json:"live"`
 	Tickets []Ticket `json:"tickets"`
+	Total   uint32   `json:"total"`
+	Unspent uint32 `json:"unspent"`
 }
 
 // Ticket represents a ticket related to the wallet.
