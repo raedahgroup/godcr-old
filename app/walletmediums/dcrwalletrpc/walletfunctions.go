@@ -148,7 +148,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
-		address, err := walletcore.GetAddressFromPkScript(utxo.PkScript)
+		address, err := walletcore.GetAddressFromPkScript(c.activeNet, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
