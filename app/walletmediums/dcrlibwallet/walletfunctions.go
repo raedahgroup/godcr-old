@@ -96,6 +96,12 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 		}
 		txHash := hash.String()
 
+
+		address, err := walletcore.GetAddressFromPkScript(utxo.PkScript)
+		if err != nil {
+			return nil, err
+		}
+
 		unspentOutputs[i] = &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
@@ -103,7 +109,7 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
-			PkScript:        utxo.PkScript,
+			Address:         address,
 		}
 	}
 

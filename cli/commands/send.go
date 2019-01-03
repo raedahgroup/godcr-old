@@ -117,11 +117,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	if custom {
 		fmt.Println("You are about to spend the input")
 		for _, output := range utxoSelection {
-			address, err := getAddressFromUnspentOutputsResult(output)
-			if err != nil {
-				fmt.Println(fmt.Sprintf("Cannot extract address from output: %v", err))
-			}
-			fmt.Println(fmt.Sprintf(" %s from %s", output.Amount.String(), address))
+			fmt.Println(fmt.Sprintf(" %s from %s", output.Amount.String(), output.Address))
 		}
 		fmt.Println("and send it to")
 		for _, destinatoin := range sendDestinations {

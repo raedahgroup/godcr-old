@@ -9,9 +9,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -124,7 +122,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 	}
 
 	for _, address := range destinationAddresses {
-		destinations = append(destinations, txhelper.TransactionDestination{Address:address, Amount: sendAmounts[address]})
+		destinations = append(destinations, txhelper.TransactionDestination{Address: address, Amount: sendAmounts[address]})
 	}
 	return
 }
@@ -240,16 +238,12 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 		return utxos[i].Amount < utxos[j].Amount
 	})
 	for index, utxo := range utxos {
-		address, err := getAddressFromUnspentOutputsResult(utxo)
-		if err != nil {
-			return nil, fmt.Errorf("error reading address: %s", err.Error())
-		}
 		date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
 		txn, err := wallet.GetTransaction(utxo.TransactionHash)
 		if err != nil {
 			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
 		}
-		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", address, utxo.Amount.String(), date, txn.Confirmations)
+		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", utxo.Address, utxo.Amount.String(), date, txn.Confirmations)
 	}
 
 	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)
@@ -258,20 +252,4 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 		return nil, fmt.Errorf("error reading selection: %s", err.Error())
 	}
 	return selectedUtxos, nil
-}
-
-func getAddressFromUnspentOutputsResult(utxo *walletcore.UnspentOutput) (address string, err error) {
-	_, addresses, _, err := txscript.ExtractPkScriptAddrs(txscript.DefaultScriptVersion,
-		utxo.PkScript, currentNet())
-	if err != nil {
-		return
-	}
-	if len(addresses) < 1 {
-		return "", errors.New("Cannot extract any address from output")
-	}
-	return addresses[0].EncodeAddress(), nil
-}
-
-func currentNet() *chaincfg.Params {
-	return &chaincfg.TestNet3Params //Todo check config to see if testnet is active
 }
