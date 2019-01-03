@@ -2,17 +2,10 @@ package app
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
-// Name returns the name of the binary file that started this program
-func Name() string {
-	appName := filepath.Base(os.Args[0])
-	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
-	return appName
-}
+// Name is the name of the program.
+const Name = "godcr"
 
 // version provides version information for the program
 type version struct {

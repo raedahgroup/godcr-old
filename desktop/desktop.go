@@ -35,7 +35,7 @@ func StartDesktopApp(ctx context.Context, walletMiddleware app.WalletMiddleware)
 		pageHandlers: make(map[string]pageHandler),
 	}
 
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name(), d.updateFn)
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, d.updateFn)
 	window.SetStyle(getStyle())
 	d.window = window
 
