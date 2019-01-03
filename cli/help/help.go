@@ -31,7 +31,7 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 	tabWriter := termio.TabWriter(output)
 
 	// print version
-	fmt.Fprintf(tabWriter, "%s v%s\n", app.Name(), app.Version())
+	fmt.Fprintf(tabWriter, "%s v%s\n", app.Name, app.Version())
 	fmt.Fprintln(tabWriter)
 
 	// print general app options
