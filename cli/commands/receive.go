@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -19,7 +20,7 @@ type ReceiveCommandArgs struct {
 }
 
 // Run runs the `receive` command.
-func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
+func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	var accountNumber uint32
 	// if no account name was passed in
 	if receiveCommand.Args.AccountName == "" {

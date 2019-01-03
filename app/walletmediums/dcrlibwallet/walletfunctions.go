@@ -274,7 +274,7 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 				break
 			}
 			stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{
-				Hash: response.Ticket.Ticket.Hash.String(),
+				Hash:   response.Ticket.Ticket.Hash.String(),
 				Status: response.TicketStatus.String(),
 			})
 		}
