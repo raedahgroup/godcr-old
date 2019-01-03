@@ -245,14 +245,19 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 		return nil, fmt.Errorf("error getting stake info: %v", err.Error())
 	}
 
-	select {
-	case err := <-errorCh:
-		return nil, err
-	case response := <-responseCh:
-		stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{
-			Hash: response.Ticket.Ticket.Hash.String(),
-			Status: response.TicketStatus.String(),
-		})
+	for {
+		select {
+		case err := <-errorCh:
+			return nil, err
+		case response, ok := <-responseCh:
+			if !ok {
+				break
+			}
+			stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{
+				Hash: response.Ticket.Ticket.Hash.String(),
+				Status: response.TicketStatus.String(),
+			})
+		}
 	}
 
 	return stakeInfo, nil
