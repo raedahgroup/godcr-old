@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 
@@ -17,21 +19,20 @@ type SendCommand struct {
 
 // Run runs the `send` command.
 func (s SendCommand) Run(wallet walletcore.Wallet) error {
-	return send(wallet, false, false)
+	return send(wallet, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
 	commanderStub
-	ManuallySelectInputs bool `short:"l" long:"list" description:"Display a list of unspent output to select for the transaction"`
 }
 
 // Run runs the `send-custom` command.
 func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
-	return send(wallet, true, s.ManuallySelectInputs)
+	return send(wallet, true)
 }
 
-func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err error) {
+func send(wallet walletcore.Wallet, custom bool) (err error) {
 	sourceAccount, err := selectAccount(wallet)
 	if err != nil {
 		return err
@@ -113,13 +114,26 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			return
 		}
 
-		utxoSelection = bestSizedInput()
-		if manuallySelectInputs {
-			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal, utxoSelection)
-			if err != nil {
-				return err
+		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
+			switch strings.ToLower(input) {
+			case "":
+				return nil
+			case "a":
+				return nil
+			case "m":
+				return nil
 			}
+			return errors.New("invalid entry")
+		})
+		if err != nil {
+			return fmt.Errorf("error in reading choice: %s", err.Error())
 		}
+		if strings.ToLower(choice) == "a" || choice == "" {
+			utxoSelection = bestSizedInput()
+		} else {
+			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
+		}
+
 	}
 
 	passphrase, err := getWalletPassphrase()
@@ -134,7 +148,7 @@ func send(wallet walletcore.Wallet, custom bool, manuallySelectInputs bool) (err
 			if err != nil {
 				fmt.Println(fmt.Sprintf("Cannot extract address from output: %v", err))
 			}
-			fmt.Println(fmt.Sprintf(" %s from %s (%s)", output.Amount.String(), address, output.Amount.String()))
+			fmt.Println(fmt.Sprintf(" %s from %s", output.Amount.String(), address))
 		}
 		fmt.Println("and send it to")
 		for _, address := range destinationAddresses {
