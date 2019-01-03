@@ -19,7 +19,7 @@ import (
 func getTextInput(prompt string) (string, error) {
 	// printing the prompt with tabWriter to ensure adequate formatting of tabulated list of options
 	tabWriter := termio.StdoutWriter
-	fmt.Fprintln(tabWriter, prompt)
+	fmt.Fprint(tabWriter, prompt)
 	tabWriter.Flush()
 
 	reader := bufio.NewReader(os.Stdin)
