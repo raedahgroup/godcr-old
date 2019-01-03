@@ -7,11 +7,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/raedahgroup/dcrlibwallet"
-
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -267,6 +266,8 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 
 	for {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case err := <-errorCh:
 			return nil, err
 		case response, ok := <-responseCh:
@@ -283,34 +284,28 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 	return stakeInfo, nil
 }
 
-func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request walletcore.PurchaseTicketRequest) (ticketHashes []string, err error) {
+func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error) {
 	sendAmount, err := dcrutil.NewAmount(float64(request.SpendLimit))
 	if err != nil {
 		return nil, fmt.Errorf("invalid amount for spend limit: %s", err.Error())
 	}
-	response, err := lib.walletLib.PurchaseTickets(&dcrlibwallet.PurchaseTicketsRequest{
-		Account:               request.FromAccount,
-		Expiry:                request.Expiry,
-		NumTickets:            request.NumTickets,
-		Passphrase:            request.Passphrase,
-		PoolAddress:           request.PoolAddress,
-		PoolFees:              request.PoolFees,
-		RequiredConfirmations: request.MinConfirmations,
-		SpendLimit:            int64(sendAmount),
-		TicketAddress:         request.TicketAddress,
-		TicketFee:             request.TicketFee,
-		TxFee:                 request.TxFee,
-	})
+	request.SpendLimit = int64(sendAmount)
+
+	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if request.SpendLimit < ticketPrice.TicketPrice {
+		return nil, fmt.Errorf("insufficient funds: spend limit %v is less that ticket ticketPrice %v",
+			request.SpendLimit, ticketPrice)
+	}
+	response, err := lib.walletLib.PurchaseTickets(&request)
 	if err != nil {
 		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())
 	}
 	ticketHashes = make([]string, len(response))
 	for i, ticketHash := range response {
-		hash, err := chainhash.NewHash(ticketHash)
-		if err != nil {
-			return ticketHashes, fmt.Errorf("error purchasing tickets: %s", err.Error())
-		}
-		ticketHashes[i] = hash.String()
+		ticketHashes[i] = ticketHash
 	}
 	return ticketHashes, nil
 }
