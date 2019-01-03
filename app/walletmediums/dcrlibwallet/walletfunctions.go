@@ -258,10 +258,11 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 
 	total := data.OwnMempoolTix + data.Live + data.Immature + data.Unspent
 	stakeInfo := &walletcore.StakeInfo{
-		Total: total,
-		Immature: data.Immature,
-		Live: data.Live,
-		Unspent: data.Unspent,
+		Immature:      data.Immature,
+		Live:          data.Live,
+		OwnMempoolTix: data.OwnMempoolTix,
+		Total:         total,
+		Unspent:       data.Unspent,
 	}
 
 	responseCh, errorCh, err := lib.walletLib.GetTickets(&dcrlibwallet.GetTicketsRequest{})

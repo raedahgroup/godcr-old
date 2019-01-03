@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/raedahgroup/dcrlibwallet"
 	"io"
 	"sort"
+
+	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -377,11 +378,12 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 	}
 
 	stakeInfo := &walletcore.StakeInfo{
-		Immature: stakeInfoResponse.GetImmature(),
-		Live: stakeInfoResponse.Live,
-		Tickets: make([]walletcore.Ticket, 0),
-		Total: totalTickets,
-		Unspent: stakeInfoResponse.Unspent,
+		Immature:      stakeInfoResponse.Immature,
+		Live:          stakeInfoResponse.Live,
+		OwnMempoolTix: stakeInfoResponse.OwnMempoolTix,
+		Tickets:       make([]walletcore.Ticket, 0),
+		Total:         totalTickets,
+		Unspent:       stakeInfoResponse.Unspent,
 	}
 
 	for {
