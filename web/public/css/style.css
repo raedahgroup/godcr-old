@@ -78,6 +78,17 @@ body {
     font-size: 12px;
 }
 
+.collapsible-panel .card-header {
+    padding: 0 !important;
+}
+
+.collapsible-panel .btn-header {
+    padding: 10px 20px;
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
 
 .modal-content {
     border-radius: 0;

@@ -6,7 +6,7 @@ function validatePassphrase() {
     $(".passphrase-error").remove();
     var error = "";
 
-    var passphraseEl = $("#walletPassphrase");
+    var passphraseEl = $("#wallet-passphrase");
 
     if (passphraseEl.val() == "") {
         error = "Your wallet passphrase is required";
@@ -41,13 +41,13 @@ function validateSendForm() {
     $(".error").remove();
     var errors = {};
 
-    var sourceAccountEl = $("#sourceAccount");
+    var sourceAccountEl = $("#source-account");
     var amountEl = $("#amount");
-    var destinationAddressEl = $("#destinationAddress");
+    var destinationAddressEl = $("#destination-address");
     var isClean = true;
 
     if (sourceAccountEl.find(":selected").text() == "") {
-        errors["#sourceAccount"] = "The source account is required";
+        errors["#source-account"] = "The source account is required";
     }
 
     if (amountEl.val() == "") {
@@ -55,7 +55,7 @@ function validateSendForm() {
     }
 
     if (destinationAddressEl.val() == "") {
-        errors["#destinationAddress"] = "The destination address is required"
+        errors["#destination-address"] = "The destination address is required"
     }
 
     if (!$.isEmptyObject(errors)) {
@@ -81,8 +81,8 @@ function submitSendForm() {
             if (response.error) {
                 setErrorMessage(response.error)
             } else {
-                var txHash = "The transaction was published successfully. Hash: <strong>" + response.txHash + "</strong>";
-                setSuccessMessage(txHash)
+                var hash = "<strong>" + response.txHash + "</strong>";
+                setSuccessMessage(hash)
             }
         },
         error: function(error) {
@@ -141,14 +141,14 @@ function clearMessages() {
 
 function openCustomizePanel() {
     $("#customize-checkbox").prop("checked", false);
-    if (!$("#customize-panel").hasClass("show") && validateSendForm()) {
-        $("form .collapse").slideUp().removeClass("show");
+    if ((!$("#customize-panel").hasClass("show") || $("#customize-panel").css("display") == "none") && validateSendForm()) {
+        $("form .collapse").slideUp();
         $("#customize-panel").slideDown();
 
         $("#customize-checkbox").prop("checked", true);
         $("#customize-panel .status").show();
 
-        var account_number = $("#sourceAccount").find(":selected").val();
+        var account_number = $("#source-account").find(":selected").val();
         var callback = function(txs) {
             // populate outputs 
             var utxoHtml = txs.map(tx => {
@@ -170,7 +170,7 @@ function openCustomizePanel() {
 
 $(function(){
     $("#form-panel-card button").on("click", function(){
-        if (!$("#form-panel").hasClass("show")) {
+        if (!$("#form-panel").hasClass("show") || $("#form-panel").css("display") == "none") {
             $("form .collapse").slideUp().removeClass("show");
             $("#form-panel").slideDown();
         }

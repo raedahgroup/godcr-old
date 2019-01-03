@@ -73,9 +73,9 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	req.ParseForm()
 	utxos := req.Form["tx"]
 	amountStr := req.FormValue("amount")
-	selectedAccount := req.FormValue("sourceAccount")
-	destAddress := req.FormValue("destinationAddress")
-	passphrase := req.FormValue("walletPassphrase")
+	selectedAccount := req.FormValue("source-account")
+	destAddress := req.FormValue("destination-address")
+	passphrase := req.FormValue("wallet-passphrase")
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
