@@ -253,3 +253,30 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 	}
 	return selectedUtxos, nil
 }
+
+// bestSizedInput returns the smallest output or the least consecutive combination of
+// outputs that can handle a transaction of the supplied sendAmountTotal from the utxos
+func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) []*walletcore.UnspentOutput {
+	sort.Slice(utxos, func(i, j int) bool {
+		return utxos[i].Amount < utxos[j].Amount
+	})
+	for _, utxo := range utxos {
+		if utxo.Amount.ToCoin() > sendAmountTotal {
+			return []*walletcore.UnspentOutput{utxo}
+		}
+	}
+	for noOfPairs := 2; noOfPairs <= len(utxos); noOfPairs++ {
+		for i := 0; i < len(utxos); i++ {
+			var accumulatedAmount float64
+			var result []*walletcore.UnspentOutput
+			for j := i; j < i + noOfPairs && j < len(utxos); j++ {
+				result = append(result, utxos[j])
+				accumulatedAmount += utxos[j].Amount.ToCoin()
+				if accumulatedAmount >= sendAmountTotal {
+					return result
+				}
+			}
+		}
+	}
+	return utxos
+}
