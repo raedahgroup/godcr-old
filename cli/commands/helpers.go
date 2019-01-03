@@ -14,7 +14,6 @@ import (
 	"github.com/decred/dcrd/txscript"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
@@ -133,7 +132,7 @@ func getWalletPassphrase() (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64, defaultOptions []*walletcore.UnspentOutput) ([]*walletcore.UnspentOutput, error) {
+func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64) ([]*walletcore.UnspentOutput, error) {
 	var selectedUtxos []*walletcore.UnspentOutput
 	var err error
 
@@ -201,40 +200,6 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 		}
 
 		return nil
-	}
-
-	if len(defaultOptions) > 0 {
-		tabWriter := termio.StdoutWriter
-		fmt.Fprintln(tabWriter, "Best sized input for the transaction is ")
-		for index, utxo := range defaultOptions {
-			address, err := getAddressFromUnspentOutputsResult(utxo)
-			if err != nil {
-				return nil, fmt.Errorf("error reading address: %s", err.Error())
-			}
-			date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
-			txn, err := wallet.GetTransaction(utxo.TransactionHash)
-			if err != nil {
-				return nil, fmt.Errorf("error reading transaction: %s", err.Error())
-			}
-			fmt.Fprintln(tabWriter, fmt.Sprintf(" [%v]: %s (%s) \t %s \t %v confirmation(s)", (index+1), address, utxo.Amount.String(), date, txn.Confirmations))
-		}
-		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
-			switch strings.ToLower(input) {
-			case "":
-				return nil
-			case "a":
-				return nil
-			case "m":
-				return nil
-			}
-			return errors.New("invalid entry")
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error in reading choice: %s", err.Error())
-		}
-		if strings.ToLower(choice) == "a" || choice == "" {
-			return defaultOptions, nil
-		}
 	}
 
 	options := make([]string, len(utxos))
