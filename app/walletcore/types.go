@@ -88,9 +88,17 @@ type TransactionDetails struct {
 
 // StakeInfo holds ticket information summary related to the wallet.
 type StakeInfo struct {
-	Immature      uint32   `json:"immature"`
-	Live          uint32   `json:"live"`
-	OwnMempoolTix uint32   `json:"ownMempoolTix"`
-	Total         uint32   `json:"total"`
-	Unspent       uint32   `json:"unspent"`
+	AllMempoolTix uint32 `json:"allMempoolTix"`
+	Expired       uint32 `json:"expired"`
+	Immature      uint32 `json:"immature"`
+	Live          uint32 `json:"live"`
+	Missed        uint32 `json:"missed"`
+	OwnMempoolTix uint32 `json:"ownMempoolTix"`
+	Revoked       uint32 `json:"revoked"`
+	Total         uint32 `json:"total"`
+	Unspent       uint32 `json:"unspent"`
+
+	PoolSize     uint32 `json:"poolSize"`
+	Voted        uint32 `json:"voted"`
+	TotalSubsidy int64  `json:"totalSubsidy"`
 }

@@ -372,28 +372,32 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 	totalTickets := stakeInfo.OwnMempoolTix + stakeInfo.Live + stakeInfo.Immature + stakeInfo.Unspent
 
 	return &walletcore.StakeInfo{
+		Expired:       stakeInfo.Expired,
 		Immature:      stakeInfo.Immature,
 		Live:          stakeInfo.Live,
 		OwnMempoolTix: stakeInfo.OwnMempoolTix,
+		Revoked:       stakeInfo.Revoked,
 		Total:         totalTickets,
 		Unspent:       stakeInfo.Unspent,
 	}, nil
 }
 
-func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error) {
+func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	priceResponse, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket ticketPrice: %s", err.Error())
 	}
-	ticketPrice := priceResponse.GetTicketPrice()
-	request.SpendLimit = ticketPrice
+
 	balance, err := c.AccountBalance(request.Account)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
 	}
-	if balance.Spendable < dcrutil.Amount(ticketPrice) {
-		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v", balance.Spendable, ticketPrice)
+
+	if balance.Spendable < dcrutil.Amount(priceResponse.TicketPrice) {
+		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v",
+			balance.Spendable, priceResponse.TicketPrice)
 	}
+
 	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
 		Account:               request.Account,
 		Expiry:                request.Expiry,
@@ -402,7 +406,6 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 		PoolAddress:           request.PoolAddress,
 		PoolFees:              request.PoolFees,
 		RequiredConfirmations: request.RequiredConfirmations,
-		SpendLimit:            request.SpendLimit,
 		TicketAddress:         request.TicketAddress,
 		TicketFee:             request.TicketFee,
 		TxFee:                 request.TxFee,
@@ -410,7 +413,7 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 	if err != nil {
 		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())
 	}
-	ticketHashes = make([]string, len(response.GetTicketHashes()))
+	ticketHashes := make([]string, len(response.GetTicketHashes()))
 	for i, ticketHash := range response.GetTicketHashes() {
 		hash, err := chainhash.NewHash(ticketHash)
 		if err != nil {

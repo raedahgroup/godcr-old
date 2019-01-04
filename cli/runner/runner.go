@@ -32,7 +32,7 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 
 	// attempt to run the command by injecting walletMiddleware dependency
 	if commandRunner, ok := command.(WalletMiddlewareCommandRunner); ok {
-		return runner.processWalletMiddlewareCommand(commandRunner, options)
+		return commandRunner.Run(runner.ctx, runner.walletMiddleware)
 	}
 
 	// attempt to run the command by injecting wallet dependencies
@@ -53,18 +53,6 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 // The wallet is opened using the provided walletMiddleware, sync operations performed (if requested)
 // then, the command is executed using the Run method of the WalletCommandRunner interface
 func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, options config.CliOptions) error {
-	if err := prepareWallet(runner.ctx, runner.walletMiddleware, options); err != nil {
-		return err
-	}
-
-	return commandRunner.Run(runner.ctx, runner.walletMiddleware)
-}
-
-// processWalletCommand handles command execution for commands requiring access to the app.WalletMiddleware
-// Such commands must satisfy `WalletMiddlewareCommandRunner`.
-// The wallet is opened using the provided walletMiddleware, sync operations performed (if requested)
-// then, the command is executed using the Run method of the WalletMiddlewareCommandRunner interface
-func (runner CommandRunner) processWalletMiddlewareCommand(commandRunner WalletMiddlewareCommandRunner, options config.CliOptions) error {
 	if err := prepareWallet(runner.ctx, runner.walletMiddleware, options); err != nil {
 		return err
 	}

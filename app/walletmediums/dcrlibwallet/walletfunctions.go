@@ -232,7 +232,7 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 			Amount:        dcrutil.Amount(tx.Amount),
 			Fee:           dcrutil.Amount(tx.Fee),
 			Type:          tx.Type,
-			Direction:     txDirection(tx.Direction),
+			Direction:     txDirection(int32(tx.Direction)),
 			Timestamp:     tx.Timestamp,
 			FormattedTime: time.Unix(tx.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
@@ -258,9 +258,11 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 
 	total := data.OwnMempoolTix + data.Live + data.Immature + data.Unspent
 	stakeInfo := &walletcore.StakeInfo{
+		Expired:       data.Expired,
 		Immature:      data.Immature,
 		Live:          data.Live,
 		OwnMempoolTix: data.OwnMempoolTix,
+		Revoked:       data.Revoked,
 		Total:         total,
 		Unspent:       data.Unspent,
 	}
@@ -268,25 +270,21 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 	return stakeInfo, nil
 }
 
-func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error) {
-	sendAmount, err := dcrutil.NewAmount(float64(request.SpendLimit))
+func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	balance, err := lib.AccountBalance(request.Account)
 	if err != nil {
-		return nil, fmt.Errorf("invalid amount for spend limit: %s", err.Error())
+		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
 	}
-	request.SpendLimit = int64(sendAmount)
 
 	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
 	if err != nil {
 		return nil, err
 	}
-	request.SpendLimit = ticketPrice
-	response, err := lib.walletLib.PurchaseTickets(&request)
-	if err != nil {
-		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())
+
+	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice) {
+		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v",
+			balance.Spendable, ticketPrice.TicketPrice)
 	}
-	ticketHashes = make([]string, len(response))
-	for i, ticketHash := range response {
-		ticketHashes[i] = ticketHash
-	}
-	return ticketHashes, nil
+
+	return lib.walletLib.PurchaseTickets(ctx, &request)
 }
