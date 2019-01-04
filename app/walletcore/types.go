@@ -22,7 +22,6 @@ type Account struct {
 type UnspentOutput struct {
 	OutputKey       string         `json:"key"`
 	TransactionHash string         `json:"transaction_hash"`
-	Address         string         `json:"address"`
 	OutputIndex     uint32         `json:"output_index"`
 	Tree            int32          `json:"tree"`
 	ReceiveTime     int64          `json:"receive_time"`
