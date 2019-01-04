@@ -91,13 +91,6 @@ type StakeInfo struct {
 	Immature      uint32   `json:"immature"`
 	Live          uint32   `json:"live"`
 	OwnMempoolTix uint32   `json:"ownMempoolTix"`
-	Tickets       []Ticket `json:"tickets"`
 	Total         uint32   `json:"total"`
 	Unspent       uint32   `json:"unspent"`
-}
-
-// Ticket represents a ticket related to the wallet.
-type Ticket struct {
-	Hash   string
-	Status string
 }

@@ -265,28 +265,6 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 		Unspent:       data.Unspent,
 	}
 
-	responseCh, errorCh, err := lib.walletLib.GetTickets(&dcrlibwallet.GetTicketsRequest{})
-	if err != nil {
-		return nil, fmt.Errorf("error getting stake info: %v", err.Error())
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case err := <-errorCh:
-			return nil, err
-		case response, ok := <-responseCh:
-			if !ok {
-				break
-			}
-			stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{
-				Hash:   response.Ticket.Ticket.Hash.String(),
-				Status: response.TicketStatus.String(),
-			})
-		}
-	}
-
 	return stakeInfo, nil
 }
 
@@ -301,10 +279,7 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 	if err != nil {
 		return nil, err
 	}
-	if request.SpendLimit < ticketPrice.TicketPrice {
-		return nil, fmt.Errorf("insufficient funds: spend limit %v is less that ticket ticketPrice %v",
-			request.SpendLimit, ticketPrice)
-	}
+	request.SpendLimit = ticketPrice
 	response, err := lib.walletLib.PurchaseTickets(&request)
 	if err != nil {
 		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())

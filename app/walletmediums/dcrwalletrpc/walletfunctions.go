@@ -364,62 +364,29 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 }
 
 func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
-	stakeInfoResponse, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
+	stakeInfo, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
 
-	totalTickets := stakeInfoResponse.OwnMempoolTix +
-		stakeInfoResponse.Live + stakeInfoResponse.Immature + stakeInfoResponse.Unspent
+	totalTickets := stakeInfo.OwnMempoolTix + stakeInfo.Live + stakeInfo.Immature + stakeInfo.Unspent
 
-	ticketsResponse, err := c.walletService.GetTickets(ctx, &walletrpc.GetTicketsRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	stakeInfo := &walletcore.StakeInfo{
-		Immature:      stakeInfoResponse.Immature,
-		Live:          stakeInfoResponse.Live,
-		OwnMempoolTix: stakeInfoResponse.OwnMempoolTix,
-		Tickets:       make([]walletcore.Ticket, 0),
+	return &walletcore.StakeInfo{
+		Immature:      stakeInfo.Immature,
+		Live:          stakeInfo.Live,
+		OwnMempoolTix: stakeInfo.OwnMempoolTix,
 		Total:         totalTickets,
-		Unspent:       stakeInfoResponse.Unspent,
-	}
-
-	for {
-		response, err := ticketsResponse.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		ticketHash := response.GetTicket().GetTicket().GetHash()
-		ticketStatus := response.GetTicket().GetTicketStatus().String()
-		hash, err := chainhash.NewHash(ticketHash)
-		if err != nil {
-			return nil, err
-		}
-		stakeInfo.Tickets = append(stakeInfo.Tickets, walletcore.Ticket{Hash: hash.String(), Status: ticketStatus})
-	}
-
-	return stakeInfo, err
+		Unspent:       stakeInfo.Unspent,
+	}, nil
 }
 
 func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error) {
-	amount, err := dcrutil.NewAmount(float64(request.SpendLimit))
-	if err != nil {
-		return nil, fmt.Errorf("invalid amount for spend limit: %s", err.Error())
-	}
-	request.SpendLimit = int64(amount)
 	priceResponse, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket ticketPrice: %s", err.Error())
 	}
 	ticketPrice := priceResponse.GetTicketPrice()
-	if request.SpendLimit < ticketPrice {
-		return nil, fmt.Errorf("insufficient funds: spend limit %v is less that ticket ticketPrice %v", amount, ticketPrice)
-	}
+	request.SpendLimit = ticketPrice
 	balance, err := c.AccountBalance(request.Account)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
