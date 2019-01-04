@@ -218,3 +218,18 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	}
 	routes.render("history.html", data, res)
 }
+
+func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.Request) {
+	hash := chi.URLParam(req, "hash")
+	tx, err := routes.walletMiddleware.GetTransaction(hash)
+
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching transaction: %s", err.Error()), res)
+		return
+	}
+
+	data := map[string]interface{}{
+		"tx": tx,
+	}
+	routes.render("transaction_details.html", data, res)
+}
