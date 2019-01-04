@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mdp/qrterminal"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 // ReceiveCommand generates an address for a user to receive DCR.
@@ -54,7 +54,11 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	}
 
 	if printQR {
-		qrterminal.GenerateHalfBlock(receiveAddress, qrterminal.L, os.Stdout)
+		qr, err := qrcode.New(receiveAddress, qrcode.Medium)
+		if err != nil {
+			return fmt.Errorf("error generating QR code, %s", err.Error())
+		}
+		fmt.Fprintf(os.Stdout, qr.ToSmallString(true))
 	}
 
 	return nil
