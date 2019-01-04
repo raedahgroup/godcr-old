@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div>
+            <div class="container">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/history">History</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Transation Details</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container">
+                <h3>Transactions</h3>
+                <div class="row justify-content-between mb-4">
+                    <div class="col-lg-8">
+                        <table class="table m-0">
+                            <tbody>
+                                <tr>
+                                  <td>Confirmations</td>
+                                  <td>{{ .tx.Confirmations }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Hash</td>
+                                  <td>{{ .tx.Hash }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Block Hash</td>
+                                  <td>{{ .tx.BlockHash }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Direction</td>
+                                  <td>{{ .tx.Direction }}</td>
+                                </tr>
+                                <tr>
+                                  <td>Type</td>
+                                  <td>{{ .tx.Type }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                      </div>
+                    <div class="col-lg-4">
+                      <table class="table m-0">
+                          <tbody>
+                          <tr>
+                              <td>Amount</td>
+                              <td>{{ .tx.Amount }}</td>
+                          </tr>
+                          <tr>
+                              <td>Size</td>
+                              <td>{{ .tx.Size }}</td>
+                          </tr>
+                          <tr>
+                              <td>Fee</td>
+                              <td>{{ .tx.Fee }}</td>
+                          </tr>
+                          <tr>
+                              <td>Rate</td>
+                              <td>{{ .tx.Rate }}</td>
+                          </tr>
+                          <tr>
+                              <td>Time</td>
+                              <td>{{ .tx.FormattedTime }}</td>
+                          </tr>
+                          </tbody>
+                      </table>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 pb-3">
+                        <h3>Inputs</h3>
+                        <table class="table m-0">
+                            <thead>
+                                <tr>
+                                    <th>Previous Outpoint</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {{ range $txn := .tx.Inputs }}
+                            <tr>
+                                <td>{{ .PreviousOutpoint }}</td>
+                                <td>{{ .Amount }}</td>
+                            </tr>
+                            {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-lg-4">
+                        <h3>Outputs</h3>
+                        <table class="table m-0">
+                            <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Internal</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{ range $txn := .tx.Outputs }}
+                            <tr>
+                                <td>{{ .Address }}</td>
+                                <td>{{ .Internal }}</td>
+                                <td>{{ .Value }}</td>
+                            </tr>
+                            {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
