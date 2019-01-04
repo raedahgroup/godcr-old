@@ -24,7 +24,7 @@ type PurchaseTicketCommand struct {
 }
 
 type PurchaseTicketArgs struct {
-	Account string `required:"yes" positional-arg-name:"from-account"`
+	Account string `positional-arg-name:"from-account"`
 }
 
 func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
@@ -32,9 +32,12 @@ func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wall
 	if err != nil {
 		return err
 	}
-	account, err := wallet.AccountNumber(ptc.Args.Account)
-	if err != nil {
-		return err
+	var account uint32
+	if ptc.Args.Account != "" {
+		account, err = wallet.AccountNumber(ptc.Args.Account)
+		if err != nil {
+			return err
+		}
 	}
 	tickets, err := wallet.PurchaseTicket(ctx, dcrlibwallet.PurchaseTicketsRequest{
 		TxFee:                 ptc.TxFee,
