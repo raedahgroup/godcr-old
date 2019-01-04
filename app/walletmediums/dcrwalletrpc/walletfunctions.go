@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/decred/dcrwallet/wallet"
+	"github.com/labstack/gommon/log"
 	"io"
 	"sort"
 
@@ -18,7 +20,7 @@ import (
 
 // ideally, we should let user provide this info in settings and use the user provided value
 // using a constant now to make it easier to update the code where this value is required/used
-const requiredConfirmations = 0
+	const requiredConfirmations = 0
 
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
@@ -324,18 +326,25 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error
 }
 
 func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+	ctx := context.Background()
+
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
 	}
 	getTxRequest := &walletrpc.GetTransactionRequest{TransactionHash: hash[:]}
-	getTxResponse, err := c.walletService.GetTransaction(context.Background(), getTxRequest)
+	getTxResponse, err := c.walletService.GetTransaction(ctx, getTxRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	transactionHex := fmt.Sprintf("%x", getTxResponse.GetTransaction().GetTransaction())
-	msgTx, err := txhelpers.MsgTxFromHex(transactionHex)
+	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
+	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
+		return &txhelper.AddressInfo{
+			Address: address,
+		}
+	}
+	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, getWalletAddressInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -344,19 +353,21 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
-	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
-	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
+	transaction.Fee, transaction.FeeRate, transaction.Size = decodedTx.Fee, decodedTx.FeeRate, decodedTx.Size
 
-	credits := getTxResponse.GetTransaction().GetCredits()
-	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, credits, c.activeNet)
-	if err != nil {
-		return nil, err
+	var blockHeight int32 = -1
+	if getTxResponse.BlockHash != nil {
+		blockInfo, err := c.walletService.BlockInfo(ctx, &walletrpc.BlockInfoRequest{BlockHash: getTxResponse.BlockHash})
+		if err == nil {
+			blockHeight = blockInfo.BlockHeight
+		}
 	}
+
 	return &walletcore.TransactionDetails{
-		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
+		BlockHeight:   blockHeight,
 		Confirmations: getTxResponse.GetConfirmations(),
 		Transaction:   transaction,
-		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
-		Outputs:       txOutputs,
+		Inputs:        decodedTx.Inputs,
+		Outputs:       decodedTx.Outputs,
 	}, nil
 }

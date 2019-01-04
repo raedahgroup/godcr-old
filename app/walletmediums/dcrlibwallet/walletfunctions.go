@@ -215,22 +215,21 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 		return nil, err
 	}
 
-	txDirection := func(direction int32) walletcore.TransactionDirection {
-		if direction < int32(walletcore.TransactionDirectionUnclear) {
-			return walletcore.TransactionDirection(direction)
-		} else {
-			return walletcore.TransactionDirectionUnclear
-		}
-	}
-
 	transactions := make([]*walletcore.Transaction, len(txs))
 	for i, tx := range txs {
+		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Transaction)
+		if err != nil {
+			return nil, err
+		}
+
 		transactions[i] = &walletcore.Transaction{
 			Hash:          tx.Hash,
 			Amount:        dcrutil.Amount(tx.Amount),
-			Fee:           dcrutil.Amount(tx.Fee),
+			Fee:           txFee,
+			FeeRate: txFeeRate,
+			Size: txSize,
 			Type:          tx.Type,
-			Direction:     txDirection(tx.Direction),
+			Direction:     tx.Direction,
 			Timestamp:     tx.Timestamp,
 			FormattedTime: time.Unix(tx.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
@@ -245,5 +244,44 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 }
 
 func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
-	return nil, fmt.Errorf("not implemented")
+	hash, err := chainhash.NewHashFromStr(transactionHash)
+	if err != nil {
+		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
+	}
+
+	txInfo, err := lib.walletLib.GetTransactionRaw(hash[:])
+	if err != nil {
+		return nil, err
+	}
+
+	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
+	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
+		return &txhelper.AddressInfo{
+			Address: address,
+		}
+	}
+	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, getWalletAddressInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := &walletcore.Transaction{
+		Hash: txInfo.Hash,
+		Amount: dcrutil.Amount(txInfo.Amount),
+		FormattedTime: time.Unix(txInfo.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		Timestamp: txInfo.Timestamp,
+		Fee: dcrutil.Amount(decodedTx.Fee),
+		Direction: txInfo.Direction,
+		Type: txInfo.Type,
+		FeeRate: decodedTx.FeeRate,
+		Size: decodedTx.Size,
+	}
+
+	return &walletcore.TransactionDetails{
+		BlockHeight: txInfo.BlockHeight,
+		Confirmations: txInfo.Confirmations,
+		Transaction:   tx,
+		Inputs:        decodedTx.Inputs,
+		Outputs:       decodedTx.Outputs,
+	}, nil
 }
