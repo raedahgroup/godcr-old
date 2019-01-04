@@ -54,6 +54,7 @@ type UnspentOutput struct {
 	ReceiveTime     int64          `json:"receive_time"`
 	Amount          dcrutil.Amount `json:"amount"`
 	Address         string         `json:"address"`
+	Confirmations   int32          `json:"confirmations"`
 }
 
 type Transaction struct {

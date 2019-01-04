@@ -2,8 +2,6 @@ module github.com/raedahgroup/godcr
 
 require (
 	github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d
-	github.com/btcsuite/go-flags v0.0.0-20150116065318-6c288d648c1c
-	github.com/davecgh/go-spew v1.1.0
 	github.com/decred/dcrd/chaincfg v1.2.0
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/dcrd/dcrutil v1.2.0
