@@ -63,9 +63,17 @@
 {{ end }}
 
 {{ define "footer" }}
-<div class="footer">
-    <div class="inner">
-        <div class="text-center"></div>
-    </div>
-</div>
+<script>
+    $(function(){
+        var pathname = window.location.pathname;
+        var paths = pathname.split("/")
+        var currentNavItem = "#nav-balance";
+
+        if (pathname != "/" && paths.length > 1) {
+            currentNavItem = "#nav-" + paths[1];
+        }
+
+        $(currentNavItem).addClass("active");
+    });
+</script>
 {{ end }}
