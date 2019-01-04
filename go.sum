@@ -194,8 +194,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/raedahgroup/dcrlibwallet v0.0.0-20190103100403-47981b2244f5 h1:q2pB2pCDO06L4S7bvc2J4rq9kglaCgymgDivcRM0HxQ=
 github.com/raedahgroup/dcrlibwallet v0.0.0-20190103100403-47981b2244f5/go.mod h1:kOO8MdS+yjcP0qGf3SFfQ/SRfD/bVGqEgI3b2nTU4eg=
-github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8 h1:5C4yAeYifeRO+7z2/H2kxL8tJZE9ZE9LpxK6YUZPByo=
-github.com/skip2/go-qrcode v0.0.0-20171229120447-cf5f9fa2f0d8/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222 h1:sCdJJKtlGjmEEB63eFNbWFUwD+0/7HE383eLsyX5VVs=
 github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
