@@ -101,14 +101,15 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 		}
 
 		if _, addressExists := sendAmounts[destinationAddress]; addressExists {
-			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount", destinationAddress)
-			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "Y")
+			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount?", destinationAddress)
+			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "N")
 			if err != nil {
 				return nil, fmt.Errorf("error receiving input: %s", err.Error())
 			}
 			if !changeAmountConfirmed {
 				continue
 			}
+			index--
 		} else {
 			destinationAddresses = append(destinationAddresses, destinationAddress)
 		}
@@ -163,10 +164,7 @@ func getWalletPassphrase() (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64) ([]*walletcore.UnspentOutput, error) {
-	var selectedUtxos []*walletcore.UnspentOutput
-	var err error
-
+func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, err error) {
 	var removeWhiteSpace = func(str string) string {
 		return strings.Map(func(r rune) rune {
 			if unicode.IsSpace(r) {
@@ -239,11 +237,7 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 	})
 	for index, utxo := range utxos {
 		date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
-		txn, err := wallet.GetTransaction(utxo.TransactionHash)
-		if err != nil {
-			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
-		}
-		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", utxo.Address, utxo.Amount.String(), date, txn.Confirmations)
+		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", utxo.Address, utxo.Amount.String(), date, utxo.Confirmations)
 	}
 
 	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)
@@ -269,7 +263,7 @@ func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) 
 		for i := 0; i < len(utxos); i++ {
 			var accumulatedAmount float64
 			var result []*walletcore.UnspentOutput
-			for j := i; j < i + noOfPairs && j < len(utxos); j++ {
+			for j := i; j < i+noOfPairs && j < len(utxos); j++ {
 				result = append(result, utxos[j])
 				accumulatedAmount += utxos[j].Amount.ToCoin()
 				if accumulatedAmount >= sendAmountTotal {

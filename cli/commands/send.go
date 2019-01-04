@@ -55,7 +55,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
-		return fmt.Errorf("Selected account has low balance. Cannot proceed")
+		return fmt.Errorf("Selected account has insufficient balance. Cannot proceed")
 	}
 
 	var utxoSelection []*walletcore.UnspentOutput
@@ -69,11 +69,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 
 		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
 			switch strings.ToLower(input) {
-			case "":
-				return nil
-			case "a":
-				return nil
-			case "m":
+			case "", "a", "m":
 				return nil
 			}
 			return errors.New("invalid entry")
@@ -94,13 +90,13 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	}
 
 	if custom {
-		fmt.Println("You are about to spend the input")
+		fmt.Println("You are about to spend the input(s)")
 		for _, output := range utxoSelection {
 			fmt.Println(fmt.Sprintf(" %s from %s", output.Amount.String(), output.Address))
 		}
-		fmt.Println("and send it to")
-		for _, destinatoin := range sendDestinations {
-			fmt.Println(fmt.Sprintf(" %v DCR to %s", destinatoin.Amount, destinatoin.Address))
+		fmt.Println("and send")
+		for _, destination := range sendDestinations {
+			fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
 		}
 	} else {
 		if len(sendDestinations) == 1 {
@@ -113,7 +109,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		}
 	}
 
-	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Are you sure?", "")
+	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to broadcast it?", "")
 	if err != nil {
 		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
