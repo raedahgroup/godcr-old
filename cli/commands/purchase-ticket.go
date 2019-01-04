@@ -2,8 +2,9 @@ package commands
 
 import (
 	"context"
-	"github.com/raedahgroup/dcrlibwallet"
 	"strings"
+
+	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -23,8 +24,7 @@ type PurchaseTicketCommand struct {
 }
 
 type PurchaseTicketArgs struct {
-	Account    string `required:"yes" positional-arg-name:"from-account"`
-	SpendLimit int64  `required:"yes" positional-arg-name:"spend-limit"`
+	Account string `required:"yes" positional-arg-name:"from-account"`
 }
 
 func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
@@ -40,7 +40,6 @@ func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wall
 		TxFee:                 ptc.TxFee,
 		TicketFee:             ptc.TicketFee,
 		TicketAddress:         ptc.TicketAddress,
-		SpendLimit:            ptc.Args.SpendLimit,
 		RequiredConfirmations: ptc.MinConfirmations,
 		PoolFees:              ptc.PoolFees,
 		PoolAddress:           ptc.PoolAddress,

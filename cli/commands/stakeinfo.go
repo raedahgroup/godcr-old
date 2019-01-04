@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
@@ -24,21 +22,16 @@ func (g StakeInfoCommand) Run(ctx context.Context, wallet app.WalletMiddleware) 
 	if stakeInfo == nil {
 		return errors.New("no tickets in wallet")
 	}
-	output := strings.Builder{}
-	output.WriteString(fmt.Sprintf("\nStake Info\n"+"Total tickets:\t%d\n", stakeInfo.Total))
+	output := fmt.Sprintf("stake info for wallet:\n" + "total %d  ", stakeInfo.Total)
 	if stakeInfo.Immature > 0 {
-		output.WriteString(fmt.Sprintf("Immature:\t%d\n", stakeInfo.Immature))
+		output += fmt.Sprintf("immature %d  ", stakeInfo.Immature)
 	}
 	if stakeInfo.Unspent > 0 {
-		output.WriteString(fmt.Sprintf("Live:\t%d\n", stakeInfo.Unspent))
+		output += fmt.Sprintf("live %d  ", stakeInfo.Unspent)
 	}
 	if stakeInfo.OwnMempoolTix > 0 {
-		output.WriteString(fmt.Sprintf("Unmined:\t%d\n", stakeInfo.OwnMempoolTix))
+		output += fmt.Sprintf("unmined %d", stakeInfo.OwnMempoolTix)
 	}
-	output.WriteString("\nTickets\n")
-	for _, ticket := range stakeInfo.Tickets {
-		output.WriteString(fmt.Sprintf("%s\t%s\n", ticket.Hash, ticket.Status))
-	}
-	termio.PrintStringResult(strings.TrimSpace(output.String()))
+	termio.PrintStringResult(output)
 	return nil
 }
