@@ -179,13 +179,16 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
+		amount := dcrutil.Amount(utxo.Amount)
+
 		unspentOutput := &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
 			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
-			Amount:          dcrutil.Amount(utxo.Amount),
+			Amount:          amount,
+			FormattedAmount: amount.ToCoin(),
 		}
 		unspentOutputs = append(unspentOutputs, unspentOutput)
 	}

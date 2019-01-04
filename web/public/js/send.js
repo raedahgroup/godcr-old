@@ -36,6 +36,15 @@ function getWalletPassphraseAndSubmit() {
 /**==================================================================*
  *                  SEND PAGE FUNCTIONS                              *
  *===================================================================*/
+function validateAmountField() {
+    var amountEl = $("#amount");
+    if (amountEl.val() == "") {
+        amountEl.after("<div class='error'>Please enter an amount first</div>");
+        return false;
+    }
+
+    return true;
+}
 function validateSendForm() {
     // clear errors first
     $(".error").remove();
@@ -58,6 +67,11 @@ function validateSendForm() {
         errors["#destination-address"] = "The destination address is required"
     }
 
+    var isCustomTransaction = $("#use-custom").prop("checked")?true:false;
+    if (isCustomTransaction && (getSelectedInputsSum() < amountEl.val())) { 
+        errors["#custom-tx-row .alert-info"] = "The sum of selected inputs is less than send amount";
+    }
+
     if (!$.isEmptyObject(errors)) {
         isClean = false;
         for (var i in errors) {
@@ -66,6 +80,16 @@ function validateSendForm() {
     }
 
     return isClean;
+}
+
+
+function getSelectedInputsSum() {
+    var sum = 0;
+    $(".custom-input:checked").each(function(){
+       sum += $(this).data("amount");
+    });
+
+    return sum
 }
 
 function submitSendForm() {
@@ -139,53 +163,81 @@ function clearMessages() {
     $(".alert-danger").hide();
 }
 
-function openCustomizePanel() {
-    $("#customize-checkbox").prop("checked", false);
-    if ((!$("#customize-panel").hasClass("show") || $("#customize-panel").css("display") == "none") && validateSendForm()) {
-        $("form .collapse").slideUp();
-        $("#customize-panel").slideDown();
+function resetCustomizePanel() {
+    $("#custom-tx-row tbody").empty();
+    $("#custom-tx-row .status").show();
+    $("#custom-tx-row .alert-danger").remove();
+}
 
-        $("#customize-checkbox").prop("checked", true);
-        $("#customize-panel .status").show();
+function calculateSelectedInputPercentage() {
+    var sendAmount = $("#amount").val();
+    var selectedInputSum = getSelectedInputsSum();
+    var percentage = 0;
 
-        var account_number = $("#source-account").find(":selected").val();
-        var callback = function(txs) {
-            // populate outputs 
-            var utxoHtml = txs.map(tx => {
-                var receiveDateTime = new Date(tx.receive_time * 1000)
-                return  "<tr>" + 
-                            "<td width='5%'><input type='checkbox' name='tx' value="+ tx.key+" /></td>" +
-                            "<td width='60%'>" + tx.key + "</td>" + 
-                            "<td width='15%'>" + tx.amount_string + "</td>" + 
-                            "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
-                        "</tr>"
-            });
-            $("#customize-panel tbody").html(utxoHtml.join('\n'));
-            $("#customize-panel .status").hide();
-        }
-        getUnspentOutputs(account_number, callback);
+    if (selectedInputSum >= sendAmount) {
+        percentage = 100;
+    } else {
+        percentage = (selectedInputSum / sendAmount) * 100;
     }
+
+    $("#custom-tx-row .progress-bar").css("width", percentage+"%");
+}
+
+function openCustomizePanel() {
+    $("#custom-tx-row").removeClass("d-none");
+    resetCustomizePanel();
+   
+    var account_number = $("#source-account").find(":selected").val();
+    var callback = function(txs) {
+        // populate outputs 
+        var utxoHtml = txs.map(tx => {
+            var receiveDateTime = new Date(tx.receive_time * 1000)
+            return  "<tr>" + 
+                        "<td width='5%'><input type='checkbox' class='custom-input' name='tx' value="+ tx.key+" data-amount='" + tx.formatted_amount + "' /></td>" +
+                        "<td width='50%'>" + tx.key + "</td>" + 
+                        "<td width='20%'>" + tx.formatted_amount + "</td>" + 
+                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
+                    "</tr>"
+        });
+        $("#custom-tx-row tbody").html(utxoHtml.join('\n'));
+        $("#custom-tx-row .status").hide();
+
+        // register check listener 
+        $(".custom-input").on("click", function(){
+           calculateSelectedInputPercentage();
+        });
+
+        $("#amount").on("keyup", function(){
+            validateAmountField();
+            calculateSelectedInputPercentage();
+        });
+    }
+    getUnspentOutputs(account_number, callback);
 }
 
 
 $(function(){
-    $("#form-panel-card button").on("click", function(){
-        if (!$("#form-panel").hasClass("show") || $("#form-panel").css("display") == "none") {
-            $("form .collapse").slideUp().removeClass("show");
-            $("#form-panel").slideDown();
-        }
-    });
-
-    $("#customize-panel-card button").on("click", function(){
-        openCustomizePanel();
-    });
-
-    $("#customize-checkbox").on("change", function(){
+    $("#use-custom").on("change", function(){
         if (this.checked) {
-            openCustomizePanel();
+            if (validateAmountField()) {
+                openCustomizePanel();
+            } else {
+                $(this).prop("checked", false);
+            }
+        } else {
+            resetCustomizePanel();
+            $("#custom-tx-row").addClass("d-none");
         }
-    })
+    });
 
+    // clear validation errors on type 
+    $("input[type=text], input[type=number]").each(function(){
+        $(this).on("keyup", function(){
+            if ($(this).val() != "") {
+                $(this).next(".error").remove();
+            }
+        });
+    });
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
