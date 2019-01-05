@@ -153,7 +153,11 @@ func getSendAmount() (float64, error) {
 
 // getWalletPassphrase fetches the user's wallet passphrase from the user.
 func getWalletPassphrase() (string, error) {
-	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
+	return getWalletPassphraseWithPrompt("Wallet passphrase")
+}
+
+func getWalletPassphraseWithPrompt(promptMessage string) (string, error) {
+	result, err := terminalprompt.RequestInputSecure(promptMessage, terminalprompt.EmptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}

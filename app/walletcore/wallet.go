@@ -54,13 +54,13 @@ type Wallet interface {
 	// TransactionHistory
 	TransactionHistory() ([]*Transaction, error)
 
-	// GetTransaction returns information about the transaction witht the given hash.
+	// GetTransaction returns information about the transaction with the given hash.
 	// An error is returned if the no transaction with the given hash is found.
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
 
 	// StakeInfo returns information about wallet stakes, tickets and their statuses.
 	StakeInfo(ctx context.Context) (*StakeInfo, error)
 
-	// PurchaseTicket is used to purchase tickets.
-	PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
+	// PurchaseTickets is used to purchase tickets.
+	PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
 }
