@@ -22,25 +22,10 @@ func (g StakeInfoCommand) Run(ctx context.Context, wallet walletcore.Wallet) err
 	if stakeInfo == nil {
 		return errors.New("no tickets in wallet")
 	}
-	output := fmt.Sprintf("stake info for wallet:\n"+"total %d  ", stakeInfo.Total)
-	if stakeInfo.Expired > 0 {
-		output += fmt.Sprintf("expired %d  ", stakeInfo.Expired)
-	}
-	if stakeInfo.Immature > 0 {
-		output += fmt.Sprintf("immature %d  ", stakeInfo.Immature)
-	}
-	if stakeInfo.Live > 0 {
-		output += fmt.Sprintf("live %d  ", stakeInfo.Live)
-	}
-	if stakeInfo.Revoked > 0 {
-		output += fmt.Sprintf("revoked %d  ", stakeInfo.Revoked)
-	}
-	if stakeInfo.OwnMempoolTix > 0 {
-		output += fmt.Sprintf("unmined %d", stakeInfo.OwnMempoolTix)
-	}
-	if stakeInfo.Unspent > 0 {
-		output += fmt.Sprintf("unspent %d  ", stakeInfo.Unspent)
-	}
+	output := fmt.Sprintf("stake info for wallet:\n"+
+		"expired %d  immature %d  live %d  revoked %d  unmined %d  unspent %d  ",
+		stakeInfo.Expired, stakeInfo.Immature, stakeInfo.Live, stakeInfo.Revoked,
+		stakeInfo.OwnMempoolTix, stakeInfo.Unspent)
 	termio.PrintStringResult(output)
 	return nil
 }
