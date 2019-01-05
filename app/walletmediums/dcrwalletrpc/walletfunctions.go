@@ -14,6 +14,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"google.golang.org/grpc/codes"
 )
 
 // ideally, we should let user provide this info in settings and use the user provided value
@@ -362,7 +363,9 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	}
 	getTxRequest := &walletrpc.GetTransactionRequest{TransactionHash: hash[:]}
 	getTxResponse, err := c.walletService.GetTransaction(ctx, getTxRequest)
-	if err != nil {
+	if isRpcErrorCode(err, codes.NotFound) {
+		return nil, fmt.Errorf("transaction not found")
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -379,6 +382,7 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 
 	var blockHeight int32 = -1
 	if getTxResponse.BlockHash != nil {
+		//fmt.Printf("%x\n", getTxResponse.GetBlockHash())
 		blockInfo, err := c.walletService.BlockInfo(ctx, &walletrpc.BlockInfoRequest{BlockHash: getTxResponse.BlockHash})
 		if err == nil {
 			blockHeight = blockInfo.BlockHeight
