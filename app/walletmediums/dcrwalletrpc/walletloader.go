@@ -8,7 +8,6 @@ import (
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/godcr/app"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (c *WalletPRCClient) NetType() string {
@@ -62,12 +61,8 @@ func (c *WalletPRCClient) OpenWallet() (err error) {
 	}()
 
 	_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
-	if err != nil {
-		if e, ok := status.FromError(err); ok && e.Code() == codes.AlreadyExists {
-			// wallet already open
-			err = nil
-		}
-		return err
+	if isRpcErrorCode(err, codes.AlreadyExists) {
+		err = nil
 	}
 	return
 }
