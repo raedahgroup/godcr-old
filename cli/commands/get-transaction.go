@@ -68,7 +68,7 @@ func (showTxCommand ShowTransactionCommand) Run(wallet walletcore.Wallet) error 
 			for _, address := range out.Addresses {
 				accountName := address.AccountName
 				if !address.IsMine {
-					accountName = "External"
+					accountName = "external"
 				}
 				detailedOutput.WriteString(fmt.Sprintf("\t%s (%s)\n", address.Address, accountName))
 			}

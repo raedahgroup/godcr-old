@@ -11,6 +11,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -96,6 +97,49 @@ func (c *WalletPRCClient) AccountNumber(accountName string) (uint32, error) {
 	return r.AccountNumber, nil
 }
 
+func (c *WalletPRCClient) AccountName(accountNumber uint32) (string, error) {
+	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, account := range accounts.Accounts {
+		if account.AccountNumber == accountNumber {
+			return account.AccountName, nil
+		}
+	}
+
+	return "", fmt.Errorf("Account not found")
+}
+
+func (c *WalletPRCClient) AddressInfo(address string) (*txhelper.AddressInfo, error) {
+	req := &walletrpc.ValidateAddressRequest{
+		Address: address,
+	}
+
+	addressValidationResult, err := c.walletService.ValidateAddress(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	addressInfo := &txhelper.AddressInfo{
+		IsMine: addressValidationResult.IsMine,
+		Address: address,
+	}
+	if addressValidationResult.IsMine {
+		addressInfo.AccountNumber = addressValidationResult.AccountNumber
+		addressInfo.AccountName, _ = c.AccountName(addressValidationResult.AccountNumber)
+	}
+
+	return addressInfo, nil
+}
+
+// ValidateAddress tries to decode an address for the given network params, if error is encountered, address is not valid
+func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
+	_, err := addresshelper.DecodeForNetwork(address, c.activeNet)
+	return err == nil, nil
+}
+
 func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error) {
 	req := &walletrpc.NextAddressRequest{
 		Account:   account,
@@ -109,19 +153,6 @@ func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error)
 	}
 
 	return nextAddress.Address, nil
-}
-
-func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
-	req := &walletrpc.ValidateAddressRequest{
-		Address: address,
-	}
-
-	validationResult, err := c.walletService.ValidateAddress(context.Background(), req)
-	if err != nil {
-		return false, err
-	}
-
-	return validationResult.IsValid, nil
 }
 
 func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
@@ -337,9 +368,13 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 
 	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
 	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
-		return &txhelper.AddressInfo{
-			Address: address,
+		addressInfo, err := c.AddressInfo(address)
+		if err != nil {
+			return &txhelper.AddressInfo{
+				Address: address,
+			}
 		}
+		return addressInfo
 	}
 	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, getWalletAddressInfo)
 	if err != nil {
