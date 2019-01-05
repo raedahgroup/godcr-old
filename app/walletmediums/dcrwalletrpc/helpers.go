@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"math"
 	"time"
 
@@ -93,7 +94,7 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 	return tx, nil
 }
 
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletcore.TransactionDirection) {
+func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, txhelper.TransactionDirection) {
 	var outputAmounts int64
 	for _, credit := range txDetail.Credits {
 		outputAmounts += int64(credit.Amount)
@@ -105,24 +106,24 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	var amount int64
-	var direction walletcore.TransactionDirection
+	var direction txhelper.TransactionDirection
 
 	if txDetail.TransactionType == walletrpc.TransactionDetails_REGULAR {
 		amountDifference := outputAmounts - inputAmounts
 		if amountDifference < 0 && (float64(txDetail.Fee) == math.Abs(float64(amountDifference))) {
 			// transferred internally, the only real amount spent was transaction fee
-			direction = walletcore.TransactionDirectionTransferred
+			direction = txhelper.TransactionDirectionTransferred
 			amount = int64(txDetail.Fee)
 		} else if amountDifference > 0 {
 			// received
-			direction = walletcore.TransactionDirectionReceived
+			direction = txhelper.TransactionDirectionReceived
 
 			for _, credit := range txDetail.Credits {
 				amount += int64(credit.Amount)
 			}
 		} else {
 			// sent
-			direction = walletcore.TransactionDirectionSent
+			direction = txhelper.TransactionDirectionSent
 
 			for _, debit := range txDetail.Debits {
 				amount += int64(debit.PreviousAmount)
