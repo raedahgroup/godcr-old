@@ -262,17 +262,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
-	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
-	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
-		addressInfo, err := lib.walletLib.AddressInfo(address)
-		if err != "" {
-			return &txhelper.AddressInfo{
-				Address: address,
-			}
-		}
-		return addressInfo
-	}
-	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, getWalletAddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, lib.walletLib.AddressInfo)
 	if err != nil {
 		return nil, err
 	}
