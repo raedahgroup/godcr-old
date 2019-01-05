@@ -47,3 +47,8 @@ type TransactionDetails struct {
 	Outputs       []*txhelper.DecodedOutput `json:"outputs"`
 	*Transaction
 }
+
+type Ticket struct {
+	Ticket Transaction `json:"ticket"`
+	Status string      `json:"status"`
+}

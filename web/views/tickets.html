@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Hash</th>
+                            <th>Amount</th>
+                            <th>Fee</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                    </tbody>
+                </table>
+                <div id="fetching">
+                    <span>Fetching data...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function(){
+            var lastResponseLength = false;
+            $.ajax({
+                url: "/tickets/data",
+                method: "GET",
+                data: {},
+                dataType: 'json',
+                processData: false,
+                xhrFields: {
+                    onprogress: function(e) {
+                        if ($("#fetching").length > 0) {
+                            $("#fetching").remove();
+                        }
+
+                        var progressResponse;
+                        var response = e.currentTarget.response;
+                        if(lastResponseLength === false) {
+                            progressResponse = response;
+                            lastResponseLength = response.length;
+                        } else {
+                            progressResponse = response.substring(lastResponseLength);
+                            lastResponseLength = response.length;
+                        }
+                        var response = JSON.parse(progressResponse);
+                        var row = "<tr>" + 
+                                    "<td>" + response.message.ticket.hash + "</td>" +
+                                    "<td>" + response.message.ticket.amount + "</td>" +
+                                    "<td>" + response.message.ticket.fee + "</td>" +
+                                    "<td>" + response.message.status + "</td>" +
+                                    "<td>" + response.message.ticket.formatted_time + "</td>" +
+                                "</tr>"
+                        
+                        $("tbody").append(row);
+
+                    }
+                }
+            })
+        })
+    </script>
+</body>
+</html>

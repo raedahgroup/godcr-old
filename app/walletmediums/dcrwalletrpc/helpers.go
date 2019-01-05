@@ -56,6 +56,32 @@ func (c *WalletPRCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
+func processTicket(ticketDetail *pb.GetTicketsResponse) (*Ticket, error) {
+	hash, err := chainhash.NewHash(ticketDetail.Ticket.Ticket.Hash)
+	if err != nil {
+		return nil, err
+	}
+
+	amount := int64(0)
+
+	for _, debit := range ticketDetail.Ticket.Ticket.Debits {
+		amount += debit.PreviousAmount
+	}
+
+	ticket := &Ticket{
+		Ticket: Transaction{
+			Hash:          hash.String(),
+			Amount:        dcrutil.Amount(amount).ToCoin(),
+			Fee:           dcrutil.Amount(ticketDetail.Ticket.Ticket.Fee).ToCoin(),
+			Timestamp:     ticketDetail.Ticket.Ticket.Timestamp,
+			FormattedTime: time.Unix(ticketDetail.Ticket.Ticket.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		},
+		Status: pb.GetTicketsResponse_TicketDetails_TicketStatus_name[int32(ticketDetail.Ticket.TicketStatus)],
+	}
+
+	return ticket, nil
+}
+
 func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*walletcore.Transaction, error) {
 	transactions := make([]*walletcore.Transaction, 0, len(transactionDetails))
 

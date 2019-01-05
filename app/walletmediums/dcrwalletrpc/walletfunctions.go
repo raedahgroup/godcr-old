@@ -396,3 +396,36 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		Outputs:       decodedTx.Outputs,
 	}, nil
 }
+
+func (c *Client) GetTickets(resultChan chan *Ticket) error {
+	req := &pb.GetTicketsRequest{}
+
+	defer func() {
+		close(resultChan)
+	}()
+
+	stream, err := c.walletService.GetTickets(context.Background(), req)
+	if err != nil {
+		return err
+	}
+
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		ticket, err := c.processTicket(in)
+		if err != nil {
+			continue
+		}
+
+		resultChan <- ticket
+	}
+
+	return nil
+}

@@ -63,4 +63,6 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/generate-address/{accountNumber}", routes.generateReceiveAddress)
 	router.Get("/unspent-outputs/{accountNumber}", routes.getUnspentOutputs)
 	router.Get("/history", routes.historyPage)
+	router.Get("/tickets", routes.ticketsPage)
+	router.Get("/tickets/data", routes.getTicketsAjax)
 }
