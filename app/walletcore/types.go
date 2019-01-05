@@ -2,35 +2,8 @@ package walletcore
 
 import (
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
-
-var (
-	transactionDirectionNames = []string{"Sent", "Received", "Transferred", "Unclear"}
-)
-
-const (
-	// TransactionDirectionSent for transactions sent to external address(es) from wallet
-	TransactionDirectionSent TransactionDirection = iota
-
-	// TransactionDirectionReceived for transactions received from external address(es) into wallet
-	TransactionDirectionReceived
-
-	// TransactionDirectionTransferred for transactions sent from wallet to internal address(es)
-	TransactionDirectionTransferred
-
-	// TransactionDirectionUnclear for unrecognized transaction directions
-	TransactionDirectionUnclear
-)
-
-type TransactionDirection int8
-
-func (direction TransactionDirection) String() string {
-	if direction <= TransactionDirectionUnclear {
-		return transactionDirectionNames[direction]
-	} else {
-		return transactionDirectionNames[TransactionDirectionUnclear]
-	}
-}
 
 type Balance struct {
 	Total           dcrutil.Amount `json:"total"`
@@ -56,15 +29,15 @@ type UnspentOutput struct {
 }
 
 type Transaction struct {
-	Hash          string               `json:"hash"`
-	Type          string               `json:"type"`
-	Amount        dcrutil.Amount       `json:"amount"`
-	Fee           dcrutil.Amount       `json:"fee"`
-	Rate          dcrutil.Amount       `json:"rate,omitempty"`
-	Direction     TransactionDirection `json:"direction"`
-	Timestamp     int64                `json:"timestamp"`
-	FormattedTime string               `json:"formatted_time"`
-	Size          int                  `json:"size"`
+	Hash          string                        `json:"hash"`
+	Type          string                        `json:"type"`
+	Amount        dcrutil.Amount                `json:"amount"`
+	Fee           dcrutil.Amount                `json:"fee"`
+	Rate          dcrutil.Amount                `json:"rate,omitempty"`
+	Direction     txhelper.TransactionDirection `json:"direction"`
+	Timestamp     int64                         `json:"timestamp"`
+	FormattedTime string                        `json:"formatted_time"`
+	Size          int                           `json:"size"`
 }
 
 type TxInput struct {

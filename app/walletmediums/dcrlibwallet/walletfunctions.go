@@ -217,14 +217,6 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 		return nil, err
 	}
 
-	txDirection := func(direction int32) walletcore.TransactionDirection {
-		if direction < int32(walletcore.TransactionDirectionUnclear) {
-			return walletcore.TransactionDirection(direction)
-		} else {
-			return walletcore.TransactionDirectionUnclear
-		}
-	}
-
 	transactions := make([]*walletcore.Transaction, len(txs))
 	for i, tx := range txs {
 		transactions[i] = &walletcore.Transaction{
@@ -232,7 +224,7 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 			Amount:        dcrutil.Amount(tx.Amount),
 			Fee:           dcrutil.Amount(tx.Fee),
 			Type:          tx.Type,
-			Direction:     txDirection(int32(tx.Direction)),
+			Direction:     tx.Direction,
 			Timestamp:     tx.Timestamp,
 			FormattedTime: time.Unix(tx.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
 		}
@@ -270,10 +262,10 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 	return stakeInfo, nil
 }
 
-func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	balance, err := lib.AccountBalance(request.Account)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
+		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
 	}
 
 	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
@@ -282,8 +274,8 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 	}
 
 	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice) {
-		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v",
-			balance.Spendable, ticketPrice.TicketPrice)
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket price %s",
+			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
 	}
 
 	return lib.walletLib.PurchaseTickets(ctx, &request)
