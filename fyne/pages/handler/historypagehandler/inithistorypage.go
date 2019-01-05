@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -31,6 +32,10 @@ type HistoryPageData struct {
 	icons                      map[string]*fyne.StaticResource
 	HistoryPageContents        *widget.Box
 	Window                     fyne.Window
+	lastTx                     int
+	firstTxCall                bool
+	pageCount                  int32
+	backIcon                   *widgets.ImageButton
 	TabMenu                    *widget.TabContainer
 }
 
@@ -41,6 +46,7 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 	if err != nil {
 		return err
 	}
+	historyPage.pageCount = 1
 
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
@@ -77,6 +83,12 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 		}
 	})
 
+	historyPage.backIcon = widgets.NewImageButton(historyPage.icons[assets.Back], nil, func() {
+		historyPage.pageCount -= 1
+		historyPage.fetchTx(&historyPage.txTable, historyPage.TotalTxFetched, historyPage.selectedFilterId, true)
+	})
+	historyPage.backIcon.Hide()
+
 	// catch all errors when trying to setup and render tx page data.
 	if historyPage.errorMessage != "" {
 		return errors.New(historyPage.errorMessage)
@@ -85,7 +97,10 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 	historyPage.HistoryPageContents.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(5))
 	historyPage.HistoryPageContents.Append(historyPage.errorLabel)
-	historyPage.HistoryPageContents.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(historyPage.txTable.Result.MinSize().Width+15, historyPage.txTable.Container.MinSize().Height+450)), historyPage.txTable.Container))
+	historyPage.HistoryPageContents.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(historyPage.txTable.Result.MinSize().Width+30, historyPage.txTable.Container.MinSize().Height+250)), historyPage.txTable.Container))
+	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(5))
+	historyPage.HistoryPageContents.Append(widget.NewHBox(layout.NewSpacer(), historyPage.backIcon, widgets.NewHSpacer(values.SpacerSize10)))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(15))
+
 	return nil
 }

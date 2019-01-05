@@ -12,7 +12,7 @@ import (
 )
 
 func (historyPage *HistoryPageData) initBaseObjects() error {
-	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon, assets.RedirectIcon)
+	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon, assets.RedirectIcon, assets.Back)
 	if err != nil {
 		return err
 	}
