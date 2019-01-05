@@ -1,18 +1,15 @@
 package dcrwalletrpc
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math"
 	"time"
 
-	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
-	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -79,21 +76,28 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		return nil, err
 	}
 
+	_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(txDetail.Transaction)
+	if err != nil {
+		return nil, err
+	}
+
 	amount, direction := transactionAmountAndDirection(txDetail)
 
 	tx := &walletcore.Transaction{
 		Hash:          hash.String(),
 		Amount:        dcrutil.Amount(amount),
-		Fee:           dcrutil.Amount(txDetail.Fee),
+		Fee:           txFee,
+		FeeRate:       txFeeRate,
 		Type:          txDetail.TransactionType.String(),
 		Direction:     direction,
 		Timestamp:     txDetail.Timestamp,
 		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		Size:          txSize,
 	}
 	return tx, nil
 }
 
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, walletcore.TransactionDirection) {
+func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, txhelper.TransactionDirection) {
 	var outputAmounts int64
 	for _, credit := range txDetail.Credits {
 		outputAmounts += int64(credit.Amount)
@@ -105,24 +109,24 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	var amount int64
-	var direction walletcore.TransactionDirection
+	var direction txhelper.TransactionDirection
 
 	if txDetail.TransactionType == walletrpc.TransactionDetails_REGULAR {
 		amountDifference := outputAmounts - inputAmounts
 		if amountDifference < 0 && (float64(txDetail.Fee) == math.Abs(float64(amountDifference))) {
 			// transferred internally, the only real amount spent was transaction fee
-			direction = walletcore.TransactionDirectionTransferred
+			direction = txhelper.TransactionDirectionTransferred
 			amount = int64(txDetail.Fee)
 		} else if amountDifference > 0 {
 			// received
-			direction = walletcore.TransactionDirectionReceived
+			direction = txhelper.TransactionDirectionReceived
 
 			for _, credit := range txDetail.Credits {
 				amount += int64(credit.Amount)
 			}
 		} else {
 			// sent
-			direction = walletcore.TransactionDirectionSent
+			direction = txhelper.TransactionDirectionSent
 
 			for _, debit := range txDetail.Debits {
 				amount += int64(debit.PreviousAmount)
@@ -135,35 +139,4 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	return amount, direction
-}
-
-func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletcore.TxInput {
-	txInputs := make([]*walletcore.TxInput, len(txIn))
-	for i, input := range txIn {
-		txInputs[i] = &walletcore.TxInput{
-			Amount:           dcrutil.Amount(input.ValueIn),
-			PreviousOutpoint: input.PreviousOutPoint.String(),
-		}
-	}
-	return txInputs
-}
-
-func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*walletrpc.TransactionDetails_Output, chainParams *chaincfg.Params) ([]*walletcore.TxOutput, error) {
-	txOutputs := make([]*walletcore.TxOutput, len(txOut))
-	for i, output := range txOut {
-		_, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
-		if err != nil {
-			return nil, err
-		}
-		txOutputs[i] = &walletcore.TxOutput{
-			Value:   dcrutil.Amount(output.Value),
-			Address: addrs[0].String(),
-		}
-		for _, credit := range walletCredits {
-			if bytes.Equal(output.PkScript, credit.GetOutputScript()) {
-				txOutputs[i].Internal = credit.GetInternal()
-			}
-		}
-	}
-	return txOutputs, nil
 }
