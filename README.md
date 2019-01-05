@@ -19,7 +19,7 @@ To run **godcr** using **dcrwallet** instead of [dcrlibwallet](https://github.co
 **godcr** is not released yet. This doc will be updated with links to download the godcr binary when a release is ready. For now, build from source.
 
 ### Option 2: Build from source
-* Install Go. Installation instructions can be found [here](https://golang.org/doc/install). It is recommended to add $GOPATH/bin to your PATH as part of the installation process.
+* Install Go (minimum supported version is 1.11.4). Installation instructions can be found [here](https://golang.org/doc/install). It is recommended to add $GOPATH/bin to your PATH as part of the installation process.
 * Clone this repository. It is conventional to clone to $GOPATH, but not necessary.
 ```bash
 $ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
