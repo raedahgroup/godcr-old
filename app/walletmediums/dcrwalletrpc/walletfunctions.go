@@ -123,7 +123,7 @@ func (c *WalletPRCClient) AddressInfo(address string) (*txhelper.AddressInfo, er
 	}
 
 	addressInfo := &txhelper.AddressInfo{
-		IsMine: addressValidationResult.IsMine,
+		IsMine:  addressValidationResult.IsMine,
 		Address: address,
 	}
 	if addressValidationResult.IsMine {

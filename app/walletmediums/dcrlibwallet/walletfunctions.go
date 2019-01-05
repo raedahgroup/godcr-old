@@ -234,8 +234,8 @@ func (lib *DcrWalletLib) TransactionHistory() ([]*walletcore.Transaction, error)
 			Hash:          tx.Hash,
 			Amount:        dcrutil.Amount(tx.Amount),
 			Fee:           txFee,
-			FeeRate: txFeeRate,
-			Size: txSize,
+			FeeRate:       txFeeRate,
+			Size:          txSize,
 			Type:          tx.Type,
 			Direction:     tx.Direction,
 			Timestamp:     tx.Timestamp,
@@ -278,19 +278,19 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 	}
 
 	tx := &walletcore.Transaction{
-		Hash: txInfo.Hash,
-		Amount: dcrutil.Amount(txInfo.Amount),
+		Hash:          txInfo.Hash,
+		Amount:        dcrutil.Amount(txInfo.Amount),
 		FormattedTime: time.Unix(txInfo.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
-		Timestamp: txInfo.Timestamp,
-		Fee: dcrutil.Amount(decodedTx.Fee),
-		Direction: txInfo.Direction,
-		Type: txInfo.Type,
-		FeeRate: dcrutil.Amount(decodedTx.FeeRate),
-		Size: decodedTx.Size,
+		Timestamp:     txInfo.Timestamp,
+		Fee:           dcrutil.Amount(decodedTx.Fee),
+		Direction:     txInfo.Direction,
+		Type:          txInfo.Type,
+		FeeRate:       dcrutil.Amount(decodedTx.FeeRate),
+		Size:          decodedTx.Size,
 	}
 
 	return &walletcore.TransactionDetails{
-		BlockHeight: txInfo.BlockHeight,
+		BlockHeight:   txInfo.BlockHeight,
 		Confirmations: txInfo.Confirmations,
 		Transaction:   tx,
 		Inputs:        decodedTx.Inputs,
