@@ -17,7 +17,7 @@ import (
 
 // ideally, we should let user provide this info in settings and use the user provided value
 // using a constant now to make it easier to update the code where this value is required/used
-	const requiredConfirmations = 0
+const requiredConfirmations = 0
 
 func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
@@ -350,7 +350,7 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
-	transaction.Fee, transaction.FeeRate, transaction.Size = decodedTx.Fee, decodedTx.FeeRate, decodedTx.Size
+	transaction.Fee, transaction.FeeRate, transaction.Size = dcrutil.Amount(decodedTx.Fee), dcrutil.Amount(decodedTx.FeeRate), decodedTx.Size
 
 	var blockHeight int32 = -1
 	if getTxResponse.BlockHash != nil {
