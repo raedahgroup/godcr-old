@@ -366,17 +366,7 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
-	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
-		addressInfo, err := c.AddressInfo(address)
-		if err != nil {
-			return &txhelper.AddressInfo{
-				Address: address,
-			}
-		}
-		return addressInfo
-	}
-	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, getWalletAddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, c.AddressInfo)
 	if err != nil {
 		return nil, err
 	}
