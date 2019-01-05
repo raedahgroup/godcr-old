@@ -29,20 +29,20 @@ type UnspentOutput struct {
 }
 
 type Transaction struct {
-	Hash          string               `json:"hash"`
-	Type          string               `json:"type"`
-	Amount        dcrutil.Amount       `json:"amount"`
-	Fee           dcrutil.Amount       `json:"fee"`
-	FeeRate          dcrutil.Amount       `json:"rate,omitempty"`
+	Hash          string                        `json:"hash"`
+	Type          string                        `json:"type"`
+	Amount        dcrutil.Amount                `json:"amount"`
+	Fee           dcrutil.Amount                `json:"fee"`
+	FeeRate       dcrutil.Amount                `json:"rate,omitempty"`
 	Direction     txhelper.TransactionDirection `json:"direction"`
-	Timestamp     int64                `json:"timestamp"`
-	FormattedTime string               `json:"formatted_time"`
-	Size          int                  `json:"size"`
+	Timestamp     int64                         `json:"timestamp"`
+	FormattedTime string                        `json:"formatted_time"`
+	Size          int                           `json:"size"`
 }
 
 type TransactionDetails struct {
-	BlockHeight   int32      `json:"blockHeight"`
-	Confirmations int32       `json:"confirmations"`
+	BlockHeight   int32                     `json:"blockHeight"`
+	Confirmations int32                     `json:"confirmations"`
 	Inputs        []*txhelper.DecodedInput  `json:"inputs"`
 	Outputs       []*txhelper.DecodedOutput `json:"outputs"`
 	*Transaction

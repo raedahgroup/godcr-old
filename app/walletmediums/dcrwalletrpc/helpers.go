@@ -87,12 +87,12 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		Hash:          hash.String(),
 		Amount:        dcrutil.Amount(amount),
 		Fee:           txFee,
-		FeeRate: txFeeRate,
+		FeeRate:       txFeeRate,
 		Type:          txDetail.TransactionType.String(),
 		Direction:     direction,
 		Timestamp:     txDetail.Timestamp,
 		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
-		Size: txSize,
+		Size:          txSize,
 	}
 	return tx, nil
 }
