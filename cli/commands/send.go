@@ -122,8 +122,8 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	var sentTransactionHash string
 	if custom {
 		var utxos []string
-		for _, utox := range utxoSelection {
-			utxos = append(utxos, utox.OutputKey)
+		for _, utxo := range utxoSelection {
+			utxos = append(utxos, utxo.OutputKey)
 		}
 		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxos, sendDestinations, passphrase)
 	} else {
