@@ -382,7 +382,6 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 
 	var blockHeight int32 = -1
 	if getTxResponse.BlockHash != nil {
-		//fmt.Printf("%x\n", getTxResponse.GetBlockHash())
 		blockInfo, err := c.walletService.BlockInfo(ctx, &walletrpc.BlockInfoRequest{BlockHash: getTxResponse.BlockHash})
 		if err == nil {
 			blockHeight = blockInfo.BlockHeight
