@@ -80,7 +80,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		if strings.ToLower(choice) == "a" || choice == "" {
 			utxoSelection = bestSizedInput(utxos, sendAmountTotal)
 		} else {
-			utxoSelection, err = getUtxosForNewTransaction(wallet, utxos, sendAmountTotal)
+			utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
 		}
 	}
 
@@ -91,8 +91,8 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 
 	if custom {
 		fmt.Println("You are about to spend the input(s)")
-		for _, output := range utxoSelection {
-			fmt.Println(fmt.Sprintf(" %s from %s", output.Amount.String(), output.Address))
+		for _, utxo := range utxoSelection {
+			fmt.Println(fmt.Sprintf(" %s from %s", utxo.Amount.String(), utxo.Address))
 		}
 		fmt.Println("and send")
 		for _, destination := range sendDestinations {
@@ -104,7 +104,7 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 		} else {
 			fmt.Println("You are about to send")
 			for _, destination := range sendDestinations {
-				fmt.Println(fmt.Sprintf(" %v DCR to %s", destination.Amount, destination.Address))
+				fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
 			}
 		}
 	}
@@ -121,11 +121,11 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 
 	var sentTransactionHash string
 	if custom {
-		var outputs []string
+		var utxos []string
 		for _, utox := range utxoSelection {
-			outputs = append(outputs, utox.OutputKey)
+			utxos = append(utxos, utox.OutputKey)
 		}
-		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, outputs, sendDestinations, passphrase)
+		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxos, sendDestinations, passphrase)
 	} else {
 		sentTransactionHash, err = wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 	}

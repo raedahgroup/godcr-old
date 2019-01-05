@@ -82,8 +82,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 		return nil
 	}
 
-	var destinationAddresses []string
-	sendAmounts := make(map[string]float64)
+	sendAmountAddressMap := make(map[string]float64)
 
 	for {
 		label := "Destination Address"
@@ -100,7 +99,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 			break
 		}
 
-		if _, addressExists := sendAmounts[destinationAddress]; addressExists {
+		if _, addressExists := sendAmountAddressMap[destinationAddress]; addressExists {
 			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount?", destinationAddress)
 			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "N")
 			if err != nil {
@@ -109,21 +108,18 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 			if !changeAmountConfirmed {
 				continue
 			}
-			index--
-		} else {
-			destinationAddresses = append(destinationAddresses, destinationAddress)
 		}
 
 		sendAmount, err := getSendAmount()
 		if err != nil {
 			return nil, fmt.Errorf("error receiving input: %s", err.Error())
 		}
-		sendAmounts[destinationAddress] = sendAmount
+		sendAmountAddressMap[destinationAddress] = sendAmount
 		index++
 	}
 
-	for _, address := range destinationAddresses {
-		destinations = append(destinations, txhelper.TransactionDestination{Address: address, Amount: sendAmounts[address]})
+	for address, amount := range sendAmountAddressMap {
+		destinations = append(destinations, txhelper.TransactionDestination{Address: address, Amount: amount})
 	}
 	return
 }
@@ -164,7 +160,7 @@ func getWalletPassphrase() (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, err error) {
+func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, err error) {
 	var removeWhiteSpace = func(str string) string {
 		return strings.Map(func(r rune) rune {
 			if unicode.IsSpace(r) {
@@ -225,7 +221,8 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 		}
 
 		if totalAmountSelected < sendAmount {
-			return errors.New("Invalid selection. Total amount from selected outputs is smaller than amount to send")
+			selectedUtxos = selectedUtxos[:0]
+			return errors.New("Invalid selection. Total amount from selected inputs is smaller than amount to send")
 		}
 
 		return nil
@@ -237,10 +234,10 @@ func getUtxosForNewTransaction(wallet walletcore.Wallet, utxos []*walletcore.Uns
 	})
 	for index, utxo := range utxos {
 		date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
-		options[index] = fmt.Sprintf("%s (%s) \t %s \t %v confirmation(s)", utxo.Address, utxo.Amount.String(), date, utxo.Confirmations)
+		options[index] = fmt.Sprintf("%s (%s) \t %s \t %d confirmation(s)", utxo.Address, utxo.Amount.String(), date, utxo.Confirmations)
 	}
 
-	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)
+	_, err = terminalprompt.RequestSelection("Select input(s) (e.g 1-4,6)", options, validateUtxoSelection)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return nil, fmt.Errorf("error reading selection: %s", err.Error())
