@@ -74,12 +74,20 @@ func (lib *DcrWalletLib) AccountNumber(accountName string) (uint32, error) {
 	return lib.walletLib.AccountNumber(accountName)
 }
 
-func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
-	return lib.walletLib.CurrentAddress(int32(account))
+func (lib *DcrWalletLib) AccountName(accountNumber uint32) (string, error) {
+	return lib.walletLib.AccountName(accountNumber), nil
+}
+
+func (lib *DcrWalletLib) AddressInfo(address string) (*txhelper.AddressInfo, error) {
+	return lib.AddressInfo(address)
 }
 
 func (lib *DcrWalletLib) ValidateAddress(address string) (bool, error) {
 	return lib.walletLib.IsAddressValid(address), nil
+}
+
+func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
+	return lib.walletLib.CurrentAddress(int32(account))
 }
 
 func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
@@ -256,9 +264,13 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 
 	// func to attempt to check if an address belongs to the wallet to retrieve it's account name or return external if not
 	getWalletAddressInfo := func(address string) *txhelper.AddressInfo {
-		return &txhelper.AddressInfo{
-			Address: address,
+		addressInfo, err := lib.walletLib.AddressInfo(address)
+		if err != "" {
+			return &txhelper.AddressInfo{
+				Address: address,
+			}
 		}
+		return addressInfo
 	}
 	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, getWalletAddressInfo)
 	if err != nil {

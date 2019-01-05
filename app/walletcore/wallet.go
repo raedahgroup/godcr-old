@@ -19,11 +19,17 @@ type Wallet interface {
 	// AccountNumber looks up and returns an account number by the account's unique name
 	AccountNumber(accountName string) (uint32, error)
 
-	// GenerateReceiveAddress generates an address to receive funds into specified account
-	GenerateReceiveAddress(account uint32) (string, error)
+	// AccountNumber returns the name for an account  with the provided account number
+	AccountName(accountNumber uint32) (string, error)
+
+	// AddressInfo checks if an address belongs to the wallet to retrieve it's account name
+	AddressInfo(address string) (*txhelper.AddressInfo, error)
 
 	// ValidateAddress checks if an address is valid or not
 	ValidateAddress(address string) (bool, error)
+
+	// GenerateReceiveAddress generates an address to receive funds into specified account
+	GenerateReceiveAddress(account uint32) (string, error)
 
 	// UnspentOutputs lists all unspent outputs in the specified account that sum up to `targetAmount`
 	// If `targetAmount` is 0, all unspent outputs in account are returned
