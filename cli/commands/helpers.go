@@ -214,6 +214,7 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 		}
 
 		var totalAmountSelected float64
+		selectedUtxos = selectedUtxos[:0]
 		for _, n := range selection {
 			utxo := utxos[n]
 			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
@@ -221,7 +222,6 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 		}
 
 		if totalAmountSelected < sendAmount {
-			selectedUtxos = selectedUtxos[:0]
 			return errors.New("Invalid selection. Total amount from selected inputs is smaller than amount to send")
 		}
 

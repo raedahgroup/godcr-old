@@ -3,7 +3,7 @@ package walletcore
 import (
 	"errors"
 	"strings"
-	
+
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/txscript"
 )
