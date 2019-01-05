@@ -20,6 +20,7 @@ func templates() []templateData {
 		{"send.html", "web/views/send.html"},
 		{"receive.html", "web/views/receive.html"},
 		{"history.html", "web/views/history.html"},
+		{"tickets.html", "web/views/tickets.html"},
 	}
 }
 

@@ -55,5 +55,5 @@ type Wallet interface {
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
 
 	// GetTickets fetches and returns all wallet tickets
-	GetTickets(resultChan chan *Ticket) error
+	GetTickets() ([]*Ticket, error)
 }

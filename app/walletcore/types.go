@@ -32,12 +32,25 @@ type Transaction struct {
 	Hash          string                        `json:"hash"`
 	Type          string                        `json:"type"`
 	Amount        dcrutil.Amount                `json:"amount"`
+	AmountCoin    float64                       `json:"coin_amount"`
 	Fee           dcrutil.Amount                `json:"fee"`
+	FeeCoin       float64                       `json:"coin_fee"`
 	FeeRate       dcrutil.Amount                `json:"rate,omitempty"`
 	Direction     txhelper.TransactionDirection `json:"direction"`
 	Timestamp     int64                         `json:"timestamp"`
 	FormattedTime string                        `json:"formatted_time"`
 	Size          int                           `json:"size"`
+}
+
+type TxInput struct {
+	Amount           dcrutil.Amount `json:"value"`
+	PreviousOutpoint string         `json:"previousOutpoint"`
+}
+
+type TxOutput struct {
+	Address  string         `json:"address"`
+	Internal bool           `json:"internal"`
+	Value    dcrutil.Amount `json:"value"`
 }
 
 type TransactionDetails struct {

@@ -194,7 +194,6 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	routes.render("history.html", data, res)
 }
 
-
 func (routes *Routes) ticketsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	routes.render("tickets.html", data, res)
@@ -202,17 +201,15 @@ func (routes *Routes) ticketsPage(res http.ResponseWriter, req *http.Request) {
 
 func (routes *Routes) getTicketsAjax(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
-	flusher, _ := res.(http.Flusher)
+	defer renderJSON(data, res)
 
-	resultChan := make(chan *walletrpcclient.TicketResult)
-	go s.walletClient.GetTickets(resultChan)
-
-	for result := range resultChan {
-		data["success"] = true
-		data["message"] = result
-		renderJSON(data, res)
-		flusher.Flush()
-		time.Sleep(time.Nanosecond * 100000000)
+	tickets, err := routes.walletMiddleware.GetTickets()
+	if err != nil {
+		data["success"] = false
+		data["message"] = fmt.Sprintf("Error fetching tickets: %s", err.Error())
+		return
 	}
 
+	data["success"] = true
+	data["message"] = tickets
 }

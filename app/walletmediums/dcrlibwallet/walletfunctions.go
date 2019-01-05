@@ -287,3 +287,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		Outputs:       decodedTx.Outputs,
 	}, nil
 }
+
+func (lib *DcrWalletLib) GetTickets() ([]*walletcore.Ticket, error) {
+	return nil, fmt.Errorf("not implemented")
+}

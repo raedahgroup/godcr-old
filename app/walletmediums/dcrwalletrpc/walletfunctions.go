@@ -397,17 +397,15 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	}, nil
 }
 
-func (c *Client) GetTickets(resultChan chan *Ticket) error {
-	req := &pb.GetTicketsRequest{}
-
-	defer func() {
-		close(resultChan)
-	}()
+func (c *WalletPRCClient) GetTickets() ([]*walletcore.Ticket, error) {
+	req := &walletrpc.GetTicketsRequest{}
 
 	stream, err := c.walletService.GetTickets(context.Background(), req)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	var tickets []*walletcore.Ticket
 
 	for {
 		in, err := stream.Recv()
@@ -416,16 +414,16 @@ func (c *Client) GetTickets(resultChan chan *Ticket) error {
 		}
 
 		if err != nil {
-			return err
+			return tickets, err
 		}
 
-		ticket, err := c.processTicket(in)
+		ticket, err := processTicket(in)
 		if err != nil {
 			continue
 		}
 
-		resultChan <- ticket
+		tickets = append(tickets, ticket)
 	}
 
-	return nil
+	return tickets, nil
 }
