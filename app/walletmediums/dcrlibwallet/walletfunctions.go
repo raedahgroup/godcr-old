@@ -273,7 +273,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		Fee: dcrutil.Amount(decodedTx.Fee),
 		Direction: txInfo.Direction,
 		Type: txInfo.Type,
-		FeeRate: decodedTx.FeeRate,
+		FeeRate: dcrutil.Amount(decodedTx.FeeRate),
 		Size: decodedTx.Size,
 	}
 

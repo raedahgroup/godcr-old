@@ -1,18 +1,13 @@
 package dcrwalletrpc
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math"
 	"time"
 
-	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
-	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
