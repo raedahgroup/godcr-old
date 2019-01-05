@@ -12,7 +12,7 @@ require (
 	github.com/decred/dcrwallet/walletseed v1.0.0
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/raedahgroup/dcrlibwallet v0.0.0-20190105204752-37533a36b0b5b354d1762c3c57679549fd0b61e8
+	github.com/raedahgroup/dcrlibwallet v0.0.0-20190105220152-dc544948a1a2e6f6f51f4c4dba4113f76e1fff9b
 	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
