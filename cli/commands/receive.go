@@ -48,7 +48,7 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 	fmt.Println(receiveAddress)
 
 	// Print out QR code?
-	printQR, err := terminalprompt.RequestYesNoConfirmation("Would you like to generate a QR code?", "N")
+	printQR, err := terminalprompt.RequestYesNoConfirmation("View QR code?", "N")
 	if err != nil {
 		return fmt.Errorf("error reading your response: %s", err.Error())
 	}
@@ -58,7 +58,7 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 		if err != nil {
 			return fmt.Errorf("error generating QR code, %s", err.Error())
 		}
-		fmt.Fprintf(os.Stdout, qr.ToSmallString(true))
+		fmt.Fprintf(os.Stdout, qr.ToSmallString(false))
 	}
 
 	return nil
