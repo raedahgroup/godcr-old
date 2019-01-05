@@ -2,6 +2,8 @@ package walletcore
 
 import (
 	"errors"
+	"strings"
+	
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/txscript"
 )
@@ -15,5 +17,11 @@ func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (addres
 	if len(addresses) < 1 {
 		return "", errors.New("Cannot extract any address from output")
 	}
-	return addresses[0].EncodeAddress(), nil
+
+	encodedAddresses := make([]string, len(addresses))
+	for i, address := range addresses {
+		encodedAddresses[i] = address.EncodeAddress()
+	}
+
+	return strings.Join(encodedAddresses, ", "), nil
 }
