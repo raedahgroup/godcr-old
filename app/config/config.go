@@ -19,7 +19,7 @@ var (
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 
-	configFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
+	AppConfigFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
 // Config holds the top-level options/flags for the application
@@ -104,7 +104,7 @@ func parseConfigFile(parser *flags.Parser) error {
 		parser.Options = flags.None
 		defer func() { parser.Options = options }()
 	}
-	err := flags.NewIniParser(parser).ParseFile(configFilePath)
+	err := flags.NewIniParser(parser).ParseFile(AppConfigFilePath)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
 			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
