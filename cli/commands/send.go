@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -60,7 +61,9 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		return fmt.Errorf("Selected account has insufficient balance. Cannot proceed")
 	}
 
+	var changeOutputDestinations []txhelper.TransactionDestination
 	var utxoSelection []*walletcore.UnspentOutput
+	var totalInputAmount float64
 
 	if custom {
 		// get all utxos in account, pass 0 amount to get all
@@ -80,9 +83,15 @@ func send(wallet walletcore.Wallet, custom bool) error {
 			return fmt.Errorf("error in reading choice: %s", err.Error())
 		}
 		if strings.ToLower(choice) == "a" || choice == "" {
-			utxoSelection = bestSizedInput(utxos, sendAmountTotal)
+			utxoSelection, totalInputAmount = bestSizedInput(utxos, sendAmountTotal)
 		} else {
-			utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
+			utxoSelection, totalInputAmount, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
+		}
+
+		changeOutputDestinations, err = getChangeOutputDestinations(wallet, totalInputAmount, sourceAccount,
+			len(utxoSelection), sendDestinations)
+		if err != nil {
+			return
 		}
 	}
 
@@ -99,6 +108,9 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		fmt.Println("and send")
 		for _, destination := range sendDestinations {
 			fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
+		}
+		for _, destination := range changeOutputDestinations {
+			fmt.Println(fmt.Sprintf(" %f DCR to %s(change)", destination.Amount, destination.Address))
 		}
 	} else {
 		if len(sendDestinations) == 1 {
@@ -121,6 +133,7 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		return nil
 	}
 
+	sendDestinations = append(sendDestinations, changeOutputDestinations...)
 	var sentTransactionHash string
 	if custom {
 		var utxos []string
@@ -154,6 +167,6 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		return err
 	}
 
-	fmt.Println("Sent. Txid", sentTransactionHash)
+	fmt.Println("Sent txid", sentTransactionHash)
 	return nil
 }

@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
@@ -13,6 +14,11 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+)
+
+const (
+	errMsgInputNotEnoughForTxn = "total input amount not enough to cover transaction"
+	errMsgInputNotEnoughForFee = "total input amount not enough to cover transaction fee"
 )
 
 // selectAccount lists accounts in wallet and prompts user to select an account, then returns the account number for that account.
@@ -151,9 +157,171 @@ func getSendAmount() (float64, error) {
 	return amount, nil
 }
 
+// getSendAmount fetches the amout of DCRs to send from the user.
+func getNChangeOutput() (number int, err error) {
+	validateNumber := func(input string) error {
+		if input == "" {
+			number = 1
+			return nil
+		}
+
+		number, err = strconv.Atoi(input)
+		if err != nil {
+			return fmt.Errorf("Invalid number. Try again")
+		}
+		return nil
+	}
+
+	_, err = terminalprompt.RequestInput("How many change outputs would you like to use? (default: 1)", validateNumber)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
+	}
+
+	return
+}
+
+// getChangeAmount fetches the amount of DCRs to send from the user.
+func getChangeAmount(prompt string) (amount float64, err error) {
+	validateAmount := func(input string) error {
+		if input == "" {
+			amount = 0
+			return nil
+		}
+
+		amount, err = strconv.ParseFloat(input, 64)
+		if err != nil {
+			return fmt.Errorf("Invalid amount. Try again")
+		}
+		return nil
+	}
+
+	_, err = terminalprompt.RequestInput(prompt, validateAmount)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
+	}
+
+	return
+}
+
+// getChangeOutputDestinations fetches the amount to be sent to each change address
+func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount float64, sourceAccount uint32,
+	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+	useRandomChangeAmounts, err := terminalprompt.RequestYesNoConfirmation("Use random amounts for the change outputs?", "y")
+	if err != nil {
+		err = fmt.Errorf("error reading your response: %s", err.Error())
+		return
+	}
+
+	amountInAtom, err := txhelper.AmountToAtom(totalInputAmount)
+	if err != nil {
+		return
+	}
+
+	if useRandomChangeAmounts {
+		changeOutputDestinations, err = getChangeDestinationsWithRandomAmounts(wallet, amountInAtom, sourceAccount,
+			nUtxoSelection, sendDestinations)
+	} else {
+		changeOutputDestinations, err = getChangeDestinationsFromUser(wallet, amountInAtom, sourceAccount,
+			nUtxoSelection, sendDestinations)
+	}
+	return
+}
+
+func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
+	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+	changeAddresses, remainingChange, err := wallet.GenerateChangeAddresses(sourceAccount, 1, nUtxoSelection,
+		amountInAtom, sendDestinations)
+	if err != nil {
+		return
+	}
+	lastChangeAmountInDcr := dcrutil.Amount(remainingChange).ToCoin()
+
+	var index int
+	for {
+		prompt := fmt.Sprintf("[%d]: Change Amount (DCR) (default: %f)", index+1, lastChangeAmountInDcr)
+		changeAmount, err := getChangeAmount(prompt)
+		if err != nil {
+			// we cannot just use return here as the named varaible `err` has been shadowed in line 207 above
+			return nil, err
+		}
+		if changeAmount == 0 {
+			if lastChangeAmountInDcr > 0 {
+				fmt.Println("using default value")
+				// todo the display of the transaction summary shuld show the lastAmount in
+				//  the output as we cannot add it to destinaton since the change amount is a raw estimate
+			}
+			break
+		}
+
+		allDestination := append(sendDestinations, changeOutputDestinations...)
+
+		changeDestination := txhelper.TransactionDestination{Address: changeAddresses[0], Amount: changeAmount}
+		allDestination = append(allDestination, changeDestination)
+
+		changeAddresses, remainingChange, err = wallet.GenerateChangeAddresses(sourceAccount, 1, nUtxoSelection,
+			amountInAtom, allDestination)
+
+		if err != nil && (err.Error() == errMsgInputNotEnoughForFee || err.Error() == errMsgInputNotEnoughForTxn) {
+			fmt.Println(fmt.Sprintf("Error: %s. Try again with a smaller amount", errMsgInputNotEnoughForTxn))
+			continue
+		}
+		if err != nil {
+			// we cannot just use return here as the named varaible `err` has been shadowed in line 207 above
+			return nil, err
+		}
+		changeOutputDestinations = append(changeOutputDestinations, changeDestination)
+		lastChangeAmountInDcr = dcrutil.Amount(remainingChange).ToCoin()
+		index++
+	}
+	return
+}
+
+func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
+	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+	nChangeOutputs, err := getNChangeOutput()
+	if err != nil {
+		return
+	}
+
+	if nChangeOutputs == 1 {
+		return
+	}
+	changeAddresses, changeAmount, err := wallet.GenerateChangeAddresses(sourceAccount, nChangeOutputs, nUtxoSelection,
+		amountInAtom, sendDestinations)
+	if err != nil {
+		return
+	}
+
+	if changeAmount <= 0 {
+		return
+	}
+
+	var portions []float64
+	var portionRations []float64
+	var rationSum float64
+	for i := 0; i < nChangeOutputs; i++ {
+		portion := rand.Float64()
+		portionRations = append(portionRations, portion)
+		rationSum += portion
+	}
+	for _, portion := range portionRations {
+		amount := portion * float64(changeAmount)/rationSum
+		portions = append(portions, amount)
+	}
+
+	for i, address := range changeAddresses {
+		amountInDcr := dcrutil.Amount(portions[i]).ToCoin()
+		changeOutputDestinations = append(changeOutputDestinations,
+			txhelper.TransactionDestination{Address: address, Amount: amountInDcr})
+	}
+	return
+}
+
 // getWalletPassphrase fetches the user's wallet passphrase from the user.
 func getWalletPassphrase() (string, error) {
-	result, err := terminalprompt.RequestInputSecure("Wallet Passphrase", terminalprompt.EmptyValidator)
+	result, err := terminalprompt.RequestInputSecure("Spending Passphrase", terminalprompt.EmptyValidator)
 	if err != nil {
 		return "", fmt.Errorf("error receiving input: %s", err.Error())
 	}
@@ -161,7 +329,7 @@ func getWalletPassphrase() (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, err error) {
+func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, totalAmountSelected float64, err error) {
 	var removeWhiteSpace = func(str string) string {
 		return strings.Map(func(r rune) rune {
 			if unicode.IsSpace(r) {
@@ -214,8 +382,8 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 			return errWrongInput
 		}
 
-		var totalAmountSelected float64
 		selectedUtxos = selectedUtxos[:0]
+		totalAmountSelected = 0
 		for _, n := range selection {
 			utxo := utxos[n]
 			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
@@ -241,20 +409,20 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 	_, err = terminalprompt.RequestSelection("Select input(s) (e.g 1-4,6)", options, validateUtxoSelection)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
-		return nil, fmt.Errorf("error reading selection: %s", err.Error())
+		return nil, 0, fmt.Errorf("error reading selection: %s", err.Error())
 	}
-	return selectedUtxos, nil
+	return selectedUtxos, totalAmountSelected, nil
 }
 
 // bestSizedInput returns the smallest output or the least consecutive combination of
 // outputs that can handle a transaction of the supplied sendAmountTotal from the utxos
-func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) []*walletcore.UnspentOutput {
+func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) ([]*walletcore.UnspentOutput, float64) {
 	sort.Slice(utxos, func(i, j int) bool {
 		return utxos[i].Amount < utxos[j].Amount
 	})
 	for _, utxo := range utxos {
 		if utxo.Amount.ToCoin() > sendAmountTotal {
-			return []*walletcore.UnspentOutput{utxo}
+			return []*walletcore.UnspentOutput{utxo}, utxo.Amount.ToCoin()
 		}
 	}
 	for noOfPairs := 2; noOfPairs <= len(utxos); noOfPairs++ {
@@ -265,10 +433,14 @@ func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) 
 				result = append(result, utxos[j])
 				accumulatedAmount += utxos[j].Amount.ToCoin()
 				if accumulatedAmount >= sendAmountTotal {
-					return result
+					return result, accumulatedAmount
 				}
 			}
 		}
 	}
-	return utxos
+	var totalInputAmount float64
+	for _, utxo := range utxos {
+		totalInputAmount += utxo.Amount.ToCoin()
+	}
+	return utxos, sendAmountTotal
 }
