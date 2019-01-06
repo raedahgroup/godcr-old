@@ -30,8 +30,8 @@
                                   <td>{{ .tx.Hash }}</td>
                                 </tr>
                                 <tr>
-                                  <td>Block Hash</td>
-                                  <td>{{ .tx.BlockHash }}</td>
+                                  <td>Block Height</td>
+                                  <td>{{ .tx.BlockHeight }}</td>
                                 </tr>
                                 <tr>
                                   <td>Direction</td>
@@ -60,8 +60,8 @@
                               <td>{{ .tx.Fee }}</td>
                           </tr>
                           <tr>
-                              <td>Rate</td>
-                              <td>{{ .tx.Rate }}</td>
+                              <td>Fee Rate</td>
+                              <td>{{ .tx.FeeRate }}</td>
                           </tr>
                           <tr>
                               <td>Time</td>
@@ -72,41 +72,53 @@
                   </div>
                 </div>
                 <div class="row">
-                    <div class="col-lg-8 pb-3">
+                    <div class="col">
                         <h3>Inputs</h3>
                         <table class="table m-0">
                             <thead>
-                                <tr>
-                                    <th>Previous Outpoint</th>
-                                    <th>Amount</th>
-                                </tr>
+                            <tr>
+                                <th>Previous Transaction Hash</th>
+                                <th>Previous Transaction Index</th>
+                                <th>Previous Outpoint</th>
+                                <th>Amount In</th>
+                            </tr>
                             </thead>
                             <tbody>
                             {{ range $txn := .tx.Inputs }}
                             <tr>
+                                <td>{{ .PreviousTransactionHash }}</td>
+                                <td>{{ .PreviousTransactionIndex }}</td>
                                 <td>{{ .PreviousOutpoint }}</td>
-                                <td>{{ .Amount }}</td>
+                                <td>{{ .AmountIn }}</td>
                             </tr>
                             {{ end }}
                             </tbody>
                         </table>
                     </div>
-                    <div class="col-lg-4">
+                </div>
+                <div class="row">
+                    <div class="col">
                         <h3>Outputs</h3>
                         <table class="table m-0">
                             <thead>
                             <tr>
-                                <th>Address</th>
-                                <th>Internal</th>
+                                <th>Index</th>
                                 <th>Value</th>
+                                <th>Internal</th>
+                                <th>Version</th>
+                                <th>ScriptType</th>
+                                <th>Addresses</th>
                             </tr>
                             </thead>
                             <tbody>
                             {{ range $txn := .tx.Outputs }}
                             <tr>
-                                <td>{{ .Address }}</td>
-                                <td>{{ .Internal }}</td>
+                                <td>{{ .Index }}</td>
                                 <td>{{ .Value }}</td>
+                                <td>{{ .Internal }}</td>
+                                <td>{{ .Version }}</td>
+                                <td>{{ .ScriptType }}</td>
+                                <td>{{ .Addresses }}</td>
                             </tr>
                             {{ end }}
                             </tbody>
