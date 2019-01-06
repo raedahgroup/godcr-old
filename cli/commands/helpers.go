@@ -108,6 +108,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 			if !changeAmountConfirmed {
 				continue
 			}
+			index--
 		}
 
 		sendAmount, err := getSendAmount()
