@@ -15,10 +15,10 @@
                             <div class="row">
                                 <div class="col-md-12 col-sm-12">
                                     <div class="form-group">
-                                       {{ $numberOfAccounts := len .accounts }} {{ if eq $numberOfAccounts 1 }}
+                                        {{ if eq (len .accounts) 1 }}
                                             {{ $account := index .accounts 0 }}
-                                            <div>Source Account</div>
-                                            <strong>{{ $account.Name }} - {{ $account.Balance }} </strong>
+                                            <div class="label">Source Account</div>
+                                            <strong>{{ $account.Name }} - {{ simpleBalance $account.Balance false }} </strong>
                                             <div class="d-none">
                                                 <select class="form-control" id="source-account" name="source-account">
                                                     {{ range $s := .accounts }}
@@ -30,7 +30,7 @@
                                             <label for="source-account">Source Account</label>
                                             <select class="form-control" id="source-account" name="source-account">
                                                 {{ range $s := .accounts }}
-                                                    <option value="{{ $s.Number }}">{{ $s.Name }} - {{ $s.Balance }}</option>
+                                                    <option value="{{ $s.Number }}">{{ $s.Name }} - {{ simpleBalance $account.Balance false }}</option>
                                                 {{ end }}
                                             </select>
                                         {{ end }}
@@ -81,6 +81,7 @@
                             </div>
                         </div>
                     </div>
+                    <div class="errors"></div>
                     <div class="row">
                         <div class="col-sm-12">
                             <button type="button" class="next-btn btn" id="submit-btn">Next</button>

@@ -69,9 +69,12 @@ body {
     padding: 1.3rem 1.8rem !important;
 }
 
-
 .form-control {
     border-radius: 0px;
+}
+
+div.label {
+    padding-bottom: 6px;
 }
 
 .error {

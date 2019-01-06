@@ -8,11 +8,11 @@ function validatePassphrase() {
 
     var passphraseEl = $("#wallet-passphrase");
 
-    if (passphraseEl.val() == "") {
+    if (passphraseEl.val() === "") {
         error = "Your wallet passphrase is required";
     }
 
-    if (error != "") {
+    if (error !== "") {
         passphraseEl.after("<div class='passphrase-error'>" + error + "</div>");
         return false
     }
@@ -38,7 +38,7 @@ function getWalletPassphraseAndSubmit() {
  *===================================================================*/
 function validateAmountField() {
     var amountEl = $("#amount");
-    if (amountEl.val() == "") {
+    if (amountEl.val() === "") {
         amountEl.after("<div class='error'>Please enter an amount first</div>");
         return false;
     }
@@ -55,15 +55,15 @@ function validateSendForm() {
     var destinationAddressEl = $("#destination-address");
     var isClean = true;
 
-    if (sourceAccountEl.find(":selected").text() == "") {
+    if (sourceAccountEl.find(":selected").text() === "") {
         errors["#source-account"] = "The source account is required";
     }
 
-    if (amountEl.val() == "") {
+    if (amountEl.val() === "") {
         errors["#amount"] = "The amount is required"
     }
 
-    if (destinationAddressEl.val() == "") {
+    if (destinationAddressEl.val() === "") {
         errors["#destination-address"] = "The destination address is required"
     }
 
@@ -75,7 +75,7 @@ function validateSendForm() {
     if (!$.isEmptyObject(errors)) {
         isClean = false;
         for (var i in errors) {
-            $(i).after("<div class='error'>" + errors[i] + "</div>");
+            $(".errors").append("<div class='error'>" + errors[i] + "</div>");
         }
     }
 
@@ -233,7 +233,7 @@ $(function(){
     // clear validation errors on type 
     $("input[type=text], input[type=number]").each(function(){
         $(this).on("keyup", function(){
-            if ($(this).val() != "") {
+            if ($(this).val() !== "") {
                 $(this).next(".error").remove();
             }
         });
