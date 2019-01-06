@@ -229,55 +229,57 @@ func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount floa
 	return
 }
 
-func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
-	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
-	changeAddresses, remainingChange, err := wallet.GenerateChangeAddresses(sourceAccount, 1, nUtxoSelection,
-		amountInAtom, sendDestinations)
-	if err != nil {
-		return
-	}
-	lastChangeAmountInDcr := dcrutil.Amount(remainingChange).ToCoin()
+// getChangeDestinationsFromUser fetches change destination from the user
+func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32, nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+	var changeAddresses []string
+	var amountAssigned int64
 
 	var index int
 	for {
-		prompt := fmt.Sprintf("[%d]: Change Amount (DCR) (default: %f)", index+1, lastChangeAmountInDcr)
+		address, err := wallet.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("error in generating address: %s", err.Error())
+		}
+		changeAddresses = append(changeAddresses, address)
+		totalChangeAmount, err := txhelper.EstimateChange(nUtxoSelection, amountInAtom, sendDestinations, changeAddresses)
+		defaultAmount := totalChangeAmount - amountAssigned
+
+		prompt := fmt.Sprintf("[%d]: Change Amount (DCR) (default: %f)", index+1, dcrutil.Amount(defaultAmount).ToCoin())
 		changeAmount, err := getChangeAmount(prompt)
 		if err != nil {
 			// we cannot just use return here as the named varaible `err` has been shadowed in line 207 above
 			return nil, err
 		}
+
+		if changeAmount > dcrutil.Amount(defaultAmount).ToCoin() {
+			fmt.Println(fmt.Sprintf("Error: %s. Try again with a smaller amount", errMsgInputNotEnoughForTxn))
+			changeAddresses[len(changeAddresses)-1] = ""
+			changeAddresses = changeAddresses[:len(changeAddresses)-1]
+			continue
+		}
+
 		if changeAmount == 0 {
-			if lastChangeAmountInDcr > 0 {
-				fmt.Println("using default value")
-				// todo the display of the transaction summary shuld show the lastAmount in
-				//  the output as we cannot add it to destinaton since the change amount is a raw estimate
-			}
+			changeAmount = dcrutil.Amount(defaultAmount).ToCoin()
+			break
+		}
+		changeDestination := txhelper.TransactionDestination{Address: address, Amount: changeAmount}
+		changeOutputDestinations = append(changeOutputDestinations, changeDestination)
+
+		if changeAmount == dcrutil.Amount(defaultAmount).ToCoin() {
 			break
 		}
 
-		allDestination := append(sendDestinations, changeOutputDestinations...)
-
-		changeDestination := txhelper.TransactionDestination{Address: changeAddresses[0], Amount: changeAmount}
-		allDestination = append(allDestination, changeDestination)
-
-		changeAddresses, remainingChange, err = wallet.GenerateChangeAddresses(sourceAccount, 1, nUtxoSelection,
-			amountInAtom, allDestination)
-
-		if err != nil && (err.Error() == errMsgInputNotEnoughForFee || err.Error() == errMsgInputNotEnoughForTxn) {
-			fmt.Println(fmt.Sprintf("Error: %s. Try again with a smaller amount", errMsgInputNotEnoughForTxn))
-			continue
-		}
+		changeAmountInAtom, err := txhelper.AmountToAtom(changeAmount)
 		if err != nil {
-			// we cannot just use return here as the named varaible `err` has been shadowed in line 207 above
 			return nil, err
 		}
-		changeOutputDestinations = append(changeOutputDestinations, changeDestination)
-		lastChangeAmountInDcr = dcrutil.Amount(remainingChange).ToCoin()
+		amountAssigned += changeAmountInAtom
 		index++
 	}
 	return
 }
 
+// getChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
 func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
 	nChangeOutputs, err := getNChangeOutput()
@@ -285,15 +287,19 @@ func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAt
 		return
 	}
 
-	if nChangeOutputs == 1 {
-		return
-	}
-	changeAddresses, changeAmount, err := wallet.GenerateChangeAddresses(sourceAccount, nChangeOutputs, nUtxoSelection,
-		amountInAtom, sendDestinations)
-	if err != nil {
-		return
+	var changeAddresses []string
+	for i := 0; i < nChangeOutputs; i++ {
+		address, err := wallet.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("error generating address: %s", err.Error())
+		}
+		changeAddresses = append(changeAddresses, address)
 	}
 
+	changeAmount, err := txhelper.EstimateChange(nUtxoSelection, amountInAtom, sendDestinations, changeAddresses)
+	if err != nil {
+		return nil, fmt.Errorf("error in getting change amount: %s", err.Error())
+	}
 	if changeAmount <= 0 {
 		return
 	}
@@ -307,7 +313,7 @@ func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAt
 		rationSum += portion
 	}
 	for _, portion := range portionRations {
-		amount := portion * float64(changeAmount)/rationSum
+		amount := portion * float64(changeAmount) / rationSum
 		portions = append(portions, amount)
 	}
 

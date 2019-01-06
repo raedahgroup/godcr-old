@@ -91,7 +91,7 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		changeOutputDestinations, err = getChangeOutputDestinations(wallet, totalInputAmount, sourceAccount,
 			len(utxoSelection), sendDestinations)
 		if err != nil {
-			return
+			return err
 		}
 	}
 
