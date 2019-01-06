@@ -40,10 +40,11 @@ type Wallet interface {
 	// Returns the transaction hash as string if successful
 	SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
-	// UTXOSend sends funds to 1 or more destination addresses, each with a specified amount
+	// SendFromUTXOs sends funds to 1 or more destination addresses, each with a specified amount
+	// SendFromUTXOs also sends any change amount that arises from the transaction to the provided changeDestinations
 	// The inputs to the transaction are unspent outputs in the account, matching the keys sent in []utxoKeys
 	// Returns the transaction hash as string if successful
-	SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
+	SendFromUTXOs(sourceAccount uint32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
 	// TransactionHistory
 	TransactionHistory() ([]*Transaction, error)

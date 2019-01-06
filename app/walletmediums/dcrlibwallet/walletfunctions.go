@@ -143,7 +143,7 @@ func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []tx
 	return transactionHash.String(), nil
 }
 
-func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
 	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0)
@@ -177,13 +177,7 @@ func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, 
 		}
 	}
 
-	// generate address from sourceAccount to receive change
-	changeAddress, err := lib.GenerateReceiveAddress(sourceAccount)
-	if err != nil {
-		return "", err
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations)
 	if err != nil {
 		return "", err
 	}

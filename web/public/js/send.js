@@ -73,10 +73,21 @@ function submitSendForm() {
     var submit_btn = $("#send-form #submit-btn");
     submit_btn.attr("disabled", "disabled").html("Sending...");
 
+    // get total of selected inputs and add to form post data
+    totalSelectedInputAmount = 0;
+    $('.utxo:checkbox:checked').each(function () {
+        if (this.checked) {
+            totalSelectedInputAmount += $(this).attr("data-amount");
+        }
+    });
+
+    var postData = form.serialize();
+    postData += "&totalSelectedInputAmount=" + totalSelectedInputAmount;
+
     $.ajax({
         url: form.attr("action"),
         method: "POST",
-        data: form.serialize(),
+        data: postData,
         success: function(response) {
             if (response.error) {
                 setErrorMessage(response.error)
@@ -162,8 +173,8 @@ $(function(){
                 // populate outputs 
                 var utxoHtml = utxos.map(utxo => {
                     var receiveDateTime = new Date(utxo.receive_time * 1000)
-                    return  "<tr>" + 
-                                "<td width='5%'><input type='checkbox' name='tx' value="+ utxo.key+" /></td>" +
+                    return  "<tr>" +
+                                "<td width='5%'><input type='checkbox' name='utxo' class='utxo' value=" + utxo.key + " data-amount=" + utxo.amount +" /></td>" +
                                 "<td width='60%'>" + utxo.key + "</td>" + 
                                 "<td width='15%'>" + utxo.amount / 100000000 + " DCR</td>" + 
                                 "<td width='20%'>" + receiveDateTime.toString() + "</td>" +

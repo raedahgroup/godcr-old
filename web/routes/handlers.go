@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	qrcode "github.com/skip2/go-qrcode"
@@ -71,7 +72,8 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	defer renderJSON(data, res)
 
 	req.ParseForm()
-	utxos := req.Form["tx"]
+	utxos := req.Form["utxo"]
+	totalSelectedInputAmount := req.FormValue("totalSelectedInputAmount")
 	amountStr := req.FormValue("amount")
 	selectedAccount := req.FormValue("sourceAccount")
 	destAddress := req.FormValue("destinationAddress")
@@ -97,7 +99,30 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 
 	var txHash string
 	if len(utxos) > 0 {
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, utxos, sendDestinations, passphrase)
+		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+
+		changeAddress, err := routes.walletMiddleware.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+
+		changeAmount, err := txhelper.EstimateChange(len(utxos), int64(totalInputAmount), sendDestinations, []string{changeAddress})
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+
+		changeDestinations := []txhelper.TransactionDestination{{
+			Amount: dcrutil.Amount(changeAmount).ToCoin(),
+			Address: changeAddress,
+		}}
+
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
 		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 	}
