@@ -260,7 +260,6 @@ func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64,
 
 		if changeAmount == 0 {
 			changeAmount = dcrutil.Amount(defaultAmount).ToCoin()
-			break
 		}
 		changeDestination := txhelper.TransactionDestination{Address: address, Amount: changeAmount}
 		changeOutputDestinations = append(changeOutputDestinations, changeDestination)
