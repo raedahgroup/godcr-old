@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
@@ -29,7 +31,7 @@ func (s SendCustomCommand) Run(wallet walletcore.Wallet) error {
 	return send(wallet, true)
 }
 
-func send(wallet walletcore.Wallet, custom bool) (err error) {
+func send(wallet walletcore.Wallet, custom bool) error {
 	sourceAccount, err := selectAccount(wallet)
 	if err != nil {
 		return err
@@ -122,10 +124,28 @@ func send(wallet walletcore.Wallet, custom bool) (err error) {
 	var sentTransactionHash string
 	if custom {
 		var utxos []string
+		var totalInputAmount int64
 		for _, utxo := range utxoSelection {
 			utxos = append(utxos, utxo.OutputKey)
+			totalInputAmount += int64(utxo.Amount)
 		}
-		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxos, sendDestinations, passphrase)
+
+		changeAddress, err := wallet.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			return fmt.Errorf("error generating change address: %s", err.Error())
+		}
+
+		changeAmount, err := txhelper.EstimateChange(len(utxos), int64(totalInputAmount), sendDestinations, []string{changeAddress})
+		if err != nil {
+			return fmt.Errorf("error estimating change amount: %s", err.Error())
+		}
+
+		changeDestinations := []txhelper.TransactionDestination{{
+			Amount: dcrutil.Amount(changeAmount).ToCoin(),
+			Address: changeAddress,
+		}}
+
+		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
 		sentTransactionHash, err = wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 	}
