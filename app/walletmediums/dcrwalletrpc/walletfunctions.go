@@ -179,6 +179,16 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
+		address, err := walletcore.GetAddressFromPkScript(c.activeNet, utxo.PkScript)
+		if err != nil {
+			return nil, err
+		}
+
+		txn, err := c.GetTransaction(txHash)
+		if err != nil {
+			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
+		}
+
 		unspentOutput := &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
@@ -186,6 +196,8 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
+			Address:         address,
+			Confirmations:   txn.Confirmations,
 		}
 		unspentOutputs = append(unspentOutputs, unspentOutput)
 	}
