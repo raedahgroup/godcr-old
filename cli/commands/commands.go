@@ -8,18 +8,18 @@ import (
 
 // AvailableCommands defines thoroughly-tested commands and options available on the cli
 type AvailableCommands struct {
-	CreateWallet    CreateWalletCommand    `command:"createWallet" description:"Creates a new decred testnet or mainnet wallet" long-description:"Creates a new decred testnet or mainnet wallet. A wallet seed will be generated for the new wallet which must be stored securely. You'll also be asked to set a password for the wallet"`
+	CreateWallet    CreateWalletCommand    `command:"createwallet" description:"Creates a new decred testnet or mainnet wallet" long-description:"Creates a new decred testnet or mainnet wallet. A wallet seed will be generated for the new wallet which must be stored securely. You'll also be asked to set a password for the wallet"`
 	Balance         BalanceCommand         `command:"balance" description:"Show total balance for each account in wallet" long-description:"Also shows spendable balance if different from total balance"`
 	Send            SendCommand            `command:"send" description:"Send a transaction"`
 	Receive         ReceiveCommand         `command:"receive" description:"Show your address to receive funds"`
 	History         HistoryCommand         `command:"history" description:"Show your transaction history"`
-	ShowTransaction ShowTransactionCommand `command:"showTransaction" description:"Show details of a transaction"`
+	ShowTransaction ShowTransactionCommand `command:"showtransaction" description:"Show details of a transaction"`
 	Help            HelpCommand            `command:"help" description:"Show general application help. Run help <command-name> to get help message for a specific command"`
 }
 
 // AvailableCommands defines experimental commands and options available on the cli
 type ExperimentalCommands struct {
-	SendCustom SendCustomCommand `command:"sendCustom" description:"Send a transaction, manually selecting inputs from unspent outputs"`
+	SendCustom SendCustomCommand `command:"sendcustom" description:"Send a transaction, manually selecting inputs from unspent outputs"`
 }
 
 // Categories return information for the different categories of commands defined in this file
