@@ -18,7 +18,7 @@
         <div class="container">
             <h3>Transactions</h3>
             <div class="row justify-content-between mb-4">
-                <div class="col-lg-8">
+                <div class="col-lg-7">
                     <table class="table m-0">
                         <tbody>
                         <tr>
@@ -44,7 +44,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-5">
                     <table class="table m-0">
                         <tbody>
                         <tr>
@@ -53,15 +53,15 @@
                         </tr>
                         <tr>
                             <td>Size</td>
-                            <td>{{ .tx.Size }}<span>Bytes</span></td>
+                            <td>{{ .tx.Size }} <span>Bytes</span></td>
                         </tr>
                         <tr>
                             <td>Fee</td>
-                            <td>{{ .tx.Fee }} <span>/KB</span></td>
+                            <td>{{ .tx.Fee }}</td>
                         </tr>
                         <tr>
                             <td>Fee Rate</td>
-                            <td>{{ .tx.FeeRate }}</td>
+                            <td>{{ .tx.FeeRate }} <span>/KB</span></td>
                         </tr>
                         <tr>
                             <td>Time</td>
@@ -72,7 +72,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-8 mb-3">
+                <div class="col-lg-7 mb-3">
                     <h3>Inputs</h3>
                     <table class="table m-0">
                         <thead>
@@ -91,22 +91,26 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-5">
                     <h3>Outputs</h3>
                     <table class="table m-0">
                         <thead>
                         <tr>
-                            <th>Type</th>
                             <th>Address</th>
+                            <th>Type</th>
+                            <th>Account Name</th>
+                            <th>Value</th>
+
                         </tr>
                         </thead>
                         <tbody>
                         {{ range $txn := .tx.Outputs }}
                         <tr>
                             {{ range .Addresses }}
-                            <td>{{ $txn.ScriptType }}</td>
                             <td>{{ .Address }}</td>
                             <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
+                            <td>{{ amountDcr $txn.Value }}</td>
+                            <td>{{ $txn.ScriptType }}</td>
                             {{ end }}
                         </tr>
                         {{ end }}
