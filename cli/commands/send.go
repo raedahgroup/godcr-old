@@ -46,13 +46,9 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	sendDestinations, err := getSendTxDestinations(wallet)
+	sendDestinations, sendAmountTotal, err := getSendTxDestinations(wallet)
 	if err != nil {
 		return err
-	}
-	var sendAmountTotal float64
-	for _, destination := range sendDestinations {
-		sendAmountTotal += destination.Amount
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
