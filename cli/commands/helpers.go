@@ -67,7 +67,7 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 }
 
 // getSendTxDestinations fetches the destinations info to send DCRs to from the user.
-func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.TransactionDestination, err error) {
+func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.TransactionDestination, sendAmountTotal float64, err error) {
 	var index int
 	validateAddressInput := func(address string) error {
 		if address == "" && index > 0 {
@@ -98,7 +98,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 
 		destinationAddress, err := terminalprompt.RequestInput(label, validateAddressInput)
 		if err != nil {
-			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+			return nil, 0, fmt.Errorf("error receiving input: %s", err.Error())
 		}
 
 		if destinationAddress == "" {
@@ -109,7 +109,7 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount?", destinationAddress)
 			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "N")
 			if err != nil {
-				return nil, fmt.Errorf("error receiving input: %s", err.Error())
+				return nil, 0, fmt.Errorf("error receiving input: %s", err.Error())
 			}
 			if !changeAmountConfirmed {
 				continue
@@ -119,9 +119,10 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 
 		sendAmount, err := getSendAmount()
 		if err != nil {
-			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+			return nil, 0, fmt.Errorf("error receiving input: %s", err.Error())
 		}
 		sendAmountAddressMap[destinationAddress] = sendAmount
+		sendAmountTotal += sendAmount
 		index++
 	}
 
