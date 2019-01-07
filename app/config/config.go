@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
@@ -83,6 +85,23 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		return args, config, parser, err
 	}
 
+	for _, arg := range os.Args {
+		if !strings.HasPrefix(arg, "-") {
+			continue
+		}
+		var optionName string
+		if strings.HasPrefix(arg, "--") {
+			optionName = arg[2:]
+		} else {
+			optionName = arg[1:]
+		}
+		if isFileOption := isConfigFileOption(optionName); isFileOption {
+			return args, config, parser, fmt.Errorf("Unexpected command-line flag/option, " +
+				"see godcr -h for supported command-line flags/options" +
+				"\nSet other flags/options in %s", configFilePath)
+		}
+	}
+
 	// Load additional config from file
 	err = parseConfigFile(parser)
 	if err != nil {
@@ -112,4 +131,21 @@ func parseConfigFile(parser *flags.Parser) error {
 		return err
 	}
 	return nil
+}
+
+func isConfigFileOption(name string) ( isFileOption bool) {
+	if name == "" {
+		return
+	}
+	tConfFileOptions := reflect.TypeOf(ConfFileOptions{})
+	for i := 0; i < tConfFileOptions.NumField(); i++ {
+		fieldTag := tConfFileOptions.Field(i).Tag
+		shortName := fieldTag.Get("short")
+		longName := fieldTag.Get("long")
+		isFileOption = longName == name || shortName == name
+		if isFileOption {
+			return
+		}
+	}
+	return
 }

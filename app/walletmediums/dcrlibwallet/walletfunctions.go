@@ -106,6 +106,16 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 		}
 		txHash := hash.String()
 
+		address, err := walletcore.GetAddressFromPkScript(lib.activeNet.Params, utxo.PkScript)
+		if err != nil {
+			return nil, err
+		}
+
+		txn, err := lib.GetTransaction(txHash)
+		if err != nil {
+			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
+		}
+
 		unspentOutputs[i] = &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
@@ -113,30 +123,12 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
+			Address:         address,
+			Confirmations:   txn.Confirmations,
 		}
 	}
 
 	return unspentOutputs, nil
-}
-
-func (lib *DcrWalletLib) GenerateChangeAddresses(sourceAccount uint32, nChangeOutputs, nInputs int, totalInputAmount int64, destinations []txhelper.TransactionDestination) ([]string, int64, error) {
-	// generate addresses for account
-	changeAddresses := make([]string, nChangeOutputs)
-	for i := 0; i < nChangeOutputs; i++ {
-		address, err := lib.GenerateReceiveAddress(sourceAccount)
-		if err != nil {
-			return nil, 0, err
-		}
-		changeAddresses[i] = address
-	}
-
-	// use generated addresses together with other provided info to estimate change from transaction after subtracting fee
-	changeAmount, err := txhelper.EstimateChange(nInputs, totalInputAmount, destinations, changeAddresses)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return changeAddresses, changeAmount, nil
 }
 
 func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
@@ -153,7 +145,7 @@ func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []tx
 	return transactionHash.String(), nil
 }
 
-func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
 	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0)
@@ -187,13 +179,7 @@ func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, 
 		}
 	}
 
-	// generate address from sourceAccount to receive change
-	changeAddress, err := lib.GenerateReceiveAddress(sourceAccount)
-	if err != nil {
-		return "", err
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations)
 	if err != nil {
 		return "", err
 	}
