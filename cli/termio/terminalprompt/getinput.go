@@ -12,11 +12,16 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+
+	"github.com/raedahgroup/godcr/cli/termio"
 )
 
 // getTextInput - Prompt for text input.
 func getTextInput(prompt string) (string, error) {
-	fmt.Print(prompt)
+	// printing the prompt with tabWriter to ensure adequate formatting of tabulated list of options
+	tabWriter := termio.StdoutWriter
+	fmt.Fprint(tabWriter, prompt)
+	tabWriter.Flush()
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')

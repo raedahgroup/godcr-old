@@ -3,11 +3,14 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
@@ -57,9 +60,13 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 	return accounts[selection].Number, nil
 }
 
-// getSendDestinationAddress fetches the destination address to send DCRs to from the user.
-func getSendDestinationAddress(wallet walletcore.Wallet) (string, error) {
+// getSendTxDestinations fetches the destinations info to send DCRs to from the user.
+func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.TransactionDestination, err error) {
+	var index int
 	validateAddressInput := func(address string) error {
+		if address == "" && index > 0 {
+			return nil
+		}
 		if address == "" {
 			return errors.New("You did not specify an address. Try again.")
 		}
@@ -75,13 +82,47 @@ func getSendDestinationAddress(wallet walletcore.Wallet) (string, error) {
 		return nil
 	}
 
-	address, err := terminalprompt.RequestInput("Destination Address", validateAddressInput)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return "", fmt.Errorf("error receiving input: %s", err.Error())
+	sendAmountAddressMap := make(map[string]float64)
+
+	for {
+		label := "Destination Address"
+		if index > 0 {
+			label = fmt.Sprintf("Destination Address %d (or blank to continue)", index+1)
+		}
+
+		destinationAddress, err := terminalprompt.RequestInput(label, validateAddressInput)
+		if err != nil {
+			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+		}
+
+		if destinationAddress == "" {
+			break
+		}
+
+		if _, addressExists := sendAmountAddressMap[destinationAddress]; addressExists {
+			promptMessage := fmt.Sprintf("The address %s has already been added. Do you want to change the amount?", destinationAddress)
+			changeAmountConfirmed, err := terminalprompt.RequestYesNoConfirmation(promptMessage, "N")
+			if err != nil {
+				return nil, fmt.Errorf("error receiving input: %s", err.Error())
+			}
+			if !changeAmountConfirmed {
+				continue
+			}
+			index--
+		}
+
+		sendAmount, err := getSendAmount()
+		if err != nil {
+			return nil, fmt.Errorf("error receiving input: %s", err.Error())
+		}
+		sendAmountAddressMap[destinationAddress] = sendAmount
+		index++
 	}
 
-	return address, nil
+	for address, amount := range sendAmountAddressMap {
+		destinations = append(destinations, txhelper.TransactionDestination{Address: address, Amount: amount})
+	}
+	return
 }
 
 // getSendAmount fetches the amout of DCRs to send from the user.
@@ -124,10 +165,7 @@ func getWalletPassphraseWithPrompt(promptMessage string) (string, error) {
 }
 
 // getUtxosForNewTransaction fetches unspent transaction outputs to be used in a transaction.
-func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) ([]string, error) {
-	var selectedUtxos []string
-	var err error
-
+func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount float64) (selectedUtxos []*walletcore.UnspentOutput, err error) {
 	var removeWhiteSpace = func(str string) string {
 		return strings.Map(func(r rune) rune {
 			if unicode.IsSpace(r) {
@@ -181,28 +219,60 @@ func getUtxosForNewTransaction(utxos []*walletcore.UnspentOutput, sendAmount flo
 		}
 
 		var totalAmountSelected float64
+		selectedUtxos = selectedUtxos[:0]
 		for _, n := range selection {
 			utxo := utxos[n]
 			totalAmountSelected += dcrutil.Amount(utxo.Amount).ToCoin()
-			selectedUtxos = append(selectedUtxos, utxo.OutputKey)
+			selectedUtxos = append(selectedUtxos, utxo)
 		}
 
 		if totalAmountSelected < sendAmount {
-			return errors.New("Invalid selection. Total amount from selected outputs is smaller than amount to send")
+			return errors.New("Invalid selection. Total amount from selected inputs is smaller than amount to send")
 		}
 
 		return nil
 	}
 
 	options := make([]string, len(utxos))
+	sort.Slice(utxos, func(i, j int) bool {
+		return utxos[i].Amount < utxos[j].Amount
+	})
 	for index, utxo := range utxos {
-		options[index] = fmt.Sprintf("%s (%s)", utxo.OutputKey, utxo.Amount.String())
+		date := time.Unix(utxo.ReceiveTime, 0).Format("Mon Jan 2, 2006 3:04PM")
+		options[index] = fmt.Sprintf("%s (%s) \t %s \t %d confirmation(s)", utxo.Address, utxo.Amount.String(), date, utxo.Confirmations)
 	}
 
-	_, err = terminalprompt.RequestSelection("Select unspent outputs (e.g 1-4,6)", options, validateUtxoSelection)
+	_, err = terminalprompt.RequestSelection("Select input(s) (e.g 1-4,6)", options, validateUtxoSelection)
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return nil, fmt.Errorf("error reading selection: %s", err.Error())
 	}
 	return selectedUtxos, nil
+}
+
+// bestSizedInput returns the smallest output or the least consecutive combination of
+// outputs that can handle a transaction of the supplied sendAmountTotal from the utxos
+func bestSizedInput(utxos []*walletcore.UnspentOutput, sendAmountTotal float64) []*walletcore.UnspentOutput {
+	sort.Slice(utxos, func(i, j int) bool {
+		return utxos[i].Amount < utxos[j].Amount
+	})
+	for _, utxo := range utxos {
+		if utxo.Amount.ToCoin() > sendAmountTotal {
+			return []*walletcore.UnspentOutput{utxo}
+		}
+	}
+	for noOfPairs := 2; noOfPairs <= len(utxos); noOfPairs++ {
+		for i := 0; i < len(utxos); i++ {
+			var accumulatedAmount float64
+			var result []*walletcore.UnspentOutput
+			for j := i; j < i+noOfPairs && j < len(utxos); j++ {
+				result = append(result, utxos[j])
+				accumulatedAmount += utxos[j].Amount.ToCoin()
+				if accumulatedAmount >= sendAmountTotal {
+					return result
+				}
+			}
+		}
+	}
+	return utxos
 }

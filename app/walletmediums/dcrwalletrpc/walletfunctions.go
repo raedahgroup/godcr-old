@@ -11,8 +11,8 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
@@ -154,7 +154,13 @@ func (c *WalletRPCClient) GenerateReceiveAddress(account uint32) (string, error)
 		return "", err
 	}
 
-	return nextAddress.Address, nil
+	for _, account := range accounts.Accounts {
+		if account.AccountNumber == accountNumber {
+			return account.AccountName, nil
+		}
+	}
+
+	return "", fmt.Errorf("Account not found")
 }
 
 func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
@@ -162,12 +168,42 @@ func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
 		Address: address,
 	}
 
-	validationResult, err := c.walletService.ValidateAddress(context.Background(), req)
+	addressValidationResult, err := c.walletService.ValidateAddress(context.Background(), req)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return validationResult.IsValid, nil
+	addressInfo := &txhelper.AddressInfo{
+		IsMine:  addressValidationResult.IsMine,
+		Address: address,
+	}
+	if addressValidationResult.IsMine {
+		addressInfo.AccountNumber = addressValidationResult.AccountNumber
+		addressInfo.AccountName, _ = c.AccountName(addressValidationResult.AccountNumber)
+	}
+
+	return addressInfo, nil
+}
+
+// ValidateAddress tries to decode an address for the given network params, if error is encountered, address is not valid
+func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
+	_, err := addresshelper.DecodeForNetwork(address, c.activeNet)
+	return err == nil, nil
+}
+
+func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error) {
+	req := &walletrpc.NextAddressRequest{
+		Account:   account,
+		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,
+		Kind:      walletrpc.NextAddressRequest_BIP0044_EXTERNAL,
+	}
+
+	nextAddress, err := c.walletService.NextAddress(context.Background(), req)
+	if err != nil {
+		return "", err
+	}
+
+	return nextAddress.Address, nil
 }
 
 func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
@@ -193,6 +229,16 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 		}
 		txHash := hash.String()
 
+		address, err := walletcore.GetAddressFromPkScript(c.activeNet, utxo.PkScript)
+		if err != nil {
+			return nil, err
+		}
+
+		txn, err := c.GetTransaction(txHash)
+		if err != nil {
+			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
+		}
+
 		unspentOutput := &walletcore.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
@@ -200,6 +246,8 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 			Tree:            utxo.Tree,
 			ReceiveTime:     utxo.ReceiveTime,
 			Amount:          dcrutil.Amount(utxo.Amount),
+			Address:         address,
+			Confirmations:   txn.Confirmations,
 		}
 		unspentOutputs = append(unspentOutputs, unspentOutput)
 	}
@@ -303,13 +351,7 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, utxoKeys []string,
 		}
 	}
 
-	// generate address from sourceAccount to receive change
-	changeAddress, err := c.GenerateReceiveAddress(sourceAccount)
-	if err != nil {
-		return "", err
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, destinations, changeAddress)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations)
 	if err != nil {
 		return "", err
 	}
