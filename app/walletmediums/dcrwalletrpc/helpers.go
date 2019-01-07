@@ -1,19 +1,16 @@
 package dcrwalletrpc
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"math"
 	"time"
 
-	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
-	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -80,16 +77,23 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		return nil, err
 	}
 
+	_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(txDetail.Transaction)
+	if err != nil {
+		return nil, err
+	}
+
 	amount, direction := transactionAmountAndDirection(txDetail)
 
 	tx := &walletcore.Transaction{
 		Hash:          hash.String(),
 		Amount:        dcrutil.Amount(amount),
-		Fee:           dcrutil.Amount(txDetail.Fee),
+		Fee:           txFee,
+		FeeRate:       txFeeRate,
 		Type:          txDetail.TransactionType.String(),
 		Direction:     direction,
 		Timestamp:     txDetail.Timestamp,
 		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		Size:          txSize,
 	}
 	return tx, nil
 }
@@ -136,35 +140,4 @@ func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int6
 	}
 
 	return amount, direction
-}
-
-func inputsFromMsgTxIn(txIn []*wire.TxIn) []*walletcore.TxInput {
-	txInputs := make([]*walletcore.TxInput, len(txIn))
-	for i, input := range txIn {
-		txInputs[i] = &walletcore.TxInput{
-			Amount:           dcrutil.Amount(input.ValueIn),
-			PreviousOutpoint: input.PreviousOutPoint.String(),
-		}
-	}
-	return txInputs
-}
-
-func outputsFromMsgTxOut(txOut []*wire.TxOut, walletCredits []*walletrpc.TransactionDetails_Output, chainParams *chaincfg.Params) ([]*walletcore.TxOutput, error) {
-	txOutputs := make([]*walletcore.TxOutput, len(txOut))
-	for i, output := range txOut {
-		_, addrs, _, err := txscript.ExtractPkScriptAddrs(output.Version, output.PkScript, chainParams)
-		if err != nil {
-			return nil, err
-		}
-		txOutputs[i] = &walletcore.TxOutput{
-			Value:   dcrutil.Amount(output.Value),
-			Address: addrs[0].String(),
-		}
-		for _, credit := range walletCredits {
-			if bytes.Equal(output.PkScript, credit.GetOutputScript()) {
-				txOutputs[i].Internal = credit.GetInternal()
-			}
-		}
-	}
-	return txOutputs, nil
 }

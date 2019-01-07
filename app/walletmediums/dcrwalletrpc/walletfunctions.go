@@ -10,11 +10,12 @@ import (
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrdata/txhelpers"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"google.golang.org/grpc/codes"
 )
 
 // ideally, we should let user provide this info in settings and use the user provided value
@@ -96,6 +97,49 @@ func (c *WalletRPCClient) AccountNumber(accountName string) (uint32, error) {
 	}
 
 	return r.AccountNumber, nil
+}
+
+func (c *WalletRPCClient) AccountName(accountNumber uint32) (string, error) {
+	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, account := range accounts.Accounts {
+		if account.AccountNumber == accountNumber {
+			return account.AccountName, nil
+		}
+	}
+
+	return "", fmt.Errorf("Account not found")
+}
+
+func (c *WalletRPCClient) AddressInfo(address string) (*txhelper.AddressInfo, error) {
+	req := &walletrpc.ValidateAddressRequest{
+		Address: address,
+	}
+
+	addressValidationResult, err := c.walletService.ValidateAddress(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	addressInfo := &txhelper.AddressInfo{
+		IsMine:  addressValidationResult.IsMine,
+		Address: address,
+	}
+	if addressValidationResult.IsMine {
+		addressInfo.AccountNumber = addressValidationResult.AccountNumber
+		addressInfo.AccountName, _ = c.AccountName(addressValidationResult.AccountNumber)
+	}
+
+	return addressInfo, nil
+}
+
+// ValidateAddress tries to decode an address for the given network params, if error is encountered, address is not valid
+func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
+	_, err := addresshelper.DecodeForNetwork(address, c.activeNet)
+	return err == nil, nil
 }
 
 func (c *WalletRPCClient) GenerateReceiveAddress(account uint32) (string, error) {
@@ -325,18 +369,20 @@ func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error
 }
 
 func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+	ctx := context.Background()
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
 	}
 	getTxRequest := &walletrpc.GetTransactionRequest{TransactionHash: hash[:]}
-	getTxResponse, err := c.walletService.GetTransaction(context.Background(), getTxRequest)
-	if err != nil {
+	getTxResponse, err := c.walletService.GetTransaction(ctx, getTxRequest)
+	if isRpcErrorCode(err, codes.NotFound) {
+		return nil, fmt.Errorf("transaction not found")
+	} else if err != nil {
 		return nil, err
 	}
 
-	transactionHex := fmt.Sprintf("%x", getTxResponse.GetTransaction().GetTransaction())
-	msgTx, err := txhelpers.MsgTxFromHex(transactionHex)
+	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, c.AddressInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -345,20 +391,22 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
-	txFee, txFeeRate := txhelpers.TxFeeRate(msgTx)
-	transaction.Fee, transaction.Rate, transaction.Size = txFee, txFeeRate, msgTx.SerializeSize()
+	transaction.Fee, transaction.FeeRate, transaction.Size = dcrutil.Amount(decodedTx.Fee), dcrutil.Amount(decodedTx.FeeRate), decodedTx.Size
 
-	credits := getTxResponse.GetTransaction().GetCredits()
-	txOutputs, err := outputsFromMsgTxOut(msgTx.TxOut, credits, c.activeNet)
-	if err != nil {
-		return nil, err
+	var blockHeight int32 = -1
+	if getTxResponse.BlockHash != nil {
+		blockInfo, err := c.walletService.BlockInfo(ctx, &walletrpc.BlockInfoRequest{BlockHash: getTxResponse.BlockHash})
+		if err == nil {
+			blockHeight = blockInfo.BlockHeight
+		}
 	}
+
 	return &walletcore.TransactionDetails{
-		BlockHash:     fmt.Sprintf("%x", getTxResponse.GetBlockHash()),
+		BlockHeight:   blockHeight,
 		Confirmations: getTxResponse.GetConfirmations(),
 		Transaction:   transaction,
-		Inputs:        inputsFromMsgTxIn(msgTx.TxIn),
-		Outputs:       txOutputs,
+		Inputs:        decodedTx.Inputs,
+		Outputs:       decodedTx.Outputs,
 	}, nil
 }
 
