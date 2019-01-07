@@ -3,6 +3,7 @@ package terminalprompt
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -41,6 +42,35 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 		}
 		return value, nil
 	}
+}
+
+// RequestNumberInput uses RequestInput requests numeric input from the user.
+func RequestNumberInput(message string, defaultValue ...int) (number int, err error) {
+	validateNumber := func(input string) error {
+		if len(defaultValue) > 0 {
+			if input == "" {
+				number = defaultValue[0]
+				return nil
+			}
+		}
+
+		number, err = strconv.Atoi(input)
+		if err != nil {
+			return fmt.Errorf("Invalid number. Try again")
+		}
+		return nil
+	}
+
+	if len(defaultValue) > 0 {
+		message = fmt.Sprintf("%s (default: %d)", message, defaultValue[0])
+	}
+	_, err = RequestInput(message, validateNumber)
+	if err != nil {
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
+	}
+
+	return
 }
 
 // RequestInputSecure requests input from the user, disabling terminal echo.

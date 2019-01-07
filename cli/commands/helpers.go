@@ -158,30 +158,6 @@ func getSendAmount() (float64, error) {
 	return amount, nil
 }
 
-// getSendAmount fetches the amout of DCRs to send from the user.
-func getNChangeOutput() (number int, err error) {
-	validateNumber := func(input string) error {
-		if input == "" {
-			number = 1
-			return nil
-		}
-
-		number, err = strconv.Atoi(input)
-		if err != nil {
-			return fmt.Errorf("Invalid number. Try again")
-		}
-		return nil
-	}
-
-	_, err = terminalprompt.RequestInput("How many change outputs would you like to use? (default: 1)", validateNumber)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return 0, fmt.Errorf("error receiving input: %s", err.Error())
-	}
-
-	return
-}
-
 // getChangeAmount fetches the amount of DCRs to send from the user.
 func getChangeAmount(prompt string) (amount float64, err error) {
 	validateAmount := func(input string) error {
@@ -282,7 +258,7 @@ func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64,
 // getChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
 func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
-	nChangeOutputs, err := getNChangeOutput()
+	nChangeOutputs, err := terminalprompt.RequestNumberInput("How many change outputs would you like to use?", 1)
 	if err != nil {
 		return
 	}
