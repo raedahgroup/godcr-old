@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
@@ -28,7 +29,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 
 	basicOutput := "Hash\t%s\n" +
 		"Confirmations\t%d\n" +
-		"Included in block\t%s\n" +
+		"Included in block\t%d\n" +
 		"Type\t%s\n" +
 		"Amount %s\t%s\n" +
 		"Date\t%s\n" +
@@ -41,13 +42,13 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	basicOutput = fmt.Sprintf(basicOutput,
 		transaction.Hash,
 		transaction.Confirmations,
-		transaction.BlockHash,
+		transaction.BlockHeight,
 		transaction.Type,
 		txDirection, transaction.Amount,
 		transaction.FormattedTime,
 		txSize,
 		transaction.Fee,
-		transaction.Rate)
+		transaction.FeeRate)
 
 	if showTxCommand.Detailed {
 		detailedOutput := strings.Builder{}
@@ -55,15 +56,23 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		detailedOutput.WriteString(basicOutput)
 		detailedOutput.WriteString("\nInputs\n")
 		for _, input := range transaction.Inputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\n", input.Amount, input.PreviousOutpoint))
+			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\n", dcrutil.Amount(input.AmountIn).String(), input.PreviousOutpoint))
 		}
 		detailedOutput.WriteString("\nOutputs\n")
 		for _, out := range transaction.Outputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s", out.Value, out.Address))
-			if out.Internal {
-				detailedOutput.WriteString(" (internal)")
+			if len(out.Addresses) == 0 {
+				detailedOutput.WriteString(fmt.Sprintf("%s\t (no address)\n", dcrutil.Amount(out.Value).String()))
+				continue
 			}
-			detailedOutput.WriteString("\n")
+
+			detailedOutput.WriteString(fmt.Sprintf("%s", dcrutil.Amount(out.Value).String()))
+			for _, address := range out.Addresses {
+				accountName := address.AccountName
+				if !address.IsMine {
+					accountName = "external"
+				}
+				detailedOutput.WriteString(fmt.Sprintf("\t%s (%s)\n", address.Address, accountName))
+			}
 		}
 		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))
 	} else {

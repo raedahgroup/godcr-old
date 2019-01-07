@@ -33,29 +33,18 @@ type Transaction struct {
 	Type          string                        `json:"type"`
 	Amount        dcrutil.Amount                `json:"amount"`
 	Fee           dcrutil.Amount                `json:"fee"`
-	Rate          dcrutil.Amount                `json:"rate,omitempty"`
+	FeeRate       dcrutil.Amount                `json:"rate,omitempty"`
 	Direction     txhelper.TransactionDirection `json:"direction"`
 	Timestamp     int64                         `json:"timestamp"`
 	FormattedTime string                        `json:"formatted_time"`
 	Size          int                           `json:"size"`
 }
 
-type TxInput struct {
-	Amount           dcrutil.Amount `json:"value"`
-	PreviousOutpoint string         `json:"previousOutpoint"`
-}
-
-type TxOutput struct {
-	Address  string         `json:"address"`
-	Internal bool           `json:"internal"`
-	Value    dcrutil.Amount `json:"value"`
-}
-
 type TransactionDetails struct {
-	BlockHash     string      `json:"blockHash"`
-	Confirmations int32       `json:"confirmations"`
-	Inputs        []*TxInput  `json:"inputs"`
-	Outputs       []*TxOutput `json:"outputs"`
+	BlockHeight   int32                     `json:"blockHeight"`
+	Confirmations int32                     `json:"confirmations"`
+	Inputs        []*txhelper.DecodedInput  `json:"inputs"`
+	Outputs       []*txhelper.DecodedOutput `json:"outputs"`
 	*Transaction
 }
 
