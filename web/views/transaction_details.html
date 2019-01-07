@@ -3,6 +3,9 @@
 {{ template "html-head" }}
 <body>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> added godcr.conf to gitignore file, fix typo, implemented review on value, fee etc
 <div class="body">
     {{ template "header" }}
     <div>
@@ -13,6 +16,7 @@
                     <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
                 </ol>
             </nav>
+<<<<<<< HEAD
         </div>
     </div>
     <div class="content">
@@ -123,64 +127,41 @@
                     </ol>
                 </nav>
             </div>
+=======
+>>>>>>> added godcr.conf to gitignore file, fix typo, implemented review on value, fee etc
         </div>
-        <div class="content">
-            <div class="container">
-                <h3>Transactions</h3>
-                <div class="row justify-content-between mb-4">
-                    <div class="col-lg-8">
-                        <table class="table m-0">
-                            <tbody>
-                                <tr>
-                                  <td>Confirmations</td>
-                                  <td>{{ .tx.Confirmations }}</td>
-                                </tr>
-                                <tr>
-                                  <td>Hash</td>
-                                  <td>{{ .tx.Hash }}</td>
-                                </tr>
-                                <tr>
-                                  <td>Block Height</td>
-                                  <td>{{ .tx.BlockHeight }}</td>
-                                </tr>
-                                <tr>
-                                  <td>Direction</td>
-                                  <td>{{ .tx.Direction }}</td>
-                                </tr>
-                                <tr>
-                                  <td>Type</td>
-                                  <td>{{ .tx.Type }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                      </div>
-                    <div class="col-lg-4">
-                      <table class="table m-0">
-                          <tbody>
-                          <tr>
-                              <td>Amount</td>
-                              <td>{{ .tx.Amount }}</td>
-                          </tr>
-                          <tr>
-                              <td>Size</td>
-                              <td>{{ .tx.Size }}<span>Bytes</span></td>
-                          </tr>
-                          <tr>
-                              <td>Fee</td>
-                              <td>{{ .tx.Fee }} <span>/KB</span></td>
-                          </tr>
-                          <tr>
-                              <td>Fee Rate</td>
-                              <td>{{ .tx.FeeRate }}</td>
-                          </tr>
-                          <tr>
-                              <td>Time</td>
-                              <td>{{ .tx.FormattedTime }}</td>
-                          </tr>
-                          </tbody>
-                      </table>
-                  </div>
+    </div>
+    <div class="content">
+        <div class="container">
+            <h3>Transactions</h3>
+            <div class="row justify-content-between mb-4">
+                <div class="col-lg-8">
+                    <table class="table m-0">
+                        <tbody>
+                        <tr>
+                            <td>Confirmations</td>
+                            <td>{{ .tx.Confirmations }}</td>
+                        </tr>
+                        <tr>
+                            <td>Hash</td>
+                            <td>{{ .tx.Hash }}</td>
+                        </tr>
+                        <tr>
+                            <td>Block Height</td>
+                            <td>{{ .tx.BlockHeight }}</td>
+                        </tr>
+                        <tr>
+                            <td>Direction</td>
+                            <td>{{ .tx.Direction }}</td>
+                        </tr>
+                        <tr>
+                            <td>Type</td>
+                            <td>{{ .tx.Type }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
+<<<<<<< HEAD
                 <div class="row">
                     <div class="col-md-8 mb-3">
                         <h3>Inputs</h3>
@@ -219,6 +200,71 @@
                                 <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
                                 {{ end }}
                             </tr>
+>>>>>>> added godcr.conf to gitignore file, fix typo, implemented review on value, fee etc
+=======
+                <div class="col-lg-4">
+                    <table class="table m-0">
+                        <tbody>
+                        <tr>
+                            <td>Amount</td>
+                            <td>{{ .tx.Amount }}</td>
+                        </tr>
+                        <tr>
+                            <td>Size</td>
+                            <td>{{ .tx.Size }}<span>Bytes</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fee</td>
+                            <td>{{ .tx.Fee }} <span>/KB</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fee Rate</td>
+                            <td>{{ .tx.FeeRate }}</td>
+                        </tr>
+                        <tr>
+                            <td>Time</td>
+                            <td>{{ .tx.FormattedTime }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <h3>Inputs</h3>
+                    <table class="table m-0">
+                        <thead>
+                        <tr>
+                            <th>Previous Outpoint</th>
+                            <th>Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{ range $txn := .tx.Inputs }}
+                        <tr>
+                            <td>{{ .PreviousOutpoint }}</td>
+                            <td>{{ amountDcr .AmountIn  }}</td>
+                        </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <h3>Outputs</h3>
+                    <table class="table m-0">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Address</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{ range $txn := .tx.Outputs }}
+                        <tr>
+                            {{ range .Addresses }}
+                            <td>{{ $txn.ScriptType }}</td>
+                            <td>{{ .Address }}</td>
+                            <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
 >>>>>>> added godcr.conf to gitignore file, fix typo, implemented review on value, fee etc
                             {{ end }}
                         </tr>
