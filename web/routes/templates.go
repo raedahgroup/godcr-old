@@ -5,6 +5,7 @@ import (
 	"html/template"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/decred/dcrd/dcrutil"
 )
 
 type templateData struct {
@@ -32,6 +33,9 @@ func templateFuncMap() template.FuncMap {
 			} else {
 				return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
 			}
+		},
+		"amountDcr": func(amount int64) string {
+			return dcrutil.Amount(amount).String()
 		},
 	}
 }

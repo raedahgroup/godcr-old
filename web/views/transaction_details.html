@@ -9,7 +9,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/history">History</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Transation Details</li>
+                        <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
                     </ol>
                 </nav>
             </div>
@@ -53,11 +53,11 @@
                           </tr>
                           <tr>
                               <td>Size</td>
-                              <td>{{ .tx.Size }}</td>
+                              <td>{{ .tx.Size }}<span>Bytes</span></td>
                           </tr>
                           <tr>
                               <td>Fee</td>
-                              <td>{{ .tx.Fee }}</td>
+                              <td>{{ .tx.Fee }} <span>/KB</span></td>
                           </tr>
                           <tr>
                               <td>Fee Rate</td>
@@ -72,53 +72,42 @@
                   </div>
                 </div>
                 <div class="row">
-                    <div class="col mb-3">
+                    <div class="col-md-8 mb-3">
                         <h3>Inputs</h3>
                         <table class="table m-0">
                             <thead>
                             <tr>
-                                <th>Previous Transaction Hash</th>
-                                <th>Previous Transaction Index</th>
                                 <th>Previous Outpoint</th>
-                                <th>Amount In</th>
+                                <th>Value</th>
                             </tr>
                             </thead>
                             <tbody>
                             {{ range $txn := .tx.Inputs }}
                             <tr>
-                                <td>{{ .PreviousTransactionHash }}</td>
-                                <td>{{ .PreviousTransactionIndex }}</td>
                                 <td>{{ .PreviousOutpoint }}</td>
-                                <td>{{ .AmountIn }}</td>
+                                <td>{{ amountDcr .AmountIn  }}</td>
                             </tr>
                             {{ end }}
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col">
+                    <div class="col-md-4">
                         <h3>Outputs</h3>
                         <table class="table m-0">
                             <thead>
                             <tr>
-                                <th>Index</th>
-                                <th>Value</th>
-                                <th>Internal</th>
-                                <th>Version</th>
-                                <th>ScriptType</th>
-                                <th>Addresses</th>
+                                <th>Type</th>
+                                <th>Address</th>
                             </tr>
                             </thead>
                             <tbody>
                             {{ range $txn := .tx.Outputs }}
                             <tr>
-                                <td>{{ .Index }}</td>
-                                <td>{{ .Value }}</td>
-                                <td>{{ .Internal }}</td>
-                                <td>{{ .Version }}</td>
-                                <td>{{ .ScriptType }}</td>
-                                <td>{{ .Addresses }}</td>
+                                {{ range .Addresses }}
+                                <td>{{ $txn.ScriptType }}</td>
+                                <td>{{ .Address }}</td>
+                                <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
+                                {{ end }}
                             </tr>
                             {{ end }}
                             </tbody>
