@@ -158,30 +158,6 @@ func getSendAmount() (float64, error) {
 	return amount, nil
 }
 
-// getChangeAmount fetches the amount of DCRs to send from the user.
-func getChangeAmount(prompt string) (amount float64, err error) {
-	validateAmount := func(input string) error {
-		if input == "" {
-			amount = 0
-			return nil
-		}
-
-		amount, err = strconv.ParseFloat(input, 64)
-		if err != nil {
-			return fmt.Errorf("Invalid amount. Try again")
-		}
-		return nil
-	}
-
-	_, err = terminalprompt.RequestInput(prompt, validateAmount)
-	if err != nil {
-		// There was an error reading input; we cannot proceed.
-		return 0, fmt.Errorf("error receiving input: %s", err.Error())
-	}
-
-	return
-}
-
 // getChangeOutputDestinations fetches the amount to be sent to each change address
 func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount float64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
@@ -206,8 +182,56 @@ func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount floa
 	return
 }
 
-// getChangeDestinationsFromUser fetches change destination from the user
-func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32, nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+// getChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
+func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
+	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
+	nChangeOutputs, err := terminalprompt.RequestNumberInput("How many change outputs would you like to use?", 1)
+	if err != nil {
+		return
+	}
+
+	var changeAddresses []string
+	for i := 0; i < nChangeOutputs; i++ {
+		address, err := wallet.GenerateReceiveAddress(sourceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("error generating address: %s", err.Error())
+		}
+		changeAddresses = append(changeAddresses, address)
+	}
+
+	changeAmount, err := txhelper.EstimateChange(nUtxoSelection, amountInAtom, sendDestinations, changeAddresses)
+	if err != nil {
+		return nil, fmt.Errorf("error in getting change amount: %s", err.Error())
+	}
+	if changeAmount <= 0 {
+		return
+	}
+
+	var portions []float64
+	var portionRations []float64
+	var rationSum float64
+	for i := 0; i < nChangeOutputs; i++ {
+		portion := rand.Float64()
+		portionRations = append(portionRations, portion)
+		rationSum += portion
+	}
+
+	for i, portion := range portionRations {
+		portionPercentage := portion / rationSum
+		amount := portionPercentage * float64(changeAmount)
+
+		changeOutput := txhelper.TransactionDestination{
+			Address: changeAddresses[i],
+			Amount: dcrutil.Amount(amount).ToCoin(),
+		}
+		changeOutputDestinations = append(changeOutputDestinations, changeOutput)
+	}
+	return
+}
+
+// getChangeDestinationsFromUser fetches change destination from the user progressively until the total available change amount is covered
+func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32, nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) ([]txhelper.TransactionDestination, error) {
+	var changeOutputDestinations []txhelper.TransactionDestination
 	var changeAddresses []string
 	var amountAssigned int64
 
@@ -252,52 +276,30 @@ func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64,
 		amountAssigned += changeAmountInAtom
 		index++
 	}
-	return
+	return changeOutputDestinations, nil
 }
 
-// getChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
-func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
-	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
-	nChangeOutputs, err := terminalprompt.RequestNumberInput("How many change outputs would you like to use?", 1)
-	if err != nil {
-		return
-	}
-
-	var changeAddresses []string
-	for i := 0; i < nChangeOutputs; i++ {
-		address, err := wallet.GenerateReceiveAddress(sourceAccount)
-		if err != nil {
-			return nil, fmt.Errorf("error generating address: %s", err.Error())
+// getChangeAmount fetches the amount of DCRs to send from the user.
+func getChangeAmount(prompt string) (amount float64, err error) {
+	validateAmount := func(input string) error {
+		if input == "" {
+			amount = 0
+			return nil
 		}
-		changeAddresses = append(changeAddresses, address)
+
+		amount, err = strconv.ParseFloat(input, 64)
+		if err != nil || amount <= 0 {
+			return fmt.Errorf("Invalid amount. Try again")
+		}
+		return nil
 	}
 
-	changeAmount, err := txhelper.EstimateChange(nUtxoSelection, amountInAtom, sendDestinations, changeAddresses)
+	_, err = terminalprompt.RequestInput(prompt, validateAmount)
 	if err != nil {
-		return nil, fmt.Errorf("error in getting change amount: %s", err.Error())
-	}
-	if changeAmount <= 0 {
-		return
+		// There was an error reading input; we cannot proceed.
+		return 0, fmt.Errorf("error receiving input: %s", err.Error())
 	}
 
-	var portions []float64
-	var portionRations []float64
-	var rationSum float64
-	for i := 0; i < nChangeOutputs; i++ {
-		portion := rand.Float64()
-		portionRations = append(portionRations, portion)
-		rationSum += portion
-	}
-	for _, portion := range portionRations {
-		amount := portion * float64(changeAmount) / rationSum
-		portions = append(portions, amount)
-	}
-
-	for i, address := range changeAddresses {
-		amountInDcr := dcrutil.Amount(portions[i]).ToCoin()
-		changeOutputDestinations = append(changeOutputDestinations,
-			txhelper.TransactionDestination{Address: address, Amount: amountInDcr})
-	}
 	return
 }
 
