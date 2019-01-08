@@ -133,21 +133,14 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 		return "", errors.New("transaction canceled")
 	}
 
-	var sentTransactionHash string
 	var outputKeys []string
 	for _, utxo := range utxoSelection {
 		outputKeys = append(outputKeys, utxo.OutputKey)
 	}
-	sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
-
-	if err != nil {
-		return "", err
-	}
-
-	return sentTransactionHash, nil
+	return wallet.SendFromUTXOs(sourceAccount, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
 }
 
-func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination) (txHash string, err error) {
+func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination) (string, error) {
 	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return "", err
@@ -158,7 +151,7 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	} else {
 		fmt.Println("You are about to send")
 		for _, destination := range sendDestinations {
-			fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
+			fmt.Println(fmt.Sprintf(" %f DCR \t to %s", destination.Amount, destination.Address))
 		}
 	}
 
@@ -168,15 +161,8 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	}
 
 	if !sendConfirmed {
-		return "",errors.New("transaction cancelled")
+		return "", errors.New("transaction cancelled")
 	}
 
-	var sentTransactionHash string
-	sentTransactionHash, err = wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
-
-	if err != nil {
-		return "", err
-	}
-
-	return sentTransactionHash, nil
+	return wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
 }
