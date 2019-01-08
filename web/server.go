@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/web/routes"
 )
 
-func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, address string) error {
+func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
 	router := chi.NewRouter()
 
 	// first try to load wallet if it exists
@@ -32,7 +33,8 @@ func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware,
 	syncBlockchain := routes.Setup(walletMiddleware, router)
 
 	fmt.Println("Starting web server")
-	err = startServer(ctx, address, router)
+	serverAddress := net.JoinHostPort(host, port)
+	err = startServer(ctx, serverAddress, router)
 	if err != nil {
 		return err
 	}

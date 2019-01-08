@@ -7,6 +7,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
@@ -44,6 +45,8 @@ func PrintGeneralHelp(output io.Writer, parser *flags.Parser, commandCategories 
 		commandGroups[commandCategory] = append(commandGroups[commandCategory], command)
 	}
 	printCommands(tabWriter, commandGroups)
+
+	fmt.Fprintf(tabWriter, "Other config options are available in %s\n\n", config.AppConfigFilePath)
 }
 
 func PrintCommandHelp(output io.Writer, appName string, command *flags.Command) {
