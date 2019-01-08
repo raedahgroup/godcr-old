@@ -38,7 +38,7 @@ func send(wallet walletcore.Wallet, custom bool) error {
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := wallet.AccountBalance(sourceAccount)
+	accountBalance, err := wallet.AccountBalance(sourceAccount, walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	var totalInputAmount float64
 
 	// get all utxos in account, pass 0 amount to get all
-	utxos, err := wallet.UnspentOutputs(sourceAccount, 0)
+	utxos, err := wallet.UnspentOutputs(sourceAccount, 0, walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -137,7 +137,7 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	for _, utxo := range utxoSelection {
 		outputKeys = append(outputKeys, utxo.OutputKey)
 	}
-	return wallet.SendFromUTXOs(sourceAccount, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
+	return wallet.SendFromUTXOs(sourceAccount, walletcore.DefaultRequiredConfirmations, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
 }
 
 func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination) (string, error) {
@@ -164,5 +164,5 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 		return "", errors.New("transaction cancelled")
 	}
 
-	return wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
+	return wallet.SendFromAccount(sourceAccount, walletcore.DefaultRequiredConfirmations, sendDestinations, passphrase)
 }
