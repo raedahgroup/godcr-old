@@ -10,11 +10,9 @@ require (
 	github.com/decred/dcrd/wire v1.2.0
 	github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7
 	github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08
-	// github.com/decred/dcrwallet/walletseed v1.0.0
 	github.com/decred/dcrwallet/walletseed v1.0.1
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
-	// github.com/raedahgroup/dcrlibwallet v0.0.0-20190105220152-dc544948a1a2e6f6f51f4c4dba4113f76e1fff9b
 	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190106225103-e608e7f143af
 	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
