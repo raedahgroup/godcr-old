@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -40,7 +39,7 @@ func send(wallet walletcore.Wallet, custom bool) error {
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := wallet.AccountBalance(sourceAccount)
+	accountBalance, err := wallet.AccountBalance(sourceAccount, walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return err
 	}
@@ -48,113 +47,123 @@ func send(wallet walletcore.Wallet, custom bool) error {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
-	sendDestinations, err := getSendTxDestinations(wallet)
+	sendDestinations, sendAmountTotal, err := getSendTxDestinations(wallet)
 	if err != nil {
 		return err
-	}
-	var sendAmountTotal float64
-	for _, destination := range sendDestinations {
-		sendAmountTotal += destination.Amount
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
 		return fmt.Errorf("Selected account has insufficient balance. Cannot proceed")
 	}
 
-	var utxoSelection []*walletcore.UnspentOutput
-
+	var sentTxHash string
 	if custom {
-		// get all utxos in account, pass 0 amount to get all
-		utxos, err := wallet.UnspentOutputs(sourceAccount, 0)
-		if err != nil {
-			return err
-		}
-
-		choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
-			switch strings.ToLower(input) {
-			case "", "a", "m":
-				return nil
-			}
-			return errors.New("invalid entry")
-		})
-		if err != nil {
-			return fmt.Errorf("error in reading choice: %s", err.Error())
-		}
-		if strings.ToLower(choice) == "a" || choice == "" {
-			utxoSelection = bestSizedInput(utxos, sendAmountTotal)
-		} else {
-			utxoSelection, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
-		}
+		sentTxHash, err = completeCustomSend(wallet, sourceAccount, sendDestinations, sendAmountTotal)
+	} else {
+		sentTxHash, err = completeNormalSend(wallet, sourceAccount, sendDestinations)
 	}
 
-	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err
 	}
 
-	if custom {
-		fmt.Println("You are about to spend the input(s)")
-		for _, utxo := range utxoSelection {
-			fmt.Println(fmt.Sprintf(" %s from %s", utxo.Amount.String(), utxo.Address))
+	fmt.Println("Sent txid", sentTxHash)
+	return nil
+}
+
+func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination, sendAmountTotal float64) (string, error) {
+	var changeOutputDestinations []txhelper.TransactionDestination
+	var utxoSelection []*walletcore.UnspentOutput
+	var totalInputAmount float64
+
+	// get all utxos in account, pass 0 amount to get all
+	utxos, err := wallet.UnspentOutputs(sourceAccount, 0, walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		return "", err
+	}
+
+	choice, err := terminalprompt.RequestInput("Would you like to (a)utomatically or (m)anually select inputs? (A/m)", func(input string) error {
+		switch strings.ToLower(input) {
+		case "", "a", "m":
+			return nil
 		}
-		fmt.Println("and send")
-		for _, destination := range sendDestinations {
-			fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
-		}
+		return errors.New("invalid entry")
+	})
+	if err != nil {
+		return "", fmt.Errorf("error in reading choice: %s", err.Error())
+	}
+	if strings.ToLower(choice) == "a" || choice == "" {
+		utxoSelection, totalInputAmount = bestSizedInput(utxos, sendAmountTotal)
 	} else {
-		if len(sendDestinations) == 1 {
-			fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address))
-		} else {
-			fmt.Println("You are about to send")
-			for _, destination := range sendDestinations {
-				fmt.Println(fmt.Sprintf(" %f DCR to %s", destination.Amount, destination.Address))
-			}
+		utxoSelection, totalInputAmount, err = getUtxosForNewTransaction(utxos, sendAmountTotal)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	changeOutputDestinations, err = getChangeOutputDestinations(wallet, totalInputAmount, sourceAccount,
+		len(utxoSelection), sendDestinations)
+	if err != nil {
+		return "", err
+	}
+
+	passphrase, err := getWalletPassphrase()
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("You are about to spend the input(s)")
+	for _, utxo := range utxoSelection {
+		fmt.Println(fmt.Sprintf(" %s \t from %s", utxo.Amount.String(), utxo.Address))
+	}
+	fmt.Println("and send")
+	for _, destination := range sendDestinations {
+		fmt.Println(fmt.Sprintf(" %f DCR \t to %s", destination.Amount, destination.Address))
+	}
+	for _, destination := range changeOutputDestinations {
+		fmt.Println(fmt.Sprintf(" %f DCR \t to %s (change)", destination.Amount, destination.Address))
+	}
+
+	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to broadcast it?", "")
+	if err != nil {
+		return "", fmt.Errorf("error reading your response: %s", err.Error())
+	}
+
+	if !sendConfirmed {
+		fmt.Println("Canceled")
+		return "", errors.New("transaction canceled")
+	}
+
+	var outputKeys []string
+	for _, utxo := range utxoSelection {
+		outputKeys = append(outputKeys, utxo.OutputKey)
+	}
+	return wallet.SendFromUTXOs(sourceAccount, walletcore.DefaultRequiredConfirmations, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
+}
+
+func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination) (string, error) {
+	passphrase, err := getWalletPassphrase()
+	if err != nil {
+		return "", err
+	}
+
+	if len(sendDestinations) == 1 {
+		fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address))
+	} else {
+		fmt.Println("You are about to send")
+		for _, destination := range sendDestinations {
+			fmt.Println(fmt.Sprintf(" %f DCR \t to %s", destination.Amount, destination.Address))
 		}
 	}
 
 	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to broadcast it?", "")
 	if err != nil {
-		return fmt.Errorf("error reading your response: %s", err.Error())
+		return "", fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if !sendConfirmed {
-		fmt.Println("Canceled")
-		return nil
+		return "", errors.New("transaction cancelled")
 	}
 
-	var sentTransactionHash string
-	if custom {
-		var utxos []string
-		var totalInputAmount int64
-		for _, utxo := range utxoSelection {
-			utxos = append(utxos, utxo.OutputKey)
-			totalInputAmount += int64(utxo.Amount)
-		}
-
-		changeAddress, err := wallet.GenerateReceiveAddress(sourceAccount)
-		if err != nil {
-			return fmt.Errorf("error generating change address: %s", err.Error())
-		}
-
-		changeAmount, err := txhelper.EstimateChange(len(utxos), int64(totalInputAmount), sendDestinations, []string{changeAddress})
-		if err != nil {
-			return fmt.Errorf("error estimating change amount: %s", err.Error())
-		}
-
-		changeDestinations := []txhelper.TransactionDestination{{
-			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
-			Address: changeAddress,
-		}}
-
-		sentTransactionHash, err = wallet.SendFromUTXOs(sourceAccount, utxos, sendDestinations, changeDestinations, passphrase)
-	} else {
-		sentTransactionHash, err = wallet.SendFromAccount(sourceAccount, sendDestinations, passphrase)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Sent. Txid", sentTransactionHash)
-	return nil
+	return wallet.SendFromAccount(sourceAccount, walletcore.DefaultRequiredConfirmations, sendDestinations, passphrase)
 }

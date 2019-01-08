@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -41,7 +42,7 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 }
 
 func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
-	accounts, err := routes.walletMiddleware.AccountsOverview()
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching account balance: %s", err.Error()), res)
 		return
@@ -55,7 +56,7 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
-	accounts, err := routes.walletMiddleware.AccountsOverview()
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
 		return
@@ -118,13 +119,13 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		}
 
 		changeDestinations := []txhelper.TransactionDestination{{
-			Amount: dcrutil.Amount(changeAmount).ToCoin(),
+			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
 			Address: changeAddress,
 		}}
 
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, utxos, sendDestinations, changeDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, walletcore.DefaultRequiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, sendDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, walletcore.DefaultRequiredConfirmations, sendDestinations, passphrase)
 	}
 
 	if err != nil {
@@ -136,7 +137,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 }
 
 func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
-	accounts, err := routes.walletMiddleware.AccountsOverview()
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
 		return
@@ -195,7 +196,7 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0)
+	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0, walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -217,4 +218,19 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		"result": txns,
 	}
 	routes.render("history.html", data, res)
+}
+
+func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.Request) {
+	hash := chi.URLParam(req, "hash")
+	tx, err := routes.walletMiddleware.GetTransaction(hash)
+
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching transaction: %s", err.Error()), res)
+		return
+	}
+
+	data := map[string]interface{}{
+		"tx": tx,
+	}
+	routes.render("transaction_details.html", data, res)
 }
