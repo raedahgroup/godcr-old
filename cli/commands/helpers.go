@@ -187,7 +187,7 @@ func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAt
 
 	var changeAddresses []string
 	for i := 0; i < nChangeOutputs; i++ {
-		address, err := wallet.GenerateReceiveAddress(sourceAccount)
+		address, err := wallet.GenerateNewAddress(sourceAccount)
 		if err != nil {
 			return nil, fmt.Errorf("error generating address: %s", err.Error())
 		}
@@ -231,7 +231,7 @@ func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64,
 
 	var index int
 	for {
-		address, err := wallet.GenerateReceiveAddress(sourceAccount)
+		address, err := wallet.GenerateNewAddress(sourceAccount)
 		if err != nil {
 			return nil, fmt.Errorf("error in generating address: %s", err.Error())
 		}
