@@ -117,3 +117,17 @@ body {
     border: 1px solid #d0d0d0;
     border-top-color: transparent;
 }
+
+.table td, .table th{
+    padding: .3rem
+}
+
+.breadcrumb{
+    background: none;
+    padding: 1rem 0 0;
+    margin: 0;
+}
+
+.breadcrumb-item{
+    font-size: 15px;
+}

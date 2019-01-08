@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+<div class="body">
+    {{ template "header" }}
+    <div>
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/history">History</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="content">
+        <div class="container">
+            <h3>Transactions</h3>
+            <div class="row justify-content-between mb-4">
+                <div class="col-xl-7">
+                    <table class="table m-0">
+                        <tbody>
+                        <tr>
+                            <td>Confirmations</td>
+                            <td>{{ .tx.Confirmations }}</td>
+                        </tr>
+                        <tr>
+                            <td>Hash</td>
+                            <td>{{ .tx.Hash }}</td>
+                        </tr>
+                        <tr>
+                            <td>Block Height</td>
+                            <td>{{ .tx.BlockHeight }}</td>
+                        </tr>
+                        <tr>
+                            <td>Direction</td>
+                            <td>{{ .tx.Direction }}</td>
+                        </tr>
+                        <tr>
+                            <td>Type</td>
+                            <td>{{ .tx.Type }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-xl-5">
+                    <table class="table m-0">
+                        <tbody>
+                        <tr>
+                            <td>Amount</td>
+                            <td>{{ .tx.Amount }}</td>
+                        </tr>
+                        <tr>
+                            <td>Size</td>
+                            <td>{{ .tx.Size }} Bytes</td>
+                        </tr>
+                        <tr>
+                            <td>Fee</td>
+                            <td>{{ .tx.Fee }}</td>
+                        </tr>
+                        <tr>
+                            <td>Fee Rate</td>
+                            <td>{{ .tx.FeeRate }}/KB</td>
+                        </tr>
+                        <tr>
+                            <td>Time</td>
+                            <td>{{ .tx.FormattedTime }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-7 mb-3">
+                    <h3>Inputs</h3>
+                    <table class="table m-0">
+                        <thead>
+                        <tr>
+                            <th>Previous Outpoint</th>
+                            <th>Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{ range $txn := .tx.Inputs }}
+                        <tr>
+                            <td>{{ .PreviousOutpoint }}</td>
+                            <td>{{ amountDcr .AmountIn  }}</td>
+                        </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-xl-5">
+                    <h3>Outputs</h3>
+                    <table class="table m-0">
+                        <thead>
+                        <tr>
+                            <th>Address</th>
+                            <th>Account</th>
+                            <th>Value</th>
+                            <th>Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{ range $txn := .tx.Outputs }}
+                        <tr>
+                            {{ range .Addresses }}
+                            <td>{{ .Address }}</td>
+                            <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
+                            <td>{{ amountDcr $txn.Value }}</td>
+                            <td>{{ $txn.ScriptType }}</td>
+                            {{ end }}
+                        </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
