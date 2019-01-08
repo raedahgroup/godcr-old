@@ -118,7 +118,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		}
 
 		changeDestinations := []txhelper.TransactionDestination{{
-			Amount: dcrutil.Amount(changeAmount).ToCoin(),
+			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
 			Address: changeAddress,
 		}}
 
