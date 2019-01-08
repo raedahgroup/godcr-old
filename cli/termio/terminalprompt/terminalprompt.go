@@ -44,7 +44,7 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 	}
 }
 
-// RequestNumberInput uses RequestInput requests numeric input from the user.
+// RequestNumberInput uses RequestInput to requests numeric input from the user.
 func RequestNumberInput(message string, defaultValue ...int) (number int, err error) {
 	validateNumber := func(input string) error {
 		if len(defaultValue) > 0 {
