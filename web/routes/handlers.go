@@ -48,9 +48,12 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	req.ParseForm()
+	showDetails := req.FormValue("detailed") != ""
+
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"detailed": chi.URLParam(req, "detailed") != "",
+		"detailed": showDetails,
 	}
 	routes.render("balance.html", data, res)
 }
