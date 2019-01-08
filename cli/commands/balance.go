@@ -16,7 +16,7 @@ type BalanceCommand struct {
 
 // Run runs the `balance` command, displaying the user's account balance.
 func (balanceCommand BalanceCommand) Run(wallet walletcore.Wallet) error {
-	accounts, err := wallet.AccountsOverview()
+	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return err
 	}

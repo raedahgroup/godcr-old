@@ -17,11 +17,7 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-// ideally, we should let user provide this info in settings and use the user provided value
-// using a constant now to make it easier to update the code where this value is required/used
-const requiredConfirmations = 0
-
-func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
+func (c *WalletPRCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: requiredConfirmations,
@@ -41,7 +37,7 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32) (*walletcore.Bala
 	}, nil
 }
 
-func (c *WalletPRCClient) AccountsOverview() ([]*walletcore.Account, error) {
+func (c *WalletPRCClient) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
@@ -50,7 +46,7 @@ func (c *WalletPRCClient) AccountsOverview() ([]*walletcore.Account, error) {
 	accountsOverview := make([]*walletcore.Account, 0, len(accounts.Accounts))
 
 	for _, acc := range accounts.Accounts {
-		balance, err := c.AccountBalance(acc.AccountNumber)
+		balance, err := c.AccountBalance(acc.AccountNumber, requiredConfirmations)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +152,7 @@ func (c *WalletPRCClient) GenerateReceiveAddress(account uint32) (string, error)
 	return nextAddress.Address, nil
 }
 
-func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
+func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount, requiredConfirmations)
 	if err != nil {
 		return nil, err
@@ -205,7 +201,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64) ([]
 	return unspentOutputs, nil
 }
 
-func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// construct non-change outputs for all recipients
 	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
 	for i, destination := range destinations {
@@ -237,7 +233,7 @@ func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, destinations []t
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
-func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
 	utxoStream, err := c.unspentOutputStream(sourceAccount, 0, requiredConfirmations)
