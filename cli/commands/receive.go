@@ -39,7 +39,7 @@ func (receiveCommand ReceiveCommand) Run(wallet walletcore.Wallet) error {
 		}
 	}
 
-	receiveAddress, err := wallet.GenerateReceiveAddress(accountNumber)
+	receiveAddress, err := wallet.ReceiveAddress(accountNumber)
 	if err != nil {
 		return err
 	}
