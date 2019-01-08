@@ -23,7 +23,7 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 	var err error
 
 	// get send  accounts
-	accounts, err := wallet.AccountsOverview()
+	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return 0, err
 	}
