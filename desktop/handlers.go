@@ -188,7 +188,7 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 
 					// get address
 					if generateAddressResponse == "" && err == nil {
-						generateAddressResponse, err = d.wallet.GenerateReceiveAddress(selectedAccountNumber)
+						generateAddressResponse, err = d.wallet.ReceiveAddress(selectedAccountNumber)
 						if err != nil {
 							content.setErrorMessage(err.Error())
 						} else {
