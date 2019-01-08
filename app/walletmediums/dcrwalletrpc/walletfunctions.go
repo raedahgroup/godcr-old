@@ -363,7 +363,6 @@ func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error
 
 func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	ctx := context.Background()
-
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
