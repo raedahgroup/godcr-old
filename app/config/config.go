@@ -101,7 +101,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		if isFileOption := isConfigFileOption(optionName); isFileOption {
 			return args, config, parser, fmt.Errorf("Unexpected command-line flag/option, " +
 				"see godcr -h for supported command-line flags/options" +
-				"\nSet other flags/options in %s", configFilePath)
+				"\nSet other flags/options in %s", AppConfigFilePath)
 		}
 	}
 
