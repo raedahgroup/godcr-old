@@ -4,6 +4,4 @@
 .idea/
 vendor/
 godcr
-go.mod
-go.sum
 godcr.conf
