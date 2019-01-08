@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	defaultConfigFilename    = "godcr.conf"
-	defaultHTTPServerAddress = "127.0.0.1:7778"
+	defaultConfigFilename = "godcr.conf"
+	defaultHTTPHost       = "127.0.0.1"
+	defaultHTTPPort       = "7778"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
 
-	configFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
+	AppConfigFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
 // Config holds the top-level options/flags for the application
@@ -30,15 +31,16 @@ type Config struct {
 	CommandLineOptions
 }
 
-// CommandLineOptions holds the top-level options/flags that are best set in config file rather than in command-line
+// ConfFileOptions holds the top-level options/flags that are best set in config file rather than in command-line
 type ConfFileOptions struct {
-	AppDataDir        string `short:"A" long:"appdata" description:"Path to application data directory"`
-	UseTestNet        bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
-	UseWalletRPC      bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
-	WalletRPCServer   string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
-	WalletRPCCert     string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
-	NoWalletRPCTLS    bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
-	HTTPServerAddress string `long:"httpserveraddress" description:"Address and port for the HTTP server"`
+	AppDataDir      string `short:"A" long:"appdata" description:"Path to application data directory"`
+	UseTestNet      bool   `short:"t" long:"testnet" description:"Connects to testnet wallet instead of mainnet"`
+	UseWalletRPC    bool   `short:"w" long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
+	WalletRPCServer string `long:"walletrpcserver" description:"Wallet RPC server address to connect to"`
+	WalletRPCCert   string `long:"walletrpccert" description:"Path to dcrwallet certificate file"`
+	NoWalletRPCTLS  bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
+	HTTPHost        string `long:"httphost" description:"HTTP server host address or IP"`
+	HTTPPort        string `long:"httpport" description:"HTTP server port"`
 }
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
@@ -53,9 +55,10 @@ type CliOptions struct {
 
 func defaultFileOptions() ConfFileOptions {
 	return ConfFileOptions{
-		AppDataDir:        defaultAppDataDir,
-		WalletRPCCert:     defaultRPCCertFile,
-		HTTPServerAddress: defaultHTTPServerAddress,
+		AppDataDir:    defaultAppDataDir,
+		WalletRPCCert: defaultRPCCertFile,
+		HTTPHost:      defaultHTTPHost,
+		HTTPPort:      defaultHTTPPort,
 	}
 }
 
@@ -98,7 +101,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		if isFileOption := isConfigFileOption(optionName); isFileOption {
 			return args, config, parser, fmt.Errorf("Unexpected command-line flag/option, " +
 				"see godcr -h for supported command-line flags/options" +
-				"\nSet other flags/options in %s", configFilePath)
+				"\nSet other flags/options in %s", AppConfigFilePath)
 		}
 	}
 
@@ -123,7 +126,7 @@ func parseConfigFile(parser *flags.Parser) error {
 		parser.Options = flags.None
 		defer func() { parser.Options = options }()
 	}
-	err := flags.NewIniParser(parser).ParseFile(configFilePath)
+	err := flags.NewIniParser(parser).ParseFile(AppConfigFilePath)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
 			return fmt.Errorf("Error parsing configuration file: %v", err.Error())

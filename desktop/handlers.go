@@ -49,7 +49,7 @@ func resetVars() {
 func (d *Desktop) BalanceHandler(w *nucular.Window) {
 	// check if already fetched. If so, do not fetch again
 	if accountsResponse == nil && err == nil {
-		accountsResponse, err = d.wallet.AccountsOverview()
+		accountsResponse, err = d.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
@@ -155,7 +155,7 @@ func (d *Desktop) generateAddressHandler(w *nucular.Window) {
 func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 	// check if already fetched. If so, do not fetch again
 	if accountsResponse == nil && err == nil {
-		accountsResponse, err = d.wallet.AccountsOverview()
+		accountsResponse, err = d.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
@@ -205,7 +205,7 @@ func (d *Desktop) ReceiveHandler(w *nucular.Window) {
 
 func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 	if utxosResponse == nil && err == nil {
-		utxosResponse, err = d.wallet.UnspentOutputs(selectedAccountNumber, 0)
+		utxosResponse, err = d.wallet.UnspentOutputs(selectedAccountNumber, 0, walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
@@ -268,7 +268,7 @@ func (d *Desktop) selectUTXOSHandler(w *nucular.Window) {
 
 func (d *Desktop) SendHandler(w *nucular.Window) {
 	if accountsResponse == nil && err == nil {
-		accountsResponse, err = d.wallet.AccountsOverview()
+		accountsResponse, err = d.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page

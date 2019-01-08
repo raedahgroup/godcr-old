@@ -15,12 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-// ideally, we should let user provide this info in settings and use the user provided value
-// using a constant now to make it easier to update the code where this value is required/used
-const requiredConfirmations = 0
-
-func (lib *DcrWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balance, error) {
-	// pass 0 as requiredConfirmations
+func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
 		return nil, err
@@ -35,8 +30,7 @@ func (lib *DcrWalletLib) AccountBalance(accountNumber uint32) (*walletcore.Balan
 	}, nil
 }
 
-func (lib *DcrWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
-	// pass 0 as requiredConfirmations
+func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
 	accounts, err := lib.walletLib.GetAccountsRaw(requiredConfirmations)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
@@ -47,20 +41,21 @@ func (lib *DcrWalletLib) AccountsOverview() ([]*walletcore.Account, error) {
 	for _, acc := range accounts.Acc {
 		accountNumber := uint32(acc.Number)
 
-		balance, err := lib.AccountBalance(accountNumber)
-		if err != nil {
-			return nil, err
-		}
-
 		// skip zero-balance imported accounts
-		if acc.Name == "imported" && balance.Total == 0 {
+		if acc.Name == "imported" && acc.Balance.Total == 0 {
 			continue
 		}
 
 		account := &walletcore.Account{
 			Name:    acc.Name,
 			Number:  accountNumber,
-			Balance: balance,
+			Balance: &walletcore.Balance{
+				Total:           dcrutil.Amount(acc.Balance.Total),
+				Spendable:       dcrutil.Amount(acc.Balance.Spendable),
+				LockedByTickets: dcrutil.Amount(acc.Balance.LockedByTickets),
+				VotingAuthority: dcrutil.Amount(acc.Balance.VotingAuthority),
+				Unconfirmed:     dcrutil.Amount(acc.Balance.UnConfirmed),
+			},
 		}
 		accountsOverview = append(accountsOverview, account)
 	}
@@ -92,7 +87,7 @@ func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) 
 	return lib.walletLib.CurrentAddress(int32(account))
 }
 
-func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*walletcore.UnspentOutput, error) {
+func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
 	utxos, err := lib.walletLib.UnspentOutputs(account, requiredConfirmations, targetAmount)
 	if err != nil {
 		return nil, err
@@ -131,7 +126,7 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64) ([]*
 	return unspentOutputs, nil
 }
 
-func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	txHash, err := lib.walletLib.BulkSendTransaction([]byte(passphrase), destinations, int32(sourceAccount), requiredConfirmations)
 	if err != nil {
 		return "", err
@@ -145,10 +140,10 @@ func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, destinations []tx
 	return transactionHash.String(), nil
 }
 
-func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// use targetAmount = 0 to fetch ALL utxos in account
-	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0)
+	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0, requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -297,7 +292,7 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 }
 
 func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
-	balance, err := lib.AccountBalance(request.Account)
+	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
 	}
