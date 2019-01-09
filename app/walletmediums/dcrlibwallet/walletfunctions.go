@@ -316,7 +316,7 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 
 	tickets, err := lib.walletLib.PurchaseTickets(ctx, &request)
 	if err != nil {
-		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error: %s", err.Error())
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error:\n%s", err.Error())
 	}
 	return tickets, nil
 }
