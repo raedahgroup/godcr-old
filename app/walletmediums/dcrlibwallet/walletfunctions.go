@@ -302,7 +302,7 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 
 	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
 	}
 
 	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
@@ -310,5 +310,9 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
 	}
 
-	return lib.walletLib.PurchaseTickets(ctx, &request)
+	tickets, err := lib.walletLib.PurchaseTickets(ctx, &request)
+	if err != nil {
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error: %s", err.Error())
+	}
+	return tickets, nil
 }

@@ -403,12 +403,12 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	ticketPrice, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("could not determine ticket ticketPrice: %s", err.Error())
+		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
 	}
 
 	balance, err := c.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch account: %s", err.Error())
+		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
 	}
 
 	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
@@ -430,13 +430,15 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 		TxFee:                 request.TxFee,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error purchasing tickets: %s", err.Error())
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error. " +
+			"Please check your balance before retrying.\nError: %s", err.Error())
 	}
 	ticketHashes := make([]string, len(response.GetTicketHashes()))
 	for i, ticketHash := range response.GetTicketHashes() {
 		hash, err := chainhash.NewHash(ticketHash)
 		if err != nil {
-			return ticketHashes, fmt.Errorf("error purchasing tickets: %s", err.Error())
+			return ticketHashes, fmt.Errorf("encountered an error while processing purchased ticket(s), " +
+				"please check your balance before retrying\nError: %s", err.Error())
 		}
 		ticketHashes[i] = hash.String()
 	}

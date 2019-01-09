@@ -19,7 +19,7 @@ type PurchaseTicketsCommand struct {
 	PoolFees         float64 `long:"pool-fees" description:"The stake pool fees amount." long-description:"This must be set to a positive value in the allowed range of 0.01 to 100.00 to be valid. It must be set when the pool-address is also set."`
 	Expiry           uint32  `long:"expiry" default:"0" description:"The height at which the tickets expire and can no longer enter the blockchain. It defaults to 0 (no expiry)."`
 	TxFee            int64   `long:"tx-fee" description:"Fees per kB to use for the transaction generating outputs to use for buying tickets." long-description:"If 0 is passed, the global value for a transaction fee will be used."`
-	TicketFee        int64   `description:"Fees per kB to use for all purchased tickets." long-description:"If 0 is passed, the global value for a ticket fee will be used."`
+	TicketFee        int64   `long:"ticket-fee" description:"Fees per kB to use for all purchased tickets." long-description:"If 0 is passed, the global value for a ticket fee will be used."`
 	PayFrom          string  `long:"pay-from" description:"the account from which the funds will be spent to purchase the ticket" default:"default"`
 }
 
@@ -54,7 +54,7 @@ func (ptc PurchaseTicketsCommand) Run(ctx context.Context, wallet walletcore.Wal
 		return fmt.Errorf("no ticket was purchased")
 	}
 	output := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(tickets), strings.Join(tickets, "\n"))
-	termio.PrintStringResult(strings.TrimSpace(output))
+	termio.PrintStringResult(output)
 
 	return nil
 }
