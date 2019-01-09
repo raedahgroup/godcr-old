@@ -16,7 +16,7 @@ type AvailableCommands struct {
 	ShowTransaction ShowTransactionCommand `command:"showtransaction" description:"Show details of a transaction"`
 	Help            HelpCommand            `command:"help" description:"Show general application help. Run help <command-name> to get help message for a specific command"`
 	StakeInfo       StakeInfoCommand       `command:"stakeinfo" description:"Show information about the wallet stakes, tickets and their statuses"`
-	PurchaseTicket  PurchaseTicketCommand  `command:"purchaseticket" description:"Purchase a ticket"`
+	PurchaseTicket  PurchaseTicketsCommand `command:"purchasetickets" description:"Purchase tickets"`
 }
 
 // ExperimentalCommands defines experimental commands and options available on the cli

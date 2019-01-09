@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type templateData struct {

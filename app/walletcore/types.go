@@ -52,7 +52,7 @@ type TransactionDetails struct {
 
 // StakeInfo holds ticket information summary related to the wallet.
 type StakeInfo struct {
-	AllMempoolTix uint32 `json:"allMempoolTix"`
+	// Stake info related to the wallet
 	Expired       uint32 `json:"expired"`
 	Immature      uint32 `json:"immature"`
 	Live          uint32 `json:"live"`
@@ -62,7 +62,9 @@ type StakeInfo struct {
 	Total         uint32 `json:"total"`
 	Unspent       uint32 `json:"unspent"`
 
-	PoolSize     uint32 `json:"poolSize"`
-	Voted        uint32 `json:"voted"`
-	TotalSubsidy int64  `json:"totalSubsidy"`
+	// General blockchain stake info
+	AllMempoolTix uint32 `json:"allMempoolTix"`
+	PoolSize      uint32 `json:"poolSize"`
+	Voted         uint32 `json:"voted"`
+	TotalSubsidy  int64  `json:"totalSubsidy"`
 }
