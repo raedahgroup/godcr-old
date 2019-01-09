@@ -48,9 +48,12 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	req.ParseForm()
+	showDetails := req.FormValue("detailed") != ""
+
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"detailed": chi.URLParam(req, "detailed") != "",
+		"detailed": showDetails,
 	}
 	routes.render("balance.html", data, res)
 }
@@ -106,7 +109,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 			return
 		}
 
-		changeAddress, err := routes.walletMiddleware.GenerateReceiveAddress(sourceAccount)
+		changeAddress, err := routes.walletMiddleware.GenerateNewAddress(sourceAccount)
 		if err != nil {
 			data["error"] = err.Error()
 			return
@@ -161,7 +164,7 @@ func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.
 		return
 	}
 
-	address, err := routes.walletMiddleware.GenerateReceiveAddress(uint32(accountNumber))
+	address, err := routes.walletMiddleware.ReceiveAddress(uint32(accountNumber))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

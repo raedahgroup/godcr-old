@@ -138,7 +138,27 @@ func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
 	return err == nil, nil
 }
 
-func (c *WalletRPCClient) GenerateReceiveAddress(account uint32) (string, error) {
+// ReceiveAddress uses GAP_POLICY_WRAP which returns previously generated unused addresses ONLY if the gap limit is exceeded
+// Ideally, ReceiveAddress should always return the last generated address that has not been used
+func (c *WalletRPCClient) ReceiveAddress(account uint32) (string, error) {
+	req := &walletrpc.NextAddressRequest{
+		Account:   account,
+		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,
+		Kind:      walletrpc.NextAddressRequest_BIP0044_EXTERNAL,
+	}
+
+	nextAddress, err := c.walletService.NextAddress(context.Background(), req)
+	if err != nil {
+		return "", err
+	}
+
+	return nextAddress.Address, nil
+}
+
+// GenerateNewAddress uses GAP_POLICY_WRAP which returns previously generated unused addresses ONLY if the gap limit is exceeded
+// Ideally, GenerateNewAddress should always generate new addresses but we have to be wary of issues that could arise if the gap limit is exceeded
+// GenerateNewAddress will continue to generate new addresses until/unless the gap limit is met, then it'll revert to previously generated addresses
+func (c *WalletRPCClient) GenerateNewAddress(account uint32) (string, error) {
 	req := &walletrpc.NextAddressRequest{
 		Account:   account,
 		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,

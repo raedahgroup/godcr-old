@@ -40,7 +40,7 @@ func (receiveCommand ReceiveCommand) Run(ctx context.Context, wallet walletcore.
 		}
 	}
 
-	receiveAddress, err := wallet.GenerateReceiveAddress(accountNumber)
+	receiveAddress, err := wallet.ReceiveAddress(accountNumber)
 	if err != nil {
 		return err
 	}
