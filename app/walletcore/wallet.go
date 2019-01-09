@@ -32,8 +32,13 @@ type Wallet interface {
 	// ValidateAddress checks if an address is valid or not
 	ValidateAddress(address string) (bool, error)
 
-	// GenerateReceiveAddress generates an address to receive funds into specified account
-	GenerateReceiveAddress(account uint32) (string, error)
+	// ReceiveAddress checks if there's a previously generated address that hasn't been used to receive funds and returns it
+	// If no unused address exists, it generates a new address to receive funds into specified account
+	ReceiveAddress(account uint32) (string, error)
+
+	// GenerateNewAddress generates a new address to receive funds into specified account
+	// regardless of whether there was a previously generated address that has not been used
+	GenerateNewAddress(account uint32) (string, error)
 
 	// UnspentOutputs lists all unspent outputs in the specified account that sum up to `targetAmount`
 	// If `targetAmount` is 0, all unspent outputs in account are returned

@@ -81,8 +81,12 @@ func (lib *DcrWalletLib) ValidateAddress(address string) (bool, error) {
 	return lib.walletLib.IsAddressValid(address), nil
 }
 
-func (lib *DcrWalletLib) GenerateReceiveAddress(account uint32) (string, error) {
+func (lib *DcrWalletLib) ReceiveAddress(account uint32) (string, error) {
 	return lib.walletLib.CurrentAddress(int32(account))
+}
+
+func (lib *DcrWalletLib) GenerateNewAddress(account uint32) (string, error) {
+	return lib.walletLib.NextAddress(int32(account))
 }
 
 func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
