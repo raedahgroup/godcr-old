@@ -450,15 +450,13 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 		TxFee:                 request.TxFee,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error. " +
-			"Please check your balance before retrying.\nError: %s", err.Error())
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error:\n%s", err.Error())
 	}
 	ticketHashes := make([]string, len(response.GetTicketHashes()))
 	for i, ticketHash := range response.GetTicketHashes() {
 		hash, err := chainhash.NewHash(ticketHash)
 		if err != nil {
-			return ticketHashes, fmt.Errorf("encountered an error while processing purchased ticket(s), " +
-				"please check your balance before retrying\nError: %s", err.Error())
+			return ticketHashes, fmt.Errorf("encountered an error while processing purchased ticket(s):\n%s", err.Error())
 		}
 		ticketHashes[i] = hash.String()
 	}
