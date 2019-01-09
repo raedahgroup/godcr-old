@@ -382,19 +382,21 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
 	stakeInfo, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
 	}
 
-	totalTickets := stakeInfo.OwnMempoolTix + stakeInfo.Live + stakeInfo.Immature + stakeInfo.Unspent
-
 	return &walletcore.StakeInfo{
+		AllMempoolTix: stakeInfo.AllMempoolTix,
 		Expired:       stakeInfo.Expired,
 		Immature:      stakeInfo.Immature,
 		Live:          stakeInfo.Live,
+		Missed:        stakeInfo.Missed,
 		OwnMempoolTix: stakeInfo.OwnMempoolTix,
+		PoolSize:      stakeInfo.PoolSize,
 		Revoked:       stakeInfo.Revoked,
-		Total:         totalTickets,
+		TotalSubsidy:  stakeInfo.TotalSubsidy,
 		Unspent:       stakeInfo.Unspent,
+		Voted:         stakeInfo.Voted,
 	}, nil
 }
 
@@ -406,12 +408,12 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 
 	balance, err := c.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch account: %v", err.Error())
+		return nil, fmt.Errorf("could not fetch account: %s", err.Error())
 	}
 
-	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice) {
-		return nil, fmt.Errorf("insufficient funds: account balance %v is less than ticket price %v",
-			balance.Spendable, ticketPrice.TicketPrice)
+	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket price %s",
+			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
 	}
 
 	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{

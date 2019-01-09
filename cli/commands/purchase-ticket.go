@@ -10,9 +10,9 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
-type PurchaseTicketCommand struct {
+type PurchaseTicketsCommand struct {
 	commanderStub
-	MinConfirmations uint32  `long:"min-conf" default:"0" description:"The number of required confirmations for funds used to purchase a ticket." long-description:"If set to zero, it will use unconfirmed and confirmed outputs to purchase tickets."`
+	MinConfirmations uint32  `long:"min-conf" default:"2" description:"The number of required confirmations for funds used to purchase a ticket." long-description:"If set to zero, it will use unconfirmed and confirmed outputs to purchase tickets."`
 	TicketAddress    string  `long:"ticket-address" description:"The address to give voting rights to." long-description:"If it is set to an empty string, an internal address will be used from the wallet."`
 	NumTickets       uint32  `long:"num-tickets" default:"1" description:"The number of tickets to purchase."`
 	PoolAddress      string  `long:"pool-address" description:"The address of the stake pool used. Pool mode will be disabled if an empty string is passed."`
@@ -23,8 +23,8 @@ type PurchaseTicketCommand struct {
 	PayFrom          string  `long:"pay-from" description:"the account from which the funds will be spent to purchase the ticket" default:"default"`
 }
 
-func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	passphrase, err := getWalletPassphraseWithPrompt("Spending Passphrase")
+func (ptc PurchaseTicketsCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
+	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err
 	}
@@ -53,11 +53,8 @@ func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wall
 	if len(tickets) == 0 {
 		return fmt.Errorf("no ticket was purchased")
 	}
-	output := strings.Builder{}
-	output.WriteString(fmt.Sprintf("You have purchased %d ticket(s)\n", len(tickets)))
-	for _, ticketHash := range tickets {
-		output.WriteString(ticketHash + "\n")
-	}
-	termio.PrintStringResult(strings.TrimSpace(output.String()))
+	output := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(tickets), strings.Join(tickets, "\n"))
+	termio.PrintStringResult(strings.TrimSpace(output))
+
 	return nil
 }
