@@ -130,7 +130,6 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	}
 
 	if !sendConfirmed {
-		fmt.Println("Canceled")
 		return "", errors.New("transaction canceled")
 	}
 
