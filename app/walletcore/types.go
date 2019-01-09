@@ -59,12 +59,11 @@ type StakeInfo struct {
 	Missed        uint32 `json:"missed"`
 	OwnMempoolTix uint32 `json:"ownMempoolTix"`
 	Revoked       uint32 `json:"revoked"`
-	Total         uint32 `json:"total"`
 	Unspent       uint32 `json:"unspent"`
+	Voted         uint32 `json:"voted"`
 
 	// General blockchain stake info
 	AllMempoolTix uint32 `json:"allMempoolTix"`
 	PoolSize      uint32 `json:"poolSize"`
-	Voted         uint32 `json:"voted"`
 	TotalSubsidy  int64  `json:"totalSubsidy"`
 }
