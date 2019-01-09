@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
@@ -11,7 +13,7 @@ type HistoryCommand struct {
 }
 
 // Run runs the `history` command.
-func (h HistoryCommand) Run(wallet walletcore.Wallet) error {
+func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	transactions, err := wallet.TransactionHistory()
 	if err != nil {
 		return err

@@ -11,13 +11,14 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
 )
 
-func (c *WalletPRCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
+func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: requiredConfirmations,
@@ -37,7 +38,7 @@ func (c *WalletPRCClient) AccountBalance(accountNumber uint32, requiredConfirmat
 	}, nil
 }
 
-func (c *WalletPRCClient) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
+func (c *WalletRPCClient) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
@@ -67,7 +68,7 @@ func (c *WalletPRCClient) AccountsOverview(requiredConfirmations int32) ([]*wall
 	return accountsOverview, nil
 }
 
-func (c *WalletPRCClient) NextAccount(accountName string, passphrase string) (uint32, error) {
+func (c *WalletRPCClient) NextAccount(accountName string, passphrase string) (uint32, error) {
 	req := &walletrpc.NextAccountRequest{
 		AccountName: accountName,
 		Passphrase:  []byte(passphrase),
@@ -81,7 +82,7 @@ func (c *WalletPRCClient) NextAccount(accountName string, passphrase string) (ui
 	return nextAccount.AccountNumber, nil
 }
 
-func (c *WalletPRCClient) AccountNumber(accountName string) (uint32, error) {
+func (c *WalletRPCClient) AccountNumber(accountName string) (uint32, error) {
 	req := &walletrpc.AccountNumberRequest{
 		AccountName: accountName,
 	}
@@ -94,7 +95,7 @@ func (c *WalletPRCClient) AccountNumber(accountName string) (uint32, error) {
 	return r.AccountNumber, nil
 }
 
-func (c *WalletPRCClient) AccountName(accountNumber uint32) (string, error) {
+func (c *WalletRPCClient) AccountName(accountNumber uint32) (string, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return "", err
@@ -109,7 +110,7 @@ func (c *WalletPRCClient) AccountName(accountNumber uint32) (string, error) {
 	return "", fmt.Errorf("Account not found")
 }
 
-func (c *WalletPRCClient) AddressInfo(address string) (*txhelper.AddressInfo, error) {
+func (c *WalletRPCClient) AddressInfo(address string) (*txhelper.AddressInfo, error) {
 	req := &walletrpc.ValidateAddressRequest{
 		Address: address,
 	}
@@ -132,14 +133,14 @@ func (c *WalletPRCClient) AddressInfo(address string) (*txhelper.AddressInfo, er
 }
 
 // ValidateAddress tries to decode an address for the given network params, if error is encountered, address is not valid
-func (c *WalletPRCClient) ValidateAddress(address string) (bool, error) {
+func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
 	_, err := addresshelper.DecodeForNetwork(address, c.activeNet)
 	return err == nil, nil
 }
 
 // ReceiveAddress uses GAP_POLICY_WRAP which returns previously generated unused addresses ONLY if the gap limit is exceeded
 // Ideally, ReceiveAddress should always return the last generated address that has not been used
-func (c *WalletPRCClient) ReceiveAddress(account uint32) (string, error) {
+func (c *WalletRPCClient) ReceiveAddress(account uint32) (string, error) {
 	req := &walletrpc.NextAddressRequest{
 		Account:   account,
 		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,
@@ -157,7 +158,7 @@ func (c *WalletPRCClient) ReceiveAddress(account uint32) (string, error) {
 // GenerateNewAddress uses GAP_POLICY_WRAP which returns previously generated unused addresses ONLY if the gap limit is exceeded
 // Ideally, GenerateNewAddress should always generate new addresses but we have to be wary of issues that could arise if the gap limit is exceeded
 // GenerateNewAddress will continue to generate new addresses until/unless the gap limit is met, then it'll revert to previously generated addresses
-func (c *WalletPRCClient) GenerateNewAddress(account uint32) (string, error) {
+func (c *WalletRPCClient) GenerateNewAddress(account uint32) (string, error) {
 	req := &walletrpc.NextAddressRequest{
 		Account:   account,
 		GapPolicy: walletrpc.NextAddressRequest_GAP_POLICY_WRAP,
@@ -172,7 +173,7 @@ func (c *WalletPRCClient) GenerateNewAddress(account uint32) (string, error) {
 	return nextAddress.Address, nil
 }
 
-func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
+func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount, requiredConfirmations)
 	if err != nil {
 		return nil, err
@@ -221,7 +222,7 @@ func (c *WalletPRCClient) UnspentOutputs(account uint32, targetAmount int64, req
 	return unspentOutputs, nil
 }
 
-func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (c *WalletRPCClient) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// construct non-change outputs for all recipients
 	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
 	for i, destination := range destinations {
@@ -253,7 +254,7 @@ func (c *WalletPRCClient) SendFromAccount(sourceAccount uint32, requiredConfirma
 	return c.signAndPublishTransaction(constructResponse.UnsignedTransaction, passphrase)
 }
 
-func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
+func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 	// fetch all utxos in account to extract details for the utxos selected by user
 	// passing 0 as targetAmount to c.unspentOutputStream fetches ALL utxos in account
 	utxoStream, err := c.unspentOutputStream(sourceAccount, 0, requiredConfirmations)
@@ -313,7 +314,7 @@ func (c *WalletPRCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
+func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
 	req := &walletrpc.GetTransactionsRequest{}
 
 	stream, err := c.walletService.GetTransactions(context.Background(), req)
@@ -356,9 +357,8 @@ func (c *WalletPRCClient) TransactionHistory() ([]*walletcore.Transaction, error
 	return transactions, nil
 }
 
-func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
 	ctx := context.Background()
-
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
@@ -397,4 +397,68 @@ func (c *WalletPRCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		Inputs:        decodedTx.Inputs,
 		Outputs:       decodedTx.Outputs,
 	}, nil
+}
+
+func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+	stakeInfo, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
+	}
+
+	return &walletcore.StakeInfo{
+		AllMempoolTix: stakeInfo.AllMempoolTix,
+		Expired:       stakeInfo.Expired,
+		Immature:      stakeInfo.Immature,
+		Live:          stakeInfo.Live,
+		Missed:        stakeInfo.Missed,
+		OwnMempoolTix: stakeInfo.OwnMempoolTix,
+		PoolSize:      stakeInfo.PoolSize,
+		Revoked:       stakeInfo.Revoked,
+		TotalSubsidy:  stakeInfo.TotalSubsidy,
+		Unspent:       stakeInfo.Unspent,
+		Voted:         stakeInfo.Voted,
+	}, nil
+}
+
+func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	ticketPrice, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
+	}
+
+	balance, err := c.AccountBalance(request.Account, int32(request.RequiredConfirmations))
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
+	}
+
+	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket price %s",
+			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
+	}
+
+	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
+		Account:               request.Account,
+		Expiry:                request.Expiry,
+		NumTickets:            request.NumTickets,
+		Passphrase:            request.Passphrase,
+		PoolAddress:           request.PoolAddress,
+		PoolFees:              request.PoolFees,
+		RequiredConfirmations: request.RequiredConfirmations,
+		SpendLimit:            ticketPrice.TicketPrice,
+		TicketAddress:         request.TicketAddress,
+		TicketFee:             request.TicketFee,
+		TxFee:                 request.TxFee,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error:\n%s", err.Error())
+	}
+	ticketHashes := make([]string, len(response.GetTicketHashes()))
+	for i, ticketHash := range response.GetTicketHashes() {
+		hash, err := chainhash.NewHash(ticketHash)
+		if err != nil {
+			return ticketHashes, fmt.Errorf("encountered an error while processing purchased ticket(s):\n%s", err.Error())
+		}
+		ticketHashes[i] = hash.String()
+	}
+	return ticketHashes, nil
 }

@@ -2,6 +2,7 @@ package dcrlibwallet
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -45,8 +47,8 @@ func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walle
 		}
 
 		account := &walletcore.Account{
-			Name:    acc.Name,
-			Number:  accountNumber,
+			Name:   acc.Name,
+			Number: accountNumber,
 			Balance: &walletcore.Balance{
 				Total:           dcrutil.Amount(acc.Balance.Total),
 				Spendable:       dcrutil.Amount(acc.Balance.Spendable),
@@ -271,4 +273,50 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		Inputs:        decodedTx.Inputs,
 		Outputs:       decodedTx.Outputs,
 	}, nil
+}
+
+func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+	data, err := lib.walletLib.StakeInfo()
+	if err != nil {
+		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
+	}
+
+	stakeInfo := &walletcore.StakeInfo{
+		AllMempoolTix: data.AllMempoolTix,
+		Expired:       data.Expired,
+		Immature:      data.Immature,
+		Live:          data.Live,
+		Missed:        data.Missed,
+		OwnMempoolTix: data.OwnMempoolTix,
+		PoolSize:      data.PoolSize,
+		Revoked:       data.Revoked,
+		TotalSubsidy:  int64(data.TotalSubsidy),
+		Unspent:       data.Unspent,
+		Voted:         data.Voted,
+	}
+
+	return stakeInfo, nil
+}
+
+func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
+	}
+
+	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
+	}
+
+	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket price %s",
+			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
+	}
+
+	tickets, err := lib.walletLib.PurchaseTickets(ctx, &request)
+	if err != nil {
+		return nil, fmt.Errorf("could not complete ticket(s) purchase, encountered an error:\n%s", err.Error())
+	}
+	return tickets, nil
 }

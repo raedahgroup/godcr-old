@@ -15,9 +15,11 @@ type AvailableCommands struct {
 	History         HistoryCommand         `command:"history" description:"Show your transaction history"`
 	ShowTransaction ShowTransactionCommand `command:"showtransaction" description:"Show details of a transaction"`
 	Help            HelpCommand            `command:"help" description:"Show general application help. Run help <command-name> to get help message for a specific command"`
+	StakeInfo       StakeInfoCommand       `command:"stakeinfo" description:"Show information about the wallet stakes, tickets and their statuses"`
+	PurchaseTickets PurchaseTicketsCommand `command:"purchasetickets" description:"Purchase one or more tickets"`
 }
 
-// AvailableCommands defines experimental commands and options available on the cli
+// ExperimentalCommands defines experimental commands and options available on the cli
 type ExperimentalCommands struct {
 	SendCustom SendCustomCommand `command:"sendcustom" description:"Send a transaction, manually selecting inputs from unspent outputs"`
 }

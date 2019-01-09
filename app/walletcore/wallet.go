@@ -1,6 +1,11 @@
 package walletcore
 
-import "github.com/raedahgroup/dcrlibwallet/txhelper"
+import (
+	"context"
+
+	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
+)
 
 // standard decred min confirmations is 2, this should be used as default for wallet operations
 // provision should me made in individual interface for user to override this default value
@@ -58,5 +63,13 @@ type Wallet interface {
 	// TransactionHistory
 	TransactionHistory() ([]*Transaction, error)
 
+	// GetTransaction returns information about the transaction with the given hash.
+	// An error is returned if the no transaction with the given hash is found.
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
+
+	// StakeInfo returns information about wallet stakes, tickets and their statuses.
+	StakeInfo(ctx context.Context) (*StakeInfo, error)
+
+	// PurchaseTickets is used to purchase tickets.
+	PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
 }

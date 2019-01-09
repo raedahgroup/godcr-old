@@ -2,7 +2,8 @@ package runner
 
 import (
 	"context"
-	"github.com/jessevdk/go-flags"
+
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -10,7 +11,7 @@ import (
 // WalletCommandRunner defines the Run method that cli commands that interact with the decred wallet must implement
 // to have access to walletcore.Wallet at execution time
 type WalletCommandRunner interface {
-	Run(wallet walletcore.Wallet) error
+	Run(ctx context.Context, wallet walletcore.Wallet) error
 	flags.Commander
 }
 

@@ -49,3 +49,21 @@ type TransactionDetails struct {
 	Outputs       []*txhelper.DecodedOutput `json:"outputs"`
 	*Transaction
 }
+
+// StakeInfo holds ticket information summary related to the wallet.
+type StakeInfo struct {
+	// Stake info related to the wallet
+	Expired       uint32 `json:"expired"`
+	Immature      uint32 `json:"immature"`
+	Live          uint32 `json:"live"`
+	Missed        uint32 `json:"missed"`
+	OwnMempoolTix uint32 `json:"ownMempoolTix"`
+	Revoked       uint32 `json:"revoked"`
+	Unspent       uint32 `json:"unspent"`
+	Voted         uint32 `json:"voted"`
+
+	// General blockchain stake info
+	AllMempoolTix uint32 `json:"allMempoolTix"`
+	PoolSize      uint32 `json:"poolSize"`
+	TotalSubsidy  int64  `json:"totalSubsidy"`
+}

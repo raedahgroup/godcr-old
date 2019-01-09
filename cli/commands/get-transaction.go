@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -20,7 +21,7 @@ type ShowTransactionCommandArgs struct {
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
-func (showTxCommand ShowTransactionCommand) Run(wallet walletcore.Wallet) error {
+func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	transaction, err := wallet.GetTransaction(showTxCommand.Args.TxHash)
 	if err != nil {
 		return err

@@ -3,7 +3,8 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/jessevdk/go-flags"
+
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/walletloader"
@@ -36,7 +37,7 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 
 	// attempt to run the command by injecting wallet dependencies
 	if commandRunner, ok := command.(WalletCommandRunner); ok {
-		return runner.processWalletCommand(commandRunner, args, options)
+		return runner.processWalletCommand(commandRunner, options)
 	}
 
 	// try running the command by injecting parser dependency
@@ -51,20 +52,27 @@ func (runner CommandRunner) Run(parser *flags.Parser, command flags.Commander, a
 // Such commands must implement `WalletCommandRunner` by providing a Run function
 // The wallet is opened using the provided walletMiddleware, sync operations performed (if requested)
 // then, the command is executed using the Run method of the WalletCommandRunner interface
-func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, args []string, options config.CliOptions) error {
-	walletExists, err := walletloader.OpenWallet(runner.ctx, runner.walletMiddleware)
+func (runner CommandRunner) processWalletCommand(commandRunner WalletCommandRunner, options config.CliOptions) error {
+	if err := prepareWallet(runner.ctx, runner.walletMiddleware, options); err != nil {
+		return err
+	}
+
+	return commandRunner.Run(runner.ctx, runner.walletMiddleware)
+}
+
+func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) error {
+	walletExists, err := walletloader.OpenWallet(ctx, middleware)
 	if err != nil || !walletExists {
 		return err
 	}
 
 	if options.SyncBlockchain {
-		err = walletloader.SyncBlockChain(runner.ctx, runner.walletMiddleware)
+		err = walletloader.SyncBlockChain(ctx, middleware)
 		if err != nil {
 			return err
 		}
 	}
-
-	return commandRunner.Run(runner.walletMiddleware)
+	return nil
 }
 
 func brokenCommandError(command *flags.Command) error {
