@@ -40,19 +40,16 @@ $ GO111MODULE=on go install
 ```
 
 ## Running godcr
-* Create the godcr configuration file by copying the sample configuration file (`sample-godcr.conf`) to the default config location and editing as necessary. The default config location can be gotten by running `godcr -h`.
-The settings in the configuration file can also be provided on the command line as options to the program. Flags passed on the command line override those set in the configuration file. Run `godcr -h` to see the available options.
-* Once you've configured godcr, you can perform various wallet-related operations by running
+### General usage
+You can perform various wallet-related operations by running
 ```bash
 $ godcr [options] <command> [args]
 ```
-* To view available commands and options at any time:
-```bash
-$ godcr -h
-```
-* To get detailed help information for a command:
-```bash
-$ godcr <command> -h
+
+### Commands and options
+* Use `godcr -h` or `godcr help` to view options, commands and path to the godcr config file
+* Some options can only be set in the godcr configuration (godcr.conf) file. Those options are not displayed in the output of `godcr -h`. Edit the config file to view and set those options.
+* Use `godcr <command> -h` or `godcr help <command>` to view command args and detailed help information for a command
 ```
 
 ## Contributing 
