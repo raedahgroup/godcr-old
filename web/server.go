@@ -56,9 +56,6 @@ func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware,
 // this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
 func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	// notify user of the current operation so if takes too long, they have an idea what the cause is
-	fmt.Println("Opening wallet...")
-
 	var err error
 	var errMsg string
 	loadWalletDone := make(chan bool)

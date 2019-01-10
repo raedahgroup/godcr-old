@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"text/template"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
@@ -75,6 +76,13 @@ func defaultConfig() Config {
 // If ignoreUnknownOptions is true, then unknown options seen on the command line are ignored.
 // However, unknown options in the configuration file must return an error.
 func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
+	var configFileExists bool
+	if _, err := os.Stat(AppConfigFilePath); os.IsNotExist(err) {
+		configFileExists = createConfigFile()
+	} else if !os.IsNotExist(err) {
+		configFileExists = true
+	}
+
 	// load defaults first
 	config := defaultConfig()
 
@@ -105,6 +113,11 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		}
 	}
 
+	// if config file doesn't exist, no need to attempt to parse and then re-parse command-line args
+	if !configFileExists {
+		return args, config, parser, nil
+	}
+
 	// Load additional config from file
 	err = parseConfigFile(parser)
 	if err != nil {
@@ -118,6 +131,47 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	}
 
 	return args, config, parser, nil
+}
+
+// createConfigFile create the configuration file in AppConfigFilePath using the default values
+func createConfigFile() (successful bool) {
+	configFile, err := os.Create(AppConfigFilePath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr,"error in creating config file: %s\n", err.Error())
+			return
+		}
+		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,"error in creating config file directory: %s\n", err.Error())
+			return
+		}
+		// we were unable to create the file because the dir was not found.
+		// we shall attempt to recreate the file now that we have successfully created the dir
+		configFile, err = os.Create(AppConfigFilePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
+			return
+		}
+	}
+	defer configFile.Close()
+
+	tmpl := template.New("config")
+
+	tmpl, err = tmpl.Parse(configTextTemplate)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error preparing default config file content: %s", err.Error())
+		return
+	}
+
+	err = tmpl.Execute(configFile, defaultFileOptions())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error saving default configuration to file: %s\n", err.Error())
+		return
+	}
+
+	fmt.Println("Config file created with default values at", AppConfigFilePath)
+	return true
 }
 
 func parseConfigFile(parser *flags.Parser) error {
