@@ -45,8 +45,8 @@ func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walle
 		}
 
 		account := &walletcore.Account{
-			Name:    acc.Name,
-			Number:  accountNumber,
+			Name:   acc.Name,
+			Number: accountNumber,
 			Balance: &walletcore.Balance{
 				Total:           dcrutil.Amount(acc.Balance.Total),
 				Spendable:       dcrutil.Amount(acc.Balance.Spendable),

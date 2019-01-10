@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"text/template"
 
 	"github.com/decred/dcrd/dcrutil"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 )
 
 const (
@@ -75,6 +76,9 @@ func defaultConfig() Config {
 // If ignoreUnknownOptions is true, then unknown options seen on the command line are ignored.
 // However, unknown options in the configuration file must return an error.
 func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
+	if _, err := os.Stat(AppConfigFilePath); os.IsNotExist(err) {
+		createConfigFile()
+	}
 	// load defaults first
 	config := defaultConfig()
 
@@ -99,8 +103,8 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 			optionName = arg[1:]
 		}
 		if isFileOption := isConfigFileOption(optionName); isFileOption {
-			return args, config, parser, fmt.Errorf("Unexpected command-line flag/option, " +
-				"see godcr -h for supported command-line flags/options" +
+			return args, config, parser, fmt.Errorf("Unexpected command-line flag/option, "+
+				"see godcr -h for supported command-line flags/options"+
 				"\nSet other flags/options in %s", AppConfigFilePath)
 		}
 	}
@@ -120,6 +124,47 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	return args, config, parser, nil
 }
 
+// createConfigFile create the configuration file in AppConfigFilePath using the default values
+func createConfigFile() (successful bool) {
+	configFile, err := os.Create(AppConfigFilePath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr,"error in creating config file: %s\n", err.Error())
+			return
+		}
+		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,"error in creating appdata directory: %s\n", err.Error())
+			return
+		}
+		// we were unable to create the file because the dir was not found.
+		// we shall attempt to recreate the file now that we have successfully created the dir
+		configFile, err = os.Create(AppConfigFilePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
+			return
+		}
+	}
+	defer configFile.Close()
+
+	tmpl := template.New("config")
+
+	tmpl, err = tmpl.Parse(configTextTemplate)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error preparing default config file content: %s", err.Error())
+		return
+	}
+
+	err = tmpl.Execute(configFile, defaultFileOptions())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error saving default configuration to file: %s\n", err.Error())
+		return
+	}
+
+	fmt.Println("Config file created with default values at", AppConfigFilePath)
+	return true
+}
+
 func parseConfigFile(parser *flags.Parser) error {
 	if (parser.Options & flags.IgnoreUnknown) != flags.None {
 		options := parser.Options
@@ -129,14 +174,13 @@ func parseConfigFile(parser *flags.Parser) error {
 	err := flags.NewIniParser(parser).ParseFile(AppConfigFilePath)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
+			return fmt.Errorf("Error parsing configuration file: %s", err.Error())
 		}
-		return err
 	}
 	return nil
 }
 
-func isConfigFileOption(name string) ( isFileOption bool) {
+func isConfigFileOption(name string) (isFileOption bool) {
 	if name == "" {
 		return
 	}
