@@ -50,7 +50,6 @@ func send(wallet walletcore.Wallet, requireConfirmation int32, custom bool) erro
 	if err != nil {
 		return err
 	}
-			fmt.Println(requireConfirmation)
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
