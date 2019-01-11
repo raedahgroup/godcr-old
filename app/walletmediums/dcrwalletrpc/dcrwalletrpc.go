@@ -2,12 +2,12 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrwallet/netparams"
+	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -36,11 +36,7 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool) (*WalletRPCClient, error) {
-	if rpcAddress == "" {
-		rpcAddress = defaultDcrWalletRPCAddress(isTestnet)
-	}
-
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
 	// perform rpc connection in background, user might shutdown before connection is complete
 	go connectToRPC(rpcAddress, rpcCert, noTLS)
 
@@ -53,14 +49,16 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool)
 			return nil, connectionResult.err
 		}
 
-		activeNet := &chaincfg.MainNetParams
-		if isTestnet {
-			activeNet = &chaincfg.TestNet3Params
+		walletService := walletrpc.NewWalletServiceClient(connectionResult.conn)
+
+		activeNet, err := getNetParam(walletService)
+		if err != nil {
+			return nil, err
 		}
 
 		client := &WalletRPCClient{
 			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
-			walletService: walletrpc.NewWalletServiceClient(connectionResult.conn),
+			walletService: walletService,
 			activeNet:     activeNet,
 		}
 
@@ -68,11 +66,21 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS, isTestnet bool)
 	}
 }
 
-func defaultDcrWalletRPCAddress(isTestnet bool) string {
-	if isTestnet {
-		return net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
+func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.Params, err error) {
+	req := &walletrpc.NetworkRequest{}
+	res, err := walletService.Network(context.Background(), req)
+	if err != nil {
+		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
 	}
-	return net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
+
+	switch res.GetActiveNetwork() {
+	case uint32(wire.MainNet):
+		return &chaincfg.MainNetParams, nil
+	case uint32(wire.TestNet3):
+		return &chaincfg.TestNet3Params, nil
+	default:
+		return nil, errors.New("unknown network type")
+	}
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {

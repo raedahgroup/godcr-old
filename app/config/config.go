@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -124,6 +125,10 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 		return args, config, parser, err
 	}
 
+	if config.UseWalletRPC && config.WalletRPCServer == "" {
+		return args, config, parser, errors.New("you must set walletrpcserver in config file to use wallet rpc")
+	}
+
 	// Parse command line options again to ensure they take precedence.
 	args, err = parser.Parse()
 	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
@@ -138,12 +143,12 @@ func createConfigFile() (successful bool) {
 	configFile, err := os.Create(AppConfigFilePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr,"error in creating config file: %s\n", err.Error())
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
 			return
 		}
 		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
 		if err != nil {
-			fmt.Fprintf(os.Stderr,"error in creating config file directory: %s\n", err.Error())
+			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
 			return
 		}
 		// we were unable to create the file because the dir was not found.
