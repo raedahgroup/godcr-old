@@ -143,12 +143,12 @@ func createConfigFile() (successful bool) {
 	configFile, err := os.Create(AppConfigFilePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr,"error in creating config file: %s\n", err.Error())
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
 			return
 		}
 		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
 		if err != nil {
-			fmt.Fprintf(os.Stderr,"error in creating config file directory: %s\n", err.Error())
+			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
 			return
 		}
 		// we were unable to create the file because the dir was not found.
