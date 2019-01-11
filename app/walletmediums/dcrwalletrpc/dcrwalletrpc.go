@@ -51,14 +51,9 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 
 		walletService := walletrpc.NewWalletServiceClient(connectionResult.conn)
 
-		isTestnet, err := isTestNet(walletService)
+		activeNet, err := getNetParam(walletService)
 		if err != nil {
 			return nil, err
-		}
-
-		activeNet := &chaincfg.MainNetParams
-		if isTestnet {
-			activeNet = &chaincfg.TestNet3Params
 		}
 
 		client := &WalletRPCClient{
@@ -71,20 +66,20 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 	}
 }
 
-func isTestNet(walletService walletrpc.WalletServiceClient) (bool, error) {
+func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.Params, err error) {
 	req := &walletrpc.NetworkRequest{}
 	res, err := walletService.Network(context.Background(), req)
 	if err != nil {
-		return false, err
+		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
 	}
 
 	switch res.GetActiveNetwork() {
-	default:
-		return false, errors.New("unknown network type")
 	case uint32(wire.MainNet):
-		return false, nil
+		return &chaincfg.MainNetParams, nil
 	case uint32(wire.TestNet3):
-		return true, nil
+		return &chaincfg.TestNet3Params, nil
+	default:
+		return nil, errors.New("unknown network type")
 	}
 }
 

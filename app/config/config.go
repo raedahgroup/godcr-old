@@ -126,7 +126,7 @@ func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, err
 	}
 
 	if config.UseWalletRPC && config.WalletRPCServer == "" {
-		return args, config, parser, errors.New("you must set walletrpcserver to use wallet rpc in config file")
+		return args, config, parser, errors.New("you must set walletrpcserver in config file to use wallet rpc")
 	}
 
 	// Parse command line options again to ensure they take precedence.
