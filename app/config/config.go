@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -105,11 +104,6 @@ func LoadConfig() (Config, []string, error) {
 	err = parseConfigFile(parser)
 	if err != nil {
 		return config, unknownArgs, err
-	}
-
-	// if user sets `usewalletrpc=1` in config file but does not set `walletrpcserver`, return error
-	if config.UseWalletRPC && config.WalletRPCServer == "" {
-		return config, unknownArgs, errors.New("you must set walletrpcserver in config file to use wallet rpc")
 	}
 
 	// Parse command line options again to ensure they take precedence.
