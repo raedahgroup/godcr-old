@@ -9,11 +9,15 @@ import (
 	"sync"
 	"syscall"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/help"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/desktop"
 	"github.com/raedahgroup/godcr/web"
 )
@@ -28,10 +32,22 @@ var shutdownOps []func()
 var opError error
 
 func main() {
-	args, appConfig, _, err := config.LoadConfig(true)
+	appConfig, args, err := config.LoadConfig()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+
+	// check if we can execute the needed op without connecting to a wallet
+	// if len(args) == 0, then there's nothing to execute as any information passed in command-line has been parsed as an app option
+	if len(args) > 0 {
+		if  ok, err := attemptExecuteSimpleOp(); ok {
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			return
+		}
 	}
 
 	// use wait group to keep main alive until shutdown completes
@@ -59,6 +75,43 @@ func main() {
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
+}
+
+// attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
+// such operations may include cli commands like `help`, ergo a flags parser object is created with cli commands and flags
+// help flag errors (-h, --help) are also handled here, since they do not require access to wallet
+func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
+	configWithCommands := &cli.AppConfigWithCliCommands{}
+	parser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
+
+	// use command handler wrapper function to check if any command passed by user can be executed simply
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		if runner.CommandRequiresWallet(command) {
+			return nil
+		}
+
+		isSimpleOp = true
+		commandRunner := runner.New(parser, nil, nil)
+		return commandRunner.RunNoneWalletCommands(command, args)
+	}
+
+	// re-parse command-line args to catch help flag or execute any commands passed
+	_, err = parser.Parse()
+	if config.IsFlagErrorType(err, flags.ErrHelp) {
+		err = nil
+		isSimpleOp = true
+		displayHelpMessage(parser.Name, parser.Active)
+	}
+
+	return
+}
+
+func displayHelpMessage(appName string, activeCommand *flags.Command) {
+	if activeCommand == nil {
+		help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
+	} else {
+		help.PrintCommandHelp(os.Stdout, appName, activeCommand)
+	}
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
