@@ -37,6 +37,14 @@ var (
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
 func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
+	// check if user has provided enough information to attempt connecting to dcrwallet
+	if rpcAddress == "" {
+		return nil, errors.New("you must set walletrpcserver in config file to use wallet rpc")
+	}
+	if !noTLS && rpcCert == "" {
+		return nil, errors.New("set dcrwallet rpc certificate path in config file or disable tls for dcrwallet connection")
+	}
+
 	// perform rpc connection in background, user might shutdown before connection is complete
 	go connectToRPC(rpcAddress, rpcCert, noTLS)
 

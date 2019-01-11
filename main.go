@@ -9,11 +9,15 @@ import (
 	"sync"
 	"syscall"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/help"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/desktop"
 	"github.com/raedahgroup/godcr/web"
 )
@@ -28,9 +32,27 @@ var shutdownOps []func()
 var opError error
 
 func main() {
-	args, appConfig, _, err := config.LoadConfig(true)
+	appConfig, args, err := config.LoadConfig()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
+	// check if we can execute the needed op without connecting to a wallet
+	// if len(args) == 0, then there's nothing to execute as all command-line args were parsed as app options
+	if len(args) > 0 {
+		if  ok, err := attemptExecuteSimpleOp(); ok {
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err.Error())
+				os.Exit(1)
+			}
+			return
+		}
+	}
+
+	// check if user passed commands/options/args but is not running in cli mode
+	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
+		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
 		os.Exit(1)
 	}
 
@@ -50,7 +72,7 @@ func main() {
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	if appConfig.InterfaceMode == "http" {
-		enterHttpMode(ctx, walletMiddleware, args, appConfig)
+		enterHttpMode(ctx, walletMiddleware, appConfig)
 	} else if appConfig.InterfaceMode == "nuklear" {
 		enterDesktopMode(ctx, walletMiddleware)
 	} else {
@@ -59,6 +81,40 @@ func main() {
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
+}
+
+// attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
+// such operations may include cli commands like `help`, ergo a flags parser object is created with cli commands and flags
+// help flag errors (-h, --help) are also handled here, since they do not require access to wallet
+func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
+	configWithCommands := &cli.AppConfigWithCliCommands{}
+	parser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
+
+	// use command handler wrapper function to check if any command passed by user can be executed simply
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		if runner.CommandRequiresWallet(command) {
+			return nil
+		}
+
+		isSimpleOp = true
+		commandRunner := runner.New(parser, nil, nil)
+		return commandRunner.RunNoneWalletCommands(command, args)
+	}
+
+	// re-parse command-line args to catch help flag or execute any commands passed
+	_, err = parser.Parse()
+	if config.IsFlagErrorType(err, flags.ErrHelp) {
+		err = nil
+		isSimpleOp = true
+
+		if parser.Active != nil {
+			help.PrintCommandHelp(os.Stdout, parser.Name, parser.Active)
+		} else {
+			help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
+		}
+	}
+
+	return
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
@@ -84,13 +140,7 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 	return walletMiddleware
 }
 
-func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, args []string, appConfig config.Config) {
-	if len(args) > 0 {
-		fmt.Println("unexpected command or flag:", strings.Join(args, " "))
-		beginShutdown <- true
-		return
-	}
-
+func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
 	opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
 	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
 	if opError != nil && ctx.Err() == nil {
