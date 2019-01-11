@@ -14,7 +14,7 @@ import (
 
 const defaultConfigFilename = "godcr.conf"
 
-var AppConfigFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
+var AppConfigFilePath = filepath.Join(DefaultAppDataDir, defaultConfigFilename)
 
 // createConfigFile create the configuration file in AppConfigFilePath using the default values
 func createConfigFile() (successful bool) {
@@ -24,7 +24,7 @@ func createConfigFile() (successful bool) {
 			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
 			return
 		}
-		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
+		err = os.Mkdir(DefaultAppDataDir, os.ModePerm)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
 			return

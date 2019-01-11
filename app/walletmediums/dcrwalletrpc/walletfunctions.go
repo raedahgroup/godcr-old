@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -196,10 +197,11 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, req
 		}
 		txHash := hash.String()
 
-		address, err := walletcore.GetAddressFromPkScript(c.activeNet, utxo.PkScript)
+		addresses, err := addresshelper.PkScriptAddresses(c.activeNet, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
+		address := strings.Join(addresses, ", ")
 
 		txn, err := c.GetTransaction(txHash)
 		if err != nil {

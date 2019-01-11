@@ -1,4 +1,4 @@
-package config
+package app
 
 import (
 	"os"
@@ -7,9 +7,10 @@ import (
 	"runtime"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
-type walletDbDir struct {
+type WalletDbDir struct {
 	Source string
 	Path string
 }
@@ -18,11 +19,11 @@ type walletDbDir struct {
 const WalletDbFileName = "wallet.db"
 
 // DecredWalletDbDirectories maintains a slice of directories where decred wallet databases may be found
-func DecredWalletDbDirectories() []walletDbDir {
-	return []walletDbDir{
-		{ Source: "dcrwallet", Path: dcrutil.AppDataDir("dcrwallet", false) },
-		{ Source: "decredition", Path: decreditionAppDirectory() },
-		{ Source: "godcr", Path: defaultAppDataDir },
+func DecredWalletDbDirectories() []WalletDbDir {
+	return []WalletDbDir{
+		{Source: "dcrwallet", Path: dcrutil.AppDataDir("dcrwallet", false)},
+		{Source: "decredition", Path: decreditionAppDirectory()},
+		{Source: "godcr", Path: config.DefaultAppDataDir},
 	}
 }
 

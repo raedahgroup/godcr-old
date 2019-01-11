@@ -5,12 +5,14 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -105,10 +107,11 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requ
 		}
 		txHash := hash.String()
 
-		address, err := walletcore.GetAddressFromPkScript(lib.activeNet.Params, utxo.PkScript)
+		addresses, err := addresshelper.PkScriptAddresses(lib.activeNet, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
+		address := strings.Join(addresses, ", ")
 
 		txn, err := lib.GetTransaction(txHash)
 		if err != nil {
@@ -249,7 +252,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, lib.walletLib.AddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet, lib.walletLib.AddressInfo)
 	if err != nil {
 		return nil, err
 	}

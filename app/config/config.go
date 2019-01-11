@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/jessevdk/go-flags"
 )
 
 const (
@@ -59,7 +58,7 @@ type CliOptions struct {
 
 func defaultFileOptions() ConfFileOptions {
 	return ConfFileOptions{
-		AppDataDir:    defaultAppDataDir,
+		AppDataDir:    DefaultAppDataDir,
 		WalletRPCCert: defaultRPCCertFile,
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,

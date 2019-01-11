@@ -93,7 +93,11 @@ func main() {
 	shutdownOps = append(shutdownOps, cancel)
 
 	// open connection to wallet and add wallet close function to shutdownOps
-	walletMiddleware := connectToWallet(ctx, appConfig)
+	walletMiddleware, err := connectToWallet(ctx, appConfig)
+	if err != nil {
+		fmt.Println("Error connecting to wallet:", err.Error())
+		os.Exit(1)
+	}
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	switch appConfig.InterfaceMode {
@@ -163,21 +167,11 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
-func connectToWallet(ctx context.Context, config config.Config) (walletMiddleware app.WalletMiddleware) {
-	var err error
-	if config.WalletRPCServer == "" {
-		walletMiddleware, err = dcrlibwallet.New(config.AppDataDir, config.UseTestNet)
-	} else {
-		walletMiddleware, err = dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
+func connectToWallet(ctx context.Context, config config.Config) (app.WalletMiddleware, error) {
+	if !config.UseWalletRPC {
+		return dcrlibwallet.New(config.AppDataDir, config.UseTestNet)
 	}
-
-	if err != nil {
-		LogInfo("Connect to wallet failed")
-		LogInfo(err.Error())
-		os.Exit(1)
-	}
-
-	return
+	return dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 }
 
 func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
