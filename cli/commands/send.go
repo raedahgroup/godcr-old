@@ -14,18 +14,18 @@ import (
 // SendCommand lets the user send DCR.
 type SendCommand struct {
 	commanderStub
-	Spendunconfirmed bool `short:"u" long:"spendunconfirmed" description:"allow users chose to use 0 confirmations for send transactions."`
+	Spendunconfirmed bool `short:"u" long:"spendunconfirmed" description:"Use unconfirmed outputs for send transactions."`
 }
 
 // Run runs the `send` command.
 func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	var requireConfirmation int32 = 0
+	var requireConfirmation int32 
 	if s.Spendunconfirmed{
-		send(wallet, requireConfirmation, false)	
+		requireConfirmation = 0
 	}else{
-		send(wallet, walletcore.DefaultRequiredConfirmations, false)
+		requireConfirmation = walletcore.DefaultRequiredConfirmations
 	}
-	return nil
+	return send(wallet, requireConfirmation, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
@@ -42,8 +42,7 @@ func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet) er
 	}else{
 		requireConfirmation = walletcore.DefaultRequiredConfirmations
 	}
-
-	return send(wallet, requireConfirmation, false)
+	return send(wallet, requireConfirmation, true)
 }
 
 func send(wallet walletcore.Wallet, requireConfirmation int32, custom bool) error {
@@ -51,16 +50,14 @@ func send(wallet walletcore.Wallet, requireConfirmation int32, custom bool) erro
 	if err != nil {
 		return err
 	}
-
+			fmt.Println(requireConfirmation)
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-
 	accountBalance, err := wallet.AccountBalance(sourceAccount, requireConfirmation)
 	if err != nil {
 		return err
 	}
-			fmt.Println(accountBalance)
 
 	if accountBalance.Total == 0 {
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
