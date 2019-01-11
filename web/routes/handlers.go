@@ -82,6 +82,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	selectedAccount := req.FormValue("sourceAccount")
 	destAddress := req.FormValue("destinationAddress")
 	passphrase := req.FormValue("walletPassphrase")
+	unconfirmed := req.FormValue("SpendUnconfirmed")
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -100,6 +101,15 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		Amount:  amount,
 		Address: destAddress,
 	}}
+
+	var RequiredConfirmations int32
+	if unconfirmed == "on"{
+		RequiredConfirmations = 0
+	}else{
+		RequiredConfirmations = walletcore.DefaultRequiredConfirmations
+	}
+
+	fmt.Println(RequiredConfirmations)
 
 	var txHash string
 	if len(utxos) > 0 {
@@ -126,9 +136,9 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 			Address: changeAddress,
 		}}
 
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, walletcore.DefaultRequiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, RequiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, walletcore.DefaultRequiredConfirmations, sendDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, RequiredConfirmations, sendDestinations, passphrase)
 	}
 
 	if err != nil {
