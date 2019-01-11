@@ -109,8 +109,6 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		RequiredConfirmations = walletcore.DefaultRequiredConfirmations
 	}
 
-	fmt.Println(RequiredConfirmations)
-
 	var txHash string
 	if len(utxos) > 0 {
 		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
