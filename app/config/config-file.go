@@ -62,7 +62,7 @@ func parseConfigFile(parser *flags.Parser) error {
 	err := flags.NewIniParser(parser).ParseFile(AppConfigFilePath)
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
+			return fmt.Errorf("Error parsing configuration file: %s", err.Error())
 		}
 		return err
 	}

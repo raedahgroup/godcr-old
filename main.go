@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// check if we can execute the needed op without connecting to a wallet
-	// if len(args) == 0, then there's nothing to execute as any information passed in command-line has been parsed as an app option
+	// if len(args) == 0, then there's nothing to execute as all command-line args were parsed as app options
 	if len(args) > 0 {
 		if  ok, err := attemptExecuteSimpleOp(); ok {
 			if err != nil {
@@ -50,12 +50,11 @@ func main() {
 		}
 	}
 
-	// check if user passed args/options but is not running in cli mode
+	// check if user passed commands/options/args but is not running in cli mode
 	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
 		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
 		os.Exit(1)
 	}
-
 
 	// use wait group to keep main alive until shutdown completes
 	shutdownWaitGroup := &sync.WaitGroup{}
