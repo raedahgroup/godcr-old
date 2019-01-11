@@ -64,18 +64,17 @@ func main() {
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
 func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddleware {
-	var netType string
-	if config.UseTestNet {
-		netType = "testnet"
-	} else {
-		netType = "mainnet"
-	}
-
 	if !config.UseWalletRPC {
+		var netType string
+		if config.UseTestNet {
+			netType = "testnet"
+		} else {
+			netType = "mainnet"
+		}
 		return dcrlibwallet.New(config.AppDataDir, netType)
 	}
 
-	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS, config.UseTestNet)
+	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
 		fmt.Println("Connect to dcrwallet rpc failed")
 		fmt.Println(err.Error())
