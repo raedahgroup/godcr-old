@@ -34,7 +34,7 @@ var opError error
 func main() {
 	appConfig, args, err := config.LoadConfig()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -43,12 +43,19 @@ func main() {
 	if len(args) > 0 {
 		if  ok, err := attemptExecuteSimpleOp(); ok {
 			if err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
 			}
 			return
 		}
 	}
+
+	// check if user passed args/options but is not running in cli mode
+	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
+		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
+		os.Exit(1)
+	}
+
 
 	// use wait group to keep main alive until shutdown completes
 	shutdownWaitGroup := &sync.WaitGroup{}
@@ -66,7 +73,7 @@ func main() {
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	if appConfig.InterfaceMode == "http" {
-		enterHttpMode(ctx, walletMiddleware, args, appConfig)
+		enterHttpMode(ctx, walletMiddleware, appConfig)
 	} else if appConfig.InterfaceMode == "nuklear" {
 		enterDesktopMode(ctx, walletMiddleware)
 	} else {
@@ -100,18 +107,15 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 	if config.IsFlagErrorType(err, flags.ErrHelp) {
 		err = nil
 		isSimpleOp = true
-		displayHelpMessage(parser.Name, parser.Active)
+
+		if parser.Active != nil {
+			help.PrintCommandHelp(os.Stdout, parser.Name, parser.Active)
+		} else {
+			help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
+		}
 	}
 
 	return
-}
-
-func displayHelpMessage(appName string, activeCommand *flags.Command) {
-	if activeCommand == nil {
-		help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
-	} else {
-		help.PrintCommandHelp(os.Stdout, appName, activeCommand)
-	}
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
@@ -137,13 +141,7 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 	return walletMiddleware
 }
 
-func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, args []string, appConfig config.Config) {
-	if len(args) > 0 {
-		fmt.Println("unexpected command or flag:", strings.Join(args, " "))
-		beginShutdown <- true
-		return
-	}
-
+func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
 	opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
 	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
 	if opError != nil && ctx.Err() == nil {
