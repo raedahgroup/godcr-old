@@ -107,7 +107,6 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		requiredConfirmations = 0
 	}
 
-	fmt.Println(requiredConfirmations)
 	var txHash string
 	if len(utxos) > 0 {
 		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
