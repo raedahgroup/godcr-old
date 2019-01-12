@@ -22,11 +22,7 @@ func (detectCmd DetectWalletsCommand) Execute(args []string) error {
 		allDetectedWallets = append(allDetectedWallets, detectedWallets...)
 	}
 
-	for _, w := range allDetectedWallets {
-		fmt.Println(w)
-	}
-
-	return nil
+	return config.SaveDetectedWalletsInfo(allDetectedWallets)
 }
 
 func findWalletsInDirectory(walletDir, walletSource string) (wallets []*config.WalletInfo, err error) {
