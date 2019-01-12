@@ -34,11 +34,11 @@ func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet) er
 }
 
 func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
-	var requireConfirmations int32 
+	var requiredConfirmations int32 
 	if spendUnconfirmed{
-		requireConfirmations = 0
+		requiredConfirmations = 0
 	}else{
-		requireConfirmations = walletcore.DefaultRequiredConfirmations
+		requiredConfirmations = walletcore.DefaultRequiredConfirmations
 	}
 
 	sourceAccount, err := selectAccount(wallet)
@@ -48,7 +48,7 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := wallet.AccountBalance(sourceAccount, requireConfirmations)
+	accountBalance, err := wallet.AccountBalance(sourceAccount, requiredConfirmations)
 	if err != nil {
 		return err
 	}

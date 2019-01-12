@@ -102,11 +102,11 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		Address: destAddress,
 	}}
 
-	var requireConfirmations int32
+	var requiredConfirmations int32
 	if spendUnconfirmed != ""{
-		requireConfirmations = 0
+		requiredConfirmations = 0
 	}else{
-		requireConfirmations = walletcore.DefaultRequiredConfirmations
+		requiredConfirmations = walletcore.DefaultRequiredConfirmations
 	}
 
 	var txHash string
@@ -134,9 +134,9 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 			Address: changeAddress,
 		}}
 		
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, requireConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, requiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, requireConfirmations, sendDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, requiredConfirmations, sendDestinations, passphrase)
 	}
 
 	if err != nil {
