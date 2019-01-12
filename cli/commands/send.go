@@ -14,38 +14,33 @@ import (
 // SendCommand lets the user send DCR.
 type SendCommand struct {
 	commanderStub
-	Spendunconfirmed bool `short:"u" long:"spendunconfirmed" description:"Use unconfirmed outputs for send transactions."`
+	SpendUnconfirmed bool `short:"u" long:"spendunconfirmed" description:"Use unconfirmed outputs for send transactions."`
 }
 
 // Run runs the `send` command.
 func (s SendCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	var requireConfirmation int32 
-	if s.Spendunconfirmed{
-		requireConfirmation = 0
-	}else{
-		requireConfirmation = walletcore.DefaultRequiredConfirmations
-	}
-	return send(wallet, requireConfirmation, false)
+	return send(wallet, s.SpendUnconfirmed, false)
 }
 
 // SendCustomCommand sends DCR using coin control.
 type SendCustomCommand struct {
 	commanderStub
-	Spendunconfirmed bool `short:"u" long:"spendunconfirmed" description:"Use unconfirmed outputs for send transactions."`
+	SpendUnconfirmed bool `short:"u" long:"spendunconfirmed" description:"Use unconfirmed outputs for send transactions."`
 }
 
 // Run runs the `send-custom` command.
 func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	var requireConfirmation int32 
-	if s.Spendunconfirmed{
-		requireConfirmation = 0
-	}else{
-		requireConfirmation = walletcore.DefaultRequiredConfirmations
-	}
-	return send(wallet, requireConfirmation, true)
+	return send(wallet, s.SpendUnconfirmed, true)
 }
 
-func send(wallet walletcore.Wallet, requireConfirmation int32, custom bool) error {
+func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
+	var requireConfirmations int32 
+	if spendUnconfirmed{
+		requireConfirmations = 0
+	}else{
+		requireConfirmations = walletcore.DefaultRequiredConfirmations
+	}
+
 	sourceAccount, err := selectAccount(wallet)
 	if err != nil {
 		return err
@@ -53,7 +48,7 @@ func send(wallet walletcore.Wallet, requireConfirmation int32, custom bool) erro
 
 	// check if account has positive non-zero balance before proceeding
 	// if balance is zero, there'd be no unspent outputs to use
-	accountBalance, err := wallet.AccountBalance(sourceAccount, requireConfirmation)
+	accountBalance, err := wallet.AccountBalance(sourceAccount, requireConfirmations)
 	if err != nil {
 		return err
 	}
