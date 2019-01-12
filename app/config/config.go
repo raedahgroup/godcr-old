@@ -134,6 +134,26 @@ func hasConfigFileOption(unknownArgs []string) bool {
 	return false
 }
 
+// createConfigFile create the configuration file in AppConfigFilePath using the default values
+func createConfigFile() (successful bool) {
+	configFile, err := os.Create(AppConfigFilePath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
+			return
+		}
+		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
+			return
+		}
+		// we were unable to create the file because the dir was not found.
+		// we shall attempt to recreate the file now that we have successfully created the dir
+		configFile, err = os.Create(AppConfigFilePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
+			return		
+
 // configFileOptions returns a slice of the short names and long names of all config file options
 func configFileOptions() (options []string) {
 	tConfFileOptions := reflect.TypeOf(ConfFileOptions{})

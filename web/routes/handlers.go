@@ -102,13 +102,12 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		Address: destAddress,
 	}}
 
-	var requiredConfirmations int32
-	if spendUnconfirmed != ""{
+	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+	if spendUnconfirmed != "" {
 		requiredConfirmations = 0
-	}else{
-		requiredConfirmations = walletcore.DefaultRequiredConfirmations
 	}
 
+	fmt.Println(requiredConfirmations)
 	var txHash string
 	if len(utxos) > 0 {
 		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
@@ -133,7 +132,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
 			Address: changeAddress,
 		}}
-		
+
 		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, requiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
 	} else {
 		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, requiredConfirmations, sendDestinations, passphrase)

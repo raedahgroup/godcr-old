@@ -34,11 +34,9 @@ func (s SendCustomCommand) Run(ctx context.Context, wallet walletcore.Wallet) er
 }
 
 func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
-	var requiredConfirmations int32 
-	if spendUnconfirmed{
+	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+	if spendUnconfirmed {
 		requiredConfirmations = 0
-	}else{
-		requiredConfirmations = walletcore.DefaultRequiredConfirmations
 	}
 
 	sourceAccount, err := selectAccount(wallet)
@@ -68,9 +66,9 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 
 	var sentTxHash string
 	if custom {
-		sentTxHash, err = completeCustomSend(wallet, sourceAccount, sendDestinations, sendAmountTotal)
+		sentTxHash, err = completeCustomSend(wallet, sourceAccount, sendDestinations, sendAmountTotal, requiredConfirmations)
 	} else {
-		sentTxHash, err = completeNormalSend(wallet, sourceAccount, sendDestinations)
+		sentTxHash, err = completeNormalSend(wallet, sourceAccount, sendDestinations, requiredConfirmations)
 	}
 
 	if err != nil {
@@ -81,13 +79,13 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	return nil
 }
 
-func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination, sendAmountTotal float64) (string, error) {
+func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination, sendAmountTotal float64, requiredConfirmations int32) (string, error) {
 	var changeOutputDestinations []txhelper.TransactionDestination
 	var utxoSelection []*walletcore.UnspentOutput
 	var totalInputAmount float64
 
 	// get all utxos in account, pass 0 amount to get all
-	utxos, err := wallet.UnspentOutputs(sourceAccount, 0, walletcore.DefaultRequiredConfirmations)
+	utxos, err := wallet.UnspentOutputs(sourceAccount, 0, requiredConfirmations)
 	if err != nil {
 		return "", err
 	}
@@ -147,10 +145,10 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	for _, utxo := range utxoSelection {
 		outputKeys = append(outputKeys, utxo.OutputKey)
 	}
-	return wallet.SendFromUTXOs(sourceAccount, walletcore.DefaultRequiredConfirmations, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
+	return wallet.SendFromUTXOs(sourceAccount, requiredConfirmations, outputKeys, sendDestinations, changeOutputDestinations, passphrase)
 }
 
-func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination) (string, error) {
+func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDestinations []txhelper.TransactionDestination, requiredConfirmations int32) (string, error) {
 	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return "", err
@@ -174,5 +172,5 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 		return "", errors.New("transaction cancelled")
 	}
 
-	return wallet.SendFromAccount(sourceAccount, walletcore.DefaultRequiredConfirmations, sendDestinations, passphrase)
+	return wallet.SendFromAccount(sourceAccount, requiredConfirmations, sendDestinations, passphrase)
 }
