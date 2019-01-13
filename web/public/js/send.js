@@ -82,7 +82,7 @@ function openCustomizePanel() {
             var receiveDateTime = new Date(tx.receive_time * 1000);
             var amount = tx.amount / 100000000;
             return  "<tr>" + 
-                        "<td width='5%'><input type='checkbox' class='custom-input' name='tx' value="+ tx.key+" data-amount='" + amount + "' /></td>" +
+                        "<td width='5%'><input type='checkbox' class='custom-input' name='utxo' value="+ tx.key+" data-amount='" + amount + "' /></td>" +
                         "<td width='50%'>" + tx.key + "</td>" + 
                         "<td width='20%'>" + amount + "</td>" + 
                         "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
@@ -112,14 +112,19 @@ function submitSendForm() {
 
     // get total of selected inputs and add to form post data
     totalSelectedInputAmount = 0;
-    $('.utxo:checkbox:checked').each(function () {
+    $('.custom-input').each(function () {
         if (this.checked) {
-            totalSelectedInputAmount += $(this).attr("data-amount");
+            totalSelectedInputAmount += parseInt($(this).attr("data-amount"));
         }
     });
 
     var postData = form.serialize();
     postData += "&totalSelectedInputAmount=" + totalSelectedInputAmount;
+
+    // add source-account value to post data if source-account element is disabled
+    if ($("#source-account").prop("disabled")) {
+        postData += "&source-account=" + $("#source-account").val();
+    }
 
     $.ajax({
         url: form.attr("action"),

@@ -17,18 +17,13 @@
                                     <div class="col-sm-12 col-md-6">
                                         <div class="form-group">
                                             <label for="source-account">Source Account</label>
-                                            {{ if eq (len .accounts) 1 }}
-                                                {{ $account := index .accounts 0 }}
-                                                <select class="form-control" id="source-account" name="source-account" disabled="disabled">
-                                                    <option value="{{ $account.Number }}">{{ $account.Name }} - {{ simpleBalance $account.Balance false }}</option>
-                                                </select>
-                                            {{ else }}
-                                                <select class="form-control" id="source-account" name="source-account">
-                                                    {{ range $s := .accounts }}
-                                                        <option value="{{ $s.Number }}">{{ $s.Name }} - {{ simpleBalance $account.Balance false }}</option>
-                                                    {{ end }}
-                                                </select>
-                                            {{ end }}
+                                            <select class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
+                                                {{ range $account := .accounts }}
+                                                    <option value="{{ $account.Number }}">
+                                                    {{ $account.Name }} - {{ simpleBalance $account.Balance false }}
+                                                    </option>
+                                                {{ end }}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -50,13 +45,8 @@
                                 </div>
                                 <div>
                                     <div class="form-group form-check">
-                                        <input type="checkbox" class="form-check-input" name="spendUnconfirmed" id="spendUnconfirmed">
-                                        <label class="form-check-label" for="spendUnconfirmed">Spend unconfirmed</label>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <button type="button" class="next-btn btn btn-success" class="btn btn-success">Next</button>
+                                        <input type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed">
+                                        <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
                                     </div>
                                 </div>
                             </div>

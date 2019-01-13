@@ -79,10 +79,11 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	utxos := req.Form["utxo"]
 	totalSelectedInputAmount := req.FormValue("totalSelectedInputAmount")
 	amountStr := req.FormValue("amount")
-	selectedAccount := req.FormValue("sourceAccount")
-	destAddress := req.FormValue("destinationAddress")
-	passphrase := req.FormValue("walletPassphrase")
-	spendUnconfirmed := req.FormValue("spendUnconfirmed")
+	selectedAccount := req.FormValue("source-account")
+	destAddress := req.FormValue("destination-address")
+	passphrase := req.FormValue("wallet-passphrase")
+	spendUnconfirmed := req.FormValue("spend-unconfirmed")
+	useCustom := req.FormValue("use-custom")
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -108,7 +109,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	var txHash string
-	if len(utxos) > 0 {
+	if useCustom == "1" {
 		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
 		if err != nil {
 			data["error"] = err.Error()
