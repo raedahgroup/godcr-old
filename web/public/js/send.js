@@ -1,72 +1,109 @@
 /**==================================================================*
- *                    PASSPHRASE FUNCTIONS                           *
- *===================================================================*/
-
-function validatePassphrase() {
-    $(".passphrase-error").remove();
-    var error = "";
-
-    var passphraseEl = $("#walletPassphrase");
-
-    if (passphraseEl.val() == "") {
-        error = "Your wallet passphrase is required";
-    }
-
-    if (error != "") {
-        passphraseEl.after("<div class='passphrase-error'>" + error + "</div>");
-        return false
-    }
-
-    return true
-}
-
-function getWalletPassphraseAndSubmit() {
-    var passphraseModal = $("#passphrase-modal");
-    
-    $("#passphrase-submit").on("click", function(){
-        if (validatePassphrase()) {
-            passphraseModal.modal('hide');
-            submitSendForm();
-        }
-    });
-    
-    passphraseModal.modal();
-}
-
-/**==================================================================*
  *                  SEND PAGE FUNCTIONS                              *
  *===================================================================*/
+function validateAmountField() { 
+    if ($("#amount").val() === "") {
+        $(".errors").html("<div class='error'>Please enter an amount first</div>");
+        return false;
+    }
+
+    return true;
+}
+
 function validateSendForm() {
     // clear errors first
-    $(".error").remove();
-    var errors = {};
-
-    var sourceAccountEl = $("#sourceAccount");
-    var amountEl = $("#amount");
-    var destinationAddressEl = $("#destinationAddress");
+    $(".errors").empty();
+    var errors = [];
     var isClean = true;
 
-    if (sourceAccountEl.find(":selected").text() == "") {
-        errors["#sourceAccount"] = "The source account is required";
+    if ($("#source-account").find(":selected").text() == "") {
+        errors.push("The source account is required");
     }
 
-    if (amountEl.val() == "") {
-        errors["#amount"] = "The amount is required"
+    isClean = validateAmountField();
+
+    if ($("#destination-address").val() == "") {
+        errors.push("The destination address is required");
     }
 
-    if (destinationAddressEl.val() == "") {
-        errors["#destinationAddress"] = "The destination address is required"
+    if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < $("#amount").val()) ) {
+        errors.push("The sum of selected inputs is less than send amount");
     }
 
-    if (!$.isEmptyObject(errors)) {
-        isClean = false;
+    if (errors.length > 0) {
         for (var i in errors) {
-            $(i).after("<div class='error'>" + errors[i] + "</div>");
+          $(".errors").append("<div class='error'>" + errors[i] + "</div>");
         }
+        isClean = false;
     }
 
     return isClean;
 }
+
+function getSelectedInputsSum() {
+    var sum = 0;
+    $(".custom-input:checked").each(function(){
+       sum += $(this).data("amount");
+    });
+
+    return sum
+}
+
+function calculateSelectedInputPercentage() {
+    var sendAmount = $("#amount").val();
+    var selectedInputSum = getSelectedInputsSum();
+    var percentage = 0;
+
+    if (selectedInputSum >= sendAmount) {
+        percentage = 100;
+    } else {
+        percentage = (selectedInputSum / sendAmount) * 100;
+    }
+
+    $("#custom-tx-row .progress-bar").css("width", percentage+"%");
+}
+
+
+function resetCustomizePanel() {
+    $("#custom-tx-row tbody").empty();
+    $("#custom-tx-row .status").show();
+    $("#custom-tx-row .alert-danger").remove();
+}
+
+
+function openCustomizePanel() {
+    resetCustomizePanel();
+    $("#custom-tx-row").slideDown();
+   
+    var account_number = $("#source-account").find(":selected").val();
+    var callback = function(txs) {
+        // populate outputs 
+        var utxoHtml = txs.map(tx => {
+            var receiveDateTime = new Date(tx.receive_time * 1000);
+            var amount = tx.amount / 100000000;
+            return  "<tr>" + 
+                        "<td width='5%'><input type='checkbox' class='custom-input' name='tx' value="+ tx.key+" data-amount='" + amount + "' /></td>" +
+                        "<td width='50%'>" + tx.key + "</td>" + 
+                        "<td width='20%'>" + amount + "</td>" + 
+                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
+                    "</tr>"
+        });
+        $("#custom-tx-row tbody").html(utxoHtml.join('\n'));
+        $("#custom-tx-row .status").hide();
+
+        // register check listener 
+        $(".custom-input").on("click", function(){
+           calculateSelectedInputPercentage();
+        });
+
+        $("#amount").on("keyup", function(){
+            validateAmountField();
+            calculateSelectedInputPercentage();
+        });
+    }
+    getUnspentOutputs(account_number, callback);
+}
+
 
 function submitSendForm() {
     var form = $("#send-form");
@@ -129,6 +166,31 @@ function getUnspentOutputs(account_number, success_callback) {
     })
 }
 
+/**==================================================================*
+ *                    PASSPHRASE FUNCTIONS                           *
+ *===================================================================*/
+
+function validatePassphrase() {
+    if ($("#walletPassphrase").val() === "") {
+        $("#passphrase-modal .errors").html("<div class='error'>Your wallet passphrase is required</div>");
+        return false
+    }
+
+    return true
+}
+
+function getWalletPassphraseAndSubmit() {
+    var passphraseModal = $("#passphrase-modal");
+    
+    $("#passphrase-submit").on("click", function(){
+        if (validatePassphrase()) {
+            passphraseModal.modal('hide');
+            submitSendForm();
+        }
+    });
+    passphraseModal.modal();
+}
+
 
 /**==================================================================*
  *                      GENERAL                                      *
@@ -150,58 +212,26 @@ function clearMessages() {
     $(".alert-danger").hide();
 }
 
-function setProgressWidth(width) {
-    $(".stepper .progress-bar").css("width", width + "%");
-}
-
-function goToTab(tab_item) {
-    tab_item.trigger("click").addClass("stepper-active");
-}
-
-function closeTab(tab_tem) {
-    tab_item.trigger("click");
-}
-
 $(function(){
-    var stepper_index = 0;
-    var steppers = $(".stepper .nav-link");
-
-    $(".next-btn").on("click", function(){
-        if (validateSendForm() && stepper_index <= steppers.length) {
-            var account_number = $("#sourceAccount").find(":selected").val();
-            var callback = function(utxos) {
-                // populate outputs 
-                var utxoHtml = utxos.map(utxo => {
-                    var receiveDateTime = new Date(utxo.receive_time * 1000)
-                    return  "<tr>" +
-                                "<td width='5%'><input type='checkbox' name='utxo' class='utxo' value=" + utxo.key + " data-amount=" + utxo.amount +" /></td>" +
-                                "<td width='60%'>" + utxo.key + "</td>" + 
-                                "<td width='15%'>" + utxo.amount / 100000000 + " DCR</td>" + 
-                                "<td width='20%'>" + receiveDateTime.toString() + "</td>" +
-                            "</tr>"
-                });
-                $("#wallet-outputs tbody").html(utxoHtml.join('\n'));
-
-                stepper_index += 1;
-                goToTab(steppers.eq(stepper_index));  
-                setProgressWidth((stepper_index+1 / steppers.length) * 100); 
+    $("#use-custom").on("change", function(){
+        if (this.checked) {
+            if (validateAmountField()) {
+                $(".errors").empty();
+                openCustomizePanel();
+            } else {
+                $(this).prop("checked", false);
             }
-            getUnspentOutputs(account_number, callback);
-        }
-    });
-
-    $(".previous-btn").on("click", function(){
-        if (stepper_index > 0) {
-            steppers.eq(stepper_index).removeClass("stepper-active");
-            stepper_index -= 1;
-            goToTab(steppers.eq(stepper_index));
-            setProgressWidth((stepper_index+1 / steppers.length) * 100);     
+        } else {
+            resetCustomizePanel();
+            $("#custom-tx-row").slideUp();
         }
     })
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
-        getWalletPassphraseAndSubmit()
+        if (validateSendForm()) {
+            getWalletPassphraseAndSubmit();
+        }
     })
 });
 
