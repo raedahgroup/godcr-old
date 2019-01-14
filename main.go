@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/terminal"
 	"os"
 	"os/signal"
 	"strings"
