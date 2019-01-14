@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/terminal"
 	"os"
 	"os/signal"
 	"strings"
@@ -21,6 +20,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/desktop"
 	"github.com/raedahgroup/godcr/web"
+	"github.com/raedahgroup/godcr/terminal"
 )
 
 // triggered after program execution is complete or if interrupt signal is received
