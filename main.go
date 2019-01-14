@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/terminal"
 	"os"
 	"os/signal"
 	"strings"
@@ -53,6 +54,9 @@ func main() {
 		enterHttpMode(ctx, walletMiddleware, args, appConfig)
 	} else if appConfig.InterfaceMode == "nuklear" {
 		enterDesktopMode(ctx, walletMiddleware)
+	} else if appConfig.InterfaceMode == "terminal" {
+		//enterDesktopMode(ctx, walletMiddleware)
+		enterTerminalMode()
 	} else {
 		enterCliMode(ctx, walletMiddleware, appConfig)
 	}
@@ -104,6 +108,13 @@ func enterDesktopMode(ctx context.Context, walletMiddleware app.WalletMiddleware
 	fmt.Println("Launching desktop app")
 	desktop.StartDesktopApp(ctx, walletMiddleware)
 	// desktop app closed, trigger shutdown
+	beginShutdown <- true
+}
+
+func enterTerminalMode() {
+	fmt.Println("Launching Terminal...")
+	terminal.OpenTerminal()
+
 	beginShutdown <- true
 }
 
