@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190108195612-81f0df0be7a3
-	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
+	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
 	google.golang.org/grpc v1.14.0

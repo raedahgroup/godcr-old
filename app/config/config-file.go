@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	flags "github.com/jessevdk/go-flags"
@@ -68,4 +71,32 @@ func parseConfigFile(parser *flags.Parser) error {
 		return err
 	}
 	return nil
+}
+
+func UpdateConfigFile(option string, newValue interface{}, removeComment bool) error {
+	configText, err := ioutil.ReadFile(AppConfigFilePath)
+	if err != nil {
+		return fmt.Errorf("failed opening file: %s", err.Error())
+	}
+
+	if !strings.Contains(string(configText), fmt.Sprintf("%s=", option)) {
+		return errors.New("invalid option")
+	}
+
+	lines := strings.Split(string(configText), "\n")
+	for i, line := range lines {
+		if !strings.Contains(line, fmt.Sprintf("%s=", option)) {
+			continue
+		}
+		lines[i] = fmt.Sprintf("%s=%s", option, newValue)
+		if !removeComment && strings.HasPrefix(line, ";") {
+			lines[i] = fmt.Sprintf("; %s=%s", option, newValue)
+		}
+		break
+	}
+
+	updatedConfigText := strings.Join(lines, "\n")
+	err = ioutil.WriteFile(AppConfigFilePath, []byte(updatedConfigText), os.ModePerm)
+
+	return err
 }

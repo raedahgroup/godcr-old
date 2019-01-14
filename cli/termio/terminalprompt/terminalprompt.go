@@ -1,6 +1,7 @@
 package terminalprompt
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -12,6 +13,14 @@ type ValidatorFunction func(string) error
 
 // EmptyValidator is a noop validator that can be used if no validation is needed.
 var EmptyValidator = func(v string) error {
+	return nil
+}
+
+// InputRequiredValidator throws if the input value is empty
+var InputRequiredValidator = func(v string) error {
+	if v == "" {
+		return errors.New("input cannot be empty")
+	}
 	return nil
 }
 

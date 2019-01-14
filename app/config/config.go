@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 )
 
 const (
@@ -18,8 +18,8 @@ const (
 
 var (
 	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
-	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
-	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
+	DefaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
+	defaultRPCCertFile         = filepath.Join(DefaultDcrwalletAppDataDir, "rpc.cert")
 )
 
 // Config holds the top-level options/flags for the application
