@@ -10,30 +10,21 @@ import (
 )
 
 func LaunchApp() {
-	// enable high dpi scaling
-	// useful for devices with high pixel density displays
-	// such as smartphones, retina displays, ...
-	core.QCoreApplication_SetAttribute(core.Qt__AA_EnableHighDpiScaling, true)
+	// Create application
+	app := gui.NewQGuiApplication(len(os.Args), os.Args)
 
-	// needs to be called once before you can start using QML
-	gui.NewQGuiApplication(len(os.Args), os.Args)
+	// Enable high DPI scaling
+	app.SetAttribute(core.Qt__AA_EnableHighDpiScaling, true)
 
-	// use the material style
-	// the other inbuild styles are:
-	// Default, Fusion, Imagine, Universal
-	quickcontrols2.QQuickStyle_SetStyle("Material")
+	// Use the material style for qml
+	quickcontrols2.QQuickStyle_SetStyle("material")
 
-	// create the qml application engine
+	// Create a QML application engine
 	engine := qml.NewQQmlApplicationEngine(nil)
 
-	// load the embedded qml file
-	// created by either qtrcc or qtdeploy
+	// Load the main qml file
 	engine.Load(core.NewQUrl3("qrc:/qml/main.qml", 0))
-	// you can also load a local file like this instead:
-	//engine.Load(core.QUrl_FromLocalFile("./qml/main.qml"))
 
-	// start the main Qt event loop
-	// and block until app.Exit() is called
-	// or the window is closed by the user
+	// Execute app
 	gui.QGuiApplication_Exec()
 }
