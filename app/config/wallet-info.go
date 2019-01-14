@@ -36,8 +36,8 @@ func SaveDetectedWalletsInfo(wallets []*WalletInfo) (err error) {
 	printConfigGroup(parser.Groups())
 
 	// add new wallets info
-	for _, w := range wallets {
-		parser.AddGroup("Detected Wallet", w.LongDescription(), w)
+	for i, w := range wallets {
+		parser.AddGroup(fmt.Sprintf("Detected Wallet %d", i+1), w.LongDescription(), w)
 	}
 
 	// write config object to file
