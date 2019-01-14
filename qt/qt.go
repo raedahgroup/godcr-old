@@ -3,28 +3,48 @@ package qt
 import (
 	"os"
 
-	"github.com/therecipe/qt/core"
-	"github.com/therecipe/qt/gui"
-	"github.com/therecipe/qt/qml"
-	"github.com/therecipe/qt/quickcontrols2"
+	"github.com/therecipe/qt/widgets"
 )
 
 func LaunchApp() {
-	// Create application
-	app := gui.NewQGuiApplication(len(os.Args), os.Args)
+	// needs to be called once before you can start using the QWidgets
+	app := widgets.NewQApplication(len(os.Args), os.Args)
 
-	// Enable high DPI scaling
-	app.SetAttribute(core.Qt__AA_EnableHighDpiScaling, true)
+	// create a window
+	// with a minimum size of 250*200
+	// and sets the title to "Hello Widgets Example"
+	window := widgets.NewQMainWindow(nil, 0)
+	window.SetMinimumSize2(250, 200)
+	window.SetWindowTitle("Hello Widgets Example")
 
-	// Use the material style for qml
-	quickcontrols2.QQuickStyle_SetStyle("material")
+	// create a regular widget
+	// give it a QVBoxLayout
+	// and make it the central widget of the window
+	widget := widgets.NewQWidget(nil, 0)
+	widget.SetLayout(widgets.NewQVBoxLayout())
+	window.SetCentralWidget(widget)
 
-	// Create a QML application engine
-	engine := qml.NewQQmlApplicationEngine(nil)
+	// create a line edit
+	// with a custom placeholder text
+	// and add it to the central widgets layout
+	input := widgets.NewQLineEdit(nil)
+	input.SetPlaceholderText("Write something ...")
+	widget.Layout().AddWidget(input)
 
-	// Load the main qml file
-	engine.Load(core.NewQUrl3("qrc:/qml/main.qml", 0))
+	// create a button
+	// connect the clicked signal
+	// and add it to the central widgets layout
+	button := widgets.NewQPushButton2("and click me!", nil)
+	button.ConnectClicked(func(bool) {
+		widgets.QMessageBox_Information(nil, "OK", input.Text(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+	})
+	widget.Layout().AddWidget(button)
 
-	// Execute app
-	gui.QGuiApplication_Exec()
+	// make the window visible
+	window.Show()
+
+	// start the main Qt event loop
+	// and block until app.Exit() is called
+	// or the window is closed by the user
+	app.Exec()
 }
