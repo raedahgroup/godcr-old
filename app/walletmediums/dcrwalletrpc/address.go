@@ -18,8 +18,7 @@ type walletConfig struct {
 	TBOpts ticketBuyerOptions `group:"Ticket Buyer Options" namespace:"ticketbuyer"`
 }
 
-
-type ticketBuyerOptions struct {}
+type ticketBuyerOptions struct{}
 
 const (
 	defaultWalletConfigFilename = "dcrwallet.conf"

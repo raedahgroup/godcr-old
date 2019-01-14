@@ -167,23 +167,23 @@ func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool
 
 		if setAddressConfirmed {
 			address, err := terminalprompt.RequestInput("Enter dcrwallet rpc address", terminalprompt.InputRequiredValidator)
-
 			if err != nil {
-				fmt.Println(fmt.Sprintf("error in getting input: %s", err.Error()))
+				fmt.Println(fmt.Sprintf("error in reading input: %s", err.Error()))
 			}
 			walletMiddleware, err = New(ctx, address, rpcCert, noTLS)
 			if err == nil {
 				saveRPCAddress(address)
 				return walletMiddleware, nil
 			}
+
 			fmt.Println("connecting...")
+			return New(ctx, address, rpcCert, noTLS)
 		} else {
 			fmt.Println("Okay. Bye.")
 			fmt.Printf("You can also set the rpc address later in %s\n", config.AppConfigFilePath)
 			return nil, errors.New("cancelled")
 		}
 	}
-	return nil, errors.New("cancelled")
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
