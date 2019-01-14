@@ -6,7 +6,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/cli/help"
+	"github.com/raedahgroup/godcr/app/help"
 )
 
 type HelpCommand struct {

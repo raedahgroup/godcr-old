@@ -3,7 +3,7 @@ package commands
 import (
 	"reflect"
 
-	"github.com/raedahgroup/godcr/cli/help"
+	"github.com/raedahgroup/godcr/app/help"
 )
 
 // AvailableCommands defines thoroughly-tested commands and options available on the cli
