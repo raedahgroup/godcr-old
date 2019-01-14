@@ -158,12 +158,10 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 	}
 }
 
-// todo need to add shutdown functionality to this mode
 func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching desktop app with nuklear")
 	nuklear.LaunchApp(ctx, walletMiddleware)
-	// desktop app closed, trigger shutdown
-	fmt.Println("closed")
+	// todo need to properly listen for shutdown and trigger shutdown
 	beginShutdown <- true
 }
 
@@ -171,7 +169,6 @@ func enterQtMode() {
 	fmt.Println("Launching desktop app with qt")
 	qt.LaunchApp()
 	// desktop app closed, trigger shutdown
-	fmt.Println("closed")
 	beginShutdown <- true
 }
 

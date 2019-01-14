@@ -1,7 +1,8 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.1
+import QtQuick.Window 2.1
 
-ApplicationWindow {
+Window {
 	id: window
 	visible: true
 	title: "GoDCR"
@@ -9,7 +10,7 @@ ApplicationWindow {
     minimumHeight: 400
 
     Column {
-        anchors.left: parent
+        anchors.left: parent.left
         topPadding: 35
         leftPadding: 15
 
@@ -29,6 +30,12 @@ ApplicationWindow {
             spacing: 25
             Button {
                 text: "Send"
+            }
+        }
+        Row {
+            spacing: 25
+            Button {
+                text: "History"
             }
         }
 
