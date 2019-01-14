@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/qt"
 	"os"
 	"os/signal"
 	"strings"
@@ -19,7 +18,8 @@ import (
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
-	"github.com/raedahgroup/godcr/desktop"
+	"github.com/raedahgroup/godcr/nuklear"
+	"github.com/raedahgroup/godcr/qt"
 	"github.com/raedahgroup/godcr/web"
 )
 
@@ -151,7 +151,7 @@ func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, ap
 }
 
 func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
-	opError = web.StartHttpServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
+	opError = web.StartServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
 	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
 	if opError != nil && ctx.Err() == nil {
 		beginShutdown <- true
@@ -161,14 +161,18 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 // todo need to add shutdown functionality to this mode
 func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching desktop app with nuklear")
-	desktop.StartDesktopApp(ctx, walletMiddleware)
+	nuklear.LaunchApp(ctx, walletMiddleware)
 	// desktop app closed, trigger shutdown
+	fmt.Println("closed")
 	beginShutdown <- true
 }
 
 func enterQtMode() {
 	fmt.Println("Launching desktop app with qt")
-	qt.Start()
+	qt.LaunchApp()
+	// desktop app closed, trigger shutdown
+	fmt.Println("closed")
+	beginShutdown <- true
 }
 
 func listenForInterruptRequests() {

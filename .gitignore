@@ -11,5 +11,4 @@ godcr.exe
 *.qmlc
 rcc*
 moc*
-deploy
-!/deploy
+deploy/
