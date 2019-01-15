@@ -77,7 +77,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 
 	req.ParseForm()
 	utxos := req.Form["utxo"]
-	totalSelectedInputAmount := req.FormValue("totalSelectedInputAmount")
+	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
 	amountStr := req.FormValue("amount")
 	selectedAccount := req.FormValue("source-account")
 	destAddress := req.FormValue("destination-address")
@@ -109,8 +109,14 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	var txHash string
-	if useCustom == "1" {
-		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
+	if useCustom != "" {
+		totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+
+		totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 		if err != nil {
 			data["error"] = err.Error()
 			return

@@ -100,7 +100,10 @@ body {
     padding-bottom: 0 !important;
 }
 
-select#source-account[:disabled] {
+select#source-account[disabled] {
     border: none !important;
     background-color: transparent !important;
+    padding: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }

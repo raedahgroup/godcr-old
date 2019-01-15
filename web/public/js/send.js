@@ -16,13 +16,13 @@ function validateSendForm() {
     var errors = [];
     var isClean = true;
 
-    if ($("#source-account").find(":selected").text() == "") {
+    if ($("#source-account").find(":selected").text() === "") {
         errors.push("The source account is required");
     }
 
     isClean = validateAmountField();
 
-    if ($("#destination-address").val() == "") {
+    if ($("#destination-address").val() === "") {
         errors.push("The destination address is required");
     }
 
@@ -80,11 +80,11 @@ function openCustomizePanel() {
         // populate outputs 
         var utxoHtml = txs.map(tx => {
             var receiveDateTime = new Date(tx.receive_time * 1000);
-            var amount = tx.amount / 100000000;
+            var dcrAmount = tx.amount / 100000000;
             return  "<tr>" + 
-                        "<td width='5%'><input type='checkbox' class='custom-input' name='utxo' value="+ tx.key+" data-amount='" + amount + "' /></td>" +
+                        "<td width='5%'><input type='checkbox' class='custom-input' name='utxo' value="+ tx.key+" data-amount='" + dcrAmount + "' /></td>" +
                         "<td width='50%'>" + tx.key + "</td>" + 
-                        "<td width='20%'>" + amount + "</td>" + 
+                        "<td width='20%'>" + dcrAmount + " DCR</td>" + 
                         "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
                     "</tr>"
         });
@@ -104,22 +104,37 @@ function openCustomizePanel() {
     getUnspentOutputs(account_number, callback);
 }
 
+function getUnspentOutputs(account_number, success_callback) {
+    var next_btn = $(".next-btn");
+    next_btn.attr("disabled", "disabled").html("Loading...");
+
+    $.ajax({
+        url: "/unspent-outputs/" + account_number,
+        method: "GET",
+        data: {},
+        success: function(response) {
+            if (response.success) {
+                success_callback(response.message);
+            } else {
+                setErrorMessage(response.message);
+            }
+        },
+        error: function(error) {
+            setErrorMessage("A server error occurred")
+        },
+        complete: function() {
+            next_btn.removeAttr("disabled").html("Next");
+        }
+    })
+}
 
 function submitSendForm() {
     var form = $("#send-form");
     var submit_btn = $("#send-form #submit-btn");
     submit_btn.attr("disabled", "disabled").html("Sending...");
 
-    // get total of selected inputs and add to form post data
-    totalSelectedInputAmount = 0;
-    $('.custom-input').each(function () {
-        if (this.checked) {
-            totalSelectedInputAmount += parseInt($(this).attr("data-amount"));
-        }
-    });
-
     var postData = form.serialize();
-    postData += "&totalSelectedInputAmount=" + totalSelectedInputAmount;
+    postData += "&totalSelectedInputAmountDcr=" + getSelectedInputsSum();
 
     // add source-account value to post data if source-account element is disabled
     if ($("#source-account").prop("disabled")) {
@@ -143,30 +158,6 @@ function submitSendForm() {
         },
         complete: function() {
             submit_btn.removeAttr("disabled").html("Send");
-        }
-    })
-}
-
-function getUnspentOutputs(account_number, success_callback) {
-    var next_btn = $(".next-btn");
-    next_btn.attr("disabled", "disabled").html("Loading...");
-
-    $.ajax({
-        url: "/unspent-outputs/" + account_number,
-        method: "GET",
-        data: {},
-        success: function(response) {
-            if (response.success) {
-                success_callback(response.message);
-            } else {
-                setErrorMessage(response.message);
-            }
-        },
-        error: function(error) {
-            setErrorMessage("A server error occurred")
-        },
-        complete: function() {
-            next_btn.removeAttr("disabled").html("Next");
         }
     })
 }
