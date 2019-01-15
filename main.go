@@ -21,6 +21,7 @@ import (
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/qt"
 	"github.com/raedahgroup/godcr/web"
+	"github.com/raedahgroup/godcr/terminal"
 )
 
 // triggered after program execution is complete or if interrupt signal is received
@@ -81,6 +82,8 @@ func main() {
 		enterNuklearMode(ctx, walletMiddleware)
 	case "qt":
 		enterQtMode(ctx, walletMiddleware)
+	case "terminal":
+		enterTerminalMode(ctx, walletMiddleware)
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
@@ -169,6 +172,11 @@ func enterQtMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching desktop app with qt")
 	opError = qt.LaunchApp(ctx, walletMiddleware)
 	// qt app closed, trigger shutdown
+	beginShutdown <- true
+}
+func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
+	fmt.Println("Launching Terminal...")
+	opError = terminal.StartTerminalApp(ctx, walletMiddleware)
 	beginShutdown <- true
 }
 
