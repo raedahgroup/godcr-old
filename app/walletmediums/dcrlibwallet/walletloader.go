@@ -44,6 +44,14 @@ func (lib *DcrWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
 }
 
+func (lib *DcrWalletLib) BestBlock() int64 {
+	//return c.BestBlock
+	//fmt.Println(int64(lib.walletLib.GetBestBlock()))
+	fmt.Println(lib.WalletInfo())
+	//fmt.Println("777")
+	return int64(0)
+}
+
 func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }

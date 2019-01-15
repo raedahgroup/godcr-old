@@ -2,6 +2,7 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -71,6 +72,16 @@ func (c *WalletRPCClient) OpenWallet() (err error) {
 // - if wallet wasn't opened by godcr, closing it could cause troubles for user
 // - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user when they next launch godcr
 func (c *WalletRPCClient) CloseWallet() {}
+
+//func (c *WalletRPCClient) BestBlock() {}
+func (c *WalletRPCClient) BestBlock() int64 {
+	ctx := context.Background()
+	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+	if err != nil {
+		return int64(0)
+	}
+	return int64(bestBlock.Height)
+}
 
 func (c *WalletRPCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
