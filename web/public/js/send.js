@@ -71,7 +71,7 @@ function resetCustomizePanel() {
 }
 
 
-function openCustomizePanel() {
+function openCustomizePanel(get_unconfirmed) {
     resetCustomizePanel();
     $("#custom-tx-row").slideDown();
    
@@ -101,17 +101,22 @@ function openCustomizePanel() {
             calculateSelectedInputPercentage();
         });
     }
-    getUnspentOutputs(account_number, callback);
+    getUnspentOutputs(account_number, get_unconfirmed, callback);
 }
 
-function getUnspentOutputs(account_number, success_callback) {
+function getUnspentOutputs(account_number, get_unconfirmed, success_callback) {
     var next_btn = $(".next-btn");
     next_btn.attr("disabled", "disabled").html("Loading...");
+
+    var data = {}
+    if (get_unconfirmed) {
+        data.getUnconfirmed = true
+    }
 
     $.ajax({
         url: "/unspent-outputs/" + account_number,
         method: "GET",
-        data: {},
+        data: data,
         success: function(response) {
             if (response.success) {
                 success_callback(response.message);
@@ -213,7 +218,11 @@ $(function(){
         if (this.checked) {
             if (validateAmountField()) {
                 $(".errors").empty();
-                openCustomizePanel();
+                var get_unconfirmed = false;
+                if ($("#spend-unconfirmed").is(":checked")) {
+                    get_unconfirmed = true;
+                }
+                openCustomizePanel(get_unconfirmed);
             } else {
                 $(this).prop("checked", false);
             }
@@ -221,14 +230,30 @@ $(function(){
             resetCustomizePanel();
             $("#custom-tx-row").slideUp();
         }
-    })
+    });
+    
+    $("#spend-unconfirmed").on("change", function(){
+        var use_custom = $("#use-custom").is(":checked");
+
+        if (use_custom) {
+            var get_unconfirmed_utxos = false;
+            if (this.checked) {
+                get_unconfirmed_utxos = true;
+            } else {
+                get_unconfirmed_utxos = false;
+            }
+
+            resetCustomizePanel();
+            openCustomizePanel(get_unconfirmed_utxos);
+        }
+    });
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
         if (validateSendForm()) {
             getWalletPassphraseAndSubmit();
         }
-    })
+    });
 });
 
 

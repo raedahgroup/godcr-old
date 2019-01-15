@@ -212,7 +212,14 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0, walletcore.DefaultRequiredConfirmations)
+	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+
+	getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
+	if getUnconfirmed != "" && getUnconfirmed == "true" {
+		requiredConfirmations = 0
+	}
+
+	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0, int32(requiredConfirmations))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
