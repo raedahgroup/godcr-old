@@ -2,7 +2,6 @@ package dcrwalletrpc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
