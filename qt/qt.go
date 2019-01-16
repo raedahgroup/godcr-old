@@ -1,21 +1,25 @@
 package qt
 
 import (
+	"github.com/raedahgroup/godcr/app"
 	"os"
 
 	"github.com/therecipe/qt/widgets"
 )
 
+const (
+	minWindowWidth = 600
+	minWindowHeight = 400
+)
+
 func LaunchApp() {
 	// needs to be called once before you can start using the QWidgets
-	app := widgets.NewQApplication(len(os.Args), os.Args)
+	qtApp := widgets.NewQApplication(len(os.Args), os.Args)
 
-	// create a window
-	// with a minimum size of 250*200
-	// and sets the title to "Hello Widgets Example"
+	// create a window and set the title
 	window := widgets.NewQMainWindow(nil, 0)
-	window.SetMinimumSize2(250, 200)
-	window.SetWindowTitle("Hello Widgets Example")
+	window.SetMinimumSize2(minWindowWidth, minWindowHeight)
+	window.SetWindowTitle(app.Name)
 
 	// create a regular widget
 	// give it a QVBoxLayout
@@ -46,5 +50,5 @@ func LaunchApp() {
 	// start the main Qt event loop
 	// and block until app.Exit() is called
 	// or the window is closed by the user
-	app.Exec()
+	qtApp.Exec()
 }
