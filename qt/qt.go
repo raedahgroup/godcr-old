@@ -1,7 +1,9 @@
 package qt
 
 import (
+	"context"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/qt/pages"
 	"os"
 
 	"github.com/therecipe/qt/widgets"
@@ -12,7 +14,7 @@ const (
 	minWindowHeight = 400
 )
 
-func LaunchApp() {
+func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	// needs to be called once before you can start using the QWidgets
 	qtApp := widgets.NewQApplication(len(os.Args), os.Args)
 
@@ -21,34 +23,32 @@ func LaunchApp() {
 	window.SetMinimumSize2(minWindowWidth, minWindowHeight)
 	window.SetWindowTitle(app.Name)
 
-	// create a regular widget
-	// give it a QVBoxLayout
-	// and make it the central widget of the window
-	widget := widgets.NewQWidget(nil, 0)
-	widget.SetLayout(widgets.NewQVBoxLayout())
-	window.SetCentralWidget(widget)
+	// todo check if wallet exists and if not, show a create wallet page instead
 
-	// create a line edit
-	// with a custom placeholder text
-	// and add it to the central widgets layout
-	input := widgets.NewQLineEdit(nil)
-	input.SetPlaceholderText("Write something ...")
-	widget.Layout().AddWidget(input)
+	err := walletMiddleware.OpenWallet()
+	if err != nil {
+		return err
+	}
 
-	// create a button
-	// connect the clicked signal
-	// and add it to the central widgets layout
-	button := widgets.NewQPushButton2("and click me!", nil)
-	button.ConnectClicked(func(bool) {
-		widgets.QMessageBox_Information(nil, "OK", input.Text(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
-	})
-	widget.Layout().AddWidget(button)
+	// todo run blockchain sync in a goroutine and ensure no page is accessible until sync is completed
+
+	// create tab widget to hold pages for different godcr functions
+	tabWidget := widgets.NewQTabWidget(window)
+	window.SetCentralWidget(tabWidget)
+
+	for pageName, page := range pages.AllPages() {
+		pageWidget := page.Setup()
+		if walletPage, ok := page.(pages.WalletPage); ok {
+			pageWidget = walletPage.SetupWithWallet(ctx, walletMiddleware)
+		}
+		pageWidget.SetAccessibleName(pageName)
+		tabWidget.AddTab(pageWidget, pageName)
+	}
 
 	// make the window visible
 	window.Show()
 
-	// start the main Qt event loop
-	// and block until app.Exit() is called
-	// or the window is closed by the user
+	// start the main Qt event loop and block until app.Exit() is called or the window is closed by the user
 	qtApp.Exec()
+	return nil
 }

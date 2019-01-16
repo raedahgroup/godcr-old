@@ -80,7 +80,7 @@ func main() {
 	case "nuklear":
 		enterNuklearMode(ctx, walletMiddleware)
 	case "qt":
-		enterQtMode()
+		enterQtMode(ctx, walletMiddleware)
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
@@ -165,10 +165,10 @@ func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware
 	beginShutdown <- true
 }
 
-func enterQtMode() {
+func enterQtMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching desktop app with qt")
-	qt.LaunchApp()
-	// desktop app closed, trigger shutdown
+	opError = qt.LaunchApp(ctx, walletMiddleware)
+	// qt app closed, trigger shutdown
 	beginShutdown <- true
 }
 
