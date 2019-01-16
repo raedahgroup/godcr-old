@@ -7,7 +7,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-type statusPage struct {}
+type statusPage struct{}
 
 func (s *statusPage) Setup() *widgets.QWidget {
 	pageContent := widgets.NewQWidget(nil, 0)
@@ -16,7 +16,6 @@ func (s *statusPage) Setup() *widgets.QWidget {
 	pageLayout := widgets.NewQVBoxLayout()
 	pageLayout.SetAlign(core.Qt__AlignCenter)
 	pageContent.SetLayout(pageLayout)
-
 
 	// add views to page layout
 	statusLabel := widgets.NewQLabel2(fmt.Sprintf("%s status: running", app.Name), nil, 0)
