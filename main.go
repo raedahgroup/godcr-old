@@ -41,7 +41,7 @@ func main() {
 	// check if we can execute the needed op without connecting to a wallet
 	// if len(args) == 0, then there's nothing to execute as all command-line args were parsed as app options
 	if len(args) > 0 {
-		if  ok, err := attemptExecuteSimpleOp(); ok {
+		if ok, err := attemptExecuteSimpleOp(); ok {
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)

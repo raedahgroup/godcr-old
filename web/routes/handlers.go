@@ -77,12 +77,13 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 
 	req.ParseForm()
 	utxos := req.Form["utxo"]
-	totalSelectedInputAmount := req.FormValue("totalSelectedInputAmount")
+	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
 	amountStr := req.FormValue("amount")
-	selectedAccount := req.FormValue("sourceAccount")
-	destAddress := req.FormValue("destinationAddress")
-	passphrase := req.FormValue("walletPassphrase")
-	spendUnconfirmed := req.FormValue("spendUnconfirmed")
+	selectedAccount := req.FormValue("source-account")
+	destAddress := req.FormValue("destination-address")
+	passphrase := req.FormValue("wallet-passphrase")
+	spendUnconfirmed := req.FormValue("spend-unconfirmed")
+	useCustom := req.FormValue("use-custom")
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -108,8 +109,14 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	var txHash string
-	if len(utxos) > 0 {
-		totalInputAmount, err := strconv.ParseInt(totalSelectedInputAmount, 10, 64)
+	if useCustom != "" {
+		totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+
+		totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 		if err != nil {
 			data["error"] = err.Error()
 			return
@@ -205,7 +212,14 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0, walletcore.DefaultRequiredConfirmations)
+	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+
+	getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
+	if getUnconfirmed != "" && getUnconfirmed == "true" {
+		requiredConfirmations = 0
+	}
+
+	utxos, err := routes.walletMiddleware.UnspentOutputs(uint32(accountNumber), 0, int32(requiredConfirmations))
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

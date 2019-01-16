@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	defaultHTTPHost       = "127.0.0.1"
-	defaultHTTPPort       = "7778"
+	defaultHTTPHost = "127.0.0.1"
+	defaultHTTPPort = "7778"
 )
 
 var (
@@ -141,11 +141,11 @@ func configFileOptions() (options []string) {
 		fieldTag := tConfFileOptions.Field(i).Tag
 
 		if shortName, ok := fieldTag.Lookup("short"); ok {
-			options = append(options, "-" + shortName)
+			options = append(options, "-"+shortName)
 		}
 
 		if longName, ok := fieldTag.Lookup("long"); ok {
-			options = append(options, "--" + longName)
+			options = append(options, "--"+longName)
 		}
 	}
 	return
