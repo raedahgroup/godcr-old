@@ -35,7 +35,7 @@ var (
 	walletConfigFilePath = filepath.Join(config.DefaultDcrwalletAppDataDir, defaultWalletConfigFilename)
 )
 
-func walletAddressFromDcrdwalletConfig() (addresses []string, err error) {
+func walletAddressFromDcrdwalletConfig() (addresses []string, notls bool, certpath string, err error) {
 	wConfig := walletConfig{}
 
 	parser := flags.NewParser(&wConfig, flags.IgnoreUnknown)
@@ -47,10 +47,9 @@ func walletAddressFromDcrdwalletConfig() (addresses []string, err error) {
 		}
 		return
 	}
-
-	if !wConfig.NoGRPC {
-		return wConfig.GRPCListeners, nil
+	var rpcCert string
+	if wConfig.RPCCert != nil {
+		rpcCert = wConfig.RPCCert.Value
 	}
-
-	return wConfig.LegacyRPCListeners, nil
+	return wConfig.LegacyRPCListeners, wConfig.DisableServerTLS, rpcCert, nil
 }

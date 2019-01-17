@@ -109,6 +109,12 @@ func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool
 		}
 	}
 	for {
+		// parse dcrwallet config first, so as to use it's cert path and tls state
+		rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
+		if wrpcCert != "" {
+			rpcCert = wrpcCert
+		}
+		noTLS = wnoTLS
 
 		var address string
 
@@ -131,9 +137,8 @@ func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool
 			}
 		}
 
-		addresses, err := walletAddressFromDcrdwalletConfig()
-		if err == nil && len(addresses) > 0 {
-			for _, address = range addresses {
+		if err == nil && len(rpcConfAddresses) > 0 {
+			for _, address = range rpcConfAddresses {
 				walletMiddleware, err := New(ctx, address, rpcCert, noTLS)
 				if err == nil {
 					saveRPCAddress(address)
