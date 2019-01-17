@@ -47,7 +47,8 @@ type CommandLineOptions struct {
 }
 
 type CliOptions struct {
-	SyncBlockchain bool `long:"sync" description:"Syncs blockchain when running in cli mode. If used with a command, command is executed after blockchain syncs"`
+	SyncBlockchain  bool `long:"sync" description:"Syncs blockchain when running in cli mode. If used with a command, command is executed after blockchain syncs"`
+	QueryBlockchain bool `long:"status" description:"Queries blockchain when running in cli mode. If used with a command, command is executed after blockchain is queried"`
 }
 
 func defaultFileOptions() ConfFileOptions {

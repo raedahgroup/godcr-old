@@ -71,26 +71,10 @@ func (lib *DcrWalletLib) AccountNumber(accountName string) (uint32, error) {
 	return lib.walletLib.AccountNumber(accountName)
 }
 
-//func (lib *DcrWalletLib) WalletInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
-func (lib *DcrWalletLib) WalletInfo() (string) {
-	//ctx := context.Background()
+func (lib *DcrWalletLib) WalletInfo() string {
+	fmt.Printf("Number of connected peers: %d\n", NumOfPeers)
 	return "OK"
 }
-
-/*
-
-func (lib *DcrWalletLib) AccountNumber(accountName string) (uint32, error) {
-	return lib.walletLib.AccountNumber(accountName)
-}
-
-func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
-	if state == "progress" {
-		bestBlock := int64(response.walletLib.GetBestBlock())
-		scannedPercentage := int64(rescannedThrough) / bestBlock * 100
-		response.listener.OnRescanningBlocks(scannedPercentage)
-	}
-}
-*/
 
 func (lib *DcrWalletLib) AccountName(accountNumber uint32) (string, error) {
 	return lib.walletLib.AccountName(accountNumber), nil

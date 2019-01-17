@@ -41,6 +41,10 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	_, err := parser.Parse()
 	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
 
+	if noCommandPassed && configWithCommands.CliOptions.QueryBlockchain {
+		return queryBlockChain(ctx, walletMiddleware)
+	}
+
 	// if no command is passed but --sync flag was passed, perform sync operation and return
 	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
 		return syncBlockChain(ctx, walletMiddleware)
@@ -59,6 +63,16 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 		return err
 	}
 
+	return walletloader.SyncBlockChain(ctx, walletMiddleware)
+}
+
+func queryBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	walletExists, err := walletloader.OpenWallet(ctx, walletMiddleware)
+	if err != nil || !walletExists {
+		return err
+	}
+
+	//return walletloader.QueryBlockChain(ctx, walletMiddleware)
 	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 

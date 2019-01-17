@@ -128,3 +128,44 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
 }
+
+func (c *WalletRPCClient) QueryBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+	ctx := context.Background()
+
+	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+	if err != nil {
+		return err
+	}
+
+	syncStream, err := c.walletLoader.SpvSync(ctx, &walletrpc.SpvSyncRequest{})
+	if err != nil {
+		return err
+	}
+
+	// create wrapper around success listener and call rpc SubscribeToBlockNotifications
+	// method associates the wallet with the consensus RPC server, subscribes the wallet for attached block and chain switch notifications,
+	// and causes the wallet to process these notifications in the background.
+	// also publish any pending transactions using PublishUnminedTransactions
+	originalSyncEndedListener := listener.SyncEnded
+	listener.SyncEnded = func(err error) {
+		if err != nil {
+			_, err := c.walletLoader.SubscribeToBlockNotifications(ctx, &walletrpc.SubscribeToBlockNotificationsRequest{})
+			if err != nil {
+				// no point pubslishing if above function did not succeed
+				c.walletService.PublishUnminedTransactions(ctx, &walletrpc.PublishUnminedTransactionsRequest{})
+			}
+		}
+		originalSyncEndedListener(err)
+	}
+
+	s := &spvSync{
+		listener:  listener,
+		netType:   c.NetType(),
+		client:    syncStream,
+		bestBlock: int64(bestBlock.Height),
+	}
+
+	// receive sync updates from stream and send to listener in separate goroutine
+	go s.streamBlockchainSyncUpdates(showLog)
+	return nil
+}
