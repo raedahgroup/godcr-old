@@ -125,7 +125,7 @@ func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool
 						return walletMiddleware, nil
 					}
 				}
-			}else {
+			} else {
 				//todo log err to file
 				fmt.Println("error occured while trying to get port by process: %s", err.Error())
 			}

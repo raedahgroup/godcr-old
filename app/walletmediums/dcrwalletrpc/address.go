@@ -15,12 +15,12 @@ type ExplicitString struct {
 }
 
 type walletConfig struct {
-	GRPCListeners      []string `long:"grpclisten" description:"Listen for gRPC connections on this interface/port"`
-	LegacyRPCListeners []string `long:"rpclisten" description:"Listen for legacy JSON-RPC connections on this interface/port"`
-	NoGRPC             bool     `long:"nogrpc" description:"Disable the gRPC server"`
-	NoLegacyRPC        bool     `long:"nolegacyrpc" description:"Disable the legacy JSON-RPC server"`
-	DisableServerTLS       bool                    `long:"noservertls" description:"Disable TLS for the RPC servers -- NOTE: This is only allowed if the RPC server is bound to localhost"`
-	RPCCert                *ExplicitString `long:"rpccert" description:"File containing the certificate file"`
+	GRPCListeners      []string        `long:"grpclisten" description:"Listen for gRPC connections on this interface/port"`
+	LegacyRPCListeners []string        `long:"rpclisten" description:"Listen for legacy JSON-RPC connections on this interface/port"`
+	NoGRPC             bool            `long:"nogrpc" description:"Disable the gRPC server"`
+	NoLegacyRPC        bool            `long:"nolegacyrpc" description:"Disable the legacy JSON-RPC server"`
+	DisableServerTLS   bool            `long:"noservertls" description:"Disable TLS for the RPC servers -- NOTE: This is only allowed if the RPC server is bound to localhost"`
+	RPCCert            *ExplicitString `long:"rpccert" description:"File containing the certificate file"`
 
 	TBOpts ticketBuyerOptions `group:"Ticket Buyer Options" namespace:"ticketbuyer"`
 }
