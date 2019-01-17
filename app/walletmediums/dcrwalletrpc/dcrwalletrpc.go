@@ -108,14 +108,35 @@ func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool
 			fmt.Printf("unable to save rpc address: %s", err.Error())
 		}
 	}
-	for {
-		// parse dcrwallet config first, so as to use it's cert path and tls state
-		rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
-		if wrpcCert != "" {
-			rpcCert = wrpcCert
-		}
-		noTLS = wnoTLS
 
+	// parse dcrwallet config first, so as to use it's cert path and tls state
+	rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
+	if wrpcCert != "" {
+		rpcCert = wrpcCert
+	}
+	noTLS = wnoTLS
+
+	promt := "No valid RPC address is provided to connect to. Press 'Y' to automatically detect or 'N' to manually enter the address?"
+	automaticDetectionConfirmed, err := terminalprompt.RequestYesNoConfirmation(promt, "y")
+	if err != nil {
+		return nil, fmt.Errorf("error in getting input: %s", err.Error())
+	}
+	if !automaticDetectionConfirmed {
+		address, err := terminalprompt.RequestInput("Enter dcrwallet rpc address", terminalprompt.InputRequiredValidator)
+		if err != nil {
+			fmt.Println(fmt.Sprintf("error in reading input: %s", err.Error()))
+		}
+
+		fmt.Println("connecting...")
+		walletMiddleware, err := New(ctx, address, rpcCert, noTLS)
+		if err == nil {
+			saveRPCAddress(address)
+			return walletMiddleware, nil
+		}
+		return nil, err
+	}
+
+	for {
 		var address string
 
 		proc, err := ps.ProcessByName(dcrwalletExecutableName)
