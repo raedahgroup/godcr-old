@@ -4,6 +4,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522221800-27f122750802 h1:otE7gFP0KwnPTKtM
 github.com/BurntSushi/xgb v0.0.0-20160522221800-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d h1:BLhrKkQNOBeRDRJdevy7tE7ca2+sp3daQ6xG7vagEzg=
 github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d/go.mod h1:rh/rFeChsox144sAUJaD7obyj+JFIUqag6QnvRyAZJQ=
+github.com/ademuanthony/ps v1.0.1 h1:3PTXrGGO+98XD1jFddHyzeo8Y9RtBPj7WTzriFXvjGE=
+github.com/ademuanthony/ps v1.0.1/go.mod h1:ca3JSHcNMcgAxkHhBgPCHYZGzfpm2gDublbqXLnzZUk=
 github.com/aead/siphash v0.0.0-20170329201724-e404fcfc8885/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 h1:w1UutsfOrms1J05zt7ISrnJIXKzwaspym5BTKGx93EI=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412/go.mod h1:WPjqKcmVOxf0XSf3YxCJs6N6AOSrOx3obionmG7T0y0=

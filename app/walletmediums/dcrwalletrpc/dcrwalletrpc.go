@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ademuanthony/ps"
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -28,6 +30,10 @@ type rpcConnectionResult struct {
 	conn *grpc.ClientConn
 }
 
+const (
+	dcrwalletExecutableName = "dcrwallet"
+)
+
 var (
 	rpcConnectionDone    = make(chan *rpcConnectionResult)
 	rpcConnectionTimeout = 5 * time.Second
@@ -36,7 +42,40 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
+	client, err = createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	if err == nil || dcrwalletIsRunning() {
+		return
+	}
+
+	prompt := "There is no dcrwallet process started, would you like godcr to run the process"
+	startWalletConfirmed, err := terminalprompt.RequestYesNoConfirmation(prompt, "Y")
+	if err == nil {
+		return nil, fmt.Errorf("error in reading input %s", err.Error())
+	}
+	if !startWalletConfirmed {
+		return
+	}
+	err = findAndStartDcrwallet()
+	if err != nil {
+		return nil, err
+	}
+	return createConnection(ctx, rpcAddress, rpcCert, noTLS)
+}
+
+func findAndStartDcrwallet() error {
+	panic("not implemented")
+}
+
+func dcrwalletIsRunning() bool {
+	proc, _ := ps.ProcessByName(dcrwalletExecutableName)
+	if proc == nil {
+		return false
+	}
+	return true
+}
+
+func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
 	// check if user has provided enough information to attempt connecting to dcrwallet
 	if rpcAddress == "" {
 		return nil, errors.New("you must set walletrpcserver in config file to use wallet rpc")
