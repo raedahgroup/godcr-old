@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/ademuanthony/ps"
@@ -31,6 +33,7 @@ type rpcConnectionResult struct {
 }
 
 const (
+	dcrdExecutableName = "dcrd"
 	dcrwalletExecutableName = "dcrwallet"
 )
 
@@ -50,25 +53,62 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (client *W
 
 	prompt := "There is no dcrwallet process started, would you like godcr to run the process"
 	startWalletConfirmed, err := terminalprompt.RequestYesNoConfirmation(prompt, "Y")
-	if err == nil {
+	if err != nil {
 		return nil, fmt.Errorf("error in reading input %s", err.Error())
 	}
 	if !startWalletConfirmed {
-		return
+		fmt.Println("Please start dcrwallet to use godcr. Bye")
+		os.Exit(0)
 	}
-	err = findAndStartDcrwallet()
+	err = startDcrwallet()
 	if err != nil {
 		return nil, err
 	}
 	return createConnection(ctx, rpcAddress, rpcCert, noTLS)
 }
 
-func findAndStartDcrwallet() error {
-	panic("not implemented")
+func startDcrwallet() error {
+	if err := ensureDcrdIsRunning(); err != nil {
+		return err
+	}
+	fmt.Println("starting dcrdwallet...")
+
+	cmd := exec.Command(dcrwalletExecutableName)
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+	fmt.Println("started dcrwallet",)
+
+	return nil
+}
+
+func ensureDcrdIsRunning() error {
+	proc, err := ps.ProcessByName(dcrdExecutableName)
+	if err != nil {
+		// todo log error to file
+	}
+	if proc != nil {
+		return nil
+	}
+	fmt.Println("starting dcrd...")
+
+	cmd := exec.Command(dcrwalletExecutableName,)
+	err = cmd.Start()
+
+	if err != nil {
+		return fmt.Errorf("error starting dcrd: %s", err.Error())
+	}
+	fmt.Println("started dcrd")
+
+	return nil
 }
 
 func dcrwalletIsRunning() bool {
-	proc, _ := ps.ProcessByName(dcrwalletExecutableName)
+	proc, err := ps.ProcessByName(dcrwalletExecutableName)
+	if err != nil {
+		// todo log error to file
+	}
 	if proc == nil {
 		return false
 	}
