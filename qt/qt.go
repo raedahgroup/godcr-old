@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	minWindowWidth = 600
+	minWindowWidth  = 600
 	minWindowHeight = 400
 )
 

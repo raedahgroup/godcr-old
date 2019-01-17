@@ -11,7 +11,7 @@ type Page interface {
 }
 
 // pages that do not use the regular `Setup` method should extend this struct and define a custom setup method
-type pageStub struct {}
+type pageStub struct{}
 
 func (_ pageStub) Setup() *widgets.QWidget {
 	return nil
@@ -24,7 +24,7 @@ type WalletPage interface {
 
 func AllPages() map[string]Page {
 	return map[string]Page{
-		"Status": &statusPage{},
+		"Status":  &statusPage{},
 		"Balance": &balancePage{},
 	}
 }
