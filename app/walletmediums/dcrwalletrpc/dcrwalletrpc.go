@@ -33,7 +33,7 @@ type rpcConnectionResult struct {
 }
 
 const (
-	dcrdExecutableName = "dcrd"
+	dcrdExecutableName      = "dcrd"
 	dcrwalletExecutableName = "dcrwallet"
 )
 
@@ -78,7 +78,7 @@ func startDcrwallet() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("started dcrwallet",)
+	fmt.Println("started dcrwallet")
 
 	return nil
 }
@@ -93,7 +93,7 @@ func ensureDcrdIsRunning() error {
 	}
 	fmt.Println("starting dcrd...")
 
-	cmd := exec.Command(dcrwalletExecutableName,)
+	cmd := exec.Command(dcrwalletExecutableName)
 	err = cmd.Start()
 
 	if err != nil {
