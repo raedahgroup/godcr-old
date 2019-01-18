@@ -26,14 +26,37 @@ Follow the steps below to download, setup and run dcrwallet:
 * Minimum supported version is 1.11.4. Installation instructions can be found [here](https://golang.org/doc/install).
 * **Ensure** `$GOPATH` environment variable is set and `$GOPATH/bin` is added to your PATH environment variable as part of the go installation process.
 
-#### Step 2. Install [QT](https://en.wikipedia.org/wiki/Qt_(software)) Binding for Go 
+#### Step 2a. Install [QT](https://en.wikipedia.org/wiki/Qt_(software)) Binding for Go
 ```bash
 go get -u -v github.com/therecipe/qt/cmd/...
-qtsetup
 ```
-If the above commands don't work, you might need to consult the detailed setup instructions for [Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows), [Linux](https://github.com/therecipe/qt/wiki/Installation-on-Linux) or [MacOS](https://github.com/therecipe/qt/wiki/Installation-on-macOS). Focus only on the steps listed in the **Fast track version** section.
+If you get `module source tree too big` error message, try the following work around:
+```bash
+git clone https://github.com/therecipe/qt $GOPATH/src/github.com/therecipe/qt
+cd $GOPATH/src/github.com/therecipe/qt/cmd
+go install ./qtsetup
+go install ./qtmoc
+go install ./qtrcc
+go install ./qtminimal
+go install ./qtdeploy
+```
+
+#### Step 2b. Setup QT Binding for Go (Linux and Mac)
+Run the following with `GO111MODULE=off` and outside $GOPATH
+```bash
+qtsetup test && qtsetup
+```
+It may be necessary to install additional dependencies on Linux. See [here](https://github.com/therecipe/qt/wiki/Installation-on-Linux).
+
+#### Step 2b. Setup QT Binding for Go (Windows)
+```bash
+for /f %v in ('go env GOPATH') do %v\bin\qtsetup test && %v\bin\qtsetup
+```
 
 If building on Windows, there are additional steps to take to be able to build successfully. Those steps are described in the [setup instructions for Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows#if-you-want-to-install-the-binding), under **If you want to install the binding**
+
+#### Step 2c. Detailed Installation Instructions
+If you have issues with Step 2a or 2b above, you might need to consult the detailed setup instructions for [Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows), [Linux](https://github.com/therecipe/qt/wiki/Installation-on-Linux) or [MacOS](https://github.com/therecipe/qt/wiki/Installation-on-macOS). Focus only on the steps listed in the **Fast track version** section.
 
 #### Step 3. Clone this repo
 ```bash
@@ -54,7 +77,7 @@ go build
 - Go modules must be enabled first to download all dependencies listed in `go.mod` to `vendor` folder within the project directory.
 - Go modules must be disabled before running `go build` else the build will fail.
 - In Windows, command prompt should always be restarted after changing environment variables for the changes to take effect.
-- If you get checksum mismatch error while downloading dependencies, ensure you're on go version 1.11.4 or higher and clean your go mod cache by running `go clean -modcache`
+- If you get checksum mismatch error while downloading dependencies**, ensure you're on go version 1.11.4 or higher and clean your go mod cache by running `go clean -modcache`
 
 ## Running godcr
 ### General usage
