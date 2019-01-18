@@ -44,22 +44,18 @@ func (lib *DcrWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
 }
 
-func (lib *DcrWalletLib) BestBlock() int64 {
-	//return c.BestBlock
-	fmt.Println(lib.WalletInfo())
-	//main.NumOfPeers = 1;
-	//fmt.Println(main.NumOfPeers)
-	return int64(0)
-}
-
 func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool, statusMode bool) error {
 	if showLog {
 		lib.walletLib.SetLogLevel("info")
 
+		if statusMode == true {
+			lib.walletLib.SetLogLevel("off")
+		}
+
 		// create wrapper around sync ended listener to deactivate logging after syncing ends
 		originalSyncEndedListener := listener.SyncEnded
 		syncEndedListener := func(err error) {
@@ -84,37 +80,5 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 
 	listener.SyncStarted()
 
-	return nil
-}
-
-func (lib *DcrWalletLib) QueryBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
-	if showLog {
-		lib.walletLib.SetLogLevel("off")
-
-		fmt.Println("Status command running")
-
-		// create wrapper around sync ended listener to deactivate logging after syncing ends
-		originalSyncEndedListener := listener.SyncEnded
-		syncEndedListener := func(err error) {
-			lib.walletLib.SetLogLevel("off")
-			originalSyncEndedListener(err)
-		}
-		listener.SyncEnded = syncEndedListener
-	}
-
-	syncResponse := SpvSyncResponse{
-		walletLib: lib.walletLib,
-		listener:  listener,
-		activeNet: lib.activeNet,
-	}
-	lib.walletLib.AddSyncResponse(syncResponse)
-
-	err := lib.walletLib.SpvSync("")
-	if err != nil {
-		lib.walletLib.SetLogLevel("off")
-		return err
-	}
-
-	listener.SyncStarted()
 	return nil
 }

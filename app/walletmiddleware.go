@@ -13,14 +13,10 @@ type WalletMiddleware interface {
 
 	CreateWallet(passphrase, seed string) error
 
-	SyncBlockChain(listener *BlockChainSyncListener, showLog bool) error
-
-	QueryBlockChain(listener *BlockChainSyncListener, showLog bool) error
+	SyncBlockChain(listener *BlockChainSyncListener, showLog bool, statusMode bool) error
 
 	// todo some wallets may not use default public passphrase, in such cases request public passphrase from user to use in OpenWallet
 	OpenWallet() error
-
-	BestBlock() int64
 
 	// CloseWallet is triggered whenever the godcr program is about to be terminated
 	// Usually such termination attempts are halted to allow this function perform shutdown and cleanup operations

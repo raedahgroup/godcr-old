@@ -100,7 +100,7 @@ func (routes *Routes) syncBlockchain() {
 		OnRescanningBlocks: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
 		},
-	}, false)
+	}, false, false)
 
 	if err != nil {
 		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), syncStatusError)

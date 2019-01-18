@@ -85,7 +85,7 @@ func CreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (e
 		return nil
 	}
 
-	return SyncBlockChain(ctx, walletMiddleware)
+	return SyncBlockChain(ctx, walletMiddleware, false)
 }
 
 // OpenWallet is called whenever an action to be executed requires wallet to be loaded
@@ -140,7 +140,7 @@ func OpenWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (wal
 
 // syncBlockChain uses the WalletMiddleware provided to download block updates
 // this is a long running operation, listen for ctx.Done and stop processing
-func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware, statusMode bool) error {
 	syncDone := make(chan error)
 	go func() {
 		syncListener := &app.BlockChainSyncListener{
@@ -160,7 +160,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
 		}
 
-		err := walletMiddleware.SyncBlockChain(syncListener, true)
+		err := walletMiddleware.SyncBlockChain(syncListener, true, statusMode)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
 			syncDone <- err

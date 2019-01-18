@@ -69,14 +69,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	shutdownOps = append(shutdownOps, cancel)
 
-
-
 	// open connection to wallet and add wallet close function to shutdownOps
 	walletMiddleware := connectToWallet(ctx, appConfig)
-
-	fmt.Println("aND THE BEST block is")
-	fmt.Println(int64(walletMiddleware.BestBlock()))
-	fmt.Println("aND THE BEST block is")
 
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 

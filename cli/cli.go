@@ -15,6 +15,9 @@ import (
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
+// Is true if option 'status' is passed in, rather than 'sync'.
+var statusMode bool = false;
+
 // AppConfigWithCliCommands is the entrypoint to the cli application.
 // It defines general app options, cli commands with their command-specific options and general cli options
 type AppConfigWithCliCommands struct {
@@ -42,12 +45,13 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	noCommandPassed := config.IsFlagErrorType(err, flags.ErrCommandRequired)
 
 	if noCommandPassed && configWithCommands.CliOptions.QueryBlockchain {
-		return queryBlockChain(ctx, walletMiddleware)
+		statusMode = true
+		return syncBlockChain(ctx, walletMiddleware, StatusMode)
 	}
 
 	// if no command is passed but --sync flag was passed, perform sync operation and return
 	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
-		return syncBlockChain(ctx, walletMiddleware)
+		return syncBlockChain(ctx, walletMiddleware, StatusMode)
 	} else if noCommandPassed {
 		listCommands()
 	} else if err != nil {
@@ -57,23 +61,13 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	return err
 }
 
-func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware, statusMode bool) error {
 	walletExists, err := walletloader.OpenWallet(ctx, walletMiddleware)
 	if err != nil || !walletExists {
 		return err
 	}
 
-	return walletloader.SyncBlockChain(ctx, walletMiddleware)
-}
-
-func queryBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	walletExists, err := walletloader.OpenWallet(ctx, walletMiddleware)
-	if err != nil || !walletExists {
-		return err
-	}
-
-	//return walletloader.QueryBlockChain(ctx, walletMiddleware)
-	return walletloader.SyncBlockChain(ctx, walletMiddleware)
+	return walletloader.SyncBlockChain(ctx, walletMiddleware, statusMode)
 }
 
 // listCommands prints a simple list of available commands when godcr is run without any command

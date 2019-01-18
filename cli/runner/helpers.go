@@ -31,7 +31,7 @@ func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options
 	}
 
 	if options.SyncBlockchain {
-		err = walletloader.SyncBlockChain(ctx, middleware)
+		err = walletloader.SyncBlockChain(ctx, middleware, false)
 		if err != nil {
 			return err
 		}
