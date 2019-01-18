@@ -85,7 +85,7 @@ go build
 **Notes**
 - Go modules must be enabled first to download all dependencies listed in `go.mod` to `vendor` folder within the project directory.
 - Go modules must be disabled before running `go build` else the build will fail.
-- In Windows, command prompt should always be restarted after changing environment variables for the changes to take effect.
+- In Windows, use `setx GO111MODULE on/off` instead of `export GO111MODULE=on/off`. 
 - If you get checksum mismatch error while downloading dependencies**, ensure you're on go version 1.11.4 or higher and clean your go mod cache by running `go clean -modcache`
 
 ## Running godcr
