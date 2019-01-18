@@ -53,4 +53,3 @@ func commandName(command *flags.Command) string {
 	}
 	return name
 }
-

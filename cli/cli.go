@@ -9,8 +9,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/app/help"
+	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )

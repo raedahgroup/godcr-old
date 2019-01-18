@@ -19,3 +19,6 @@ require (
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
 	google.golang.org/grpc v1.14.0
 )
+
+// latest version of therecipe/qt uses go mod which causes build issues, replace with version before go.mod was introduced
+replace github.com/therecipe/qt => github.com/therecipe/qt v0.0.0-20181112173823-c2524f50a59a

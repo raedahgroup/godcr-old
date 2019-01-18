@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	defaultHTTPHost       = "127.0.0.1"
-	defaultHTTPPort       = "7778"
+	defaultHTTPHost = "127.0.0.1"
+	defaultHTTPPort = "7778"
 )
 
 var (
@@ -42,7 +42,7 @@ type ConfFileOptions struct {
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
 type CommandLineOptions struct {
-	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear" default:"cli"`
+	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear" choice:"qt" default:"cli"`
 	CliOptions
 }
 
@@ -141,11 +141,11 @@ func configFileOptions() (options []string) {
 		fieldTag := tConfFileOptions.Field(i).Tag
 
 		if shortName, ok := fieldTag.Lookup("short"); ok {
-			options = append(options, "-" + shortName)
+			options = append(options, "-"+shortName)
 		}
 
 		if longName, ok := fieldTag.Lookup("long"); ok {
-			options = append(options, "--" + longName)
+			options = append(options, "--"+longName)
 		}
 	}
 	return

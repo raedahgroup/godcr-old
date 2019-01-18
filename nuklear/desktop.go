@@ -1,4 +1,4 @@
-package desktop
+package nuklear
 
 import (
 	"context"
@@ -29,7 +29,7 @@ var (
 	contentArea rect.Rect
 )
 
-func StartDesktopApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	d := &Desktop{
 		wallet:       walletMiddleware,
 		pageHandlers: make(map[string]pageHandler),

@@ -10,6 +10,7 @@ import (
 )
 
 const defaultConfigFilename = "godcr.conf"
+
 var AppConfigFilePath = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 
 // createConfigFile create the configuration file in AppConfigFilePath using the default values
@@ -68,4 +69,3 @@ func parseConfigFile(parser *flags.Parser) error {
 	}
 	return nil
 }
-

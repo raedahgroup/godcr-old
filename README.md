@@ -1,16 +1,18 @@
 # godcr
 
 ## Overview
-**godcr** is a decred wallet application for Linux, macOS and Windows that provides wallet access and control functionality using [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88). It can also interface with [dcrwallet](https://github.com/decred/dcrwallet) via RPC as an alternative to dcrlibwallet. The godcr app can be run in any of the following interface modes:
-- Web (web app running on an http server)
-- Cli (command-line utility)
-- Desktop (native desktop application, currently work in progress)
+**godcr** is a [decred](https://www.decred.org/) wallet application for Desktop Operating Systems (Linux, macOS, Windows etc).
+[dcrlibwallet](https://github.com/raedahgroup/dcrlibwallet/tree/dcrlibwallet-wip), a standalone decred wallet library, is used for all wallet access and control functionality.
+**godcr** can also interface with [dcrwallet](https://github.com/decred/dcrwallet) over gRPC as an alternative to dcrlibwallet.
 
 ## Requirements
-You can run **godcr** without installing any other software. By default **godcr** uses dcrlibwallet.
-To run **godcr** using **dcrwallet** instead of [dcrlibwallet](https://github.com/raedahgroup/godcr/pull/88), the following is required.
+You can run **godcr** without installing any other software.
+
+However, to use dcrwallet instead of dcrlibwallet for wallet operations, you'll need a running dcrwallet daemon.
+Follow the steps below to download, setup and run dcrwallet:
+
 * Download the **decred** release binaries for your operating system from [here](https://github.com/decred/decred-binaries/releases). Check under **Assets**.
-* **dcrwallet** requires **dcrd** to work. The decred archive downloaded from the release page contains both binaries.
+* By default, **dcrwallet** uses **dcrd** to connect to the Decred network. The decred archive downloaded from the release page contains both binaries.
 * After downloading and extracting **dcrd** and **dcrwallet**, [go here](https://docs.decred.org/wallets/cli/cli-installation/) to learn how to setup and run both binaries.
 
 ## Installation
@@ -19,38 +21,102 @@ To run **godcr** using **dcrwallet** instead of [dcrlibwallet](https://github.co
 **godcr** is not released yet. This doc will be updated with links to download the godcr binary when a release is ready. For now, build from source.
 
 ### Option 2: Build from source
-* Install Go (minimum supported version is 1.11.4). Installation instructions can be found [here](https://golang.org/doc/install). It is recommended to add $GOPATH/bin to your PATH as part of the installation process.
-* Clone this repository. It is conventional to clone to $GOPATH, but not necessary.
+
+#### Step 1. Install Go
+* Minimum supported version is 1.11.4. Installation instructions can be found [here](https://golang.org/doc/install).
+* **Ensure** `$GOPATH` environment variable is set and `$GOPATH/bin` is added to your PATH environment variable as part of the go installation process.
+
+#### Step 2a. Install [QT](https://en.wikipedia.org/wiki/Qt_(software)) Binding for Go
 ```bash
-$ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
+go get -u -v github.com/therecipe/qt/cmd/...
 ```
-* If you clone to $GOPATH, set the `GO111MODULE=on` environment variable when building. On Unix systems, you can add the following line to `~/.bash_profile` to persist the variable
+If you get `module source tree too big` error message, try the following work around:
 ```bash
+git clone https://github.com/therecipe/qt.git $GOPATH/src/github.com/therecipe/qt
+cd $GOPATH/src/github.com/therecipe/qt/cmd
+go install ./qtsetup
+go install ./qtmoc
+go install ./qtrcc
+go install ./qtminimal
+go install ./qtdeploy
+
+// on Mac
+git clone https://github.com/therecipe/env_darwin_amd64_512.git $GOPATH/src/github.com/therecipe/env_darwin_amd64_512
+
+// on Linux
+git clone https://github.com/therecipe/env_linux_amd64_512.git $GOPATH/src/github.com/therecipe/env_linux_amd64_512
+
+// on Windows
+git clone https://github.com/therecipe/env_windows_amd64_512.git $GOPATH/src/github.com/therecipe/env_windows_amd64_512
+```
+
+#### Step 2b. Setup QT Binding for Go (Linux and Mac)
+Run the following with `GO111MODULE=off` and outside $GOPATH
+```bash
+qtsetup test && qtsetup
+```
+It may be necessary to install additional dependencies on Linux. See [here](https://github.com/therecipe/qt/wiki/Installation-on-Linux).
+
+#### Step 2b. Setup QT Binding for Go (Windows)
+```bash
+for /f %v in ('go env GOPATH') do %v\bin\qtsetup test && %v\bin\qtsetup
+```
+
+If building on Windows, there are additional steps to take to be able to build successfully. Those steps are described in the [setup instructions for Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows#if-you-want-to-install-the-binding), under **If you want to install the binding**
+
+#### Step 2c. Detailed Installation Instructions
+If you have issues with Step 2a or 2b above, you might need to consult the detailed setup instructions for [Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows), [Linux](https://github.com/therecipe/qt/wiki/Installation-on-Linux) or [MacOS](https://github.com/therecipe/qt/wiki/Installation-on-macOS). Focus only on the steps listed in the **Fast track version** section.
+
+#### Step 3. Clone this repo
+```bash
+git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
+```
+**Note:** Cloning to a different directory other than `$GOPATH/src/github.com/raedahgroup` may cause build issues.
+
+#### Step 4. Build the source code
+```bash
+cd $GOPATH/src/github.com/raedahgroup/godcr
 export GO111MODULE=on
+go mod download
+go mod vendor
+export GO111MODULE=off
+go build
 ```
-* `cd` to the cloned project directory and build or install godcr. Building will place the godcr binary in your working directory while install will place the binary in $GOPATH/bin
-```bash
-$ go build
-$ go install
-```
-* If you cloned the source code to $GOPATH but have not set the GO111MODULE=on environment variable, build/install like this
-```bash
-$ GO111MODULE=on go build
-$ GO111MODULE=on go install
-```
+**Notes**
+- Go modules must be enabled first to download all dependencies listed in `go.mod` to `vendor` folder within the project directory.
+- Go modules must be disabled before running `go build` else the build will fail.
+- In Windows, use `setx GO111MODULE on/off` instead of `export GO111MODULE=on/off`. 
+- If you get checksum mismatch error while downloading dependencies**, ensure you're on go version 1.11.4 or higher and clean your go mod cache by running `go clean -modcache`
 
 ## Running godcr
 ### General usage
-You can perform various wallet-related operations by running
+By default, **godcr** runs as a [cli app](https://en.wikipedia.org/wiki/Command-line_interface) where various wallet operations are performed by issuing commands on the terminal in the format:
 ```bash
-$ godcr [options] <command> [args]
+godcr [options] <command> [args]
 ```
+- Run `godcr -h` or `godcr help` to get general information of commands and options that can be issued on the cli.
+- Use `godcr <command> -h` or   `godcr help <command>` to get detailed information about a command.
 
-### Commands and options
-* Use `godcr -h` or `godcr help` to view options, commands and path to the godcr config file
-* Some options can only be set in the godcr configuration (godcr.conf) file. Those options are not displayed in the output of `godcr -h`. Edit the config file to view and set those options.
-* Use `godcr <command> -h` or `godcr help <command>` to view command args and detailed help information for a command
-```
+### As a GUI app
+**godcr** can also be run as a full [GUI app](https://en.wikipedia.org/wiki/Graphical_user_interface) where wallet operations are performed by interacting with a graphical user interface.
+The following GUI interface modes are supported:
+1. Full GUI app on terminal.
+Run `godcr --mode=terminal`
+2. Web app served over http or https.
+Run `godcr --mode=http`
+3. Native desktop app with [nuklear](https://github.com/aarzilli/nucular) library.
+Run `godcr --mode=nuklear`
+4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
+Run`godcr --mode=qt`
+
+### Configuration
+The behaviour of the godcr program can be customized by editing the godcr configuration file.
+The config file is where you set most options used by the godcr app, such as:
+- the host and port to use for the http web server (if running godcr with `--mode=http`)
+- the default interface mode to run (if you're tired of having to set `--mode=` everytime you run godcr)
+- whether or not to use dcrwallet over gRPC for wallet functionality
+
+Run `godcr -h` to see the location of the config file. Open the file with a text editor to see all customizable options.
 
 ## Contributing 
 

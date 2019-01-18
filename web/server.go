@@ -15,7 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/web/routes"
 )
 
-func StartHttpServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
+func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
 	router := chi.NewRouter()
 
 	// first try to load wallet if it exists

@@ -16,8 +16,8 @@ type CommandRunner struct {
 
 func New(parser *flags.Parser, ctx context.Context, walletMiddleware app.WalletMiddleware) *CommandRunner {
 	return &CommandRunner{
-		parser: parser,
-		ctx: ctx,
+		parser:           parser,
+		ctx:              ctx,
 		walletMiddleware: walletMiddleware,
 	}
 }
