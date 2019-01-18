@@ -16,7 +16,7 @@ import (
 )
 
 // Is true if option 'status' is passed in, rather than 'sync'.
-var statusMode bool = false;
+var statusMode bool = false
 
 // AppConfigWithCliCommands is the entrypoint to the cli application.
 // It defines general app options, cli commands with their command-specific options and general cli options
@@ -46,12 +46,12 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 
 	if noCommandPassed && configWithCommands.CliOptions.QueryBlockchain {
 		statusMode = true
-		return syncBlockChain(ctx, walletMiddleware, StatusMode)
+		return syncBlockChain(ctx, walletMiddleware, statusMode)
 	}
 
 	// if no command is passed but --sync flag was passed, perform sync operation and return
 	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
-		return syncBlockChain(ctx, walletMiddleware, StatusMode)
+		return syncBlockChain(ctx, walletMiddleware, statusMode)
 	} else if noCommandPassed {
 		listCommands()
 	} else if err != nil {

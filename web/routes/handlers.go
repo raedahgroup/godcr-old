@@ -50,10 +50,12 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 
 	req.ParseForm()
 	showDetails := req.FormValue("detailed") != ""
+	connection := routes.walletMiddleware.ConnectionInfo()
 
 	data := map[string]interface{}{
-		"accounts": accounts,
-		"detailed": showDetails,
+		"accounts":   accounts,
+		"detailed":   showDetails,
+		"connection": connection,
 	}
 	routes.render("balance.html", data, res)
 }
@@ -65,8 +67,11 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	connection := routes.walletMiddleware.ConnectionInfo()
+
 	data := map[string]interface{}{
-		"accounts": accounts,
+		"accounts":   accounts,
+		"connection": connection,
 	}
 	routes.render("send.html", data, res)
 }
@@ -159,8 +164,11 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	connection := routes.walletMiddleware.ConnectionInfo()
+
 	data := map[string]interface{}{
-		"accounts": accounts,
+		"accounts":   accounts,
+		"connection": connection,
 	}
 	routes.render("receive.html", data, res)
 }
@@ -237,8 +245,11 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	connection := routes.walletMiddleware.ConnectionInfo()
+
 	data := map[string]interface{}{
-		"result": txns,
+		"result":     txns,
+		"connection": connection,
 	}
 	routes.render("history.html", data, res)
 }
@@ -252,8 +263,11 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 		return
 	}
 
+	connection := routes.walletMiddleware.ConnectionInfo()
+
 	data := map[string]interface{}{
-		"tx": tx,
+		"tx":         tx,
+		"connection": connection,
 	}
 	routes.render("transaction_details.html", data, res)
 }
