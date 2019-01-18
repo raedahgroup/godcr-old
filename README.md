@@ -32,13 +32,22 @@ go get -u -v github.com/therecipe/qt/cmd/...
 ```
 If you get `module source tree too big` error message, try the following work around:
 ```bash
-git clone https://github.com/therecipe/qt $GOPATH/src/github.com/therecipe/qt
+git clone https://github.com/therecipe/qt.git $GOPATH/src/github.com/therecipe/qt
 cd $GOPATH/src/github.com/therecipe/qt/cmd
 go install ./qtsetup
 go install ./qtmoc
 go install ./qtrcc
 go install ./qtminimal
 go install ./qtdeploy
+
+// on Mac
+git clone https://github.com/therecipe/env_darwin_amd64_512.git $GOPATH/src/github.com/therecipe/env_darwin_amd64_512
+
+// on Linux
+git clone https://github.com/therecipe/env_linux_amd64_512.git $GOPATH/src/github.com/therecipe/env_linux_amd64_512
+
+// on Windows
+git clone https://github.com/therecipe/env_windows_amd64_512.git $GOPATH/src/github.com/therecipe/env_windows_amd64_512
 ```
 
 #### Step 2b. Setup QT Binding for Go (Linux and Mac)
