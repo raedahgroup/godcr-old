@@ -174,6 +174,7 @@ func enterQtMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	// qt app closed, trigger shutdown
 	beginShutdown <- true
 }
+
 func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	fmt.Println("Launching Terminal...")
 	opError = terminal.StartTerminalApp(ctx, walletMiddleware)
