@@ -5,16 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rivo/tview"
-	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/cli/walletloader"
+	"github.com/rivo/tview"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)) //Print App name
-
 	tviewApp := tview.NewApplication()
-
 	list := tview.NewList().
 		AddItem("Balance", "", 'b', nil).
 		AddItem("Receive", "", 'r', nil).
@@ -23,7 +20,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		AddItem("Exit", "", 'q', func() {
 		tviewApp.Stop()
 		})
-	list.SetBorder(true).SetTitle(strings.ToUpper(app.Name))
+	list.SetBorder(true).SetTitle(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
 
 	err := syncBlockChain(ctx, walletMiddleware)
 	if err != nil{
