@@ -1,12 +1,13 @@
 /**==================================================================*
  *                  SEND PAGE FUNCTIONS                              *
  *===================================================================*/
-function validateAmountField() { 
-    if ($("#amount").val() === "") {
-        $(".errors").html("<div class='error'>Please enter an amount first</div>");
-        return false;
+function validateDestinationFields() {
+    for(let i = 1; i <= destinationCount; i++) {
+        if ($(`#amount-${i}`).val() === "" || $(`#destination-address-${i}`).val() === "") {
+            $(".errors").html("<div class='error'>The destination address and amount are required</div>");
+            return false;
+        }
     }
-
     return true;
 }
 
@@ -20,11 +21,7 @@ function validateSendForm() {
         errors.push("The source account is required");
     }
 
-    isClean = validateAmountField();
-
-    if ($("#destination-address").val() === "") {
-        errors.push("The destination address is required");
-    }
+    isClean = validateDestinationFields();
 
     if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < $("#amount").val()) ) {
         errors.push("The sum of selected inputs is less than send amount");
@@ -49,8 +46,16 @@ function getSelectedInputsSum() {
     return sum
 }
 
+function getTotalSendAmount() {
+    let amount = 0;
+    for(let i = 1; i <= destinationCount; i++) {
+        amount += $(`#amount-${i}`).val()
+    }
+    return amount;
+}
+
 function calculateSelectedInputPercentage() {
-    var sendAmount = $("#amount").val();
+    var sendAmount = getTotalSendAmount();
     var selectedInputSum = getSelectedInputsSum();
     var percentage = 0;
 
@@ -96,8 +101,8 @@ function openCustomizePanel(get_unconfirmed) {
            calculateSelectedInputPercentage();
         });
 
-        $("#amount").on("keyup", function(){
-            validateAmountField();
+        $(".amount").on("keyup", function(){
+            validateDestinationFields();
             calculateSelectedInputPercentage();
         });
     }
@@ -168,6 +173,31 @@ function submitSendForm() {
 }
 
 /**==================================================================*
+ *                    MULTI-ADDRESS FUNCTIONS                        *
+ *===================================================================*/
+var destinationCount = 1;
+
+function newDestination() {
+    destinationCount++;
+    let html = `<div class="col-md-6 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="destination-address-${destinationCount}">Destination Address ${destinationCount}</label>
+                                            <input type="text" class="form-control" id="destination-address-${destinationCount}" name="destination-address[${destinationCount}]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="amount-">Amount (DCR)</label>
+                                            <input type="number" class="form-control amount" id="amount-${destinationCount}" name="amount[${destinationCount}]" />
+                                        </div>
+                                    </div>
+    `
+    $("#destinations").append(html)
+}
+
+
+/**==================================================================*
  *                    PASSPHRASE FUNCTIONS                           *
  *===================================================================*/
 
@@ -213,10 +243,29 @@ function clearMessages() {
     $(".alert-danger").hide();
 }
 
+(function ($) {
+    $.fn.serializeFormJSON = function () {
+
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+})(jQuery);
+
 $(function(){
     $("#use-custom").on("change", function(){
         if (this.checked) {
-            if (validateAmountField()) {
+            if (validateDestinationFields()) {
                 $(".errors").empty();
                 var get_unconfirmed = false;
                 if ($("#spend-unconfirmed").is(":checked")) {
@@ -247,6 +296,11 @@ $(function(){
             openCustomizePanel(get_unconfirmed_utxos);
         }
     });
+
+    $("#add-destination-btn").on("click", function (e) {
+        e.preventDefault();
+        newDestination()
+    })
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();

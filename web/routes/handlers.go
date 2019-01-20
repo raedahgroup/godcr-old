@@ -78,18 +78,30 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	req.ParseForm()
 	utxos := req.Form["utxo"]
 	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
-	amountStr := req.FormValue("amount")
 	selectedAccount := req.FormValue("source-account")
-	destAddress := req.FormValue("destination-address")
 	passphrase := req.FormValue("wallet-passphrase")
 	spendUnconfirmed := req.FormValue("spend-unconfirmed")
 	useCustom := req.FormValue("use-custom")
 
-	amount, err := strconv.ParseFloat(amountStr, 64)
-	if err != nil {
-		data["error"] = err.Error()
-		return
+	var sendDestinations []txhelper.TransactionDestination
+	destinationCount := 1
+	for {
+		destAddress := req.FormValue(fmt.Sprintf("destination-address-%d", destinationCount))
+		if destAddress == "" {
+			break
+		}
+		amountStr := req.FormValue(fmt.Sprintf("amount-%d", destinationCount))
+		amount, err := strconv.ParseFloat(amountStr, 64)
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+		sendDestinations = append(sendDestinations, txhelper.TransactionDestination{
+			Address: destAddress, Amount: amount,
+		})
+		destinationCount++
 	}
+
 
 	account, err := strconv.ParseUint(selectedAccount, 10, 32)
 	if err != nil {
@@ -97,11 +109,6 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		return
 	}
 	sourceAccount := uint32(account)
-
-	sendDestinations := []txhelper.TransactionDestination{{
-		Amount:  amount,
-		Address: destAddress,
-	}}
 
 	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
 	if spendUnconfirmed != "" {
