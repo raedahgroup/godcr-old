@@ -49,7 +49,7 @@ function getSelectedInputsSum() {
 function getTotalSendAmount() {
     let amount = 0;
     for(let i = 1; i <= destinationCount; i++) {
-        amount += $(`#amount-${i}`).val()
+        amount += parseFloat($(`#amount-${i}`).val())
     }
     return amount;
 }
@@ -88,9 +88,10 @@ function openCustomizePanel(get_unconfirmed) {
             var dcrAmount = tx.amount / 100000000;
             return  "<tr>" + 
                         "<td width='5%'><input type='checkbox' class='custom-input' name='utxo' value="+ tx.key+" data-amount='" + dcrAmount + "' /></td>" +
-                        "<td width='50%'>" + tx.key + "</td>" + 
-                        "<td width='20%'>" + dcrAmount + " DCR</td>" + 
-                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
+                        "<td width='40%'>" + tx.address + "</td>" +
+                        "<td width='15%'>" + dcrAmount + " DCR</td>" +
+                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' ') + "</td>" +
+                        "<td width='15%'>" + tx.confirmations + " confirmation(s)</td>" +
                     "</tr>"
         });
         $("#custom-tx-row tbody").html(utxoHtml.join('\n'));
@@ -101,7 +102,7 @@ function openCustomizePanel(get_unconfirmed) {
            calculateSelectedInputPercentage();
         });
 
-        $(".amount").on("keyup", function(){
+        $("#destinations").on("keyup", ".amount", function(){
             validateDestinationFields();
             calculateSelectedInputPercentage();
         });
@@ -180,18 +181,17 @@ var destinationCount = 1;
 function newDestination() {
     destinationCount++;
     let html = `<div class="col-md-6 col-sm-12">
-                                        <div class="form-group">
-                                            <label for="destination-address-${destinationCount}">Destination Address ${destinationCount}</label>
-                                            <input type="text" class="form-control" id="destination-address-${destinationCount}" name="destination-address[${destinationCount}]" />
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6 col-sm-12">
-                                        <div class="form-group">
-                                            <label for="amount-">Amount (DCR)</label>
-                                            <input type="number" class="form-control amount" id="amount-${destinationCount}" name="amount[${destinationCount}]" />
-                                        </div>
-                                    </div>
+                    <div class="form-group">
+                        <label for="destination-address-${destinationCount}">Destination Address ${destinationCount}</label>
+                        <input type="text" class="form-control" id="destination-address-${destinationCount}" name="destination-address[${destinationCount}]" />
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="amount-">Amount (DCR)</label>
+                        <input type="number" class="form-control amount" id="amount-${destinationCount}" name="amount[${destinationCount}]" />
+                    </div>
+                </div>
     `
     $("#destinations").append(html)
 }
@@ -242,25 +242,6 @@ function clearMessages() {
     $(".alert-success").hide();
     $(".alert-danger").hide();
 }
-
-(function ($) {
-    $.fn.serializeFormJSON = function () {
-
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function () {
-            if (o[this.name]) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        });
-        return o;
-    };
-})(jQuery);
 
 $(function(){
     $("#use-custom").on("change", function(){
