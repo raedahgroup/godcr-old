@@ -2,9 +2,10 @@ package qt
 
 import (
 	"context"
+	"os"
+
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/qt/pages"
-	"os"
 
 	"github.com/therecipe/qt/widgets"
 )
