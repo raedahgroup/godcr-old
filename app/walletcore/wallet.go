@@ -72,4 +72,7 @@ type Wallet interface {
 
 	// PurchaseTickets is used to purchase tickets.
 	PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
+
+	// TicketPrice returns the current ticket price
+	TicketPrice(ctx context.Context) (ticketPrice int64, err error)
 }

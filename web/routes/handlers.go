@@ -282,8 +282,15 @@ func (routes *Routes) purchaseTicketsPage(res http.ResponseWriter, req *http.Req
 		return
 	}
 
+	ticketPrice, err := routes.walletMiddleware.TicketPrice(routes.ctx)
+	if err != nil {
+		routes.renderError(err.Error(), res)
+		return
+	}
+
 	data := map[string]interface{}{
-		"accounts": accounts,
+		"accounts":    accounts,
+		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
 	}
 	routes.render("purchase_tickets.html", data, res)
 }
@@ -296,6 +303,7 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	walletPassphrase := req.FormValue("wallet-passphrase")
 	numTicketsStr := req.FormValue("number-of-tickets")
 	sourceAccountStr := req.FormValue("source-account")
+	spendUnconfirmed := req.FormValue("spend-unconfirmed")
 
 	numTickets, err := strconv.ParseUint(numTicketsStr, 10, 32)
 	if err != nil {
@@ -311,8 +319,13 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 		return
 	}
 
+	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+	if spendUnconfirmed != "" {
+		requiredConfirmations = 0
+	}
+
 	request := dcrlibwallet.PurchaseTicketsRequest{
-		RequiredConfirmations: walletcore.DefaultRequiredConfirmations,
+		RequiredConfirmations: uint32(requiredConfirmations),
 		Passphrase:            []byte(walletPassphrase),
 		NumTickets:            uint32(numTickets),
 		Account:               uint32(sourceAccount),

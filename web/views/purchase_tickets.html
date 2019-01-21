@@ -18,8 +18,12 @@
                                         {{ template "source-account-input" .accounts }}                                         
                                     </div>
                                     <div class="form-group">
-                                        <label for="number-of-tickets">Number of Tickets</label>
+                                        <label for="number-of-tickets">Number of Tickets (<strong>{{ .ticketPrice }} DCR / ticket</strong>)</label>
                                         <input ype="number" class="form-control" id="number-of-tickets" name="number-of-tickets" value="1" data-validate="true" data-required="true" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="spend-unconfirmed">Spend Unconfirmed</label>
+                                        <input type="checkbox" name="spend-unconfirmed" id="spend-unconfirmed" value="1" />
                                     </div>
                                     <div class="form-group">
                                         <div class="errors"></div>

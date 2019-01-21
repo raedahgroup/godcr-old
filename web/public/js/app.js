@@ -48,7 +48,7 @@ function validatePassphrase() {
     $(".passphrase-error").remove();
     var passphraseEl = $("#walletPassphrase");
 
-    if (passphraseEl.val() == "") {
+    if (passphraseEl.val() === "") {
         passphraseEl.after("<div class='passphrase-error error'>Your wallet passphrase is required</div>");
         return false
     }
