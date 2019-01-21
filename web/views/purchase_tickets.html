@@ -7,7 +7,7 @@
         <div class="content">
             <div class="container">
                 <div class="alert alert-danger hide-empty"></div>
-                <div id="success-msg-container"></div>
+                <div id="success-msg-container" class="alert alert-success hide-empty"></div>
                 <form method="POST" action="/purchase_tickets" id="purchase-tickets-form" novalidate>
                     {{ template "send-passphrase-modal" }}
                     <div class="card">
@@ -15,14 +15,7 @@
                             <div class="row">
                                 <div class="col-md-6 col-sm-12">
                                     <div class="form-group">
-                                        <label for="source-account">Source Account</label>	                                            
-                                        <select class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
-                                            {{ range $account := .accounts }}	                                                
-                                            <option value="{{ $account.Number }}">
-                                                {{ $account.Name }} - {{ simpleBalance $account.Balance false }}
-                                            </option>
-                                            {{ end }}	                                              
-                                        </select>	                                          
+                                        {{ template "source-account-input" .accounts }}                                         
                                     </div>
                                     <div class="form-group">
                                         <label for="number-of-tickets">Number of Tickets</label>
@@ -40,6 +33,7 @@
             </div>
         </div>
     </div>
+    {{ template "footer" }}
     <script type="text/javascript" src="/static/js/purchase_tickets.js"></script>
 </body>
 </html>

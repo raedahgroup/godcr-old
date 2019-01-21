@@ -35,7 +35,7 @@ func (ptc PurchaseTicketsCommand) Run(ctx context.Context, wallet walletcore.Wal
 			return err
 		}
 	}
-	tickets, err := wallet.PurchaseTickets(dcrlibwallet.PurchaseTicketsRequest{
+	tickets, err := wallet.PurchaseTickets(ctx, dcrlibwallet.PurchaseTicketsRequest{
 		TxFee:                 ptc.TxFee,
 		TicketFee:             ptc.TicketFee,
 		TicketAddress:         ptc.TicketAddress,

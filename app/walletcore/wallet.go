@@ -1,6 +1,8 @@
 package walletcore
 
 import (
+	"context"
+
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
@@ -66,8 +68,8 @@ type Wallet interface {
 	GetTransaction(transactionHash string) (*TransactionDetails, error)
 
 	// StakeInfo returns information about wallet stakes, tickets and their statuses.
-	StakeInfo() (*StakeInfo, error)
+	StakeInfo(ctx context.Context) (*StakeInfo, error)
 
 	// PurchaseTickets is used to purchase tickets.
-	PurchaseTickets(request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
+	PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
 }

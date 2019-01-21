@@ -7,20 +7,21 @@
     var isClean = true;
 
     $('[data-validate="true"]').each(function(){
-        var value = "";
-        var elementType = $(this).prop("type");
-        var elementName = $(this).prop("name").replace(/(\-\w)/g, function(text){return " " + text[1].toUpperCase();});
-        elementName = elementName.charAt(0).toUpperCase() + elementName.slice(1);
+        var self = $(this);
+        var elementType = self.prop("type");
         
-
+        var value = "";
         if (elementType && elementType.toLowerCase() === 'radio') {
-            value = $(this).filter(":checked").val();
+            value = self.filter(":checked").val();
         } else {
-            value = $(this).val();
+            value = self.val();
         }
 
-        if ($(this).data("required") === true && value === "") {
+        if (self.data("required") === true && value === "") {
             isClean = false;
+            // convert input name to uppercase words to display errors
+            var elementName = self.prop("name").replace(/(\-\w)/g, function(text){return " " + text[1].toUpperCase();});
+            elementName = elementName.charAt(0).toUpperCase() + elementName.slice(1);
             $(".errors").append("<div class='error'>" + elementName + " is required</div>");
         }
     });
@@ -33,30 +34,22 @@
  *===================================================================*/
 function getWalletPassphraseAndSubmit(submitFunction) {
     var passphraseModal = $("#passphrase-modal");
-    $("#walletPassphrase").val("");
 
-    $("#passphrase-submit").on("click", function(){
+    $("#passphrase-submit").off("click").on("click", function(){
         if (validatePassphrase()) {
             passphraseModal.modal("hide");
             submitFunction();
         }
     });
-
     passphraseModal.modal();
 }
 
 function validatePassphrase() {
     $(".passphrase-error").remove();
-    var error = "";
-
     var passphraseEl = $("#walletPassphrase");
 
     if (passphraseEl.val() == "") {
-        error = "Your wallet passphrase is required";
-    }
-
-    if (error != "") {
-        passphraseEl.after("<div class='passphrase-error error'>" + error + "</div>");
+        passphraseEl.after("<div class='passphrase-error error'>Your wallet passphrase is required</div>");
         return false
     }
 
@@ -108,20 +101,8 @@ function makeRequest(requestInfo, onSuccessFunc, onErrorFunc, onCompleteFunc) {
         url: requestInfo.url,
         method: requestInfo.method,
         data: requestInfo.data,
-        success: function(response){
-            if (typeof onSuccessFunc === "function") {
-                onSuccessFunc(response);
-            }
-        },
-        error: function(){
-            if (typeof onErrorFunc === "function") {
-                onErrorFunc();
-            }
-        },
-        complete: function(){
-            if (typeof onCompleteFunc === "function") {
-                onCompleteFunc();
-            }
-        }
+        success: onSuccessFunc,
+        error: onErrorFunc,
+        complete: onCompleteFunc
     });
 }

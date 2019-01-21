@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"html/template"
 	"log"
 
@@ -13,14 +14,16 @@ type Routes struct {
 	walletMiddleware app.WalletMiddleware
 	templates        map[string]*template.Template
 	blockchain       *Blockchain
+	ctx              context.Context
 }
 
 // Setup prepares page templates and creates route handlers, returns syncBlockchain function
-func Setup(walletMiddleware app.WalletMiddleware, router chi.Router) func() {
+func Setup(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router) func() {
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
+		ctx:              ctx,
 	}
 
 	routes.loadTemplates()
@@ -63,8 +66,8 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/generate-address/{accountNumber}", routes.generateReceiveAddress)
 	router.Get("/unspent-outputs/{accountNumber}", routes.getUnspentOutputs)
 	router.Get("/history", routes.historyPage)
-	router.Get("/transaction_details/{hash}", routes.transactionDetailsPage)
+	router.Get("/transaction-details/{hash}", routes.transactionDetailsPage)
 	router.Get("/stakeinfo", routes.stakeInfoPage)
-	router.Get("/purchase_tickets", routes.purchaseTicketsPage)
-	router.Post("/purchase_tickets", routes.submitPurchaseTicketsForm)
+	router.Get("/purchase-tickets", routes.purchaseTicketsPage)
+	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
 }

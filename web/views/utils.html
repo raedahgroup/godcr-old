@@ -23,3 +23,14 @@
     </div>
 </div>
 {{ end }} 
+
+{{ define "source-account-input" }}
+<label for="source-account">Source Account</label>	                                            
+<select class="form-control" id="source-account" name="source-account" {{ if eq (len .) 1 }}disabled{{ end }}>
+  {{ range $account := . }}	                                                
+  <option value="{{ $account.Number }}">
+    {{ $account.Name }} - {{ simpleBalance $account.Balance false }}
+  </option>
+  {{ end }}	                                              
+</select>	 
+{{ end }}

@@ -1,11 +1,13 @@
 function submitPurchaseTicketsForm() {
     $("#success-msg-container").empty();
-
+    $(".alert-danger").empty();
 
     var form = $("#purchase-tickets-form");
     var submit_btn = $("#next-btn");
-
     var postData = form.serialize();
+
+    // reset passphrase-field 
+    $("#wallet-passphrase").val("");
 
     if ($("#source-account").prop("disabled")) {
         postData += "&source-account=" + $("#source-account").val();
@@ -13,17 +15,16 @@ function submitPurchaseTicketsForm() {
 
     var requestInfo = {
         data: postData,
-        url: "/purchase_tickets"
+        url: "/purchase-tickets"
     };
 
     var successFunc = function(response){
-        if (response.error) {
-            setErrorMessage(response.error)
+        if (!response.success) {
+            setErrorMessage(response.message)
         } else {
-            //setSuccessMessage(response.message);
-            $("#success-msg-container").append("<div class='alert alert-success'>You have purchased " + response.message.length + " ticket(s)</div>");
+            $("#success-msg-container").append("<p>You have purchased " + response.message.length + " ticket(s)</p>");
             for (var i in response.message) {
-                $("#success-msg-container").append("<div class='alert alert-success'> " + response.message[i] + " </div>");
+                $("#success-msg-container").append("<p><strong>" + response.message[i] + "</strong></p>");
             }
         }
     };
@@ -37,9 +38,7 @@ function submitPurchaseTicketsForm() {
     };
 
     submit_btn.attr("disabled", "disabled").html("Sending...");
-    
     makePostRequest(requestInfo, successFunc, errorFunc, completeFunc)
-
 }
 
 $(function(){

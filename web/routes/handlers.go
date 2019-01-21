@@ -263,7 +263,7 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) stakeInfoPage(res http.ResponseWriter, req *http.Request) {
-	stakeInfo, err := routes.walletMiddleware.StakeInfo()
+	stakeInfo, err := routes.walletMiddleware.StakeInfo(routes.ctx)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching stake info: %s", err.Error()), res)
 		return
@@ -285,7 +285,6 @@ func (routes *Routes) purchaseTicketsPage(res http.ResponseWriter, req *http.Req
 	data := map[string]interface{}{
 		"accounts": accounts,
 	}
-
 	routes.render("purchase_tickets.html", data, res)
 }
 
@@ -294,7 +293,7 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	defer renderJSON(data, res)
 
 	req.ParseForm()
-	walletPassphrase := req.FormValue("walletPassphrase")
+	walletPassphrase := req.FormValue("wallet-passphrase")
 	numTicketsStr := req.FormValue("number-of-tickets")
 	sourceAccountStr := req.FormValue("source-account")
 
@@ -312,22 +311,14 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 		return
 	}
 
-	ticketAddress, err := routes.walletMiddleware.ReceiveAddress(uint32(sourceAccount))
-	if err != nil {
-		data["success"] = false
-		data["message"] = err.Error()
-		return
-	}
-
 	request := dcrlibwallet.PurchaseTicketsRequest{
-		TicketAddress:         ticketAddress,
 		RequiredConfirmations: walletcore.DefaultRequiredConfirmations,
 		Passphrase:            []byte(walletPassphrase),
 		NumTickets:            uint32(numTickets),
 		Account:               uint32(sourceAccount),
 	}
 
-	ticketHashes, err := routes.walletMiddleware.PurchaseTickets(request)
+	ticketHashes, err := routes.walletMiddleware.PurchaseTickets(routes.ctx, request)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

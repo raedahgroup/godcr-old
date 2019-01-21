@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
@@ -15,7 +16,7 @@ type StakeInfoCommand struct {
 
 // Run displays information about wallet stakes, tickets and their statuses.
 func (g StakeInfoCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	stakeInfo, err := wallet.StakeInfo()
+	stakeInfo, err := wallet.StakeInfo(ctx)
 	if err != nil {
 		return err
 	}

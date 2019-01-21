@@ -60,12 +60,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="nav-stakeinfo" href="#">
+                        <a class="nav-link" id="nav-stakeinfo" href="/stakeinfo">
                             <span class="text">Stake Info</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="nav-purchase-ticket" href="#">
+                        <a class="nav-link" id="nav-purchase-tickets" href="/purchase-tickets">
                             <span class="text">Purchase Tickets</span>
                         </a>
                     </li>
@@ -77,6 +77,7 @@
 {{ end }}
 
 {{ define "footer" }}
+<script src="/static/js/app.js"></script>
 <script>
     $(function(){
         var pathname = window.location.pathname;
