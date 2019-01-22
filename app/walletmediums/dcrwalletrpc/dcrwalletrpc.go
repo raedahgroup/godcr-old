@@ -57,7 +57,7 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 	}
 	noTLS = wnoTLS
 
-	if client, err = useParsedConfigAddresses(rpcConfAddresses, ctx, rpcCert, noTLS); err != errSkip {
+	if client, err = useParsedConfigAddresses(ctx, rpcConfAddresses, rpcCert, noTLS); err != errSkip {
 		return client, err
 	}
 
@@ -68,7 +68,7 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 	return nil, err1
 }
 
-func useParsedConfigAddresses(addresses []string, ctx context.Context, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
+func useParsedConfigAddresses(ctx context.Context, addresses []string, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
 	for _, address := range addresses {
 		walletMiddleware, err := createConnection(ctx, address, rpcCert, noTLS)
 		if err == nil {
