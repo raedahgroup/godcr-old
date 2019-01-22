@@ -124,7 +124,7 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
 func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddleware {
-	if !config.UseWalletRPC {
+	if !config.WalletRPCServer == "" {
 		var netType string
 		if config.UseTestNet {
 			netType = "testnet"

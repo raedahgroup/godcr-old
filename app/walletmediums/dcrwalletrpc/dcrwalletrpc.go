@@ -46,10 +46,44 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
+	client, err = createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	if err != nil {
+		return
+	}
+	rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
+	if err != nil {
+		return
+	}
+	if wrpcCert != "" {
+		rpcCert = wrpcCert
+	}
+	noTLS = wnoTLS
+	for _, address := range rpcConfAddresses {
+		client, err = createConnection(ctx, address, rpcCert, noTLS)
+		if err == nil {
+			err1 := config.UpdateConfigFile("walletrpcserver", address, true)
+			if err1 != nil {
+				fmt.Printf("unable to save rpc address: %s", err.Error())
+			}
+			err1 = config.UpdateConfigFile("walletrpccert", rpcCert)
+			if err1 != nil {
+				fmt.Printf("unable to save rpc cert path: %s", err.Error())
+			}
+			err1 = config.UpdateConfigFile("nowalletrpctls", noTLS)
+			if err1 != nil {
+				fmt.Printf("unable to save rpc TLS state: %s", err.Error())
+			}
+			return
+		}
+	}
+	return
+}
+
+func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
 	// check if user has provided enough information to attempt connecting to dcrwallet
 	if rpcAddress == "" {
-		return autoDetectAddressAndConnect(ctx, rpcCert, noTLS)
+		return nil, errors.New("you must set walletrpcserver in config file to use wallet rpc")
 	}
 	if !noTLS && rpcCert == "" {
 		return nil, errors.New("set dcrwallet rpc certificate path in config file or disable tls for dcrwallet connection")
@@ -227,13 +261,6 @@ func createConnectionFromUsersInput(ctx context.Context, rpcCert string, noTLS b
 		return walletMiddleware, nil
 	}
 	return nil, err
-}
-
-func saveRPCAddress(address string) {
-	err := config.UpdateConfigFile("walletrpcserver", address, true)
-	if err != nil {
-		fmt.Printf("unable to save rpc address: %s", err.Error())
-	}
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
