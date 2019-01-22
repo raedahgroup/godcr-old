@@ -8,8 +8,8 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
 const (
@@ -25,10 +25,9 @@ type Desktop struct {
 	handlers     map[string]Handler
 }
 
-
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
-		wallet:       walletMiddleware,
+		wallet: walletMiddleware,
 	}
 
 	// initialize master window and set style
@@ -40,7 +39,6 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	handlers := getHandlers()
 	desktop.handlers = make(map[string]Handler, len(handlers))
 	for _, handler := range handlers {
-		handler.handler.SetWalletMiddleware(walletMiddleware)
 		desktop.handlers[handler.name] = handler.handler
 	}
 
@@ -78,14 +76,14 @@ func (desktop *Desktop) render(w *nucular.Window) {
 	w.LayoutSpacePushScaled(navRect)
 	// render nav
 	helpers.SetNavStyle(desktop.masterWindow)
-	if sw := w.GroupBegin("Navigation Group", 0); sw != nil {
-		sw.Row(40).Dynamic(1)
+	if contentWindow := helpers.NewWindow("Navigation Group", w, 0); contentWindow != nil {
+		contentWindow.Row(40).Dynamic(1)
 		for _, handler := range getHandlers() {
-			if sw.Button(label.TA(handler.navLabel, "LC"), false) {
+			if contentWindow.Button(label.TA(handler.navLabel, "LC"), false) {
 				desktop.changePage(handler.name)
 			}
 		}
-		sw.GroupEnd()
+		contentWindow.GroupEnd()
 	}
 
 	// create content pane
@@ -102,8 +100,8 @@ func (desktop *Desktop) render(w *nucular.Window) {
 	helpers.SetPageStyle(desktop.masterWindow)
 
 	w.LayoutSpacePushScaled(contentRect)
-	handler, ok := desktop.handlers[desktop.currentPage]
-	if !ok { // ideally, this should only be false once in the lifetime of an instance
+	handler := desktop.handlers[desktop.currentPage]
+	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
 		desktop.changePage(homePage)
 		return
 	}
@@ -114,7 +112,7 @@ func (desktop *Desktop) render(w *nucular.Window) {
 		desktop.pageChanged = false
 	}
 
-	handler.Render(w)
+	handler.Render(w, desktop.wallet)
 }
 
 func (desktop *Desktop) changePage(page string) {

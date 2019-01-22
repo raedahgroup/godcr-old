@@ -15,7 +15,6 @@ type ReceiveHandler struct {
 	err         error
 	isRendering bool
 	accounts    []*walletcore.Account
-	wallet      walletcore.Wallet
 
 	// form selector index
 	selectedAccountIndex  int
@@ -23,10 +22,6 @@ type ReceiveHandler struct {
 
 	// generatedAddress
 	generatedAddress string
-}
-
-func (handler *ReceiveHandler) SetWalletMiddleware(walletMiddleare walletcore.Wallet) {
-	handler.wallet = walletMiddleare
 }
 
 func (handler *ReceiveHandler) BeforeRender() {
@@ -39,10 +34,10 @@ func (handler *ReceiveHandler) BeforeRender() {
 	handler.selectedAccountNumber = uint32(0)
 }
 
-func (handler *ReceiveHandler) Render(window *nucular.Window) {
+func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = handler.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
@@ -75,7 +70,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 					}
 
 					// get address
-					handler.generatedAddress, handler.err = handler.wallet.ReceiveAddress(handler.selectedAccountNumber)
+					handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.selectedAccountNumber)
 					if handler.err != nil {
 						contentWindow.SetErrorMessage(handler.err.Error())
 					} else {

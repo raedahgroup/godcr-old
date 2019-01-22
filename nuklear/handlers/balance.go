@@ -10,11 +10,6 @@ type BalanceHandler struct {
 	err         error
 	isRendering bool
 	accounts    []*walletcore.Account
-	wallet      walletcore.Wallet
-}
-
-func (handler *BalanceHandler) SetWalletMiddleware(walletMiddleare walletcore.Wallet) {
-	handler.wallet = walletMiddleare
 }
 
 func (handler *BalanceHandler) BeforeRender() {
@@ -23,10 +18,10 @@ func (handler *BalanceHandler) BeforeRender() {
 	handler.isRendering = false
 }
 
-func (handler *BalanceHandler) Render(w *nucular.Window) {
+func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = handler.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page

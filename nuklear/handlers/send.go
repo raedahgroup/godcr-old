@@ -9,18 +9,12 @@ type SendHandler struct {
 	err          error
 	hasRendered  bool
 	transactions []*walletcore.Transaction
-	wallet walletcore.Wallet
-}
-
-func (handler *SendHandler) SetWalletMiddleware(walletMiddleare walletcore.Wallet) {
-	handler.wallet = walletMiddleare
 }
 
 func (handler *SendHandler) BeforeRender() {
 	handler.hasRendered = true
 }
 
-func (handler *SendHandler) Render(w *nucular.Window) {
+func (handler *SendHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
 
 }
-

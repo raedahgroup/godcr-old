@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
@@ -11,17 +11,7 @@ type TransactionsHandler struct {
 	err                    error
 	isRendering            bool
 	transactions           []*walletcore.Transaction
-	wallet                 walletcore.Wallet
 	hasFetchedTransactions bool
-}
-
-func (handler *TransactionsHandler) fetchTransactions() {
-	handler.transactions, handler.err = handler.wallet.TransactionHistory()
-	handler.hasFetchedTransactions = true
-}
-
-func (handler *TransactionsHandler) SetWalletMiddleware(walletMiddleare walletcore.Wallet) {
-	handler.wallet = walletMiddleare
 }
 
 func (handler *TransactionsHandler) BeforeRender() {
@@ -31,10 +21,10 @@ func (handler *TransactionsHandler) BeforeRender() {
 	handler.hasFetchedTransactions = false
 }
 
-func (handler *TransactionsHandler) Render(window *nucular.Window) {
+func (handler *TransactionsHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		go handler.fetchTransactions()
+		go handler.fetchTransactions(wallet)
 	}
 
 	// draw page
@@ -72,4 +62,9 @@ func (handler *TransactionsHandler) Render(window *nucular.Window) {
 		}
 		pageWindow.End()
 	}
+}
+
+func (handler *TransactionsHandler) fetchTransactions(wallet walletcore.Wallet) {
+	handler.transactions, handler.err = wallet.TransactionHistory()
+	handler.hasFetchedTransactions = true
 }

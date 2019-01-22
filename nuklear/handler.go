@@ -8,8 +8,7 @@ import (
 
 type Handler interface {
 	BeforeRender()
-	Render(*nucular.Window)
-	SetWalletMiddleware(walletcore.Wallet)
+	Render(*nucular.Window, walletcore.Wallet)
 }
 
 type handlersData struct {
