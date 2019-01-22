@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/help"
@@ -124,7 +124,7 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
 func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddleware {
-	if !config.WalletRPCServer == "" {
+	if config.WalletRPCServer == "" {
 		var netType string
 		if config.UseTestNet {
 			netType = "testnet"

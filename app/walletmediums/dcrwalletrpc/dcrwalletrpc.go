@@ -5,17 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
-	"strconv"
 	"time"
 
-	"github.com/ademuanthony/ps"
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrwallet/netparams"
+	"github.com/decred/dcrdata/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -46,38 +42,60 @@ var (
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`
-func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
-	client, err = createConnection(ctx, rpcAddress, rpcCert, noTLS)
-	if err != nil {
-		return
+func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
+	client, err1 := createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	if err1 == nil {
+		return client, err1
 	}
 	rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
 	if err != nil {
-		return
+		return nil, err
 	}
+
 	if wrpcCert != "" {
 		rpcCert = wrpcCert
 	}
 	noTLS = wnoTLS
-	for _, address := range rpcConfAddresses {
-		client, err = createConnection(ctx, address, rpcCert, noTLS)
+
+	if client, err = useParsedConfigAddresses(rpcConfAddresses, ctx, rpcCert, noTLS); err != errSkip {
+		return client, err
+	}
+
+	if client, err = connectToDefaultAddresses(ctx, rpcCert, noTLS); err != errSkip {
+		return client, err
+	}
+
+	return nil, err1
+}
+
+func useParsedConfigAddresses(addresses []string, ctx context.Context, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
+	for _, address := range addresses {
+		walletMiddleware, err := createConnection(ctx, address, rpcCert, noTLS)
 		if err == nil {
-			err1 := config.UpdateConfigFile("walletrpcserver", address, true)
-			if err1 != nil {
-				fmt.Printf("unable to save rpc address: %s", err.Error())
-			}
-			err1 = config.UpdateConfigFile("walletrpccert", rpcCert)
-			if err1 != nil {
-				fmt.Printf("unable to save rpc cert path: %s", err.Error())
-			}
-			err1 = config.UpdateConfigFile("nowalletrpctls", noTLS)
-			if err1 != nil {
-				fmt.Printf("unable to save rpc TLS state: %s", err.Error())
-			}
-			return
+			saveRPCAddress(address)
+			return walletMiddleware, nil
 		}
 	}
-	return
+	return nil, errSkip
+}
+
+func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
+	// try connecting with default testnet3 params
+	testnetAddress := net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
+	walletMiddleware, err := createConnection(ctx, testnetAddress, rpcCert, noTLS)
+	if err == nil {
+		saveRPCAddress(testnetAddress)
+		return walletMiddleware, nil
+	}
+
+	// try connecting with default mainnet params
+	mainnetAddress := net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
+	walletMiddleware, err = createConnection(ctx, mainnetAddress, rpcCert, noTLS)
+	if err == nil {
+		saveRPCAddress(mainnetAddress)
+		return walletMiddleware, nil
+	}
+	return nil, errSkip
 }
 
 func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
@@ -118,6 +136,13 @@ func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS boo
 	}
 }
 
+func saveRPCAddress(address string) {
+	err := config.UpdateConfigFile("walletrpcserver", address, true)
+	if err != nil {
+		fmt.Printf("unable to save rpc address: %s", err.Error())
+	}
+}
+
 func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.Params, err error) {
 	req := &walletrpc.NetworkRequest{}
 	res, err := walletService.Network(context.Background(), req)
@@ -133,134 +158,6 @@ func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.P
 	default:
 		return nil, errors.New("unknown network type")
 	}
-}
-
-func autoDetectAddressAndConnect(ctx context.Context, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-
-	prompt := "No RPC address provided to connect to dcrwallet. Press 'Y' to automatically detect or 'N' to manually enter the address?"
-	automaticDetectionConfirmed, err := terminalprompt.RequestYesNoConfirmation(prompt, "y")
-	if err != nil {
-		return nil, fmt.Errorf("error in getting input: %s", err.Error())
-	}
-
-	// parse dcrwallet config first, so as to use it's cert path and tls state
-	rpcConfAddresses, wnoTLS, wrpcCert, err := walletAddressFromDcrdwalletConfig()
-	if err == nil {
-		if wrpcCert != "" {
-			rpcCert = wrpcCert
-		}
-		noTLS = wnoTLS
-	}
-
-	if !automaticDetectionConfirmed {
-		return createConnectionFromUsersInput(ctx, rpcCert, noTLS)
-	}
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-
-	if walletMiddleware, err := createConnectionFromRunningWalletProcess(ctx, rpcCert, noTLS); err != errSkip {
-		if err == nil {
-			return walletMiddleware, err
-		}
-		return connectToDefaultAddresses(ctx, rpcCert, noTLS)
-
-	}
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-
-	if walletMiddleware, err := useParsedConfigAddresses(rpcConfAddresses, ctx, rpcCert, noTLS); err != errSkip {
-		return walletMiddleware, err
-	}
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-
-	fmt.Println("Could not detect a valid rpc address to connect to dcrwallet")
-	promt := "Do you want to set the address now?"
-	setAddressConfirmed, err := terminalprompt.RequestYesNoConfirmation(promt, "y")
-	if err != nil {
-		fmt.Println(fmt.Sprintf("error in getting input: %s", err.Error()))
-	}
-
-	if setAddressConfirmed {
-		return createConnectionFromUsersInput(ctx, rpcCert, noTLS)
-	} else {
-		fmt.Println("Okay. Bye.")
-		fmt.Printf("You can also set the rpc address later in %s\n", config.AppConfigFilePath)
-		return nil, errors.New("cancelled")
-	}
-}
-
-func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-	// try connecting with default testnet3 params
-	testnetAddress := net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
-	walletMiddleware, err := New(ctx, testnetAddress, rpcCert, noTLS)
-	if err == nil {
-		saveRPCAddress(testnetAddress)
-		return walletMiddleware, nil
-	}
-
-	// try connecting with default mainnet params
-	mainnetAddress := net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
-	walletMiddleware, err = New(ctx, mainnetAddress, rpcCert, noTLS)
-	if err == nil {
-		saveRPCAddress(mainnetAddress)
-		return walletMiddleware, nil
-	}
-	return nil, errSkip
-}
-
-func useParsedConfigAddresses(addresses []string, ctx context.Context, rpcCert string, noTLS bool) (client *WalletRPCClient, err error) {
-	for _, address := range addresses {
-		walletMiddleware, err := New(ctx, address, rpcCert, noTLS)
-		if err == nil {
-			saveRPCAddress(address)
-			return walletMiddleware, nil
-		}
-	}
-	return nil, errSkip
-}
-
-func createConnectionFromRunningWalletProcess(ctx context.Context, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-	dcrwalletProcess, err := ps.ProcessByName(dcrwalletExecutableName)
-	if err == nil {
-		ports, err := ps.AssociatedPorts(dcrwalletProcess.Pid())
-		if err == nil {
-			for _, p := range ports {
-				port := strconv.Itoa(int(p))
-				address := net.JoinHostPort("localhost", port)
-				walletMiddleware, err := New(ctx, address, rpcCert, noTLS)
-				if err == nil {
-					saveRPCAddress(address)
-					return walletMiddleware, nil
-				}
-			}
-		} else {
-			return nil, err
-		}
-	}
-	return nil, errSkip
-}
-
-func createConnectionFromUsersInput(ctx context.Context, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-	address, err := terminalprompt.RequestInput("Enter dcrwallet rpc address", nil)
-	if err != nil {
-		fmt.Println(fmt.Sprintf("error in reading input: %s", err.Error()))
-	}
-
-	if address == "" {
-		os.Exit(0)
-	}
-
-	fmt.Println("connecting...")
-	walletMiddleware, err := New(ctx, address, rpcCert, noTLS)
-	if err == nil {
-		saveRPCAddress(address)
-		return walletMiddleware, nil
-	}
-	return nil, err
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
