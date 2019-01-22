@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/connectionInfo.js"></script>
 </head>
 {{ end }}
 
@@ -21,9 +22,9 @@
             <div class="container">
                 <div class="text-center">
                     <h3>GoDCR</h3>
-                    {{ if . }}
-                        <span class="text-muted">Blockchain status: {{ . }}</span>
-                    {{ end }}
+                    <span id="bchn-status-h" class="text-muted" style="display:none">Blockchain status:
+                      <span id="bchn-status">{{.connection}}</span>
+                    </span>
                 </div>
             </div>
         </div>

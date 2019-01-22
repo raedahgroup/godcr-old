@@ -36,7 +36,7 @@
                                         <div class="form-group">
                                             <label for="amount">Amount (DCR)</label>
                                             <input type="number" class="form-control" id="amount" name="amount" />
-                                        </div> 
+                                        </div>
                                         <div class="form-group">
                                             <label for="destinationAddress">Destination Address</label>
                                             <input type="text" class="form-control" id="destination-address" name="destination-address" />
@@ -91,5 +91,11 @@
         }
     </style>
     <script type="text/javascript" src="/static/js/send.js"></script>
+
+    <script>
+      // Display connection information
+      connectionInfo({{.connection}});
+    </script>
+
 </body>
 </html>
