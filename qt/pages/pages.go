@@ -2,6 +2,7 @@ package pages
 
 import (
 	"context"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/therecipe/qt/widgets"
 )
@@ -26,5 +27,6 @@ func AllPages() map[string]Page {
 	return map[string]Page{
 		"Status":  &statusPage{},
 		"Balance": &balancePage{},
+		"Send":    &sendPage{},
 	}
 }

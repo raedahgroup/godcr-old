@@ -17,8 +17,8 @@ type balancePage struct {
 	balanceLabel         *widgets.QLabel
 	spendableLabel       *widgets.QLabel
 	lockedByTicketsLabel *widgets.QLabel
-	VotingAuthorityLabel *widgets.QLabel
-	UnconfirmedLabel     *widgets.QLabel
+	votingAuthorityLabel *widgets.QLabel
+	unconfirmedLabel     *widgets.QLabel
 	balanceGrid          *widgets.QGridLayout
 }
 
@@ -34,8 +34,8 @@ func (b *balancePage) SetupWithWallet(ctx context.Context, wallet walletcore.Wal
 	b.balanceLabel = widgets.NewQLabel(nil, 0)
 	b.spendableLabel = widgets.NewQLabel(nil, 0)
 	b.lockedByTicketsLabel = widgets.NewQLabel(nil, 0)
-	b.VotingAuthorityLabel = widgets.NewQLabel(nil, 0)
-	b.UnconfirmedLabel = widgets.NewQLabel(nil, 0)
+	b.votingAuthorityLabel = widgets.NewQLabel(nil, 0)
+	b.unconfirmedLabel = widgets.NewQLabel(nil, 0)
 
 	//set widget default values and add to grid at different location
 	b.balanceGrid.AddWidget(widgets.NewQLabel2("Account Name", nil, 0), 0, 0, core.Qt__AlignLeft)
@@ -48,8 +48,8 @@ func (b *balancePage) SetupWithWallet(ctx context.Context, wallet walletcore.Wal
 	b.balanceGrid.AddWidget(b.balanceLabel, 1, 1, core.Qt__AlignLeft)
 	b.balanceGrid.AddWidget(b.spendableLabel, 1, 2, core.Qt__AlignLeft)
 	b.balanceGrid.AddWidget(b.lockedByTicketsLabel, 1, 3, core.Qt__AlignLeft)
-	b.balanceGrid.AddWidget(b.VotingAuthorityLabel, 1, 4, core.Qt__AlignLeft)
-	b.balanceGrid.AddWidget(b.UnconfirmedLabel, 1, 5, core.Qt__AlignLeft)
+	b.balanceGrid.AddWidget(b.votingAuthorityLabel, 1, 4, core.Qt__AlignLeft)
+	b.balanceGrid.AddWidget(b.unconfirmedLabel, 1, 5, core.Qt__AlignLeft)
 	pageContent.SetLayout(b.balanceGrid)
 
 	// run get balance op in separate goroutine to avoid stalling this method
@@ -79,8 +79,8 @@ func (b *balancePage) getAndDisplayBalance(wallet walletcore.Wallet) {
 	balanceSummary := make([]string, len(accounts))
 	spendableSummary := make([]string, len(accounts))
 	lockedByTicketsSummary := make([]string, len(accounts))
-	VotingAuthoritySummary := make([]string, len(accounts))
-	UnconfirmedSummary := make([]string, len(accounts))
+	votingAuthoritySummary := make([]string, len(accounts))
+	unconfirmedSummary := make([]string, len(accounts))
 
 	for i, account := range accounts {
 
@@ -90,8 +90,8 @@ func (b *balancePage) getAndDisplayBalance(wallet walletcore.Wallet) {
 		balanceSummary[i] = fmt.Sprintf("%s", balanceText)
 		spendableSummary[i] = fmt.Sprintf("%s", account.Balance.Spendable.String())
 		lockedByTicketsSummary[i] = fmt.Sprintf("%s", account.Balance.LockedByTickets.String())
-		VotingAuthoritySummary[i] = fmt.Sprintf("%s", account.Balance.VotingAuthority.String())
-		UnconfirmedSummary[i] = fmt.Sprintf("%s", account.Balance.Unconfirmed.String())
+		votingAuthoritySummary[i] = fmt.Sprintf("%s", account.Balance.VotingAuthority.String())
+		unconfirmedSummary[i] = fmt.Sprintf("%s", account.Balance.Unconfirmed.String())
 
 	}
 
@@ -100,7 +100,7 @@ func (b *balancePage) getAndDisplayBalance(wallet walletcore.Wallet) {
 	b.balanceLabel.SetText(strings.Join(balanceSummary, "\n"))
 	b.spendableLabel.SetText(strings.Join(spendableSummary, "\n"))
 	b.lockedByTicketsLabel.SetText(strings.Join(lockedByTicketsSummary, "\n"))
-	b.VotingAuthorityLabel.SetText(strings.Join(VotingAuthoritySummary, "\n"))
-	b.UnconfirmedLabel.SetText(strings.Join(UnconfirmedSummary, "\n"))
+	b.votingAuthorityLabel.SetText(strings.Join(votingAuthoritySummary, "\n"))
+	b.unconfirmedLabel.SetText(strings.Join(unconfirmedSummary, "\n"))
 
 }
