@@ -5,9 +5,13 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"sync"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
+	"github.com/raedahgroup/godcr/nuklear/assets"
 	"golang.org/x/image/font"
 )
 
@@ -15,12 +19,19 @@ var (
 	whiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
-	fontSize               = 13
-	defaultFont            font.Face
+	PageHeaderFont         font.Face
+	PageContentFont        font.Face
+	NavFont                font.Face
 )
 
 const (
-	scaling = 1.8
+	scaling             = 1.8
+	pageHeaderFontSize  = 13
+	pageHeaderFontDPI   = 72
+	pageContentFontSize = 8
+	pageContentFontDPI  = 70
+	navFontSize         = 11
+	navFontDPI          = 62
 )
 
 var colorTable = nstyle.ColorTable{
@@ -54,6 +65,37 @@ var colorTable = nstyle.ColorTable{
 	ColorTabHeader:             color.RGBA{0x89, 0x89, 0x89, 0xff},
 }
 
+func getFont(fontSize, DPI int, asset string) font.Face {
+	var ttfont *truetype.Font
+	var fontInit sync.Once
+
+	fontInit.Do(func() {
+		fontData, _ := assets.Asset(asset)
+		ttfont, _ = freetype.ParseFont(fontData)
+	})
+
+	size := int(float64(fontSize) * scaling)
+	options := &truetype.Options{
+		Size:    float64(size),
+		Hinting: font.HintingFull,
+		DPI:     float64(DPI),
+	}
+
+	return truetype.NewFace(ttfont, options)
+}
+
+func InitFonts() {
+	NavFont = getFont(navFontSize, navFontDPI, "font/Roboto-Medium.ttf")
+	PageHeaderFont = getFont(pageHeaderFontSize, pageHeaderFontDPI, "font/Roboto-Medium.ttf")
+	PageContentFont = getFont(pageContentFontSize, pageContentFontDPI, "font/Roboto-Light.ttf")
+}
+
+func SetFont(window *nucular.Window, font font.Face) {
+	style := window.Master().Style()
+	style.Font = font
+	window.Master().SetStyle(style)
+}
+
 func GetStyle() *nstyle.Style {
 	style := nstyle.FromTable(colorTable, scaling)
 
@@ -74,10 +116,11 @@ func SetNavStyle(window nucular.MasterWindow) {
 	style.GroupWindow.FixedBackground.Data.Color = navBackgroundColor
 	style.GroupWindow.Padding = image.Point{0, 0}
 
-	style.Button.Padding = image.Point{43, 20}
+	style.Button.Padding = image.Point{33, 5}
 	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.TextHover = whiteColor
+	style.Font = NavFont
 
 	window.SetStyle(style)
 }

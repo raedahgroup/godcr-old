@@ -33,6 +33,7 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 			if handler.err != nil {
 				content.SetErrorMessage(handler.err.Error())
 			} else {
+				helpers.SetFont(w, helpers.NavFont)
 				content.Row(20).Ratio(0.12, 0.12, 0.15, 0.15, 0.26, 0.20)
 				content.Label("Account", "LC")
 				content.Label("Total", "LC")
@@ -42,6 +43,7 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 				content.Label("Unconfirmed", "LC")
 
 				// rows
+				helpers.SetFont(w, helpers.PageContentFont)
 				for _, v := range handler.accounts {
 					content.Label(v.Name, "LC")
 					content.Label(helpers.AmountToString(v.Balance.Total.ToCoin()), "LC")

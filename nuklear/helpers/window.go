@@ -37,11 +37,10 @@ func (w *Window) DrawHeader(title string) {
 		out.FillRect(bounds, 0, whiteColor)
 	}
 
-	font := w.Master().Style().Font
 	bounds.Y += 25
 	bounds.X += 30
 
-	out.DrawText(bounds, title, font, colorTable.ColorText)
+	out.DrawText(bounds, title, PageHeaderFont, colorTable.ColorText)
 }
 
 func (w *Window) ContentWindow(title string) *Window {
@@ -58,6 +57,7 @@ func (w *Window) SetErrorMessage(message string) {
 func (w *Window) Style() {
 	style := w.Master().Style()
 	style.GroupWindow.Padding = image.Point{20, 20}
+	style.Font = PageContentFont
 
 	w.Master().SetStyle(style)
 }

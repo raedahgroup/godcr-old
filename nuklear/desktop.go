@@ -35,6 +35,9 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	window.SetStyle(helpers.GetStyle())
 	desktop.masterWindow = window
 
+	// initialize fonts for later use
+	helpers.InitFonts()
+
 	// register handlers
 	handlers := getHandlers()
 	desktop.handlers = make(map[string]Handler, len(handlers))
