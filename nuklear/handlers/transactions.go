@@ -24,7 +24,7 @@ func (handler *TransactionsHandler) BeforeRender() {
 func (handler *TransactionsHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		go handler.fetchTransactions(wallet)
+		go handler.fetchTransactions(wallet, window)
 	}
 
 	// draw page
@@ -58,7 +58,7 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, wallet wallet
 					}
 				}
 			} else {
-				widgets.ShowIsFetching(contentWindow)
+				widgets.Run("loading", contentWindow.Window, func() {})
 			}
 			contentWindow.End()
 		}
@@ -66,7 +66,8 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, wallet wallet
 	}
 }
 
-func (handler *TransactionsHandler) fetchTransactions(wallet walletcore.Wallet) {
+func (handler *TransactionsHandler) fetchTransactions(wallet walletcore.Wallet, window *nucular.Window) {
 	handler.transactions, handler.err = wallet.TransactionHistory()
 	handler.hasFetchedTransactions = true
+	window.Master().Changed()
 }

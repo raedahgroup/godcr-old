@@ -1,10 +1,25 @@
 package widgets
 
 import (
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/aarzilli/nucular"
 )
 
-func ShowIsFetching(window *helpers.Window) {
-	window.Row(30).Dynamic(1)
-	window.Label("Fetching data...", "LC")
+type LoadingWidget struct {
+	window *nucular.Window
+}
+
+func NewLoadingWidget() Widget {
+	return &LoadingWidget{}
+}
+
+func (l *LoadingWidget) BeforeRender(window *nucular.Window) {
+	l.window = window
+}
+
+func (l *LoadingWidget) Render(finishHandler func()) {
+	l.window.Row(30).Dynamic(1)
+	l.window.Label("Fetching data...", "LC")
+}
+
+func (l *LoadingWidget) AfterRender() {
 }
