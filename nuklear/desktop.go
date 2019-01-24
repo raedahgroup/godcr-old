@@ -15,6 +15,9 @@ import (
 const (
 	navWidth = 260
 	homePage = "balance"
+
+	contentPaneXOffset      = 45
+	contentPaneWidthPadding = 55
 )
 
 type Desktop struct {
@@ -75,25 +78,25 @@ func (desktop *Desktop) render(w *nucular.Window) {
 		W: navWidth,
 		H: area.H,
 	}
-
 	w.LayoutSpacePushScaled(navRect)
+
 	// render nav
 	helpers.SetNavStyle(desktop.masterWindow)
-	if contentWindow := helpers.NewWindow("Navigation Group", w, 0); contentWindow != nil {
-		contentWindow.Row(40).Dynamic(1)
+	if navWindow := helpers.NewWindow("Navigation Group", w, 0); navWindow != nil {
+		navWindow.Row(40).Dynamic(1)
 		for _, handler := range getHandlers() {
-			if contentWindow.Button(label.TA(handler.navLabel, "LC"), false) {
+			if navWindow.Button(label.TA(handler.navLabel, "LC"), false) {
 				desktop.changePage(handler.name)
 			}
 		}
-		contentWindow.GroupEnd()
+		navWindow.End()
 	}
 
 	// create content pane
 	contentRect := rect.Rect{
-		X: navWidth - 45,
+		X: navWidth - contentPaneXOffset,
 		Y: 0,
-		W: (area.W + 55) - navWidth,
+		W: (area.W + contentPaneWidthPadding) - navWidth,
 		H: area.H,
 	}
 
@@ -103,13 +106,15 @@ func (desktop *Desktop) render(w *nucular.Window) {
 	helpers.SetPageStyle(desktop.masterWindow)
 
 	w.LayoutSpacePushScaled(contentRect)
-	handler := desktop.handlers[desktop.currentPage]
 	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
 		desktop.changePage(homePage)
 		return
 	}
 
+	handler := desktop.handlers[desktop.currentPage]
+
 	// ensure that the handler's BeforeRender function is called only once per page call
+	// as it initializes page variables
 	if desktop.pageChanged {
 		handler.BeforeRender()
 		desktop.pageChanged = false
