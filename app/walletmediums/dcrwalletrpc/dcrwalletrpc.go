@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/godcr/app/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -34,13 +37,66 @@ var (
 )
 
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
-// create a WalletServiceClient using the established connection and
+// create a WalletServiceClient using the established connection. If the specified address did not connect,
+// the RPC address is retreived from dcrwallet config file and if this fail, the default address is used.
 // returns an instance of `dcrwalletrpc.Client`
 func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-	// check if user has provided enough information to attempt connecting to dcrwallet
-	if rpcAddress == "" {
-		return nil, errors.New("you must set walletrpcserver in config file to use wallet rpc")
+	walletRPCClient, originalConnectionError := createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	if originalConnectionError == nil {
+		return walletRPCClient, originalConnectionError
 	}
+	dcrwalletConfAddresses, dcrwalletConfNoTLS, dcrwalletConfCert, err := connectionParamsFromDcrwalletConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Cannot connect to %s. Trying to check dcrwallet config for different address failed. %s", rpcAddress, err.Error())
+	}
+
+	if dcrwalletConfCert != "" {
+		rpcCert = dcrwalletConfCert
+	}
+	noTLS = dcrwalletConfNoTLS
+
+	if walletRPCClient = useParsedConfigAddresses(ctx, dcrwalletConfAddresses, rpcCert, noTLS); walletRPCClient != nil {
+		return walletRPCClient, nil
+	}
+
+	if walletRPCClient = connectToDefaultAddresses(ctx, rpcCert, noTLS); walletRPCClient != nil {
+		return walletRPCClient, nil
+	}
+
+	return nil, originalConnectionError
+}
+
+func useParsedConfigAddresses(ctx context.Context, addresses []string, rpcCert string, noTLS bool) (walletRPCClient *WalletRPCClient) {
+	for _, address := range addresses {
+		walletRPCClient, _ = createConnection(ctx, address, rpcCert, noTLS)
+		if walletRPCClient != nil {
+			config.UpdateConfigFile("walletrpcserver", address, true)
+			return
+		}
+	}
+	return
+}
+
+func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) (walletRPCClient *WalletRPCClient) {
+	// try connecting with default testnet3 params
+	testnetAddress := net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
+	walletRPCClient, _ = createConnection(ctx, testnetAddress, rpcCert, noTLS)
+	if walletRPCClient != nil {
+		config.UpdateConfigFile("walletrpcserver", testnetAddress, true)
+		return
+	}
+
+	// try connecting with default mainnet params
+	mainnetAddress := net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
+	walletRPCClient, _ = createConnection(ctx, mainnetAddress, rpcCert, noTLS)
+	if walletRPCClient != nil {
+		config.UpdateConfigFile("walletrpcserver", mainnetAddress, true)
+		return
+	}
+	return
+}
+
+func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
 	if !noTLS && rpcCert == "" {
 		return nil, errors.New("set dcrwallet rpc certificate path in config file or disable tls for dcrwallet connection")
 	}
@@ -71,23 +127,6 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 		}
 
 		return client, nil
-	}
-}
-
-func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.Params, err error) {
-	req := &walletrpc.NetworkRequest{}
-	res, err := walletService.Network(context.Background(), req)
-	if err != nil {
-		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
-	}
-
-	switch res.GetActiveNetwork() {
-	case uint32(wire.MainNet):
-		return &chaincfg.MainNetParams, nil
-	case uint32(wire.TestNet3):
-		return &chaincfg.TestNet3Params, nil
-	default:
-		return nil, errors.New("unknown network type")
 	}
 }
 
@@ -125,5 +164,22 @@ func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
 
 		grpcConnectionOptions = append(grpcConnectionOptions, grpc.WithTransportCredentials(creds))
 		conn, err = grpc.Dial(rpcAddress, grpcConnectionOptions...)
+	}
+}
+
+func getNetParam(walletService walletrpc.WalletServiceClient) (param *chaincfg.Params, err error) {
+	req := &walletrpc.NetworkRequest{}
+	res, err := walletService.Network(context.Background(), req)
+	if err != nil {
+		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
+	}
+
+	switch res.GetActiveNetwork() {
+	case uint32(wire.MainNet):
+		return &chaincfg.MainNetParams, nil
+	case uint32(wire.TestNet3):
+		return &chaincfg.TestNet3Params, nil
+	default:
+		return nil, errors.New("unknown network type")
 	}
 }
