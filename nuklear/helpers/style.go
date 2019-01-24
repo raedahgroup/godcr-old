@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io/ioutil"
+	"log"
 	"math"
 	"sync"
 
@@ -11,7 +13,6 @@ import (
 	nstyle "github.com/aarzilli/nucular/style"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/raedahgroup/godcr/nuklear/assets"
 	"golang.org/x/image/font"
 )
 
@@ -70,7 +71,11 @@ func getFont(fontSize, DPI int, asset string) font.Face {
 	var fontInit sync.Once
 
 	fontInit.Do(func() {
-		fontData, _ := assets.Asset(asset)
+		fontData, err := ioutil.ReadFile(asset)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		ttfont, _ = freetype.ParseFont(fontData)
 	})
 
@@ -85,9 +90,9 @@ func getFont(fontSize, DPI int, asset string) font.Face {
 }
 
 func InitFonts() {
-	NavFont = getFont(navFontSize, navFontDPI, "font/Roboto-Medium.ttf")
-	PageHeaderFont = getFont(pageHeaderFontSize, pageHeaderFontDPI, "font/Roboto-Medium.ttf")
-	PageContentFont = getFont(pageContentFontSize, pageContentFontDPI, "font/Roboto-Light.ttf")
+	NavFont = getFont(navFontSize, navFontDPI, "nuklear/assets/font/Roboto-Medium.ttf")
+	PageHeaderFont = getFont(pageHeaderFontSize, pageHeaderFontDPI, "nuklear/assets/font/Roboto-Medium.ttf")
+	PageContentFont = getFont(pageContentFontSize, pageContentFontDPI, "nuklear/assets/font/Roboto-Light.ttf")
 }
 
 func SetFont(window *nucular.Window, font font.Face) {
