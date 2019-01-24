@@ -37,5 +37,5 @@ func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 		return err
 	}
 
-	return walletloader.SyncBlockChain(ctx, walletMiddleware)
+	return walletloader.SyncBlockChain(ctx, walletMiddleware, false)
 }
