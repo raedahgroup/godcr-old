@@ -218,7 +218,7 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 	requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
 	getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
-	if getUnconfirmed != "" && getUnconfirmed == "true" {
+	if getUnconfirmed == "true" {
 		requiredConfirmations = 0
 	}
 

@@ -282,7 +282,7 @@ $(function(){
         }
     });
 
-    $("#add-destination-btn").on("click", function (e) {
+    $("#add-destination-btn").on("click", function () {
         newDestination();
         $("#remove-destination-btn").show();
     })
