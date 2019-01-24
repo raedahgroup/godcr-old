@@ -181,22 +181,23 @@ function submitSendForm() {
  *                    MULTI-ADDRESS FUNCTIONS                        *
  *===================================================================*/
 function newDestination() {
-    let html = `<div class="col-md-6 col-sm-12">
-                    <div class="form-group">
-                        <label>Destination Address</label>
-                        <input type="text" class="form-control" name="destination-address" />
+    let html = `<div class="row">
+                    <div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label>Destination Address</label>
+                            <input type="text" class="form-control" name="destination-address" />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-sm-12">
-                    <div class="form-group">
-                        <label for="amount-">Amount (DCR)</label>
-                        <input type="number" class="form-control amount" name="destination-amount" />
+                    <div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label for="amount-">Amount (DCR)</label>
+                            <input type="number" class="form-control amount" name="destination-amount" />
+                        </div>
                     </div>
                 </div>
     `
     $("#destinations").append(html)
 }
-
 
 /**==================================================================*
  *                    PASSPHRASE FUNCTIONS                           *
@@ -282,7 +283,17 @@ $(function(){
     });
 
     $("#add-destination-btn").on("click", function (e) {
-        newDestination()
+        newDestination();
+        $("#remove-destination-btn").show();
+    })
+
+    $("#remove-destination-btn").hide();
+
+    $("#remove-destination-btn").on("click", function () {
+        $("#destinations .row:last-child").remove();
+        if($("#destinations .row").length < 2) {
+            $("#remove-destination-btn").hide();
+        }
     })
 
     $("#submit-btn").on("click", function(e){
