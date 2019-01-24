@@ -2,9 +2,13 @@
  *                  SEND PAGE FUNCTIONS                              *
  *===================================================================*/
 function validateDestinationFields() {
-    for(let i = 1; i <= destinationCount; i++) {
-        if ($(`#amount-${i}`).val() === "" || $(`#destination-address-${i}`).val() === "") {
+    for (const field of $('#destinations input')) {
+        if ($(field).val() === "") {
             $(".errors").html("<div class='error'>The destination address and amount are required</div>");
+            return false;
+        }
+        if ($(field).hasClass("amount") && !(parseFloat($(field).val()) > 0)) {
+            $(".errors").html("<div class='error'>Amount must be a non-zero positive number</div>");
             return false;
         }
     }
@@ -23,7 +27,7 @@ function validateSendForm() {
 
     isClean = validateDestinationFields();
 
-    if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < $("#amount").val()) ) {
+    if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < getTotalSendAmount()) ) {
         errors.push("The sum of selected inputs is less than send amount");
     }
 
@@ -48,8 +52,8 @@ function getSelectedInputsSum() {
 
 function getTotalSendAmount() {
     let amount = 0;
-    for(let i = 1; i <= destinationCount; i++) {
-        amount += parseFloat($(`#amount-${i}`).val())
+    for (const field of $('#destinations .amount')) {
+        amount += parseFloat($(field).val());
     }
     return amount;
 }
@@ -176,20 +180,17 @@ function submitSendForm() {
 /**==================================================================*
  *                    MULTI-ADDRESS FUNCTIONS                        *
  *===================================================================*/
-var destinationCount = 1;
-
 function newDestination() {
-    destinationCount++;
     let html = `<div class="col-md-6 col-sm-12">
                     <div class="form-group">
-                        <label for="destination-address-${destinationCount}">Destination Address ${destinationCount}</label>
-                        <input type="text" class="form-control" id="destination-address-${destinationCount}" name="destination-address[${destinationCount}]" />
+                        <label>Destination Address</label>
+                        <input type="text" class="form-control" name="destination-address" />
                     </div>
                 </div>
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label for="amount-">Amount (DCR)</label>
-                        <input type="number" class="form-control amount" id="amount-${destinationCount}" name="amount[${destinationCount}]" />
+                        <input type="number" class="form-control amount" name="destination-amount" />
                     </div>
                 </div>
     `
@@ -212,8 +213,10 @@ function validatePassphrase() {
 
 function getWalletPassphraseAndSubmit() {
     var passphraseModal = $("#passphrase-modal");
+    var submitPassphrase = $("#passphrase-submit");
     
-    $("#passphrase-submit").on("click", function(){
+    submitPassphrase.off("click");
+    submitPassphrase.on("click", function(){
         if (validatePassphrase()) {
             passphraseModal.modal('hide');
             submitSendForm();
@@ -279,7 +282,6 @@ $(function(){
     });
 
     $("#add-destination-btn").on("click", function (e) {
-        e.preventDefault();
         newDestination()
     })
 

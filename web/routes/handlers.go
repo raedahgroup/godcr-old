@@ -83,25 +83,21 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	spendUnconfirmed := req.FormValue("spend-unconfirmed")
 	useCustom := req.FormValue("use-custom")
 
-	var sendDestinations []txhelper.TransactionDestination
-	destinationCount := 1
-	for {
-		destAddress := req.FormValue(fmt.Sprintf("destination-address-%d", destinationCount))
-		if destAddress == "" {
-			break
-		}
-		amountStr := req.FormValue(fmt.Sprintf("amount-%d", destinationCount))
-		amount, err := strconv.ParseFloat(amountStr, 64)
+	destinationAddresses := req.Form["destination-address"]
+	destinationAmounts := req.Form["destination-amount"]
+
+	sendDestinations := make([]txhelper.TransactionDestination, len(destinationAddresses))
+	for i := range destinationAddresses {
+		amount, err := strconv.ParseFloat(destinationAmounts[i], 64)
 		if err != nil {
 			data["error"] = err.Error()
 			return
 		}
-		sendDestinations = append(sendDestinations, txhelper.TransactionDestination{
-			Address: destAddress, Amount: amount,
-		})
-		destinationCount++
+		sendDestinations[i] = txhelper.TransactionDestination{
+			Address: destinationAddresses[i],
+			Amount:  amount,
+		}
 	}
-
 
 	account, err := strconv.ParseUint(selectedAccount, 10, 32)
 	if err != nil {
