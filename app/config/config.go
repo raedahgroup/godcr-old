@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/godcr/app"
 )
 
 const (
@@ -19,10 +20,9 @@ var (
 	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
 	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
-	defaultConfigFile          = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
-// Config holds the top-level options for the application and cli-only command options/flags/args
+// Config holds the top-level options/flags for the application
 type Config struct {
 	ConfFileOptions
 	CommandLineOptions
@@ -63,65 +63,76 @@ func defaultFileOptions() ConfFileOptions {
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
-		AppDataDir:        defaultAppDataDir,
-		ConfigFile:        defaultConfigFile,
-		WalletRPCCert:     defaultRPCCertFile,
-		HTTPServerAddress: defaultHTTPServerAddress,
+		ConfFileOptions: defaultFileOptions(),
 	}
 }
 
-// LoadConfig parses program configuration from both the CLI flags and the config file.
-// It returns any non-option arguments encountered, the Config parsed, the parser used, and any
-// error, except errors of type flags.ErrHelp.
-// If ignoreUnknownOptions is true, then unknown options seen on the command line are ignored.
-// However, unknown options in the configuration file must return an error.
-func LoadConfig(ignoreUnknownOptions bool) ([]string, Config, *flags.Parser, error) {
-	// load defaults first
+// LoadConfig parses program configuration from both command-line args and godcr config file, ignoring unknown options and the help flag
+// While unknown options seen on the command line are ignored, unknown options in the configuration file return an error.
+// Returns the parsed config object, any command-line args that could not be parsed and any error encountered
+func LoadConfig() (Config, []string, error) {
+	// check if config file does not exist and create it before proceeding
+	var configFileExists bool
+	if _, err := os.Stat(AppConfigFilePath); os.IsNotExist(err) {
+		configFileExists = createConfigFile()
+	} else if !os.IsNotExist(err) {
+		configFileExists = true
+	}
+
+	// load default config values and create parser object with it
 	config := defaultConfig()
+	parser := flags.NewParser(&config, flags.IgnoreUnknown)
 
-	parser := flags.NewParser(&config, flags.HelpFlag)
-	if ignoreUnknownOptions {
-		parser.Options = parser.Options | flags.IgnoreUnknown
+	// parse command-line args and return any error encountered
+	unknownArgs, err := parser.Parse()
+	if err != nil {
+		return config, unknownArgs, err
 	}
 
-	args, err := parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return args, config, parser, err
+	// check if any of the unknown command-line args belong in the config file and alert user to set such values in config file only
+	if hasConfigFileOption(unknownArgs) {
+		return config, unknownArgs, fmt.Errorf("Unexpected command-line flag/option, "+
+			"see godcr -h for supported command-line flags/options"+
+			"\nSet other flags/options in %s", AppConfigFilePath)
 	}
 
-	if config.ShowVersion {
-		return args, config, parser, fmt.Errorf("%s version: %s\n", app.Name(), app.Version())
+	// if config file doesn't exist, no need to attempt to parse and then re-parse command-line args
+	if !configFileExists {
+		return config, unknownArgs, nil
 	}
 
 	// Load additional config from file
-	err = parseConfigFile(parser, config.ConfigFile)
+	err = parseConfigFile(parser)
 	if err != nil {
-		return args, config, parser, err
+		return config, unknownArgs, err
 	}
 
 	// Parse command line options again to ensure they take precedence.
-	args, err = parser.Parse()
-	if err != nil && !IsFlagErrorType(err, flags.ErrHelp) {
-		return args, config, parser, err
-	}
+	unknownArgs, err = parser.Parse()
 
-	return args, config, parser, nil
+	// return parsed config, unknown args encountered and any error that occurred during last parsing
+	return config, unknownArgs, err
 }
 
-func parseConfigFile(parser *flags.Parser, file string) error {
-	if (parser.Options & flags.IgnoreUnknown) != flags.None {
-		options := parser.Options
-		parser.Options = flags.None
-		defer func() { parser.Options = options }()
-	}
-	err := flags.NewIniParser(parser).ParseFile(file)
-	if err != nil {
-		if _, ok := err.(*os.PathError); !ok {
-			return fmt.Errorf("Error parsing configuration file: %v", err.Error())
+// hasConfigFileOption checks if an unknown arg found in command-line is a config file option that should only be set in the config file
+func hasConfigFileOption(unknownArgs []string) bool {
+	configFileOptions := configFileOptions()
+	isConfigFileOption := func(option string) bool {
+		for _, configFileOption := range configFileOptions {
+			if configFileOption == option {
+				return true
+			}
 		}
-		return err
+		return false
 	}
-	return nil
+
+	for _, arg := range unknownArgs {
+		if isConfigFileOption(strings.TrimSpace(arg)) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // configFileOptions returns a slice of the short names and long names of all config file options
