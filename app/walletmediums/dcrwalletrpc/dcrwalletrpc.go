@@ -9,7 +9,7 @@ import (
 
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrdata/netparams"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/godcr/app/config"
 	"google.golang.org/grpc"
