@@ -17,10 +17,8 @@ type walletConfig struct {
 	DisableServerTLS bool            `long:"noservertls" description:"Disable TLS for the RPC servers -- NOTE: This is only allowed if the RPC server is bound to localhost"`
 	RPCCert          *ExplicitString `long:"rpccert" description:"File containing the certificate file"`
 
-	TBOpts ticketBuyerOptions `group:"Ticket Buyer Options" namespace:"ticketbuyer"`
+	TBOpts struct{} `group:"Ticket Buyer Options" namespace:"ticketbuyer"`
 }
-
-type ticketBuyerOptions struct{}
 
 const (
 	defaultWalletConfigFilename = "dcrwallet.conf"
@@ -30,7 +28,7 @@ var (
 	walletConfigFilePath = filepath.Join(config.DefaultDcrwalletAppDataDir, defaultWalletConfigFilename)
 )
 
-func walletAddressFromDcrdwalletConfig() (addresses []string, notls bool, certpath string, err error) {
+func connectionParamsFromDcrwalletConfig() (addresses []string, notls bool, certpath string, err error) {
 	wConfig := walletConfig{}
 
 	parser := flags.NewParser(&wConfig, flags.IgnoreUnknown)
