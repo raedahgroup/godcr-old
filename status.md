@@ -3,8 +3,6 @@
 The current state of godcr is reported below.
 Working features, known bugs and issues, work-in-progress features are all listed.
 
-This document can also serve as a user's manual, showing how godcr works and how the various supported features can be accessed.
-
 ## Running Godcr
 ### General usage
 By default, **godcr** runs as a [cli app](https://en.wikipedia.org/wiki/Command-line_interface) where various wallet operations are performed by issuing commands on the terminal in the format:
@@ -27,11 +25,19 @@ Run `godcr --mode=nuklear`
 Run`godcr --mode=qt`
 
 ## Godcr Features
-| Feature | Description | Implemented | Partly Implemented | Next Steps |
-|---|---|---|---|---|
-| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http, nuklear, qt, tview |  | Allow creating multiple wallets, even if wallet already exists |
-| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | | | Allow creating multiple wallets, even if wallet already exists
-| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | :x: | | Support for this feature should be added to all interfaces |
+All godcr features are listed below. The level of support for each feature can be identified using the following key
+
+| this | means |
+|---|---|
+| :white_check_mark: | Implemented |
+| :ballot_box_with_check: | Partly implemented, needs improvement |
+| :x: | Not implemented |
+
+| Feature | Description | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
+|---|---|---|---|---|---|
+| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br>Ask for network type when creating wallet<br>Seed display confirmation should follow same pattern as dcrandroid |
+| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | | | | Allow creating multiple wallets, even if wallet already exists
+| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | | | all | Support for this feature should be added to all interfaces |
 | balance | Show balance for all accounts in wallet |
 | receive | Generate address to receive funds |
 | send funds (simple) | Send funds to 1 or more decred addresses |
