@@ -39,7 +39,10 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	desktop.masterWindow = window
 
 	// initialize fonts for later use
-	helpers.InitFonts()
+	err := helpers.InitFonts()
+	if err != nil {
+		return nil
+	}
 
 	// register handlers
 	handlers := getHandlers()

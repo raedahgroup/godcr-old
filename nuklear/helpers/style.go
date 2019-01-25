@@ -5,9 +5,7 @@ import (
 	"image"
 	"image/color"
 	"io/ioutil"
-	"log"
 	"math"
-	"sync"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
@@ -66,18 +64,44 @@ var colorTable = nstyle.ColorTable{
 	ColorTabHeader:             color.RGBA{0x89, 0x89, 0x89, 0xff},
 }
 
-func getFont(fontSize, DPI int, asset string) font.Face {
-	var ttfont *truetype.Font
-	var fontInit sync.Once
+func InitFonts() error {
+	robotoMediumFontData, err := readFontFile("nuklear/assets/font/Roboto-Medium.ttf")
+	if err != nil {
+		return err
+	}
 
-	fontInit.Do(func() {
-		fontData, err := ioutil.ReadFile(asset)
-		if err != nil {
-			log.Fatal(err)
-		}
+	robotoLightFontData, err := readFontFile("nuklear/assets/font/Roboto-Light.ttf")
+	if err != nil {
+		return err
+	}
 
-		ttfont, _ = freetype.ParseFont(fontData)
-	})
+	NavFont, err = getFont(navFontSize, navFontDPI, robotoMediumFontData)
+	if err != nil {
+		return err
+	}
+
+	PageHeaderFont, err = getFont(pageHeaderFontSize, pageHeaderFontDPI, robotoMediumFontData)
+	if err != nil {
+		return err
+	}
+
+	PageContentFont, err = getFont(pageContentFontSize, pageContentFontDPI, robotoLightFontData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readFontFile(file string) ([]byte, error) {
+	return ioutil.ReadFile(file)
+}
+
+func getFont(fontSize, DPI int, fontData []byte) (font.Face, error) {
+	ttfont, err := freetype.ParseFont(fontData)
+	if err != nil {
+		return nil, err
+	}
 
 	size := int(float64(fontSize) * scaling)
 	options := &truetype.Options{
@@ -86,13 +110,7 @@ func getFont(fontSize, DPI int, asset string) font.Face {
 		DPI:     float64(DPI),
 	}
 
-	return truetype.NewFace(ttfont, options)
-}
-
-func InitFonts() {
-	NavFont = getFont(navFontSize, navFontDPI, "nuklear/assets/font/Roboto-Medium.ttf")
-	PageHeaderFont = getFont(pageHeaderFontSize, pageHeaderFontDPI, "nuklear/assets/font/Roboto-Medium.ttf")
-	PageContentFont = getFont(pageContentFontSize, pageContentFontDPI, "nuklear/assets/font/Roboto-Light.ttf")
+	return truetype.NewFace(ttfont, options), nil
 }
 
 func SetFont(window *nucular.Window, font font.Face) {
