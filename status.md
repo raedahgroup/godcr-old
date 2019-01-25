@@ -26,20 +26,20 @@ Run `godcr --mode=nuklear`
 4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
 Run`godcr --mode=qt`
 
-## Godcr Features (Summary)
-| Feature | Description | Status | Next Steps |
-|---|---|---|---|
-| create wallet | If no wallet exists, user is asked to create one using this feature. | cli :white_check_mark: <br> http :white_check_mark: <br> nuklear :white_check_mark: <br> qt :white_check_mark: <br> tview :white_check_mark: | Allow creating multiple wallets, even if wallet already exists |
-| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | cli :white_check_mark: <br> http :white_check_mark: <br> nuklear :white_check_mark: <br> qt :white_check_mark: <br> tview :white_check_mark: | Allow creating multiple wallets, even if wallet already exists
-| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | :x: | Support for this feature should be added to all interfaces |
-| balance | Show balance for all accounts in wallet | :white_check_mark: |
-| receive | Generate address to receive funds | :white_check_mark: |
-| send funds (simple) | Send funds to 1 or more decred addresses | :white_check_mark: |
-| send funds (custom) | Similar to above, with ability to customize inputs and change outputs | :white_check_mark: |
-| history | View wallet transaction history | :white_check_mark: |
-| tx detail | Show detailed information for any wallet transaction | :white_check_mark: |
-| stake info | View status of purchased tickets and stake info | :white_check_mark: |
-| purchase ticket(s) | Purchase 1 or more tickets | :white_check_mark: |
+## Godcr Features
+| Feature | Description | Implemented | Partly Implemented | Next Steps |
+|---|---|---|---|---|
+| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http, nuklear, qt, tview |  | Allow creating multiple wallets, even if wallet already exists |
+| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | | | Allow creating multiple wallets, even if wallet already exists
+| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | :x: | | Support for this feature should be added to all interfaces |
+| balance | Show balance for all accounts in wallet |
+| receive | Generate address to receive funds |
+| send funds (simple) | Send funds to 1 or more decred addresses |
+| send funds (custom) | Similar to above, with ability to customize inputs and change outputs |
+| history | View wallet transaction history |
+| tx detail | Show detailed information for any wallet transaction |
+| stake info | View status of purchased tickets and stake info |
+| purchase ticket(s) | Purchase 1 or more tickets |
 
 ## Cli - Known Issues and Additional Information
 #### Sync blockchain
