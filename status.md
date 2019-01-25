@@ -20,15 +20,15 @@ Some features are either only partially implemented (:ballot_box_with_check:) or
 | stake info | cli, http | | nuklear, qt, terminal |
 | purchase ticket(s) | cli, http | | nuklear, qt, terminal |
 
-## Cli - Known Issues and Additional Information
-#### Sync blockchain
+## Known Issues
+#### Sync blockchain (cli only)
 - Unlike in other interfaces, the cli interface does not automatically sync the blockchain before performing wallet operations.
 This may lead to inaccuracy of displayed information or complete inability to perform certain wallet operations such as `send` and `purchasetickets`
 - To circumvent the issue(s) identified above, the `--sync` flag should be used when issuing godcr commands on cli e.g. `godcr send --sync` or `godcr --sync send`. Alternatively, you can set `sync=1` or `sync=true` in `godcr.conf` to always perform a blockchain sync before performing any wallet operation.
 - Also, `godcr --sync` can be run alone, without any command to perform a blockchain sync at any time.
 - The above concerns do not apply if godcr is _properly_ configured to perform wallet operations using dcrwallet rpc.
 
-#### Send and send custom
+#### Send and send custom (cli only)
 - May get `wallet.NetworkBackend: Decred network is unreachable` error when using dcrlibwallet; run the command with `--sync` to successfully send funds
 - When using dcrlibwallet, successful send transactions do not get published to the blockchain immediately.
 The sending account is debited, but the recipient doesn't get the funds until after a while.
