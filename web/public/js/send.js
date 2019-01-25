@@ -1,12 +1,17 @@
 /**==================================================================*
  *                  SEND PAGE FUNCTIONS                              *
  *===================================================================*/
-function validateAmountField() { 
-    if ($("#amount").val() === "") {
-        $(".errors").html("<div class='error'>Please enter an amount first</div>");
-        return false;
+function validateDestinationFields() {
+    for (const field of $('#destinations input')) {
+        if ($(field).val() === "") {
+            $(".errors").html("<div class='error'>The destination address and amount are required</div>");
+            return false;
+        }
+        if ($(field).hasClass("amount") && !(parseFloat($(field).val()) > 0)) {
+            $(".errors").html("<div class='error'>Amount must be a non-zero positive number</div>");
+            return false;
+        }
     }
-
     return true;
 }
 
@@ -20,13 +25,9 @@ function validateSendForm() {
         errors.push("The source account is required");
     }
 
-    isClean = validateAmountField();
+    isClean = validateDestinationFields();
 
-    if ($("#destination-address").val() === "") {
-        errors.push("The destination address is required");
-    }
-
-    if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < $("#amount").val()) ) {
+    if ($("#use-custom").prop("checked") && (getSelectedInputsSum() < getTotalSendAmount()) ) {
         errors.push("The sum of selected inputs is less than send amount");
     }
 
@@ -49,8 +50,16 @@ function getSelectedInputsSum() {
     return sum
 }
 
+function getTotalSendAmount() {
+    let amount = 0;
+    for (const field of $('#destinations .amount')) {
+        amount += parseFloat($(field).val());
+    }
+    return amount;
+}
+
 function calculateSelectedInputPercentage() {
-    var sendAmount = $("#amount").val();
+    var sendAmount = getTotalSendAmount();
     var selectedInputSum = getSelectedInputsSum();
     var percentage = 0;
 
@@ -83,9 +92,10 @@ function openCustomizePanel(get_unconfirmed) {
             var dcrAmount = tx.amount / 100000000;
             return  "<tr>" + 
                         "<td width='5%'><input type='checkbox' class='custom-input' name='utxo' value="+ tx.key+" data-amount='" + dcrAmount + "' /></td>" +
-                        "<td width='50%'>" + tx.key + "</td>" + 
-                        "<td width='20%'>" + dcrAmount + " DCR</td>" + 
-                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' '); + "</td>" +
+                        "<td width='40%'>" + tx.address + "</td>" +
+                        "<td width='15%'>" + dcrAmount + " DCR</td>" +
+                        "<td width='25%'>" + receiveDateTime.toString().split(' ').slice(0,5).join(' ') + "</td>" +
+                        "<td width='15%'>" + tx.confirmations + " confirmation(s)</td>" +
                     "</tr>"
         });
         $("#custom-tx-row tbody").html(utxoHtml.join('\n'));
@@ -96,8 +106,8 @@ function openCustomizePanel(get_unconfirmed) {
            calculateSelectedInputPercentage();
         });
 
-        $("#amount").on("keyup", function(){
-            validateAmountField();
+        $("#destinations").on("keyup", ".amount", function(){
+            validateDestinationFields();
             calculateSelectedInputPercentage();
         });
     }
@@ -168,6 +178,28 @@ function submitSendForm() {
 }
 
 /**==================================================================*
+ *                    MULTI-ADDRESS FUNCTIONS                        *
+ *===================================================================*/
+function newDestination() {
+    let html = `<div class="row">
+                    <div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label>Destination Address</label>
+                            <input type="text" class="form-control" name="destination-address" />
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label for="amount-">Amount (DCR)</label>
+                            <input type="number" class="form-control amount" name="destination-amount" />
+                        </div>
+                    </div>
+                </div>
+    `
+    $("#destinations").append(html)
+}
+
+/**==================================================================*
  *                    PASSPHRASE FUNCTIONS                           *
  *===================================================================*/
 
@@ -182,8 +214,10 @@ function validatePassphrase() {
 
 function getWalletPassphraseAndSubmit() {
     var passphraseModal = $("#passphrase-modal");
+    var submitPassphrase = $("#passphrase-submit");
     
-    $("#passphrase-submit").on("click", function(){
+    submitPassphrase.off("click");
+    submitPassphrase.on("click", function(){
         if (validatePassphrase()) {
             passphraseModal.modal('hide');
             submitSendForm();
@@ -216,7 +250,7 @@ function clearMessages() {
 $(function(){
     $("#use-custom").on("change", function(){
         if (this.checked) {
-            if (validateAmountField()) {
+            if (validateDestinationFields()) {
                 $(".errors").empty();
                 var get_unconfirmed = false;
                 if ($("#spend-unconfirmed").is(":checked")) {
@@ -247,6 +281,20 @@ $(function(){
             openCustomizePanel(get_unconfirmed_utxos);
         }
     });
+
+    $("#add-destination-btn").on("click", function () {
+        newDestination();
+        $("#remove-destination-btn").show();
+    })
+
+    $("#remove-destination-btn").hide();
+
+    $("#remove-destination-btn").on("click", function () {
+        $("#destinations .row:last-child").remove();
+        if($("#destinations .row").length < 2) {
+            $("#remove-destination-btn").hide();
+        }
+    })
 
     $("#submit-btn").on("click", function(e){
         e.preventDefault();
