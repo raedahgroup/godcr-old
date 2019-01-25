@@ -118,6 +118,9 @@ The config file is where you set most options used by the godcr app, such as:
 
 Run `godcr -h` to see the location of the config file. Open the file with a text editor to see all customizable options.
 
+### Features
+[Go here](status.md) to view updated information about implemented features and known issues and workarounds.
+
 ## Contributing 
 
 See the CONTRIBUTING.md file for details. Here's an overview:
