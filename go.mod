@@ -13,6 +13,7 @@ require (
 	github.com/decred/dcrwallet/walletseed v1.0.1
 	github.com/gdamore/tcell v1.1.1 // indirect
 	github.com/go-chi/chi v3.3.3+incompatible
+	github.com/golang/freetype v0.0.0-20161208064710-d9be45aaf745
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190108195612-81f0df0be7a3
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
