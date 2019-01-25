@@ -38,14 +38,14 @@ All godcr features are listed below. The level of support for each feature can b
 | create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
 | sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br><br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists
 | sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | | | all | Support for this feature should be added to all interfaces |
-| balance | Show balance for all accounts in wallet |
-| receive | Generate address to receive funds |
-| send funds (simple) | Send funds to 1 or more decred addresses |
-| send funds (custom) | Similar to above, with ability to customize inputs and change outputs |
-| history | View wallet transaction history |
-| tx detail | Show detailed information for any wallet transaction |
-| stake info | View status of purchased tickets and stake info |
-| purchase ticket(s) | Purchase 1 or more tickets |
+| balance | Show balance for all accounts in wallet | cli, http | nuklear, qt | terminal |
+| receive | Generate address to receive funds | cli, http, nuklear | | qt, terminal |
+| send funds (simple) | Send funds to 1 or more decred addresses | cli, http | | nuklear, qt, terminal |
+| send funds (custom) | Similar to above, with ability to customize inputs and change outputs | cli | http | nuklear, qt, terminal |
+| history | View wallet transaction history | cli, http | | nuklear, qt, terminal |
+| tx detail | Show detailed information for any wallet transaction | cli, http | | nuklear, qt, terminal |
+| stake info | View status of purchased tickets and stake info | cli, http | | nuklear, qt, terminal |
+| purchase ticket(s) | Purchase 1 or more tickets | cli, http | | nuklear, qt, terminal |
 
 ## Cli - Known Issues and Additional Information
 #### Sync blockchain
@@ -54,3 +54,10 @@ This may lead to inaccuracy of displayed information or complete inability to pe
 - To circumvent the issue(s) identified above, the `--sync` flag should be used when issuing godcr commands on cli e.g. `godcr send --sync` or `godcr --sync send`. Alternatively, you can set `sync=1` or `sync=true` in `godcr.conf` to always perform a blockchain sync before performing any wallet operation.
 - Also, `godcr --sync` can be run alone, without any command to perform a blockchain sync at any time.
 - The above concerns do not apply if godcr is _properly_ configured to perform wallet operations using dcrwallet rpc.
+
+### Send and send custom
+- May get `wallet.NetworkBackend: Decred network is unreachable` error when using dcrlibwallet; run the command with `--sync` to successfully send funds
+- When using dcrlibwallet, successful send transactions do not get published to the blockchain immediately.
+The sending account is debited, but the recipient doesn't get the funds until after a while.
+There's no solution for this at this time.
+It is possible (but not confirmed) that running `godcr --sync` after a send transaction could ensure the transaction gets published to the blockchain.
