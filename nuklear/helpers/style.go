@@ -1,14 +1,16 @@
-package nuklear
+package helpers
 
 import (
 	"fmt"
 	"image"
 	"image/color"
+	"io/ioutil"
 	"math"
 
 	"github.com/aarzilli/nucular"
-	"github.com/aarzilli/nucular/rect"
 	nstyle "github.com/aarzilli/nucular/style"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
 
@@ -16,12 +18,19 @@ var (
 	whiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
-	fontSize               = 13
-	defaultFont            font.Face
+	PageHeaderFont         font.Face
+	PageContentFont        font.Face
+	NavFont                font.Face
 )
 
 const (
-	scaling = 1.8
+	scaling             = 1.8
+	pageHeaderFontSize  = 13
+	pageHeaderFontDPI   = 72
+	pageContentFontSize = 8
+	pageContentFontDPI  = 70
+	navFontSize         = 11
+	navFontDPI          = 62
 )
 
 var colorTable = nstyle.ColorTable{
@@ -55,63 +64,58 @@ var colorTable = nstyle.ColorTable{
 	ColorTabHeader:             color.RGBA{0x89, 0x89, 0x89, 0xff},
 }
 
-type window struct {
-	*nucular.Window
-}
-
-func newWindow(title string, w *nucular.Window, flags nucular.WindowFlags) *window {
-	if nw := w.GroupBegin(title, flags); nw != nil {
-		return &window{
-			nw,
-		}
+func InitFonts() error {
+	robotoMediumFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Medium.ttf")
+	if err != nil {
+		return err
 	}
+
+	robotoLightFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Light.ttf")
+	if err != nil {
+		return err
+	}
+
+	NavFont, err = getFont(navFontSize, navFontDPI, robotoMediumFontData)
+	if err != nil {
+		return err
+	}
+
+	PageHeaderFont, err = getFont(pageHeaderFontSize, pageHeaderFontDPI, robotoMediumFontData)
+	if err != nil {
+		return err
+	}
+
+	PageContentFont, err = getFont(pageContentFontSize, pageContentFontDPI, robotoLightFontData)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (w *window) header(title string) {
-	w.Row(40).Dynamic(1)
-	bounds := rect.Rect{
-		X: contentArea.X,
-		Y: contentArea.Y,
-		W: contentArea.W,
-		H: 80,
+func getFont(fontSize, DPI int, fontData []byte) (font.Face, error) {
+	ttfont, err := freetype.ParseFont(fontData)
+	if err != nil {
+		return nil, err
 	}
 
-	_, out := w.Custom(nstyle.WidgetStateActive)
-	if out != nil {
-		out.FillRect(bounds, 0, whiteColor)
+	size := int(float64(fontSize) * scaling)
+	options := &truetype.Options{
+		Size:    float64(size),
+		Hinting: font.HintingFull,
+		DPI:     float64(DPI),
 	}
 
-	font := w.Master().Style().Font
-	bounds.Y += 25
-	bounds.X += 30
-
-	out.DrawText(bounds, title, font, colorTable.ColorText)
+	return truetype.NewFace(ttfont, options), nil
 }
 
-func (w *window) contentWindow(title string) *window {
-	w.Row(0).Dynamic(1)
-	w.style()
-	return newWindow(title, w.Window, 0)
+func SetFont(window *nucular.Window, font font.Face) {
+	style := window.Master().Style()
+	style.Font = font
+	window.Master().SetStyle(style)
 }
 
-func (w *window) setErrorMessage(message string) {
-	w.Row(300).Dynamic(1)
-	w.LabelWrap(message)
-}
-
-func (w *window) style() {
-	style := w.Master().Style()
-	style.GroupWindow.Padding = image.Point{20, 20}
-
-	w.Master().SetStyle(style)
-}
-
-func (w *window) end() {
-	w.GroupEnd()
-}
-
-func getStyle() *nstyle.Style {
+func GetStyle() *nstyle.Style {
 	style := nstyle.FromTable(colorTable, scaling)
 
 	/**window**/
@@ -125,28 +129,29 @@ func getStyle() *nstyle.Style {
 	return style
 }
 
-func setNavStyle(window nucular.MasterWindow) {
+func SetNavStyle(window nucular.MasterWindow) {
 	style := window.Style()
 	// nav window background color
 	style.GroupWindow.FixedBackground.Data.Color = navBackgroundColor
 	style.GroupWindow.Padding = image.Point{0, 0}
 
-	style.Button.Padding = image.Point{43, 20}
+	style.Button.Padding = image.Point{33, 5}
 	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.TextHover = whiteColor
+	style.Font = NavFont
 
 	window.SetStyle(style)
 }
 
-func (d *Desktop) setPageStyle() {
-	style := d.window.Style()
+func SetPageStyle(w nucular.MasterWindow) {
+	style := w.Style()
 	style.GroupWindow.FixedBackground.Data.Color = contentBackgroundColor
 
-	d.window.SetStyle(style)
+	w.SetStyle(style)
 }
 
-func amountToString(amount float64) string {
+func AmountToString(amount float64) string {
 	amount = math.Round(amount)
 	return fmt.Sprintf("%d DCR", int(amount))
 }
