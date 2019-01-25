@@ -24,27 +24,22 @@ Run`godcr --mode=qt`
 ## Understanding this 
 
 ## Godcr Features
-The list of features available on godcr is maintained below. The level of support for each feature can be identified using the following key
+The list of features available on godcr is maintained below.
+Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some interfaces
 
-| this | means |
-|---|---|
-| :white_check_mark: | Implemented |
-| :ballot_box_with_check: | Partly implemented, needs improvement |
-| :x: | Not implemented |
-
-| Feature | Description | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
-|---|---|---|---|---|---|
-| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
-| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br><br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists
-| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | | | all | Support for this feature should be added to all interfaces |
-| balance | Show balance for all accounts in wallet | cli, http | nuklear, qt | terminal |
-| receive | Generate address to receive funds | cli, http, nuklear | | qt, terminal |
-| send funds (simple) | Send funds to 1 or more decred addresses | cli, http | | nuklear, qt, terminal |
-| send funds (custom) | Similar to above, with ability to customize inputs and change outputs | cli | http | nuklear, qt, terminal |
-| history | View wallet transaction history | cli, http | | nuklear, qt, terminal |
-| tx detail | Show detailed information for any wallet transaction | cli, http | | nuklear, qt, terminal |
-| stake info | View status of purchased tickets and stake info | cli, http | | nuklear, qt, terminal |
-| purchase ticket(s) | Purchase 1 or more tickets | cli, http | | nuklear, qt, terminal |
+| Feature | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
+|---|---|---|---|---|
+| create wallet | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
+| sync blockchain (spv) | Allow creating multiple wallets, even if wallet already exists
+| sync blockchain (rpc) | | | all | Support for this feature should be added to all interfaces |
+| balance | cli, http | nuklear, qt | terminal |
+| receive | cli, http, nuklear | | qt, terminal |
+| send funds (simple) | cli, http | | nuklear, qt, terminal |
+| send funds (custom) | cli | http | nuklear, qt, terminal |
+| history | cli, http | | nuklear, qt, terminal |
+| tx detail | cli, http | | nuklear, qt, terminal |
+| stake info | cli, http | | nuklear, qt, terminal |
+| purchase ticket(s) | cli, http | | nuklear, qt, terminal |
 
 ## Cli - Known Issues and Additional Information
 #### Sync blockchain
