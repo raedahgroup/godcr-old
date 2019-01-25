@@ -26,32 +26,25 @@ Run `godcr --mode=nuklear`
 4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
 Run`godcr --mode=qt`
 
-## Godcr Features
-The following table lists all features Godcr currently supports, and the level to which each feature is supported on each interface.
+## Godcr Features (Summary)
+| Feature | Description | Status | Next Steps |
+|---|---|---|---|
+| create wallet | If no wallet exists, user is asked to create one using this feature. | cli :white_check_mark: <br> http :white_check_mark: <br> nuklear :white_check_mark: <br> qt :white_check_mark: <br> tview :white_check_mark: | Allow creating multiple wallets, even if wallet already exists |
+| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | cli :white_check_mark: <br> http :white_check_mark: <br> nuklear :white_check_mark: <br> qt :white_check_mark: <br> tview :white_check_mark: | Allow creating multiple wallets, even if wallet already exists
+| sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | :x: | Support for this feature should be added to all interfaces |
+| balance | Show balance for all accounts in wallet | :white_check_mark: |
+| receive | Generate address to receive funds | :white_check_mark: |
+| send funds (simple) | Send funds to 1 or more decred addresses | :white_check_mark: |
+| send funds (custom) | Similar to above, with ability to customize inputs and change outputs | :white_check_mark: |
+| history | View wallet transaction history | :white_check_mark: |
+| tx detail | Show detailed information for any wallet transaction | :white_check_mark: |
+| stake info | View status of purchased tickets and stake info | :white_check_mark: |
+| purchase ticket(s) | Purchase 1 or more tickets | :white_check_mark: |
 
-| Feature | cli | http | nuklear | qt | tview
-|---|---|---|---|---|---|
-| create wallet | :white_check_mark: |
-| blockchain sync | :white_check_mark: |
-| balance | :white_check_mark: |
-| receive | :white_check_mark: |
-| send | :white_check_mark: |
-| send custom | :white_check_mark: |
-| history | :white_check_mark: |
-
-**For cli**
-
-| Operation | Status | Notes
-|---|---|---|
-| `dcrcli -v` | :white_check_mark: |
-| `dcrcli [command] -h` | :white_check_mark: |
-| `dcrcli --createwallet` | :white_check_mark: |
-| `dcrcli [command] --sync` | :white_check_mark: |
-| `dcrcli balance [-d/--detailed]` | :white_check_mark: |
-| `dcrcli createaccount <accountName>` _(experimental feature)_ | :white_check_mark: |
-| `dcrcli receive [account-name]` | :white_check_mark: |
-| `dcrcli send` | :white_check_mark: | **requires** `--sync` flag when using `mobilewallet` |
-| `dcrcli send-custom` | :white_check_mark: | **requires** `--sync` flag when using `mobilewallet` |
-| `dcrcli history` | :white_check_mark: |
-
-**For web**
+## Cli - Known Issues and Additional Information
+#### Sync blockchain
+- Unlike in other interfaces, the cli interface does not automatically sync the blockchain before performing wallet operations.
+This may lead to inaccuracy of displayed information or complete inability to perform certain wallet operations such as `send` and `purchasetickets`
+- To circumvent the issue(s) identified above, the `--sync` flag should be used when issuing godcr commands on cli. Alternatively, you can set `sync=1` or `sync=true` in `godcr.conf` to always perform a blockchain sync before performing any wallet operation.
+- Also, `godcr --sync` can be run alone, without any command to perform a blockchin sync at any time.
+- The above concerns do not apply if godcr is _properly_ configured to perform wallet operations using dcrwallet rpc.
