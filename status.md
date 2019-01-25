@@ -28,8 +28,8 @@ Some features are either only partially implemented (:ballot_box_with_check:) or
 | Feature | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
 |---|---|---|---|---|
 | create wallet | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
-| sync blockchain (spv) | Allow creating multiple wallets, even if wallet already exists
-| sync blockchain (rpc) | | | all | Support for this feature should be added to all interfaces |
+| sync blockchain (spv) | cli, http | terminal | nuklear, qt |
+| sync blockchain (rpc) | | | all | Add this feature to all interfaces |
 | balance | cli, http | nuklear, qt | terminal |
 | receive | cli, http, nuklear | | qt, terminal |
 | send funds (simple) | cli, http | | nuklear, qt, terminal |
