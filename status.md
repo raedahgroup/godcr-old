@@ -35,8 +35,8 @@ All godcr features are listed below. The level of support for each feature can b
 
 | Feature | Description | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
 |---|---|---|---|---|---|
-| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br>Ask for network type when creating wallet<br>Seed display confirmation should follow same pattern as dcrandroid |
-| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | | | | Allow creating multiple wallets, even if wallet already exists
+| create wallet | If no wallet exists, user is asked to create one using this feature. | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
+| sync blockchain (spv) | Blockchain sync is performed everytime godcr is launched in gui mode.<br><br>In cli mode, the `--sync` flag is used to trigger a blockchain sync operation. | | | | Allow creating multiple wallets, even if wallet already exists
 | sync blockchain (rpc) | Similar to above feature, syncs blockchain by connecting to a running instance of dcrd over rpc | | | all | Support for this feature should be added to all interfaces |
 | balance | Show balance for all accounts in wallet |
 | receive | Generate address to receive funds |
