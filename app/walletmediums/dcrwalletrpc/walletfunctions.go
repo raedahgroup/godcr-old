@@ -464,6 +464,5 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 }
 
 func (c *WalletRPCClient) ConnectionInfo() string {
-	//return fmt.Sprintf("Connected to %d peers • Latest block %d",NumOfPeers, NBestBlock)
-	return "Not Available"
+	return fmt.Sprintf("Connected to %d peers • Latest block %d", NumOfPeers, NBestBlock)
 }

@@ -72,7 +72,6 @@ func (c *WalletRPCClient) OpenWallet() (err error) {
 // - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user when they next launch godcr
 func (c *WalletRPCClient) CloseWallet() {}
 
-//func (c *WalletRPCClient) BestBlock() {}
 func (c *WalletRPCClient) BestBlock() int64 {
 	ctx := context.Background()
 	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})

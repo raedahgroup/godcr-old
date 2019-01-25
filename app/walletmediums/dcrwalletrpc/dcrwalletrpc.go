@@ -33,6 +33,12 @@ var (
 	rpcConnectionTimeout = 5 * time.Second
 )
 
+// NumOfPeers stores number of peers connected while syncing
+var NumOfPeers int32
+
+// NBestBlock stores latest block while syncing
+var NBestBlock int64
+
 // New establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection and
 // returns an instance of `dcrwalletrpc.Client`

@@ -21,7 +21,7 @@ type Wallet interface {
 	// AccountsOverview returns the name, account number and balance for all accounts in wallet
 	AccountsOverview(requiredConfirmations int32) ([]*Account, error)
 
-	// AccountsOverview returns the name, account number and balance for all accounts in wallet
+	// ConnectionInfo returns string with latest block and number of peers
 	ConnectionInfo() (connection string)
 
 	// NextAccount adds an account to the wallet using the specified name
