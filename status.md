@@ -21,8 +21,6 @@ Run `godcr --mode=nuklear`
 4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
 Run`godcr --mode=qt`
 
-## Understanding this 
-
 ## Godcr Features
 The list of features available on godcr is maintained below.
 Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some interfaces
