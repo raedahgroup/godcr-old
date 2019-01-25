@@ -65,12 +65,12 @@ var colorTable = nstyle.ColorTable{
 }
 
 func InitFonts() error {
-	robotoMediumFontData, err := readFontFile("nuklear/assets/font/Roboto-Medium.ttf")
+	robotoMediumFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Medium.ttf")
 	if err != nil {
 		return err
 	}
 
-	robotoLightFontData, err := readFontFile("nuklear/assets/font/Roboto-Light.ttf")
+	robotoLightFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Light.ttf")
 	if err != nil {
 		return err
 	}
@@ -91,10 +91,6 @@ func InitFonts() error {
 	}
 
 	return nil
-}
-
-func readFontFile(file string) ([]byte, error) {
-	return ioutil.ReadFile(file)
 }
 
 func getFont(fontSize, DPI int, fontData []byte) (font.Face, error) {
