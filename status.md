@@ -1,10 +1,8 @@
-# Godcr Status Report
-
+# Godcr Status
 The current state of godcr is reported below.
 Working features, known bugs and issues, work-in-progress features are all listed.
 
 ## Running Godcr
-### General usage
 By default, **godcr** runs as a [cli app](https://en.wikipedia.org/wiki/Command-line_interface) where various wallet operations are performed by issuing commands on the terminal in the format:
 ```bash
 godcr [options] <command> [args]
@@ -12,7 +10,6 @@ godcr [options] <command> [args]
 - Run `godcr -h` or `godcr help` to get general information of commands and options that can be issued on the cli.
 - Use `godcr <command> -h` or   `godcr help <command>` to get detailed information about a command.
 
-### Godcr GUI
 **godcr** can also be run as a full [GUI app](https://en.wikipedia.org/wiki/Graphical_user_interface) where wallet operations are performed by interacting with a graphical user interface.
 The following GUI interface modes are supported:
 1. Full GUI app on terminal.
@@ -24,8 +21,10 @@ Run `godcr --mode=nuklear`
 4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
 Run`godcr --mode=qt`
 
+## Understanding this 
+
 ## Godcr Features
-All godcr features are listed below. The level of support for each feature can be identified using the following key
+The list of features available on godcr is maintained below. The level of support for each feature can be identified using the following key
 
 | this | means |
 |---|---|
