@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -15,6 +16,6 @@ func (handler *SendHandler) BeforeRender() {
 	handler.hasRendered = true
 }
 
-func (handler *SendHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
+func (handler *SendHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware) {
 
 }

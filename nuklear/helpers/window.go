@@ -34,7 +34,7 @@ func (w *Window) DrawHeader(title string) {
 
 	_, out := w.Custom(nstyle.WidgetStateActive)
 	if out != nil {
-		out.FillRect(bounds, 0, whiteColor)
+		out.FillRect(bounds, 0, WhiteColor)
 	}
 
 	bounds.Y += 25

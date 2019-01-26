@@ -6,6 +6,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 	qrcode "github.com/skip2/go-qrcode"
@@ -34,10 +35,10 @@ func (handler *ReceiveHandler) BeforeRender() {
 	handler.selectedAccountNumber = uint32(0)
 }
 
-func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *ReceiveHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		handler.accounts, handler.err = walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
@@ -70,7 +71,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 					}
 
 					// get address
-					handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.selectedAccountNumber)
+					handler.generatedAddress, handler.err = walletMiddleware.ReceiveAddress(handler.selectedAccountNumber)
 					if handler.err != nil {
 						contentWindow.SetErrorMessage(handler.err.Error())
 					} else {

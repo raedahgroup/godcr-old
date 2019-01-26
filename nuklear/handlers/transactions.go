@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -21,7 +22,7 @@ func (handler *TransactionsHandler) BeforeRender() {
 	handler.hasFetchedTransactions = false
 }
 
-func (handler *TransactionsHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *TransactionsHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		go handler.fetchTransactions(wallet, window)

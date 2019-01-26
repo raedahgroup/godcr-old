@@ -2,13 +2,13 @@ package nuklear
 
 import (
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/handlers"
 )
 
 type Handler interface {
 	BeforeRender()
-	Render(*nucular.Window, walletcore.Wallet)
+	Render(*nucular.Window, app.WalletMiddleware)
 }
 
 type handlersData struct {
@@ -48,6 +48,11 @@ func getHandlers() []handlersData {
 			name:     "purchasetickets",
 			navLabel: "Purchase Tickets",
 			handler:  &handlers.PurchaseTicketsHandler{},
+		},
+		{
+			name:     "createwallet",
+			navLabel: "Create Wallet",
+			handler:  &handlers.CreateWalletHandler{},
 		},
 	}
 }

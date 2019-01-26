@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	whiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	WhiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	DangerColor            = color.RGBA{220, 53, 69, 255}
 	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
 	PageHeaderFont         font.Face
@@ -37,7 +38,7 @@ var colorTable = nstyle.ColorTable{
 	ColorText:                  color.RGBA{106, 106, 106, 255},
 	ColorWindow:                contentBackgroundColor,
 	ColorHeader:                color.RGBA{175, 175, 175, 255},
-	ColorBorder:                color.RGBA{0, 0, 0, 255},
+	ColorBorder:                color.RGBA{206, 212, 218, 255},
 	ColorButton:                color.RGBA{9, 20, 64, 255},
 	ColorButtonHover:           color.RGBA{255, 255, 255, 255},
 	ColorButtonActive:          color.RGBA{0, 153, 204, 255},
@@ -124,7 +125,14 @@ func GetStyle() *nstyle.Style {
 	/**buttons**/
 	style.Button.Rounding = 0
 	style.Button.Border = 0
-	style.Button.TextNormal = whiteColor
+	style.Button.TextNormal = WhiteColor
+
+	/**inputs**/
+	style.Edit.Normal.Data.Color = WhiteColor
+	style.Edit.Active.Data.Color = WhiteColor
+	style.Edit.Hover.Data.Color = WhiteColor
+	style.Edit.Border = 1
+	style.Edit.BorderColor = colorTable.ColorBorder
 
 	return style
 }
@@ -138,17 +146,25 @@ func SetNavStyle(window nucular.MasterWindow) {
 	style.Button.Padding = image.Point{33, 5}
 	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
-	style.Button.TextHover = whiteColor
+	style.Button.TextHover = WhiteColor
 	style.Font = NavFont
 
 	window.SetStyle(style)
 }
 
-func SetPageStyle(w nucular.MasterWindow) {
-	style := w.Style()
+func SetPageStyle(window nucular.MasterWindow) {
+	style := window.Style()
 	style.GroupWindow.FixedBackground.Data.Color = contentBackgroundColor
 
-	w.SetStyle(style)
+	window.SetStyle(style)
+}
+
+func SetNoNavWindowStyle(window nucular.MasterWindow) {
+	style := window.Style()
+	style.GroupWindow.FixedBackground.Data.Color = WhiteColor
+	style.GroupWindow.Padding = image.Point{20, 15}
+
+	window.SetStyle(style)
 }
 
 func AmountToString(amount float64) string {
