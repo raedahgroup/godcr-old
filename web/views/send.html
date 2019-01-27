@@ -2,7 +2,7 @@
 <html lang="en">
 {{ template "html-head" }}
 <body>
-    <div class="body">
+    <div class="body" data-controller="send">
         {{ template "header" }}
         <div class="content">
             <div class="container">
@@ -49,7 +49,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <button id="add-destination-btn" type="button" class="btn btn-sm btn-outline-secondary btn-primary">
+                                    <button id="add-destination-btn" type="button" data-action="click->send#addAnotherAddress" class="btn btn-sm btn-outline-secondary btn-primary">
                                         Add another address
                                     </button> &nbsp;&nbsp; 
                                     <button id="remove-destination-btn" type="button" class="btn btn-sm btn-outline-secondary btn-primary">

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"html/template"
+	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -29,6 +30,9 @@ func templateFuncMap() template.FuncMap {
 		"simpleBalance": walletcore.SimpleBalance,
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
+		},
+		"timestamp": func() int64 {
+			return time.Now().Unix()
 		},
 	}
 }
