@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"html/template"
+	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -36,6 +37,9 @@ func templateFuncMap() template.FuncMap {
 		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
+		},
+		"timestamp": func() int64 {
+			return time.Now().Unix()
 		},
 	}
 }
