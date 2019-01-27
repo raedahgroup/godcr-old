@@ -7,6 +7,7 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/nuklear/handlers"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
@@ -44,15 +45,12 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		return err
 	}
 
-	renderFn := desktop.renderWithNav
 	if !walletExists {
 		desktop.currentPage = "createwallet"
-		renderFn = desktop.renderWithoutNav
-		desktop.pageChanged = true
 	}
 
 	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, renderFn)
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.renderWithNav)
 	window.SetStyle(helpers.GetStyle())
 	desktop.masterWindow = window
 
@@ -73,7 +71,7 @@ func (desktop *Desktop) renderWithoutNav(window *nucular.Window) {
 	window.Row(0).SpaceBeginRatio(1)
 	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
 
-	handler := desktop.handlers[desktop.currentPage]
+	handler := &handlers.CreateWalletHandler{} // for now, only this handler uses the renderWithoutNav function
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
 	if desktop.pageChanged {
@@ -86,6 +84,11 @@ func (desktop *Desktop) renderWithoutNav(window *nucular.Window) {
 }
 
 func (desktop *Desktop) renderWithNav(w *nucular.Window) {
+	if desktop.currentPage == "createwallet" {
+		desktop.renderWithoutNav(w)
+		return
+	}
+
 	area := w.Row(0).SpaceBegin(2)
 
 	// create nav pane

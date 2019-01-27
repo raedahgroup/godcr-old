@@ -13,15 +13,16 @@ type CreateWalletHandler struct {
 	passwordInput        nucular.TextEditor
 	confirmPasswordInput nucular.TextEditor
 	seedBox              nucular.TextEditor
-	walletSeed           string
+	seed                 string
 	hasStoredSeed        bool
+	validationErrors     map[string]string
 }
 
 func (handler *CreateWalletHandler) BeforeRender() {
 	handler.err = nil
 	handler.isRendering = false
 
-	handler.walletSeed = ""
+	handler.seed = ""
 
 	handler.passwordInput.Flags = nucular.EditField
 	handler.passwordInput.PasswordChar = '*'
@@ -33,7 +34,7 @@ func (handler *CreateWalletHandler) BeforeRender() {
 func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.walletSeed, handler.err = wallet.GenerateNewWalletSeed()
+		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
 	}
 
 	if contentWindow := helpers.NewWindow("Create Wallet Window", window, nucular.WindowBorder); contentWindow != nil {
@@ -49,17 +50,29 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 			contentWindow.Label("Wallet Password", "LC")
 			contentWindow.Label("Confirm Password", "LC")
 
-			contentWindow.Row(30).Dynamic(2)
+			contentWindow.Row(20).Dynamic(2)
 			handler.passwordInput.Edit(contentWindow.Window)
 			handler.confirmPasswordInput.Edit(contentWindow.Window)
+
+			passwordError, ok := handler.validationErrors["password"]
+			if ok {
+				contentWindow.LabelColored(passwordError, "LC", helpers.DangerColor)
+			}
+
+			if confirmPasswordError, ok := handler.validationErrors["confirmpassword"]; ok {
+				if passwordError != "" {
+					contentWindow.Label("", "LC")
+				}
+				contentWindow.LabelColored(confirmPasswordError, "LC", helpers.DangerColor)
+			}
 
 			contentWindow.Row(20).Dynamic(1)
 			contentWindow.Label("Wallet Seed", "LC")
 
-			contentWindow.Row(100).Dynamic(1)
+			contentWindow.Row(90).Dynamic(1)
 			if seedWindow := helpers.NewWindow("Seed Window", contentWindow.Window, nucular.WindowBorder); seedWindow != nil {
-				seedWindow.Row(80).Dynamic(1)
-				seedWindow.LabelWrap(handler.walletSeed)
+				seedWindow.Row(60).Dynamic(1)
+				seedWindow.LabelWrap(handler.seed)
 				seedWindow.End()
 			}
 
@@ -68,15 +81,53 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 				helpers.DangerColor,
 			)
 
-			contentWindow.Row(39).Dynamic(1)
+			contentWindow.Row(30).Dynamic(2)
 			contentWindow.CheckboxText("I've stored the seed in a safe and secure location", &handler.hasStoredSeed)
+			if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
+				contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.DangerColor)
+			}
 
 			contentWindow.Row(30).Static(200)
 			if contentWindow.Button(label.T("Create Wallet"), false) {
-
+				if !handler.hasErrors() {
+					handler.submitForm(wallet)
+				}
+				contentWindow.Master().Changed()
 			}
 		}
-
 		contentWindow.End()
 	}
+}
+
+func (handler *CreateWalletHandler) hasErrors() bool {
+	handler.validationErrors = make(map[string]string)
+
+	password := string(handler.passwordInput.Buffer)
+	confirmPassword := string(handler.confirmPasswordInput.Buffer)
+	hasStoredSeed := handler.hasStoredSeed
+
+	if password == "" {
+		handler.validationErrors["password"] = "Wallet password is required"
+	}
+
+	if confirmPassword == "" {
+		handler.validationErrors["confirmpassword"] = "Please confirm wallet password"
+	}
+
+	if password != "" && confirmPassword != "" && password != confirmPassword {
+		handler.validationErrors["confirmpassword"] = "Both passwords do not match"
+	}
+
+	if !hasStoredSeed {
+		handler.validationErrors["hasstoredseed"] = "Please store seed and check this box"
+	}
+
+	if len(handler.validationErrors) > 0 {
+		return true
+	}
+	return false
+}
+
+func (handler *CreateWalletHandler) submitForm(wallet app.WalletMiddleware) {
+	handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
 }
