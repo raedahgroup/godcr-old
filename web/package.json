@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "axios": "^0.18.0",
     "webpack-merge": "^4.2.1"
   },
   "devDependencies": {

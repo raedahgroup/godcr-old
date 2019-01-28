@@ -107,3 +107,17 @@ select#source-account[disabled] {
     -webkit-appearance: none;
     -moz-appearance: none;
 }
+
+/*-------------slide down animation-------------*/
+.slide-up, .slide-down {
+    max-height: 0;            
+    overflow-y: hidden;
+    -webkit-transition: max-height 0.5s ease-in-out;
+    -moz-transition: max-height 0.5s ease-in-out;
+    -o-transition: max-height 0.5s ease-in-out;
+    transition: max-height 0.5s ease-in-out;
+}
+
+.slide-down {            
+    max-height: 10em;
+}
