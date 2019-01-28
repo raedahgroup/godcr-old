@@ -321,6 +321,9 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 	return tickets, nil
 }
 
-func (lib *DcrWalletLib) ConnectionInfo() string {
-	return fmt.Sprintf("Connected to %d peers • Latest block %d", NumOfPeers, NBestBlock)
+func (lib *DcrWalletLib) ConnectionInfo() *walletcore.CInfo {
+	return &walletcore.CInfo{
+		NumOfPeers: NumOfPeers,
+		NBestBlock: NBestBlock,
+	}
 }

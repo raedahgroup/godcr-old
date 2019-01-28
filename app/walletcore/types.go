@@ -67,3 +67,9 @@ type StakeInfo struct {
 	PoolSize      uint32 `json:"poolSize"`
 	TotalSubsidy  int64  `json:"totalSubsidy"`
 }
+
+// Connection info
+type CInfo struct {
+	NumOfPeers int32
+	NBestBlock int64
+}

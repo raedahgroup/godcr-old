@@ -463,6 +463,9 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 	return ticketHashes, nil
 }
 
-func (c *WalletRPCClient) ConnectionInfo() string {
-	return fmt.Sprintf("Connected to %d peers • Latest block %d", NumOfPeers, NBestBlock)
+func (c *WalletRPCClient) ConnectionInfo() *walletcore.CInfo {
+	return &walletcore.CInfo{
+		NumOfPeers: NumOfPeers,
+		NBestBlock: NBestBlock,
+	}
 }
