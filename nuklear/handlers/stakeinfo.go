@@ -68,7 +68,3 @@ func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet walletcor
 		pageWindow.End()
 	}
 }
-
-func (handler *StakeInfoHandler) AfterRender() {
-
-}

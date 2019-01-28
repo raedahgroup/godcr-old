@@ -5,21 +5,13 @@ import (
 )
 
 type LoadingWidget struct {
-	window *nucular.Window
 }
 
 func NewLoadingWidget() Widget {
 	return &LoadingWidget{}
 }
 
-func (l *LoadingWidget) BeforeRender(window *nucular.Window) {
-	l.window = window
-}
-
-func (l *LoadingWidget) Render(finishHandler func()) {
-	l.window.Row(30).Dynamic(1)
-	l.window.Label("Fetching data...", "LC")
-}
-
-func (l *LoadingWidget) AfterRender() {
+func (l *LoadingWidget) Render(window *nucular.Window) {
+	window.Row(30).Dynamic(1)
+	window.Label("Fetching data...", "LC")
 }

@@ -58,7 +58,7 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, wallet wallet
 					}
 				}
 			} else {
-				widgets.Run("loading", contentWindow.Window, func() {})
+				widgets.ShowLoadingWidget(contentWindow.Window)
 			}
 			contentWindow.End()
 		}
