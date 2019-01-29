@@ -12,14 +12,18 @@ import (
 )
 
 const (
-	defaultHTTPHost = "127.0.0.1"
-	defaultHTTPPort = "7778"
+	defaultHTTPHost 	 = "127.0.0.1"
+	defaultHTTPPort		 = "7778"
+	defaultLogLevel      = "info"
+	defaultLogDirname    = "logs"
+	defaultLogFilename   = "godcr.log"
 )
 
 var (
 	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
-	DefaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
-	defaultRPCCertFile         = filepath.Join(DefaultDcrwalletAppDataDir, "rpc.cert")
+	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
+	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
+	defaultLogDir      		   = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
 // Config holds the top-level options/flags for the application
@@ -38,6 +42,9 @@ type ConfFileOptions struct {
 	NoWalletRPCTLS  bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
 	HTTPHost        string `long:"httphost" description:"HTTP server host address or IP"`
 	HTTPPort        string `long:"httpport" description:"HTTP server port"`
+	DebugLevel      string `short:"d" long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	LogDir          string `long:"logdir" description:"Directory to log output."`
+	LogFilename     string `long:"logfilename" description:"Name of Log File in log directory."`
 }
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
@@ -56,6 +63,9 @@ func defaultFileOptions() ConfFileOptions {
 		WalletRPCCert: defaultRPCCertFile,
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,
+		DebugLevel:    defaultLogLevel,
+		LogDir:        defaultLogDir,
+		LogFilename:   defaultLogFilename,
 	}
 }
 

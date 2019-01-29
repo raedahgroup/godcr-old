@@ -52,6 +52,7 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	}
 
 	if accountBalance.Total == 0 {
+		log.Errorf("Selected account has 0 balance. Cannot proceed")
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
@@ -61,6 +62,7 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
+		log.Errorf("Selected account has insufficient balance. Cannot proceed")
 		return fmt.Errorf("Selected account has insufficient balance. Cannot proceed")
 	}
 
@@ -74,7 +76,7 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	if err != nil {
 		return err
 	}
-
+	log.Infof("Sent txid", sentTxHash)
 	fmt.Println("Sent txid", sentTxHash)
 	return nil
 }
@@ -98,6 +100,7 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 		return errors.New("invalid entry")
 	})
 	if err != nil {
+		log.Errorf("error in reading choice: %s", err.Error())
 		return "", fmt.Errorf("error in reading choice: %s", err.Error())
 	}
 	if strings.ToLower(choice) == "a" || choice == "" {
@@ -134,10 +137,12 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 
 	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to broadcast it?", "")
 	if err != nil {
+		log.Errorf("error reading your response: %s", err.Error())
 		return "", fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if !sendConfirmed {
+		log.Errorf("transaction canceled")
 		return "", errors.New("transaction canceled")
 	}
 
@@ -155,10 +160,12 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	}
 
 	if len(sendDestinations) == 1 {
+		log.Warnf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address)
 		fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address))
 	} else {
 		fmt.Println("You are about to send")
 		for _, destination := range sendDestinations {
+			log.Warn("You are about to send %f DCR \t to %s", destination.Amount, destination.Address)
 			fmt.Println(fmt.Sprintf(" %f DCR \t to %s", destination.Amount, destination.Address))
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
@@ -39,6 +40,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize log rotation.  After log rotation has been initialized, the
+	// logger variables may be used.
+	initLogRotator(filepath.Join(appConfig.LogDir, appConfig.LogFilename))
+	defer func() {
+		if logRotator != nil {
+			logRotator.Close()
+		}
+	}()
+
+// Special show command to list supported subsystems and exit.
+	if appConfig.DebugLevel == "show" {
+		fmt.Println("Supported subsystems", supportedSubsystems())
+		os.Exit(0)
+	}
+
+	// Parse, validate, and set debug log level(s).
+	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
+		err :=fmt.Errorf("%s: %v", "loadConfig", err.Error())
+		fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+
+		// parser.WriteHelp(os.Stderr)
+		// return config, nil, err
+		return
+	}
+
 	// check if we can execute the needed op without connecting to a wallet
 	// if len(args) == 0, then there's nothing to execute as all command-line args were parsed as app options
 	if len(args) > 0 {
@@ -53,6 +80,7 @@ func main() {
 
 	// check if user passed commands/options/args but is not running in cli mode
 	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
+		log.Info("unexpected command or flag in mode: ", appConfig.InterfaceMode, strings.Join(args, " "))
 		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
 		os.Exit(1)
 	}
@@ -136,6 +164,7 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 
 	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
+		log.Infof("Connect to dcrwallet rpc failed", err.Error())
 		fmt.Println("Connect to dcrwallet rpc failed")
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -159,6 +188,7 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 }
 
 func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
+	log.Info("Launching desktop app with nuklear")
 	fmt.Println("Launching desktop app with nuklear")
 	nuklear.LaunchApp(ctx, walletMiddleware)
 	// todo need to properly listen for shutdown and trigger shutdown
@@ -178,12 +208,14 @@ func listenForInterruptRequests() {
 
 	// listen for the initial interrupt request and trigger shutdown signal
 	sig := <-interruptChannel
+	log.Warnf("\nReceived signal. Shutting down...\n", sig)
 	fmt.Printf("\nReceived %s signal. Shutting down...\n", sig)
 	beginShutdown <- true
 
 	// continue to listen for interrupt requests and log that shutdown has already been signaled
 	for {
 		<-interruptChannel
+		log.Info(" Already shutting down... Please wait")
 		fmt.Println(" Already shutting down... Please wait")
 	}
 }

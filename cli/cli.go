@@ -47,6 +47,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	} else if noCommandPassed {
 		listCommands()
 	} else if err != nil {
+		log.Error(err)
 		fmt.Println(err)
 	}
 
