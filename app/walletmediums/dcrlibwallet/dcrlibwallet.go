@@ -8,9 +8,6 @@ import (
 // NumOfPeers stores number of peers connected while syncing
 var NumOfPeers int32
 
-// NBestBlock stores latest block while syncing
-var NBestBlock int64
-
 // DcrWalletLib implements `WalletMiddleware` using `dcrlibwallet.LibWallet` as medium for connecting to a decred wallet
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`

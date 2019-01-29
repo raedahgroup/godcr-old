@@ -324,6 +324,6 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 func (lib *DcrWalletLib) ConnectionInfo() *walletcore.CInfo {
 	return &walletcore.CInfo{
 		NumOfPeers: NumOfPeers,
-		NBestBlock: NBestBlock,
+		NBestBlock: int64(lib.walletLib.GetBestBlock()),
 	}
 }

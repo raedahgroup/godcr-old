@@ -33,7 +33,6 @@ func (response SpvSyncResponse) OnDiscoveredAddresses(state string) {
 func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
 	if state == "progress" {
 		bestBlock := int64(response.walletLib.GetBestBlock())
-		NBestBlock = bestBlock
 		scannedPercentage := int64(rescannedThrough) / bestBlock * 100
 		response.listener.OnRescanningBlocks(scannedPercentage)
 	}
@@ -41,8 +40,7 @@ func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
 func (response SpvSyncResponse) OnSynced(synced bool) {
 	fmt.Printf("Number of connected peers: %d\n", NumOfPeers)
 	bestBlock := int64(response.walletLib.GetBestBlock())
-	NBestBlock = bestBlock
-	fmt.Printf("Best block: %d\n", NBestBlock)
+	fmt.Printf("Best block: %d\n", bestBlock)
 
 	var err error
 	if !synced {
