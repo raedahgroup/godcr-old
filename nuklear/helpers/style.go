@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	WhiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	WhiteColor             = color.RGBA{255, 255, 255, 255}
 	DangerColor            = color.RGBA{220, 53, 69, 255}
 	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
@@ -159,7 +159,7 @@ func SetPageStyle(window nucular.MasterWindow) {
 	window.SetStyle(style)
 }
 
-func SetNoNavWindowStyle(window nucular.MasterWindow) {
+func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style := window.Style()
 	style.GroupWindow.FixedBackground.Data.Color = WhiteColor
 	style.GroupWindow.Padding = image.Point{20, 15}

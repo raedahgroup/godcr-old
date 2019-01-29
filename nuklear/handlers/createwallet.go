@@ -90,7 +90,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 			contentWindow.Row(30).Static(200)
 			if contentWindow.Button(label.T("Create Wallet"), false) {
 				if !handler.hasErrors() {
-					handler.submitForm(wallet)
+					handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
 				}
 				contentWindow.Master().Changed()
 			}
@@ -110,10 +110,6 @@ func (handler *CreateWalletHandler) hasErrors() bool {
 		handler.validationErrors["password"] = "Wallet password is required"
 	}
 
-	if confirmPassword == "" {
-		handler.validationErrors["confirmpassword"] = "Please confirm wallet password"
-	}
-
 	if password != "" && confirmPassword != "" && password != confirmPassword {
 		handler.validationErrors["confirmpassword"] = "Both passwords do not match"
 	}
@@ -122,12 +118,5 @@ func (handler *CreateWalletHandler) hasErrors() bool {
 		handler.validationErrors["hasstoredseed"] = "Please store seed and check this box"
 	}
 
-	if len(handler.validationErrors) > 0 {
-		return true
-	}
-	return false
-}
-
-func (handler *CreateWalletHandler) submitForm(wallet app.WalletMiddleware) {
-	handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
+	return len(handler.validationErrors) > 0
 }

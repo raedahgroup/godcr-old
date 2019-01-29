@@ -7,7 +7,6 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/handlers"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
@@ -20,11 +19,12 @@ const (
 )
 
 type Desktop struct {
-	masterWindow     nucular.MasterWindow
-	walletMiddleware app.WalletMiddleware
-	currentPage      string
-	pageChanged      bool
-	handlers         map[string]Handler
+	masterWindow       nucular.MasterWindow
+	walletMiddleware   app.WalletMiddleware
+	currentPage        string
+	pageChanged        bool
+	handlers           map[string]Handler
+	standaloneHandlers map[string]Handler
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -47,10 +47,11 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 
 	if !walletExists {
 		desktop.currentPage = "createwallet"
+		desktop.pageChanged = true
 	}
 
 	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.renderWithNav)
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
 	window.SetStyle(helpers.GetStyle())
 	desktop.masterWindow = window
 
@@ -67,11 +68,20 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	return nil
 }
 
-func (desktop *Desktop) renderWithoutNav(window *nucular.Window) {
+func (desktop *Desktop) render(window *nucular.Window) {
+	if desktop.currentPage == "createwallet" {
+		desktop.renderStandalone(window)
+		return
+	}
+
+	desktop.renderWithNav(window)
+}
+
+func (desktop *Desktop) renderStandalone(window *nucular.Window) {
 	window.Row(0).SpaceBeginRatio(1)
 	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
 
-	handler := &handlers.CreateWalletHandler{} // for now, only this handler uses the renderWithoutNav function
+	handler := desktop.handlers[desktop.currentPage] // for now, only this handler uses the renderWithoutNav function
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
 	if desktop.pageChanged {
@@ -79,17 +89,12 @@ func (desktop *Desktop) renderWithoutNav(window *nucular.Window) {
 		desktop.pageChanged = false
 	}
 
-	helpers.SetNoNavWindowStyle(window.Master())
+	helpers.SetStandaloneWindowStyle(window.Master())
 	handler.Render(window, desktop.walletMiddleware)
 }
 
-func (desktop *Desktop) renderWithNav(w *nucular.Window) {
-	if desktop.currentPage == "createwallet" {
-		desktop.renderWithoutNav(w)
-		return
-	}
-
-	area := w.Row(0).SpaceBegin(2)
+func (desktop *Desktop) renderWithNav(window *nucular.Window) {
+	area := window.Row(0).SpaceBegin(2)
 
 	// create nav pane
 	navRect := rect.Rect{
@@ -98,15 +103,17 @@ func (desktop *Desktop) renderWithNav(w *nucular.Window) {
 		W: navWidth,
 		H: area.H,
 	}
-	w.LayoutSpacePushScaled(navRect)
+	window.LayoutSpacePushScaled(navRect)
 
 	// render nav
 	helpers.SetNavStyle(desktop.masterWindow)
-	if navWindow := helpers.NewWindow("Navigation Group", w, 0); navWindow != nil {
+	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
 		navWindow.Row(40).Dynamic(1)
 		for _, handler := range getHandlers() {
-			if navWindow.Button(label.TA(handler.navLabel, "LC"), false) {
-				desktop.changePage(handler.name)
+			if !handler.standalone {
+				if navWindow.Button(label.TA(handler.navLabel, "LC"), false) {
+					desktop.changePage(handler.name)
+				}
 			}
 		}
 		navWindow.End()
@@ -125,7 +132,7 @@ func (desktop *Desktop) renderWithNav(w *nucular.Window) {
 	// style content area
 	helpers.SetPageStyle(desktop.masterWindow)
 
-	w.LayoutSpacePushScaled(contentRect)
+	window.LayoutSpacePushScaled(contentRect)
 	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
 		desktop.changePage(homePage)
 		return
@@ -140,7 +147,7 @@ func (desktop *Desktop) renderWithNav(w *nucular.Window) {
 		desktop.pageChanged = false
 	}
 
-	handler.Render(w, desktop.walletMiddleware)
+	handler.Render(window, desktop.walletMiddleware)
 }
 
 func (desktop *Desktop) changePage(page string) {

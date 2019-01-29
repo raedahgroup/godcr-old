@@ -12,27 +12,31 @@ type Handler interface {
 }
 
 type handlersData struct {
-	name     string
-	navLabel string
-	handler  Handler
+	name       string
+	navLabel   string
+	standalone bool
+	handler    Handler
 }
 
 func getHandlers() []handlersData {
 	return []handlersData{
 		{
-			name:     "balance",
-			navLabel: "Balance",
-			handler:  &handlers.BalanceHandler{},
+			name:       "balance",
+			navLabel:   "Balance",
+			standalone: false,
+			handler:    &handlers.BalanceHandler{},
 		},
 		{
-			name:     "receive",
-			navLabel: "Receive",
-			handler:  &handlers.ReceiveHandler{},
+			name:       "receive",
+			navLabel:   "Receive",
+			standalone: false,
+			handler:    &handlers.ReceiveHandler{},
 		},
 		{
-			name:     "send",
-			navLabel: "Send (WIP)",
-			handler:  &handlers.SendHandler{},
+			name:       "send",
+			navLabel:   "Send (WIP)",
+			standalone: false,
+			handler:    &handlers.SendHandler{},
 		},
 		{
 			name:     "history",
@@ -40,19 +44,21 @@ func getHandlers() []handlersData {
 			handler:  &handlers.TransactionsHandler{},
 		},
 		{
-			name:     "stakeinfo",
-			navLabel: "Stake Info",
-			handler:  &handlers.StakeInfoHandler{},
+			name:       "createwallet",
+			standalone: true,
+			handler:    &handlers.CreateWalletHandler{},
 		},
 		{
-			name:     "purchasetickets",
-			navLabel: "Purchase Tickets",
-			handler:  &handlers.PurchaseTicketsHandler{},
+			name:       "stakeinfo",
+			navLabel:   "Stake Info",
+			standalone: false,
+			handler:    &handlers.StakeInfoHandler{},
 		},
 		{
-			name:     "createwallet",
-			navLabel: "Create Wallet",
-			handler:  &handlers.CreateWalletHandler{},
+			name:       "purchasetickets",
+			navLabel:   "Purchase Tickets",
+			standalone: false,
+			handler:    &handlers.PurchaseTicketsHandler{},
 		},
 	}
 }
