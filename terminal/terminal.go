@@ -12,12 +12,10 @@ import (
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	var tviewApp *tview.Application
-
-	tviewApp = tview.NewApplication()
+	tviewApp := tview.NewApplication()
 
 	// Terminal Layout Structure for screens
-	terminalLayoutApp := terminalLayout(tviewApp)
+	Layout := terminalLayout(tviewApp)
 	
 	err := syncBlockChain(ctx, walletMiddleware)
 	if err != nil {
@@ -25,24 +23,20 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	}
 
 	// `Run` blocks until app.Stop() is called before returning
-	return tviewApp.SetRoot(terminalLayoutApp, true).SetFocus(terminalLayoutApp).Run()
+	return tviewApp.SetRoot(Layout, true).SetFocus(Layout).Run()
 }
 
 func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	var menuColumn *tview.List
 
-	//The Default page onload
-	currentPage := pages.BalancePage()
-
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
 	
 	//Creating the View for the Layout
-	gridLayoutApp := tview.NewGrid().SetBorders(true).SetRows(3, 0).SetColumns(30, 0)
+	gridLayout := tview.NewGrid().SetBorders(true).SetRows(3, 0).SetColumns(30, 0)
 
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
-			currentPage = t
-			gridLayoutApp.AddItem(currentPage, 1, 1, 1, 2, 0, 0, true)
+			gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
 	}
 
 	menuColumn =  tview.NewList().
@@ -53,7 +47,11 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 		    changePageColumn(pages.ReceivePage())
 		}).
 		AddItem("Send", "", 's', func() {
-		    changePageColumn(pages.SendPage(tviewApp, menuColumn))
+			setFocus := tviewApp.SetFocus
+			clearFocus := func() {
+			     tviewApp.SetFocus(menuColumn)
+			}
+		    changePageColumn(pages.SendPage(setFocus, clearFocus))
 		}).
 		AddItem("History", "", 'h', func() {
 		    changePageColumn(pages.HistoryPage())
@@ -61,18 +59,16 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 		AddItem("Exit", "", 'q', func() {
 		    tviewApp.Stop()
 	})
-
 	menuColumn.SetCurrentItem(0)
 
-
 	// Layout for screens Header
-	gridLayoutApp.AddItem(header, 0, 0, 1, 3, 0, 0, false)
+	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 
 	// Layout for screens with two column
-	gridLayoutApp.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
-	gridLayoutApp.AddItem(currentPage, 1, 1, 1, 2, 0, 0, true)
+	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
+	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
 
-	return gridLayoutApp
+	return gridLayout
 }
 
 func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
