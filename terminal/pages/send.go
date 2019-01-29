@@ -6,11 +6,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-func SendPage(tviewApp *tview.Application, menuColumn *tview.List) tview.Primitive {
-	title := pageTitle("Send")
+func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 
 	//Form for Sending
-	form := tview.NewForm().
+	body := tview.NewForm().
 	AddDropDown("Account", []string{"Dafault", "..."}, 0, nil).
 	AddInputField("Amount", "", 20, nil, nil).
 	AddInputField("Destination Address", "", 20, nil, nil).
@@ -18,14 +17,11 @@ func SendPage(tviewApp *tview.Application, menuColumn *tview.List) tview.Primiti
 		fmt.Println("Next")
 	})
 	
-	form.AddButton("Close", func() {
-		tviewApp.SetFocus(menuColumn)
+	body.AddButton("Cancel", func() {
+		clearFocus()
 	})
 
-	gridSend := tview.NewGrid().SetRows(2, 0).SetColumns(0)
-	gridSend.AddItem(title, 0, 0, 1, 1, 0, 0, true).
-				AddItem(form, 1, 0, 1, 1, 0, 0, true)
+	setFocus(body)
 
-	tviewApp.SetFocus(form)
-	return gridSend
+	return body
 }
