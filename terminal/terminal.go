@@ -55,7 +55,9 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 		AddItem("Send", "", 's', func() {
 		    changePageColumn(pages.SendPage(tviewApp, menuColumn))
 		}).
-		AddItem("History", "", 'h', nil).
+		AddItem("History", "", 'h', func() {
+		    changePageColumn(pages.HistoryPage())
+		}).
 		AddItem("Exit", "", 'q', func() {
 		    tviewApp.Stop()
 	})
