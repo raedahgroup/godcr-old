@@ -275,7 +275,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 	}, nil
 }
 
-func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+func (lib *DcrWalletLib) StakeInfo() (*walletcore.StakeInfo, error) {
 	data, err := lib.walletLib.StakeInfo()
 	if err != nil {
 		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
@@ -298,7 +298,9 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 	return stakeInfo, nil
 }
 
-func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+func (lib *DcrWalletLib) PurchaseTickets(request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	ctx := context.Background()
+
 	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())

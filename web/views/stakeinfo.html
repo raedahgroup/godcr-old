@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Expired</th>
+                            <th>Immature</th>
+                            <th>Live</th>
+                            <th>Revoked</th>
+                            <th>Unmined</th>
+                            <th>Unspent</th>
+                            <th>AllmempoolTix</th>
+                            <th>PoolSize</th>
+                            <th>Missed</th>
+                            <th>Voted</th>
+                            <th>Total Subsidy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       <tr>
+                            <td>{{ .stakeinfo.Expired }}</td>
+                            <td>{{ .stakeinfo.Immature }}</td>
+                            <td>{{ .stakeinfo.Live }}</td>
+                            <td>{{ .stakeinfo.Revoked }}</td>
+                            <td>{{ .stakeinfo.OwnMempoolTix }}</td>
+                            <td>{{ .stakeinfo.Unspent }}</td>
+                            <td>{{ .stakeinfo.AllMempoolTix }}</td>
+                            <td>{{ .stakeinfo.PoolSize }}</td>
+                            <td>{{ .stakeinfo.Missed }}</td>
+                            <td>{{ .stakeinfo.Voted }}</td>
+                            <td>{{ .stakeinfo.TotalSubsidy }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

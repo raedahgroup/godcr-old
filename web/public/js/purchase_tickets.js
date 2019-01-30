@@ -1,0 +1,52 @@
+function submitPurchaseTicketsForm() {
+    $("#success-msg-container").empty();
+
+
+    var form = $("#purchase-tickets-form");
+    var submit_btn = $("#next-btn");
+
+    var postData = form.serialize();
+
+    if ($("#source-account").prop("disabled")) {
+        postData += "&source-account=" + $("#source-account").val();
+    }
+
+    var requestInfo = {
+        data: postData,
+        url: "/purchase_tickets"
+    };
+
+    var successFunc = function(response){
+        if (response.error) {
+            setErrorMessage(response.error)
+        } else {
+            //setSuccessMessage(response.message);
+            $("#success-msg-container").append("<div class='alert alert-success'>You have purchased " + response.message.length + " ticket(s)</div>");
+            for (var i in response.message) {
+                $("#success-msg-container").append("<div class='alert alert-success'> " + response.message[i] + " </div>");
+            }
+        }
+    };
+
+    var errorFunc = function(){
+        setErrorMessage("A server error occurred");
+    };
+
+    var completeFunc = function() {
+        submit_btn.removeAttr("disabled").html("Next");
+    };
+
+    submit_btn.attr("disabled", "disabled").html("Sending...");
+    
+    makePostRequest(requestInfo, successFunc, errorFunc, completeFunc)
+
+}
+
+$(function(){
+    $("#next-btn").on("click", function(e){
+        e.preventDefault();
+        if (validateFormFields()) {
+            getWalletPassphraseAndSubmit(submitPurchaseTicketsForm);
+        }
+    })
+});

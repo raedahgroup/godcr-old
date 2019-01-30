@@ -399,8 +399,8 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	}, nil
 }
 
-func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
-	stakeInfo, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
+func (c *WalletRPCClient) StakeInfo() (*walletcore.StakeInfo, error) {
+	stakeInfo, err := c.walletService.StakeInfo(context.Background(), &walletrpc.StakeInfoRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
 	}
@@ -420,7 +420,9 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 	}, nil
 }
 
-func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+func (c *WalletRPCClient) PurchaseTickets(request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	ctx := context.Background()
+
 	ticketPrice, err := c.walletService.TicketPrice(ctx, &walletrpc.TicketPriceRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())

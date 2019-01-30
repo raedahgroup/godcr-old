@@ -15,7 +15,7 @@ type StakeInfoCommand struct {
 
 // Run displays information about wallet stakes, tickets and their statuses.
 func (g StakeInfoCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	stakeInfo, err := wallet.StakeInfo(ctx)
+	stakeInfo, err := wallet.StakeInfo()
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,8 @@ func templates() []templateData {
 		{"receive.html", "web/views/receive.html"},
 		{"history.html", "web/views/history.html"},
 		{"transaction_details.html", "web/views/transaction_details.html"},
+		{"stakeinfo.html", "web/views/stakeinfo.html"},
+		{"purchase_tickets.html", "web/views/purchase_tickets.html"},
 	}
 }
 

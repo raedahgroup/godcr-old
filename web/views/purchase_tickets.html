@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <div class="alert alert-danger hide-empty"></div>
+                <div id="success-msg-container"></div>
+                <form method="POST" action="/purchase_tickets" id="purchase-tickets-form" novalidate>
+                    {{ template "send-passphrase-modal" }}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="source-account">Source Account</label>	                                            
+                                        <select class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
+                                            {{ range $account := .accounts }}	                                                
+                                            <option value="{{ $account.Number }}">
+                                                {{ $account.Name }} - {{ simpleBalance $account.Balance false }}
+                                            </option>
+                                            {{ end }}	                                              
+                                        </select>	                                          
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="number-of-tickets">Number of Tickets</label>
+                                        <input ype="number" class="form-control" id="number-of-tickets" name="number-of-tickets" value="1" data-validate="true" data-required="true" />
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="errors"></div>
+                                        <button class="btn btn-default" id="next-btn">Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               </form>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="/static/js/purchase_tickets.js"></script>
+</body>
+</html>
