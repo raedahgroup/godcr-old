@@ -11,3 +11,4 @@ func ReceivePage() tview.Primitive {
 
 	return body
 }
+

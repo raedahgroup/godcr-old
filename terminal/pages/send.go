@@ -15,7 +15,6 @@ func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus fu
 		AddButton("Send", func() {
 			fmt.Println("Next")
 		})
-
 	body.AddButton("Cancel", func() {
 		clearFocus()
 	})
