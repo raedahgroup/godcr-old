@@ -20,8 +20,8 @@ import (
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/qt"
-	"github.com/raedahgroup/godcr/web"
 	"github.com/raedahgroup/godcr/terminal"
+	"github.com/raedahgroup/godcr/web"
 )
 
 // triggered after program execution is complete or if interrupt signal is received

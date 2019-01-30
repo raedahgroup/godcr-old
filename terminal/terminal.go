@@ -18,12 +18,12 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		AddItem("Send", "", 's', nil).
 		AddItem("History", "", 'h', nil).
 		AddItem("Exit", "", 'q', func() {
-		tviewApp.Stop()
+			tviewApp.Stop()
 		})
 	list.SetBorder(true).SetTitle(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
 
 	err := syncBlockChain(ctx, walletMiddleware)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
 
