@@ -18,25 +18,35 @@ const (
 	contentPaneWidthPadding = 55
 )
 
+type pageHandler struct {
+	handler    Handler
+	standalone bool
+}
+
 type Desktop struct {
-	masterWindow       nucular.MasterWindow
-	walletMiddleware   app.WalletMiddleware
-	currentPage        string
-	pageChanged        bool
-	handlers           map[string]Handler
-	standaloneHandlers map[string]Handler
+	masterWindow     nucular.MasterWindow
+	walletMiddleware app.WalletMiddleware
+	currentPage      string
+	pageChanged      bool
+	handlers         map[string]pageHandler
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
+		pageChanged:      true,
+		currentPage:      homePage,
 	}
 
 	// register handlers
 	handlers := getHandlers()
-	desktop.handlers = make(map[string]Handler, len(handlers))
+	desktop.handlers = make(map[string]pageHandler, len(handlers))
 	for _, handler := range handlers {
-		desktop.handlers[handler.name] = handler.handler
+		handlerItem := pageHandler{
+			standalone: handler.standalone,
+			handler:    handler.handler,
+		}
+		desktop.handlers[handler.name] = handlerItem
 	}
 
 	// open wallet and start blockchain syncing in background
@@ -47,7 +57,6 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 
 	if !walletExists {
 		desktop.currentPage = "createwallet"
-		desktop.pageChanged = true
 	}
 
 	// initialize master window and set style
@@ -69,31 +78,29 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	if desktop.currentPage == "createwallet" {
-		desktop.renderStandalone(window)
+	handler := desktop.handlers[desktop.currentPage]
+	if handler.standalone {
+		desktop.renderStandalonePage(window, handler.handler)
 		return
 	}
 
-	desktop.renderWithNav(window)
+	desktop.renderNavPage(window, handler.handler)
 }
 
-func (desktop *Desktop) renderStandalone(window *nucular.Window) {
+func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler Handler) {
 	window.Row(0).SpaceBeginRatio(1)
 	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
 
-	handler := desktop.handlers[desktop.currentPage] // for now, only this handler uses the renderWithoutNav function
-	// ensure that the handler's BeforeRender function is called only once per page call
-	// as it initializes page variables
 	if desktop.pageChanged {
 		handler.BeforeRender()
 		desktop.pageChanged = false
 	}
 
 	helpers.SetStandaloneWindowStyle(window.Master())
-	handler.Render(window, desktop.walletMiddleware)
+	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
-func (desktop *Desktop) renderWithNav(window *nucular.Window) {
+func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
 	area := window.Row(0).SpaceBegin(2)
 
 	// create nav pane
@@ -133,12 +140,6 @@ func (desktop *Desktop) renderWithNav(window *nucular.Window) {
 	helpers.SetPageStyle(desktop.masterWindow)
 
 	window.LayoutSpacePushScaled(contentRect)
-	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
-		desktop.changePage(homePage)
-		return
-	}
-
-	handler := desktop.handlers[desktop.currentPage]
 
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
@@ -147,7 +148,7 @@ func (desktop *Desktop) renderWithNav(window *nucular.Window) {
 		desktop.pageChanged = false
 	}
 
-	handler.Render(window, desktop.walletMiddleware)
+	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
 func (desktop *Desktop) changePage(page string) {

@@ -15,13 +15,9 @@ import (
 )
 
 var (
-	WhiteColor             = color.RGBA{255, 255, 255, 255}
-	DangerColor            = color.RGBA{220, 53, 69, 255}
-	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
-	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
-	PageHeaderFont         font.Face
-	PageContentFont        font.Face
-	NavFont                font.Face
+	PageHeaderFont  font.Face
+	PageContentFont font.Face
+	NavFont         font.Face
 )
 
 const (
@@ -125,12 +121,12 @@ func GetStyle() *nstyle.Style {
 	/**buttons**/
 	style.Button.Rounding = 0
 	style.Button.Border = 0
-	style.Button.TextNormal = WhiteColor
+	style.Button.TextNormal = whiteColor
 
 	/**inputs**/
-	style.Edit.Normal.Data.Color = WhiteColor
-	style.Edit.Active.Data.Color = WhiteColor
-	style.Edit.Hover.Data.Color = WhiteColor
+	style.Edit.Normal.Data.Color = whiteColor
+	style.Edit.Active.Data.Color = whiteColor
+	style.Edit.Hover.Data.Color = whiteColor
 	style.Edit.Border = 1
 	style.Edit.BorderColor = colorTable.ColorBorder
 
@@ -146,7 +142,7 @@ func SetNavStyle(window nucular.MasterWindow) {
 	style.Button.Padding = image.Point{33, 5}
 	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
-	style.Button.TextHover = WhiteColor
+	style.Button.TextHover = whiteColor
 	style.Font = NavFont
 
 	window.SetStyle(style)
@@ -161,7 +157,7 @@ func SetPageStyle(window nucular.MasterWindow) {
 
 func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style := window.Style()
-	style.GroupWindow.FixedBackground.Data.Color = WhiteColor
+	style.GroupWindow.FixedBackground.Data.Color = whiteColor
 	style.GroupWindow.Padding = image.Point{20, 15}
 
 	window.SetStyle(style)

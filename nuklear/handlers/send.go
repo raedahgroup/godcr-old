@@ -16,6 +16,6 @@ func (handler *SendHandler) BeforeRender() {
 	handler.hasRendered = true
 }
 
-func (handler *SendHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *SendHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware, changePageFunc func(string)) {
 
 }

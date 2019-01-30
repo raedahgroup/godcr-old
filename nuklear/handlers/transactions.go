@@ -22,7 +22,7 @@ func (handler *TransactionsHandler) BeforeRender() {
 	handler.hasFetchedTransactions = false
 }
 
-func (handler *TransactionsHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *TransactionsHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware, changePageFunc func(string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		go handler.fetchTransactions(wallet, window)

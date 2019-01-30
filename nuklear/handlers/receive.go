@@ -35,7 +35,7 @@ func (handler *ReceiveHandler) BeforeRender() {
 	handler.selectedAccountNumber = uint32(0)
 }
 
-func (handler *ReceiveHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *ReceiveHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware, changePageFunc func(string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.accounts, handler.err = walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)

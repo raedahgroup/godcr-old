@@ -8,7 +8,7 @@ import (
 
 type Handler interface {
 	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware)
+	Render(*nucular.Window, app.WalletMiddleware, func(page string))
 }
 
 type handlersData struct {
