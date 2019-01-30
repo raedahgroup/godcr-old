@@ -5,7 +5,6 @@ import (
 )
 
 func HistoryPage() tview.Primitive {
-
 	body := tview.NewTable().SetBorders(true)
 	body.SetCell(0, 0, tview.NewTableCell("Date").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 1, tview.NewTableCell("Amount").SetAlign(tview.AlignCenter))
