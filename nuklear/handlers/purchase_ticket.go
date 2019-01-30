@@ -33,18 +33,12 @@ type PurchaseTicketsHandler struct {
 }
 
 func (handler *PurchaseTicketsHandler) BeforeRender() {
-	handler.err = nil
 	handler.isRendering = false
-
+	handler.ticketHashes = nil
 	handler.numTicketsInput.Flags = nucular.EditSimple
-	handler.numTicketsInput.Buffer = []rune{'1'}
-	handler.numTicketsInputErrStr = ""
-	handler.spendUnconfirmed = false
 	handler.accountNumbers = nil
 	handler.accountOverviews = nil
-	handler.selectedAccountIndex = 0
-	handler.isSubmitting = false
-	handler.ticketHashes = nil
+	handler.resetForm()
 }
 
 func (handler *PurchaseTicketsHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
@@ -189,4 +183,14 @@ func (handler *PurchaseTicketsHandler) submit(passphrase string, window *nucular
 	}
 
 	handler.ticketHashes = ticketHashes
+	handler.resetForm()
+}
+
+func (handler *PurchaseTicketsHandler) resetForm() {
+	handler.err = nil
+	handler.numTicketsInputErrStr = ""
+	handler.spendUnconfirmed = false
+	handler.selectedAccountIndex = 0
+	handler.isSubmitting = false
+	handler.numTicketsInput.Buffer = []rune{'1'}
 }
