@@ -5,25 +5,24 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "webpack --watch --config webpack.dev.js",
-    "start": "webpack-dev-server --open --config webpack.dev.js",
-    "analyze": "webpack --config webpack.analyze.js",
-    "build": "webpack --config webpack.prod.js"
+    "watch": "webpack --watch --config webpack/webpack.dev.js",
+    "start": "webpack-dev-server --open --config webpack/webpack.dev.js",
+    "analyze": "webpack --config webpack/webpack.analyze.js",
+    "build": "webpack --config webpack/webpack.prod.js"
   },
   "dependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.3.0",
     "axios": "^0.18.0",
     "webpack-merge": "^4.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/preset-env": "^7.1.6",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.4",
     "babel-polyfill": "^6.26.0",
     "clean-webpack-plugin": "^1.0.0",
-    "css-loader": "^1.0.1",
     "eslint": "^5.9.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-loader": "^2.1.1",
@@ -31,9 +30,6 @@
     "eslint-plugin-node": "^8.0.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
-    "mini-css-extract-plugin": "^0.4.5",
-    "optimize-css-assets-webpack-plugin": "^5.0.1",
-    "sass-loader": "^7.1.0",
     "stimulus": "^1.1.0",
     "style-loader": "^0.23.1",
     "stylelint": "^9.8.0",
