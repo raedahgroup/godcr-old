@@ -5,7 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/decred/dcrd/dcrutil"
+
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -41,70 +44,23 @@ type SendHandler struct {
 	selectCustomInputs   bool
 
 	isSubmitting bool
+
+	successHash string
 }
 
 func (handler *SendHandler) BeforeRender() {
-	handler.isRendering = false
-	handler.spendUnconfirmed = false
+	handler.err = nil
+	handler.fetchUTXOError = nil
+	handler.utxos = nil
 	handler.isFetchingUTXOS = false
-}
-
-func (handler *SendHandler) validateAndSubmit(window *nucular.Window, wallet walletcore.Wallet) {
-	isClean := true
-
-	for _, input := range handler.inputs {
-		if string(input.amount.Buffer) == "" {
-			input.amountErrStr = "This amount field is required"
-			isClean = false
-		} else {
-			input.amountErrStr = ""
-		}
-
-		if string(input.destinationAddress.Buffer) == "" {
-			input.addressErrStr = "This address field is required"
-			isClean = false
-		} else {
-			input.addressErrStr = ""
-		}
-	}
-
-	if isClean {
-		handler.submit(window, wallet)
-		return
-	}
-	window.Master().Changed()
-}
-
-func (handler *SendHandler) submit(window *nucular.Window, wallet walletcore.Wallet) {
-	/**handler.isSubmitting = true
-	window.Master().Changed()
-
-	defer window.Master().Changed()
-
-	sendDestinations := make([]txhelper.TransactionDestination, len(handler.inputs))
-	for index := range handler.inputs {
-		amount, err := strconv.ParseFloat(string(handler.inputs[index].amount.Buffer), 64)
-		if err != nil {
-			handler.err = err
-			return
-		}
-
-		sendDestinations[index] = txhelper.TransactionDestination{
-			Address: string(handler.inputs[index].destinationAddress.Buffer),
-			Amount:  amount,
-		}
-	}
-
-	accountNumber := handler.accountNumbers[handler.selectedAccountIndex]
-	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
-	if handler.spendUnconfirmed {
-		requiredConfirmations = 0
-	}
-
-	var txHash string
-	if handler.selectCustomInputs {
-
-	}**/
+	handler.accountNumbers = nil
+	handler.accountOverviews = nil
+	handler.inputs = nil
+	handler.spendUnconfirmed = false
+	handler.selectCustomInputs = false
+	handler.isSubmitting = false
+	handler.isRendering = false
+	handler.successHash = ""
 }
 
 func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
@@ -122,87 +78,96 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 		// content window
 		if contentWindow := pageWindow.ContentWindow("Send Form"); contentWindow != nil {
+			helpers.SetFont(window, helpers.PageContentFont)
+
 			if handler.err != nil {
-				contentWindow.SetErrorMessage(handler.err.Error())
-			} else {
-				helpers.SetFont(window, helpers.PageContentFont)
+				contentWindow.Row(10).Dynamic(1)
+				contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
+			}
 
+			if handler.successHash != "" {
+				contentWindow.Row(10).Dynamic(1)
+				contentWindow.LabelColored("The transaction was published successfully. Hash: "+handler.successHash, "LC", helpers.SuccessColor)
+			}
+
+			contentWindow.Row(10).Dynamic(2)
+			contentWindow.Label("Source Account", "LC")
+
+			contentWindow.Row(25).Dynamic(1)
+			handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
+
+			contentWindow.Row(15).Dynamic(2)
+			if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
+				handler.fetchCustomInputsCheck(wallet, masterWindow)
+			}
+
+			for i := 0; i < len(handler.inputs); i++ {
 				contentWindow.Row(10).Dynamic(2)
-				contentWindow.Label("Source Account", "LC")
+				contentWindow.Label("Destination Address", "LC")
+				contentWindow.Label("Amount (DCR)", "LC")
 
 				contentWindow.Row(25).Dynamic(2)
-				handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
+				handler.inputs[i].destinationAddress.Edit(contentWindow.Window)
+				handler.inputs[i].amount.Edit(contentWindow.Window)
 
-				contentWindow.Row(15).Dynamic(2)
-				if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
-					handler.fetchCustomInputsCheck(wallet, masterWindow)
-				}
-
-				for i := 0; i < len(handler.inputs); i++ {
+				if handler.inputs[i].addressErrStr != "" || handler.inputs[i].amountErrStr != "" {
 					contentWindow.Row(10).Dynamic(2)
-					contentWindow.Label("Destination Address", "LC")
-					contentWindow.Label("Amount (DCR)", "LC")
-
-					contentWindow.Row(25).Dynamic(2)
-					handler.inputs[i].destinationAddress.Edit(contentWindow.Window)
-					handler.inputs[i].amount.Edit(contentWindow.Window)
-
-					if handler.inputs[i].addressErrStr != "" || handler.inputs[i].amountErrStr != "" {
-						contentWindow.Row(10).Dynamic(2)
-						contentWindow.LabelColored(handler.inputs[i].addressErrStr, "LC", helpers.DangerColor)
-						contentWindow.LabelColored(handler.inputs[i].amountErrStr, "LC", helpers.DangerColor)
-					}
+					contentWindow.LabelColored(handler.inputs[i].addressErrStr, "LC", helpers.DangerColor)
+					contentWindow.LabelColored(handler.inputs[i].amountErrStr, "LC", helpers.DangerColor)
 				}
+			}
 
-				contentWindow.Row(25).Dynamic(2)
-				if contentWindow.ButtonText("Add anohter address") {
-					handler.addSendInputPair(true, window.Master())
+			contentWindow.Row(25).Dynamic(2)
+			if contentWindow.ButtonText("Add anohter address") {
+				handler.addSendInputPair(true, window.Master())
+			}
+
+			if len(handler.inputs) > 1 {
+				if contentWindow.ButtonText("Remove last address") {
+					handler.removeLastSendInputPair(window.Master())
 				}
+			}
 
-				if len(handler.inputs) > 1 {
-					if contentWindow.ButtonText("Remove last address") {
-						handler.removeLastSendInputPair(window.Master())
-					}
+			contentWindow.Row(15).Dynamic(2)
+			if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
+				handler.fetchCustomInputsCheck(wallet, masterWindow)
+			}
+
+			if handler.isFetchingUTXOS {
+				widgets.ShowIsFetching(contentWindow)
+			} else if handler.fetchUTXOError != nil {
+				contentWindow.Row(10).Dynamic(1)
+				contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", helpers.DangerColor)
+			} else if handler.utxos != nil {
+				contentWindow.Row(20).Ratio(0.1, 0.3, 0.2, 0.2, 0.2)
+				contentWindow.Label("", "LC")
+				contentWindow.Label("Address", "LC")
+				contentWindow.Label("Amount", "LC")
+				contentWindow.Label("Time", "LC")
+				contentWindow.Label("Confirmations", "LC")
+
+				for _, utxo := range handler.utxos {
+					amountStr := utxo.utxo.Amount.String()
+					receiveTime := time.Unix(utxo.utxo.ReceiveTime, 0).Format(time.RFC1123)
+					confirmations := strconv.Itoa(int(utxo.utxo.Confirmations))
+
+					contentWindow.Row(20).Ratio(0.04, 0.36, 0.2, 0.2, 0.2)
+					contentWindow.CheckboxText("", &utxo.selected)
+					contentWindow.Label(utxo.utxo.Address, "LC")
+					contentWindow.Label(amountStr, "LC")
+					contentWindow.Label(receiveTime, "LC")
+					contentWindow.Label(confirmations, "LC")
 				}
+			}
 
-				contentWindow.Row(15).Dynamic(2)
-				if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
-					handler.fetchCustomInputsCheck(wallet, masterWindow)
-				}
+			submitButtonText := "Submit"
+			if handler.isSubmitting {
+				submitButtonText = "Submitting"
+			}
 
-				if handler.isFetchingUTXOS {
-					widgets.ShowIsFetching(contentWindow)
-				} else if handler.utxos != nil {
-					contentWindow.Row(20).Ratio(0.1, 0.3, 0.2, 0.2, 0.2)
-					contentWindow.Label("", "LC")
-					contentWindow.Label("Address", "LC")
-					contentWindow.Label("Amount", "LC")
-					contentWindow.Label("Time", "LC")
-					contentWindow.Label("Confirmations", "LC")
-
-					for _, utxo := range handler.utxos {
-						amountStr := utxo.utxo.Amount.String()
-						receiveTime := time.Unix(utxo.utxo.ReceiveTime, 0).Format(time.RFC1123)
-						confirmations := strconv.Itoa(int(utxo.utxo.Confirmations))
-
-						contentWindow.Row(20).Ratio(0.04, 0.36, 0.2, 0.2, 0.2)
-						contentWindow.CheckboxText("", &utxo.selected)
-						contentWindow.Label(utxo.utxo.Address, "LC")
-						contentWindow.Label(amountStr, "LC")
-						contentWindow.Label(receiveTime, "LC")
-						contentWindow.Label(confirmations, "LC")
-					}
-				}
-
-				submitButtonText := "Submit"
-				if handler.isSubmitting {
-					submitButtonText = "Submitting"
-				}
-
-				contentWindow.Row(25).Dynamic(2)
-				if contentWindow.ButtonText(submitButtonText) {
-					handler.validateAndSubmit(window, wallet)
-				}
+			contentWindow.Row(25).Dynamic(2)
+			if contentWindow.ButtonText(submitButtonText) {
+				handler.validateAndSubmit(window, wallet)
 			}
 			contentWindow.End()
 		}
@@ -297,4 +262,104 @@ func (handler *SendHandler) fetchCustomInputs(wallet walletcore.Wallet, masterWi
 	}
 	handler.isFetchingUTXOS = false
 	masterWindow.Changed()
+}
+
+func (handler *SendHandler) validateAndSubmit(window *nucular.Window, wallet walletcore.Wallet) {
+	isClean := true
+
+	for _, input := range handler.inputs {
+		if string(input.amount.Buffer) == "" {
+			input.amountErrStr = "This amount field is required"
+			isClean = false
+		} else {
+			input.amountErrStr = ""
+		}
+
+		if string(input.destinationAddress.Buffer) == "" {
+			input.addressErrStr = "This address field is required"
+			isClean = false
+		} else {
+			input.addressErrStr = ""
+		}
+	}
+
+	if isClean {
+		passphraseChan := make(chan string)
+		widgets.NewPassphraseWidget().Get(window, passphraseChan)
+
+		go func() {
+			passphrase := <-passphraseChan
+			if passphrase != "" {
+				handler.submit(passphrase, window, wallet)
+			}
+		}()
+		return
+	}
+	window.Master().Changed()
+}
+
+func (handler *SendHandler) submit(passphrase string, window *nucular.Window, wallet walletcore.Wallet) {
+	handler.isSubmitting = true
+	window.Master().Changed()
+
+	defer window.Master().Changed()
+
+	sendDestinations := make([]txhelper.TransactionDestination, len(handler.inputs))
+	for index := range handler.inputs {
+		amount, err := strconv.ParseFloat(string(handler.inputs[index].amount.Buffer), 64)
+		if err != nil {
+			handler.err = err
+			return
+		}
+
+		sendDestinations[index] = txhelper.TransactionDestination{
+			Address: string(handler.inputs[index].destinationAddress.Buffer),
+			Amount:  amount,
+		}
+	}
+
+	accountNumber := handler.accountNumbers[handler.selectedAccountIndex]
+	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+	if handler.spendUnconfirmed {
+		requiredConfirmations = 0
+	}
+
+	if handler.selectCustomInputs {
+		utxos, totalInputAmount := handler.getUTXOSAndSelectedAmount()
+
+		changeAddress, err := wallet.GenerateNewAddress(accountNumber)
+		if err != nil {
+			handler.err = err
+			return
+		}
+
+		changeAmount, err := txhelper.EstimateChange(len(handler.utxos), int64(totalInputAmount), sendDestinations, []string{changeAddress})
+		if err != nil {
+			handler.err = err
+			return
+		}
+
+		changeDestinations := []txhelper.TransactionDestination{{
+			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
+			Address: changeAddress,
+		}}
+
+		handler.successHash, handler.err = wallet.SendFromUTXOs(accountNumber, requiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
+	} else {
+		handler.successHash, handler.err = wallet.SendFromAccount(accountNumber, requiredConfirmations, sendDestinations, passphrase)
+	}
+}
+
+func (handler *SendHandler) getUTXOSAndSelectedAmount() ([]string, dcrutil.Amount) {
+	var totalInputAmount dcrutil.Amount
+	var utxos []string
+
+	for i := range handler.utxos {
+		if handler.utxos[i].selected {
+			totalInputAmount += handler.utxos[i].utxo.Amount
+		}
+		utxos = append(utxos, handler.utxos[i].utxo.Address)
+	}
+
+	return utxos, totalInputAmount
 }
