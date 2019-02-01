@@ -59,7 +59,6 @@ func showBalanceSummary(accounts []*walletcore.Account) {
 		if total == spendable {
 			return total.String()
 		} else {
-			log.Infof("Total %s (Spendable %s)", total.String(), spendable.String())
 			return fmt.Sprintf("Total %s (Spendable %s)", total.String(), spendable.String())
 		}
 	}

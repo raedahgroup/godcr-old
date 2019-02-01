@@ -14,6 +14,7 @@ import (
 
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/qt"
 	"github.com/raedahgroup/godcr/web"
@@ -50,28 +51,29 @@ var (
 	logRotator *rotator.Rotator
 
 	log          = backendLog.Logger("GODC")
-	webLog    	 = backendLog.Logger("WEBP")
-	nuklearLog   = backendLog.Logger("NUKL")
-	qtLog    	 = backendLog.Logger("QTLP")
-	cliLog    	 = backendLog.Logger("CLIP")
+	webLog    	 = backendLog.Logger("WEB")
+	nuklearLog   = backendLog.Logger("NUK")
+	qtLog    	 = backendLog.Logger("QTL")
+	cliLog    	 = backendLog.Logger("CLI")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	web.UseLogger(webLog)
-	nuklear.UseLogger(nuklearLog)
-	qt.UseLogger(qtLog)
 	cli.UseLogger(cliLog)
 	commands.UseLogger(cliLog)
+	walletloader.UseLogger(cliLog)
+	nuklear.UseLogger(nuklearLog)
+	qt.UseLogger(qtLog)
+	web.UseLogger(webLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODC": log,
-	"WEBP": webLog,
-	"NUKL": nuklearLog,
-	"QTLP": qtLog,
-	"CLIP": cliLog,
+	"WEB": webLog,
+	"NUK": nuklearLog,
+	"QTL": qtLog,
+	"CLI": cliLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

@@ -59,10 +59,7 @@ func main() {
 	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
 		err :=fmt.Errorf("%s: %v", "loadConfig", err.Error())
 		fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-
-		// parser.WriteHelp(os.Stderr)
-		// return config, nil, err
+		os.Exit(1)
 		return
 	}
 
@@ -164,9 +161,7 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 
 	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
-		log.Infof("Connect to dcrwallet rpc failed", err.Error())
-		fmt.Println("Connect to dcrwallet rpc failed")
-		fmt.Println(err.Error())
+		log.Errorf("Connect to dcrwallet rpc failed", err.Error())
 		os.Exit(1)
 	}
 
@@ -189,7 +184,6 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 
 func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	log.Info("Launching desktop app with nuklear")
-	fmt.Println("Launching desktop app with nuklear")
 	nuklear.LaunchApp(ctx, walletMiddleware)
 	// todo need to properly listen for shutdown and trigger shutdown
 	beginShutdown <- true

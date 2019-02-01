@@ -25,7 +25,7 @@ func (c CreateAccountCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 	if err != nil {
 		return err
 	}
-
+	log.Infof("Account created successfully")
 	fmt.Println("Account created successfully")
 	return nil
 }

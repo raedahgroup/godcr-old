@@ -52,7 +52,6 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	}
 
 	if accountBalance.Total == 0 {
-		log.Errorf("Selected account has 0 balance. Cannot proceed")
 		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
 	}
 
@@ -62,7 +61,6 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	}
 
 	if accountBalance.Spendable.ToCoin() < sendAmountTotal {
-		log.Errorf("Selected account has insufficient balance. Cannot proceed")
 		return fmt.Errorf("Selected account has insufficient balance. Cannot proceed")
 	}
 
@@ -100,7 +98,6 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 		return errors.New("invalid entry")
 	})
 	if err != nil {
-		log.Errorf("error in reading choice: %s", err.Error())
 		return "", fmt.Errorf("error in reading choice: %s", err.Error())
 	}
 	if strings.ToLower(choice) == "a" || choice == "" {
@@ -137,12 +134,10 @@ func completeCustomSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 
 	sendConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to broadcast it?", "")
 	if err != nil {
-		log.Errorf("error reading your response: %s", err.Error())
 		return "", fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if !sendConfirmed {
-		log.Errorf("transaction canceled")
 		return "", errors.New("transaction canceled")
 	}
 

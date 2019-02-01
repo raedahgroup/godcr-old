@@ -48,7 +48,6 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 		listCommands()
 	} else if err != nil {
 		log.Error(err)
-		fmt.Println(err)
 	}
 
 	return err
