@@ -78,7 +78,6 @@ func getSendTxDestinations(wallet walletcore.Wallet) (destinations []txhelper.Tr
 		}
 
 		if !isValid {
-			log.Error("That is not a valid address. Try again.")
 			return errors.New("That is not a valid address. Try again.")
 		}
 		return nil
