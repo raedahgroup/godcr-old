@@ -21,8 +21,8 @@ const (
 
 var (
 	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
-	defaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
-	defaultRPCCertFile         = filepath.Join(defaultDcrwalletAppDataDir, "rpc.cert")
+	DefaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
+	defaultRPCCertFile         = filepath.Join(DefaultDcrwalletAppDataDir, "rpc.cert")
 	defaultLogDir      		   = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
