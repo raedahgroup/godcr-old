@@ -284,7 +284,7 @@ func (routes *Routes) purchaseTicketsPage(res http.ResponseWriter, req *http.Req
 
 	ticketPrice, err := routes.walletMiddleware.TicketPrice(routes.ctx)
 	if err != nil {
-		routes.renderError(err.Error(), res)
+		routes.renderError(fmt.Sprintf("Error fetching ticket price: %s", err.Error()), res)
 		return
 	}
 

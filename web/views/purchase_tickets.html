@@ -6,8 +6,8 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                <div class="alert alert-danger hide-empty"></div>
-                <div id="success-msg-container" class="alert alert-success hide-empty"></div>
+                <div class="alert alert-danger d-none"></div>
+                <div class="alert alert-success d-none"></div>
                 <form method="POST" action="/purchase_tickets" id="purchase-tickets-form" novalidate>
                     {{ template "send-passphrase-modal" }}
                     <div class="card">

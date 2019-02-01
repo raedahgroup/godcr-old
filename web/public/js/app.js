@@ -61,18 +61,18 @@ function validatePassphrase() {
  *                      GENERAL                                      *
  *===================================================================*/
 function setErrorMessage(message) {
-    $(".alert-success").hide();
-    $(".alert-danger").html(message).show();
+    $(".alert-success").addClass("d-none");
+    $(".alert-danger").html(message).removeClass("d-none");
 }
 
 function setSuccessMessage(message) {
-    $(".alert-danger").hide();
-    $(".alert-success").html(message).show();
+    $(".alert-danger").addClass("d-none");
+    $(".alert-success").html(message).removeClass("d-none");
 }
 
 function clearMessages() {
-    $(".alert-success").hide();
-    $(".alert-danger").hide();
+    $(".alert-success").addClass("d-none");
+    $(".alert-danger").addClass("d-none");
 }
 
 /**====================================================================*

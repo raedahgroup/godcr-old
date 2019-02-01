@@ -22,10 +22,10 @@ function submitPurchaseTicketsForm() {
         if (!response.success) {
             setErrorMessage(response.message)
         } else {
-            $("#success-msg-container").append("<p>You have purchased " + response.message.length + " ticket(s)</p>");
-            for (var i in response.message) {
-                $("#success-msg-container").append("<p><strong>" + response.message[i] + "</strong></p>");
-            }
+            var successMsg = ["<p>You have purchased " + response.message.length + " ticket(s)</p>"];
+            var ticketHashes = response.message.map(ticketHash => "<p><strong>" + ticketHash + "</strong></p>");
+            successMsg.push(ticketHashes);
+            setSuccessMessage(successMsg.join());
         }
     };
 
@@ -44,6 +44,7 @@ function submitPurchaseTicketsForm() {
 $(function(){
     $("#next-btn").on("click", function(e){
         e.preventDefault();
+        clearMessages();
         if (validateFormFields()) {
             getWalletPassphraseAndSubmit(submitPurchaseTicketsForm);
         }
