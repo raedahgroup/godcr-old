@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/gdamore/tcell"
 )
 
 var LabelColor, BorderColor tcell.Color = tcell.NewRGBColor(255, 255, 255), tcell.NewRGBColor(112, 203, 255)
@@ -23,7 +24,6 @@ func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus fu
 	})
 
 	body.SetLabelColor(LabelColor)
-
 	setFocus(body)
 
 	return body
