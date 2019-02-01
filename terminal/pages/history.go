@@ -3,6 +3,7 @@ package pages
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"github.com/gdamore/tcell"
 )
 
 func HistoryPage() tview.Primitive {
@@ -13,6 +14,9 @@ func HistoryPage() tview.Primitive {
 	body.SetCell(0, 2, tview.NewTableCell("Fee").SetAlign(tview.AlignCenter).SetTextColor(color))
 	body.SetCell(0, 3, tview.NewTableCell("Direction").SetAlign(tview.AlignCenter).SetTextColor(color))
 	body.SetCell(0, 4, tview.NewTableCell("Type").SetAlign(tview.AlignCenter).SetTextColor(color))
+	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
+	body.SetBorderColor(tcell.NewRGBColor(0, 0, 51))
+	body.SetBorderAttributes(tcell.AttrBold)
 
 	return body
 }
