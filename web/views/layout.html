@@ -7,10 +7,13 @@
     <meta name="description" content="godcr - decred wallet">
     <meta name="author" content="The Decred developers">
     <title>GoDCR</title>
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- <link rel="stylesheet" href="/static/css/bootstrap.min.css?v={{timestamp}}"/> -->
+    <link rel="stylesheet" href="/static/dist/css/style.css?v={{timestamp}}"/>
+
+    <!-- <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script> -->
+
     <script src="/static/dist/js/vendors~app.bundle.js"></script>
     <script src="/static/dist/js/app.bundle.js?v={{timestamp}}"></script>
 </head>
@@ -76,7 +79,7 @@
 
 {{ define "footer" }}
 <script>
-    $(function(){
+    window.$(function(){
         var pathname = window.location.pathname;
         var paths = pathname.split("/")
         var currentNavItem = "#nav-balance";
@@ -85,7 +88,7 @@
             currentNavItem = "#nav-" + paths[1];
         }
 
-        $(currentNavItem).addClass("active");
+        window.$(currentNavItem).addClass("active");
     });
 </script>
 {{ end }}
