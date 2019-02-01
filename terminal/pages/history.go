@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
+	"github.com/gdamore/tcell"
 )
 
 func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -38,11 +39,6 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	}
 
 	setFocus(body)
-// =======
-// 	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
-// 	body.SetBorderColor(tcell.NewRGBColor(0, 0, 51))
-// 	body.SetBorderAttributes(tcell.AttrBold)
-// >>>>>>> terminal ui design
 
 	return body
 }

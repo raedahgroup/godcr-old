@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
+	"github.com/gdamore/tcell"
 )
 
 func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -60,12 +61,6 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			clearFocus()
 		}
 	})
-// =======
-// func BalancePage() tview.Primitive {
-// 	body := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Balance : %s", "0 GODCR"))
-// 	body.SetTextColor(tcell.NewRGBColor(0, 0, 0))
-// 	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
-// >>>>>>> terminal ui design
 
 	setFocus(body)
 	return body
