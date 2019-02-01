@@ -14,7 +14,7 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return textView.SetText(err.Error())
+		return textView.SetText(err.Error()).SetTextColor(tcell.NewRGBColor(0, 0, 0))
 	}
 
 	body.AddItem(checkbox.SetLabel("View Detailed Balance  ").SetChecked(false).SetChangedFunc(func(checked bool) {
@@ -60,6 +60,12 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			clearFocus()
 		}
 	})
+// =======
+// func BalancePage() tview.Primitive {
+// 	body := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Balance : %s", "0 GODCR"))
+// 	body.SetTextColor(tcell.NewRGBColor(0, 0, 0))
+// 	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
+// >>>>>>> terminal ui design
 
 	setFocus(body)
 	return body
