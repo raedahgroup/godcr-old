@@ -9,6 +9,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
+	"github.com/gdamore/tcell"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -37,8 +38,9 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	var menuColumn *tview.List
 
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
+	header.SetBackgroundColor(tcell.NewRGBColor(41, 112, 255))
 	//Creating the View for the Layout
-	gridLayout := tview.NewGrid().SetBorders(true).SetRows(3, 0).SetColumns(30, 0)
+	gridLayout := tview.NewGrid().SetBorders(false).SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
@@ -65,6 +67,7 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 			tviewApp.Stop()
 		})
 	menuColumn.SetCurrentItem(0)
+	menuColumn.SetBackgroundColor(tcell.NewRGBColor(0, 0, 51))
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
