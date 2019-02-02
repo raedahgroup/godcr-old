@@ -24,69 +24,19 @@ Follow the steps below to download, setup and run dcrwallet:
 
 #### Step 1. Install Go
 * Minimum supported version is 1.11.4. Installation instructions can be found [here](https://golang.org/doc/install).
-* **Ensure** `$GOPATH` environment variable is set and `$GOPATH/bin` is added to your PATH environment variable as part of the go installation process.
+* Set `$GOPATH` environment variable and add `$GOPATH/bin` to your PATH environment variable as part of the go installation process.
 
-#### Step 2a. Install [QT](https://en.wikipedia.org/wiki/Qt_(software)) Binding for Go
-```bash
-go get -u -v github.com/therecipe/qt/cmd/...
-```
-If you get `module source tree too big` error message, try the following work around:
-```bash
-git clone https://github.com/therecipe/qt.git $GOPATH/src/github.com/therecipe/qt
-cd $GOPATH/src/github.com/therecipe/qt/cmd
-go install ./qtsetup
-go install ./qtmoc
-go install ./qtrcc
-go install ./qtminimal
-go install ./qtdeploy
-
-// on Mac
-git clone https://github.com/therecipe/env_darwin_amd64_512.git $GOPATH/src/github.com/therecipe/env_darwin_amd64_512
-
-// on Linux
-git clone https://github.com/therecipe/env_linux_amd64_512.git $GOPATH/src/github.com/therecipe/env_linux_amd64_512
-
-// on Windows
-git clone https://github.com/therecipe/env_windows_amd64_512.git $GOPATH/src/github.com/therecipe/env_windows_amd64_512
-```
-
-#### Step 2b. Setup QT Binding for Go (Linux and Mac)
-Run the following with `GO111MODULE=off` and outside $GOPATH
-```bash
-qtsetup test && qtsetup
-```
-It may be necessary to install additional dependencies on Linux. See [here](https://github.com/therecipe/qt/wiki/Installation-on-Linux).
-
-#### Step 2b. Setup QT Binding for Go (Windows)
-```bash
-for /f %v in ('go env GOPATH') do %v\bin\qtsetup test && %v\bin\qtsetup
-```
-
-If building on Windows, there are additional steps to take to be able to build successfully. Those steps are described in the [setup instructions for Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows#if-you-want-to-install-the-binding), under **If you want to install the binding**
-
-#### Step 2c. Detailed Installation Instructions
-If you have issues with Step 2a or 2b above, you might need to consult the detailed setup instructions for [Windows](https://github.com/therecipe/qt/wiki/Installation-on-Windows), [Linux](https://github.com/therecipe/qt/wiki/Installation-on-Linux) or [MacOS](https://github.com/therecipe/qt/wiki/Installation-on-macOS). Focus only on the steps listed in the **Fast track version** section.
-
-#### Step 3. Clone this repo
+#### Step 2. Clone this repo
+It is conventional to clone to $GOPATH, but not necessary.
 ```bash
 git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
 ```
-**Note:** Cloning to a different directory other than `$GOPATH/src/github.com/raedahgroup` may cause build issues.
 
-#### Step 4. Build the source code
-```bash
-cd $GOPATH/src/github.com/raedahgroup/godcr
-export GO111MODULE=on
-go mod download
-go mod vendor
-export GO111MODULE=off
-go build
-```
-**Notes**
-- Go modules must be enabled first to download all dependencies listed in `go.mod` to `vendor` folder within the project directory.
-- Go modules must be disabled before running `go build` else the build will fail.
-- In Windows, use `setx GO111MODULE on/off` instead of `export GO111MODULE=on/off`. 
-- If you get checksum mismatch error while downloading dependencies**, ensure you're on go version 1.11.4 or higher and clean your go mod cache by running `go clean -modcache`
+#### Step 3. Build the source code
+* If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
+Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
+* `cd` to the cloned project directory and run `go build` or `go install`.
+Building will place the `godcr` binary in your working directory while install will place the binary in $GOPATH/bin.
 
 ## Running godcr
 ### General usage
@@ -106,8 +56,6 @@ Run `godcr --mode=terminal`
 Run `godcr --mode=http`
 3. Native desktop app with [nuklear](https://github.com/aarzilli/nucular) library.
 Run `godcr --mode=nuklear`
-4. Native desktop app with [qt](https://github.com/therecipe/qt) library.
-Run`godcr --mode=qt`
 
 ### Configuration
 The behaviour of the godcr program can be customized by editing the godcr configuration file.
