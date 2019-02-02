@@ -2,6 +2,17 @@
 The current state of godcr is reported below.
 Working features, known bugs and issues, work-in-progress features are all listed.
 
+## Interfaces
+Godcr can run in any of the following interface modes:
+
+#### Cli (`godcr` or `godcr --mode=cli`)
+
+#### Terminal GUI app (`godcr --mode=terminal`)
+
+#### Http web app (`godcr --mode=http`)
+
+#### Native desktop app (`godcr --mode=nuklear`)
+
 ## Features
 The list of features available on godcr is maintained below.
 Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some interfaces
