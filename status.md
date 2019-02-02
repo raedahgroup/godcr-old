@@ -8,17 +8,17 @@ Some features are either only partially implemented (:ballot_box_with_check:) or
 
 | Feature | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
 |---|---|---|---|---|
-| create wallet | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
-| sync blockchain (spv) | cli, http | terminal | nuklear, qt |
+| create wallet | cli, http | terminal | nuklear | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
+| sync blockchain (spv) | cli, http | terminal | nuklear |
 | sync blockchain (rpc) | | | all | Add this feature to all interfaces |
-| balance | cli, http | nuklear, qt | terminal |
-| receive | cli, http, nuklear | | qt, terminal |
-| send funds (simple) | cli, http | | nuklear, qt, terminal |
-| send funds (custom) | cli | http | nuklear, qt, terminal |
-| history | cli, http | | nuklear, qt, terminal |
-| tx detail | cli, http | | nuklear, qt, terminal |
-| stake info | cli, http | | nuklear, qt, terminal |
-| purchase ticket(s) | cli, http | | nuklear, qt, terminal |
+| balance | cli, http | nuklear | terminal |
+| receive | cli, http, nuklear | | terminal |
+| send funds (simple) | cli, http | | nuklear, terminal |
+| send funds (custom) | cli | http | nuklear, terminal |
+| history | cli, http | | nuklear, terminal |
+| tx detail | cli, http | | nuklear, terminal |
+| stake info | cli, http | | nuklear, terminal |
+| purchase ticket(s) | cli, http | | nuklear, terminal |
 
 ## Interfaces
 Godcr can run in any of the following interface modes:
