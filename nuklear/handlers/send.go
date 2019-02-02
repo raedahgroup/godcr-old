@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/decred/dcrd/dcrutil"
-
 	"github.com/aarzilli/nucular"
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
@@ -19,9 +18,9 @@ type utxoSelection struct {
 	utxo     *walletcore.UnspentOutput
 }
 
-type input struct {
-	addressErrStr      string
-	amountErrStr       string
+type SendDetailInputPair struct {
+	addressErr         string
+	amountErr          string
 	destinationAddress nucular.TextEditor
 	amount             nucular.TextEditor
 }
@@ -34,14 +33,14 @@ type SendHandler struct {
 	utxos           []*utxoSelection
 	isFetchingUTXOS bool
 
-	accountNumbers   []uint32
-	accountOverviews []string
-
-	inputs []*input
-
+	accountNumbers       []uint32
+	accountOverviews     []string
 	selectedAccountIndex int
-	spendUnconfirmed     bool
-	selectCustomInputs   bool
+
+	sendDetailInputPairs []*SendDetailInputPair
+
+	spendUnconfirmed   bool
+	selectCustomInputs bool
 
 	isSubmitting bool
 
@@ -55,7 +54,7 @@ func (handler *SendHandler) BeforeRender() {
 	handler.isFetchingUTXOS = false
 	handler.accountNumbers = nil
 	handler.accountOverviews = nil
-	handler.inputs = nil
+	handler.sendDetailInputPairs = nil
 	handler.spendUnconfirmed = false
 	handler.selectCustomInputs = false
 	handler.isSubmitting = false
@@ -67,7 +66,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.fetchAccounts(wallet)
-		handler.addSendInputPair(false, window.Master())
+		handler.addSendInputPair(window.Master(), true)
 	}
 
 	masterWindow := window.Master()
@@ -101,36 +100,42 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 				handler.fetchCustomInputsCheck(wallet, masterWindow)
 			}
 
-			for i := 0; i < len(handler.inputs); i++ {
+			contentWindow.Spacing(2)
+
+			for _, destInputPair := range handler.sendDetailInputPairs {
 				contentWindow.Row(10).Dynamic(2)
 				contentWindow.Label("Destination Address", "LC")
 				contentWindow.Label("Amount (DCR)", "LC")
 
 				contentWindow.Row(25).Dynamic(2)
-				handler.inputs[i].destinationAddress.Edit(contentWindow.Window)
-				handler.inputs[i].amount.Edit(contentWindow.Window)
+				destInputPair.destinationAddress.Edit(contentWindow.Window)
+				destInputPair.amount.Edit(contentWindow.Window)
 
-				if handler.inputs[i].addressErrStr != "" || handler.inputs[i].amountErrStr != "" {
+				if destInputPair.addressErr != "" || destInputPair.amountErr != "" {
 					contentWindow.Row(10).Dynamic(2)
-					contentWindow.LabelColored(handler.inputs[i].addressErrStr, "LC", helpers.DangerColor)
-					contentWindow.LabelColored(handler.inputs[i].amountErrStr, "LC", helpers.DangerColor)
+					contentWindow.LabelColored(destInputPair.addressErr, "LC", helpers.DangerColor)
+					contentWindow.LabelColored(destInputPair.amountErr, "LC", helpers.DangerColor)
 				}
 			}
 
 			contentWindow.Row(25).Dynamic(2)
-			if contentWindow.ButtonText("Add anohter address") {
-				handler.addSendInputPair(true, window.Master())
+			if contentWindow.ButtonText("Add another address") {
+				handler.addSendInputPair(window.Master(), true)
 			}
 
-			if len(handler.inputs) > 1 {
-				if contentWindow.ButtonText("Remove last address") {
-					handler.removeLastSendInputPair(window.Master())
-				}
+			if len(handler.sendDetailInputPairs) > 1 && contentWindow.ButtonText("Remove last address") {
+				handler.removeLastSendInputPair(window.Master())
 			}
+
+			contentWindow.Spacing(2)
 
 			contentWindow.Row(15).Dynamic(2)
 			if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
-				handler.fetchCustomInputsCheck(wallet, masterWindow)
+				if handler.validate(window, wallet) {
+					handler.fetchCustomInputsCheck(wallet, masterWindow)
+				} else {
+					handler.selectCustomInputs = false
+				}
 			}
 
 			if handler.isFetchingUTXOS {
@@ -160,6 +165,8 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 				}
 			}
 
+			contentWindow.Spacing(2)
+
 			submitButtonText := "Submit"
 			if handler.isSubmitting {
 				submitButtonText = "Submitting"
@@ -167,7 +174,9 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			contentWindow.Row(25).Dynamic(2)
 			if contentWindow.ButtonText(submitButtonText) {
-				handler.validateAndSubmit(window, wallet)
+				if handler.validate(window, wallet) {
+					handler.getPassphraseAndSubmit(window, wallet)
+				}
 			}
 			contentWindow.End()
 		}
@@ -175,7 +184,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 	}
 }
 
-// fetch accounts for select source account field
+// fetch accounts to display in select source account dropdown
 func (handler *SendHandler) fetchAccounts(wallet walletcore.Wallet) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -197,16 +206,22 @@ func (handler *SendHandler) fetchAccounts(wallet walletcore.Wallet) {
 // addSendInputPair adds a destinationAddress and amount input field pair on user click of
 // the 'add another address' button. This function is called at least once in the lifetime of
 // the send page
-func (handler *SendHandler) addSendInputPair(updateWindow bool, window nucular.MasterWindow) {
-	if handler.inputs == nil {
-		handler.inputs = []*input{}
+func (handler *SendHandler) addSendInputPair(window nucular.MasterWindow, updateWindow bool) {
+	if handler.sendDetailInputPairs == nil {
+		handler.sendDetailInputPairs = []*SendDetailInputPair{}
 	}
 
-	item := &input{
-		amount:             nucular.TextEditor{},
-		destinationAddress: nucular.TextEditor{},
+	amountItemEditor := nucular.TextEditor{}
+	amountItemEditor.Flags = nucular.EditClipboard | nucular.EditSimple
+
+	destinationAddressItemEditor := nucular.TextEditor{}
+	destinationAddressItemEditor.Flags = nucular.EditClipboard | nucular.EditSimple
+
+	item := &SendDetailInputPair{
+		amount:             amountItemEditor,
+		destinationAddress: destinationAddressItemEditor,
 	}
-	handler.inputs = append(handler.inputs, item)
+	handler.sendDetailInputPairs = append(handler.sendDetailInputPairs, item)
 
 	if updateWindow {
 		window.Changed()
@@ -217,11 +232,12 @@ func (handler *SendHandler) addSendInputPair(updateWindow bool, window nucular.M
 // when the 'remove last address' button is clicked. The button is hidden when only one
 // input pair exists on form
 func (handler *SendHandler) removeLastSendInputPair(window nucular.MasterWindow) {
-	handler.inputs = handler.inputs[:len(handler.inputs)-1]
+	handler.sendDetailInputPairs[len(handler.sendDetailInputPairs)-1] = nil
+	handler.sendDetailInputPairs = handler.sendDetailInputPairs[:len(handler.sendDetailInputPairs)-1]
 	window.Changed()
 }
 
-// fetchCustomInputsCheck is called everytime the 'select custom inputs' checbox is checked or unchecked.
+// fetchCustomInputsCheck is called everytime the 'select custom inputs' checkbox is checked or unchecked.
 // for everytime the checkbox is checked, the fetchCustomInputs function is called
 func (handler *SendHandler) fetchCustomInputsCheck(wallet walletcore.Wallet, masterWindow nucular.MasterWindow) {
 	if handler.selectCustomInputs {
@@ -239,6 +255,11 @@ func (handler *SendHandler) fetchCustomInputsCheck(wallet walletcore.Wallet, mas
 func (handler *SendHandler) fetchCustomInputs(wallet walletcore.Wallet, masterWindow nucular.MasterWindow) {
 	handler.isFetchingUTXOS = true
 	masterWindow.Changed()
+
+	defer func() {
+		handler.isFetchingUTXOS = false
+		masterWindow.Changed()
+	}()
 
 	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
 	if handler.spendUnconfirmed {
@@ -260,60 +281,87 @@ func (handler *SendHandler) fetchCustomInputs(wallet walletcore.Wallet, masterWi
 		}
 		handler.utxos[index] = utxoItem
 	}
-	handler.isFetchingUTXOS = false
-	masterWindow.Changed()
 }
 
-func (handler *SendHandler) validateAndSubmit(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.Wallet) bool {
 	isClean := true
 
-	for _, input := range handler.inputs {
-		if string(input.amount.Buffer) == "" {
-			input.amountErrStr = "This amount field is required"
-			isClean = false
+	for _, input := range handler.sendDetailInputPairs {
+		amountStr := string(input.amount.Buffer)
+		if amountStr == "" {
+			input.amountErr = "This amount field is required"
 		} else {
-			input.amountErrStr = ""
-		}
-
-		if string(input.destinationAddress.Buffer) == "" {
-			input.addressErrStr = "This address field is required"
-			isClean = false
-		} else {
-			input.addressErrStr = ""
-		}
-	}
-
-	if isClean {
-		passphraseChan := make(chan string)
-		widgets.NewPassphraseWidget().Get(window, passphraseChan)
-
-		go func() {
-			passphrase := <-passphraseChan
-			if passphrase != "" {
-				handler.submit(passphrase, window, wallet)
+			amountInt, err := strconv.ParseFloat(amountStr, 64)
+			if err != nil {
+				input.amountErr = "This is not a valid number"
+			} else if amountInt < 1 {
+				input.amountErr = "Send amount must be greater than 0DCR"
+			} else {
+				input.amountErr = ""
 			}
-		}()
-		return
+		}
+		if input.amountErr != "" {
+			isClean = false
+		}
+
+		address := string(input.destinationAddress.Buffer)
+		if address == "" {
+			input.addressErr = "This address field is required"
+		} else {
+			isValid, err := wallet.ValidateAddress(address)
+			if err != nil {
+				input.addressErr = fmt.Sprintf("error validating address: %s", err.Error())
+			} else if !isValid {
+				input.addressErr = "Invalid address"
+			} else {
+				input.addressErr = ""
+			}
+		}
+
+		if input.addressErr != "" {
+			isClean = false
+		}
 	}
+
 	window.Master().Changed()
+	return isClean
+}
+
+func (handler *SendHandler) getPassphraseAndSubmit(window *nucular.Window, wallet walletcore.Wallet) {
+	passphraseChan := make(chan string)
+	widgets.NewPassphraseWidget().Get(window, passphraseChan)
+
+	go func() {
+		passphrase := <-passphraseChan
+		if passphrase != "" {
+			handler.submit(passphrase, window, wallet)
+		}
+	}()
 }
 
 func (handler *SendHandler) submit(passphrase string, window *nucular.Window, wallet walletcore.Wallet) {
+	if handler.isSubmitting {
+		return
+	}
+
 	handler.isSubmitting = true
 	window.Master().Changed()
 
-	defer window.Master().Changed()
+	defer func() {
+		handler.isSubmitting = false
+		window.Master().Changed()
+	}()
 
-	sendDestinations := make([]txhelper.TransactionDestination, len(handler.inputs))
-	for index := range handler.inputs {
-		amount, err := strconv.ParseFloat(string(handler.inputs[index].amount.Buffer), 64)
+	sendDestinations := make([]txhelper.TransactionDestination, len(handler.sendDetailInputPairs))
+	for index := range handler.sendDetailInputPairs {
+		amount, err := strconv.ParseFloat(string(handler.sendDetailInputPairs[index].amount.Buffer), 64)
 		if err != nil {
 			handler.err = err
 			return
 		}
 
 		sendDestinations[index] = txhelper.TransactionDestination{
-			Address: string(handler.inputs[index].destinationAddress.Buffer),
+			Address: string(handler.sendDetailInputPairs[index].destinationAddress.Buffer),
 			Amount:  amount,
 		}
 	}
@@ -348,18 +396,32 @@ func (handler *SendHandler) submit(passphrase string, window *nucular.Window, wa
 	} else {
 		handler.successHash, handler.err = wallet.SendFromAccount(accountNumber, requiredConfirmations, sendDestinations, passphrase)
 	}
+
+	if handler.successHash != "" {
+		handler.resetForm()
+	}
 }
 
-func (handler *SendHandler) getUTXOSAndSelectedAmount() ([]string, dcrutil.Amount) {
-	var totalInputAmount dcrutil.Amount
-	var utxos []string
-
-	for i := range handler.utxos {
-		if handler.utxos[i].selected {
-			totalInputAmount += handler.utxos[i].utxo.Amount
+func (handler *SendHandler) getUTXOSAndSelectedAmount() (utxos []string, totalInputAmount dcrutil.Amount) {
+	for _, utxo := range handler.utxos {
+		if utxo.selected {
+			totalInputAmount += utxo.utxo.Amount
+			utxos = append(utxos, utxo.utxo.OutputKey)
 		}
-		utxos = append(utxos, handler.utxos[i].utxo.Address)
+	}
+	return
+}
+
+func (handler *SendHandler) resetForm() {
+	if len(handler.accountNumbers) > 1 {
+		handler.selectedAccountIndex = 0
 	}
 
-	return utxos, totalInputAmount
+	for _, input := range handler.sendDetailInputPairs {
+		input.amount.Buffer = []rune("")
+		input.destinationAddress.Buffer = []rune("")
+	}
+
+	handler.spendUnconfirmed = false
+	handler.selectCustomInputs = false
 }

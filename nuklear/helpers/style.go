@@ -15,14 +15,10 @@ import (
 )
 
 var (
-	whiteColor             = color.RGBA{0xff, 0xff, 0xff, 0xff}
-	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
-	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
-	DangerColor            = color.RGBA{165, 42, 42, 255}
-	SuccessColor           = color.RGBA{24, 85, 24, 255}
-	PageHeaderFont         font.Face
-	PageContentFont        font.Face
-	NavFont                font.Face
+	SuccessColor    = color.RGBA{24, 85, 24, 255}
+	PageHeaderFont  font.Face
+	PageContentFont font.Face
+	NavFont         font.Face
 )
 
 const (
