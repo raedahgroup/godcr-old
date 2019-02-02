@@ -2,20 +2,9 @@
 The current state of godcr is reported below.
 Working features, known bugs and issues, work-in-progress features are all listed.
 
-## Interfaces
-Godcr can run in any of the following interface modes:
-
-#### Cli (`godcr` or `godcr --mode=cli`)
-
-#### Terminal GUI app (`godcr --mode=terminal`)
-
-#### Http web app (`godcr --mode=http`)
-
-#### Native desktop app (`godcr --mode=nuklear`)
-
 ## Features
 The list of features available on godcr is maintained below.
-Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some interfaces
+Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some [interfaces](#interfaces)
 
 | Feature | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
 |---|---|---|---|---|
@@ -30,6 +19,21 @@ Some features are either only partially implemented (:ballot_box_with_check:) or
 | tx detail | cli, http | | nuklear, qt, terminal |
 | stake info | cli, http | | nuklear, qt, terminal |
 | purchase ticket(s) | cli, http | | nuklear, qt, terminal |
+
+## Interfaces
+Godcr can run in any of the following interface modes:
+
+#### Cli (`godcr` or `godcr --mode=cli`)
+![cli interface screenshot](https://user-images.githubusercontent.com/18400051/52159568-7b812a80-26a6-11e9-927e-52189d25146f.png)
+
+#### Terminal GUI app (`godcr --mode=terminal`)
+![terminal mode screenshot](https://user-images.githubusercontent.com/18400051/52159638-5fca5400-26a7-11e9-877b-54c5f092fbe1.png)
+
+#### Http web app (`godcr --mode=http`)
+![http interface screenshot](https://user-images.githubusercontent.com/18400051/52159613-019d7100-26a7-11e9-9cfc-8d044d3468f7.png)
+
+#### Native desktop app (`godcr --mode=nuklear`)
+![nuklear mode screenshot](https://user-images.githubusercontent.com/18400051/52159667-d49d8e00-26a7-11e9-9f5f-ba99cb33b4db.png)
 
 ## Known Issues
 #### Sync blockchain (cli only)
