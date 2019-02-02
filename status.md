@@ -24,7 +24,7 @@ Some features are either only partially implemented (:ballot_box_with_check:) or
 Godcr can run in any of the following interface modes:
 
 #### Cli (`godcr` or `godcr --mode=cli`)
-![cli interface screenshot](https://user-images.githubusercontent.com/18400051/52159978-5e4f5a80-26ac-11e9-9f1a-cd02c76272cb.png)
+![cli interface screenshot](https://user-images.githubusercontent.com/18400051/52160314-973efd80-26b3-11e9-9eed-7ba0b08f04f4.png)
 
 #### Terminal GUI app (`godcr --mode=terminal`)
 ![terminal mode screenshot](https://user-images.githubusercontent.com/18400051/52159638-5fca5400-26a7-11e9-877b-54c5f092fbe1.png)
