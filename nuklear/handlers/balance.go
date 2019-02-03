@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"fmt"
-
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
@@ -62,7 +61,7 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
 	helpers.SetFont(window, helpers.PageHeaderFont)
 	window.Row(25).Dynamic(1)
-	window.Label(handler.simpleBalance(handler.accounts[0].Balance, false), "LC")
+	window.Label(app.SimpleBalance(handler.accounts[0].Balance, false), "LC")
 }
 
 func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
@@ -83,7 +82,7 @@ func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
 	for _, account := range handler.accounts {
 		window.Row(20).Ratio(0.16, 0.14, 0.15, 0.15, 0.2, 0.20)
 		window.Label(account.Name, "LC")
-		window.Label(handler.simpleBalance(account.Balance, handler.detailed), "LC")
+		window.Label(app.SimpleBalance(account.Balance, handler.detailed), "LC")
 
 		if handler.detailed {
 			window.Label(account.Balance.Spendable.String(), "LC")
@@ -91,13 +90,5 @@ func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
 			window.Label(account.Balance.VotingAuthority.String(), "LC")
 			window.Label(account.Balance.Unconfirmed.String(), "LC")
 		}
-	}
-}
-
-func (handler *BalanceHandler) simpleBalance(balance *walletcore.Balance, detailed bool) string {
-	if detailed || balance.Total == balance.Spendable {
-		return balance.Total.String()
-	} else {
-		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
 	}
 }
