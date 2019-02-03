@@ -35,19 +35,19 @@ func getHandlers() []handlersData {
 			handler:  &handlers.SendHandler{},
 		},
 		{
-			name:     "transactions",
-			navLabel: "Transactions",
+			name:     "history",
+			navLabel: "History",
 			handler:  &handlers.TransactionsHandler{},
-		},
-		{
-			name:     "purchase_tickets",
-			navLabel: "Purchase Tickets",
-			handler:  &handlers.PurchaseTicketsHandler{},
 		},
 		{
 			name:     "stakeinfo",
 			navLabel: "Stake Info",
 			handler:  &handlers.StakeInfoHandler{},
+		},
+		{
+			name:     "tickets",
+			navLabel: "Tickets",
+			handler:  &handlers.PurchaseTicketsHandler{},
 		},
 	}
 }

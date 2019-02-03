@@ -17,9 +17,11 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	layout := terminalLayout(tviewApp)
 	list := tview.NewList().
 		AddItem("Balance", "", 'b', nil).
-		AddItem("Receive", "", 'r', nil).
 		AddItem("Send", "", 's', nil).
+		AddItem("Receive", "", 'r', nil).
 		AddItem("History", "", 'h', nil).
+		AddItem("Stakeinfo", "", 'k', nil).
+		AddItem("Tickets", "", 't', nil).
 		AddItem("Exit", "", 'q', func() {
 			tviewApp.Stop()
 		})
@@ -60,6 +62,12 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 		}).
 		AddItem("History", "", 'h', func() {
 			changePageColumn(pages.HistoryPage())
+		}).
+		AddItem("Stakeinfo", "", 'k', func() {
+			changePageColumn(pages.ReceivePage())
+		}).
+		AddItem("Tickets", "", 't', func() {
+			changePageColumn(pages.ReceivePage())
 		}).
 		AddItem("Exit", "", 'q', func() {
 			tviewApp.Stop()
