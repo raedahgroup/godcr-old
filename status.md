@@ -4,21 +4,36 @@ Working features, known bugs and issues, work-in-progress features are all liste
 
 ## Features
 The list of features available on godcr is maintained below.
-Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some interfaces
+Some features are either only partially implemented (:ballot_box_with_check:) or not implemented at all (:x:) on some [interfaces](#interfaces)
 
 | Feature | :white_check_mark: | :ballot_box_with_check: | :x: | Next Steps |
 |---|---|---|---|---|
-| create wallet | cli, http | terminal | nuklear, qt | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
-| sync blockchain (spv) | cli, http | terminal | nuklear, qt |
+| create wallet | cli, http | terminal | nuklear | Allow creating multiple wallets, even if wallet already exists<br><br>Ask for network type when creating wallet<br><br>Seed display confirmation should follow same pattern as dcrandroid |
+| sync blockchain (spv) | cli, http | terminal | nuklear |
 | sync blockchain (rpc) | | | all | Add this feature to all interfaces |
-| balance | cli, http | nuklear, qt | terminal |
-| receive | cli, http, nuklear | | qt, terminal |
-| send funds (simple) | cli, http | | nuklear, qt, terminal |
-| send funds (custom) | cli | http | nuklear, qt, terminal |
-| history | cli, http | | nuklear, qt, terminal |
-| tx detail | cli, http | | nuklear, qt, terminal |
-| stake info | cli, http | | nuklear, qt, terminal |
-| purchase ticket(s) | cli, http | | nuklear, qt, terminal |
+| balance | cli, http | nuklear | terminal |
+| receive | cli, http, nuklear | | terminal |
+| send funds (simple) | cli, http | | nuklear, terminal |
+| send funds (custom) | cli | http | nuklear, terminal |
+| history | cli, http | | nuklear, terminal |
+| tx detail | cli, http | | nuklear, terminal |
+| stake info | cli, http | | nuklear, terminal |
+| purchase ticket(s) | cli, http | | nuklear, terminal |
+
+## Interfaces
+Godcr can run in any of the following interface modes:
+
+#### Cli (`godcr` or `godcr --mode=cli`)
+![cli interface screenshot](https://user-images.githubusercontent.com/18400051/52160314-973efd80-26b3-11e9-9eed-7ba0b08f04f4.png)
+
+#### Terminal GUI app (`godcr --mode=terminal`)
+![terminal mode screenshot](https://user-images.githubusercontent.com/18400051/52159638-5fca5400-26a7-11e9-877b-54c5f092fbe1.png)
+
+#### Http web app (`godcr --mode=http`)
+![http interface screenshot](https://user-images.githubusercontent.com/18400051/52159613-019d7100-26a7-11e9-9cfc-8d044d3468f7.png)
+
+#### Native desktop app (`godcr --mode=nuklear`)
+![nuklear mode screenshot](https://user-images.githubusercontent.com/18400051/52159667-d49d8e00-26a7-11e9-9f5f-ba99cb33b4db.png)
 
 ## Known Issues
 #### Sync blockchain (cli only)
