@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -25,7 +26,6 @@ func (c CreateAccountCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 	if err != nil {
 		return err
 	}
-	log.Infof("Account created successfully")
-	fmt.Println("Account created successfully")
+	clilog.LogInfo("Account created successfully")
 	return nil
 }

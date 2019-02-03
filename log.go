@@ -12,12 +12,11 @@ import (
 	"strings"
 	"path/filepath"
 
-	"github.com/raedahgroup/godcr/cli"
-	"github.com/raedahgroup/godcr/cli/commands"
-	"github.com/raedahgroup/godcr/cli/walletloader"
-	"github.com/raedahgroup/godcr/nuklear"
-	"github.com/raedahgroup/godcr/qt"
-	"github.com/raedahgroup/godcr/web"
+	"github.com/raedahgroup/godcr/cli/clilog"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
+	"github.com/raedahgroup/godcr/qt/qtlog"
+	"github.com/raedahgroup/godcr/terminal/terlog"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
 )
@@ -27,7 +26,6 @@ import (
 type logWriter struct{}
 
 func (logWriter) Write(p []byte) (n int, err error) {
-	os.Stdout.Write(p)
 	logRotator.Write(p)
 	return len(p), nil
 }
@@ -55,16 +53,16 @@ var (
 	nuklearLog   = backendLog.Logger("NUK")
 	qtLog    	 = backendLog.Logger("QTL")
 	cliLog    	 = backendLog.Logger("CLI")
+	terLog    	 = backendLog.Logger("TER")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	cli.UseLogger(cliLog)
-	commands.UseLogger(cliLog)
-	walletloader.UseLogger(cliLog)
-	nuklear.UseLogger(nuklearLog)
-	qt.UseLogger(qtLog)
-	web.UseLogger(webLog)
+	clilog.UseLogger(cliLog)
+	nuklog.UseLogger(nuklearLog)
+	qtlog.UseLogger(qtLog)
+	weblog.UseLogger(webLog)
+	terlog.UseLogger(terLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
@@ -74,6 +72,7 @@ var subsystemLoggers = map[string]slog.Logger{
 	"NUK": nuklearLog,
 	"QTL": qtLog,
 	"CLI": cliLog,
+	"TER": terLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

@@ -74,7 +74,6 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("Sent txid", sentTxHash)
 	fmt.Println("Sent txid", sentTxHash)
 	return nil
 }
@@ -155,12 +154,10 @@ func completeNormalSend(wallet walletcore.Wallet, sourceAccount uint32, sendDest
 	}
 
 	if len(sendDestinations) == 1 {
-		log.Warnf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address)
 		fmt.Println(fmt.Sprintf("You are about to send %f DCR to %s", sendDestinations[0].Amount, sendDestinations[0].Address))
 	} else {
 		fmt.Println("You are about to send")
 		for _, destination := range sendDestinations {
-			log.Warn("You are about to send %f DCR \t to %s", destination.Amount, destination.Address)
 			fmt.Println(fmt.Sprintf(" %f DCR \t to %s", destination.Amount, destination.Address))
 		}
 	}

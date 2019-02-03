@@ -10,6 +10,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/help"
+	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
@@ -47,7 +48,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig c
 	} else if noCommandPassed {
 		listCommands()
 	} else if err != nil {
-		log.Error(err)
+		clilog.LogError(err)
 	}
 
 	return err

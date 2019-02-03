@@ -42,7 +42,7 @@ type ConfFileOptions struct {
 	NoWalletRPCTLS  bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
 	HTTPHost        string `long:"httphost" description:"HTTP server host address or IP"`
 	HTTPPort        string `long:"httpport" description:"HTTP server port"`
-	DebugLevel      string `short:"d" long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	DebugLevel      string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
 	LogDir          string `long:"logdir" description:"Directory to log output."`
 	LogFilename     string `long:"logfilename" description:"Name of Log File in log directory."`
 }

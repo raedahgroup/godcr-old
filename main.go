@@ -77,7 +77,6 @@ func main() {
 
 	// check if user passed commands/options/args but is not running in cli mode
 	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
-		log.Info("unexpected command or flag in mode: ", appConfig.InterfaceMode, strings.Join(args, " "))
 		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
 		os.Exit(1)
 	}
@@ -110,6 +109,22 @@ func main() {
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
+}
+
+//function for writing to stdOut and file simultanously
+func LogInfo(message string) {
+	log.Info(message)
+	fmt.Println(message)
+}
+
+func LogWarn(message string) {
+	log.Warn(message)
+	fmt.Println(message)
+}
+
+func LogError(message error) {
+	log.Error(message)
+ 	fmt.Println(message)
 }
 
 // attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
@@ -161,7 +176,8 @@ func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddle
 
 	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
-		log.Errorf("Connect to dcrwallet rpc failed", err.Error())
+		LogInfo("Connect to dcrwallet rpc failed")
+		LogInfo(err.Error())
 		os.Exit(1)
 	}
 
