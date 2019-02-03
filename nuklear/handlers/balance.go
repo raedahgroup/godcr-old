@@ -20,7 +20,6 @@ func (handler *BalanceHandler) BeforeRender() {
 	handler.accounts = nil
 	handler.isRendering = false
 	handler.detailed = false
-
 }
 
 func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
@@ -60,6 +59,12 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 	}
 }
 
+func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
+	helpers.SetFont(window, helpers.PageHeaderFont)
+	window.Row(25).Dynamic(1)
+	window.Label(handler.simpleBalance(handler.accounts[0].Balance, false), "LC")
+}
+
 func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
 	helpers.SetFont(window, helpers.NavFont)
 	window.Row(20).Ratio(0.16, 0.14, 0.15, 0.15, 0.2, 0.20)
@@ -87,12 +92,6 @@ func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
 			window.Label(account.Balance.Unconfirmed.String(), "LC")
 		}
 	}
-}
-
-func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
-	helpers.SetFont(window, helpers.PageHeaderFont)
-	window.Row(25).Dynamic(1)
-	window.Label(handler.simpleBalance(handler.accounts[0].Balance, false), "LC")
 }
 
 func (handler *BalanceHandler) simpleBalance(balance *walletcore.Balance, detailed bool) string {
