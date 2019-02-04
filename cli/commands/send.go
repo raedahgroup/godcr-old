@@ -74,7 +74,6 @@ func send(wallet walletcore.Wallet, spendUnconfirmed bool, custom bool) error {
 	if err != nil {
 		return err
 	}
-
 	fmt.Println("Sent txid", sentTxHash)
 	return nil
 }

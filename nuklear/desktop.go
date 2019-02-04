@@ -8,6 +8,7 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
@@ -60,7 +61,8 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	if !walletExists {
 		// todo add ui to create wallet
 		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
-		fmt.Println(err.Error())
+		// fmt.Println(err.Error())
+		nuklog.LogInfo(err.Error())
 		return err
 	}
 

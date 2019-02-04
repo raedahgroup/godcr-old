@@ -51,7 +51,6 @@ func showDetailedBalance(accountBalances []*walletcore.Account) {
 			account.Balance.Unconfirmed,
 		}
 	}
-
 	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 }
 
