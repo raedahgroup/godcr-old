@@ -14,7 +14,6 @@ import (
 
 	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
-	"github.com/raedahgroup/godcr/qt/qtlog"
 	"github.com/raedahgroup/godcr/terminal/terlog"
 	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/decred/slog"
@@ -26,8 +25,7 @@ import (
 type logWriter struct{}
 
 func (logWriter) Write(p []byte) (n int, err error) {
-	logRotator.Write(p)
-	return len(p), nil
+	return logRotator.Write(p)
 }
 
 // Loggers per subsystem.  A single backend logger is created and all subsytem
@@ -51,7 +49,6 @@ var (
 	log          = backendLog.Logger("GODC")
 	webLog    	 = backendLog.Logger("WEB")
 	nuklearLog   = backendLog.Logger("NUK")
-	qtLog    	 = backendLog.Logger("QTL")
 	cliLog    	 = backendLog.Logger("CLI")
 	terLog    	 = backendLog.Logger("TER")
 )
@@ -60,7 +57,6 @@ var (
 func init() {
 	clilog.UseLogger(cliLog)
 	nuklog.UseLogger(nuklearLog)
-	qtlog.UseLogger(qtLog)
 	weblog.UseLogger(webLog)
 	terlog.UseLogger(terLog)
 }
@@ -70,7 +66,6 @@ var subsystemLoggers = map[string]slog.Logger{
 	"GODC": log,
 	"WEB": webLog,
 	"NUK": nuklearLog,
-	"QTL": qtLog,
 	"CLI": cliLog,
 	"TER": terLog,
 }

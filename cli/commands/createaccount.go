@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/app/walletcore"
