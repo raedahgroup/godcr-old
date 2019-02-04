@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -54,13 +54,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	var menuColumn *tview.List
 
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
+	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(tcell.NewRGBColor(41, 112, 255))
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetBorders(false).SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
+		gridLayout.RemoveItem(t)
 	}
 
 	setFocus := tviewApp.SetFocus
@@ -87,16 +88,22 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		AddItem("Purchase Tickets", "", 't', func() {
 			changePageColumn(pages.BalancePage())
 		}).
-		AddItem("Exit", "", 'q', func() {
+		AddItem("Account", "", 'a', nil).
+		AddItem("Security", "", 'x', nil).
+		AddItem("Quit", "", 'q', func() {
 			tviewApp.Stop()
 		})
 	menuColumn.SetCurrentItem(0)
-	menuColumn.SetBackgroundColor(tcell.NewRGBColor(0, 0, 51))
+	menuColumn.SetShortcutColor(tcell.NewRGBColor(112, 203, 255))
+	menuColumn.SetBorder(true)
+	menuColumn.SetBorderColor(tcell.NewRGBColor(112, 203, 255))
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	gridLayout.AddItem(pages.BalancePage(walletMiddleware, setFocus, clearFocus), 1, 1, 1, 1, 0, 0, true)
+	gridLayout.SetBackgroundColor(tcell.ColorBlack)
+	gridLayout.SetBordersColor(tcell.NewRGBColor(112, 203, 255))
 
 	return gridLayout
 }

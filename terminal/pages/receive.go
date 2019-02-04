@@ -81,3 +81,4 @@ func generateAddress(wallet walletcore.Wallet, accountNumber uint32) (string, *q
 // 	body.SetTextColor(tcell.NewRGBColor(0, 0, 0))
 // 	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
 // >>>>>>> terminal ui design
+
