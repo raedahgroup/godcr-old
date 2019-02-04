@@ -3,8 +3,8 @@ package pages
 import (
 	"fmt"
 
-	"github.com/rivo/tview"
 	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
 )
 
 func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -19,10 +19,7 @@ func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus fu
 	body.AddButton("Cancel", func() {
 		clearFocus()
 	})
-	body.SetBackgroundColor(tcell.NewRGBColor(255, 255, 255))
-	body.SetLabelColor(tcell.NewRGBColor(0, 0, 0))
-	body.SetFieldTextColor(tcell.NewRGBColor(0, 0, 0))
-
+	body.SetLabelColor(tcell.NewRGBColor(255, 255, 255))
 	setFocus(body)
 
 	return body
