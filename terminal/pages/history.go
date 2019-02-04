@@ -3,7 +3,6 @@ package pages
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
 )
 
 func HistoryPage() tview.Primitive {

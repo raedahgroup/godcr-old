@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
 )
 
 func BalancePage() tview.Primitive {
