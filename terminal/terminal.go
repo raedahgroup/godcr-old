@@ -9,7 +9,6 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -55,7 +54,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	var menuColumn *tview.List
 
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
+	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(tcell.NewRGBColor(41, 112, 255))
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetBorders(false).SetRows(3, 0).SetColumns(30, 0)
