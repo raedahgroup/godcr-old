@@ -39,9 +39,10 @@ func getHandlers() []handlerData {
 			handler:    &handlers.SendHandler{},
 		},
 		{
-			name:     "history",
-			navLabel: "History",
-			handler:  &handlers.TransactionsHandler{},
+			name:       "history",
+			navLabel:   "History",
+			standalone: false,
+			handler:    &handlers.TransactionsHandler{},
 		},
 		{
 			name:       "createwallet",
