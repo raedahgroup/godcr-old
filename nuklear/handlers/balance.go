@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
@@ -49,7 +48,7 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 				if !handler.detailed && len(handler.accounts) == 1 {
 					handler.showSimpleView(content.Window)
 				} else {
-					handler.showDetailedView(content.Window)
+					handler.showTabularView(content.Window)
 				}
 			}
 			content.End()
@@ -61,12 +60,12 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
 	helpers.SetFont(window, helpers.PageHeaderFont)
 	window.Row(25).Dynamic(1)
-	window.Label(app.SimpleBalance(handler.accounts[0].Balance, false), "LC")
+	window.Label(walletcore.SimpleBalance(handler.accounts[0].Balance, false), "LC")
 }
 
-func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
+func (handler *BalanceHandler) showTabularView(window *nucular.Window) {
 	helpers.SetFont(window, helpers.NavFont)
-	window.Row(20).Ratio(0.16, 0.14, 0.15, 0.15, 0.2, 0.20)
+	window.Row(20).Ratio(0.16, 0.18, 0.2, 0.2, 0.2, 0.25)
 	window.Label("Account Name", "LC")
 	window.Label("Balance", "LC")
 
@@ -80,9 +79,9 @@ func (handler *BalanceHandler) showDetailedView(window *nucular.Window) {
 	// rows
 	helpers.SetFont(window, helpers.PageContentFont)
 	for _, account := range handler.accounts {
-		window.Row(20).Ratio(0.16, 0.14, 0.15, 0.15, 0.2, 0.20)
+		window.Row(20).Ratio(0.16, 0.18, 0.2, 0.2, 0.2, 0.25)
 		window.Label(account.Name, "LC")
-		window.Label(app.SimpleBalance(account.Balance, handler.detailed), "LC")
+		window.Label(walletcore.SimpleBalance(account.Balance, handler.detailed), "LC")
 
 		if handler.detailed {
 			window.Label(account.Balance.Spendable.String(), "LC")

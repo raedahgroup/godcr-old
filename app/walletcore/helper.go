@@ -2,6 +2,7 @@ package walletcore
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg"
@@ -24,4 +25,12 @@ func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (addres
 	}
 
 	return strings.Join(encodedAddresses, ", "), nil
+}
+
+func SimpleBalance(balance *Balance, detailed bool) string {
+	if detailed || balance.Total == balance.Spendable {
+		return balance.Total.String()
+	} else {
+		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
+	}
 }

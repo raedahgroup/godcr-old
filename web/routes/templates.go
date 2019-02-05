@@ -4,7 +4,7 @@ import (
 	"html/template"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type templateData struct {
@@ -26,7 +26,7 @@ func templates() []templateData {
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"simpleBalance": app.SimpleBalance,
+		"simpleBalance": walletcore.SimpleBalance,
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
 		},
