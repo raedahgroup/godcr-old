@@ -18,17 +18,12 @@ const (
 	contentPaneWidthPadding = 55
 )
 
-type pageHandler struct {
-	handler    Handler
-	standalone bool
-}
-
 type Desktop struct {
 	masterWindow     nucular.MasterWindow
 	walletMiddleware app.WalletMiddleware
 	currentPage      string
 	pageChanged      bool
-	handlers         map[string]pageHandler
+	handlers         map[string]handlerData
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -40,13 +35,9 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 
 	// register handlers
 	handlers := getHandlers()
-	desktop.handlers = make(map[string]pageHandler, len(handlers))
+	desktop.handlers = make(map[string]handlerData, len(handlers))
 	for _, handler := range handlers {
-		handlerItem := pageHandler{
-			standalone: handler.standalone,
-			handler:    handler.handler,
-		}
-		desktop.handlers[handler.name] = handlerItem
+		desktop.handlers[handler.name] = handler
 	}
 
 	// open wallet and start blockchain syncing in background
