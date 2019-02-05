@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"html/template"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -27,13 +26,7 @@ func templates() []templateData {
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"simpleBalance": func(balance *walletcore.Balance, detailed bool) string {
-			if detailed || balance.Total == balance.Spendable {
-				return balance.Total.String()
-			} else {
-				return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
-			}
-		},
+		"simpleBalance": walletcore.SimpleBalance,
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
 		},
