@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
-	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
@@ -49,7 +49,7 @@ func main() {
 		}
 	}()
 
-// Special show command to list supported subsystems and exit.
+	// Special show command to list supported subsystems and exit.
 	if appConfig.DebugLevel == "show" {
 		fmt.Println("Supported subsystems", supportedSubsystems())
 		os.Exit(0)
@@ -57,7 +57,7 @@ func main() {
 
 	// Parse, validate, and set debug log level(s).
 	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
-		err :=fmt.Errorf("%s: %v", "loadConfig", err.Error())
+		err := fmt.Errorf("%s: %v", "loadConfig", err.Error())
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 		return
@@ -124,7 +124,7 @@ func LogWarn(message string) {
 
 func LogError(message error) {
 	log.Error(message)
- 	fmt.Println(message)
+	fmt.Println(message)
 }
 
 // attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet

@@ -16,15 +16,6 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	tviewApp := tview.NewApplication()
 	// Terminal Layout Structure for screens
 	layout := terminalLayout(tviewApp)
-	list := tview.NewList().
-		AddItem("Balance", "", 'b', nil).
-		AddItem("Receive", "", 'r', nil).
-		AddItem("Send", "", 's', nil).
-		AddItem("History", "", 'h', nil).
-		AddItem("Exit", "", 'q', func() {
-			tviewApp.Stop()
-		})
-	list.SetBorder(true).SetTitle(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
 
 	err := syncBlockChain(ctx, walletMiddleware)
 	if err != nil {
@@ -44,7 +35,6 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
-		gridLayout.RemoveItem(t)
 	}
 	//Menu List of the Layout
 	menuColumn = tview.NewList().
@@ -72,14 +62,14 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	menuColumn.SetCurrentItem(0)
 	menuColumn.SetShortcutColor(tcell.NewRGBColor(112, 203, 255))
 	menuColumn.SetBorder(true)
-	menuColumn.SetBorderColor(tcell.NewRGBColor(112, 203, 255))
+	menuColumn.SetBorderColor(pages.BorderColor)
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-	gridLayout.SetBordersColor(tcell.NewRGBColor(112, 203, 255))
+	gridLayout.SetBordersColor(pages.BorderColor)
 
 	return gridLayout
 }

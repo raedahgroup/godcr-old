@@ -8,9 +8,9 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
 )
 
 const (
