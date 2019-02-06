@@ -12,18 +12,18 @@ import (
 )
 
 const (
-	defaultHTTPHost 	 = "127.0.0.1"
-	defaultHTTPPort		 = "7778"
-	defaultLogLevel      = "info"
-	defaultLogDirname    = "logs"
-	defaultLogFilename   = "godcr.log"
+	defaultHTTPHost    = "127.0.0.1"
+	defaultHTTPPort    = "7778"
+	defaultLogLevel    = "info"
+	defaultLogDirname  = "logs"
+	defaultLogFilename = "godcr.log"
 )
 
 var (
 	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
 	DefaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(DefaultDcrwalletAppDataDir, "rpc.cert")
-	defaultLogDir      		   = filepath.Join(defaultAppDataDir, defaultLogDirname)
+	defaultLogDir              = filepath.Join(defaultAppDataDir, defaultLogDirname)
 )
 
 // Config holds the top-level options/flags for the application

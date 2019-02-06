@@ -34,7 +34,6 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
-		gridLayout.RemoveItem(t)
 	}
 	//Menu List of the Layout
 	menuColumn = tview.NewList().
@@ -68,14 +67,14 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	menuColumn.SetCurrentItem(0)
 	menuColumn.SetShortcutColor(tcell.NewRGBColor(112, 203, 255))
 	menuColumn.SetBorder(true)
-	menuColumn.SetBorderColor(tcell.NewRGBColor(112, 203, 255))
+	menuColumn.SetBorderColor(pages.BorderColor)
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-	gridLayout.SetBordersColor(tcell.NewRGBColor(112, 203, 255))
+	gridLayout.SetBordersColor(pages.BorderColor)
 
 	return gridLayout
 }

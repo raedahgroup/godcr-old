@@ -8,16 +8,16 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
-	"path/filepath"
 
+	"github.com/decred/slog"
+	"github.com/jrick/logrotate/rotator"
 	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/terminal/terlog"
 	"github.com/raedahgroup/godcr/web/weblog"
-	"github.com/decred/slog"
-	"github.com/jrick/logrotate/rotator"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -46,11 +46,11 @@ var (
 	// application shutdown.
 	logRotator *rotator.Rotator
 
-	log          = backendLog.Logger("GODC")
-	webLog    	 = backendLog.Logger("WEB")
-	nuklearLog   = backendLog.Logger("NUK")
-	cliLog    	 = backendLog.Logger("CLI")
-	terLog    	 = backendLog.Logger("TER")
+	log        = backendLog.Logger("GODC")
+	webLog     = backendLog.Logger("WEB")
+	nuklearLog = backendLog.Logger("NUK")
+	cliLog     = backendLog.Logger("CLI")
+	terLog     = backendLog.Logger("TER")
 )
 
 // Initialize package-global logger variables.
@@ -64,10 +64,10 @@ func init() {
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODC": log,
-	"WEB": webLog,
-	"NUK": nuklearLog,
-	"CLI": cliLog,
-	"TER": terLog,
+	"WEB":  webLog,
+	"NUK":  nuklearLog,
+	"CLI":  cliLog,
+	"TER":  terLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and
@@ -194,4 +194,3 @@ func fatalf(format string, args ...interface{}) {
 	logRotator.Close()
 	os.Exit(1)
 }
-
