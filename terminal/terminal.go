@@ -11,11 +11,19 @@ import (
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+<<<<<<< HEAD
 	tviewApp := tview.NewApplication()
 	layout := terminalLayout(tviewApp, walletMiddleware)
 
 	// open wallet and start blockchain syncing in background
 	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
+=======
+
+	tviewApp := tview.NewApplication()
+	layout := terminalLayout(tviewApp, walletMiddleware)
+	
+	err := syncBlockChain(ctx, walletMiddleware)
+>>>>>>> implement the terminal UI history page
 	if err != nil {
 		return err
 	}
@@ -78,7 +86,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			changePageColumn(pages.SendPage(setFocus, clearFocus))
 		}).
 		AddItem("History", "", 'h', func() {
-			changePageColumn(pages.HistoryPage())
+			changePageColumn(pages.HistoryPage(walletMiddleware))
 		}).
 		AddItem("Stakeinfo", "", 'k', func() {
 			changePageColumn(pages.ReceivePage())
