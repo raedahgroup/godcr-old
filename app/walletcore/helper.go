@@ -3,6 +3,7 @@ package walletcore
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg"
@@ -33,4 +34,9 @@ func SimpleBalance(balance *Balance, detailed bool) string {
 	} else {
 		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
 	}
+}
+
+func AmountToString(amount float64) string {
+	amount = math.Round(amount)
+	return fmt.Sprintf("%d DCR", int(amount))
 }
