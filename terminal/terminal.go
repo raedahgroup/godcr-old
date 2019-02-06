@@ -61,7 +61,6 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
-		gridLayout.RemoveItem(t)
 	}
 
 	setFocus := tviewApp.SetFocus

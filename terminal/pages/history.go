@@ -39,6 +39,5 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	setFocus(body)
 
-
 	return body
 }
