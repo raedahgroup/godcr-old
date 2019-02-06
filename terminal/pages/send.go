@@ -22,6 +22,7 @@ func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus fu
 		clearFocus()
 	})
 	body.SetLabelColor(LabelColor)
+
 	setFocus(body)
 
 	return body
