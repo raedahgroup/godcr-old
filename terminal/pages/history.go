@@ -1,14 +1,13 @@
 package pages
 
 import (
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
 
-func HistoryPage(walletMiddleware app.WalletMiddleware) tview.Primitive {
+func HistoryPage(wallet walletcore.Wallet) tview.Primitive {
 	body := tview.NewTable().SetBorders(true)
-	transactions, err := walletMiddleware.TransactionHistory()
+	transactions, err := wallet.TransactionHistory()
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -32,8 +32,6 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 
 	// setup routes for templated pages, returns wallet loader function
 	syncBlockchain := routes.Setup(walletMiddleware, router)
-	// log.Info("Starting web server")
-	// fmt.Println("Starting web server")
 	weblog.LogInfo("Starting web server")
 	serverAddress := net.JoinHostPort(host, port)
 	err = startServer(ctx, serverAddress, router)
@@ -44,8 +42,6 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 	// check if context has been canceled before starting blockchain sync
 	err = ctx.Err()
 	if err != nil {
-		// log.Info("web server stopped")
-		// fmt.Println("Web server stopped")
 		weblog.LogInfo("Web server stopped")
 		return err
 	}
@@ -53,8 +49,6 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 
 	// keep alive till ctx is canceled
 	<-ctx.Done()
-	// log.Info("web server stopped")
-	// fmt.Println("Web server stopped")
 	weblog.LogInfo("Web server stopped")
 	return nil
 }
