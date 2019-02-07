@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
 )
@@ -13,6 +14,11 @@ import (
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 	layout := terminalLayout(tviewApp)
+
+	err := syncBlockChain(ctx, walletMiddleware)
+	if err != nil {
+		fmt.Println(err)
+	}
 	// `Run` blocks until app.Stop() is called before returning
 	return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
 }
@@ -62,4 +68,13 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
 
 	return gridLayout
+}
+
+func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	_, err := walletloader.OpenWallet(ctx, walletMiddleware)
+	if err != nil {
+		return err
+	}
+
+	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }

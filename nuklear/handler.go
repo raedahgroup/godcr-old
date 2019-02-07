@@ -45,7 +45,7 @@ func getHandlers() []handlersData {
 			handler:  &handlers.StakeInfoHandler{},
 		},
 		{
-			name:     "Purchasetickets",
+			name:     "purchasetickets",
 			navLabel: "Purchase Tickets",
 			handler:  &handlers.PurchaseTicketsHandler{},
 		},
