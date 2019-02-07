@@ -281,6 +281,11 @@ func (handler *SendHandler) fetchCustomInputs(wallet walletcore.Wallet, masterWi
 
 func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.Wallet) bool {
 	isClean := true
+	masterWindow := window.Master()
+
+	// clear errors before continuing
+	handler.err = nil
+	masterWindow.Changed()
 
 	for _, input := range handler.sendDetailInputPairs {
 		amountStr := string(input.amount.Buffer)
@@ -319,7 +324,7 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 		}
 	}
 
-	window.Master().Changed()
+	masterWindow.Changed()
 	return isClean
 }
 
