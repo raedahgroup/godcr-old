@@ -131,11 +131,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			contentWindow.Row(15).Dynamic(2)
 			if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
-				if handler.validate(window, wallet) {
-					handler.fetchCustomInputsCheck(wallet, masterWindow)
-				} else {
-					handler.selectCustomInputs = false
-				}
+				handler.fetchCustomInputsCheck(wallet, masterWindow)
 			}
 
 			if handler.isFetchingUTXOS {
@@ -174,7 +170,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			contentWindow.Row(25).Dynamic(2)
 			if contentWindow.ButtonText(submitButtonText) {
-				if handler.validate(window, wallet) {
+				if !handler.isSubmitting && handler.validate(window, wallet) {
 					handler.getPassphraseAndSubmit(window, wallet)
 				}
 			}
@@ -291,10 +287,10 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 		if amountStr == "" {
 			input.amountErr = "This amount field is required"
 		} else {
-			amountInt, err := strconv.ParseFloat(amountStr, 64)
+			amountFloat, err := strconv.ParseFloat(amountStr, 64)
 			if err != nil {
 				input.amountErr = "This is not a valid number"
-			} else if amountInt < 1 {
+			} else if amountFloat < 1 {
 				input.amountErr = "Send amount must be greater than 0DCR"
 			} else {
 				input.amountErr = ""
