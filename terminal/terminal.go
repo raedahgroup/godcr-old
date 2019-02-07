@@ -13,17 +13,7 @@ import (
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
-	// Terminal Layout Structure for screens
 	layout := terminalLayout(tviewApp)
-	list := tview.NewList().
-		AddItem("Balance", "", 'b', nil).
-		AddItem("Receive", "", 'r', nil).
-		AddItem("Send", "", 's', nil).
-		AddItem("History", "", 'h', nil).
-		AddItem("Exit", "", 'q', func() {
-			tviewApp.Stop()
-		})
-	list.SetBorder(true).SetTitle(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
 
 	err := syncBlockChain(ctx, walletMiddleware)
 	if err != nil {
@@ -60,6 +50,12 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 		}).
 		AddItem("History", "", 'h', func() {
 			changePageColumn(pages.HistoryPage())
+		}).
+		AddItem("Stakeinfo", "", 'k', func() {
+			changePageColumn(pages.ReceivePage())
+		}).
+		AddItem("Purchase Tickets", "", 't', func() {
+			changePageColumn(pages.ReceivePage())
 		}).
 		AddItem("Exit", "", 'q', func() {
 			tviewApp.Stop()
