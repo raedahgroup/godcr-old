@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"fmt"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
@@ -18,7 +20,6 @@ func HistoryPage(wallet walletcore.Wallet) tview.Primitive {
 	body.SetCell(0, 3, tview.NewTableCell("Direction").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 4, tview.NewTableCell("Type").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 5, tview.NewTableCell("Hash").SetAlign(tview.AlignCenter))
-
 
 	for i, tx := range transactions {
 		row := i + 1
