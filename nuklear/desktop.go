@@ -23,7 +23,7 @@ type Desktop struct {
 	walletMiddleware app.WalletMiddleware
 	currentPage      string
 	pageChanged      bool
-	handlers         map[string]handlerData
+	pages            map[string]page
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -33,11 +33,11 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		currentPage:      homePage,
 	}
 
-	// register handlers
-	handlers := getHandlers()
-	desktop.handlers = make(map[string]handlerData, len(handlers))
-	for _, handler := range handlers {
-		desktop.handlers[handler.name] = handler
+	// register pages
+	pages := getPages()
+	desktop.pages = make(map[string]page, len(pages))
+	for _, page := range pages {
+		desktop.pages[page.name] = page
 	}
 
 	// open wallet and start blockchain syncing in background
@@ -69,13 +69,13 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	handler := desktop.handlers[desktop.currentPage]
-	if handler.standalone {
-		desktop.renderStandalonePage(window, handler.handler)
+	page := desktop.pages[desktop.currentPage]
+	if page.standalone {
+		desktop.renderStandalonePage(window, page.handler)
 		return
 	}
 
-	desktop.renderNavPage(window, handler.handler)
+	desktop.renderNavPage(window, page.handler)
 }
 
 func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler Handler) {
@@ -107,10 +107,10 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
 	helpers.SetNavStyle(desktop.masterWindow)
 	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
 		navWindow.Row(40).Dynamic(1)
-		for _, handler := range getHandlers() {
-			if !handler.standalone {
-				if navWindow.Button(label.TA(handler.navLabel, "LC"), false) {
-					desktop.changePage(handler.name)
+		for _, page := range getPages() {
+			if !page.standalone {
+				if navWindow.Button(label.TA(page.navLabel, "LC"), false) {
+					desktop.changePage(page.name)
 				}
 			}
 		}

@@ -11,15 +11,15 @@ type Handler interface {
 	Render(*nucular.Window, app.WalletMiddleware, func(page string))
 }
 
-type handlerData struct {
+type page struct {
 	name       string
 	navLabel   string
 	standalone bool
 	handler    Handler
 }
 
-func getHandlers() []handlerData {
-	return []handlerData{
+func getPages() []page {
+	return []page{
 		{
 			name:       "balance",
 			navLabel:   "Balance",
