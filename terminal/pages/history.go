@@ -2,7 +2,7 @@ package pages
 
 import (
 	"fmt"
-
+	
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
