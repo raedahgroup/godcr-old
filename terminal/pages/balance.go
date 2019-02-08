@@ -61,6 +61,8 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		}
 	})
 
+// body.SetTextColor(LabelColor)
+
 	setFocus(body)
 	return body
 }
