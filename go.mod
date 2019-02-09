@@ -11,11 +11,13 @@ require (
 	github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7
 	github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08
 	github.com/decred/dcrwallet/walletseed v1.0.1
+	github.com/decred/slog v1.0.0
 	github.com/gdamore/tcell v1.1.1 // indirect
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/golang/freetype v0.0.0-20161208064710-d9be45aaf745
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/raedahgroup/dcrlibwallet v1.0.0-rc1.0.20190108195612-81f0df0be7a3
+	github.com/jrick/logrotate v1.0.0
+	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190209161438-9330ddf1d845
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b

@@ -8,16 +8,16 @@ package terlog
 import "fmt"
 
 func LogInfo(message string) {
- log.Info(message)
- fmt.Println(message)
+	log.Info(message)
+	fmt.Println(message)
 }
 
 func LogWarn(message string) {
- log.Warn(message)
- fmt.Println(message)
+	log.Warn(message)
+	fmt.Println(message)
 }
 
 func LogError(message error) {
- log.Error(message)
- fmt.Println(message)
+	log.Error(message)
+	fmt.Println(message)
 }

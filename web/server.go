@@ -12,8 +12,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/raedahgroup/godcr/web/routes"
+	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
@@ -55,7 +55,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 	<-ctx.Done()
 	// log.Info("web server stopped")
 	// fmt.Println("Web server stopped")
-		weblog.LogInfo("Web server stopped")
+	weblog.LogInfo("Web server stopped")
 	return nil
 }
 
