@@ -1,19 +1,18 @@
 package pages
 
 import (
-	"fmt"
-	
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
 
 func HistoryPage(wallet walletcore.Wallet) tview.Primitive {
-	body := tview.NewTable().SetBorders(true)
+	errmsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	transactions, err := wallet.TransactionHistory()
 	if err != nil {
-		fmt.Println(err)
+		return errmsg.SetText(err.Error())
 	}
 
+	body := tview.NewTable().SetBorders(true)
 	body.SetCell(0, 0, tview.NewTableCell("Date").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 1, tview.NewTableCell("Amount").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 2, tview.NewTableCell("Fee").SetAlign(tview.AlignCenter))
