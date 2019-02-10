@@ -170,18 +170,18 @@ export default class extends Controller {
     console.log(postData)
 
     let _this = this
-    axios.post('/send', postData).then(response => function () {
-      console.log(response)
+    axios.post('/send', postData).then((response) => {
       let result = response.data
-      if (result.error) {
+      if (result.error !== undefined) {
         _this.setErrorMessage(result.error)
       } else {
         let txHash = 'The transaction was published successfully. Hash: <strong>' + result.txHash + '</strong>'
         _this.setSuccessMessage(txHash)
       }
-    }).catch(function () {
+    }).catch((error) => {
+      console.log(error)
       _this.setErrorMessage('A server error occurred')
-    }).then(function () {
+    }).then(() => {
       _this.submitButtonTarget.innerHTML = 'Send'
       _this.submitButtonTarget.removeAttribute('disabled')
     })
@@ -253,10 +253,9 @@ export default class extends Controller {
   }
 
   setSuccessMessage (message) {
-    var m = `The transaction was published successfully. Hash: <strong>${message}</strong>`
-    this.hide(this.errorMEssageTarget)
-    this.show(this.succesMessageTarget)
-    this.errorMessageTarget.innerHTML = m
+    this.hide(this.errorMessageTarget)
+    this.show(this.successMessageTarget)
+    this.successMessageTarget.innerHTML = message
   }
 
   clearMessages () {

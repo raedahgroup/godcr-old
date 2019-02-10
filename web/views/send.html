@@ -6,8 +6,8 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
-                <div data-target="send.errorMessage" class="alert alert-danger hide-empty"></div>
-                <div data-target="send.successMessage" class="alert alert-success hide-empty"></div>
+                <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
+                <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                 <form method="POST" action="/send" id="send-form" data-target="send.form" novalidate>
                     {{ template "send-passphrase-modal" }}
                     <div class="collapsible">
