@@ -315,12 +315,12 @@ func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwall
 
 	ticketPrice, err := lib.TicketPrice(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
 	}
 
 	totalTicketPrice := dcrutil.Amount(ticketPrice * int64(request.NumTickets))
 	if balance.Spendable < totalTicketPrice {
-		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than total ticket price %s",
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket purchase cost %s",
 			balance.Spendable, totalTicketPrice)
 	}
 

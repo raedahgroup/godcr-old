@@ -442,7 +442,7 @@ func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwal
 
 	totalTicketPrice := dcrutil.Amount(ticketPrice * int64(request.NumTickets))
 	if balance.Spendable < totalTicketPrice {
-		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than total ticket price %s",
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket purchase cost %s",
 			balance.Spendable, totalTicketPrice)
 	}
 

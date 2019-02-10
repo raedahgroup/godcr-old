@@ -3,7 +3,7 @@ function submitPurchaseTicketsForm() {
     $(".alert-danger").empty();
 
     var form = $("#purchase-tickets-form");
-    var submit_btn = $("#next-btn");
+    var submit_btn = $("#purchase-btn");
     var postData = form.serialize();
 
     // reset passphrase-field 
@@ -25,7 +25,7 @@ function submitPurchaseTicketsForm() {
             var successMsg = ["<p>You have purchased " + response.message.length + " ticket(s)</p>"];
             var ticketHashes = response.message.map(ticketHash => "<p><strong>" + ticketHash + "</strong></p>");
             successMsg.push(ticketHashes);
-            setSuccessMessage(successMsg.join());
+            setSuccessMessage(successMsg.join(""));
         }
     };
 
@@ -34,7 +34,7 @@ function submitPurchaseTicketsForm() {
     };
 
     var completeFunc = function() {
-        submit_btn.removeAttr("disabled").html("Next");
+        submit_btn.removeAttr("disabled").html("Purchase");
     };
 
     submit_btn.attr("disabled", "disabled").html("Sending...");
