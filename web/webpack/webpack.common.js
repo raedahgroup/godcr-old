@@ -1,5 +1,4 @@
 const path = require('path')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const StyleLintPlugin = require('stylelint-webpack-plugin')
 const webpack = require('webpack')
 
@@ -8,8 +7,6 @@ module.exports = {
     app: './src/index.js'
   },
   externals: {
-    jquery: 'jquery',
-    bootstrap: 'bootstrap'
   },
   optimization: {
     splitChunks: {
@@ -49,18 +46,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new MiniCssExtractPlugin({
-      // Options similar to the same options in webpackOptions.output
-      // both options are optional
-      // filename: '[name].css',
-      // chunkFilename: '[id].css'
-      filename: 'css/style.css'
-    }),
-    new StyleLintPlugin(),
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jQuery: 'jquery'
-    })
+    new StyleLintPlugin()
   ],
   output: {
     filename: 'js/[name].bundle.js',

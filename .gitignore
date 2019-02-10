@@ -14,3 +14,4 @@ web/public/dist
 rcc*
 moc*
 deploy/
+*.log

@@ -1,8 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 
-import $ from 'jquery'
-
 export default class extends Controller {
   static get targets () {
     return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'changeOutputsTarget', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar']
