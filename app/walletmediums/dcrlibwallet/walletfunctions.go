@@ -301,7 +301,7 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 func (lib *DcrWalletLib) TicketPrice(ctx context.Context) (int64, error) {
 	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("could not determine ticket price: %s", err.Error())
+		return 0, err
 	}
 
 	return ticketPrice.TicketPrice, nil
