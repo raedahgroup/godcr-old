@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 
-	"github.com/raedahgroup/godcr/cli/clilog"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/cli/clilog"
 )
 
 type CreateAccountCommand struct {

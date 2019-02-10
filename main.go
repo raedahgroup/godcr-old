@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
-	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
@@ -49,7 +49,7 @@ func main() {
 		}
 	}()
 
-// Special show command to list supported subsystems and exit.
+	// Special show command to list supported subsystems and exit.
 	if appConfig.DebugLevel == "show" {
 		fmt.Println("Supported subsystems", supportedSubsystems())
 		os.Exit(0)
@@ -57,7 +57,7 @@ func main() {
 
 	// Parse, validate, and set debug log level(s).
 	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
-		err :=fmt.Errorf("%s: %v", "loadConfig", err.Error())
+		err := fmt.Errorf("%s: %v", "loadConfig", err.Error())
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 		return
@@ -124,7 +124,7 @@ func LogWarn(message string) {
 
 func LogError(message error) {
 	log.Error(message)
- 	fmt.Println(message)
+	fmt.Println(message)
 }
 
 // attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
@@ -163,25 +163,21 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
-func connectToWallet(ctx context.Context, config config.Config) app.WalletMiddleware {
+func connectToWallet(ctx context.Context, config config.Config) (walletMiddleware app.WalletMiddleware) {
+	var err error
 	if config.WalletRPCServer == "" {
-		var netType string
-		if config.UseTestNet {
-			netType = "testnet"
-		} else {
-			netType = "mainnet"
-		}
-		return dcrlibwallet.New(config.AppDataDir, netType)
+		walletMiddleware, err = dcrlibwallet.New(config.AppDataDir, config.UseTestNet)
+	} else {
+		walletMiddleware, err = dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	}
 
-	walletMiddleware, err := dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
 	if err != nil {
-		LogInfo("Connect to dcrwallet rpc failed")
+		LogInfo("Connect to wallet failed")
 		LogInfo(err.Error())
 		os.Exit(1)
 	}
 
-	return walletMiddleware
+	return
 }
 
 func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {

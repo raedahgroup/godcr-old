@@ -14,20 +14,24 @@ type DcrWalletLib struct {
 }
 
 // New connects to dcrlibwallet and returns an instance of DcrWalletLib
-func New(appDataDir string, netType string) *DcrWalletLib {
-	lw := dcrlibwallet.NewLibWallet(appDataDir, dcrlibwallet.DefaultDbDriver, netType)
+func New(appDataDir string, testnet bool) (*DcrWalletLib, error) {
+	var activeNet *netparams.Params
+	if testnet {
+		activeNet = &netparams.TestNet3Params
+	} else {
+		activeNet = &netparams.MainNetParams
+	}
+
+	lw, err := dcrlibwallet.NewLibWallet(appDataDir, dcrlibwallet.DefaultDbDriver, activeNet.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	lw.SetLogLevel("off")
 	lw.InitLoaderWithoutShutdownListener()
-
-	var activeNet *netparams.Params
-	if netType == "mainnet" {
-		activeNet = &netparams.MainNetParams
-	} else {
-		activeNet = &netparams.TestNet3Params
-	}
 
 	return &DcrWalletLib{
 		walletLib: lw,
 		activeNet: activeNet,
-	}
+	}, nil
 }
