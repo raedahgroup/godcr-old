@@ -78,7 +78,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			changePageColumn(pages.SendPage(setFocus, clearFocus))
 		}).
 		AddItem("History", "", 'h', func() {
-			changePageColumn(pages.HistoryPage(walletMiddleware))
+			changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
 		}).
 		AddItem("Stakeinfo", "", 'k', func() {
 			changePageColumn(pages.ReceivePage())
