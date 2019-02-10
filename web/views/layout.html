@@ -8,7 +8,7 @@
     <meta name="author" content="The Decred developers">
     <title>GoDCR</title>
 
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css?v={{timestamp}}"/>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
 
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.min.js"></script>
@@ -78,7 +78,7 @@
 
 {{ define "footer" }}
 <script>
-    window.$(function(){
+    $(function(){
         var pathname = window.location.pathname;
         var paths = pathname.split("/")
         var currentNavItem = "#nav-balance";
