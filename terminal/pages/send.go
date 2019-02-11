@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	// "errors"
     // "strconv"
 
 	"github.com/rivo/tview"
@@ -9,11 +10,10 @@ import (
 )
 
 func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
-	// errMsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+	errMsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		fmt.Sprintf("Error fetching accounts: %s", err)
-		// return err
+		return errMsg.SetText(err.Error())
 	}
 
 	//Form for Sending
@@ -28,25 +28,12 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		accountNames[index] = account.Name
 		body.AddDropDown("Account", []string{accountNames[index]}, 0, func(option string, optionIndex int) {
 			accountNum = accountN[optionIndex]
-			accountBalance, err := wallet.AccountBalance(accountNum, walletcore.DefaultRequiredConfirmations)
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println(accountBalance)
 		})
 	}
 	body.AddInputField("Amount", "", 20, nil, func (text string) {
-		// tx, err := strconv.Atoi(text)
-		// if err != nil {
-		// 	// return errMsg.SetText(err.Error())
-		// }
-		// if tx == 0 {
-		// 	// return errMsg.SetText("field must be greater than 0")
-		// }
-		// if tx == ""{
-		// 	// return errMsg.SetText("field cannot be empty")
-		// }
-
+		if tx == "" {
+			return errMsg.SetText("field cannot be  0")
+		}
 		amount = text
 	})
 	body.AddInputField("Destination Address", "", 20, nil, func (text string) {
@@ -58,6 +45,12 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		}
 	})
 	body.AddButton("Send", func() {
+		err := confBalance(accountNum, wallet)
+		if err != nil {
+			// errMsg.SetText(err.Error())
+			fmt.Println(err.Error())
+			return 
+		}
 		fmt.Println(destination, amount, checked)
 	})
 	body.AddButton("Cancel", func() {
@@ -67,4 +60,17 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	setFocus(body)
 	
 	return body
+}
+
+func confBalance(accountNum uint32, wallet walletcore.Wallet) error{
+	accountBalance, err := wallet.AccountBalance(accountNum, walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		return err
+	}
+	if accountBalance.Total != 0 {
+		return fmt.Errorf("Selected account has 0 balance. Cannot proceed")
+	}
+
+	fmt.Println(accountBalance)
+	return nil
 }
