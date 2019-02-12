@@ -21,24 +21,24 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	}
 
 	if walletExists {
-	// `Run` blocks until app.Stop() is called before returning
+		// `Run` blocks until app.Stop() is called before returning
 		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
 	}
 
 	var password, confPassword string
 	form := tview.NewForm().
-		AddPasswordField("Password", "", 10, '*', func(text string){
+		AddPasswordField("Password", "", 10, '*', func(text string) {
 			if len(text) == 0 {
 				fmt.Println("password cannot be less than 4")
 				return
 			}
 			password = text
 		}).
-		AddPasswordField("Password", "", 10, '*', func(text string){
+		AddPasswordField("Password", "", 10, '*', func(text string) {
 			confPassword = text
 		}).
 		AddButton("Create", func() {
-			if password != confPassword{
+			if password != confPassword {
 				fmt.Println("password does not match")
 				return
 			}
@@ -47,9 +47,9 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		AddButton("Quit", func() {
 			tviewApp.Stop()
 		})
-	form.SetBorder(true).SetTitle("Enter some data").SetTitleAlign(tview.AlignCenter).SetRect(30,10,40,10)
+	form.SetBorder(true).SetTitle("Enter some data").SetTitleAlign(tview.AlignCenter).SetRect(30, 10, 40, 10)
 	return tviewApp.SetRoot(form, false).Run()
-}	
+}
 
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	var menuColumn *tview.List

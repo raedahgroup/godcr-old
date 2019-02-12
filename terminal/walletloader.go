@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-
 	"github.com/raedahgroup/godcr/app"
 )
 
@@ -72,12 +71,12 @@ func CreateWallet(ctx context.Context, password string, walletMiddleware app.Wal
 	}
 	//todo show user seed that was generated
 	err = walletMiddleware.CreateWallet(password, seed)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error creating wallet: %s\n", err.Error())
-			return
-		}
-		fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating wallet: %s\n", err.Error())
+		return
+	}
+	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
 
-		// todo sync blockchain?
-		return nil
+	// todo sync blockchain?
+	return nil
 }
