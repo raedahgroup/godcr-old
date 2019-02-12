@@ -22,10 +22,10 @@ func New(appDataDir string, testnet bool) (*DcrWalletLib, error) {
 		activeNet = &netparams.MainNetParams
 	}
 
-	lw := dcrlibwallet.NewLibWallet(appDataDir, dcrlibwallet.DefaultDbDriver, activeNet.Name)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	lw, err := dcrlibwallet.NewLibWallet(appDataDir, dcrlibwallet.DefaultDbDriver, activeNet.Name)
+	if err != nil {
+		return nil, err
+	}
 
 	lw.SetLogLevel("off")
 	lw.InitLoaderWithoutShutdownListener()
