@@ -6,24 +6,52 @@ import (
 	"strings"
 
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
-	layout := terminalLayout(tviewApp)
+	layout := terminalLayout(tviewApp, walletMiddleware)
 
-	err := syncBlockChain(ctx, walletMiddleware)
+	// open wallet and start blockchain syncing in background
+	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	// `Run` blocks until app.Stop() is called before returning
-	return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
+
+	if walletExists {
+		// `Run` blocks until app.Stop() is called before returning
+		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
+	}
+
+	var password, confPassword string
+	form := tview.NewForm().
+		AddPasswordField("Password", "", 10, '*', func(text string) {
+			if len(text) == 0 {
+				fmt.Println("password cannot be less than 4")
+				return
+			}
+			password = text
+		}).
+		AddPasswordField("Password", "", 10, '*', func(text string) {
+			confPassword = text
+		}).
+		AddButton("Create", func() {
+			if password != confPassword {
+				fmt.Println("password does not match")
+				return
+			}
+			CreateWallet(ctx, password, walletMiddleware)
+		}).
+		AddButton("Quit", func() {
+			tviewApp.Stop()
+		})
+	form.SetBorder(true).SetTitle("Enter some data").SetTitleAlign(tview.AlignCenter).SetRect(30, 10, 40, 10)
+	return tviewApp.SetRoot(form, false).Run()
 }
 
-func terminalLayout(tviewApp *tview.Application) tview.Primitive {
+func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	var menuColumn *tview.List
 
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
@@ -32,6 +60,11 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
+	}
+
+	setFocus := tviewApp.SetFocus
+	clearFocus := func() {
+		tviewApp.SetFocus(menuColumn)
 	}
 	//Menu List of the Layout
 	menuColumn = tview.NewList().
@@ -42,10 +75,6 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 			changePageColumn(pages.ReceivePage())
 		}).
 		AddItem("Send", "", 's', func() {
-			setFocus := tviewApp.SetFocus
-			clearFocus := func() {
-				tviewApp.SetFocus(menuColumn)
-			}
 			changePageColumn(pages.SendPage(setFocus, clearFocus))
 		}).
 		AddItem("History", "", 'h', func() {
@@ -68,13 +97,4 @@ func terminalLayout(tviewApp *tview.Application) tview.Primitive {
 	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
 
 	return gridLayout
-}
-
-func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	_, err := walletloader.OpenWallet(ctx, walletMiddleware)
-	if err != nil {
-		return err
-	}
-
-	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
