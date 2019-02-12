@@ -6,3 +6,6 @@ vendor/
 godcr
 godcr.conf
 godcr.exe
+web/node_modules
+web/public/dist
+*.log
