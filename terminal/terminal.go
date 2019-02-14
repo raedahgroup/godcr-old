@@ -12,16 +12,15 @@ import (
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
-	layout := terminalLayout(tviewApp, walletMiddleware)
 
 	// open wallet and start blockchain syncing in background
 	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
 		return err
 	}
-
 	if walletExists {
 		// `Run` blocks until app.Stop() is called before returning
+		layout := terminalLayout(tviewApp, walletMiddleware)
 		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
 	}
 
