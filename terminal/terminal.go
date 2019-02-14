@@ -26,14 +26,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 
 	var password, confPassword string
 	form := tview.NewForm().
-		AddPasswordField("Password", "", 10, '*', func(text string) {
+		AddPasswordField("Password", "", 20, '*', func(text string) {
 			if len(text) == 0 {
 				fmt.Println("password cannot be less than 4")
 				return
 			}
 			password = text
 		}).
-		AddPasswordField("Password", "", 10, '*', func(text string) {
+		AddPasswordField("Password", "", 20, '*', func(text string) {
 			confPassword = text
 		}).
 		AddButton("Create", func() {

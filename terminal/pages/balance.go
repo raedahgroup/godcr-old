@@ -1,57 +1,50 @@
 package pages
 
 import (
-	"fmt"
-
 	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
-	type body struct	{
-		body []tview.Primitive
-	} 
-
-	body = tview.NewTextView().SetTextAlign(tview.AlignCenter)
-
-	// body := tview.NewCheckbox().SetLabel("Show detailed ").SetChecked(false).Draw(screen)
+	textView := tview.NewTextView()
+	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	table := tview.NewTable().SetBorders(true)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		errMsg := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(err.Error()))
-		return errMsg
+		return textView.SetText(err.Error())
 	}
+	
+	body.AddItem(tview.NewCheckbox().SetLabel("View Detailed Balance  ").SetChecked(false).SetChangedFunc(func(checked bool) {
+		if checked == false && len(accounts) == 1 {
+			output := walletcore.SimpleBalance(accounts[0].Balance, false)
+			body.AddItem(textView.SetTextAlign(tview.AlignCenter).SetText(output), 1, 1, false)
+		}
+		if checked == false && len(accounts) != 1 {
+			for _, account := range accounts {
+			body.AddItem(
+				table.SetCell(0, 0, tview.NewTableCell("Account Name").SetAlign(tview.AlignCenter)).
+				SetCell(0, 1, tview.NewTableCell("Balance").SetAlign(tview.AlignCenter)).
+				SetCell(1, 0, tview.NewTableCell(account.Name).SetAlign(tview.AlignCenter)).
+				SetCell(1, 1, tview.NewTableCell(walletcore.SimpleBalance(account.Balance, false)).SetAlign(tview.AlignCenter)), 1, 1, false)}
+		}
 
-	if len(accounts) == 1 {
-		account := walletcore.SimpleBalance(accounts[0].Balance, false)
-		body.SetText(account)
-	}
-
+		for _, account := range accounts {
+		body.AddItem(
+			table.SetCell(0, 0, tview.NewTableCell("Account Name").SetAlign(tview.AlignCenter)).
+			SetCell(0, 1, tview.NewTableCell("Balance").SetAlign(tview.AlignCenter)).
+			SetCell(0, 2, tview.NewTableCell("Spendable").SetAlign(tview.AlignCenter)).
+			SetCell(0, 3, tview.NewTableCell("Locked").SetAlign(tview.AlignCenter)).
+			SetCell(0, 4, tview.NewTableCell("Voting Authority").SetAlign(tview.AlignCenter)).
+			SetCell(0, 5, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter)).
+			SetCell(1, 0, tview.NewTableCell(account.Name).SetAlign(tview.AlignCenter)).
+			SetCell(1, 1, tview.NewTableCell(walletcore.SimpleBalance(account.Balance, true)).SetAlign(tview.AlignCenter)).
+			SetCell(1, 2, tview.NewTableCell(account.Balance.Spendable.String()).SetAlign(tview.AlignCenter)).
+			SetCell(1, 3, tview.NewTableCell(account.Balance.LockedByTickets.String()).SetAlign(tview.AlignCenter)).
+			SetCell(1, 4, tview.NewTableCell(account.Balance.VotingAuthority.String()).SetAlign(tview.AlignCenter)).
+			SetCell(1, 5, tview.NewTableCell(account.Balance.Unconfirmed.String()).SetAlign(tview.AlignCenter)), 0, 2, false)}
+		}), 0, 2, true)
+	
+	setFocus(body)
 	return body
-
-	return nil
-
-
-	// accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	// if err != nil {
-	// 	errMsg := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(err.Error()))
-	// 	return errMsg
-	// }
-
-	// body := tview.NewCheckbox().SetLabel("Show detailed ").SetChecked(false).SetChangedFunc(func(checked bool) {
-	// 	if checked != true && len(accounts) == 1 {
-	// 		account := walletcore.SimpleBalance(accounts[0].Balance, false)
-	// 		 fmt.Println(account)
-	// 	}else{
-	// 		 fmt.Println("more than 1")
-	// 	}
-	// })
-	// body.SetDoneFunc(func (key tcell.Key) {
-	// 	if key == tcell.KeyEscape{
-	// 		clearFocus()
-	// 	}
-	// })
-	// setFocus(body)
-	// return body
 }
