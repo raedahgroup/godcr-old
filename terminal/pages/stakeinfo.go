@@ -28,8 +28,6 @@ func StakeinfoPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *t
 		}
 
 	})
-
-
 	body.SetCell(0, 0, tview.NewTableCell("Expired").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 1, tview.NewTableCell("Immature").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 2, tview.NewTableCell("Live").SetAlign(tview.AlignCenter))
