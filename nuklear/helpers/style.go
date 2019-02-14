@@ -1,9 +1,11 @@
 package helpers
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
+	"math"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
@@ -128,4 +130,18 @@ func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style.GroupWindow.Padding = image.Point{20, 15}
 
 	window.SetStyle(style)
+}
+
+func SetStandaloneWindowStyle(window nucular.MasterWindow) {
+	style := window.Style()
+	style.GroupWindow.FixedBackground.Data.Color = whiteColor
+	style.GroupWindow.Padding = image.Point{20, 15}
+	style.NormalWindow.ScalerSize = image.Point{50, 50}
+
+	window.SetStyle(style)
+}
+
+func AmountToString(amount float64) string {
+	amount = math.Round(amount)
+	return fmt.Sprintf("%d DCR", int(amount))
 }
