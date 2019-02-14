@@ -2,12 +2,12 @@ package pages
 
 import (
 	"context"
-	"strconv"
 	"fmt"
+	"strconv"
 
-	"github.com/rivo/tview"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/rivo/tview"
 )
 
 func StakeinfoPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -26,7 +26,6 @@ func StakeinfoPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *t
 			body.ScrollToBeginning()
 			clearFocus()
 		}
-
 	})
 	body.SetCell(0, 0, tview.NewTableCell("Expired").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 1, tview.NewTableCell("Immature").SetAlign(tview.AlignCenter))
