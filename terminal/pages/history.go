@@ -13,13 +13,12 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		return errmsg.SetText(err.Error())
 	}
 
-	body := tview.NewTable().SetBorders(true).SetSelectable(true, false)
+	body := tview.NewTable().SetBorders(true)
 	body.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEscape {
 			body.ScrollToBeginning()
 			clearFocus()
 		}
-		
 	})
 	body.SetCell(0, 0, tview.NewTableCell("Date").SetAlign(tview.AlignCenter))
 	body.SetCell(0, 1, tview.NewTableCell("Amount").SetAlign(tview.AlignCenter))
