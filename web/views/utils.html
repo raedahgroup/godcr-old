@@ -11,26 +11,15 @@
             <div class="modal-body">
               <div class="form-group">
                   <label for="passhprase">Passphrase</label>
-                  <input data-target="send.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                  <input data-target="{{ . }}.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                  <div data-target="{{ . }}.passwordError" class="errors"></div>
               </div>
             </div>
-            <div data-target="send.passwordError" class="errors"></div>
             <div class="modal-footer">
               <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-              <button data-target="send.submitButton" data-action="click->send#submitSendForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+              <button data-action="click->{{ . }}#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
             </div>
         </div>
     </div>
 </div>
-{{ end }} 
-
-{{ define "source-account-input" }}
-<label for="source-account">Source Account</label>	                                            
-<select class="form-control" id="source-account" name="source-account" {{ if eq (len .) 1 }}disabled{{ end }}>
-  {{ range $account := . }}	                                                
-  <option value="{{ $account.Number }}">
-    {{ $account.Name }} - {{ simpleBalance $account.Balance false }}
-  </option>
-  {{ end }}	                                              
-</select>	 
 {{ end }}

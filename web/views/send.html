@@ -9,14 +9,19 @@
                 <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
                 <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                 <form method="POST" action="/send" id="send-form" data-target="send.form" novalidate>
-                    {{ template "send-passphrase-modal" }}
+                    {{ template "send-passphrase-modal" "send" }}
                     <div class="collapsible">
                         <div class="card">
                             <div class="card-body no-btm-pad">
                                 <div class="row">
                                     <div class="col-sm-12 col-md-6">
                                         <div class="form-group">
-                                            {{ template "source-account-input" .accounts }}  
+                                            <label for="source-account">Source Account</label>	                                            
+                                            <select data-target="send.sourceAccount" class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
+                                            {{ range $account := .accounts }}	                                                
+                                                <option value="{{ $account.Number }}">{{ $account.Name }} - {{ simpleBalance $account.Balance false }}</option>
+                                            {{ end }}	                                              
+                                            </select>	                                          
                                         </div>
                                         <div class="form-group form-check">
                                             <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed">

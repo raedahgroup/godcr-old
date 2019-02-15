@@ -149,25 +149,26 @@ export default class extends Controller {
     })
   }
 
-  submitSendForm () {
-    if (!this.walletPassphraseTarget.value) {
-      this.setErrorMessage('Your wallet passphrase is required')
+  submitForm () {
+    if (!this.validatePassphrase()) {
       return
     }
+
     $('#passphrase-modal').modal('hide')
 
-    this.submitButtonTarget.innerHTML = 'Sending...'
-    this.submitButtonTarget.setAttribute('disabled', 'disabled')
+    this.nextButtonTarget.innerHTML = 'Sending...'
+    this.nextButtonTarget.setAttribute('disabled', 'disabled')
 
     var postData = $('#send-form').serialize()
     postData += '&totalSelectedInputAmountDcr=' + this.getSelectedInputsSum()
+
+    // clear password input
+    this.walletPassphraseTarget.value = ''
 
     // add source-account value to post data if source-account element is disabled
     if (this.sourceAccountTarget.disabled) {
       postData += '&source-account=' + this.sourceAccountTarget.value
     }
-
-    console.log(postData)
 
     let _this = this
     axios.post('/send', postData).then((response) => {
@@ -178,12 +179,11 @@ export default class extends Controller {
         let txHash = 'The transaction was published successfully. Hash: <strong>' + result.txHash + '</strong>'
         _this.setSuccessMessage(txHash)
       }
-    }).catch((error) => {
-      console.log(error)
+    }).catch(() => {
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
-      _this.submitButtonTarget.innerHTML = 'Send'
-      _this.submitButtonTarget.removeAttribute('disabled')
+      _this.nextButtonTarget.innerHTML = 'Send'
+      _this.nextButtonTarget.removeAttribute('disabled')
     })
   }
 
@@ -219,6 +219,7 @@ export default class extends Controller {
   }
 
   getWalletPassphraseAndSubmit () {
+    this.clearMessages()
     if (!this.validateDestinationsField()) {
       return
     }
