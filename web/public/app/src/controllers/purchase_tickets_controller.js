@@ -54,8 +54,8 @@ export default class extends Controller {
       if (!result.success) {
         _this.setErrorMessage(result.message)
       } else {
-        var successMsg = ['<p>You have purchased ' + response.message.length + ' ticket(s)</p>']
-        var ticketHashes = response.message.map(ticketHash => '<p><strong>' + ticketHash + '</strong></p>')
+        var successMsg = ['<p>You have purchased ' + result.message.length + ' ticket(s)</p>']
+        var ticketHashes = result.message.map(ticketHash => '<p><strong>' + ticketHash + '</strong></p>')
         successMsg.push(ticketHashes)
         _this.setSuccessMessage(successMsg.join(''))
       }
