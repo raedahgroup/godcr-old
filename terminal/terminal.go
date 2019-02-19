@@ -12,16 +12,15 @@ import (
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
-	layout := terminalLayout(tviewApp, walletMiddleware)
 
 	// open wallet and start blockchain syncing in background
 	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
 		return err
 	}
-
 	if walletExists {
 		// `Run` blocks until app.Stop() is called before returning
+		layout := terminalLayout(tviewApp, walletMiddleware)
 		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
 	}
 
@@ -81,7 +80,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			changePageColumn(pages.HistoryPage())
 		}).
 		AddItem("Stakeinfo", "", 'k', func() {
-			changePageColumn(pages.ReceivePage())
+			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 		}).
 		AddItem("Purchase Tickets", "", 't', func() {
 			changePageColumn(pages.ReceivePage())
