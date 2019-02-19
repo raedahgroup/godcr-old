@@ -81,6 +81,69 @@
                                 </table>
                             </div>
                         </div>
+
+                        <div id="changeOutputsCard">
+                            <div class="card">
+                                  <div class="card-header" id="headingOne">
+                                    <h5 class="mb-0">
+                                      <button type="button" class="btn btn-link" data-toggle="collapse" 
+                                      data-target="#automaticChangeOutputPnl" aria-controls="automaticChangeOutputPnl">
+                                            Automatic Change Outputs
+                                      </button>
+                                    </h5>
+                                  </div>
+                              
+                                  <div id="automaticChangeOutputPnl" class="collapse" aria-labelledby="headingOne" data-parent="#changeOutputsCard">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <label for="amount">Number Of Change Outputs</label>
+                                                    <input type="number" class="form-control" id="numberOfChangeOutput" name="numberOfChangeOutput" />
+                                                </div> 
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <button id="generate-outputs-btn" type="button" class="btn btn-sm btn-primary btn-outline-secondary mt-4">Generate Outputs</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="autoChangeOutputsDiv">
+                                        </div>
+                                    </div>
+                                  </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header" id="customChangeHeader">
+                                    <h5 class="mb-0">
+                                        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#customChangeOutputPnl" aria-controls="customChangeOutputPnl">Custom Change Outputs</button>
+                                    </h5>
+                                </div>
+
+                                <div id="customChangeOutputPnl" class="collapse" aria-labelledby="customChangeHeader" data-parent="#changeOutputsCard">
+                                    
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div id="custom-change-destinations">
+                                                    
+                                            </div>
+                                               
+                                            <div class="form-group">
+                                                <button id="add-change-destination-btn" type="button" class="btn btn-sm btn-outline-secondary btn-primary">
+                                                    Add another address
+                                                </button> &nbsp;&nbsp;
+                                                <button id="remove-change-destination-btn" type="button" class="btn btn-sm btn-outline-secondary btn-primary">
+                                                    Remove Last address
+                                                </button>
+                                            </div>
+                                        </div>                                    
+                                    </div>
+                                   
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="card">
                             <div class="card-body">
                                 <div class="errors" data-target="send.errors"></div>
