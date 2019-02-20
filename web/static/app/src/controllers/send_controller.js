@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'changeOutputsTarget', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar']
+    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'changeOutputsTarget', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'changeOutputsDiv', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
   }
 
   initialize () {
@@ -59,7 +59,7 @@ export default class extends Controller {
   }
 
   getSelectedInputsSum () {
-    var sum = 0
+    let sum = 0
     this.customTxRowTarget.querySelectorAll('input.custom-input:checked').forEach((el, i) => {
       sum += parseFloat(el.dataset.amount)
     })
@@ -75,16 +75,16 @@ export default class extends Controller {
   }
 
   calculateSelectedInputPercentage () {
-    var sendAmount = this.getTotalSendAmount()
-    var selectedInputSum = this.getSelectedInputsSum()
-    var percentage = 0
+    const sendAmount = this.getTotalSendAmount()
+    const selectedInputSum = this.getSelectedInputsSum()
+    let percentage = 0
 
     if (selectedInputSum >= sendAmount) {
       percentage = 100
     } else {
       percentage = (selectedInputSum / sendAmount) * 100
     }
-    this.progressBarTarget.style.width = percentage + '%'
+    this.progressBarTarget.style.width = `${percentage}%`
   }
 
   resetCustomizePanel () {
@@ -111,7 +111,9 @@ export default class extends Controller {
         let receiveDateTime = new Date(tx.receive_time * 1000).toString().split(' ').slice(0, 5).join(' ')
         let dcrAmount = tx.amount / 100000000
         return `<tr>
-                  <td width='5%'><input data-action='click->send#calculateSelectedInputPercentage' type='checkbox' class='custom-input' name='utxo' value='${tx.key}' data-amount='${dcrAmount}' /></td>
+                  <td width='5%'>
+                    <input data-action='click->send#calculateSelectedInputPercentage' type='checkbox' class='custom-input' name='utxo' value='${tx.key}' data-amount='${dcrAmount}' />
+                  </td>
                   <td width='40%'>${tx.address}</td>
                   <td width='15%'>${dcrAmount} DCR</td>
                   <td width='25%'>${receiveDateTime}</td>
@@ -129,7 +131,7 @@ export default class extends Controller {
     this.submitButtonTarget.setAttribute('disabled', 'disabled')
     let _this = this
 
-    let url = '/unspent-outputs/' + accountNumber
+    let url = `/unspent-outputs/${accountNumber}`
     if (_this.spendUnconfirmedTarget.checked) {
       url += '?getUnconfirmed=true'
     }
@@ -149,6 +151,91 @@ export default class extends Controller {
     })
   }
 
+  generateChangeOutputs () {
+    if (!this.validateSendForm()) {
+      return
+    }
+
+    this.changeOutputsDivTargets.innerHTML = ''
+
+    let numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
+    if (!(numberOfChangeOutput > 0)) {
+      this.showError('Number of change outputs must be a non-zero positive number')
+      return
+    }
+
+    this.generateOutputsButtonTarget.setAttribute('disabled', 'disabled')
+    this.generateOutputsButtonTarget.innerHTML = 'Loading...'
+    this.numberOfChangeOutputsTarget.setAttribute('disabled', 'disabled')
+
+    let _this = this
+    _this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputdestinations) {
+      changeOutputdestinations.forEach(destination => {
+        let template = _this.changeDestinationTemplateTarget
+        template.content.querySelector('input[name="change-output-address"]').value = destination.Address
+        if (_this.useRandomChangeOutputsTarget.checked) {
+          template.content.querySelector('input[name="change-output-amount"]').value = destination.Amount
+        }
+
+        _this.changeOutputsDivTarget.appendChild(document.importNode(template.content, true))
+      })
+
+      _this.show(_this.changeOutputsDivTarget)
+
+      if (_this.useRandomChangeOutputsTarget.checked) {
+        _this.changeOutputAmountTargets.forEach(function (ele) {
+          ele.setAttribute('readonly', 'true')
+        })
+      } else {
+        _this.changeOutputAmountTargets.forEach(function (ele) {
+          ele.removeAttribute('readonly')
+        })
+      }
+
+      _this.generateOutputsButtonTarget.removeAttribute('disabled')
+      _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs'
+      _this.numberOfChangeOutputsTarget.removeAttribute('disabled')
+    }, function () {
+      _this.generateOutputsButtonTarget.removeAttribute('disabled')
+      _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs'
+      _this.numberOfChangeOutputsTarget.removeAttribute('disabled')
+    })
+  }
+
+  getRandomChangeOutputs (numberOfOutputs, successCallback, completeCallback) {
+    let postData = $('#send-form').serialize()
+    postData += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+
+    // add source-account value to post data if source-account element is disabled
+    if (this.sourceAccountTarget.disabled) {
+      postData += `&source-account=${this.sourceAccountTarget.value}`
+    }
+
+    postData += `&nChangeOutput=${numberOfOutputs}`
+
+    let _this = this
+    $.ajax({
+      url: '/random-change-outputs',
+      method: 'POST',
+      data: postData,
+      success: function (response) {
+        if (response.error) {
+          _this.setErrorMessage(response.error)
+        } else {
+          successCallback(response.message)
+        }
+      },
+      error: function (error) {
+        console.log(error)
+        _this.setErrorMessage('A server error occurred')
+      },
+      complete: function () {
+        if (completeCallback) {
+          completeCallback()
+        }
+      }
+    })
+  }
   submitForm () {
     if (!this.validatePassphrase()) {
       return
@@ -159,15 +246,15 @@ export default class extends Controller {
     this.nextButtonTarget.innerHTML = 'Sending...'
     this.nextButtonTarget.setAttribute('disabled', 'disabled')
 
-    var postData = $('#send-form').serialize()
-    postData += '&totalSelectedInputAmountDcr=' + this.getSelectedInputsSum()
+    let postData = $('#send-form').serialize()
+    postData += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
 
     // clear password input
     this.walletPassphraseTarget.value = ''
 
     // add source-account value to post data if source-account element is disabled
     if (this.sourceAccountTarget.disabled) {
-      postData += '&source-account=' + this.sourceAccountTarget.value
+      postData += `&source-account=${this.sourceAccountTarget.value}`
     }
 
     let _this = this
@@ -176,7 +263,7 @@ export default class extends Controller {
       if (result.error !== undefined) {
         _this.setErrorMessage(result.error)
       } else {
-        let txHash = 'The transaction was published successfully. Hash: <strong>' + result.txHash + '</strong>'
+        let txHash = `The transaction was published successfully. Hash: <strong>${result.txHash}</strong>`
         _this.setSuccessMessage(txHash)
       }
     }).catch(() => {
@@ -230,6 +317,7 @@ export default class extends Controller {
     if (!this.useCustomTarget.checked) {
       $('#custom-tx-row').slideUp()
       this.resetCustomizePanel()
+      this.hide(this.changeOutputsCardTarget)
       return
     }
     if (!this.validateDestinationsField()) {
@@ -238,6 +326,7 @@ export default class extends Controller {
     }
     this.clearMessages()
     this.openCustomizePanel()
+    this.show(this.changeOutputsCardTarget)
   }
 
   toggleSpendUnconfirmed () {
