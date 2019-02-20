@@ -3,7 +3,6 @@ package walletcore
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg"
