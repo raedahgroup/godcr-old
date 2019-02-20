@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'changeOutputsTarget', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'changeOutputsDiv', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
+    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'changeOutputContent', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
   }
 
   initialize () {
@@ -119,7 +119,7 @@ export default class extends Controller {
                   <td width='25%'>${receiveDateTime}</td>
                   <td width='15%'>${tx.confirmations} confirmation(s)</td>
                 </tr>`
-      })
+      }).join('')
       _this.customInputContentTarget.innerHTML = utxoHtml
       $('#custom-tx-row .status').hide()
     }
@@ -156,7 +156,7 @@ export default class extends Controller {
       return
     }
 
-    this.changeOutputsDivTargets.innerHTML = ''
+    this.changeOutputContentTarget.innerHTML = ''
 
     let numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
     if (!(numberOfChangeOutput > 0)) {
@@ -177,18 +177,14 @@ export default class extends Controller {
           template.content.querySelector('input[name="change-output-amount"]').value = destination.Amount
         }
 
-        _this.changeOutputsDivTarget.appendChild(document.importNode(template.content, true))
+        _this.changeOutputContentTarget.appendChild(document.importNode(template.content, true))
       })
 
-      _this.show(_this.changeOutputsDivTarget)
+      _this.show(_this.changeOutputContentTarget)
 
       if (_this.useRandomChangeOutputsTarget.checked) {
         _this.changeOutputAmountTargets.forEach(function (ele) {
           ele.setAttribute('readonly', 'true')
-        })
-      } else {
-        _this.changeOutputAmountTargets.forEach(function (ele) {
-          ele.removeAttribute('readonly')
         })
       }
 
