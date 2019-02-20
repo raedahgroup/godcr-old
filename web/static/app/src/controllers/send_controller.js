@@ -171,13 +171,13 @@ export default class extends Controller {
     let _this = this
     _this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputdestinations) {
       changeOutputdestinations.forEach(destination => {
-        let template = _this.changeDestinationTemplateTarget
-        template.content.querySelector('input[name="change-output-address"]').value = destination.Address
+        let template = document.importNode(_this.changeDestinationTemplateTarget.content, true)
+        template.querySelector('input[name="change-output-address"]').value = destination.Address
         if (_this.useRandomChangeOutputsTarget.checked) {
-          template.content.querySelector('input[name="change-output-amount"]').value = destination.Amount
+          template.querySelector('input[name="change-output-amount"]').value = destination.Amount
         }
 
-        _this.changeOutputContentTarget.appendChild(document.importNode(template.content, true))
+        _this.changeOutputContentTarget.appendChild(template)
       })
 
       _this.show(_this.changeOutputContentTarget)
