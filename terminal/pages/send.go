@@ -11,6 +11,8 @@ import (
 
 func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	errMsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+	body := tview.NewForm()
+
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return errMsg.SetText(err.Error())
@@ -20,7 +22,6 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	var  amount, destination string 
 	var accountNum uint32
 	var checked bool
-	body := tview.NewForm()
 
 	accountNames := make([]string, len(accounts))
 	accountN := make([]uint32, len(accounts))
@@ -31,29 +32,30 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		})
 	}
 	body.AddInputField("Amount", "", 20, nil, func (text string) {
-		if tx == "" {
-			return errMsg.SetText("field cannot be  0")
+		if text == "" {
+			errMsg.SetText("field cannot be  0")
+			return
 		}
 		amount = text
-	})
-	body.AddInputField("Destination Address", "", 20, nil, func (text string) {
+	}).
+	AddInputField("Destination Address", "", 20, nil, func (text string) {
 		destination = text
-	})
-	body.AddCheckbox("Unconfirmed", false, func(checked bool) {
+	}).
+	AddCheckbox("Unconfirmed", false, func(checked bool) {
 		if checked != false {
 			checked = true
 		}
-	})
-	body.AddButton("Send", func() {
+	}).
+	AddButton("Send", func() {
 		err := confBalance(accountNum, wallet)
 		if err != nil {
-			// errMsg.SetText(err.Error())
-			fmt.Println(err.Error())
+			errMsg.SetText(err.Error())
+			// fmt.Println(err.Error())
 			return 
 		}
 		fmt.Println(destination, amount, checked)
-	})
-	body.AddButton("Cancel", func() {
+	}).
+	AddButton("Cancel", func() {
 		clearFocus()
 	})
 
@@ -61,6 +63,11 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	
 	return body
 }
+
+// func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+// 	textView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+// 	flex := tview.NewFlex()
+// }
 
 func confBalance(accountNum uint32, wallet walletcore.Wallet) error{
 	accountBalance, err := wallet.AccountBalance(accountNum, walletcore.DefaultRequiredConfirmations)
