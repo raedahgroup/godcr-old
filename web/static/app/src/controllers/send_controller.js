@@ -87,18 +87,6 @@ export default class extends Controller {
     this.progressBarTarget.style.width = `${percentage}%`
   }
 
-  resetCustomizePanel () {
-    this.customTxRowTarget.querySelectorAll('tbody').forEach(el => {
-      el.innerHTML = ''
-    })
-    this.customTxRowTarget.querySelectorAll('.status').forEach(el => {
-      this.show(el)
-    })
-    this.customTxRowTarget.querySelectorAll('.alert-danger').forEach(el => {
-      el.parentNode.removeChild(el)
-    })
-  }
-
   openCustomizePanel () {
     let _this = this
     this.resetCustomizePanel()
@@ -259,6 +247,7 @@ export default class extends Controller {
       if (result.error !== undefined) {
         _this.setErrorMessage(result.error)
       } else {
+        _this.resetSendForm()
         let txHash = `The transaction was published successfully. Hash: <strong>${result.txHash}</strong>`
         _this.setSuccessMessage(txHash)
       }
@@ -270,13 +259,48 @@ export default class extends Controller {
     })
   }
 
+  resetSendForm () {
+    this.resetCustomizePanel()
+    while (this.destinationCount() > 1) {
+      this.removeDestination()
+    }
+    this.addressTargets.forEach(ele => {
+      ele.value = ''
+    })
+    this.amountTargets.forEach(ele => {
+      ele.value = ''
+    })
+    this.spendUnconfirmedTarget.checked = false
+    this.useCustomTarget.checked = false
+
+    $('#custom-tx-row').slideUp()
+    this.hide(this.changeOutputsCardTarget)
+  }
+
+  resetCustomizePanel () {
+    this.customTxRowTarget.querySelectorAll('tbody').forEach(el => {
+      el.innerHTML = ''
+    })
+    this.customTxRowTarget.querySelectorAll('.status').forEach(el => {
+      this.show(el)
+    })
+    this.customTxRowTarget.querySelectorAll('.alert-danger').forEach(el => {
+      el.parentNode.removeChild(el)
+    })
+
+    this.hide(this.changeOutputsCardTarget)
+    this.useRandomChangeOutputsTarget.checked = false
+    this.numberOfChangeOutputsTarget.value = ''
+    this.changeOutputContentTarget.innerHTML = ''
+  }
+
   newDestination () {
     if (!this.validateDestinationsField()) {
       return
     }
     let destinationTemplate = document.importNode(this.destinationTemplateTarget.content, true)
     this.destinationsTarget.appendChild(destinationTemplate)
-    if (this.destinationsTarget.querySelectorAll('div.row').length > 1) {
+    if (this.destinationCount() > 1) {
       this.show(this.removeDestinationButtonTarget)
     }
   }
@@ -287,9 +311,13 @@ export default class extends Controller {
       return
     }
     this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.row:last-child'))
-    if (!(this.destinationsTarget.querySelectorAll('div.row').length > 1)) {
+    if (!(this.destinationCount() > 1)) {
       this.hide(this.removeDestinationButtonTarget)
     }
+  }
+
+  destinationCount () {
+    return this.destinationsTarget.querySelectorAll('div.row').length
   }
 
   validatePassphrase () {
