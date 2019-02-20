@@ -57,7 +57,7 @@ func main() {
 
 	// Parse, validate, and set debug log level(s).
 	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
-		err := fmt.Errorf("%s: %v", "loadConfig", err.Error())
+		err := fmt.Errorf("loadConfig: %s", err.Error())
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 		return

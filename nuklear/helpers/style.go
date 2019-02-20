@@ -1,11 +1,9 @@
 package helpers
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
-	"math"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
@@ -149,9 +147,4 @@ func SetPageStyle(w nucular.MasterWindow) {
 	style.GroupWindow.FixedBackground.Data.Color = contentBackgroundColor
 
 	w.SetStyle(style)
-}
-
-func AmountToString(amount float64) string {
-	amount = math.Round(amount)
-	return fmt.Sprintf("%d DCR", int(amount))
 }

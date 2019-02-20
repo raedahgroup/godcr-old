@@ -38,7 +38,7 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, wallet wallet
 					contentWindow.SetErrorMessage(handler.err.Error())
 				} else {
 					helpers.SetFont(window, helpers.NavFont)
-					contentWindow.Row(20).Ratio(0.18, 0.08, 0.1, 0.15, 0.15, 0.7)
+					contentWindow.Row(20).Ratio(0.18, 0.08, 0.15, 0.15, 0.15, 0.7)
 					contentWindow.Label("Date", "LC")
 					contentWindow.Label("Amount", "LC")
 					contentWindow.Label("Fee", "LC")
@@ -48,10 +48,10 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, wallet wallet
 
 					for _, tx := range handler.transactions {
 						helpers.SetFont(window, helpers.PageContentFont)
-						contentWindow.Row(20).Ratio(0.18, 0.08, 0.1, 0.15, 0.15, 0.7)
+						contentWindow.Row(20).Ratio(0.18, 0.08, 0.15, 0.15, 0.15, 0.7)
 						contentWindow.Label(tx.FormattedTime, "LC")
-						contentWindow.Label(helpers.AmountToString(tx.Amount.ToCoin()), "LC")
-						contentWindow.Label(helpers.AmountToString(tx.Fee.ToCoin()), "LC")
+						contentWindow.Label(tx.Amount.String(), "LC")
+						contentWindow.Label(tx.Fee.String(), "LC")
 						contentWindow.Label(tx.Direction.String(), "LC")
 						contentWindow.Label(tx.Type, "LC")
 						contentWindow.Label(tx.Hash, "LC")
