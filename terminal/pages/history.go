@@ -30,8 +30,8 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	for i, tx := range transactions {
 		row := i + 1
 		body.SetCell(row, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-		body.SetCell(row, 1, tview.NewTableCell(walletcore.AmountToString(tx.Amount.ToCoin())).SetAlign(tview.AlignCenter))
-		body.SetCell(row, 2, tview.NewTableCell(walletcore.AmountToString(tx.Fee.ToCoin())).SetAlign(tview.AlignCenter))
+		body.SetCell(row, 1, tview.NewTableCell(tx.Amount.String()).SetAlign(tview.AlignCenter))
+		body.SetCell(row, 2, tview.NewTableCell(tx.Fee.String()).SetAlign(tview.AlignCenter))
 		body.SetCell(row, 3, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		body.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 		body.SetCell(row, 5, tview.NewTableCell(tx.Hash).SetAlign(tview.AlignCenter))

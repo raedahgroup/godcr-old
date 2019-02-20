@@ -35,8 +35,3 @@ func SimpleBalance(balance *Balance, detailed bool) string {
 		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
 	}
 }
-
-func AmountToString(amount float64) string {
-	amount = math.Round(amount)
-	return fmt.Sprintf("%d DCR", int(amount))
-}
