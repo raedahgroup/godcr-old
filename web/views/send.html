@@ -33,13 +33,13 @@
                                 <template data-target="send.destinationTemplate">
                                     <div class="col-md-6 col-sm-12 destination">
                                         <div class="row">
-                                            <div class="col-md-6 col-sm-12">
+                                            <div class="col-md-8 col-sm-12">
                                                 <div class="form-group">
                                                     <label>Destination Address</label>
                                                     <input data-target="send.address" type="text" class="form-control" name="destination-address" />
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 col-sm-12">
+                                            <div class="col-md-4 col-sm-12">
                                                 <div class="form-group">
                                                     <label>Amount (DCR)</label>
                                                     <input data-target="send.amount" data-action="keyup->send#validateAndRefreshPercentage" type="number" class="form-control amount" name="destination-amount" />
@@ -119,14 +119,14 @@
                                         <template data-target="send.changeDestinationTemplate">
                                             <div class="col-md-6 col-sm-12">
                                                 <div class="row">
-                                                    <div class="col-md-6 col-sm-12">
+                                                    <div class="col-md-8 col-sm-12">
                                                         <div class="form-group">
                                                             <label>Change Address</label>
                                                             <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly name="change-output-address" />
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6 col-sm-12">
+                                                    <div class="col-md-4 col-sm-12">
                                                         <div class="form-group">
                                                             <label>Amount (DCR)</label>
                                                             <input data-target="send.changeOutputAmount" type="number" class="form-control" name="change-output-amount" />
