@@ -31,7 +31,7 @@
                                 </div>
                                 <div data-target="send.destinations" id="destinations" class="row"></div>
                                 <template data-target="send.destinationTemplate">
-                                    <div class="col-md-6 destination">
+                                    <div class="col-md-6 col-sm-12 destination">
                                         <div class="row">
                                             <div class="col-md-6 col-sm-12">
                                                 <div class="form-group">
@@ -117,23 +117,26 @@
                                             </div>
                                         </div>
                                         <template data-target="send.changeDestinationTemplate">
-                                            <div class="row">
-                                                <div class="col-md-6 col-sm-12">
-                                                    <div class="form-group">
-                                                        <label>Change Address</label>
-                                                        <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly name="change-output-address" />
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="row">
+                                                    <div class="col-md-6 col-sm-12">
+                                                        <div class="form-group">
+                                                            <label>Change Address</label>
+                                                            <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly name="change-output-address" />
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                <div class="col-md-6 col-sm-12">
-                                                    <div class="form-group">
-                                                        <label>Amount (DCR)</label>
-                                                        <input data-target="send.changeOutputAmount" type="number" class="form-control" name="change-output-amount" />
+                                                    <div class="col-md-6 col-sm-12">
+                                                        <div class="form-group">
+                                                            <label>Amount (DCR)</label>
+                                                            <input data-target="send.changeOutputAmount" type="number" class="form-control" name="change-output-amount" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </template>
-                                        <div data-target="send.changeOutputContent" id="autoChangeOutputsDiv"></div>
+                                        <div data-target="send.changeOutputContent" id="autoChangeOutputsDiv" class="row"></div>
                                     </div>
                                   </div>
                             </div>
