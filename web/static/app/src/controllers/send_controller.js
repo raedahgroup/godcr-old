@@ -306,18 +306,18 @@ export default class extends Controller {
   }
 
   removeDestination () {
-    let count = this.destinationsTarget.querySelectorAll('div.row').length
+    let count = this.destinationsTarget.querySelectorAll('div.destination').length
     if (!(count > 1)) {
       return
     }
-    this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.row:last-child'))
+    this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'))
     if (!(this.destinationCount() > 1)) {
       this.hide(this.removeDestinationButtonTarget)
     }
   }
 
   destinationCount () {
-    return this.destinationsTarget.querySelectorAll('div.row').length
+    return this.destinationsTarget.querySelectorAll('div.destination').length
   }
 
   validatePassphrase () {
