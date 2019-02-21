@@ -7,5 +7,4 @@ godcr
 godcr.conf
 godcr.exe
 web/public/app/node_modules
-web/public/app/dist
 *.log
