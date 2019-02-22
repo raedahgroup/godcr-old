@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 
+	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
@@ -23,10 +24,17 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		if err != nil {
 			return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 		}
-		body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Address: %s", address)), 4, 1, false).
-			AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, true)
+		body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+			if key == tcell.KeyEscape {
+				clearFocus()
+			}
+		}), 4, 1, true).
+			AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
+				if key == tcell.KeyEscape {
+					clearFocus()
+				}
+			}), 0, 1, true)
 	} else {
-
 		var accountNum uint32
 		accountN := make([]uint32, len(accounts))
 		accountNames := make([]string, len(accounts))
@@ -48,6 +56,7 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			}), 4, 1, true)
 		}
 	}
+
 	setFocus(body)
 	return body
 }
