@@ -83,7 +83,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 		}).
 		AddItem("Purchase Tickets", "", 't', func() {
-			changePageColumn(pages.ReceivePage())
+			changePageColumn(pages.BalancePage())
 		}).
 		AddItem("Exit", "", 'q', func() {
 			tviewApp.Stop()
