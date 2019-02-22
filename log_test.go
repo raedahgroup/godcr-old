@@ -7,14 +7,11 @@ import (
 
 func Test_logWriter_Write(t *testing.T) {
 	tests := []struct {
-		name      string
-		logWriter logWriter
-		p         []byte
-		wantN     int
-		wantErr   bool
-	}{
-		// TODO: Add test cases.
-	}
+		name    string
+		p       []byte
+		wantN   int
+		wantErr bool
+	}{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -35,9 +32,7 @@ func Test_initLogRotator(t *testing.T) {
 	tests := []struct {
 		name    string
 		logFile string
-	}{
-		// TODO: Add test cases.
-	}
+	}{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,9 +48,49 @@ func Test_setLogLevel(t *testing.T) {
 		logLevel    string
 	}{
 		{
-			name:        "weblog",
+			name:        "weblog info level",
 			subsystemID: "WEB",
 			logLevel:    "info",
+		},
+		{
+			name:        "weblog warn level",
+			subsystemID: "WEB",
+			logLevel:    "warn",
+		},
+		{
+			name:        "weblog error level",
+			subsystemID: "WEB",
+			logLevel:    "error",
+		},
+		{
+			name:        "clilog info level",
+			subsystemID: "CLI",
+			logLevel:    "info",
+		},
+		{
+			name:        "clilog info level",
+			subsystemID: "CLI",
+			logLevel:    "warn",
+		},
+		{
+			name:        "clilog info level",
+			subsystemID: "CLI",
+			logLevel:    "error",
+		},
+		{
+			name:        "nuklog info level",
+			subsystemID: "NUK",
+			logLevel:    "info",
+		},
+		{
+			name:        "nuklog info level",
+			subsystemID: "NUK",
+			logLevel:    "warn",
+		},
+		{
+			name:        "nuklog info level",
+			subsystemID: "NUK",
+			logLevel:    "error",
 		},
 	}
 	for _, tt := range tests {
@@ -70,7 +105,42 @@ func Test_setLogLevels(t *testing.T) {
 		name     string
 		logLevel string
 	}{
-		// TODO: Add test cases.
+		{
+			name:     "weblog info",
+			logLevel: "info",
+		},
+		{
+			name:     "weblog warn",
+			logLevel: "warn",
+		},
+		{
+			name:     "weblog error",
+			logLevel: "error",
+		},
+		{
+			name:     "nuklog info",
+			logLevel: "info",
+		},
+		{
+			name:     "nuklog warn",
+			logLevel: "warn",
+		},
+		{
+			name:     "nuklog error",
+			logLevel: "error",
+		},
+		{
+			name:     "clilog info",
+			logLevel: "info",
+		},
+		{
+			name:     "clilog warn",
+			logLevel: "warn",
+		},
+		{
+			name:     "clilog error",
+			logLevel: "error",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -85,7 +155,21 @@ func Test_validLogLevel(t *testing.T) {
 		logLevel string
 		want     bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:     "valid log level 1",
+			logLevel: "info",
+			want:     true,
+		},
+		{
+			name:     "valid log level 2",
+			logLevel: "warn",
+			want:     true,
+		},
+		{
+			name:     "invalid log level",
+			logLevel: "notice",
+			want:     false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -101,7 +185,10 @@ func Test_supportedSubsystems(t *testing.T) {
 		name string
 		want []string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "subsystems",
+			want: []string{"CLI", "GODC", "NUK", "TER", "WEB"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -118,7 +205,16 @@ func Test_parseAndSetDebugLevels(t *testing.T) {
 		debugLevel string
 		wantErr    bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:       "valid debug level",
+			debugLevel: "info",
+			wantErr:    false,
+		},
+		{
+			name:       "invalid debug level",
+			debugLevel: "notice",
+			wantErr:    true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -135,11 +231,15 @@ func Test_fatalf(t *testing.T) {
 		format string
 		args   []interface{}
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "fatal log message",
+			format: "error starting server. cause: %s",
+			args:   []interface{}{"port :9090 is already in use"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fatalf(tt.format, tt.args...)
+			//fatalf(tt.format, tt.args...)
 		})
 	}
 }
