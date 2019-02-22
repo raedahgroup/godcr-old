@@ -71,7 +71,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			changePageColumn(pages.BalancePage())
 		}).
 		AddItem("Receive", "", 'r', func() {
-			changePageColumn(pages.ReceivePage())
+			changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
 		}).
 		AddItem("Send", "", 's', func() {
 			changePageColumn(pages.SendPage(setFocus, clearFocus))
