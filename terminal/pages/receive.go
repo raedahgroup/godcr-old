@@ -19,7 +19,7 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
-	if len(accounts) != 1 {
+	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
 			return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
@@ -49,8 +49,8 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 						body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
 						return
 					}
-					body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Address: %s", address)), 4, 1, false).
-						AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
+					body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignLeft).SetText(fmt.Sprintf("Address: %s", address)), 4, 1, false).
+						AddItem(tview.NewTextView().SetTextAlign(tview.AlignLeft).SetText(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()
 			}), 4, 1, true)
