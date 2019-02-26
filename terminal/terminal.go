@@ -26,14 +26,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 
 	var password, confPassword string
 	form := tview.NewForm().
-		AddPasswordField("Password", "", 10, '*', func(text string) {
+		AddPasswordField("Password", "", 20, '*', func(text string) {
 			if len(text) == 0 {
 				fmt.Println("password cannot be less than 4")
 				return
 			}
 			password = text
 		}).
-		AddPasswordField("Password", "", 10, '*', func(text string) {
+		AddPasswordField("Password", "", 20, '*', func(text string) {
 			confPassword = text
 		}).
 		AddButton("Create", func() {
@@ -68,7 +68,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	//Menu List of the Layout
 	menuColumn = tview.NewList().
 		AddItem("Balance", "", 'b', func() {
-			changePageColumn(pages.BalancePage())
+			changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
 		}).
 		AddItem("Receive", "", 'r', func() {
 			changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
@@ -93,7 +93,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
-	gridLayout.AddItem(pages.BalancePage(), 1, 1, 1, 1, 0, 0, true)
+	gridLayout.AddItem(pages.BalancePage(walletMiddleware, setFocus, clearFocus), 1, 1, 1, 1, 0, 0, true)
 
 	return gridLayout
 }
