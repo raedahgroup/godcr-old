@@ -12,6 +12,8 @@ var (
 	whiteColor             = color.RGBA{255, 255, 255, 255}
 	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
 	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
+	primaryBorderColor     = color.RGBA{255, 238, 232, 255}
+	SuccessColor           = color.RGBA{24, 85, 24, 255}
 )
 
 var colorTable = nstyle.ColorTable{

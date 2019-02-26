@@ -31,6 +31,7 @@ type SendHandler struct {
 	isRendering    bool
 
 	utxos           []*utxoSelection
+	utxoErr         string
 	isFetchingUTXOS bool
 
 	accountNumbers       []uint32
@@ -135,7 +136,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 			}
 
 			if handler.isFetchingUTXOS {
-				widgets.ShowIsFetching(contentWindow)
+				widgets.ShowLoadingWidget(window)
 			} else if handler.fetchUTXOError != nil {
 				contentWindow.Row(10).Dynamic(1)
 				contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", helpers.DangerColor)
@@ -166,6 +167,11 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 			submitButtonText := "Submit"
 			if handler.isSubmitting {
 				submitButtonText = "Submitting"
+			}
+
+			if handler.utxoErr != "" {
+				contentWindow.Row(20).Dynamic(1)
+				contentWindow.LabelColored(handler.utxoErr, "LC", helpers.DangerColor)
 			}
 
 			contentWindow.Row(25).Dynamic(2)
@@ -287,6 +293,7 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 	handler.err = nil
 	masterWindow.Changed()
 
+	totalSendAmount := 0.0
 	for _, input := range handler.sendDetailInputPairs {
 		amountStr := string(input.amount.Buffer)
 		if amountStr == "" {
@@ -296,9 +303,10 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 			if err != nil {
 				input.amountErr = "This is not a valid number"
 			} else if amountFloat < 1 {
-				input.amountErr = "Send amount must be greater than 0DCR"
+				input.amountErr = "Send amount must be greater than 0 DCR"
 			} else {
 				input.amountErr = ""
+				totalSendAmount += amountFloat
 			}
 		}
 		if input.amountErr != "" {
@@ -322,6 +330,21 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 		if input.addressErr != "" {
 			isClean = false
 		}
+	}
+
+	// check if total selected utxo amount is not less than total send amount
+	totalSelectedUtxoAmount := 0.0
+	for _, utxo := range handler.utxos {
+		if utxo.selected {
+			totalSelectedUtxoAmount += utxo.utxo.Amount.ToCoin()
+		}
+	}
+
+	if totalSendAmount > totalSelectedUtxoAmount {
+		handler.utxoErr = "Total selected UTXO amount is not enough to cover send amount cost"
+		isClean = false
+	} else {
+		handler.utxoErr = ""
 	}
 
 	masterWindow.Changed()

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rivo/tview"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/terminal/pages"
+	"github.com/rivo/tview"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -84,8 +84,10 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		AddItem("Stakeinfo", "", 'k', func() {
 			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 		}).
-		AddItem("Purchase Tickets", "", 't', nil).
-		AddItem("Quit", "", 'q', func() {
+		AddItem("Purchase Tickets", "", 't', func() {
+			changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
+		}).
+		AddItem("Exit", "", 'q', func() {
 			tviewApp.Stop()
 		})
 	menuColumn.SetCurrentItem(0)
