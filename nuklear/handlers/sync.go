@@ -58,11 +58,9 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 				contentWindow.Row(30).Dynamic(1)
 				contentWindow.Progress(&s.percentageProgress, 100, false)
 			}
-
 			contentWindow.End()
 		}
 	}
-
 }
 
 func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMiddleware) {

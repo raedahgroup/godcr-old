@@ -67,17 +67,9 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	if !walletExists {
-		desktop.currentPage = "createwallet"
-	}
-
-	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
-	window.SetStyle(helpers.GetStyle())
-	desktop.masterWindow = window
-
-	// initialize fonts for later use
-	err = helpers.InitFonts()
-	if err != nil {
+		// todo add ui to create wallet
+		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
+		nuklog.LogInfo(err.Error())
 		return err
 	}
 
