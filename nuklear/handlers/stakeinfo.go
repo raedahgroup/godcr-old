@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
@@ -21,7 +22,7 @@ func (handler *StakeInfoHandler) BeforeRender() {
 	handler.isRendering = false
 }
 
-func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePageFunc func(string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.stakeInfo, handler.err = wallet.StakeInfo(context.Background())

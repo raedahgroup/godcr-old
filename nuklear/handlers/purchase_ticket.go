@@ -9,6 +9,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -41,7 +42,7 @@ func (handler *PurchaseTicketsHandler) BeforeRender() {
 	handler.resetForm()
 }
 
-func (handler *PurchaseTicketsHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *PurchaseTicketsHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePageFunc func(string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.fetchAccounts(wallet)

@@ -2,15 +2,12 @@ package nuklear
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
-	"github.com/raedahgroup/godcr/nuklear/nuklog"
 )
 
 const (
@@ -22,34 +19,25 @@ const (
 )
 
 type Desktop struct {
-	masterWindow nucular.MasterWindow
-	wallet       walletcore.Wallet
-	currentPage  string
-	pageChanged  bool
-	handlers     map[string]Handler
+	masterWindow     nucular.MasterWindow
+	walletMiddleware app.WalletMiddleware
+	currentPage      string
+	pageChanged      bool
+	pages            map[string]page
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
-		wallet: walletMiddleware,
+		walletMiddleware: walletMiddleware,
+		pageChanged:      true,
+		currentPage:      homePage,
 	}
 
-	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
-	window.SetStyle(helpers.GetStyle())
-	desktop.masterWindow = window
-
-	// initialize fonts for later use
-	err := helpers.InitFonts()
-	if err != nil {
-		return nil
-	}
-
-	// register handlers
-	handlers := getHandlers()
-	desktop.handlers = make(map[string]Handler, len(handlers))
-	for _, handler := range handlers {
-		desktop.handlers[handler.name] = handler.handler
+	// register pages
+	pages := getPages()
+	desktop.pages = make(map[string]page, len(pages))
+	for _, page := range pages {
+		desktop.pages[page.name] = page
 	}
 
 	// open wallet and start blockchain syncing in background
@@ -59,10 +47,17 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	if !walletExists {
-		// todo add ui to create wallet
-		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
-		// fmt.Println(err.Error())
-		nuklog.LogInfo(err.Error())
+		desktop.currentPage = "createwallet"
+	}
+
+	// initialize master window and set style
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
+	window.SetStyle(helpers.GetStyle())
+	desktop.masterWindow = window
+
+	// initialize fonts for later use
+	err = helpers.InitFonts()
+	if err != nil {
 		return err
 	}
 
@@ -73,8 +68,31 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	return nil
 }
 
-func (desktop *Desktop) render(w *nucular.Window) {
-	area := w.Row(0).SpaceBegin(2)
+func (desktop *Desktop) render(window *nucular.Window) {
+	page := desktop.pages[desktop.currentPage]
+	if page.standalone {
+		desktop.renderStandalonePage(window, page.handler)
+		return
+	}
+
+	desktop.renderNavPage(window, page.handler)
+}
+
+func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler Handler) {
+	window.Row(0).SpaceBeginRatio(1)
+	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
+
+	if desktop.pageChanged {
+		handler.BeforeRender()
+		desktop.pageChanged = false
+	}
+
+	helpers.SetStandaloneWindowStyle(window.Master())
+	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
+}
+
+func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
+	area := window.Row(0).SpaceBegin(2)
 
 	// create nav pane
 	navRect := rect.Rect{
@@ -83,15 +101,17 @@ func (desktop *Desktop) render(w *nucular.Window) {
 		W: navWidth,
 		H: area.H,
 	}
-	w.LayoutSpacePushScaled(navRect)
+	window.LayoutSpacePushScaled(navRect)
 
 	// render nav
 	helpers.SetNavStyle(desktop.masterWindow)
-	if navWindow := helpers.NewWindow("Navigation Group", w, 0); navWindow != nil {
+	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
 		navWindow.Row(40).Dynamic(1)
-		for _, handler := range getHandlers() {
-			if navWindow.Button(label.TA(handler.navLabel, "LC"), false) {
-				desktop.changePage(handler.name)
+		for _, page := range getPages() {
+			if !page.standalone {
+				if navWindow.Button(label.TA(page.navLabel, "LC"), false) {
+					desktop.changePage(page.name)
+				}
 			}
 		}
 		navWindow.End()
@@ -110,13 +130,7 @@ func (desktop *Desktop) render(w *nucular.Window) {
 	// style content area
 	helpers.SetPageStyle(desktop.masterWindow)
 
-	w.LayoutSpacePushScaled(contentRect)
-	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
-		desktop.changePage(homePage)
-		return
-	}
-
-	handler := desktop.handlers[desktop.currentPage]
+	window.LayoutSpacePushScaled(contentRect)
 
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
@@ -125,7 +139,7 @@ func (desktop *Desktop) render(w *nucular.Window) {
 		desktop.pageChanged = false
 	}
 
-	handler.Render(w, desktop.wallet)
+	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
 func (desktop *Desktop) changePage(page string) {
