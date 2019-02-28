@@ -8,7 +8,6 @@ import (
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
-	"github.com/raedahgroup/godcr/nuklear/nuklog"
 )
 
 const (

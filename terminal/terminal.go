@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rivo/tview"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/pages"
-	"github.com/rivo/tview"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -84,9 +85,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		AddItem("Stakeinfo", "", 'k', func() {
 			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 		}).
-		AddItem("Purchase Tickets", "", 't', func() {
-			changePageColumn(pages.BalancePage())
-		}).
+		AddItem("Purchase Tickets", "", 't', nil).
 		AddItem("Account", "", 'a', nil).
 		AddItem("Security", "", 'x', nil).
 		AddItem("Quit", "", 'q', func() {
@@ -95,14 +94,14 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	menuColumn.SetCurrentItem(0)
 	menuColumn.SetShortcutColor(tcell.NewRGBColor(112, 203, 255))
 	menuColumn.SetBorder(true)
-	menuColumn.SetBorderColor(pages.BorderColor)
+	menuColumn.SetBorderColor(helpers.BorderColor)
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	gridLayout.AddItem(pages.BalancePage(walletMiddleware, setFocus, clearFocus), 1, 1, 1, 1, 0, 0, true)
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-	gridLayout.SetBordersColor(pages.BorderColor)
+	gridLayout.SetBordersColor(helpers.BorderColor)
 
 	return gridLayout
 }

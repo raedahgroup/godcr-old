@@ -75,4 +75,3 @@ func generateAddress(wallet walletcore.Wallet, accountNumber uint32) (string, *q
 
 	return generatedAddress, qr, nil
 }
-	// body.SetTextColor(LabelColor)
