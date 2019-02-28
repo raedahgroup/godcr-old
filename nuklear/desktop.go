@@ -11,9 +11,7 @@ import (
 )
 
 const (
-	navWidth  = 260
-	homePage  = "balance"
-	startPage = "sync"
+	navWidth = 260
 
 	contentPaneXOffset      = 45
 	contentPaneWidthPadding = 55
@@ -24,15 +22,14 @@ type Desktop struct {
 	wallet          app.WalletMiddleware
 	currentPage     string
 	pageChanged     bool
-	navPages        map[string]NavPageHandler
-	standalonePages map[string]StandalonePageHandler
+	navPages        map[string]navPageHandler
+	standalonePages map[string]standalonePageHandler
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
-		walletMiddleware: walletMiddleware,
-		pageChanged:      true,
-		currentPage:      homePage,
+		wallet:      walletMiddleware,
+		currentPage: "sync",
 	}
 
 	// initialize master window and set style
@@ -48,14 +45,14 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 
 	// register nav page handlers
 	navPages := getNavPagesData()
-	desktop.navPages = make(map[string]NavPageHandler, len(navPages))
+	desktop.navPages = make(map[string]navPageHandler, len(navPages))
 	for _, page := range navPages {
 		desktop.navPages[page.name] = page.handler
 	}
 
 	// register standalone page handlers
 	standalonePages := getStandalonePageData()
-	desktop.standalonePages = make(map[string]StandalonePageHandler, len(standalonePages))
+	desktop.standalonePages = make(map[string]standalonePageHandler, len(standalonePages))
 	for _, page := range standalonePages {
 		desktop.standalonePages[page.name] = page.handler
 	}
@@ -73,8 +70,6 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		return err
 	}
 
-	desktop.currentPage = startPage
-
 	// draw window
 	desktop.masterWindow.Main()
 	return nil
@@ -90,7 +85,20 @@ func (desktop *Desktop) render(window *nucular.Window) {
 	desktop.renderNavPage(window, handler)
 }
 
-func (desktop *Desktop) renderNavPage(window *nucular.Window, handler NavPageHandler) {
+func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
+	window.Row(0).SpaceBeginRatio(1)
+	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
+
+	if desktop.pageChanged {
+		handler.BeforeRender()
+		desktop.pageChanged = false
+	}
+
+	helpers.SetStandaloneWindowStyle(window.Master())
+	handler.Render(window, desktop.wallet, desktop.changePage)
+}
+
+func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {
 	area := window.Row(0).SpaceBegin(2)
 
 	// create nav pane
@@ -128,10 +136,6 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler NavPageHan
 	helpers.SetPageStyle(desktop.masterWindow)
 
 	window.LayoutSpacePushScaled(contentRect)
-	if desktop.currentPage == "" { // ideally, this should only be false once in the lifetime of an instance
-		desktop.changePage(homePage)
-		return
-	}
 
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
@@ -141,19 +145,6 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler NavPageHan
 	}
 
 	handler.Render(window, desktop.wallet)
-}
-
-func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler StandalonePageHandler) {
-	window.Row(0).SpaceBeginRatio(1)
-	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
-
-	if desktop.pageChanged {
-		handler.BeforeRender()
-		desktop.pageChanged = false
-	}
-
-	helpers.SetStandaloneWindowStyle(window.Master())
-	handler.Render(window, desktop.wallet, desktop.changePage)
 }
 
 func (desktop *Desktop) changePage(page string) {

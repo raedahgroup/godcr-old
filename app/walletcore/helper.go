@@ -9,6 +9,15 @@ import (
 	"github.com/decred/dcrd/txscript"
 )
 
+type SyncStatus uint8
+
+const (
+	SyncStatusNotStarted SyncStatus = iota
+	SyncStatusSuccess
+	SyncStatusError
+	SyncStatusInProgress
+)
+
 func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (address string, err error) {
 	_, addresses, _, err := txscript.ExtractPkScriptAddrs(txscript.DefaultScriptVersion,
 		pkScript, activeNet)

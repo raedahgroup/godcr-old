@@ -6,12 +6,12 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/handlers"
 )
 
-type NavPageHandler interface {
+type navPageHandler interface {
 	BeforeRender()
 	Render(*nucular.Window, app.WalletMiddleware, func(page string))
 }
 
-type StandalonePageHandler interface {
+type standalonePageHandler interface {
 	BeforeRender()
 	Render(*nucular.Window, app.WalletMiddleware, func(string))
 }
@@ -19,12 +19,12 @@ type StandalonePageHandler interface {
 type navPageData struct {
 	name    string
 	label   string
-	handler NavPageHandler
+	handler navPageHandler
 }
 
 type standalonePageData struct {
 	name    string
-	handler StandalonePageHandler
+	handler standalonePageHandler
 }
 
 func getNavPagesData() []navPageData {
