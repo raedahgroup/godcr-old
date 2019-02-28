@@ -8,7 +8,7 @@ import (
 
 type navPageHandler interface {
 	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware, func(page string))
+	Render(*nucular.Window, app.WalletMiddleware)
 }
 
 type standalonePageHandler interface {

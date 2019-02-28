@@ -128,14 +128,6 @@ func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style := window.Style()
 	style.GroupWindow.FixedBackground.Data.Color = whiteColor
 	style.GroupWindow.Padding = image.Point{20, 15}
-
-	window.SetStyle(style)
-}
-
-func SetStandaloneWindowStyle(window nucular.MasterWindow) {
-	style := window.Style()
-	style.GroupWindow.FixedBackground.Data.Color = whiteColor
-	style.GroupWindow.Padding = image.Point{20, 15}
 	style.NormalWindow.ScalerSize = image.Point{50, 50}
 
 	window.SetStyle(style)

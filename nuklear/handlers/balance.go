@@ -21,7 +21,7 @@ func (handler *BalanceHandler) BeforeRender() {
 	handler.detailed = false
 }
 
-func (handler *BalanceHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware, changePageFunc func(string)) {
+func (handler *BalanceHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.accounts, handler.err = walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
