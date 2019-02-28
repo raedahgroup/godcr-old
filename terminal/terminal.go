@@ -56,7 +56,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	var menuColumn *tview.List
 
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
-	header.SetBackgroundColor(tcell.NewRGBColor(41, 112, 255))
+	header.SetBackgroundColor(helpers.HeaderColour)
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetBorders(false).SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
@@ -92,7 +92,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 			tviewApp.Stop()
 		})
 	menuColumn.SetCurrentItem(0)
-	menuColumn.SetShortcutColor(tcell.NewRGBColor(112, 203, 255))
+	menuColumn.SetShortcutColor(helpers.BorderColor)
 	menuColumn.SetBorder(true)
 	menuColumn.SetBorderColor(helpers.BorderColor)
 	// Layout for screens Header
