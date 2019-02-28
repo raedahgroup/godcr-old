@@ -16,19 +16,19 @@ type standalonePageHandler interface {
 	Render(*nucular.Window, app.WalletMiddleware, func(string))
 }
 
-type navPageData struct {
+type navPage struct {
 	name    string
 	label   string
 	handler navPageHandler
 }
 
-type standalonePageData struct {
+type standalonePage struct {
 	name    string
 	handler standalonePageHandler
 }
 
-func getNavPagesData() []navPageData {
-	return []navPageData{
+func getNavPages() []navPage {
+	return []navPage{
 		{
 			name:    "balance",
 			label:   "Balance",
@@ -62,8 +62,8 @@ func getNavPagesData() []navPageData {
 	}
 }
 
-func getStandalonePageData() []standalonePageData {
-	return []standalonePageData{
+func getStandalonePages() []standalonePage {
+	return []standalonePage{
 		{
 			name:    "sync",
 			handler: &handlers.SyncHandler{},

@@ -2,14 +2,12 @@ package nuklear
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
-	"github.com/raedahgroup/godcr/nuklear/nuklog"
 )
 
 const (
@@ -20,18 +18,18 @@ const (
 )
 
 type Desktop struct {
-	masterWindow    nucular.MasterWindow
-	wallet          app.WalletMiddleware
-	currentPage     string
-	pageChanged     bool
-	navPages        map[string]navPageHandler
-	standalonePages map[string]standalonePageHandler
+	masterWindow     nucular.MasterWindow
+	walletMiddleware app.WalletMiddleware
+	currentPage      string
+	pageChanged      bool
+	navPages         map[string]navPageHandler
+	standalonePages  map[string]standalonePageHandler
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
-		wallet:      walletMiddleware,
-		currentPage: "sync",
+		walletMiddleware: walletMiddleware,
+		currentPage:      "sync",
 	}
 
 	// initialize master window and set style
@@ -42,18 +40,18 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	// initialize fonts for later use
 	err := helpers.InitFonts()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// register nav page handlers
-	navPages := getNavPagesData()
+	navPages := getNavPages()
 	desktop.navPages = make(map[string]navPageHandler, len(navPages))
 	for _, page := range navPages {
 		desktop.navPages[page.name] = page.handler
 	}
 
 	// register standalone page handlers
-	standalonePages := getStandalonePageData()
+	standalonePages := getStandalonePages()
 	desktop.standalonePages = make(map[string]standalonePageHandler, len(standalonePages))
 	for _, page := range standalonePages {
 		desktop.standalonePages[page.name] = page.handler
@@ -66,10 +64,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	if !walletExists {
-		// todo add ui to create wallet
-		err = fmt.Errorf("No wallet found. Use 'godcr create' to create a wallet before launching the desktop app")
-		nuklog.LogInfo(err.Error())
-		return err
+		desktop.currentPage = "createwallet"
 	}
 
 	// draw window
@@ -97,7 +92,7 @@ func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler sta
 	}
 
 	helpers.SetStandaloneWindowStyle(window.Master())
-	handler.Render(window, desktop.wallet, desktop.changePage)
+	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
 func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {
@@ -116,7 +111,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 	helpers.SetNavStyle(desktop.masterWindow)
 	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
 		navWindow.Row(40).Dynamic(1)
-		for _, page := range getNavPagesData() {
+		for _, page := range getNavPages() {
 			if navWindow.Button(label.TA(page.label, "LC"), false) {
 				desktop.changePage(page.name)
 			}
@@ -146,7 +141,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 		desktop.pageChanged = false
 	}
 
-	handler.Render(window, desktop.wallet)
+	handler.Render(window, desktop.walletMiddleware)
 }
 
 func (desktop *Desktop) changePage(page string) {
