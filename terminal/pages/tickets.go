@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet"
