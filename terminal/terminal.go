@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rivo/tview"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/pages"
-	"github.com/rivo/tview"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -53,9 +54,10 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	var menuColumn *tview.List
 
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("%s Terminal", strings.ToUpper(app.Name)))
+	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	header.SetBackgroundColor(helpers.DecredColor)
 	//Creating the View for the Layout
-	gridLayout := tview.NewGrid().SetBorders(true).SetRows(3, 0).SetColumns(30, 0)
+	gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
 	changePageColumn := func(t tview.Primitive) {
 		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
@@ -82,18 +84,20 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		AddItem("Stakeinfo", "", 'k', func() {
 			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 		}).
-		AddItem("Purchase Tickets", "", 't', func() {
-			changePageColumn(pages.BalancePage())
-		}).
-		AddItem("Exit", "", 'q', func() {
+		AddItem("Purchase Tickets", "", 't', nil).
+		AddItem("Quit", "", 'q', func() {
 			tviewApp.Stop()
 		})
 	menuColumn.SetCurrentItem(0)
+	menuColumn.SetShortcutColor(helpers.DecredLightColor)
+	menuColumn.SetBorder(true)
+	menuColumn.SetBorderColor(helpers.DecredLightColor)
 	// Layout for screens Header
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	gridLayout.AddItem(pages.BalancePage(walletMiddleware, setFocus, clearFocus), 1, 1, 1, 1, 0, 0, true)
+	gridLayout.SetBordersColor(helpers.DecredLightColor)
 
 	return gridLayout
 }
