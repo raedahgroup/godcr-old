@@ -14,7 +14,7 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return textView.SetText(err.Error()).SetTextColor(tcell.NewRGBColor(0, 0, 0))
+		return textView.SetText(err.Error())
 	}
 
 	body.AddItem(checkbox.SetLabel("View Detailed Balance  ").SetChecked(false).SetChangedFunc(func(checked bool) {
