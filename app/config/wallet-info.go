@@ -2,9 +2,12 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/spf13/viper"
 )
+
+var walletConfigFilePath = filepath.Join(DefaultAppDataDir, "wallets.conf")
 
 type WalletInfo struct {
 	DbPath string `long:"db"`
@@ -21,23 +24,15 @@ func (w WalletInfo) LongDescription() string {
 }
 
 func SaveDetectedWalletsInfo(wallets []*WalletInfo) (err error) {
-	// load default config values and create parser object with it
-	config := defaultConfig()
-	parser := flags.NewParser(&config, flags.None)
-
-	// read current config file content into config object
-	fileParser := flags.NewIniParser(parser)
-	err = fileParser.ParseFile("./godcr.conf")
+	viper.SetConfigFile("./godcr.conf")
+	err = fileParser.ParseFile()
 	if err != nil {
 		return fmt.Errorf("Error reading config file: %s", err.Error())
 	}
 
-	// remove previous wallets info
-	printConfigGroup(parser.Groups())
-
 	// add new wallets info
 	for i, w := range wallets {
-		parser.AddGroup(fmt.Sprintf("Detected Wallet %d", i+1), w.LongDescription(), w)
+		.AddGroup(fmt.Sprintf("Detected Wallet %d", i+1), w.LongDescription(), w)
 	}
 
 	// write config object to file
@@ -47,18 +42,4 @@ func SaveDetectedWalletsInfo(wallets []*WalletInfo) (err error) {
 	}
 
 	return
-}
-
-func printConfigGroup(groups []*flags.Group) {
-	for _, configGroup := range groups {
-		fmt.Println(configGroup.ShortDescription, len(configGroup.Options()), "options")
-
-		for _, option := range configGroup.Options() {
-			fmt.Println(option.String(), option.Value())
-		}
-
-		if len(configGroup.Groups()) > 0 {
-			printConfigGroup(configGroup.Groups())
-		}
-	}
 }

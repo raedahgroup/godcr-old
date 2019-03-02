@@ -135,7 +135,7 @@ func (c *WalletRPCClient) AddressInfo(address string) (*txhelper.AddressInfo, er
 
 // ValidateAddress tries to decode an address for the given network params, if error is encountered, address is not valid
 func (c *WalletRPCClient) ValidateAddress(address string) (bool, error) {
-	_, err := addresshelper.DecodeForNetwork(address, c.activeNet)
+	_, err := addresshelper.DecodeForNetwork(address, c.activeNet.Params)
 	return err == nil, nil
 }
 
@@ -197,7 +197,7 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, req
 		}
 		txHash := hash.String()
 
-		addresses, err := addresshelper.PkScriptAddresses(c.activeNet, utxo.PkScript)
+		addresses, err := addresshelper.PkScriptAddresses(c.activeNet.Params, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
@@ -373,7 +373,7 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet, c.AddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet.Params, c.AddressInfo)
 	if err != nil {
 		return nil, err
 	}

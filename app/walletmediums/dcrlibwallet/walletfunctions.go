@@ -107,7 +107,7 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requ
 		}
 		txHash := hash.String()
 
-		addresses, err := addresshelper.PkScriptAddresses(lib.activeNet, utxo.PkScript)
+		addresses, err := addresshelper.PkScriptAddresses(lib.activeNet.Params, utxo.PkScript)
 		if err != nil {
 			return nil, err
 		}
@@ -252,7 +252,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet, lib.walletLib.AddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, lib.walletLib.AddressInfo)
 	if err != nil {
 		return nil, err
 	}

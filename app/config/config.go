@@ -18,10 +18,10 @@ const (
 )
 
 var (
-	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
+	DefaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
 	DefaultDcrwalletAppDataDir = dcrutil.AppDataDir("dcrwallet", false)
 	defaultRPCCertFile         = filepath.Join(DefaultDcrwalletAppDataDir, "rpc.cert")
-	defaultLogDir              = filepath.Join(defaultAppDataDir, defaultLogDirname)
+	defaultLogDir              = filepath.Join(DefaultAppDataDir, defaultLogDirname)
 )
 
 // Config holds the top-level options/flags for the application
