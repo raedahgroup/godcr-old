@@ -4,7 +4,6 @@ import (
 	"context"
 	"html/template"
 	"log"
-	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
@@ -30,7 +29,7 @@ func Setup(ctx context.Context, walletMiddleware app.WalletMiddleware, router ch
 	routes.loadTemplates()
 	routes.loadRoutes(router)
 
-	return routes.walletLoaderMiddleware
+	return routes.syncBlockchain
 }
 
 func (routes *Routes) loadTemplates() {
