@@ -13,8 +13,8 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.min.js"></script>
 
-    <script src="/static/dist/js/vendors~app.bundle.js"></script>
-    <script src="/static/dist/js/app.bundle.js?v={{timestamp}}"></script>
+    <script src="/static/js/vendors~app.bundle.js"></script>
+    <script src="/static/js/app.bundle.js?v={{timestamp}}"></script>
 </head>
 {{ end }}
 
@@ -60,12 +60,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="nav-stakeinfo" href="#">
+                        <a class="nav-link" id="nav-stakeinfo" href="/stakeinfo">
                             <span class="text">Stake Info</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="nav-purchase-ticket" href="#">
+                        <a class="nav-link" id="nav-purchase-tickets" href="/purchase-tickets">
                             <span class="text">Purchase Tickets</span>
                         </a>
                     </li>
@@ -83,7 +83,7 @@
         var paths = pathname.split("/")
         var currentNavItem = "#nav-balance";
 
-        if (pathname != "/" && paths.length > 1) {
+        if (pathname !== "/" && paths.length > 1) {
             currentNavItem = "#nav-" + paths[1];
         }
 

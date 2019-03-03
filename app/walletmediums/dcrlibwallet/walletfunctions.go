@@ -298,20 +298,30 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 	return stakeInfo, nil
 }
 
+func (lib *DcrWalletLib) TicketPrice(ctx context.Context) (int64, error) {
+	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return ticketPrice.TicketPrice, nil
+}
+
 func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
 	}
 
-	ticketPrice, err := lib.walletLib.TicketPrice(ctx)
+	ticketPrice, err := lib.TicketPrice(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
 	}
 
-	if balance.Spendable < dcrutil.Amount(ticketPrice.TicketPrice*int64(request.NumTickets)) {
-		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket price %s",
-			balance.Spendable, dcrutil.Amount(ticketPrice.TicketPrice))
+	totalTicketPrice := dcrutil.Amount(ticketPrice * int64(request.NumTickets))
+	if balance.Spendable < totalTicketPrice {
+		return nil, fmt.Errorf("insufficient funds: spendable account balance (%s) is less than ticket purchase cost %s",
+			balance.Spendable, totalTicketPrice)
 	}
 
 	tickets, err := lib.walletLib.PurchaseTickets(ctx, &request)

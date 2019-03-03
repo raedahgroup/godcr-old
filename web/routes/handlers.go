@@ -8,6 +8,7 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	qrcode "github.com/skip2/go-qrcode"
@@ -259,4 +260,90 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 		"tx": tx,
 	}
 	routes.render("transaction_details.html", data, res)
+}
+
+func (routes *Routes) stakeInfoPage(res http.ResponseWriter, req *http.Request) {
+	stakeInfo, err := routes.walletMiddleware.StakeInfo(routes.ctx)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching stake info: %s", err.Error()), res)
+		return
+	}
+
+	data := map[string]interface{}{
+		"stakeinfo": stakeInfo,
+	}
+	routes.render("stakeinfo.html", data, res)
+}
+
+func (routes *Routes) purchaseTicketsPage(res http.ResponseWriter, req *http.Request) {
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
+		return
+	}
+
+	ticketPrice, err := routes.walletMiddleware.TicketPrice(routes.ctx)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching ticket price: %s", err.Error()), res)
+		return
+	}
+
+	data := map[string]interface{}{
+		"accounts":    accounts,
+		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
+	}
+	routes.render("purchase_tickets.html", data, res)
+}
+
+func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	req.ParseForm()
+	walletPassphrase := req.FormValue("wallet-passphrase")
+	numTicketsStr := req.FormValue("number-of-tickets")
+	sourceAccountStr := req.FormValue("source-account")
+	spendUnconfirmed := req.FormValue("spend-unconfirmed")
+
+	numTickets, err := strconv.ParseUint(numTicketsStr, 10, 32)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	sourceAccount, err := strconv.ParseUint(sourceAccountStr, 10, 32)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+	if spendUnconfirmed != "" {
+		requiredConfirmations = 0
+	}
+
+	request := dcrlibwallet.PurchaseTicketsRequest{
+		RequiredConfirmations: uint32(requiredConfirmations),
+		Passphrase:            []byte(walletPassphrase),
+		NumTickets:            uint32(numTickets),
+		Account:               uint32(sourceAccount),
+	}
+
+	ticketHashes, err := routes.walletMiddleware.PurchaseTickets(routes.ctx, request)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+		return
+	}
+
+	if len(ticketHashes) == 0 {
+		data["success"] = false
+		data["message"] = "no ticket was purchased"
+		return
+	}
+
+	data["success"] = true
+	data["message"] = ticketHashes
 }

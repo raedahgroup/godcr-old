@@ -1,4 +1,4 @@
-{{ define "send-passphrase-modal" }}
+{{ define "passphrase-modal" }}
 <div class="modal" id="passphrase-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -11,15 +11,15 @@
             <div class="modal-body">
               <div class="form-group">
                   <label for="passhprase">Passphrase</label>
-                  <input data-target="send.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                  <input data-target="{{ . }}.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                  <div data-target="{{ . }}.passwordError" class="errors"></div>
               </div>
             </div>
-            <div data-target="send.passwordError" class="errors"></div>
             <div class="modal-footer">
               <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-              <button data-target="send.submitButton" data-action="click->send#submitSendForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+              <button data-action="click->{{ . }}#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
             </div>
         </div>
     </div>
 </div>
-{{ end }} 
+{{ end }}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body" data-controller="purchase-tickets">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <div data-target="purchase-tickets.errorMessage" class="alert alert-danger d-none"></div>
+                <div data-target="purchase-tickets.successMessage" class="alert alert-success d-none"></div>
+                <form method="POST" action="/purchase_tickets" id="purchase-tickets-form" data-target="purchase-tickets.form" novalidate>
+                    {{ template "passphrase-modal" "purchase-tickets" }}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="source-account">Source Account</label>	                                            
+                                        <select data-target="purchase-tickets.sourceAccount" class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
+                                        {{ range $account := .accounts }}	                                                
+                                            <option value="{{ $account.Number }}">{{ $account.Name }} - {{ simpleBalance $account.Balance false }}</option>
+                                        {{ end }}	                                              
+                                        </select>	                                          
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="number-of-tickets">Number of Tickets (<strong>{{ .ticketPrice }} DCR / ticket</strong>)</label>
+                                        <input data-target="purchase-tickets.numberOfTickets" type="number" class="form-control" id="number-of-tickets" name="number-of-tickets" value="1" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="spend-unconfirmed">Spend Unconfirmed</label>
+                                        <input data-target="purchase-tickets.spendUnconfirmed" type="checkbox" name="spend-unconfirmed" id="spend-unconfirmed" value="1" />
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="errors" data-target="purchase-tickets.errors"></div>
+                                        <button data-target="purchase-tickets.submitButton" data-action="click->purchase-tickets#getWalletPassphraseAndSubmit" class="btn btn-default" id="purchase-btn" type="button">Purchase</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               </form>
+            </div>
+        </div>
+    </div>
+    {{ template "footer" }}
+</body>
+</html>

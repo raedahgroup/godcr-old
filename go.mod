@@ -12,7 +12,7 @@ require (
 	github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08
 	github.com/decred/dcrwallet/walletseed v1.0.1
 	github.com/decred/slog v1.0.0
-	github.com/gdamore/tcell v1.1.1 // indirect
+	github.com/gdamore/tcell v1.1.1
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/golang/freetype v0.0.0-20161208064710-d9be45aaf745
 	github.com/jessevdk/go-flags v1.4.0
