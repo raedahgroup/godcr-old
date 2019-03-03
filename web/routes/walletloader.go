@@ -51,7 +51,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			errMsg = "Wallet is not open. Restart the server"
 			return
 		}
-			next.ServeHTTP(res, req)
+		next.ServeHTTP(res, req)
 
 		// wallet is open, check if blockchain is synced
 		blockchainSyncStatus := routes.blockchain.status()
