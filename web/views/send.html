@@ -88,12 +88,10 @@
                         <div id="changeOutputsCard" data-target="send.changeOutputsCard" class="d-none">
                             <div class="card">
                                   <div class="card-header" id="headingOne">
-                                    <h5 class="mb-0">
-                                      <button type="button" class="btn btn-link" data-toggle="collapse" 
-                                      data-target="#automaticChangeOutputPnl" aria-controls="automaticChangeOutputPnl">
-                                            Change Outputs
+                                      <button type="button" class="btn btn-link mb-0" data-toggle="collapse"
+                                              data-target="#automaticChangeOutputPnl" aria-controls="automaticChangeOutputPnl">
+                                          Change Outputs
                                       </button>
-                                    </h5>
                                   </div>
                               
                                   <div id="automaticChangeOutputPnl" data-target="send.changeOutputPnl" class="collapse" aria-labelledby="headingOne" data-parent="#changeOutputsCard">
@@ -146,8 +144,8 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="errors" data-target="send.errors"></div>
-                                <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" class="btn btn-default" id="submit-btn" type="button">Next</button>
                                 <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn" type="button">Reset</button>
+                                <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" class="btn btn-default" id="submit-btn" type="button">Next</button>
                             </div>
                         </div>
                     </div>

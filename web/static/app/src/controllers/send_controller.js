@@ -3,7 +3,11 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton', 'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage', 'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'changeOutputContent', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
+    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount',
+      'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton', 'removeDestinationButton',
+      'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage',
+      'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs',
+      'generateOutputsButton', 'changeOutputContent', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
   }
 
   initialize () {
@@ -147,7 +151,7 @@ export default class extends Controller {
     }).catch(function () {
       _this.setErrorMessage('A server error occurred')
     }).then(function () {
-      _this.submitButtonTarget.innerHTML = 'Next'
+      _this.submitButtonTarget.innerHTML = 'Submit'
       _this.submitButtonTarget.removeAttribute('disabled')
     })
   }
@@ -223,36 +227,31 @@ export default class extends Controller {
   }
 
   getRandomChangeOutputs (numberOfOutputs, successCallback, completeCallback) {
-    let postData = $('#send-form').serialize()
-    postData += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    let queryParams = $('#send-form').serialize()
+    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
 
     // add source-account value to post data if source-account element is disabled
     if (this.sourceAccountTarget.disabled) {
-      postData += `&source-account=${this.sourceAccountTarget.value}`
+      queryParams += `&source-account=${this.sourceAccountTarget.value}`
     }
 
-    postData += `&nChangeOutput=${numberOfOutputs}`
+    queryParams += `&nChangeOutput=${numberOfOutputs}`
 
     let _this = this
-    $.ajax({
-      url: '/random-change-outputs',
-      method: 'GET',
-      data: postData,
-      success: function (response) {
-        if (response.error) {
-          _this.setErrorMessage(response.error)
-        } else {
-          successCallback(response.message)
-        }
-      },
-      error: function (error) {
-        console.log(error)
-        _this.setErrorMessage('A server error occurred')
-      },
-      complete: function () {
-        if (completeCallback) {
-          completeCallback()
-        }
+
+    axios.get('/random-change-outputs?' + queryParams).then((response) => {
+      let result = response.data
+      if (result.error !== undefined) {
+        _this.setErrorMessage(result.error)
+      } else {
+        successCallback(result.message)
+      }
+    }).catch((error) => {
+      console.log(error)
+      _this.setErrorMessage('A server error occurred')
+    }).then(() => {
+      if (completeCallback) {
+        completeCallback()
       }
     })
   }
@@ -311,6 +310,8 @@ export default class extends Controller {
 
     $('#custom-tx-row').slideUp()
     this.hide(this.changeOutputsCardTarget)
+
+    this.clearMessages()
   }
 
   resetCustomizePanel () {
@@ -412,6 +413,7 @@ export default class extends Controller {
     this.hide(this.errorMessageTarget)
     this.hide(this.successMessageTarget)
     this.errorsTarget.innerHTML = ''
+    this.successMessageTarget.innerHTML = ''
   }
 
   hide (el) {

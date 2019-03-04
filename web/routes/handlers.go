@@ -130,7 +130,8 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 				return
 			}
 
-			changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount), sourceAccount, len(utxos), sendDestinations)
+			changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount),
+				sourceAccount, len(utxos), sendDestinations)
 			if err != nil {
 				data["error"] = err.Error()
 				return
@@ -240,14 +241,14 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	account, err := strconv.ParseUint(selectedAccount, 10, 32)
 	if err != nil {
-		data["error"] = "241" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 	sourceAccount := uint32(account)
 
 	nChangeOutputs, err := strconv.ParseInt(nChangeOutputsStr, 10, 32)
 	if err != nil {
-		data["error"] = "249" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 
@@ -256,7 +257,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	destinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
 	if err != nil {
-		data["error"] = "258" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 
