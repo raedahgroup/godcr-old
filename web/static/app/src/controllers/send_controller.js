@@ -13,7 +13,7 @@ export default class extends Controller {
   validateSendForm () {
     this.errorsTarget.innerHTML = ''
     let errors = []
-    let isClean = this.validateDestinationsField()
+    let isClean = this.validateDestinationsField() && this.validateChangeOutputField()
 
     if (this.sourceAccountTarget.value === '') {
       errors.push('The source account is required')
@@ -52,6 +52,19 @@ export default class extends Controller {
       let amount = parseFloat(el.value)
       if (!(amount > 0)) {
         this.showError('Amount must be a non-zero positive number')
+        isClean = false
+      }
+    })
+    return isClean
+  }
+
+  validateChangeOutputField () {
+    this.clearMessages()
+    let isClean = true
+    this.changeOutputAmountTargets.forEach((el, i) => {
+      let amount = parseFloat(el.value)
+      if (!(amount > 0)) {
+        this.showError('Change amount must be a non-zero positive number')
         isClean = false
       }
     })
@@ -137,6 +150,22 @@ export default class extends Controller {
       _this.submitButtonTarget.innerHTML = 'Next'
       _this.submitButtonTarget.removeAttribute('disabled')
     })
+  }
+
+  toggleUseRandomChangeOutputs () {
+    let numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
+    if (!(numberOfChangeOutput > 0)) {
+      return
+    }
+    this.generateChangeOutputs()
+  }
+
+  changeOutputNumberChanged () {
+    let numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
+    if (!(numberOfChangeOutput > 0)) {
+      return
+    }
+    this.generateChangeOutputs()
   }
 
   generateChangeOutputs () {

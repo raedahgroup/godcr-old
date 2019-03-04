@@ -11,7 +11,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	qrcode "github.com/skip2/go-qrcode"
+	"github.com/skip2/go-qrcode"
 )
 
 func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
@@ -113,6 +113,29 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		if err != nil {
 			data["error"] = err.Error()
 			return
+		}
+
+		if len(changeDestinations) < 1 {
+			// add at-least one change output
+			totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
+
+			totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
+			if err != nil {
+				data["error"] = err.Error()
+				return
+			}
+
+			totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
+			if err != nil {
+				data["error"] = err.Error()
+				return
+			}
+
+			changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount), sourceAccount, len(utxos), sendDestinations)
+			if err != nil {
+				data["error"] = err.Error()
+				return
+			}
 		}
 
 		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, requiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
@@ -251,19 +274,19 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
 	if err != nil {
-		data["error"] = "264" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 
 	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 	if err != nil {
-		data["error"] = "270" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 
 	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), int64(totalInputAmount), sourceAccount, len(utxos), destinations)
 	if err != nil {
-		data["error"] = "276" + err.Error()
+		data["error"] = err.Error()
 		return
 	}
 	data["message"] = changeOutputDestinations
