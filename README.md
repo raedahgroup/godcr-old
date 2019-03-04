@@ -37,6 +37,9 @@ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgrou
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
 * `cd` to the cloned project directory and run `go build` or `go install`.
 Building will place the `godcr` binary in your working directory while install will place the binary in $GOPATH/bin.
+* To build the http frontend, `cd web/static/app` 
+and run `yarn install` then 
+`yarn build`. You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
 
 ## Running godcr
 ### General usage
