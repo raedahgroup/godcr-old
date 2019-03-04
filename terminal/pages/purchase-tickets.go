@@ -7,21 +7,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
 
-func PurchaseTicketPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func PurchaseTicketsPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	textView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 
 	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Purchase Tickets"), 4, 1, false)
 
+	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -44,44 +43,38 @@ func PurchaseTicketPage(wallet walletcore.Wallet, setFocus func(p tview.Primitiv
 
 	var spendUnconfirmed bool
 	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
-		if checked {
-			spendUnconfirmed = true
-		}
+			spendUnconfirmed = checked
 	})
 
 	var passphrase string
-	form.AddPasswordField("wallet Passphrase", "", 20, '*', func(text string) {
+	form.AddPasswordField("Spending Passphrase", "", 20, '*', func(text string) {
 		passphrase = text
 	})
+
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
-			body.RemoveItem(textView)
-			body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", "Please specify the number of tickets to purchase")).SetDoneFunc(func(key tcell.Key) {
-			}), 0, 1, true)
+			body.RemoveItem(outputTextView)
+			body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: Please specify the number of tickets to purchase")), 0, 1, true)
 			return
 		}
 		if len(passphrase) == 0 {
-			body.RemoveItem(textView)
-			body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", "please enter your wallet passphrase")).SetDoneFunc(func(key tcell.Key) {
-				if key == tcell.KeyEscape {
-					clearFocus()
-				}
-			}), 0, 1, true)
+			body.RemoveItem(outputTextView)
+			body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: please enter your spending passphrase")), 0, 1, true)
 			return
 		}
 
 		ticketHashes, err := submit(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
 		if err != nil {
-			body.RemoveItem(textView)
-			body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, true)
+			body.RemoveItem(outputTextView)
+			body.AddItem(outputTextView.SetText(fmt.Sprintf(err.Error())), 0, 1, true)
 			return
 		}
-		body.RemoveItem(textView)
-		body.AddItem(textView.SetText(fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))), 0, 1, true)
+
+		body.RemoveItem(outputTextView)
+		body.AddItem(outputTextView.SetText(fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))), 0, 1, true)
 	})
-	form.SetCancelFunc(func() {
-		clearFocus()
-	})
+
+	form.SetCancelFunc(clearFocus)
 
 	body.AddItem(form, 12, 1, true)
 
@@ -104,7 +97,7 @@ func submit(passphrase, numTickets string, accountNum uint32, spendUnconfirmed b
 		RequiredConfirmations: uint32(requiredConfirmations),
 		Passphrase:            []byte(passphrase),
 		NumTickets:            uint32(nTickets),
-		Account:               uint32(accountNum),
+		Account:               accountNum,
 	}
 
 	ticketHashes, err := wallet.PurchaseTickets(context.Background(), request)
