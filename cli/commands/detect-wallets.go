@@ -15,7 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
-type DetectWalletsCommand struct{
+type DetectWalletsCommand struct {
 	commanderStub
 }
 
@@ -120,7 +120,7 @@ func promptToSelectDefaultWallet(detectedWallets []*config.WalletInfo) []*config
 			return invalidSelectionError
 		}
 
-		detectedWallets[selectedIndex - 1].Default = true
+		detectedWallets[selectedIndex-1].Default = true
 		return nil
 	})
 

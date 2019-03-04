@@ -12,7 +12,7 @@ import (
 
 type WalletDbDir struct {
 	Source string
-	Path string
+	Path   string
 }
 
 // WalletDbFileName is the name used by dcrwallet, decredition and dcrlibwallet when creating wallets

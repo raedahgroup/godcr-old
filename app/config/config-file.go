@@ -14,16 +14,16 @@ var AppConfigFilePath = filepath.Join(DefaultAppDataDir, "godcr.conf")
 
 // ConfFileOptions holds the top-level options/flags that should be set in config file rather than in command-line
 type ConfFileOptions struct {
-	AppDataDir      string              `long:"appdata" description:"Path to application data directory"`
-	UseWalletRPC    bool                `long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
-	WalletRPCServer string              `long:"walletrpcserver" description:"Wallet RPC server address to connect to. Required if usewalletrpc=true"`
-	WalletRPCCert   string              `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if usewalletrpc=true"`
-	NoWalletRPCTLS  bool                `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
-	HTTPHost        string              `long:"httphost" description:"HTTP server host address or IP"`
-	HTTPPort        string              `long:"httpport" description:"HTTP server port"`
-	DebugLevel      string              `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
-	LogDir          string              `long:"logdir" description:"Directory to log output."`
-	LogFilename     string              `long:"logfilename" description:"Name of Log File in log directory."`
+	AppDataDir      string        `long:"appdata" description:"Path to application data directory"`
+	UseWalletRPC    bool          `long:"usewalletrpc" description:"Connect to a running drcwallet daemon over rpc to perform wallet operations"`
+	WalletRPCServer string        `long:"walletrpcserver" description:"Wallet RPC server address to connect to. Required if usewalletrpc=true"`
+	WalletRPCCert   string        `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if usewalletrpc=true"`
+	NoWalletRPCTLS  bool          `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC"`
+	HTTPHost        string        `long:"httphost" description:"HTTP server host address or IP"`
+	HTTPPort        string        `long:"httpport" description:"HTTP server port"`
+	DebugLevel      string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	LogDir          string        `long:"logdir" description:"Directory to log output."`
+	LogFilename     string        `long:"logfilename" description:"Name of Log File in log directory."`
 	Wallets         []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
 }
 
