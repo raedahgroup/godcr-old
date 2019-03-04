@@ -38,8 +38,8 @@ func (runner *CommandRunner) Run(command flags.Commander, args []string, options
 	// inject wallet dependency for commands implementing WalletCommandRunner
 	// the decred wallet is prepared for use before such commands are executed
 	if commandRunner, ok := command.(WalletCommandRunner); ok {
-		err := prepareWallet(runner.ctx, runner.walletMiddleware, options)
-		if err != nil {
+		walletExists, err := prepareWallet(runner.ctx, runner.walletMiddleware, options)
+		if err != nil || !walletExists {
 			return err
 		}
 		return commandRunner.Run(runner.ctx, runner.walletMiddleware)
