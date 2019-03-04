@@ -132,8 +132,8 @@ export default class extends Controller {
   }
 
   getUnspentOutputs (accountNumber, successCallback) {
-    this.submitButtonTarget.innerHTML = 'Loading...'
-    this.submitButtonTarget.setAttribute('disabled', 'disabled')
+    this.nextButtonTarget.innerHTML = 'Loading...'
+    this.nextButtonTarget.setAttribute('disabled', 'disabled')
     let _this = this
 
     let url = `/unspent-outputs/${accountNumber}`
@@ -151,8 +151,8 @@ export default class extends Controller {
     }).catch(function () {
       _this.setErrorMessage('A server error occurred')
     }).then(function () {
-      _this.submitButtonTarget.innerHTML = 'Submit'
-      _this.submitButtonTarget.removeAttribute('disabled')
+      _this.nextButtonTarget.innerHTML = 'Next'
+      _this.nextButtonTarget.removeAttribute('disabled')
     })
   }
 
@@ -255,6 +255,7 @@ export default class extends Controller {
       }
     })
   }
+
   submitForm () {
     if (!this.validatePassphrase()) {
       return
@@ -289,7 +290,7 @@ export default class extends Controller {
     }).catch(() => {
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
-      _this.nextButtonTarget.innerHTML = 'Send'
+      _this.nextButtonTarget.innerHTML = 'Next'
       _this.nextButtonTarget.removeAttribute('disabled')
     })
   }
