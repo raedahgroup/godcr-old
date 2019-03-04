@@ -1,45 +1,43 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
-	"path/filepath"
-
-	"github.com/spf13/viper"
 )
 
-var walletConfigFilePath = filepath.Join(DefaultAppDataDir, "wallets.conf")
-
 type WalletInfo struct {
-	DbPath string `long:"db"`
-	NetType string `long:"nettype"`
-	Source string `long:"source"`
+	DbDir   string
+	Network string
+	Source  string
+	Default bool
 }
 
-func (w WalletInfo) ShortDescription(index int) string {
-	return fmt.Sprintf("wallet_%d", index)
+func (wallet *WalletInfo) MarshalFlag() (string, error) {
+	data, err := json.Marshal(wallet)
+	if err == nil {
+		return string(data), nil
+	}
+	return "", err
 }
 
-func (w WalletInfo) LongDescription() string {
-	return fmt.Sprintf("%s %s wallet", w.Source, w.NetType)
+func (wallet *WalletInfo) UnmarshalFlag(value string) error {
+	return json.Unmarshal([]byte(value), wallet)
 }
 
-func SaveDetectedWalletsInfo(wallets []*WalletInfo) (err error) {
-	viper.SetConfigFile("./godcr.conf")
-	err = fileParser.ParseFile()
-	if err != nil {
-		return fmt.Errorf("Error reading config file: %s", err.Error())
+func (wallet *WalletInfo) Summary() string {
+	return fmt.Sprintf("%s wallet from %s", wallet.Network, wallet.Source)
+}
+
+func DefaultWallet(wallets []*WalletInfo) *WalletInfo {
+	if len(wallets) == 0 {
+		return nil
 	}
 
-	// add new wallets info
-	for i, w := range wallets {
-		.AddGroup(fmt.Sprintf("Detected Wallet %d", i+1), w.LongDescription(), w)
+	for _, wallet := range wallets {
+		if wallet.Default {
+			return wallet
+		}
 	}
 
-	// write config object to file
-	err = fileParser.WriteFile("./godcr.conf", flags.IniIncludeComments|flags.IniIncludeDefaults|flags.IniCommentDefaults)
-	if err != nil {
-		return fmt.Errorf("Error saving changes to config file: %s", err.Error())
-	}
-
-	return
+	return wallets[0]
 }

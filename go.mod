@@ -17,7 +17,7 @@ require (
 	github.com/golang/freetype v0.0.0-20161208064710-d9be45aaf745
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
-	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190209161438-9330ddf1d845
+	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190304212353-46323c4b3c27
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b

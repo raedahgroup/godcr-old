@@ -43,7 +43,7 @@ type CliOptions struct {
 // defaultConfig an instance of Config with the defaults set.
 func defaultConfig() Config {
 	return Config{
-		ConfFileOptions: defaultFileOptions(),
+		ConfFileOptions:    defaultFileOptions(),
 		CommandLineOptions: defaultCommandLineOptions(),
 	}
 }

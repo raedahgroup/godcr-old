@@ -6,7 +6,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-
 func SendPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	//Form for Sending
 	body := tview.NewForm().

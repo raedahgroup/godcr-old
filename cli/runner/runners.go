@@ -8,6 +8,12 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
+// CtxCommandRunner defines the Run method for cli commands requiring context for their execution
+type CtxCommandRunner interface {
+	Run(ctx context.Context) error
+	flags.Commander
+}
+
 // WalletCommandRunner defines the Run method that cli commands that interact with the decred wallet must implement
 // to have access to walletcore.Wallet at execution time
 type WalletCommandRunner interface {

@@ -3,12 +3,40 @@ package walletloader
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
+
+func choseNetworkAndCreateMiddleware() (app.WalletMiddleware, error) {
+	// prompt for new wallet network type and initialize
+	network, err := terminalprompt.RequestInput("Which net? (mainnet, testnet)", func(input string) error {
+		if strings.EqualFold(input, "mainnet") || strings.EqualFold(input, "testnet") {
+			return nil
+		}
+
+		return fmt.Errorf("invalid choice, please enter 'mainnet' or 'testnet'")
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error reading your input: %s", err.Error())
+	}
+
+	if strings.EqualFold(network, "testnet") {
+		network = "testnet3"
+	}
+
+	walletInfo := &config.WalletInfo{
+		Network: network,
+		Source:  "godcr",
+		DbDir:   filepath.Join(config.DefaultAppDataDir, network),
+	}
+	return dcrlibwallet.New(config.DefaultAppDataDir, walletInfo)
+}
 
 // displayWalletSeed prints the generated seed for a new wallet
 func displayWalletSeed(seed string) {
@@ -28,22 +56,18 @@ func displayWalletSeed(seed string) {
 		"giving them access to all your funds, so it is imperative that you keep it in a secure location.")
 }
 
-func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (bool, error) {
+func AttemptToCreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	createWalletPrompt := "No wallet found. Would you like to create one now?"
 	createWallet, err := terminalprompt.RequestYesNoConfirmation(createWalletPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return false, err
+		return nil, err
 	}
 
 	if !createWallet {
 		fmt.Println("Maybe later. Bye.")
-		return false, nil
+		return nil, nil
 	}
 
-	err = CreateWallet(ctx, walletMiddleware)
-	if err != nil {
-		return false, err
-	}
-	return true, err
+	return CreateWallet(ctx)
 }

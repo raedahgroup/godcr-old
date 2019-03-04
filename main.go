@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -116,17 +117,17 @@ func main() {
 }
 
 //function for writing to stdOut and file simultanously
-func LogInfo(message string) {
+func logInfo(message string) {
 	log.Info(message)
 	fmt.Println(message)
 }
 
-func LogWarn(message string) {
+func logWarn(message string) {
 	log.Warn(message)
 	fmt.Println(message)
 }
 
-func LogError(message error) {
+func logError(message error) {
 	log.Error(message)
 	fmt.Println(message)
 }
@@ -167,11 +168,44 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
 // default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
-func connectToWallet(ctx context.Context, config config.Config) (app.WalletMiddleware, error) {
-	if !config.UseWalletRPC {
-		return dcrlibwallet.New(config.AppDataDir, config.UseTestNet)
+func connectToWallet(ctx context.Context, cfg config.Config) (app.WalletMiddleware, error) {
+	if cfg.UseWalletRPC {
+		return dcrwalletrpc.New(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	}
-	return dcrwalletrpc.New(ctx, config.WalletRPCServer, config.WalletRPCCert, config.NoWalletRPCTLS)
+
+	walletInfo := config.DefaultWallet(cfg.Wallets)
+	var err error
+	if walletInfo == nil {
+		// no default wallet, ask if to trigger detect command to discover existing wallets or to create new wallet
+		walletInfo, err = detectOrCreateWallet(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if walletInfo == nil {
+			os.Exit(1)
+		}
+	}
+
+	return dcrlibwallet.New(cfg.AppDataDir, walletInfo)
+}
+
+func detectOrCreateWallet(ctx context.Context) (*config.WalletInfo, error) {
+	promptToDetect := "No wallet to connect to. Do you want to detect and connect to existing wallets?"
+	detectWallet, err := terminalprompt.RequestYesNoConfirmation(promptToDetect, "y")
+	if err != nil {
+		return nil, fmt.Errorf("error reading your input: %s", err.Error())
+	}
+
+	if detectWallet {
+		wallets, err := commands.DetectWallets(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return config.DefaultWallet(wallets), nil
+	}
+
+	return nil, nil
 }
 
 func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
@@ -189,7 +223,7 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 }
 
 func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
-	log.Info("Launching desktop app with nuklear")
+	logInfo("Launching desktop app with nuklear")
 	nuklear.LaunchApp(ctx, walletMiddleware)
 	// todo need to properly listen for shutdown and trigger shutdown
 	beginShutdown <- true
@@ -208,14 +242,13 @@ func listenForInterruptRequests() {
 
 	// listen for the initial interrupt request and trigger shutdown signal
 	sig := <-interruptChannel
-	log.Warnf("\nReceived signal. Shutting down...\n", sig)
-	fmt.Printf("\nReceived %s signal. Shutting down...\n", sig)
+	logWarn(fmt.Sprintf("\nReceived %s signal. Shutting down...\n", sig))
 	beginShutdown <- true
 
 	// continue to listen for interrupt requests and log that shutdown has already been signaled
 	for {
 		<-interruptChannel
-		log.Info(" Already shutting down... Please wait")
+		logInfo(" Already shutting down... Please wait")
 		fmt.Println(" Already shutting down... Please wait")
 	}
 }

@@ -30,6 +30,11 @@ func (runner *CommandRunner) Run(command flags.Commander, args []string, options
 		return brokenCommandError(runner.parser.Command)
 	}
 
+	// inject ctx dependency for commands implementing CtxCommandRunner
+	if commandRunner, ok := command.(CtxCommandRunner); ok {
+		return commandRunner.Run(runner.ctx)
+	}
+
 	// inject walletMiddleware dependency for commands implementing WalletMiddlewareCommandRunner
 	if commandRunner, ok := command.(WalletMiddlewareCommandRunner); ok {
 		return commandRunner.Run(runner.ctx, runner.walletMiddleware)
@@ -54,6 +59,11 @@ func (runner *CommandRunner) RunNoneWalletCommands(command flags.Commander, args
 	// inject parser dependency for commands implementing `ParserCommandRunner`
 	if commandRunner, ok := command.(ParserCommandRunner); ok {
 		return commandRunner.Run(runner.parser)
+	}
+
+	// inject ctx dependency for commands implementing CtxCommandRunner
+	if commandRunner, ok := command.(CtxCommandRunner); ok {
+		return commandRunner.Run(runner.ctx)
 	}
 
 	// execute other commands directly
