@@ -10,10 +10,10 @@ export default class extends Controller {
     this.newDestination()
   }
 
-  validateSendForm () {
+  validateSendForm (noValidateChangeAmounts) {
     this.errorsTarget.innerHTML = ''
     let errors = []
-    let isClean = this.validateDestinationsField() && this.validateChangeOutputField()
+    let isClean = this.validateDestinationsField() && (noValidateChangeAmounts || this.validateChangeOutputField())
 
     if (this.sourceAccountTarget.value === '') {
       errors.push('The source account is required')
@@ -169,9 +169,14 @@ export default class extends Controller {
   }
 
   generateChangeOutputs () {
-    if (!this.validateSendForm()) {
+    if (!this.validateSendForm(true)) {
       return
     }
+
+    if (this.generatingChangeOutputs) {
+      return
+    }
+    this.generatingChangeOutputs = true
 
     this.changeOutputContentTarget.innerHTML = ''
 
@@ -208,10 +213,12 @@ export default class extends Controller {
       _this.generateOutputsButtonTarget.removeAttribute('disabled')
       _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs'
       _this.numberOfChangeOutputsTarget.removeAttribute('disabled')
+      _this.generatingChangeOutputs = false
     }, function () {
       _this.generateOutputsButtonTarget.removeAttribute('disabled')
       _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs'
       _this.numberOfChangeOutputsTarget.removeAttribute('disabled')
+      _this.generatingChangeOutputs = false
     })
   }
 
@@ -229,7 +236,7 @@ export default class extends Controller {
     let _this = this
     $.ajax({
       url: '/random-change-outputs',
-      method: 'POST',
+      method: 'GET',
       data: postData,
       success: function (response) {
         if (response.error) {
