@@ -71,9 +71,9 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		contentWindow.Row(20).Dynamic(1)
 		contentWindow.Label("Wallet Seed", "LC")
 
-		contentWindow.Row(90).Dynamic(1)
+		contentWindow.Row(110).Dynamic(1)
 		if seedWindow := helpers.NewWindow("Seed Window", contentWindow.Window, nucular.WindowBorder); seedWindow != nil {
-			seedWindow.Row(60).Dynamic(1)
+			seedWindow.Row(80).Dynamic(1)
 			seedWindow.LabelWrap(handler.seed)
 			seedWindow.End()
 		}
