@@ -120,7 +120,7 @@ func OpenWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (wal
 	select {
 	case <-loadWalletDone:
 		if !walletExists {
-			err = attemptToCreateWallet(ctx, walletMiddleware)
+			walletExists, err = attemptToCreateWallet(ctx, walletMiddleware)
 			return
 		}
 

@@ -28,18 +28,22 @@ func displayWalletSeed(seed string) {
 		"giving them access to all your funds, so it is imperative that you keep it in a secure location.")
 }
 
-func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func attemptToCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (bool, error) {
 	createWalletPrompt := "No wallet found. Would you like to create one now?"
 	createWallet, err := terminalprompt.RequestYesNoConfirmation(createWalletPrompt, "Y")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading your response: %s", err.Error())
-		return err
+		return false, err
 	}
 
 	if !createWallet {
 		fmt.Println("Maybe later. Bye.")
-		return nil
+		return false, nil
 	}
 
-	return CreateWallet(ctx, walletMiddleware)
+	err = CreateWallet(ctx, walletMiddleware)
+	if err != nil {
+		return false, err
+	}
+	return true, err
 }

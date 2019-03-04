@@ -24,19 +24,19 @@ func CommandRequiresWallet(command flags.Commander) bool {
 
 // prepareWallet gets a wallet ready for use by opening the wallet using the provided walletMiddleware
 // and performing sync operations if requested
-func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) error {
-	walletExists, err := walletloader.OpenWallet(ctx, middleware)
+func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) (walletExists bool, err error) {
+	walletExists, err = walletloader.OpenWallet(ctx, middleware)
 	if err != nil || !walletExists {
-		return err
+		return
 	}
 
 	if options.SyncBlockchain {
 		err = walletloader.SyncBlockChain(ctx, middleware)
 		if err != nil {
-			return err
+			return
 		}
 	}
-	return nil
+	return
 }
 
 // brokenCommandError returns an error message for a command that does not have an Execute method
