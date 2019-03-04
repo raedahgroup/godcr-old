@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg"
@@ -86,6 +87,21 @@ func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, a
 			Amount:  dcrutil.Amount(amount).ToCoin(),
 		}
 		changeOutputDestinations = append(changeOutputDestinations, changeOutput)
+	}
+	return
+}
+
+func BuildTxDestinations(destinationAddresses []string, destinationAmounts []string) (destinations []txhelper.TransactionDestination, err error) {
+	destinations = make([]txhelper.TransactionDestination, len(destinationAddresses))
+	for i := range destinationAddresses {
+		amount, err := strconv.ParseFloat(destinationAmounts[i], 64)
+		if err != nil {
+			return destinations, err
+		}
+		destinations[i] = txhelper.TransactionDestination{
+			Address: destinationAddresses[i],
+			Amount:  amount,
+		}
 	}
 	return
 }

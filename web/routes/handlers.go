@@ -9,7 +9,6 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
 )
@@ -86,7 +85,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	destinationAddresses := req.Form["destination-address"]
 	destinationAmounts := req.Form["destination-amount"]
 
-	sendDestinations, err := buildTxDestinations(destinationAddresses, destinationAmounts)
+	sendDestinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -109,7 +108,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		changeOutputAddreses := req.Form["change-output-address"]
 		changeOutputAmounts := req.Form["change-output-amount"]
 
-		changeDestinations, err := buildTxDestinations(changeOutputAddreses, changeOutputAmounts)
+		changeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddreses, changeOutputAmounts)
 		if err != nil {
 			data["error"] = err.Error()
 			return
@@ -255,7 +254,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	destinationAddresses := req.Form["destination-address"]
 	destinationAmounts := req.Form["destination-amount"]
 
-	destinations, err := buildTxDestinations(destinationAddresses, destinationAmounts)
+	destinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
 	if err != nil {
 		data["error"] = "258" + err.Error()
 		return
@@ -264,7 +263,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	changeOutputAddreses := req.Form["change-output-address"]
 	changeOutputAmounts := req.Form["change-output-amount"]
 
-	existingChangeDestinations, err := buildTxDestinations(changeOutputAddreses, changeOutputAmounts)
+	existingChangeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddreses, changeOutputAmounts)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -290,21 +289,6 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 	data["message"] = changeOutputDestinations
-}
-
-func buildTxDestinations(destinationAddresses []string, destinationAmounts []string) (destinations []txhelper.TransactionDestination, err error) {
-	destinations = make([]txhelper.TransactionDestination, len(destinationAddresses))
-	for i := range destinationAddresses {
-		amount, err := strconv.ParseFloat(destinationAmounts[i], 64)
-		if err != nil {
-			return destinations, err
-		}
-		destinations[i] = txhelper.TransactionDestination{
-			Address: destinationAddresses[i],
-			Amount:  amount,
-		}
-	}
-	return
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
