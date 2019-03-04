@@ -3,13 +3,13 @@ package walletloader
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal"
 	"github.com/raedahgroup/godcr/web"
