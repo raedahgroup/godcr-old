@@ -17,10 +17,9 @@ func PurchaseTicketsPage(wallet walletcore.Wallet, setFocus func(p tview.Primiti
 
 	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Purchase Tickets"), 4, 1, false)
 
-	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -43,7 +42,7 @@ func PurchaseTicketsPage(wallet walletcore.Wallet, setFocus func(p tview.Primiti
 
 	var spendUnconfirmed bool
 	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
-			spendUnconfirmed = checked
+		spendUnconfirmed = checked
 	})
 
 	var passphrase string
@@ -51,27 +50,35 @@ func PurchaseTicketsPage(wallet walletcore.Wallet, setFocus func(p tview.Primiti
 		passphrase = text
 	})
 
+	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+	outputMessage := func(ticketHashes []string, err error) {
+		body.RemoveItem(outputTextView)
+		if err != nil {
+			body.AddItem(outputTextView.SetText(fmt.Sprintf(err.Error())), 0, 1, true)
+		} else {
+			body.AddItem(outputTextView.SetText(fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))), 0, 1, true)
+		}
+	}
+
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
-			body.RemoveItem(outputTextView)
-			body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: Please specify the number of tickets to purchase")), 0, 1, true)
+			err := errors.New("Error: please specify the number of tickets to purchase")
+			outputMessage(nil, err)
 			return
 		}
 		if len(passphrase) == 0 {
-			body.RemoveItem(outputTextView)
-			body.AddItem(outputTextView.SetText(fmt.Sprintf("Error: please enter your spending passphrase")), 0, 1, true)
+			err := errors.New("Error: please enter your spending passphrase")
+			outputMessage(nil, err)
 			return
 		}
 
 		ticketHashes, err := submit(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
 		if err != nil {
-			body.RemoveItem(outputTextView)
-			body.AddItem(outputTextView.SetText(fmt.Sprintf(err.Error())), 0, 1, true)
+			outputMessage(nil, err)
 			return
 		}
 
-		body.RemoveItem(outputTextView)
-		body.AddItem(outputTextView.SetText(fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))), 0, 1, true)
+		outputMessage(ticketHashes, nil)
 	})
 
 	form.SetCancelFunc(clearFocus)
