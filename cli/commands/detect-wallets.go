@@ -46,10 +46,8 @@ func DetectWallets(ctx context.Context) ([]*config.WalletInfo, error) {
 	// ask to create wallet if no wallet is detected
 	if len(allDetectedWallets) == 0 {
 		createdWallet, err := walletloader.AttemptToCreateWallet(ctx)
-		if err != nil {
+		if createdWallet == nil {
 			return nil, err
-		} else if createdWallet == nil {
-			return nil, nil
 		} else {
 			allDetectedWallets = append(allDetectedWallets, createdWallet)
 		}

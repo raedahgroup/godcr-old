@@ -80,6 +80,10 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	}
 	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
 
+	// close wallet after other ops are done so that a block will not be experienced
+	// when a subsequent attempt to reopen the wallet is made in order to execute a command
+	defer walletMiddleware.CloseWallet()
+
 	walletInfo := &config.WalletInfo{
 		Network: walletMiddleware.NetType(),
 		Source:  "godcr",
