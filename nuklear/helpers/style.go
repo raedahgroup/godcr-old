@@ -99,6 +99,24 @@ func GetStyle() *nstyle.Style {
 	style.Edit.Border = 1
 	style.Edit.BorderColor = colorTable.ColorBorder
 
+	/**checkbox**/
+	style.Checkbox.Normal.Data.Color = whiteColor
+	style.Checkbox.Active.Data.Color = navBackgroundColor
+	style.Checkbox.CursorHover.Data.Color = navBackgroundColor
+	style.Checkbox.CursorNormal.Data.Color = navBackgroundColor
+	style.Checkbox.Hover.Data.Color = navBackgroundColor
+
+	/**form inputs**/
+	style.Edit.Border = 1
+	style.Edit.Normal.Data.Color = whiteColor
+	style.Edit.BorderColor = primaryBorderColor
+	style.Edit.Active.Data.Color = whiteColor
+	style.Edit.Hover.Data.Color = whiteColor
+	style.Combo.Normal.Data.Color = whiteColor
+	style.Combo.BorderColor = primaryBorderColor
+	style.Combo.Active.Data.Color = whiteColor
+	style.Combo.Hover.Data.Color = whiteColor
+
 	return style
 }
 

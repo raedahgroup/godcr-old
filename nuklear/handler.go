@@ -41,7 +41,7 @@ func getNavPages() []navPage {
 		},
 		{
 			name:    "send",
-			label:   "Send (WIP)",
+			label:   "Send",
 			handler: &handlers.SendHandler{},
 		},
 		{
