@@ -127,6 +127,7 @@ export default class extends Controller {
       }).join('')
       _this.customInputContentTarget.innerHTML = utxoHtml
       $('#custom-tx-row .status').hide()
+      _this.show(_this.changeOutputsCardTarget)
     }
     this.getUnspentOutputs(accountNumber, callback)
   }
@@ -390,7 +391,6 @@ export default class extends Controller {
     }
     this.clearMessages()
     this.openCustomizePanel()
-    this.show(this.changeOutputsCardTarget)
   }
 
   toggleSpendUnconfirmed () {
