@@ -3,11 +3,13 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeOutputPercentage', 'changeAmount',
-      'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton', 'removeDestinationButton',
-      'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage',
-      'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs',
-      'generateOutputsButton', 'changeOutputContent', 'changeDestinationTemplate', 'changeOutputAddress', 'changeOutputAmount']
+    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeOutputPercentage',
+      'changeAmount', 'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton',
+      'removeDestinationButton', 'form', 'walletPassphrase', 'passwordError', 'useCustom',
+      'spendUnconfirmed', 'errorMessage', 'successMessage',
+      'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs',
+      'useRandomChangeOutputs', 'generateOutputsButton', 'changeOutputContent', 'changeDestinationTemplate', 'changeOutputAddress',
+      'changeOutputAmount']
   }
 
   initialize () {
@@ -56,6 +58,19 @@ export default class extends Controller {
       let amount = parseFloat(el.value)
       if (!(amount > 0)) {
         this.showError('Amount must be a non-zero positive number')
+        isClean = false
+      }
+    })
+    return isClean
+  }
+
+  validateChangeOutputAmount () {
+    this.clearMessages()
+    let isClean = true
+    this.changeOutputAmountTargets.forEach(el => {
+      let amount = parseFloat(el.value)
+      if (!(amount > 0)) {
+        this.showError('Change amount must be a non-zero positive number')
         isClean = false
       }
     })
@@ -144,6 +159,12 @@ export default class extends Controller {
     })
   }
 
+  toggleChangeOutputPanel (event) {
+    this.clearMessages()
+    this.changeOutputContentTarget.innerHTML = ''
+    this.numberOfChangeOutputsTarget.value = ''
+  }
+
   toggleUseRandomChangeOutputs () {
     let numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
     if (!(numberOfChangeOutput > 0)) {
@@ -208,8 +229,6 @@ export default class extends Controller {
         ele.value = amount
       }
     })
-
-    // todo validate amount constraint, reset element
   }
 
   generateChangeOutputs () {
@@ -447,7 +466,7 @@ export default class extends Controller {
 
   getWalletPassphraseAndSubmit () {
     this.clearMessages()
-    if (!this.validateDestinationsField()) {
+    if (!this.validateSendForm() || !this.validateChangeOutputAmount()) {
       return
     }
     $('#passphrase-modal').modal()
