@@ -70,7 +70,7 @@ func useParsedConfigAddresses(ctx context.Context, addresses []string, rpcCert s
 	for _, address := range addresses {
 		walletRPCClient, _ = createConnection(ctx, address, rpcCert, noTLS)
 		if walletRPCClient != nil {
-			config.UpdateConfigFile(func(config *config.Config) {
+			config.UpdateConfigFile(func(config *config.ConfFileOptions) {
 				config.WalletRPCServer = address
 			})
 			return
@@ -84,7 +84,7 @@ func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) 
 	testnetAddress := net.JoinHostPort("localhost", netparams.TestNet3Params.GRPCServerPort)
 	walletRPCClient, _ = createConnection(ctx, testnetAddress, rpcCert, noTLS)
 	if walletRPCClient != nil {
-		config.UpdateConfigFile(func(config *config.Config) {
+		config.UpdateConfigFile(func(config *config.ConfFileOptions) {
 			config.WalletRPCServer = testnetAddress
 		})
 		return
@@ -94,7 +94,7 @@ func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) 
 	mainnetAddress := net.JoinHostPort("localhost", netparams.MainNetParams.GRPCServerPort)
 	walletRPCClient, _ = createConnection(ctx, mainnetAddress, rpcCert, noTLS)
 	if walletRPCClient != nil {
-		config.UpdateConfigFile(func(config *config.Config) {
+		config.UpdateConfigFile(func(config *config.ConfFileOptions) {
 			config.WalletRPCServer = mainnetAddress
 		})
 		return

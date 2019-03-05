@@ -167,9 +167,10 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware
-// default walletmiddleware is dcrlibwallet, alternative is dcrwalletrpc
-func connectToWallet(ctx context.Context, cfg config.Config) (app.WalletMiddleware, error) {
-	if cfg.UseWalletRPC {
+// default is connecting directly to a wallet database file via dcrlibwallet
+// alternative is connecting to wallet database via dcrwallet rpc (if rpc server address is provided)
+func connectToWallet(ctx context.Context, cfg *config.Config) (app.WalletMiddleware, error) {
+	if cfg.WalletRPCServer != "" {
 		return dcrwalletrpc.New(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	}
 
@@ -208,13 +209,13 @@ func detectOrCreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	return nil, nil
 }
 
-func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
+func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
 	opError = cli.Run(ctx, walletMiddleware, appConfig)
 	// cli run done, trigger shutdown
 	beginShutdown <- true
 }
 
-func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Config) {
+func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
 	opError = web.StartServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
 	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
 	if opError != nil && ctx.Err() == nil {

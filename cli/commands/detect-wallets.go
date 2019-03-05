@@ -61,7 +61,7 @@ func DetectWallets(ctx context.Context) ([]*config.WalletInfo, error) {
 	}
 
 	// update config file with detected wallets info
-	err := config.UpdateConfigFile(func(config *config.Config) {
+	err := config.UpdateConfigFile(func(config *config.ConfFileOptions) {
 		config.Wallets = allDetectedWallets
 	})
 	if err != nil {
