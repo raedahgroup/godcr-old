@@ -20,8 +20,6 @@ type ConfFileOptions struct {
 	HTTPHost        string        `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
 	HTTPPort        string        `long:"httpport" description:"HTTP server port when running godcr in http mode."`
 	DebugLevel      string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
-	LogDir          string        `long:"logdir" description:"Directory to log output."`
-	LogFilename     string        `long:"logfilename" description:"Name of Log File in log directory."`
 	Wallets         []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
 }
 
@@ -32,8 +30,6 @@ func defaultFileOptions() ConfFileOptions {
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,
 		DebugLevel:    defaultLogLevel,
-		LogDir:        defaultLogDir,
-		LogFilename:   defaultLogFilename,
 	}
 }
 

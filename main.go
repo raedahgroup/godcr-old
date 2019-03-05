@@ -43,7 +43,7 @@ func main() {
 
 	// Initialize log rotation.  After log rotation has been initialized, the
 	// logger variables may be used.
-	initLogRotator(filepath.Join(appConfig.LogDir, appConfig.LogFilename))
+	initLogRotator(config.LogFile)
 	defer func() {
 		if logRotator != nil {
 			logRotator.Close()
