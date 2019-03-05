@@ -8,6 +8,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -63,7 +64,7 @@ func (handler *SendHandler) BeforeRender() {
 	handler.successHash = ""
 }
 
-func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *SendHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.fetchAccounts(wallet)
@@ -333,20 +334,22 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 	}
 
 	// check if total selected utxo amount is not less than total send amount
-	totalSelectedUtxoAmount := 0.0
-	for _, utxo := range handler.utxos {
-		if utxo.selected {
-			totalSelectedUtxoAmount += utxo.utxo.Amount.ToCoin()
+	if handler.selectCustomInputs {
+		totalSelectedUtxoAmount := 0.0
+		for _, utxo := range handler.utxos {
+			if utxo.selected {
+				totalSelectedUtxoAmount += utxo.utxo.Amount.ToCoin()
+			}
 		}
-	}
 
-	if totalSendAmount > totalSelectedUtxoAmount {
-		handler.utxoErr = "Total selected UTXO amount is not enough to cover send amount cost"
-		isClean = false
-	} else {
-		handler.utxoErr = ""
-	}
+		if totalSendAmount > totalSelectedUtxoAmount {
+			handler.utxoErr = "Total selected UTXO amount is not enough to cover send amount cost"
+			isClean = false
+		} else {
+			handler.utxoErr = ""
+		}
 
+	}
 	masterWindow.Changed()
 	return isClean
 }

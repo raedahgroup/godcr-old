@@ -50,9 +50,9 @@ func getNavPages() []navPage {
 			handler: &handlers.StakeInfoHandler{},
 		},
 		{
-			name:     "send",
-			navLabel: "Send",
-			handler:  &handlers.SendHandler{},
+			name:    "send",
+			label:   "Send",
+			handler: &handlers.SendHandler{},
 		},
 		{
 			name:    "purchasetickets",

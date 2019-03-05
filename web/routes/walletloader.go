@@ -54,7 +54,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 
 		// wallet is open, check if blockchain is synced
 		blockchainSyncStatus := routes.blockchain.status()
-		blockchainSyncStatus = syncStatusSuccess
+		blockchainSyncStatus = walletcore.SyncStatusSuccess
 		switch blockchainSyncStatus {
 		case walletcore.SyncStatusSuccess:
 			next.ServeHTTP(res, req)

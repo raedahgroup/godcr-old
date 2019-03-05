@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	PageHeaderFont         font.Face
-	PageContentFont        font.Face
-	NavFont                font.Face
+	PageHeaderFont  font.Face
+	PageContentFont font.Face
+	NavFont         font.Face
 )
 
 const (
@@ -92,14 +92,13 @@ func GetStyle() *nstyle.Style {
 	style.Button.Border = 0
 	style.Button.TextNormal = whiteColor
 
-<<<<<<< HEAD
 	/**inputs**/
 	style.Edit.Normal.Data.Color = whiteColor
 	style.Edit.Active.Data.Color = whiteColor
 	style.Edit.Hover.Data.Color = whiteColor
 	style.Edit.Border = 1
 	style.Edit.BorderColor = colorTable.ColorBorder
-=======
+
 	/**checkbox**/
 	style.Checkbox.Normal.Data.Color = whiteColor
 	style.Checkbox.Active.Data.Color = navBackgroundColor
@@ -117,7 +116,6 @@ func GetStyle() *nstyle.Style {
 	style.Combo.BorderColor = primaryBorderColor
 	style.Combo.Active.Data.Color = whiteColor
 	style.Combo.Hover.Data.Color = whiteColor
->>>>>>> 9846be1... add validation rules. style form inputs
 
 	return style
 }
