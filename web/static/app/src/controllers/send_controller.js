@@ -160,6 +160,7 @@ export default class extends Controller {
   }
 
   toggleChangeOutputPanel (event) {
+    this.useCustomChangeOutput = !this.useCustomChangeOutput
     this.clearMessages()
     this.changeOutputContentTarget.innerHTML = ''
     this.numberOfChangeOutputsTarget.value = ''
@@ -236,7 +237,7 @@ export default class extends Controller {
       return
     }
 
-    if (this.generatingChangeOutputs) {
+    if (this.generatingChangeOutputs || !this.useCustomChangeOutput) {
       return
     }
     this.generatingChangeOutputs = true
@@ -255,6 +256,9 @@ export default class extends Controller {
 
     let _this = this
     _this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputdestinations) {
+      if (!this.useCustomChangeOutput) {
+        return
+      }
       _this.totalChangeAmount = 0
       changeOutputdestinations.forEach(destination => {
         _this.totalChangeAmount += destination.Amount
