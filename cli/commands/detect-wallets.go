@@ -114,7 +114,7 @@ func promptToSelectDefaultWallet(detectedWallets []*config.WalletInfo) []*config
 			return invalidSelectionError
 		}
 
-		if selectedIndex > len(detectedWallets) {
+		if selectedIndex < 1 || selectedIndex > len(detectedWallets) {
 			return invalidSelectionError
 		}
 
