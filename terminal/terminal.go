@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rivo/tview"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/terminal/pages"
+	"github.com/rivo/tview"
 )
 
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {

@@ -6,12 +6,7 @@ import (
 )
 
 func (lib *DcrWalletLib) NetType() string {
-	if lib.activeNet.Params.Name != "mainnet" {
-		// could be testnet3 or testnet, return "testnet" for both cases
-		return "testnet"
-	} else {
-		return lib.activeNet.Params.Name
-	}
+	return lib.activeNet.Params.Name
 }
 
 func (lib *DcrWalletLib) WalletExists() (bool, error) {

@@ -8,7 +8,8 @@ import (
 
 // AvailableCommands defines thoroughly-tested commands and options available on the cli
 type AvailableCommands struct {
-	CreateWallet    CreateWalletCommand    `command:"createwallet" description:"Creates a new decred testnet or mainnet wallet" long-description:"Creates a new decred testnet or mainnet wallet. A wallet seed will be generated for the new wallet which must be stored securely. You'll also be asked to set a password for the wallet"`
+	CreateWallet    CreateWalletCommand    `command:"create" description:"Creates a new decred testnet or mainnet wallet" long-description:"A wallet seed will be generated for the new wallet which must be stored securely. You'll also be asked to set a password for the wallet"`
+	DetectWallets   DetectWalletsCommand   `command:"detect" description:"Searches for existing decred wallets in predefined paths" long-description:"Information for all wallets detected are stored and used subsequently for wallet operations"`
 	Balance         BalanceCommand         `command:"balance" description:"Show total balance for each account in wallet" long-description:"Also shows spendable balance if different from total balance"`
 	Send            SendCommand            `command:"send" description:"Send a transaction"`
 	Receive         ReceiveCommand         `command:"receive" description:"Show your address to receive funds"`
