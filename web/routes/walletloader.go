@@ -6,20 +6,12 @@ import (
 	"sync"
 
 	"github.com/raedahgroup/godcr/app"
-)
-
-type syncStatus uint8
-
-const (
-	syncStatusNotStarted syncStatus = iota
-	syncStatusSuccess
-	syncStatusError
-	syncStatusInProgress
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type Blockchain struct {
 	sync.RWMutex
-	_status syncStatus
+	_status walletcore.SyncStatus
 	_report string
 }
 
@@ -63,13 +55,13 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		// wallet is open, check if blockchain is synced
 		blockchainSyncStatus := routes.blockchain.status()
 		switch blockchainSyncStatus {
-		case syncStatusSuccess:
+		case walletcore.SyncStatusSuccess:
 			next.ServeHTTP(res, req)
-		case syncStatusNotStarted:
+		case walletcore.SyncStatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case syncStatusInProgress:
+		case walletcore.SyncStatusInProgress:
 			errMsg = fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
-		case syncStatusError:
+		case walletcore.SyncStatusError:
 			errMsg = fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
 		default:
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
@@ -82,39 +74,39 @@ func (routes *Routes) syncBlockchain() {
 
 	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
-			updateStatus("Blockchain sync started...", syncStatusInProgress)
+			updateStatus("Blockchain sync started...", walletcore.SyncStatusInProgress)
 		},
 		SyncEnded: func(err error) {
 			if err != nil {
-				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), syncStatusError)
+				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
 			} else {
-				updateStatus("Blockchain sync completed successfully", syncStatusSuccess)
+				updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
 			}
 		},
 		OnHeadersFetched: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), syncStatusInProgress)
+			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
 		},
 		OnDiscoveredAddress: func(_ string) {
-			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", syncStatusInProgress)
+			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", walletcore.SyncStatusInProgress)
 		},
 		OnRescanningBlocks: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), syncStatusInProgress)
+			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
 		},
 	}, false)
 
 	if err != nil {
-		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), syncStatusError)
+		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), walletcore.SyncStatusError)
 	}
 }
 
-func (b *Blockchain) updateStatus(report string, status syncStatus) {
+func (b *Blockchain) updateStatus(report string, status walletcore.SyncStatus) {
 	b.Lock()
 	b._status = status
 	b._report = report
 	b.Unlock()
 }
 
-func (b *Blockchain) status() syncStatus {
+func (b *Blockchain) status() walletcore.SyncStatus {
 	b.RLock()
 	defer b.RUnlock()
 	return b._status

@@ -22,7 +22,7 @@ func (handler *StakeInfoHandler) BeforeRender() {
 	handler.isRendering = false
 }
 
-func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePageFunc func(string)) {
+func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.stakeInfo, handler.err = wallet.StakeInfo(context.Background())

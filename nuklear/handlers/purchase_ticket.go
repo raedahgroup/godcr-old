@@ -42,7 +42,7 @@ func (handler *PurchaseTicketsHandler) BeforeRender() {
 	handler.resetForm()
 }
 
-func (handler *PurchaseTicketsHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePageFunc func(string)) {
+func (handler *PurchaseTicketsHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.fetchAccounts(wallet)

@@ -6,60 +6,71 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/handlers"
 )
 
-type Handler interface {
+type navPageHandler interface {
 	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware, func(page string))
+	Render(*nucular.Window, app.WalletMiddleware)
 }
 
-type page struct {
-	name       string
-	navLabel   string
-	standalone bool
-	handler    Handler
+type standalonePageHandler interface {
+	BeforeRender()
+	Render(*nucular.Window, app.WalletMiddleware, func(string))
 }
 
-func getPages() []page {
-	return []page{
+type navPage struct {
+	name    string
+	label   string
+	handler navPageHandler
+}
+
+type standalonePage struct {
+	name    string
+	handler standalonePageHandler
+}
+
+func getNavPages() []navPage {
+	return []navPage{
 		{
-			name:       "balance",
-			navLabel:   "Balance",
-			standalone: false,
-			handler:    &handlers.BalanceHandler{},
+			name:    "balance",
+			label:   "Balance",
+			handler: &handlers.BalanceHandler{},
 		},
 		{
-			name:       "receive",
-			navLabel:   "Receive",
-			standalone: false,
-			handler:    &handlers.ReceiveHandler{},
+			name:    "receive",
+			label:   "Receive",
+			handler: &handlers.ReceiveHandler{},
 		},
 		{
-			name:       "send",
-			navLabel:   "Send (WIP)",
-			standalone: false,
-			handler:    &handlers.SendHandler{},
+			name:    "send",
+			label:   "Send (WIP)",
+			handler: &handlers.SendHandler{},
 		},
 		{
-			name:       "history",
-			navLabel:   "History",
-			standalone: false,
-			handler:    &handlers.TransactionsHandler{},
+			name:    "history",
+			label:   "History",
+			handler: &handlers.TransactionsHandler{},
 		},
 		{
-			name:       "createwallet",
-			standalone: true,
-			handler:    &handlers.CreateWalletHandler{},
+			name:    "stakeinfo",
+			label:   "Stake Info",
+			handler: &handlers.StakeInfoHandler{},
 		},
 		{
-			name:       "stakeinfo",
-			navLabel:   "Stake Info",
-			standalone: false,
-			handler:    &handlers.StakeInfoHandler{},
+			name:    "purchasetickets",
+			label:   "Purchase Tickets",
+			handler: &handlers.PurchaseTicketsHandler{},
+		},
+	}
+}
+
+func getStandalonePages() []standalonePage {
+	return []standalonePage{
+		{
+			name:    "sync",
+			handler: &handlers.SyncHandler{},
 		},
 		{
-			name:       "purchasetickets",
-			navLabel:   "Purchase Tickets",
-			standalone: false,
-			handler:    &handlers.PurchaseTicketsHandler{},
+			name:    "createwallet",
+			handler: &handlers.CreateWalletHandler{},
 		},
 	}
 }

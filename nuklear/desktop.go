@@ -12,7 +12,6 @@ import (
 
 const (
 	navWidth = 260
-	homePage = "balance"
 
 	contentPaneXOffset      = 45
 	contentPaneWidthPadding = 55
@@ -23,21 +22,40 @@ type Desktop struct {
 	walletMiddleware app.WalletMiddleware
 	currentPage      string
 	pageChanged      bool
-	pages            map[string]page
+	navPages         map[string]navPageHandler
+	standalonePages  map[string]standalonePageHandler
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
-		currentPage:      homePage,
+		currentPage:      "sync",
 	}
 
-	// register pages
-	pages := getPages()
-	desktop.pages = make(map[string]page, len(pages))
-	for _, page := range pages {
-		desktop.pages[page.name] = page
+	// initialize master window and set style
+	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
+	window.SetStyle(helpers.GetStyle())
+	desktop.masterWindow = window
+
+	// initialize fonts for later use
+	err := helpers.InitFonts()
+	if err != nil {
+		return err
+	}
+
+	// register nav page handlers
+	navPages := getNavPages()
+	desktop.navPages = make(map[string]navPageHandler, len(navPages))
+	for _, page := range navPages {
+		desktop.navPages[page.name] = page.handler
+	}
+
+	// register standalone page handlers
+	standalonePages := getStandalonePages()
+	desktop.standalonePages = make(map[string]standalonePageHandler, len(standalonePages))
+	for _, page := range standalonePages {
+		desktop.standalonePages[page.name] = page.handler
 	}
 
 	// open wallet and start blockchain syncing in background
@@ -50,35 +68,22 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.currentPage = "createwallet"
 	}
 
-	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
-	window.SetStyle(helpers.GetStyle())
-	desktop.masterWindow = window
-
-	// initialize fonts for later use
-	err = helpers.InitFonts()
-	if err != nil {
-		return err
-	}
-
-	// todo run sync and show progress
-
 	// draw window
 	desktop.masterWindow.Main()
 	return nil
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	page := desktop.pages[desktop.currentPage]
-	if page.standalone {
-		desktop.renderStandalonePage(window, page.handler)
+	if handler, ok := desktop.standalonePages[desktop.currentPage]; ok {
+		desktop.renderStandalonePage(window, handler)
 		return
 	}
 
-	desktop.renderNavPage(window, page.handler)
+	handler := desktop.navPages[desktop.currentPage]
+	desktop.renderNavPage(window, handler)
 }
 
-func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler Handler) {
+func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
 	window.Row(0).SpaceBeginRatio(1)
 	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
 
@@ -91,7 +96,7 @@ func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler Han
 	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
-func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
+func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {
 	area := window.Row(0).SpaceBegin(2)
 
 	// create nav pane
@@ -107,11 +112,9 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
 	helpers.SetNavStyle(desktop.masterWindow)
 	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
 		navWindow.Row(40).Dynamic(1)
-		for _, page := range getPages() {
-			if !page.standalone {
-				if navWindow.Button(label.TA(page.navLabel, "LC"), false) {
-					desktop.changePage(page.name)
-				}
+		for _, page := range getNavPages() {
+			if navWindow.Button(label.TA(page.label, "LC"), false) {
+				desktop.changePage(page.name)
 			}
 		}
 		navWindow.End()
@@ -139,7 +142,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler Handler) {
 		desktop.pageChanged = false
 	}
 
-	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
+	handler.Render(window, desktop.walletMiddleware)
 }
 
 func (desktop *Desktop) changePage(page string) {

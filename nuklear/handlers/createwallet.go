@@ -31,7 +31,7 @@ func (handler *CreateWalletHandler) BeforeRender() {
 	handler.confirmPasswordInput.PasswordChar = '*'
 }
 
-func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePageFunc func(string)) {
+func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
@@ -71,9 +71,9 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		contentWindow.Row(20).Dynamic(1)
 		contentWindow.Label("Wallet Seed", "LC")
 
-		contentWindow.Row(90).Dynamic(1)
+		contentWindow.Row(110).Dynamic(1)
 		if seedWindow := helpers.NewWindow("Seed Window", contentWindow.Window, nucular.WindowBorder); seedWindow != nil {
-			seedWindow.Row(60).Dynamic(1)
+			seedWindow.Row(80).Dynamic(1)
 			seedWindow.LabelWrap(handler.seed)
 			seedWindow.End()
 		}
@@ -93,10 +93,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		if contentWindow.Button(label.T("Create Wallet"), false) {
 			if !handler.hasErrors() {
 				handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
-				// todo perform blockchain sync
-
-				// change page
-				changePageFunc("balance")
+				changePage("sync")
 			}
 			contentWindow.Master().Changed()
 		}
