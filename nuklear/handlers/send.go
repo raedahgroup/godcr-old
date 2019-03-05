@@ -355,6 +355,10 @@ func (handler *SendHandler) validate(window *nucular.Window, wallet walletcore.W
 }
 
 func (handler *SendHandler) getPassphraseAndSubmit(window *nucular.Window, wallet walletcore.Wallet) {
+	// clear success and/or error message
+	handler.err = nil
+	handler.successHash = ""
+
 	passphraseChan := make(chan string)
 	widgets.NewPassphraseWidget().Get(window, passphraseChan)
 
@@ -444,7 +448,9 @@ func (handler *SendHandler) resetForm() {
 		handler.selectedAccountIndex = 0
 	}
 
-	handler.sendDetailInputPairs = handler.sendDetailInputPairs[1 : len(handler.sendDetailInputPairs)-1]
+	if len(handler.sendDetailInputPairs) > 0 {
+		handler.sendDetailInputPairs = handler.sendDetailInputPairs[:1]
+	}
 	handler.sendDetailInputPairs[0].amount.Buffer = []rune("")
 	handler.sendDetailInputPairs[0].destinationAddress.Buffer = []rune("")
 
