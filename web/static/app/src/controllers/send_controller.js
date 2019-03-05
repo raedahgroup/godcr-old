@@ -297,8 +297,10 @@ export default class extends Controller {
 
   resetSendForm () {
     this.resetCustomizePanel()
-    while (this.destinationCount() > 1) {
+    let destinationCount = this.destinationCount()
+    while (destinationCount > 1) {
       this.removeDestination()
+      destinationCount--
     }
     this.addressTargets.forEach(ele => {
       ele.value = ''
