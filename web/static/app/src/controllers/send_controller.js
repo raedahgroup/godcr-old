@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeAmount',
+    return ['sourceAccount', 'address', 'amount', 'destinations', 'destinationTemplate', 'changeAddress', 'changeOutputPercentage', 'changeAmount',
       'errors', 'customInput', 'customTxRow', 'customInputContent', 'submitButton', 'nextButton', 'removeDestinationButton',
       'form', 'walletPassphrase', 'passwordError', 'useCustom', 'spendUnconfirmed', 'errorMessage', 'successMessage',
       'progressBar', 'changeOutputsCard', 'changeOutputPnl', 'numberOfChangeOutputs', 'useRandomChangeOutputs',
@@ -14,10 +14,10 @@ export default class extends Controller {
     this.newDestination()
   }
 
-  validateSendForm (noValidateChangeAmounts) {
+  validateSendForm () {
     this.errorsTarget.innerHTML = ''
     let errors = []
-    let isClean = this.validateDestinationsField() && (noValidateChangeAmounts || this.validateChangeOutputField())
+    let isClean = this.validateDestinationsField()
 
     if (this.sourceAccountTarget.value === '') {
       errors.push('The source account is required')
@@ -56,19 +56,6 @@ export default class extends Controller {
       let amount = parseFloat(el.value)
       if (!(amount > 0)) {
         this.showError('Amount must be a non-zero positive number')
-        isClean = false
-      }
-    })
-    return isClean
-  }
-
-  validateChangeOutputField () {
-    this.clearMessages()
-    let isClean = true
-    this.changeOutputAmountTargets.forEach((el, i) => {
-      let amount = parseFloat(el.value)
-      if (!(amount > 0)) {
-        this.showError('Change amount must be a non-zero positive number')
         isClean = false
       }
     })
@@ -173,8 +160,60 @@ export default class extends Controller {
     this.generateChangeOutputs()
   }
 
+  changeOutputAmountChanged (event) {
+    let _this = this
+    let targetElement = event.currentTarget
+
+    let index = parseInt(targetElement.getAttribute('data-index'))
+    let amount = parseFloat(targetElement.value)
+
+    let totalAmountEntered = 0
+    _this.changeOutputAmountTargets.forEach(ele => {
+      totalAmountEntered += parseFloat(ele.value)
+    })
+    let availableChange = _this.totalChangeAmount - (totalAmountEntered - amount)
+    if (totalAmountEntered > _this.totalChangeAmount) {
+      amount = availableChange
+      targetElement.value = availableChange
+    }
+
+    _this.changeOutputPercentageTargets.forEach(function (ele) {
+      if (parseInt(ele.getAttribute('data-index')) === index) {
+        let percentage = amount / _this.totalChangeAmount * 100
+        ele.value = percentage
+      }
+    })
+  }
+
+  changeOutputAmountPercentageChanged (event) {
+    let _this = this
+    let targetElement = event.currentTarget
+
+    let index = parseInt(targetElement.getAttribute('data-index'))
+    let percentage = parseFloat(targetElement.value)
+
+    let totalAmountEntered = 0
+    _this.changeOutputPercentageTargets.forEach(ele => {
+      totalAmountEntered += parseFloat(ele.value)
+    })
+    if (totalAmountEntered > 100) {
+      let availablePercentage = 100 - (totalAmountEntered - percentage)
+      targetElement.value = availablePercentage
+      percentage = availablePercentage
+    }
+
+    _this.changeOutputAmountTargets.forEach(function (ele) {
+      if (parseInt(ele.getAttribute('data-index')) === index) {
+        let amount = percentage / 100 * _this.totalChangeAmount
+        ele.value = amount
+      }
+    })
+
+    // todo validate amount constraint, reset element
+  }
+
   generateChangeOutputs () {
-    if (!this.validateSendForm(true)) {
+    if (!this.validateSendForm()) {
       return
     }
 
@@ -197,21 +236,36 @@ export default class extends Controller {
 
     let _this = this
     _this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputdestinations) {
+      _this.totalChangeAmount = 0
       changeOutputdestinations.forEach(destination => {
+        _this.totalChangeAmount += destination.Amount
+      })
+      changeOutputdestinations.forEach((destination, i) => {
         let template = document.importNode(_this.changeDestinationTemplateTarget.content, true)
+
         template.querySelector('input[name="change-output-address"]').value = destination.Address
+        let percentage = 0
         if (_this.useRandomChangeOutputsTarget.checked) {
           template.querySelector('input[name="change-output-amount"]').value = destination.Amount
+          percentage = destination.Amount / _this.totalChangeAmount * 100
         }
+        template.querySelector('input[name="change-output-amount-percentage"]').value = percentage
+
+        template.querySelector('input[name="change-output-address"]').setAttribute('data-index', i)
+        template.querySelector('input[name="change-output-amount"]').setAttribute('data-index', i)
+        template.querySelector('input[name="change-output-amount-percentage"]').setAttribute('data-index', i)
 
         _this.changeOutputContentTarget.appendChild(template)
       })
 
       _this.show(_this.changeOutputContentTarget)
 
+      _this.changeOutputAmountTargets.forEach(function (ele) {
+        ele.setAttribute('readonly', 'true')
+      })
       if (_this.useRandomChangeOutputsTarget.checked) {
-        _this.changeOutputAmountTargets.forEach(function (ele) {
-          ele.setAttribute('readonly', 'true')
+        _this.changeOutputPercentageTargets.forEach(function (ele) {
+          ele.setAttribute('disabled', 'disabled')
         })
       }
 
@@ -257,10 +311,31 @@ export default class extends Controller {
     })
   }
 
+  normalizeChangeOutputAmount () {
+    let totalAmountEntered = 0
+    this.changeOutputAmountTargets.forEach(ele => {
+      totalAmountEntered += parseFloat(ele.value)
+    })
+
+    let availableChange = this.totalChangeAmount - totalAmountEntered
+
+    if (availableChange > 0) {
+      let changeOutputCount = this.numberOfChangeOutputsTarget.value
+      this.changeOutputAmountTargets.forEach(ele => {
+        let index = parseInt(ele.getAttribute('data-index'))
+        if (index === changeOutputCount - 1) {
+          ele.value = parseFloat(ele.value) + availableChange
+        }
+      })
+    }
+  }
+
   submitForm () {
     if (!this.validatePassphrase()) {
       return
     }
+
+    this.normalizeChangeOutputAmount()
 
     $('#passphrase-modal').modal('hide')
 

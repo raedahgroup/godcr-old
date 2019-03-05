@@ -115,19 +115,28 @@
                                             </div>
                                         </div>
                                         <template data-target="send.changeDestinationTemplate">
-                                            <div class="col-md-7 col-sm-12">
+                                            <div class="col-md-8 col-sm-12">
                                                 <div class="row">
-                                                    <div class="col-md-8 col-sm-12">
+                                                    <div class="col-md-6 col-sm-12">
                                                         <div class="form-group">
                                                             <label>Change Address</label>
                                                             <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly name="change-output-address" />
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-4 col-sm-12">
+                                                    <div class="col-md-3 col-sm-12">
+                                                        <div class="form-group">
+                                                            <label>Amount Percentage</label>
+                                                            <div class="slidecontainer">
+                                                                <input data-target="send.changeOutputPercentage" data-action="change->send#changeOutputAmountPercentageChanged" type="range" min="1" max="100" value="50" class="slider" name="change-output-amount-percentage">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 col-sm-12">
                                                         <div class="form-group">
                                                             <label>Amount (DCR)</label>
-                                                            <input data-target="send.changeOutputAmount" type="number" class="form-control" name="change-output-amount" />
+                                                            <input data-target="send.changeOutputAmount" data-action="change->send#changeOutputAmountChanged" type="number" class="form-control" name="change-output-amount" />
                                                         </div>
                                                     </div>
                                                 </div>
