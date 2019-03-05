@@ -448,7 +448,7 @@ func (handler *SendHandler) resetForm() {
 		handler.selectedAccountIndex = 0
 	}
 
-	if len(handler.sendDetailInputPairs) > 0 {
+	if len(handler.sendDetailInputPairs) > 1 {
 		handler.sendDetailInputPairs = handler.sendDetailInputPairs[:1]
 	}
 	handler.sendDetailInputPairs[0].amount.Buffer = []rune("")
