@@ -30,12 +30,18 @@ func choseNetworkAndCreateMiddleware() (app.WalletMiddleware, error) {
 		network = "testnet3"
 	}
 
+	// get user-configured appdata dir to place new wallet into
+	cfg, err := config.ReadConfigFile()
+	if err != nil {
+		return nil, fmt.Errorf("error reading appdata value from config file: %s", err.Error())
+	}
+
 	walletInfo := &config.WalletInfo{
 		Network: network,
 		Source:  "godcr",
-		DbDir:   filepath.Join(config.DefaultAppDataDir, network),
+		DbDir:   filepath.Join(cfg.AppDataDir, network),
 	}
-	return dcrlibwallet.New(config.DefaultAppDataDir, walletInfo)
+	return dcrlibwallet.New(cfg.AppDataDir, walletInfo)
 }
 
 // displayWalletSeed prints the generated seed for a new wallet
