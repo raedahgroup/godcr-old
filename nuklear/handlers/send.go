@@ -444,11 +444,12 @@ func (handler *SendHandler) resetForm() {
 		handler.selectedAccountIndex = 0
 	}
 
-	for _, input := range handler.sendDetailInputPairs {
-		input.amount.Buffer = []rune("")
-		input.destinationAddress.Buffer = []rune("")
-	}
+	handler.sendDetailInputPairs = handler.sendDetailInputPairs[1 : len(handler.sendDetailInputPairs)-1]
+	handler.sendDetailInputPairs[0].amount.Buffer = []rune("")
+	handler.sendDetailInputPairs[0].destinationAddress.Buffer = []rune("")
 
+	handler.selectCustomInputs = false
+	handler.utxos = nil
 	handler.spendUnconfirmed = false
 	handler.selectCustomInputs = false
 }
