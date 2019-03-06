@@ -35,6 +35,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	form.AddDropDown("Account", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumber[optionIndex]
 	})
+
 	var amount string
 	form.AddInputField("Amount", "", 20, nil, func(text string) {
 		amount = text
@@ -60,6 +61,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	form.AddPasswordField("Wallet Passphrase", "", 20, '*', func(text string) {
 		passphrase = text
 	})
+
 	form.AddButton("Send", func() {
 		sendDestinations := make([]txhelper.TransactionDestination, len(destination))
 		for i := range destination {
@@ -86,6 +88,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 			body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 			return
 		}
+
 		body.RemoveItem(textView)
 		body.AddItem(textView.SetText(fmt.Sprintf("Sent txid", txHash)), 0, 1, false)
 
