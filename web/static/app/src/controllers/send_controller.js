@@ -11,7 +11,7 @@ export default class extends Controller {
       'destinations', 'destinationTemplate', 'address', 'amount', 'removeDestinationButton',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
-      'changeDestinationTemplate', 'changeOutputPercentage', 'changeOutputAmount',
+      'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAmount',
       'errors',
       'nextButton',
       // from wallet passphrase modal (utils.html)
@@ -50,7 +50,7 @@ export default class extends Controller {
 
     for (const amountTarget of this.amountTargets) {
       const amount = parseFloat(amountTarget.value)
-      if (amount < 0) {
+      if (isNaN(amount) || amount <= 0) {
         this.showError('Amount must be a non-zero positive number')
         fieldsAreValid = false
         break
@@ -206,8 +206,10 @@ export default class extends Controller {
       return
     }
 
+    this.clearMessages()
+
     const numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value)
-    if (numberOfChangeOutput < 1) {
+    if (isNaN(numberOfChangeOutput) || numberOfChangeOutput < 1) {
       this.showError('Number of change outputs must be 1 or more')
       return
     }
@@ -217,29 +219,31 @@ export default class extends Controller {
     }
 
     let _this = this
-    this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputDestinations) {
+    this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputs) {
       if (!_this.useCustomChangeOutput) {
         return
       }
 
+      // first calculate total change amount to use below in calculating percentages
       _this.totalChangeAmount = 0
+      changeOutputs.forEach((changeOutput) => {
+        _this.totalChangeAmount += changeOutput.Amount
+      })
 
-      changeOutputDestinations.forEach((destination, i) => {
-        _this.totalChangeAmount += destination.Amount
-
-        let template = document.importNode(_this.changeDestinationTemplateTarget.content, true)
+      changeOutputs.forEach((changeOutput, i) => {
+        let template = document.importNode(_this.changeOutputTemplateTarget.content, true)
         const addressElement = template.querySelector('input[name="change-output-address"]')
         const percentageElement = template.querySelector('input[name="change-output-amount-percentage"]')
         const amountElement = template.querySelector('input[name="change-output-amount"]')
 
         let percentage = 0
         if (_this.useRandomChangeOutputsTarget.checked) {
-          amountElement.value = destination.Amount
+          amountElement.value = changeOutput.Amount
           percentageElement.setAttribute('disabled', 'disabled')
-          percentage = (destination.Amount / _this.totalChangeAmount) * 100
+          percentage = (changeOutput.Amount / _this.totalChangeAmount) * 100
         }
         percentageElement.value = percentage
-        addressElement.value = destination.Address
+        addressElement.value = changeOutput.Address
 
         addressElement.setAttribute('data-index', i)
         percentageElement.setAttribute('data-index', i)
@@ -347,7 +351,7 @@ export default class extends Controller {
     let totalPercentageAllotted = 0
     this.changeOutputPercentageTargets.forEach(percentageTarget => {
       const thisPercent = parseFloat(percentageTarget.value)
-      if (thisPercent <= 0) {
+      if (isNaN(thisPercent) || thisPercent <= 0) {
         this.showError('Change amount percentage must be greater than 0')
         return false
       }

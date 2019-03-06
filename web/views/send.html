@@ -66,7 +66,7 @@
                         <!-- custom features -->
                         <div class="card">
                             <div class="card-body">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <input data-target="send.useCustom" data-action="change->send#toggleUseCustom" type="checkbox" name="use-custom" id="use-custom" value="1" />
                                     <label for="use-custom">Select custom inputs</label>
                                 </div>
@@ -108,7 +108,7 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-sm-12 form-inline">
-                                                    <label class="sr-only" for="numberOfChangeOutput">Number of Change Outputs</label>
+                                                    <label class="sr-only" for="numberOfChangeOutput">Number of Outputs</label>
                                                     <input data-action="blur->send#generateChangeOutputs"
                                                            data-target="send.numberOfChangeOutputs"
                                                            class="form-control mb-2 mr-sm-2"
@@ -134,8 +134,8 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div data-target="send.generatedChangeOutputs" class="row"></div>
-                                            <template data-target="send.changeDestinationTemplate">
+                                            <div data-target="send.generatedChangeOutputs" class="row mt-3"></div>
+                                            <template data-target="send.changeOutputTemplate">
                                                 <div class="col-md-8 col-sm-12">
                                                     <div class="row">
                                                         <div class="col-md-6 col-sm-12">
@@ -147,7 +147,7 @@
 
                                                         <div class="col-md-3 col-sm-12">
                                                             <div class="form-group">
-                                                                <label for="change-output-amount-percentage">Amount Percentage</label>
+                                                                <label for="change-output-amount-percentage">Change Percentage</label>
                                                                 <div class="slidecontainer">
                                                                     <input data-target="send.changeOutputPercentage"
                                                                            data-action="change->send#changeOutputAmountPercentageChanged"
@@ -159,14 +159,13 @@
 
                                                         <div class="col-md-3 col-sm-12">
                                                             <div class="form-group">
-                                                                <label>Amount (DCR)</label>
+                                                                <label>Change Amount (DCR)</label>
                                                                 <input data-target="send.changeOutputAmount"
                                                                        type="number" class="form-control" readonly name="change-output-amount" />
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-
                                             </template>
                                         </div>
                                     </div>
@@ -176,7 +175,7 @@
 
                         <div class="card">
                             <div class="card-body">
-                                <div class="errors" data-target="send.errors"></div>
+                                <div class="errors mb-3" data-target="send.errors"></div>
                                 <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn" type="button">Reset</button>
                                 <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" class="btn btn-default" id="submit-btn" type="button">Next</button>
                             </div>
