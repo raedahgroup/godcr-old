@@ -26,7 +26,7 @@
                                             </select>	                                          
                                         </div>
                                         <div class="form-group form-check">
-                                            <input data-action="click->send#destinationTemplate" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed">
+                                            <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed">
                                             <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
                                         </div>
                                     </div>
@@ -46,7 +46,7 @@
                                             <div class="col-md-4 col-sm-12">
                                                 <div class="form-group">
                                                     <label>Amount (DCR)</label>
-                                                    <input data-target="send.amount" data-action="keyup->send#validateAndRefreshPercentage" type="number" class="form-control amount" name="destination-amount" />
+                                                    <input data-target="send.amount" data-action="keyup->send#calculateCustomInputsPercentage" type="number" class="form-control amount" name="destination-amount" />
                                                 </div>
                                             </div>
                                         </div>
@@ -72,7 +72,7 @@
                                 </div>
 
                                 <!-- custom input -->
-                                <div data-target="send.customInputs" class="collapse" id="custom-inputs">
+                                <div class="collapse" id="custom-inputs">
                                     <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
                                     <div class="progress">
                                         <div data-target="send.utxoSelectionProgressBar" class="progress-bar" style="width: 0%"></div>
@@ -92,10 +92,14 @@
                                 </div>
 
                                 <!-- change outputs -->
-                                <div class="d-none" data-target="changeOutputs" id="changeOutputs">
+                                <div class="d-none" data-target="send.changeOutputs" id="changeOutputs">
                                     <div class="card-header" id="headingOne">
-                                        <button data-action="send#toggleChangeOutputPanel" type="button" class="btn btn-link
-                                        mb-0" data-target="#changeOutputsPnl" data-toggle="collapse" aria-controls="automaticChangeOutputPnl">
+                                        <button type="button"
+                                                class="btn btn-link mb-0"
+                                                data-action="send#toggleCustomChangeOutputsVisibility"
+                                                data-target="#changeOutputsPnl"
+                                                data-toggle="collapse"
+                                                aria-controls="changeOutputsPnl">
                                             Change Outputs
                                         </button>
                                     </div>
@@ -136,16 +140,19 @@
                                                     <div class="row">
                                                         <div class="col-md-6 col-sm-12">
                                                             <div class="form-group">
-                                                                <label>Change Address</label>
-                                                                <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly name="change-output-address" />
+                                                                <label for="change-output-address">Change Address</label>
+                                                                <input type="text" class="form-control" readonly name="change-output-address" />
                                                             </div>
                                                         </div>
 
                                                         <div class="col-md-3 col-sm-12">
                                                             <div class="form-group">
-                                                                <label>Amount Percentage</label>
+                                                                <label for="change-output-amount-percentage">Amount Percentage</label>
                                                                 <div class="slidecontainer">
-                                                                    <input data-target="send.changeOutputPercentage" data-action="change->send#changeOutputAmountPercentageChanged" type="range" min="1" max="100" value="50" class="slider" name="change-output-amount-percentage">
+                                                                    <input data-target="send.changeOutputPercentage"
+                                                                           data-action="change->send#changeOutputAmountPercentageChanged"
+                                                                           type="range" min="1" max="100" value="50"
+                                                                           class="slider" name="change-output-amount-percentage">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -153,7 +160,8 @@
                                                         <div class="col-md-3 col-sm-12">
                                                             <div class="form-group">
                                                                 <label>Amount (DCR)</label>
-                                                                <input data-target="send.changeOutputAmount" data-action="change->send#changeOutputAmountChanged" type="number" class="form-control" name="change-output-amount" />
+                                                                <input data-target="send.changeOutputAmount"
+                                                                       type="number" class="form-control" readonly name="change-output-amount" />
                                                             </div>
                                                         </div>
                                                     </div>

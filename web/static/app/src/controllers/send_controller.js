@@ -1,4 +1,4 @@
-import { Controller } from 'stimulus'
+import {Controller} from 'stimulus'
 import axios from 'axios'
 // customTxRow
 export default class extends Controller {
@@ -10,14 +10,12 @@ export default class extends Controller {
             'spendUnconfirmed',
             'destinations', 'destinationTemplate', 'address', 'amount', 'removeDestinationButton',
             'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable',
-            'changeOutputs',
-
-            'changeAddress', 'changeOutputPercentage',
-            'changeAmount', 'errors', 'customInput', 'submitButton', 'nextButton',
-            'walletPassphrase', 'passwordError',
-            'numberOfChangeOutputs',
-            'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs', 'changeDestinationTemplate', 'changeOutputAddress',
-            'changeOutputAmount'
+            'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
+            'changeDestinationTemplate', 'changeOutputPercentage', 'changeOutputAmount',
+            'errors',
+            'nextButton',
+            // from wallet passphrase modal (utils.html)
+            'walletPassphrase', 'passwordError'
         ]
     }
 
@@ -26,490 +24,440 @@ export default class extends Controller {
     }
 
     newDestination () {
-        if (!this.validateDestinationsField()) {
+        if (!this.destinationFieldsValid()) {
             return
         }
-        let destinationTemplate = document.importNode(this.destinationTemplateTarget.content, true);
+
+        const destinationTemplate = document.importNode(this.destinationTemplateTarget.content, true);
         this.destinationsTarget.appendChild(destinationTemplate);
+
         if (this.destinationCount() > 1) {
             this.show(this.removeDestinationButtonTarget)
         }
     }
 
-    removeDestination () {
-        let count = this.destinationsTarget.querySelectorAll('div.destination').length;
-        if (!(count > 1)) {
-            return
+    destinationFieldsValid() {
+        this.clearMessages();
+        let fieldsAreValid = true;
+
+        for (const addressTarget of this.addressTargets) {
+            if (addressTarget.value === '') {
+                this.showError('Destination address should not be empty');
+                fieldsAreValid = false;
+                break;
+            }
         }
-        this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'));
-        if (!(this.destinationCount() > 1)) {
-            this.hide(this.removeDestinationButtonTarget)
+
+        for (const amountTarget of this.amountTargets) {
+            const amount = parseFloat(amountTarget.value);
+            if (amount < 0) {
+                this.showError('Amount must be a non-zero positive number');
+                fieldsAreValid = false;
+                break;
+            }
         }
+
+        return fieldsAreValid
     }
 
     destinationCount () {
         return this.destinationsTarget.querySelectorAll('div.destination').length
     }
 
-  validateSendForm () {
-    this.errorsTarget.innerHTML = '';
-    let errors = [];
-    let isClean = this.validateDestinationsField();
-
-    if (this.sourceAccountTarget.value === '') {
-      errors.push('The source account is required')
+    removeDestination () {
+        if (this.destinationCount() > 1) {
+            this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'));
+        }
+        if (this.destinationCount() <= 1) {
+            this.hide(this.removeDestinationButtonTarget);
+        }
     }
 
-    if (this.useCustomTarget.value && this.getSelectedInputsSum() < this.getTotalSendAmount()) {
-      errors.push('The sum of selected inputs is less than send amount')
+    toggleSpendUnconfirmed () {
+        if (this.useCustomTarget.checked) {
+            this.openCustomInputsAndChangeOutputsPanel()
+        }
     }
 
-    if (errors.length) {
-      for (let i in errors) {
-        this.showError(errors[i])
-      }
-      isClean = false
+    toggleUseCustom () {
+        if (!this.useCustomTarget.checked) {
+            this.resetCustomInputsAndChangeOutputs();
+            return
+        }
+
+        if (!this.destinationFieldsValid()) {
+            this.useCustomTarget.checked = false;
+            return
+        }
+
+        this.openCustomInputsAndChangeOutputsPanel()
     }
 
-    return isClean
-  }
+    resetCustomInputsAndChangeOutputs () {
+        this.show(this.fetchingUtxosTarget);
 
-  validateAndRefreshPercentage () {
-    if (this.validateDestinationsField()) {
-      this.calculateSelectedInputPercentage()
+        $('#custom-inputs').slideUp();
+        this.customInputsTableTarget.innerHTML = '';
+
+        this.hide(this.changeOutputsTarget);
+        this.useRandomChangeOutputsTarget.checked = false;
+        this.numberOfChangeOutputsTarget.value = '';
+        this.generatedChangeOutputsTarget.innerHTML = ''
     }
-  }
 
-  validateDestinationsField () {
-    this.clearMessages();
-    let isClean = true;
-    this.addressTargets.forEach((el, i) => {
-      if (el.value === '') {
-        this.showError('The destination address and amount are required');
-        isClean = false
-      }
-    });
-    this.amountTargets.forEach((el, i) => {
-      let amount = parseFloat(el.value);
-      if (!(amount > 0)) {
-        this.showError('Amount must be a non-zero positive number');
-        isClean = false
-      }
-    });
-    return isClean
-  }
+    openCustomInputsAndChangeOutputsPanel () {
+        this.resetCustomInputsAndChangeOutputs();
+        $('#custom-inputs').slideDown();
 
-  validateChangeOutputAmount () {
-    this.clearMessages();
-    let isClean = true;
-    this.changeOutputAmountTargets.forEach(el => {
-      let amount = parseFloat(el.value);
-      if (!(amount > 0)) {
-        this.showError('Change amount must be a non-zero positive number');
-        isClean = false
-      }
-    });
-    return isClean
-  }
-
-  getSelectedInputsSum () {
-    let sum = 0;
-    this.customInputsTableTarget.querySelectorAll('input.custom-input:checked').forEach(selectedInputElement => {
-      sum += parseFloat(selectedInputElement.dataset.amount)
-    });
-    return sum
-  }
-
-  getTotalSendAmount () {
-    let amount = 0;
-    this.amountTargets.forEach((el, i) => {
-      amount += parseFloat(el.value)
-    });
-    return amount
-  }
-
-  calculateSelectedInputPercentage () {
-    const sendAmount = this.getTotalSendAmount();
-    const selectedInputSum = this.getSelectedInputsSum();
-    let percentage = 0;
-
-    if (selectedInputSum >= sendAmount) {
-      percentage = 100
-    } else {
-      percentage = (selectedInputSum / sendAmount) * 100
-    }
-    this.utxoSelectionProgressBarTarget.style.width = `${percentage}%`
-  }
-
-  openCustomInputsAndChangeOutputsPanel () {
-      this.resetCustomInputsAndChangeOutputs();
-      $('#custom-inputs').slideDown();
-
-      const _this = this, accountNumber = this.sourceAccountTarget.value;
-      this.getUnspentOutputs(accountNumber, unspentOutputs => {
-          const utxos = unspentOutputs.map(utxo => {
-              let receiveDateTime = new Date(utxo.receive_time * 1000).toString().split(' ').slice(0, 5).join(' ');
-              let dcrAmount = utxo.amount / 100000000;
-              return `<tr>
+        const _this = this;
+        const fetchUtxoSuccess = unspentOutputs => {
+            const utxos = unspentOutputs.map(utxo => {
+                let receiveDateTime = new Date(utxo.receive_time * 1000).toString().split(' ').slice(0, 5).join(' ');
+                let dcrAmount = utxo.amount / 100000000;
+                return `<tr>
                   <td width='5%'>
-                    <input data-action='click->send#calculateSelectedInputPercentage' type='checkbox' class='custom-input' name='utxo' value='${utxo.key}' data-amount='${dcrAmount}' />
+                    <input data-action='click->send#calculateCustomInputsPercentage' type='checkbox' class='custom-input' name='utxo' value='${utxo.key}' data-amount='${dcrAmount}' />
                   </td>
                   <td width='40%'>${utxo.address}</td>
                   <td width='15%'>${dcrAmount} DCR</td>
                   <td width='25%'>${receiveDateTime}</td>
                   <td width='15%'>${utxo.confirmations} confirmation(s)</td>
                 </tr>`
-          });
+            });
 
-          _this.customInputsTableTarget.innerHTML = utxos.join('');
-          _this.hide(this.fetchingUtxosTarget);
-          _this.show(_this.changeOutputsTarget)
-      })
-  }
+            _this.customInputsTableTarget.innerHTML = utxos.join('');
+            _this.hide(this.fetchingUtxosTarget);
+            _this.show(_this.changeOutputsTarget)
+        };
 
-  getUnspentOutputs (accountNumber, successCallback) {
-    this.nextButtonTarget.innerHTML = 'Loading...';
-    this.nextButtonTarget.setAttribute('disabled', 'disabled');
-    let _this = this;
-
-    let url = `/unspent-outputs/${accountNumber}`;
-    if (_this.spendUnconfirmedTarget.checked) {
-      url += '?getUnconfirmed=true'
+        const accountNumber = this.sourceAccountTarget.value;
+        this.getUnspentOutputs(accountNumber, fetchUtxoSuccess)
     }
 
-    axios.get(url).then(function (response) {
-      let result = response.data;
-      if (result.success) {
-        successCallback(result.message)
-      } else {
-        _this.setErrorMessage(result.message)
-      }
-    }).catch(function () {
-      _this.setErrorMessage('A server error occurred')
-    }).then(function () {
-      _this.nextButtonTarget.innerHTML = 'Next';
-      _this.nextButtonTarget.removeAttribute('disabled')
-    })
-  }
+    getUnspentOutputs (accountNumber, successCallback) {
+        this.nextButtonTarget.innerHTML = 'Loading...';
+        this.nextButtonTarget.setAttribute('disabled', 'disabled');
 
-  toggleCustomChangeOutputsVisibility () {
-      this.clearMessages();
-      this.useCustomChangeOutput = !this.useCustomChangeOutput;
-      this.generatedChangeOutputsTarget.innerHTML = '';
-      this.numberOfChangeOutputsTarget.value = ''
-  }
-
-  changeOutputAmountChanged (event) {
-    let _this = this;
-    let targetElement = event.currentTarget;
-
-    let index = parseInt(targetElement.getAttribute('data-index'));
-    let amount = parseFloat(targetElement.value);
-
-    let totalAmountEntered = 0;
-    _this.changeOutputAmountTargets.forEach(ele => {
-      totalAmountEntered += parseFloat(ele.value)
-    });
-    let availableChange = _this.totalChangeAmount - (totalAmountEntered - amount);
-    if (totalAmountEntered > _this.totalChangeAmount) {
-      amount = availableChange;
-      targetElement.value = availableChange
-    }
-
-    _this.changeOutputPercentageTargets.forEach(function (ele) {
-      if (parseInt(ele.getAttribute('data-index')) === index) {
-        let percentage = amount / _this.totalChangeAmount * 100;
-        ele.value = percentage
-      }
-    })
-  }
-
-  changeOutputAmountPercentageChanged (event) {
-    let _this = this;
-    let targetElement = event.currentTarget;
-
-    let index = parseInt(targetElement.getAttribute('data-index'));
-    let percentage = parseFloat(targetElement.value);
-
-    let totalAmountEntered = 0;
-    _this.changeOutputPercentageTargets.forEach(ele => {
-      totalAmountEntered += parseFloat(ele.value)
-    });
-    if (totalAmountEntered > 100) {
-      let availablePercentage = 100 - (totalAmountEntered - percentage);
-      targetElement.value = availablePercentage;
-      percentage = availablePercentage
-    }
-
-    _this.changeOutputAmountTargets.forEach(function (ele) {
-      if (parseInt(ele.getAttribute('data-index')) === index) {
-        let amount = percentage / 100 * _this.totalChangeAmount;
-        ele.value = amount
-      }
-    })
-  }
-
-  generateChangeOutputs () {
-      const numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value);
-      if (!(numberOfChangeOutput > 0)) {
-          this.showError('Number of change outputs must be a non-zero positive number');
-          return
-      }
-
-    if (!this.validateSendForm()) {
-      return
-    }
-
-    if (this.generatingChangeOutputs || !this.useCustomChangeOutput) {
-      return
-    }
-    this.generatingChangeOutputs = true;
-
-    this.generatedChangeOutputsTarget.innerHTML = '';
-
-    this.generateOutputsButtonTarget.setAttribute('disabled', 'disabled');
-    this.generateOutputsButtonTarget.innerHTML = 'Loading...';
-    this.numberOfChangeOutputsTarget.setAttribute('disabled', 'disabled');
-
-    let _this = this;
-    _this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputdestinations) {
-      if (!this.useCustomChangeOutput) {
-        return
-      }
-      _this.totalChangeAmount = 0;
-      changeOutputdestinations.forEach(destination => {
-        _this.totalChangeAmount += destination.Amount
-      });
-      changeOutputdestinations.forEach((destination, i) => {
-        let template = document.importNode(_this.changeDestinationTemplateTarget.content, true);
-
-        template.querySelector('input[name="change-output-address"]').value = destination.Address;
-        let percentage = 0;
-        if (_this.useRandomChangeOutputsTarget.checked) {
-          template.querySelector('input[name="change-output-amount"]').value = destination.Amount;
-          percentage = destination.Amount / _this.totalChangeAmount * 100
+        let url = `/unspent-outputs/${accountNumber}`;
+        if (this.spendUnconfirmedTarget.checked) {
+            url += '?getUnconfirmed=true'
         }
-        template.querySelector('input[name="change-output-amount-percentage"]').value = percentage;
 
-        template.querySelector('input[name="change-output-address"]').setAttribute('data-index', i);
-        template.querySelector('input[name="change-output-amount"]').setAttribute('data-index', i);
-        template.querySelector('input[name="change-output-amount-percentage"]').setAttribute('data-index', i);
-
-        _this.generatedChangeOutputsTarget.appendChild(template)
-      });
-
-      _this.show(_this.generatedChangeOutputsTarget);
-
-      _this.changeOutputAmountTargets.forEach(function (ele) {
-        ele.setAttribute('readonly', 'true')
-      });
-      if (_this.useRandomChangeOutputsTarget.checked) {
-        _this.changeOutputPercentageTargets.forEach(function (ele) {
-          ele.setAttribute('disabled', 'disabled')
+        let _this = this;
+        axios.get(url).then(function (response) {
+            let result = response.data;
+            if (result.success) {
+                successCallback(result.message)
+            } else {
+                _this.setErrorMessage(result.message)
+            }
+        }).catch(function () {
+            _this.setErrorMessage('A server error occurred')
+        }).then(function () {
+            _this.nextButtonTarget.innerHTML = 'Next';
+            _this.nextButtonTarget.removeAttribute('disabled')
         })
-      }
-
-      _this.generateOutputsButtonTarget.removeAttribute('disabled');
-      _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs';
-      _this.numberOfChangeOutputsTarget.removeAttribute('disabled');
-      _this.generatingChangeOutputs = false
-    }, function () {
-      _this.generateOutputsButtonTarget.removeAttribute('disabled');
-      _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs';
-      _this.numberOfChangeOutputsTarget.removeAttribute('disabled');
-      _this.generatingChangeOutputs = false
-    })
-  }
-
-  getRandomChangeOutputs (numberOfOutputs, successCallback, completeCallback) {
-    let queryParams = $('#send-form').serialize();
-    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`;
-
-    // add source-account value to post data if source-account element is disabled
-    if (this.sourceAccountTarget.disabled) {
-      queryParams += `&source-account=${this.sourceAccountTarget.value}`
     }
 
-    queryParams += `&nChangeOutput=${numberOfOutputs}`;
-
-    let _this = this;
-
-    axios.get('/random-change-outputs?' + queryParams).then((response) => {
-      let result = response.data;
-      if (result.error !== undefined) {
-        _this.setErrorMessage(result.error)
-      } else {
-        successCallback(result.message)
-      }
-    }).catch((error) => {
-      console.log(error);
-      _this.setErrorMessage('A server error occurred')
-    }).then(() => {
-      if (completeCallback) {
-        completeCallback()
-      }
-    })
-  }
-
-  normalizeChangeOutputAmount () {
-    let totalAmountEntered = 0;
-    this.changeOutputAmountTargets.forEach(ele => {
-      totalAmountEntered += parseFloat(ele.value)
-    });
-
-    let availableChange = this.totalChangeAmount - totalAmountEntered;
-
-    if (availableChange > 0) {
-      let changeOutputCount = this.numberOfChangeOutputsTarget.value;
-      this.changeOutputAmountTargets.forEach(ele => {
-        let index = parseInt(ele.getAttribute('data-index'));
-        if (index === changeOutputCount - 1) {
-          ele.value = parseFloat(ele.value) + availableChange
+    // triggered when destination amount fields are edited or when utxo is selected
+    calculateCustomInputsPercentage () {
+        if (!this.useCustomTarget.checked) {
+            return
         }
-      })
-    }
-  }
 
-  submitForm () {
-    if (!this.validatePassphrase()) {
-      return
-    }
+        const sendAmount = this.getTotalSendAmount();
+        const selectedInputSum = this.getSelectedInputsSum();
 
-    this.normalizeChangeOutputAmount();
+        let percentage = 0;
+        if (selectedInputSum >= sendAmount) {
+            percentage = 100
+        } else {
+            percentage = (selectedInputSum / sendAmount) * 100
+        }
 
-    $('#passphrase-modal').modal('hide');
-
-    this.nextButtonTarget.innerHTML = 'Sending...';
-    this.nextButtonTarget.setAttribute('disabled', 'disabled');
-
-    let postData = $('#send-form').serialize();
-    postData += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`;
-
-    // clear password input
-    this.walletPassphraseTarget.value = '';
-
-    // add source-account value to post data if source-account element is disabled
-    if (this.sourceAccountTarget.disabled) {
-      postData += `&source-account=${this.sourceAccountTarget.value}`
+        this.utxoSelectionProgressBarTarget.style.width = `${percentage}%`
     }
 
-    let _this = this;
-    axios.post('/send', postData).then((response) => {
-      let result = response.data;
-      if (result.error !== undefined) {
-        _this.setErrorMessage(result.error)
-      } else {
-        _this.resetSendForm();
-        let txHash = `The transaction was published successfully. Hash: <strong>${result.txHash}</strong>`;
-        _this.setSuccessMessage(txHash)
-      }
-    }).catch(() => {
-      _this.setErrorMessage('A server error occurred')
-    }).then(() => {
-      _this.nextButtonTarget.innerHTML = 'Next';
-      _this.nextButtonTarget.removeAttribute('disabled')
-    })
-  }
-
-  resetSendForm () {
-    this.resetCustomInputsAndChangeOutputs();
-    let destinationCount = this.destinationCount();
-    while (destinationCount > 1) {
-      this.removeDestination();
-      destinationCount--
-    }
-    this.addressTargets.forEach(ele => {
-      ele.value = ''
-    });
-    this.amountTargets.forEach(ele => {
-      ele.value = ''
-    });
-    this.spendUnconfirmedTarget.checked = false;
-    this.useCustomTarget.checked = false;
-
-    $('#custom-tx-row').slideUp();
-    this.hide(this.changeOutputsTarget);
-
-    this.clearMessages()
-  }
-
-  resetCustomInputsAndChangeOutputs () {
-      this.customInputsTable.innerHTML = '';
-      this.show(this.fetchingUtxosTarget);
-      this.hide(this.changeOutputsTarget);
-      this.useRandomChangeOutputsTarget.checked = false;
-      this.numberOfChangeOutputsTarget.value = '';
-      this.generatedChangeOutputsTarget.innerHTML = ''
-  }
-
-  validatePassphrase () {
-    if (this.walletPassphraseTarget.value === '') {
-      this.passwordErrorTarget.innerHTML = '<div class="error">Your wallet passphrase is required</div>';
-      return false
+    getTotalSendAmount () {
+        let amount = 0;
+        this.amountTargets.forEach(amountTarget => {
+            amount += parseFloat(amountTarget.value)
+        });
+        return amount
     }
 
-    return true
-  }
-
-  getWalletPassphraseAndSubmit () {
-    this.clearMessages();
-    if (!this.validateSendForm() || !this.validateChangeOutputAmount()) {
-      return
-    }
-    $('#passphrase-modal').modal()
-  }
-
-  toggleUseCustom () {
-    if (!this.useCustomTarget.checked) {
-      $('#custom-inputs').slideUp();
-      this.resetCustomInputsAndChangeOutputs();
-      this.hide(this.changeOutputsTarget);
-      return
+    getSelectedInputsSum () {
+        let sum = 0;
+        this.customInputsTableTarget.querySelectorAll('input.custom-input:checked').forEach(selectedInputElement => {
+            sum += parseFloat(selectedInputElement.dataset.amount)
+        });
+        return sum
     }
 
-    if (!this.validateDestinationsField()) {
-      this.useCustomTarget.checked = false;
-      return
+    toggleCustomChangeOutputsVisibility () {
+        this.clearMessages();
+        this.useCustomChangeOutput = !this.useCustomChangeOutput;
+        this.generatedChangeOutputsTarget.innerHTML = '';
+        this.numberOfChangeOutputsTarget.value = ''
     }
 
-    this.clearMessages();
-    this.openCustomInputsAndChangeOutputsPanel()
-  }
+    generateChangeOutputs () {
+        if (this.generatingChangeOutputs || !this.useCustomChangeOutput) {
+            return
+        }
 
-  toggleSpendUnconfirmed () {
-    if (this.useCustomTarget.checked) {
-      this.openCustomInputsAndChangeOutputsPanel()
+        const numberOfChangeOutput = parseFloat(this.numberOfChangeOutputsTarget.value);
+        if (numberOfChangeOutput < 1) {
+            this.showError('Number of change outputs must be 1 or more');
+            return
+        }
+
+        if (!this.validateSendForm()) {
+            return
+        }
+
+        let _this = this;
+        this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputDestinations) {
+            if (!this.useCustomChangeOutput) {
+                return
+            }
+
+            _this.totalChangeAmount = 0;
+
+            changeOutputDestinations.forEach((destination, i) => {
+                _this.totalChangeAmount += destination.Amount;
+
+                let template = document.importNode(_this.changeDestinationTemplateTarget.content, true);
+                const addressElement = template.querySelector('input[name="change-output-address"]');
+                const percentageElement = template.querySelector('input[name="change-output-amount-percentage"]');
+                const amountElement = template.querySelector('input[name="change-output-amount"]');
+
+                let percentage = 0;
+                if (_this.useRandomChangeOutputsTarget.checked) {
+                    amountElement.value = destination.Amount;
+                    percentageElement.setAttribute('disabled', 'disabled');
+                    percentage = (destination.Amount / _this.totalChangeAmount) * 100
+                }
+                percentageElement.value = percentage;
+                addressElement.value = destination.Address;
+
+                addressElement.setAttribute('data-index', i);
+                percentageElement.setAttribute('data-index', i);
+                amountElement.setAttribute('data-index', i);
+
+                _this.generatedChangeOutputsTarget.appendChild(template)
+            });
+
+            _this.show(_this.generatedChangeOutputsTarget);
+        })
     }
-  }
 
-  setErrorMessage (message) {
-    this.hide(this.successMessageTarget);
-    this.show(this.errorMessageTarget);
-    this.errorMessageTarget.innerHTML = message
-  }
+    getRandomChangeOutputs (numberOfOutputs, successCallback) {
+        this.generatingChangeOutputs = true;
+        this.generatedChangeOutputsTarget.innerHTML = '';
+        this.generateOutputsButtonTarget.setAttribute('disabled', 'disabled');
+        this.generateOutputsButtonTarget.innerHTML = 'Loading...';
+        this.numberOfChangeOutputsTarget.setAttribute('disabled', 'disabled');
 
-  setSuccessMessage (message) {
-    this.hide(this.errorMessageTarget);
-    this.show(this.successMessageTarget);
-    this.successMessageTarget.innerHTML = message
-  }
+        let queryParams = $('#send-form').serialize();
+        queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`;
 
-  clearMessages () {
-    this.hide(this.errorMessageTarget);
-    this.hide(this.successMessageTarget);
-    this.errorsTarget.innerHTML = '';
-    this.successMessageTarget.innerHTML = ''
-  }
+        // add source-account value to post data if source-account element is disabled
+        if (this.sourceAccountTarget.disabled) {
+            queryParams += `&source-account=${this.sourceAccountTarget.value}`
+        }
 
-  hide (el) {
-    el.classList.add('d-none')
-  }
+        queryParams += `&nChangeOutput=${numberOfOutputs}`;
 
-  show (el) {
-    el.classList.remove('d-none')
-  }
+        let _this = this;
+        axios.get('/random-change-outputs?' + queryParams)
+            .then((response) => {
+                let result = response.data;
+                if (result.error !== undefined) {
+                    _this.setErrorMessage(result.error)
+                } else {
+                    successCallback(result.message)
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                _this.setErrorMessage('A server error occurred')
+            })
+            .then(() => {
+                _this.generateOutputsButtonTarget.removeAttribute('disabled');
+                _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs';
+                _this.numberOfChangeOutputsTarget.removeAttribute('disabled');
+                _this.generatingChangeOutputs = false
+            })
+    }
 
-  showError (error) {
-    this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
-  }
+    changeOutputAmountPercentageChanged (event) {
+        const targetElement = event.currentTarget;
+        const index = parseInt(targetElement.getAttribute('data-index'));
+        let currentPercentage = parseFloat(targetElement.value);
+
+        let totalPercentageAllotted = 0;
+        this.changeOutputPercentageTargets.forEach(percentageTarget => {
+            totalPercentageAllotted += parseFloat(percentageTarget.value)
+        });
+
+        if (percentageTarget > 100) {
+            const previouslyAllotted = totalPercentageAllotted - currentPercentage;
+            const availablePercentage = 100 - previouslyAllotted;
+            targetElement.value = availablePercentage;
+            currentPercentage = availablePercentage
+        }
+
+        const totalChangeAmount = this.totalChangeAmount;
+        this.changeOutputAmountTargets.forEach(function (amountTarget) {
+            if (parseInt(amountTarget.getAttribute('data-index')) === index) {
+                amountTarget.value =  totalChangeAmount * currentPercentage / 100
+            }
+        })
+    }
+
+    getWalletPassphraseAndSubmit () {
+        this.clearMessages();
+        if (!this.validateSendForm() || !this.validateChangeOutputAmount()) {
+            return
+        }
+        $('#passphrase-modal').modal()
+    }
+
+    validateSendForm () {
+        this.errorsTarget.innerHTML = '';
+        let valid = this.destinationFieldsValid();
+
+        if (this.sourceAccountTarget.value === '') {
+            this.showError('The source account is required');
+            valid = false
+        }
+
+        if (this.useCustomTarget.checked && this.getSelectedInputsSum() < this.getTotalSendAmount()) {
+            this.showError('The sum of selected inputs is less than send amount');
+            valid = false
+        }
+
+        return valid
+    }
+
+    validateChangeOutputAmount () {
+        this.clearMessages();
+
+        let totalPercentageAllotted = 0;
+        this.changeOutputPercentageTargets.forEach(percentageTarget => {
+            const thisPercent = parseFloat(percentageTarget.value);
+            if (thisPercent <= 0) {
+                this.showError('Change amount percentage must be greater than 0');
+                return false
+            }
+
+            totalPercentageAllotted += thisPercent
+        });
+
+        if (totalPercentageAllotted !== 100) {
+            this.showError(`Total change amount percentage must be equal to 100. Current total is ${totalPercentageAllotted}`);
+            return false
+        }
+
+        return true;
+    }
+
+    submitForm () {
+        if (!this.validatePassphrase()) {
+            return
+        }
+
+        $('#passphrase-modal').modal('hide');
+
+        this.nextButtonTarget.innerHTML = 'Sending...';
+        this.nextButtonTarget.setAttribute('disabled', 'disabled');
+
+        let postData = $('#send-form').serialize();
+        postData += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`;
+
+        // clear password input
+        this.walletPassphraseTarget.value = '';
+
+        // add source-account value to post data if source-account element is disabled
+        if (this.sourceAccountTarget.disabled) {
+            postData += `&source-account=${this.sourceAccountTarget.value}`
+        }
+
+        let _this = this;
+        axios.post('/send', postData).then((response) => {
+            let result = response.data;
+            if (result.error !== undefined) {
+                _this.setErrorMessage(result.error)
+            } else {
+                _this.resetSendForm();
+                let txHash = `The transaction was published successfully. Hash: <strong>${result.txHash}</strong>`;
+                _this.setSuccessMessage(txHash)
+            }
+        }).catch(() => {
+            _this.setErrorMessage('A server error occurred')
+        }).then(() => {
+            _this.nextButtonTarget.innerHTML = 'Next';
+            _this.nextButtonTarget.removeAttribute('disabled')
+        })
+    }
+
+    validatePassphrase () {
+        if (this.walletPassphraseTarget.value === '') {
+            this.passwordErrorTarget.innerHTML = '<div class="error">Your wallet passphrase is required</div>';
+            return false
+        }
+
+        return true
+    }
+
+    resetSendForm () {
+        this.resetCustomInputsAndChangeOutputs();
+        let destinationCount = this.destinationCount();
+        while (destinationCount > 1) {
+            this.removeDestination();
+            destinationCount--
+        }
+        this.addressTargets.forEach(ele => {
+            ele.value = ''
+        });
+        this.amountTargets.forEach(ele => {
+            ele.value = ''
+        });
+        this.spendUnconfirmedTarget.checked = false;
+        this.useCustomTarget.checked = false;
+
+
+        this.clearMessages()
+    }
+
+    setErrorMessage (message) {
+        this.errorMessageTarget.innerHTML = message
+        this.hide(this.successMessageTarget);
+        this.show(this.errorMessageTarget);
+    }
+
+    setSuccessMessage (message) {
+        this.successMessageTarget.innerHTML = message
+        this.hide(this.errorMessageTarget);
+        this.show(this.successMessageTarget);
+    }
+
+    clearMessages () {
+        this.hide(this.errorMessageTarget);
+        this.hide(this.successMessageTarget);
+        this.errorsTarget.innerHTML = '';
+    }
+
+    hide (el) {
+        el.classList.add('d-none')
+    }
+
+    show (el) {
+        el.classList.remove('d-none')
+    }
+
+    showError (error) {
+        this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
+    }
 }
