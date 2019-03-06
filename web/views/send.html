@@ -8,11 +8,13 @@
             <div class="container">
                 <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
                 <div data-target="send.successMessage" class="alert alert-success d-none"></div>
+
                 <form method="POST" action="/send" id="send-form" data-target="send.form" novalidate>
                     {{ template "passphrase-modal" "send" }}
                     <div class="collapsible">
                         <div class="card">
                             <div class="card-body no-btm-pad">
+                                <!-- from account -->
                                 <div class="row">
                                     <div class="col-sm-12 col-md-6">
                                         <div class="form-group">
@@ -29,24 +31,27 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-target="send.destinations" id="destinations"></div>
+
+                                <!-- destinations -->
+                                <div data-target="send.destinations" id="destinations" class="row"></div>
                                 <template data-target="send.destinationTemplate">
-                                    <div class="row">
-                                        <div class="col-md-6 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Destination Address</label>
-                                                <input data-target="send.address" type="text" class="form-control" name="destination-address" />
+                                    <div class="col-md-7 col-sm-12 destination">
+                                        <div class="row">
+                                            <div class="col-md-8 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Destination Address</label>
+                                                    <input data-target="send.address" type="text" class="form-control" name="destination-address" />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Amount (DCR)</label>
-                                                <input data-target="send.amount" data-action="keyup->send#validateAndRefreshPercentage" type="number" class="form-control amount" name="destination-amount" />
+                                            <div class="col-md-4 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Amount (DCR)</label>
+                                                    <input data-target="send.amount" data-action="keyup->send#calculateCustomInputsPercentage" type="number" class="form-control amount" name="destination-amount" />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </template>
-                                
                                 <div class="form-group">
                                     <button id="add-destinatvion-btn" type="button" data-action="click->send#newDestination" class="btn btn-sm btn-outline-secondary btn-primary">
                                         Add another address
@@ -55,20 +60,25 @@
                                         Remove Last address
                                     </button>
                                 </div>
-                                <div class="form-group">
+                            </div>
+                        </div>
+
+                        <!-- custom features -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group mb-0">
                                     <input data-target="send.useCustom" data-action="change->send#toggleUseCustom" type="checkbox" name="use-custom" id="use-custom" value="1" />
                                     <label for="use-custom">Select custom inputs</label>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div data-target="send.customTxRow" class="card-body collapse" id="custom-tx-row">
-                                <div class="status">Fetching Unspent Outputs</div>
-                                <div class="progress">
-                                    <div data-target="send.progressBar" class="progress-bar" style="width: 0%"></div>
-                                </div>
-                                <table class="table">
-                                    <thead>
+
+                                <!-- custom input -->
+                                <div class="collapse" id="custom-inputs">
+                                    <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
+                                    <div class="progress">
+                                        <div data-target="send.utxoSelectionProgressBar" class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                    <table class="table">
+                                        <thead>
                                         <tr>
                                             <th></th>
                                             <th>Address</th>
@@ -76,14 +86,97 @@
                                             <th>Time</th>
                                             <th>Confirmations</th>
                                         </tr>
-                                    </thead>
-                                    <tbody data-target="send.customInputContent"></tbody>
-                                </table>
+                                        </thead>
+                                        <tbody data-target="send.customInputsTable"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- change outputs -->
+                                <div class="d-none" data-target="send.changeOutputs" id="changeOutputs">
+                                    <div class="card-header" id="headingOne">
+                                        <button type="button"
+                                                class="btn btn-link mb-0"
+                                                data-action="send#toggleCustomChangeOutputsVisibility"
+                                                data-target="#changeOutputsPnl"
+                                                data-toggle="collapse"
+                                                aria-controls="changeOutputsPnl">
+                                            Change Outputs
+                                        </button>
+                                    </div>
+
+                                    <div id="changeOutputsPnl" class="collapse" aria-labelledby="headingOne" data-parent="#changeOutputs">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-12 form-inline">
+                                                    <label class="sr-only" for="numberOfChangeOutput">Number of Outputs</label>
+                                                    <input data-action="blur->send#generateChangeOutputs"
+                                                           data-target="send.numberOfChangeOutputs"
+                                                           class="form-control mb-2 mr-sm-2"
+                                                           type="number" id="numberOfChangeOutput"
+                                                           name="numberOfChangeOutput"
+                                                           placeholder="Number Of Change Outputs">
+
+                                                    <div class="form-check mb-2 mr-sm-2">
+                                                        <input data-action="click->send#generateChangeOutputs"
+                                                               data-target="send.useRandomChangeOutputs"
+                                                               class="form-check-input"
+                                                               type="checkbox" id="inlineFormCheck">
+                                                        <label class="form-check-label" for="inlineFormCheck">
+                                                            Use Random Amount
+                                                        </label>
+                                                    </div>
+
+                                                    <button data-target="send.generateOutputsButton"
+                                                            data-action="send#generateChangeOutputs"
+                                                            id="generate-outputs-btn" type="button"
+                                                            class="btn btn-sm btn-primary btn-outline-secondary mt-0">
+                                                        Generate Change Outputs
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div data-target="send.generatedChangeOutputs" class="row mt-3"></div>
+                                            <template data-target="send.changeOutputTemplate">
+                                                <div class="col-md-8 col-sm-12">
+                                                    <div class="row">
+                                                        <div class="col-md-6 col-sm-12">
+                                                            <div class="form-group">
+                                                                <label for="change-output-address">Change Address</label>
+                                                                <input type="text" class="form-control" readonly name="change-output-address" />
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-3 col-sm-12">
+                                                            <div class="form-group">
+                                                                <label for="change-output-amount-percentage">Change Percentage</label>
+                                                                <div class="slidecontainer">
+                                                                    <input data-target="send.changeOutputPercentage"
+                                                                           data-action="change->send#changeOutputAmountPercentageChanged"
+                                                                           type="range" min="1" max="100" value="50"
+                                                                           class="slider" name="change-output-amount-percentage">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-3 col-sm-12">
+                                                            <div class="form-group">
+                                                                <label>Change Amount (DCR)</label>
+                                                                <input data-target="send.changeOutputAmount"
+                                                                       type="number" class="form-control" readonly name="change-output-amount" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                         <div class="card">
                             <div class="card-body">
-                                <div class="errors" data-target="send.errors"></div>
+                                <div class="errors mb-3" data-target="send.errors"></div>
+                                <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn" type="button">Reset</button>
                                 <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" class="btn btn-default" id="submit-btn" type="button">Next</button>
                             </div>
                         </div>
@@ -94,10 +187,6 @@
     </div>
     {{ template "footer" }}
     <style>
-        .alert.hide-empty {
-            display: none;
-        }
-
         table {
             height: 300px !important;
             max-height: 300px !important;

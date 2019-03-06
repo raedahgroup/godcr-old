@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
@@ -168,59 +167,16 @@ func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount floa
 	}
 
 	if useRandomChangeAmounts {
-		return getChangeDestinationsWithRandomAmounts(wallet, amountInAtom, sourceAccount,
+		nChangeOutputs, err := terminalprompt.RequestNumberInput("How many change outputs would you like to use?", 1)
+		if err != nil {
+			return nil, err
+		}
+		return walletcore.GetChangeDestinationsWithRandomAmounts(wallet, nChangeOutputs, amountInAtom, sourceAccount,
 			nUtxoSelection, sendDestinations)
 	} else {
 		return getChangeDestinationsFromUser(wallet, amountInAtom, sourceAccount,
 			nUtxoSelection, sendDestinations)
 	}
-}
-
-// getChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
-func getChangeDestinationsWithRandomAmounts(wallet walletcore.Wallet, amountInAtom int64, sourceAccount uint32,
-	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
-
-	nChangeOutputs, err := terminalprompt.RequestNumberInput("How many change outputs would you like to use?", 1)
-	if err != nil {
-		return
-	}
-
-	var changeAddresses []string
-	for i := 0; i < nChangeOutputs; i++ {
-		address, err := wallet.GenerateNewAddress(sourceAccount)
-		if err != nil {
-			return nil, fmt.Errorf("error generating address: %s", err.Error())
-		}
-		changeAddresses = append(changeAddresses, address)
-	}
-
-	changeAmount, err := txhelper.EstimateChange(nUtxoSelection, amountInAtom, sendDestinations, changeAddresses)
-	if err != nil {
-		return nil, fmt.Errorf("error in getting change amount: %s", err.Error())
-	}
-	if changeAmount <= 0 {
-		return
-	}
-
-	var portionRations []float64
-	var rationSum float64
-	for i := 0; i < nChangeOutputs; i++ {
-		portion := rand.Float64()
-		portionRations = append(portionRations, portion)
-		rationSum += portion
-	}
-
-	for i, portion := range portionRations {
-		portionPercentage := portion / rationSum
-		amount := portionPercentage * float64(changeAmount)
-
-		changeOutput := txhelper.TransactionDestination{
-			Address: changeAddresses[i],
-			Amount:  dcrutil.Amount(amount).ToCoin(),
-		}
-		changeOutputDestinations = append(changeOutputDestinations, changeOutput)
-	}
-	return
 }
 
 // getChangeDestinationsFromUser fetches change destination from the user progressively until the total available change amount is covered
