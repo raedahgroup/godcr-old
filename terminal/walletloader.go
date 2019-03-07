@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rivo/tview"
 	"github.com/raedahgroup/godcr/app"
 )
 
@@ -48,13 +49,13 @@ func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddlewar
 	}
 }
 
-func CreateWallet(ctx context.Context, seed string, password string, walletMiddleware app.WalletMiddleware) (err error) {
+func CreateWallet(tviewApp *tview.Application, seed string, password string, walletMiddleware app.WalletMiddleware) (err error) {
 	err = walletMiddleware.CreateWallet(password, seed)
 	if err != nil {
 		return err
 	}
-
-	openWalletIfExist(ctx, walletMiddleware)
+	
+	walletMiddleware.CloseWallet()
 	return nil
 }
 

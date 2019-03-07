@@ -17,6 +17,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	tviewApp := tview.NewApplication()
 
 	// open wallet and start blockchain syncing in background
+	var layout tview.Primitive
 	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
 		return err
@@ -26,14 +27,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		// `Run` blocks until app.Stop() is called before returning
-		layout := terminalLayout(tviewApp, walletMiddleware)
-		return tviewApp.SetRoot(layout, true).Run()
+		
+		layout = terminalLayout(tviewApp, walletMiddleware)
+		// return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
+	} else {
+		layout = createWalletPage(ctx, tviewApp, walletMiddleware)
 	}
 
-	creatWalletLayout := createWalletPage(tviewApp, ctx, walletMiddleware)
-	return tviewApp.SetRoot(creatWalletLayout, false).Run()
+	return tviewApp.SetRoot(layout, true).Run()
 }
 
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
@@ -105,7 +106,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	return gridLayout
 }
 
-func createWalletPage(tviewApp *tview.Application, ctx context.Context, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func createWalletPage(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	layout := tview.NewFlex().SetDirection(tview.FlexRow)
 	
 	layout.AddItem(tview.NewTextView().SetText("Create Wallet").SetTextAlign(tview.AlignCenter), 4, 1, false)
@@ -152,11 +153,13 @@ func createWalletPage(tviewApp *tview.Application, ctx context.Context, walletMi
 			return
 		}
 
-		err := CreateWallet(ctx, seed, password, walletMiddleware)
+		err := CreateWallet(tviewApp, seed, password, walletMiddleware)
 		if err != nil {
-			layout.AddItem(tview.NewTextView().SetText(err.Error()).SetTextAlign(tview.AlignCenter), 4, 1, false)
+			outputMessage(err.Error())
 			return
 		}
+
+		StartTerminalApp(ctx, walletMiddleware)
 	})
 
 	form.AddButton("Quit", func() {
@@ -165,16 +168,17 @@ func createWalletPage(tviewApp *tview.Application, ctx context.Context, walletMi
 
 	layout.AddItem(form, 10, 1, true)
 
-	seedInfo := tview.NewTextView().SetText(`IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`).SetRegions(true).SetWordWrap(true)
-	seedInfo.SetBorder(true)
+	seedInfo := tview.NewTextView().SetText(`Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`).SetRegions(true).SetWordWrap(true)
+	seedInfo.SetBorder(true).SetTitle("IMPORTANT:").SetTitleColor(helpers.WarnColor)
 	layout.AddItem(seedInfo, 7, 1, false)
 
 	seedView := tview.NewTextView().SetRegions(true).SetWordWrap(true).SetText(seed)
-	seedView.SetBorder(true)
+	seedView.SetBorder(true).SetTitle("Wallet Seed").SetTitleColor(helpers.PrimaryColor)
 	layout.AddItem(seedView, 7, 1, false)
 
 	layout.SetFullScreen(true).SetBorderPadding(3, 1, 6, 4)	
 
 	layout.SetFullScreen(true)
+
 	return layout
 }
