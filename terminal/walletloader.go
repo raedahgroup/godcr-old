@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/raedahgroup/godcr/app"
 )
@@ -49,35 +48,13 @@ func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddlewar
 	}
 }
 
-func CreateWallet(ctx context.Context, password string, walletMiddleware app.WalletMiddleware) (err error) {
-	// first check if wallet already exists
-	//work in progress
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error checking %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
-		return
-	}
-	if walletExists {
-		netType := strings.Title(walletMiddleware.NetType())
-		fmt.Fprintf(os.Stderr, "%s wallet already exists\n", netType)
-		return fmt.Errorf("wallet already exists")
-	}
-
-	// get seed and display to user
-	seed, err := walletMiddleware.GenerateNewWalletSeed()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error generating seed for new wallet: %s\n", err)
-		return
-	}
-	//todo show user seed that was generated
+func CreateWallet(ctx context.Context, seed string, password string, walletMiddleware app.WalletMiddleware) (err error) {
 	err = walletMiddleware.CreateWallet(password, seed)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating wallet: %s\n", err.Error())
-		return
+		return err
 	}
-	fmt.Printf("Decred %s wallet created successfully\n", walletMiddleware.NetType())
 
-	// todo sync blockchain?
+	openWalletIfExist(ctx, walletMiddleware)
 	return nil
 }
 
