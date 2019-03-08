@@ -14,15 +14,10 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Send Fund"), 4, 1, false)
 
-	textView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		body.RemoveItem(textView)
-		return body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
-
-	//Form for Sending
-	form := tview.NewForm()
 
 	accountNames := make([]string, len(accounts))
 	accountNumber := make([]uint32, len(accounts))
@@ -31,8 +26,10 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		accountNumber[index] = account.Number
 	}
 
+	//Form for Sending
+	form := tview.NewForm()
 	var accountNum uint32
-	form.AddDropDown("Account", accountNames, 0, func(option string, optionIndex int) {
+	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumber[optionIndex]
 	})
 
@@ -47,14 +44,10 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	var spendUnconfirmed bool
-	form.AddCheckbox("spend Unconfirmed", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
 		if checked {
 			spendUnconfirmed = true
 		}
-	})
-
-	form.AddCheckbox("Select custom inputs", false, func(checked bool) {
-		//todo add select custom inputs feature to send page
 	})
 
 	var passphrase string
@@ -62,16 +55,20 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		passphrase = text
 	})
 
+	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+	outputMessage := func(output string) {
+		body.RemoveItem(outputTextView)
+		body.AddItem(outputTextView.SetText(output), 0, 1, true)
+	}
 	form.AddButton("Send", func() {
-		sendDestinations := make([]txhelper.TransactionDestination, len(destination))
+		sendDestination := make([]txhelper.TransactionDestination, len(destination))
 		for i := range destination {
 			Amount, err := strconv.ParseFloat(string(amount), 64)
 			if err != nil {
-				body.RemoveItem(textView)
-				body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+				outputMessage(err.Error())
 				return
 			}
-			sendDestinations[i] = txhelper.TransactionDestination{
+			sendDestination[i] = txhelper.TransactionDestination{
 				Address: destination,
 				Amount:  Amount,
 			}
@@ -82,16 +79,14 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 			requiredConfirmations = 0
 		}
 
-		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestinations, passphrase)
+		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
 		if err != nil {
-			body.RemoveItem(textView)
-			body.AddItem(textView.SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+			outputMessage(err.Error())
 			return
 		}
-
-		body.RemoveItem(textView)
-		body.AddItem(textView.SetText(fmt.Sprintf("Sent txid", txHash)), 0, 1, false)
-
+		
+		result := fmt.Sprintf("Sent txid", txHash)
+		outputMessage(result)
 	})
 	form.AddButton("Cancel", func() {
 		clearFocus()
