@@ -16,52 +16,17 @@ import (
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 
-	// open wallet and start blockchain syncing in background
-	var layout tview.Primitive
-	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
-	if err != nil {
-		return err
-	}
-	if walletExists {
-		err := SyncBlockChain(ctx, walletMiddleware)
-		if err != nil {
-			fmt.Println(err)
-		}
-		
-		layout = terminalLayout(tviewApp, walletMiddleware)
-		// return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
-	} else {
-		layout = createWalletPage(ctx, tviewApp, walletMiddleware)
-	}
-
-	return tviewApp.SetRoot(layout, true).Run()
+	page := pageLoader(ctx, tviewApp, walletMiddleware)
+	return tviewApp.SetRoot(page, true).Run()
 }
 
-func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	gridLayout := tview.NewGrid().
-		SetRows(3, 0).
-		SetColumns(25, 0, 1).
-		SetGap(0, 2).
-		SetBordersColor(helpers.DecredLightColor)
-
-	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-
-	var activePage tview.Primitive
-
-	// controls the display for the right side column
-	changePageColumn := func(page tview.Primitive) {
-		gridLayout.RemoveItem(activePage)
-		activePage = page
-		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
+func pageLoader(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
+	if err != nil {
+		tview.NewTextView().SetText(err.Error()).SetTextAlign(tview.AlignCenter)
 	}
 
-	menuColumn := tview.NewList()
-	clearFocus := func() {
-		gridLayout.RemoveItem(activePage)
-		tviewApp.Draw()
-		tviewApp.SetFocus(menuColumn)
-	}
-
+<<<<<<< HEAD
 	menuColumn.AddItem("Overview", "", 'o', func() {
 		changePageColumn(pages.BalancePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
@@ -91,94 +56,90 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	menuColumn.AddItem("Exit", "", 'q', func() {
 		tviewApp.Stop()
 	})
+=======
 
-	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
-	header.SetBackgroundColor(helpers.DecredColor)
-	gridLayout.AddItem(header, 0, 0, 1, 3, 0, 0, false)
+	pages := tview.NewPages()
+>>>>>>> added page primitive to for easy page navigation after wallet creation
 
-	menuColumn.SetShortcutColor(helpers.DecredLightColor)
-	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightColor)
-	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
+	if walletExists {
+		pages.AddPage("main", terminalLayout(ctx, tviewApp, walletMiddleware), true, true)
+	} else {
 
-	menuColumn.SetCurrentItem(0)
-	changePageColumn(pages.BalancePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		layout := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	return gridLayout
-}
+		layout.AddItem(tview.NewTextView().SetText("Create Wallet").SetTextAlign(tview.AlignCenter), 4, 1, false)
 
-func createWalletPage(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	layout := tview.NewFlex().SetDirection(tview.FlexRow)
-	
-	layout.AddItem(tview.NewTextView().SetText("Create Wallet").SetTextAlign(tview.AlignCenter), 4, 1, false)
-		
-	// get seed and display to user
-	seed, err := walletMiddleware.GenerateNewWalletSeed()
-	if err != nil {
-		return layout.AddItem(tview.NewTextView().SetText(err.Error()).SetTextAlign(tview.AlignCenter), 4, 1, false)
-	}
-
-	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
-	outputMessage := func(text string) {
-		layout.RemoveItem(outputTextView)
-		layout.AddItem(outputTextView.SetText(text), 0, 1, true)
-	}
-
-	form := tview.NewForm()
-	var password string
-	form.AddPasswordField("PassPhrase", "", 20, '*', func(text string) {
-		password = text
-	})
-
-	var confPassword string
-	form.AddPasswordField("Confirm Password", "", 20, '*', func(text string) {
-		confPassword = text
-	})
-
-	var hasStoredSeed bool
-	form.AddCheckbox("I have stored wallet seed", false, func(checked bool) {
-		hasStoredSeed = checked
-	})
-
-	form.AddButton("Create", func() {
-		if len(password) == 0 {
-			outputMessage("PassPhrase cannot empty")
-			return
-		}
-		if password != confPassword {
-			outputMessage("password does not match")
-			return
-		}
-		if hasStoredSeed == false {
-			outputMessage("please Store seed in a szfe location and check the box")
-			return
-		}
-
-		err := CreateWallet(tviewApp, seed, password, walletMiddleware)
+		// get seed and display to user
+		seed, err := walletMiddleware.GenerateNewWalletSeed()
 		if err != nil {
-			outputMessage(err.Error())
-			return
+			return layout.AddItem(tview.NewTextView().SetText(err.Error()).SetTextAlign(tview.AlignCenter), 4, 1, false)
 		}
 
-		StartTerminalApp(ctx, walletMiddleware)
-	})
+		outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
+		outputMessage := func(text string) {
+			layout.RemoveItem(outputTextView)
+			layout.AddItem(outputTextView.SetText(text), 0, 1, true)
+		}
 
-	form.AddButton("Quit", func() {
-		tviewApp.Stop()
-	})
+		form := tview.NewForm()
+		var password string
+		form.AddPasswordField("Passphrase", "", 20, '*', func(text string) {
+			password = text
+		})
 
-	layout.AddItem(form, 10, 1, true)
+		var confPassword string
+		form.AddPasswordField("Confirm Passphrase", "", 20, '*', func(text string) {
+			confPassword = text
+		})
 
-	seedInfo := tview.NewTextView().SetText(`Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`).SetRegions(true).SetWordWrap(true)
-	seedInfo.SetBorder(true).SetTitle("IMPORTANT:").SetTitleColor(helpers.WarnColor)
-	layout.AddItem(seedInfo, 7, 1, false)
+		var hasStoredSeed bool
+		form.AddCheckbox("I have stored wallet seed", false, func(checked bool) {
+			hasStoredSeed = checked
+		})
 
-	seedView := tview.NewTextView().SetRegions(true).SetWordWrap(true).SetText(seed)
-	seedView.SetBorder(true).SetTitle("Wallet Seed").SetTitleColor(helpers.PrimaryColor)
-	layout.AddItem(seedView, 7, 1, false)
+		form.AddButton("Create", func() {
+			if len(password) == 0 {
+				outputMessage("Passphrase cannot empty")
+				return
+			}
+			if password != confPassword {
+				outputMessage("passphrase does not match")
+				return
+			}
+			if hasStoredSeed == false {
+				outputMessage("please Store seed in a szfe location and check the box")
+				return
+			}
 
-	layout.SetFullScreen(true).SetBorderPadding(3, 1, 6, 4)	
+			err := CreateWallet(tviewApp, seed, password, walletMiddleware)
+			if err != nil {
+				outputMessage(err.Error())
+				return
+			}
 
-	layout.SetFullScreen(true)
+			pages.AddAndSwitchToPage("main", terminalLayout(ctx, tviewApp, walletMiddleware), true)
+		})
 
-	return layout
+		form.AddButton("Quit", func() {
+			tviewApp.Stop()
+		})
+
+		layout.AddItem(form, 10, 1, true)
+
+		seedInfo := tview.NewTextView().SetText(`Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`).SetRegions(true).SetWordWrap(true)
+		seedInfo.SetBorder(true).SetTitle("IMPORTANT:").SetTitleColor(helpers.WarnColor)
+		layout.AddItem(seedInfo, 7, 1, false)
+
+		seedView := tview.NewTextView().SetRegions(true).SetWordWrap(true).SetText(seed)
+		seedView.SetBorder(true).SetTitle("Wallet Seed").SetTitleColor(helpers.PrimaryColor)
+		layout.AddItem(seedView, 7, 1, false)
+
+		layout.SetFullScreen(true).SetBorderPadding(3, 1, 6, 4)
+
+		layout.SetFullScreen(true)
+
+		pages.AddPage("create", layout, true, true)
+	}
+
+	return pages
 }

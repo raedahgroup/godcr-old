@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rivo/tview"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/rivo/tview"
 )
 
 // this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
@@ -54,8 +54,7 @@ func CreateWallet(tviewApp *tview.Application, seed string, password string, wal
 	if err != nil {
 		return err
 	}
-	
-	walletMiddleware.CloseWallet()
+
 	return nil
 }
 
