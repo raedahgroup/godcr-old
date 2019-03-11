@@ -24,7 +24,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		if err != nil {
 			fmt.Println(err)
 		}
-		
+
 		// `Run` blocks until app.Stop() is called before returning
 		layout := terminalLayout(tviewApp, walletMiddleware)
 		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
@@ -57,10 +57,9 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 }
 
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
-	
+
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
