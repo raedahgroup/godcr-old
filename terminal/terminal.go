@@ -20,10 +20,10 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		return err
 	}
 	if walletExists {
-		err := SyncBlockChain(ctx, walletMiddleware)
-		if err != nil {
-			fmt.Println(err)
-		}
+		// err := SyncBlockChain(ctx, walletMiddleware)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
 		// `Run` blocks until app.Stop() is called before returning
 		layout := terminalLayout(tviewApp, walletMiddleware)
 		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
@@ -59,56 +59,52 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
+	
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
-	changePageColumn := func(t tview.Primitive) {
-		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
+	var activePage tview.Primitive
+	changePageColumn := func(page tview.Primitive) {
+		gridLayout.RemoveItem(activePage)
+		activePage = page
+		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
 	}
 
 	setFocus := tviewApp.SetFocus
 
 	menuColumn := tview.NewList()
-	var page tview.Primitive
 	clearFocus := func() {
-		gridLayout.RemoveItem(page)
 		tviewApp.SetFocus(menuColumn)
 	}
 
 	//Menu List of the Layout
 	menuColumn.AddItem("Balance", "", 'b', func() {
-		page = pages.BalancePage(walletMiddleware, setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("Receive", "", 'r', func() {
-		page = pages.ReceivePage(walletMiddleware, setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("Send", "", 's', func() {
-		page = pages.SendPage(setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.SendPage(setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
-		page = pages.HistoryPage(walletMiddleware, setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("Stakeinfo", "", 'k', func() {
-		page = pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("Purchase Tickets", "", 't', func() {
-		page = pages.PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus)
-		changePageColumn(page)
-	}).SetSelectedFocusOnly(true)
+		changePageColumn(pages.PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus))
+	})
 
 	menuColumn.AddItem("Exit", "", 'q', func() {
 		tviewApp.Stop()
-	}).SetSelectedFocusOnly(true)
+	})
 
 	menuColumn.SetCurrentItem(0)
 	menuColumn.SetShortcutColor(helpers.DecredLightColor)
