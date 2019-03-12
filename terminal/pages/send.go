@@ -26,7 +26,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		accountNumber[index] = account.Number
 	}
 
-	//Form for Sending
+	// Form for Sending
 	form := tview.NewForm()
 	var accountNum uint32
 	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
@@ -45,9 +45,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 	var spendUnconfirmed bool
 	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
-		if checked {
-			spendUnconfirmed = true
-		}
+		spendUnconfirmed = checked
 	})
 
 	var passphrase string
@@ -60,20 +58,20 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		body.RemoveItem(outputTextView)
 		body.AddItem(outputTextView.SetText(output), 0, 1, true)
 	}
+
 	form.AddButton("Send", func() {
-		sendDestination := make([]txhelper.TransactionDestination, len(destination))
-		for i := range destination {
-			Amount, err := strconv.ParseFloat(string(amount), 64)
-			if err != nil {
-				outputMessage(err.Error())
-				return
-			}
-			sendDestination[i] = txhelper.TransactionDestination{
-				Address: destination,
-				Amount:  Amount,
-			}
+		sendDestination := make([]txhelper.TransactionDestination, 1)
+		amount, err := strconv.ParseFloat(string(amount), 64)
+		if err != nil {
+			outputMessage(err.Error())
+			return
+		}
+		sendDestination[0] = txhelper.TransactionDestination{
+			Address: destination,
+			Amount:  amount,
 		}
 
+		fmt.Println(sendDestination)
 		var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
 		if spendUnconfirmed {
 			requiredConfirmations = 0
@@ -84,10 +82,11 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 			outputMessage(err.Error())
 			return
 		}
-		
+
 		result := fmt.Sprintf("Sent txid", txHash)
 		outputMessage(result)
 	})
+
 	form.AddButton("Cancel", func() {
 		clearFocus()
 	})
