@@ -2,8 +2,6 @@ package terminal
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
@@ -11,7 +9,6 @@ import (
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/raedahgroup/godcr/terminal/primitives"
-
 	"github.com/rivo/tview"
 )
 
@@ -97,10 +94,13 @@ func terminalLayout(ctx context.Context, tviewApp *tview.Application, walletMidd
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 	changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
-	gridLayout.SetBordersColor(helpers.DecredLightColor)
+	gridLayout.SetBorders
 
 	return gridLayout
-}
+
+	} else {
+		return tview.NewTextView().SetText("Cannot display page. Blockchain sync status cannot be determined").SetTextAlign(tview.AlignCenter)
+	}
 }
 
 func pageLoader(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
