@@ -20,13 +20,13 @@ func TestBalanceHandler_BeforeRender(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &BalanceHandler{
-				err:         tt.fields.err,
-				isRendering: tt.fields.isRendering,
-				accounts:    tt.fields.accounts,
-				detailed:    tt.fields.detailed,
+				err:         test.fields.err,
+				isRendering: test.fields.isRendering,
+				accounts:    test.fields.accounts,
+				detailed:    test.fields.detailed,
 			}
 			handler.BeforeRender()
 		})
@@ -48,15 +48,15 @@ func TestBalanceHandler_Render(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &BalanceHandler{
-				err:         tt.fields.err,
-				isRendering: tt.fields.isRendering,
-				accounts:    tt.fields.accounts,
-				detailed:    tt.fields.detailed,
+				err:         test.fields.err,
+				isRendering: test.fields.isRendering,
+				accounts:    test.fields.accounts,
+				detailed:    test.fields.detailed,
 			}
-			handler.Render(tt.window, tt.wallet)
+			handler.Render(test.window, test.wallet)
 		})
 	}
 }
@@ -75,15 +75,15 @@ func TestBalanceHandler_showSimpleView(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &BalanceHandler{
-				err:         tt.fields.err,
-				isRendering: tt.fields.isRendering,
-				accounts:    tt.fields.accounts,
-				detailed:    tt.fields.detailed,
+				err:         test.fields.err,
+				isRendering: test.fields.isRendering,
+				accounts:    test.fields.accounts,
+				detailed:    test.fields.detailed,
 			}
-			handler.showSimpleView(tt.window)
+			handler.showSimpleView(test.window)
 		})
 	}
 }
@@ -102,15 +102,15 @@ func TestBalanceHandler_showTabularView(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &BalanceHandler{
-				err:         tt.fields.err,
-				isRendering: tt.fields.isRendering,
-				accounts:    tt.fields.accounts,
-				detailed:    tt.fields.detailed,
+				err:         test.fields.err,
+				isRendering: test.fields.isRendering,
+				accounts:    test.fields.accounts,
+				detailed:    test.fields.detailed,
 			}
-			handler.showTabularView(tt.window)
+			handler.showTabularView(test.window)
 		})
 	}
 }

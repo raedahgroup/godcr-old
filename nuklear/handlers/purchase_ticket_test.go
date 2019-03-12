@@ -26,19 +26,19 @@ func TestPurchaseTicketsHandler_BeforeRender(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
 			handler.BeforeRender()
 		})
@@ -66,21 +66,21 @@ func TestPurchaseTicketsHandler_Render(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
-			handler.Render(tt.window, tt.wallet)
+			handler.Render(test.window, test.wallet)
 		})
 	}
 }
@@ -105,21 +105,21 @@ func TestPurchaseTicketsHandler_fetchAccounts(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
-			handler.fetchAccounts(tt.wallet)
+			handler.fetchAccounts(test.wallet)
 		})
 	}
 }
@@ -145,21 +145,21 @@ func TestPurchaseTicketsHandler_validateAndSubmit(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
-			handler.validateAndSubmit(tt.window, tt.wallet)
+			handler.validateAndSubmit(test.window, test.wallet)
 		})
 	}
 }
@@ -186,21 +186,21 @@ func TestPurchaseTicketsHandler_submit(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
-			handler.submit(tt.passphrase, tt.window, tt.wallet)
+			handler.submit(test.passphrase, test.window, test.wallet)
 		})
 	}
 }
@@ -224,19 +224,19 @@ func TestPurchaseTicketsHandler_resetForm(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			handler := &PurchaseTicketsHandler{
-				err:                   tt.fields.err,
-				isRendering:           tt.fields.isRendering,
-				numTicketsInput:       tt.fields.numTicketsInput,
-				numTicketsInputErrStr: tt.fields.numTicketsInputErrStr,
-				spendUnconfirmed:      tt.fields.spendUnconfirmed,
-				accountNumbers:        tt.fields.accountNumbers,
-				accountOverviews:      tt.fields.accountOverviews,
-				selectedAccountIndex:  tt.fields.selectedAccountIndex,
-				isSubmitting:          tt.fields.isSubmitting,
-				ticketHashes:          tt.fields.ticketHashes,
+				err:                   test.fields.err,
+				isRendering:           test.fields.isRendering,
+				numTicketsInput:       test.fields.numTicketsInput,
+				numTicketsInputErrStr: test.fields.numTicketsInputErrStr,
+				spendUnconfirmed:      test.fields.spendUnconfirmed,
+				accountNumbers:        test.fields.accountNumbers,
+				accountOverviews:      test.fields.accountOverviews,
+				selectedAccountIndex:  test.fields.selectedAccountIndex,
+				isSubmitting:          test.fields.isSubmitting,
+				ticketHashes:          test.fields.ticketHashes,
 			}
 			handler.resetForm()
 		})

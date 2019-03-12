@@ -10,17 +10,17 @@ import (
 
 func TestNewWindow(t *testing.T) {
 	tests := []struct {
-		name   string
-		title  string
-		window *nucular.Window
-		flags  nucular.WindowFlags
-		want   *Window
+		name  string
+		title string
+		w     *nucular.Window
+		flags nucular.WindowFlags
+		want  *Window
 	}{
 		// TODO: Add test cases.
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := NewWindow(test.title, test.window, test.flags); !reflect.DeepEqual(got, test.want) {
+			if got := NewWindow(test.title, test.w, test.flags); !reflect.DeepEqual(got, test.want) {
 				t.Errorf("NewWindow() = %v, want %v", got, test.want)
 			}
 		})
@@ -28,24 +28,33 @@ func TestNewWindow(t *testing.T) {
 }
 
 func TestWindow_DrawHeader(t *testing.T) {
+	type fields struct {
+		Window *nucular.Window
+	}
 	tests := []struct {
 		name   string
-		window *Window
+		fields fields
 		title  string
 	}{
 		// TODO: Add test cases.
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.window.DrawHeader(test.title)
+			w := &Window{
+				Window: test.fields.Window,
+			}
+			w.DrawHeader(test.title)
 		})
 	}
 }
 
 func TestWindow_ContentWindow(t *testing.T) {
+	type fields struct {
+		Window *nucular.Window
+	}
 	tests := []struct {
 		name   string
-		window *Window
+		fields fields
 		title  string
 		want   *Window
 	}{
@@ -53,7 +62,10 @@ func TestWindow_ContentWindow(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := test.window.ContentWindow(test.title); !reflect.DeepEqual(got, test.want) {
+			w := &Window{
+				Window: test.fields.Window,
+			}
+			if got := w.ContentWindow(test.title); !reflect.DeepEqual(got, test.want) {
 				t.Errorf("Window.ContentWindow() = %v, want %v", got, test.want)
 			}
 		})
@@ -61,44 +73,62 @@ func TestWindow_ContentWindow(t *testing.T) {
 }
 
 func TestWindow_SetErrorMessage(t *testing.T) {
+	type fields struct {
+		Window *nucular.Window
+	}
 	tests := []struct {
 		name    string
-		window  *Window
+		fields  fields
 		message string
 	}{
 		// TODO: Add test cases.
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.window.SetErrorMessage(test.message)
+			w := &Window{
+				Window: test.fields.Window,
+			}
+			w.SetErrorMessage(test.message)
 		})
 	}
 }
 
 func TestWindow_Style(t *testing.T) {
+	type fields struct {
+		Window *nucular.Window
+	}
 	tests := []struct {
 		name   string
-		window *Window
+		fields fields
 	}{
 		// TODO: Add test cases.
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.window.Style()
+			w := &Window{
+				Window: test.fields.Window,
+			}
+			w.Style()
 		})
 	}
 }
 
 func TestWindow_End(t *testing.T) {
+	type fields struct {
+		Window *nucular.Window
+	}
 	tests := []struct {
 		name   string
-		window *Window
+		fields fields
 	}{
 		// TODO: Add test cases.
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.window.End()
+			w := &Window{
+				Window: test.fields.Window,
+			}
+			w.End()
 		})
 	}
 }

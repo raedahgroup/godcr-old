@@ -108,3 +108,34 @@ func TestSetPageStyle(t *testing.T) {
 		})
 	}
 }
+
+func TestSetStandaloneWindowStyle(t *testing.T) {
+	tests := []struct {
+		name   string
+		window nucular.MasterWindow
+	}{
+		// TODO: Add test cases.
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			SetStandaloneWindowStyle(test.window)
+		})
+	}
+}
+
+func TestAmountToString(t *testing.T) {
+	tests := []struct {
+		name   string
+		amount float64
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := AmountToString(test.amount); got != test.want {
+				t.Errorf("AmountToString() = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
