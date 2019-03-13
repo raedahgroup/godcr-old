@@ -3,14 +3,14 @@ package pages
 import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/rivo/tview"
 )
 
 func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
-	errmsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	transactions, err := wallet.TransactionHistory()
 	if err != nil {
-		return errmsg.SetText(err.Error())
+		return helpers.CenterAlignedTextView(err.Error())
 	}
 
 	body := tview.NewTable().SetBorders(true)

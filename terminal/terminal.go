@@ -20,14 +20,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		return err
 	}
 	if walletExists {
-		err := SyncBlockChain(ctx, walletMiddleware)
-		if err != nil {
-			fmt.Println(err)
-		}
+		// err := SyncBlockChain(ctx, walletMiddleware)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
 
 		// `Run` blocks until app.Stop() is called before returning
 		layout := terminalLayout(tviewApp, walletMiddleware)
-		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
+		return tviewApp.SetRoot(layout, true).Run()
 	}
 
 	var password, confPassword string
@@ -57,7 +57,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 }
 
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	header := helpers.CenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
 
 	//Creating the View for the Layout
@@ -74,6 +74,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 
 	menuColumn := tview.NewList()
 	clearFocus := func() {
+		gridLayout.RemoveItem(activePage)
 		tviewApp.SetFocus(menuColumn)
 	}
 
@@ -94,7 +95,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Stakeinfo", "", 'k', func() {
+	menuColumn.AddItem("Stake Info", "", 'k', func() {
 		changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
 	})
 
@@ -114,6 +115,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
+	changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
 	gridLayout.SetBordersColor(helpers.DecredLightColor)
 
 	return gridLayout

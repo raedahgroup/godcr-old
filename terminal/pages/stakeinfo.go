@@ -7,17 +7,17 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/rivo/tview"
 )
 
 func StakeinfoPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
-	errmsg := tview.NewTextView().SetTextAlign(tview.AlignCenter)
 	if err != nil {
-		return errmsg.SetText(fmt.Sprintf(err.Error()))
+		return helpers.CenterAlignedTextView(fmt.Sprintf(err.Error()))
 	}
 	if stakeInfo == nil {
-		return errmsg.SetText(fmt.Sprintf("no tickets in wallet"))
+		return helpers.CenterAlignedTextView(fmt.Sprintf("no tickets in wallet"))
 	}
 
 	body := tview.NewTable().SetBorders(true)

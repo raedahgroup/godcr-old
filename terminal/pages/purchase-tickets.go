@@ -9,17 +9,18 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/rivo/tview"
 )
 
 func PurchaseTicketsPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Purchase Tickets"), 4, 1, false)
+	body.AddItem(helpers.CenterAlignedTextView("Purchase Tickets"), 4, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
