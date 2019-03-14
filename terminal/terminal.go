@@ -8,6 +8,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/pages"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
@@ -101,7 +102,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		tviewApp.Stop()
 	})
 
-	header := helpers.CenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 

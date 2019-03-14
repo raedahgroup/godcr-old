@@ -3,9 +3,15 @@ package primitives
 import "github.com/rivo/tview"
 
 func WordWrappedTextView(text string) *tview.TextView {
-	return tview.NewTextView().
-		SetTextAlign(tview.AlignCenter).
+	return NewCenterAlignedTextView(text).
 		SetWordWrap(true).
-		SetWrap(true).
-		SetText(text)
+		SetWrap(true)
+}
+
+func NewCenterAlignedTextView(text string) *tview.TextView {
+	return NewTextView(text, tview.AlignCenter)
+}
+
+func NewTextView(text string, alignment int) *tview.TextView {
+	return tview.NewTextView().SetTextAlign(alignment).SetText(text)
 }
