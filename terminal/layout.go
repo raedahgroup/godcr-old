@@ -13,60 +13,67 @@ import (
 )
 
 func terminalLayout(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	newPrimitive := func(text string) tview.Primitive {
-		return tview.NewTextView().
-			SetTextAlign(tview.AlignCenter).
-			SetText(text)
-	}
-
 	syncBlockchain(walletMiddleware)
 	if Status == walletcore.SyncStatusError {
 		msgOutput := fmt.Sprintf(Report)
-		newPrimitive(msgOutput)
+		helpers.CenterAlignedTextView(msgOutput)
 		tviewApp.Stop()
 	}
 	if Status == walletcore.SyncStatusInProgress {
 		msgOutput := fmt.Sprintf(Report)
-		return newPrimitive(msgOutput)
+		return helpers.CenterAlignedTextView(msgOutput)
 	}
 	if Status == walletcore.SyncStatusSuccess {
-
-		header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+		header := helpers.CenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 		header.SetBackgroundColor(helpers.DecredColor)
-		//Creating the View for the Layout
+			//Creating the View for the Layout
 		gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
 		//Controls the display for the right side column
-		changePageColumn := func(t tview.Primitive) {
-			gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
+		var activePage tview.Primitive
+		changePageColumn := func(page tview.Primitive) {
+			gridLayout.RemoveItem(activePage)
+			activePage = page
+			gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
 		}
 
-		var menuColumn *tview.List
 		setFocus := tviewApp.SetFocus
+
+		menuColumn := tview.NewList()
 		clearFocus := func() {
+			gridLayout.RemoveItem(activePage)
 			tviewApp.SetFocus(menuColumn)
 		}
+		
 		//Menu List of the Layout
-		menuColumn = tview.NewList().
-			AddItem("Balance", "", 'b', func() {
-				changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
-			}).
-			AddItem("Receive", "", 'r', func() {
-				changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
-			}).
-			AddItem("Send", "", 's', func() {
-				changePageColumn(pages.SendPage(setFocus, clearFocus))
-			}).
-			AddItem("History", "", 'h', func() {
-				changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
-			}).
-			AddItem("Stakeinfo", "", 'k', func() {
-				changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
-			}).
-			AddItem("Purchase Tickets", "", 't', nil).
-			AddItem("Quit", "", 'q', func() {
-				tviewApp.Stop()
-			})
-		// menuColumn.SetCurrentItem(0)
+		menuColumn.AddItem("Balance", "", 'b', func() {
+			changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("Receive", "", 'r', func() {
+			changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("Send", "", 's', func() {
+			changePageColumn(pages.SendPage(setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("History", "", 'h', func() {
+			changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("Stake Info", "", 'k', func() {
+			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("Purchase Tickets", "", 't', func() {
+			changePageColumn(pages.PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus))
+		})
+
+		menuColumn.AddItem("Exit", "", 'q', func() {
+			tviewApp.Stop()
+		})
+
+		menuColumn.SetCurrentItem(0)
 		menuColumn.SetShortcutColor(helpers.DecredLightColor)
 		menuColumn.SetBorder(true)
 		menuColumn.SetBorderColor(helpers.DecredLightColor)
@@ -74,11 +81,12 @@ func terminalLayout(ctx context.Context, tviewApp *tview.Application, walletMidd
 		gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 		// Layout for screens with two column
 		gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
+		changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
 		gridLayout.SetBordersColor(helpers.DecredLightColor)
-
+		
 		return gridLayout
-	} else {
-		return tview.NewTextView().SetText("Cannot display page. Blockchain sync status cannot be determined").SetTextAlign(tview.AlignCenter)
+		} else {
+			return helpers.CenterAlignedTextView("Cannot display page. Blockchain sync status cannot be determined")
 	}
 }
 

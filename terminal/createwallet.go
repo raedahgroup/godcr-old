@@ -9,16 +9,10 @@ import (
 )
 
 func pageLoader(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	newPrimitive := func(text string) tview.Primitive {
-		return tview.NewTextView().
-			SetTextAlign(tview.AlignCenter).
-			SetText(text).SetRegions(true).
-			SetWordWrap(true)
-	}
 
 	walletExists, err := openWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
-		return newPrimitive(err.Error())
+		return helpers.CenterAlignedTextView(err.Error())
 	}
 
 	pages := tview.NewPages()
@@ -29,12 +23,12 @@ func pageLoader(ctx context.Context, tviewApp *tview.Application, walletMiddlewa
 
 		layout := tview.NewFlex().SetDirection(tview.FlexRow)
 
-		layout.AddItem(newPrimitive("Create Wallet"), 4, 1, false)
+		layout.AddItem(helpers.CenterAlignedTextView("Create Wallet"), 4, 1, false)
 
 		// get seed and display to user
 		seed, err := walletMiddleware.GenerateNewWalletSeed()
 		if err != nil {
-			return layout.AddItem(newPrimitive(err.Error()), 4, 1, false)
+			return layout.AddItem(helpers.CenterAlignedTextView(err.Error()), 4, 1, false)
 		}
 
 		outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
