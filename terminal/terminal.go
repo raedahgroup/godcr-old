@@ -3,6 +3,7 @@ package terminal
 import (
 	"context"
 	"fmt"
+	"github.com/gdamore/tcell"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app"
@@ -60,8 +61,11 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 0).
-		SetColumns(30, 0).
+		SetColumns(30, 0, 1).
+		SetGap(0, 2).
 		SetBordersColor(helpers.DecredLightColor)
+
+	gridLayout.SetBackgroundColor(tcell.ColorBlack)
 
 	var activePage tview.Primitive
 
@@ -75,6 +79,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	menuColumn := tview.NewList()
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
+		tviewApp.Draw()
 		tviewApp.SetFocus(menuColumn)
 	}
 
@@ -104,7 +109,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 
 	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
-	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
+	gridLayout.AddItem(header, 0, 0, 1, 3, 0, 0, false)
 
 	menuColumn.SetShortcutColor(helpers.DecredLightColor)
 	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightColor)

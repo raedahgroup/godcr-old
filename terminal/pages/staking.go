@@ -34,12 +34,13 @@ func StakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	}
 
 	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
-	purchaseTicket, err := purchaseTicketForm(wallet, body)
+	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
 	} else {
-		body.AddItem(purchaseTicket, 0, 1, true)
+		body.AddItem(purchaseTicket, 12, 0, true)
+		body.AddItem(statusTextView, 3, 0, true)
 	}
 
 	stakeInfo.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -133,10 +134,10 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, parentBody *tview.Flex) (*primitives.Form, error) {
+func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *tview.TextView, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -167,33 +168,30 @@ func purchaseTicketForm(wallet walletcore.Wallet, parentBody *tview.Flex) (*prim
 		passphrase = text
 	})
 
-	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
-	outputMessage := func(output string) {
-		parentBody.RemoveItem(outputTextView)
-		parentBody.AddItem(outputTextView.SetText(output), 0, 1, true)
-	}
+	// empty status text view for updating status of ticket purchase operation
+	statusTextView := primitives.WordWrappedTextView("")
 
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
-			outputMessage("Error: please specify the number of tickets to purchase")
+			statusTextView.SetText("Error: please specify the number of tickets to purchase")
 			return
 		}
 		if len(passphrase) == 0 {
-			outputMessage("Error: please enter your spending passphrase")
+			statusTextView.SetText("Error: please enter your spending passphrase")
 			return
 		}
 
 		ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
 		if err != nil {
-			outputMessage(err.Error())
+			statusTextView.SetText(err.Error())
 			return
 		}
 
 		output := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
-		outputMessage(output)
+		statusTextView.SetText(output)
 	})
 
-	return form, nil
+	return form, statusTextView, nil
 }
 
 func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {
