@@ -100,7 +100,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 			},
 			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
 			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
-			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+				OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
 		}
 
 		err := walletMiddleware.SyncBlockChain(syncListener, true)

@@ -3,30 +3,29 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['sourceAccount', 'errors', 'spendUnconfirmed', 'numberOfTickets', 'walletPassphrase', 'successMessage', 'errorMessage', 'passwordError', 'submitButton']
+    return [
+      'errorMessage', 'successMessage',
+      'sourceAccount', 'numberOfTickets', 'spendUnconfirmed', 'errors', 'submitButton',
+      // from wallet passphrase modal (utils.html)
+      'walletPassphrase', 'passwordError'
+    ]
   }
 
   validateForm () {
     this.errorsTarget.innerHTML = ''
-    let errors = []
-    let isClean = true
+    let formValid = true
 
     if (this.sourceAccountTarget.value === '') {
-      errors.push('The source account is required')
+      this.showError('The source account is required')
+      formValid = false
     }
 
     if (this.numberOfTicketsTarget.value === '') {
-      errors.push('The number of tickets is required')
+      this.showError('The number of tickets is required')
+      formValid = false
     }
 
-    if (errors.length) {
-      for (let i in errors) {
-        this.showError(errors[i])
-      }
-      isClean = false
-    }
-
-    return isClean
+    return formValid
   }
 
   submitForm () {
@@ -35,18 +34,18 @@ export default class extends Controller {
     }
 
     $('#passphrase-modal').modal('hide')
+
     this.submitButtonTarget.innerHTML = 'Purchasing...'
     this.submitButtonTarget.setAttribute('disabled', 'disabled')
 
-    var postData = $('#purchase-tickets-form').serialize()
-
-    // clear password input
-    this.walletPassphraseTarget.value = ''
-
+    let postData = $('#purchase-tickets-form').serialize()
     // add source-account value to post data if source-account element is disabled
     if (this.sourceAccountTarget.disabled) {
       postData += '&source-account=' + this.sourceAccountTarget.value
     }
+
+    // clear password input
+    this.walletPassphraseTarget.value = ''
 
     let _this = this
     axios.post('/purchase-tickets', postData).then((response) => {
@@ -56,13 +55,14 @@ export default class extends Controller {
       } else {
         var successMsg = ['<p>You have purchased ' + result.message.length + ' ticket(s)</p>']
         var ticketHashes = result.message.map(ticketHash => '<p><strong>' + ticketHash + '</strong></p>')
-        successMsg.push(ticketHashes)
+        successMsg.push(...ticketHashes)
         _this.setSuccessMessage(successMsg.join(''))
+        _this.submitButtonTarget.innerHTML = 'Purchase again'
       }
     }).catch(() => {
+      _this.submitButtonTarget.innerHTML = 'Purchase'
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
-      _this.submitButtonTarget.innerHTML = 'Purchase'
       _this.submitButtonTarget.removeAttribute('disabled')
     })
   }
@@ -99,7 +99,7 @@ export default class extends Controller {
   clearMessages () {
     this.hide(this.errorMessageTarget)
     this.hide(this.successMessageTarget)
-    this.errorsTarget.innerHTML = ''
+    this.hide(this.errorsTarget)
   }
 
   hide (el) {
@@ -112,5 +112,6 @@ export default class extends Controller {
 
   showError (error) {
     this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
+    this.show(this.errorsTarget)
   }
 }

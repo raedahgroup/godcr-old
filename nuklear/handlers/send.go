@@ -200,7 +200,7 @@ func (handler *SendHandler) fetchAccounts(wallet walletcore.Wallet) {
 	handler.accountOverviews = make([]string, numAccounts)
 
 	for index, account := range accounts {
-		handler.accountOverviews[index] = fmt.Sprintf("%s - Total %s (Spendable %s)", account.Name, account.Balance.Total.String(), account.Balance.Spendable.String())
+		handler.accountOverviews[index] = account.String()
 		handler.accountNumbers[index] = account.Number
 	}
 	handler.selectedAccountIndex = 0

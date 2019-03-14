@@ -42,10 +42,10 @@ func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (addres
 }
 
 func SimpleBalance(balance *Balance, detailed bool) string {
-	if detailed || balance.Total == balance.Spendable {
+	if detailed {
 		return balance.Total.String()
 	} else {
-		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
+		return balance.String()
 	}
 }
 

@@ -1,6 +1,7 @@
 package walletcore
 
 import (
+	"fmt"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
@@ -13,10 +14,22 @@ type Balance struct {
 	Unconfirmed     dcrutil.Amount `json:"unconfirmed"`
 }
 
+func (balance *Balance) String() string {
+	if balance.Total == balance.Spendable {
+		return balance.Total.String()
+	} else {
+		return fmt.Sprintf("Total %s (Spendable %s)", balance.Total.String(), balance.Spendable.String())
+	}
+}
+
 type Account struct {
 	Name    string   `json:"name"`
 	Number  uint32   `json:"number"`
 	Balance *Balance `json:"balance"`
+}
+
+func (account *Account) String() string {
+	return fmt.Sprintf("%s - %s", account.Name, account.Balance.String())
 }
 
 type UnspentOutput struct {

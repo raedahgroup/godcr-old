@@ -16,9 +16,7 @@
                                        <label for="account">Account</label>
                                        <select class="form-control" name="account" id="account">
                                             {{ range $account := .accounts }}
-                                            <option value="{{ $account.Number }}">
-                                                {{ $account.Name }} - {{ $account.Balance.Total }}
-                                            </option>
+                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
                                             {{ end }}
                                        </select>
                                   </div>

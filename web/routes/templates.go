@@ -22,14 +22,16 @@ func templates() []templateData {
 		{"receive.html", "web/views/receive.html"},
 		{"history.html", "web/views/history.html"},
 		{"transaction_details.html", "web/views/transaction_details.html"},
-		{"stakeinfo.html", "web/views/stakeinfo.html"},
-		{"purchase_tickets.html", "web/views/purchase_tickets.html"},
+		{"staking.html", "web/views/staking.html"},
 	}
 }
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"simpleBalance": walletcore.SimpleBalance,
+		"accountString": func(account *walletcore.Account) string {
+			return account.String()
+		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
 		},

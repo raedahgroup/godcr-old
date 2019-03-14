@@ -21,7 +21,7 @@
                                             <label for="source-account">Source Account</label>	                                            
                                             <select data-target="send.sourceAccount" class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
                                             {{ range $account := .accounts }}	                                                
-                                                <option value="{{ $account.Number }}">{{ $account.Name }} - {{ simpleBalance $account.Balance false }}</option>
+                                                <option value="{{ $account.Number }}">{{ accountString $account }}</option>
                                             {{ end }}	                                              
                                             </select>	                                          
                                         </div>

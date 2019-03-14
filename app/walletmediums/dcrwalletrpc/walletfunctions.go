@@ -431,7 +431,7 @@ func (c *WalletRPCClient) TicketPrice(ctx context.Context) (int64, error) {
 	return ticketPrice.TicketPrice, nil
 }
 
-func (c *WalletRPCClient) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	ticketPrice, err := c.TicketPrice(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine ticket price: %s", err.Error())
