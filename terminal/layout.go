@@ -22,7 +22,8 @@ func terminalLayout(ctx context.Context, tviewApp *tview.Application, walletMidd
 	syncBlockchain(walletMiddleware)
 	if Status == walletcore.SyncStatusError {
 		msgOutput := fmt.Sprintf(Report)
-		return newPrimitive(msgOutput)
+		newPrimitive(msgOutput)
+		tviewApp.Stop()
 	}
 	if Status == walletcore.SyncStatusInProgress {
 		msgOutput := fmt.Sprintf(Report)
