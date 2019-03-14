@@ -78,5 +78,5 @@ type StakeInfo struct {
 	// General blockchain stake info
 	AllMempoolTix uint32 `json:"allMempoolTix"`
 	PoolSize      uint32 `json:"poolSize"`
-	TotalSubsidy  int64  `json:"totalSubsidy"`
+	TotalSubsidy  string `json:"totalSubsidy"`
 }

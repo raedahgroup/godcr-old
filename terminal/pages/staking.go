@@ -128,7 +128,7 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	table.SetCell(1, 7, tview.NewTableCell(strconv.Itoa(int(stakeInfo.PoolSize))).SetAlign(tview.AlignCenter))
 	table.SetCell(1, 8, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Missed))).SetAlign(tview.AlignCenter))
 	table.SetCell(1, 9, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Voted))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 10, tview.NewTableCell(strconv.Itoa(int(stakeInfo.TotalSubsidy))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 10, tview.NewTableCell(stakeInfo.TotalSubsidy).SetAlign(tview.AlignCenter))
 
 	return table, nil
 }

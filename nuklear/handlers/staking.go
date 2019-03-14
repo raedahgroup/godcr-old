@@ -20,18 +20,18 @@ type StakingHandler struct {
 	stakeInfoFetchError error
 	stakeInfo           *walletcore.StakeInfo
 
-	fetchAccountsError error
+	fetchAccountsError   error
 	purchaseTicketsError error
 
-	accountNumbers   []uint32
-	accountOverviews []string
+	accountNumbers       []uint32
+	accountOverviews     []string
 	selectedAccountIndex int
 
 	numTicketsInput       nucular.TextEditor
 	numTicketsInputErrStr string
 	spendUnconfirmed      bool
 
-	isPurchasingTickets bool
+	isPurchasingTickets    bool
 	purchasedTicketsHashes []string
 }
 
@@ -128,7 +128,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.PoolSize)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Missed)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Voted)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.TotalSubsidy)), "LC")
+		contentWindow.Label(handler.stakeInfo.TotalSubsidy, "LC")
 	}
 }
 

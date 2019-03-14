@@ -293,7 +293,7 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 		OwnMempoolTix: data.OwnMempoolTix,
 		PoolSize:      data.PoolSize,
 		Revoked:       data.Revoked,
-		TotalSubsidy:  int64(data.TotalSubsidy),
+		TotalSubsidy:  dcrutil.Amount(data.TotalSubsidy).String(),
 		Unspent:       data.Unspent,
 		Voted:         data.Voted,
 	}

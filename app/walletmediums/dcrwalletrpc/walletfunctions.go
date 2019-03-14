@@ -416,7 +416,7 @@ func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo,
 		OwnMempoolTix: stakeInfo.OwnMempoolTix,
 		PoolSize:      stakeInfo.PoolSize,
 		Revoked:       stakeInfo.Revoked,
-		TotalSubsidy:  stakeInfo.TotalSubsidy,
+		TotalSubsidy:  dcrutil.Amount(stakeInfo.TotalSubsidy).String(),
 		Unspent:       stakeInfo.Unspent,
 		Voted:         stakeInfo.Voted,
 	}, nil

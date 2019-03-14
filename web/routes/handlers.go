@@ -340,7 +340,7 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"stakeinfo": stakeInfo,
+		"stakeinfo":   stakeInfo,
 		"accounts":    accounts,
 		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
 	}
