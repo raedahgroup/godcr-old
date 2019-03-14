@@ -3,9 +3,9 @@ package terminal
 import (
 	"context"
 	"fmt"
-	"github.com/gdamore/tcell"
 	"strings"
 
+	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/pages"
