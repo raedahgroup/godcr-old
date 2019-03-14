@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -13,23 +14,23 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	form := tview.NewForm()
 
-	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Generate Receive Address"), 4, 1, false)
+	body.AddItem(helpers.CenterAlignedTextView("Generate Receive Address"), 4, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
-			return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+			return body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 		}
-		body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+		body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
 		}), 4, 1, true).
-			AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
+			AddItem(helpers.CenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()
 				}
@@ -46,11 +47,11 @@ func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 				AddButton("Generate", func() {
 					address, qr, err := generateAddress(wallet, accountNum)
 					if err != nil {
-						body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
+						body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
 						return
 					}
-					body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignLeft).SetText(fmt.Sprintf("Address: %s", address)), 4, 1, false).
-						AddItem(tview.NewTextView().SetTextAlign(tview.AlignLeft).SetText(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
+					body.AddItem(helpers.CenterAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
+						AddItem(helpers.CenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()
 			}), 4, 1, true)

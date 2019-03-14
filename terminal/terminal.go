@@ -24,9 +24,10 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		if err != nil {
 			fmt.Println(err)
 		}
+
 		// `Run` blocks until app.Stop() is called before returning
 		layout := terminalLayout(tviewApp, walletMiddleware)
-		return tviewApp.SetRoot(layout, true).SetFocus(layout).Run()
+		return tviewApp.SetRoot(layout, true).Run()
 	}
 
 	var password, confPassword string
@@ -56,44 +57,56 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 }
 
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	var menuColumn *tview.List
-
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	header := helpers.CenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
+
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
 	//Controls the display for the right side column
-	changePageColumn := func(t tview.Primitive) {
-		gridLayout.AddItem(t, 1, 1, 1, 1, 0, 0, true)
+	var activePage tview.Primitive
+	changePageColumn := func(page tview.Primitive) {
+		gridLayout.RemoveItem(activePage)
+		activePage = page
+		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
 	}
 
 	setFocus := tviewApp.SetFocus
+
+	menuColumn := tview.NewList()
 	clearFocus := func() {
+		gridLayout.RemoveItem(activePage)
 		tviewApp.SetFocus(menuColumn)
 	}
+
 	//Menu List of the Layout
-	menuColumn = tview.NewList().
-		AddItem("Balance", "", 'b', func() {
-			changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
-		}).
-		AddItem("Receive", "", 'r', func() {
-			changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
-		}).
-		AddItem("Send", "", 's', func() {
-			changePageColumn(pages.SendPage(setFocus, clearFocus))
-		}).
-		AddItem("History", "", 'h', func() {
-			changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
-		}).
-		AddItem("Stakeinfo", "", 'k', func() {
-			changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
-		}).
-		AddItem("Purchase Tickets", "", 't', func() {
-			changePageColumn(pages.PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus))
-		}).
-		AddItem("Exit", "", 'q', func() {
-			tviewApp.Stop()
-		})
+	menuColumn.AddItem("Balance", "", 'b', func() {
+		changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Receive", "", 'r', func() {
+		changePageColumn(pages.ReceivePage(walletMiddleware, setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Send", "", 's', func() {
+		changePageColumn(pages.SendPage(setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("History", "", 'h', func() {
+		changePageColumn(pages.HistoryPage(walletMiddleware, setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Stake Info", "", 'k', func() {
+		changePageColumn(pages.StakeinfoPage(walletMiddleware, setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Purchase Tickets", "", 't', func() {
+		changePageColumn(pages.PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Exit", "", 'q', func() {
+		tviewApp.Stop()
+	})
+
 	menuColumn.SetCurrentItem(0)
 	menuColumn.SetShortcutColor(helpers.DecredLightColor)
 	menuColumn.SetBorder(true)
@@ -102,7 +115,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	gridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 	// Layout for screens with two column
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
-	gridLayout.AddItem(pages.BalancePage(walletMiddleware, setFocus, clearFocus), 1, 1, 1, 1, 0, 0, true)
+	changePageColumn(pages.BalancePage(walletMiddleware, setFocus, clearFocus))
 	gridLayout.SetBordersColor(helpers.DecredLightColor)
 
 	return gridLayout
