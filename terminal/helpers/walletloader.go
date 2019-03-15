@@ -1,4 +1,4 @@
-package terminal
+package helpers
 
 import (
 	"context"
@@ -6,12 +6,11 @@ import (
 	"os"
 
 	"github.com/raedahgroup/godcr/app"
-	"github.com/rivo/tview"
 )
 
 // this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
-func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
+func OpenWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
 	var errMsg string
 	loadWalletDone := make(chan bool)
 
@@ -47,13 +46,4 @@ func openWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddlewar
 	case <-ctx.Done():
 		return false, ctx.Err()
 	}
-}
-
-func CreateWallet(tviewApp *tview.Application, seed string, password string, walletMiddleware app.WalletMiddleware) (err error) {
-	err = walletMiddleware.CreateWallet(password, seed)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
