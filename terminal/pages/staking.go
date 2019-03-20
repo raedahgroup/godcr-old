@@ -20,7 +20,7 @@ func StakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Staking"), 1, 0, false)
+	body.AddItem(primitives.NewCenterAlignedTextView("Staking"), 1, 0, false)
 	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 2, 0, false)
