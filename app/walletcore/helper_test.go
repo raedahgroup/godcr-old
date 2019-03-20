@@ -45,15 +45,15 @@ func TestGetAddressFromPkScript(t *testing.T) {
 			wantErr:     true,
 		}
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotAddress, err := GetAddressFromPkScript(tt.activeNet, tt.pkScript)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAddressFromPkScript() error = %v, wantErr %v", err, tt.wantErr)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotAddress, err := GetAddressFromPkScript(test.activeNet, test.pkScript)
+			if (err != nil) != test.wantErr {
+				t.Errorf("GetAddressFromPkScript() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if gotAddress != tt.wantAddress {
-				t.Errorf("GetAddressFromPkScript() = %v, want %v", gotAddress, tt.wantAddress)
+			if gotAddress != test.wantAddress {
+				t.Errorf("GetAddressFromPkScript() = %v, want %v", gotAddress, test.wantAddress)
 			}
 		})
 	}
@@ -68,10 +68,10 @@ func TestSimpleBalance(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := SimpleBalance(tt.balance, tt.detailed); got != tt.want {
-				t.Errorf("SimpleBalance() = %v, want %v", got, tt.want)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := SimpleBalance(test.balance, test.detailed); got != test.want {
+				t.Errorf("SimpleBalance() = %v, want %v", got, test.want)
 			}
 		})
 	}

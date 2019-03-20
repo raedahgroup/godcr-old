@@ -5,40 +5,53 @@ import (
 	"testing"
 )
 
-func TestLoadConfig(t *testing.T) {
-	_, _, err := LoadConfig()
-	if err != nil {
-		t.Fatalf("Failed to load godcr config: %s", err)
-	}
-}
-
-func Test_defaultFileOptions(t *testing.T) {
+func Test_defaultConfig(t *testing.T) {
 	tests := []struct {
 		name string
-		want ConfFileOptions
-	}{
-		// TODO: add test cases
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := defaultFileOptions(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("defaultFileOptions() = %v, want %v", got, tt.want)
+		want Config
+	}{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := defaultConfig(); !reflect.DeepEqual(got, test.want) {
+				t.Errorf("defaultConfig() = %v, want %v", got, test.want)
 			}
 		})
 	}
 }
 
-func Test_defaultConfig(t *testing.T) {
+func Test_defaultCommandLineOptions(t *testing.T) {
 	tests := []struct {
 		name string
-		want Config
-	}{
-		// TODO: Add test cases.
+		want CommandLineOptions
+	}{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := defaultCommandLineOptions(); !reflect.DeepEqual(got, test.want) {
+				t.Errorf("defaultCommandLineOptions() = %v, want %v", got, test.want)
+			}
+		})
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := defaultConfig(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("defaultConfig() = %v, want %v", got, tt.want)
+}
+
+func TestLoadConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    *Config
+		want1   []string
+		wantErr bool
+	}{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, got1, err := LoadConfig()
+			if (err != nil) != test.wantErr {
+				t.Errorf("LoadConfig() error = %v, wantErr %v", err, test.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("LoadConfig() got = %v, want %v", got, test.want)
+			}
+			if !reflect.DeepEqual(got1, test.want1) {
+				t.Errorf("LoadConfig() got1 = %v, want %v", got1, test.want1)
 			}
 		})
 	}
@@ -46,32 +59,14 @@ func Test_defaultConfig(t *testing.T) {
 
 func Test_hasConfigFileOption(t *testing.T) {
 	tests := []struct {
-		name        string
-		unknownArgs []string
-		want        bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := hasConfigFileOption(tt.unknownArgs); got != tt.want {
-				t.Errorf("hasConfigFileOption() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_configFileOptions(t *testing.T) {
-	tests := []struct {
-		name        string
-		wantOptions []string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotOptions := configFileOptions(); !reflect.DeepEqual(gotOptions, tt.wantOptions) {
-				t.Errorf("configFileOptions() = %v, want %v", gotOptions, tt.wantOptions)
+		name            string
+		commandLineArgs []string
+		want            bool
+	}{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := hasConfigFileOption(test.commandLineArgs); got != test.want {
+				t.Errorf("hasConfigFileOption() = %v, want %v", got, test.want)
 			}
 		})
 	}

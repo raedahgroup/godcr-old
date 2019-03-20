@@ -6,9 +6,22 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 )
 
 func TestStartServer(t *testing.T) {
+	cfg, _, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	walletMiddleware, err := dcrlibwallet.New(cfg.AppDataDir, config.DefaultWallet(cfg.Wallets))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+
 	tests := []struct {
 		name             string
 		ctx              context.Context
@@ -17,7 +30,14 @@ func TestStartServer(t *testing.T) {
 		port             string
 		wantErr          bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:             "test start server",
+			ctx:              ctx,
+			walletMiddleware: walletMiddleware,
+			host:             cfg.HTTPHost,
+			port:             cfg.HTTPPort,
+			wantErr:          false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
