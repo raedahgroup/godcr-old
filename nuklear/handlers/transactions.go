@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -8,32 +9,36 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
-type TransactionsHandler struct {
+type HistoryHandler struct {
 	err                    error
+	ctx                    context.Context
 	isRendering            bool
 	transactions           []*walletcore.Transaction
+	nextBlockHeight        int32
 	hasFetchedTransactions bool
 }
 
-func (handler *TransactionsHandler) BeforeRender() {
+func (handler *HistoryHandler) BeforeRender() {
 	handler.err = nil
+	handler.ctx = context.Background()
+	handler.nextBlockHeight = -1
 	handler.transactions = nil
 	handler.isRendering = false
 	handler.hasFetchedTransactions = false
 }
 
-func (handler *TransactionsHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *HistoryHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		go handler.fetchTransactions(walletMiddleware, window)
 	}
 
 	// draw page
-	if pageWindow := helpers.NewWindow("Transactions Page", window, 0); pageWindow != nil {
-		pageWindow.DrawHeader("Transactions")
+	if pageWindow := helpers.NewWindow("History Page", window, 0); pageWindow != nil {
+		pageWindow.DrawHeader("History")
 
 		// content window
-		if contentWindow := pageWindow.ContentWindow("Transactions"); contentWindow != nil {
+		if contentWindow := pageWindow.ContentWindow("History"); contentWindow != nil {
 			if handler.hasFetchedTransactions {
 				if handler.err != nil {
 					contentWindow.SetErrorMessage(handler.err.Error())
@@ -67,8 +72,9 @@ func (handler *TransactionsHandler) Render(window *nucular.Window, walletMiddlew
 	}
 }
 
-func (handler *TransactionsHandler) fetchTransactions(walletMiddleware app.WalletMiddleware, window *nucular.Window) {
-	handler.transactions, handler.err = walletMiddleware.TransactionHistory()
+func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, window *nucular.Window) {
+	handler.transactions, handler.nextBlockHeight, handler.err = wallet.TransactionHistory(handler.ctx, handler.nextBlockHeight, walletcore.TransactionHistoryCountPerPage)
+	handler.nextBlockHeight--
 	handler.hasFetchedTransactions = true
 	window.Master().Changed()
 }

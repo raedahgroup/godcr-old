@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"context"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -8,10 +9,13 @@ import (
 )
 
 func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
-	transactions, err := wallet.TransactionHistory()
+	transactions, endBlockHeight, err := wallet.TransactionHistory(context.Background(), -1, walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
 		return primitives.NewCenterAlignedTextView(err.Error())
 	}
+
+	// todo remove
+	_ = endBlockHeight
 
 	body := tview.NewTable().SetBorders(true)
 	body.SetDoneFunc(func(key tcell.Key) {

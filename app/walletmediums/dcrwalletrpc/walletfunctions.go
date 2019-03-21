@@ -316,39 +316,69 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
-	req := &walletrpc.GetTransactionsRequest{}
+func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (
+	transactions []*walletcore.Transaction, endBlockHeight int32, err error) {
 
-	stream, err := c.walletService.GetTransactions(context.Background(), req)
+	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
 	if err != nil {
-		return nil, err
+		err = fmt.Errorf("error reading best block: %s", err.Error())
+		return
 	}
 
-	var transactions []*walletcore.Transaction
+	fetchTransactions := func(startBlockHeight, endBlockHeight int32) error {
+		req := &walletrpc.GetTransactionsRequest{
+			StartingBlockHeight: startBlockHeight,
+			EndingBlockHeight:   endBlockHeight,
+		}
+
+		stream, err := c.walletService.GetTransactions(ctx, req)
+		if err != nil {
+			return err
+		}
+
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+
+			var transactionDetails []*walletrpc.TransactionDetails
+			if in.MinedTransactions != nil {
+				transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
+			}
+			if in.UnminedTransactions != nil {
+				transactionDetails = append(transactionDetails, in.UnminedTransactions...)
+			}
+
+			txs, err := processTransactions(transactionDetails)
+			if err != nil {
+				return err
+			}
+
+			transactions = append(transactions, txs...)
+		}
+
+		return nil
+	}
 
 	for {
-		in, err := stream.Recv()
-		if err == io.EOF {
+		endBlockHeight = startBlockHeight + 1
+		if endBlockHeight >= int32(bestBlock.Height) {
+			endBlockHeight = -1
+		}
+
+		err = fetchTransactions(int32(startBlockHeight), int32(endBlockHeight))
+		if err != nil {
+			return
+		}
+
+		if len(transactions) >= minReturnTxs || endBlockHeight == -1 {
 			break
 		}
-		if err != nil {
-			return nil, err
-		}
-
-		var transactionDetails []*walletrpc.TransactionDetails
-		if in.MinedTransactions != nil {
-			transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
-		}
-		if in.UnminedTransactions != nil {
-			transactionDetails = append(transactionDetails, in.UnminedTransactions...)
-		}
-
-		txs, err := processTransactions(transactionDetails)
-		if err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, txs...)
+		startBlockHeight++
 	}
 
 	// sort transactions by date (list newer first)
@@ -356,7 +386,7 @@ func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error
 		return transactions[i1].Timestamp > transactions[i2].Timestamp
 	})
 
-	return transactions, nil
+	return
 }
 
 func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {

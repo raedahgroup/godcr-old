@@ -47,7 +47,7 @@ func getNavPages() []navPage {
 		{
 			name:    "history",
 			label:   "History",
-			handler: &handlers.TransactionsHandler{},
+			handler: &handlers.HistoryHandler{},
 		},
 		{
 			name:    "staking",

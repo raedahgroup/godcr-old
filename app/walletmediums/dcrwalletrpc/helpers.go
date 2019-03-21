@@ -91,7 +91,7 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		Type:          txDetail.TransactionType.String(),
 		Direction:     direction,
 		Timestamp:     txDetail.Timestamp,
-		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM"),
+		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("2006-01-02 15:04:05"),
 		Size:          txSize,
 	}
 	return tx, nil
