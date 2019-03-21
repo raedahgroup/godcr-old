@@ -50,14 +50,9 @@ func getNavPages() []navPage {
 			handler: &handlers.TransactionsHandler{},
 		},
 		{
-			name:    "stakeinfo",
-			label:   "Stake Info",
-			handler: &handlers.StakeInfoHandler{},
-		},
-		{
-			name:    "purchasetickets",
-			label:   "Purchase Tickets",
-			handler: &handlers.PurchaseTicketsHandler{},
+			name:    "staking",
+			label:   "Staking",
+			handler: &handlers.StakingHandler{},
 		},
 	}
 }

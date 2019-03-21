@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 )
@@ -55,22 +54,13 @@ func showDetailedBalance(accountBalances []*walletcore.Account) {
 }
 
 func showBalanceSummary(accounts []*walletcore.Account) {
-	summarizeBalance := func(total, spendable dcrutil.Amount) string {
-		if total == spendable {
-			return total.String()
-		} else {
-			return fmt.Sprintf("Total %s (Spendable %s)", total.String(), spendable.String())
-		}
-	}
-
 	if len(accounts) == 1 {
-		commandOutput := summarizeBalance(accounts[0].Balance.Total, accounts[0].Balance.Spendable)
+		commandOutput := accounts[0].String()
 		termio.PrintStringResult(commandOutput)
 	} else {
 		commandOutput := make([]string, len(accounts))
 		for i, account := range accounts {
-			balanceText := summarizeBalance(account.Balance.Total, account.Balance.Spendable)
-			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, balanceText)
+			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, account.String())
 		}
 		termio.PrintStringResult(commandOutput...)
 	}

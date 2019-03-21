@@ -35,7 +35,7 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 	// validateAccountSelection ensures that the input received is a number that corresponds to an account
 	validateAccountSelection := func(input string) error {
 		minAllowed, maxAllowed := 1, len(accounts)
-		errWrongInput := fmt.Errorf("Error: input must be between %d and %d", minAllowed, maxAllowed)
+		errWrongInput := fmt.Errorf("error: input must be between %d and %d", minAllowed, maxAllowed)
 		if selection, err = strconv.Atoi(input); err != nil {
 			return errWrongInput
 		}
@@ -48,7 +48,7 @@ func selectAccount(wallet walletcore.Wallet) (uint32, error) {
 
 	options := make([]string, len(accounts))
 	for index, account := range accounts {
-		options[index] = fmt.Sprintf("%s (%s)", account.Name, account.Balance.Total.String())
+		options[index] = account.String()
 	}
 
 	_, err = terminalprompt.RequestSelection("Select account", options, validateAccountSelection)

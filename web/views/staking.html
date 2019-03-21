@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+    <div class="body" data-controller="staking">
+        {{ template "header" }}
+        <div class="content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Stake Info</h5>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Expired</th>
+                                <th>Immature</th>
+                                <th>Live</th>
+                                <th>Revoked</th>
+                                <th>Unmined</th>
+                                <th>Unspent</th>
+                                <th>AllmempoolTix</th>
+                                <th>PoolSize</th>
+                                <th>Missed</th>
+                                <th>Voted</th>
+                                <th>Total Subsidy</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>{{ .stakeinfo.Expired }}</td>
+                                <td>{{ .stakeinfo.Immature }}</td>
+                                <td>{{ .stakeinfo.Live }}</td>
+                                <td>{{ .stakeinfo.Revoked }}</td>
+                                <td>{{ .stakeinfo.OwnMempoolTix }}</td>
+                                <td>{{ .stakeinfo.Unspent }}</td>
+                                <td>{{ .stakeinfo.AllMempoolTix }}</td>
+                                <td>{{ .stakeinfo.PoolSize }}</td>
+                                <td>{{ .stakeinfo.Missed }}</td>
+                                <td>{{ .stakeinfo.Voted }}</td>
+                                <td>{{ .stakeinfo.TotalSubsidy }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <h5 class="card-title mt-4">Purchase Ticket</h5>
+                        <form method="POST" action="/purchase_tickets" id="purchase-tickets-form" novalidate>
+                        {{ template "passphrase-modal" "staking" }}
+                            <div class="row">
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="source-account">Source Account</label>
+                                        <select data-target="staking.sourceAccount" class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
+                                        {{ range $account := .accounts }}
+                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
+                                        {{ end }}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="number-of-tickets">Number of Tickets (<strong>{{ .ticketPrice }} DCR / ticket</strong>)</label>
+                                        <input data-target="staking.numberOfTickets" type="number" class="form-control" id="number-of-tickets" name="number-of-tickets" value="1" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="spend-unconfirmed">Spend Unconfirmed</label>
+                                        <input data-target="staking.spendUnconfirmed" type="checkbox" name="spend-unconfirmed" id="spend-unconfirmed" value="1" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="errors mb-3 d-none" data-target="staking.errors"></div>
+                                        <div data-target="staking.errorMessage" class="alert alert-danger d-none"></div>
+                                        <div data-target="staking.successMessage" class="alert alert-success d-none"></div>
+                                        <button data-target="staking.submitButton" data-action="click->staking#getWalletPassphraseAndSubmit" class="btn btn-default" id="purchase-btn" type="button">Purchase</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ template "footer" }}
+</body>
+</html>

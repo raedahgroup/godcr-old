@@ -10,7 +10,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio"
 )
 
-type PurchaseTicketsCommand struct {
+type PurchaseTicketCommand struct {
 	commanderStub
 	MinConfirmations uint32  `long:"min-conf" default:"2" description:"The number of required confirmations for funds used to purchase a ticket." long-description:"If set to zero, it will use unconfirmed and confirmed outputs to purchase tickets."`
 	TicketAddress    string  `long:"ticket-address" description:"The address to give voting rights to." long-description:"If it is set to an empty string, an internal address will be used from the wallet."`
@@ -23,7 +23,7 @@ type PurchaseTicketsCommand struct {
 	PayFrom          string  `long:"pay-from" description:"the account from which the funds will be spent to purchase the ticket" default:"default"`
 }
 
-func (ptc PurchaseTicketsCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
+func (ptc PurchaseTicketCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	passphrase, err := getWalletPassphrase()
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func (ptc PurchaseTicketsCommand) Run(ctx context.Context, wallet walletcore.Wal
 			return err
 		}
 	}
-	tickets, err := wallet.PurchaseTickets(ctx, dcrlibwallet.PurchaseTicketsRequest{
+	tickets, err := wallet.PurchaseTicket(ctx, dcrlibwallet.PurchaseTicketsRequest{
 		TxFee:                 ptc.TxFee,
 		TicketFee:             ptc.TicketFee,
 		TicketAddress:         ptc.TicketAddress,

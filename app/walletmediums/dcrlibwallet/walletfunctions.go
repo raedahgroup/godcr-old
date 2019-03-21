@@ -293,7 +293,7 @@ func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, 
 		OwnMempoolTix: data.OwnMempoolTix,
 		PoolSize:      data.PoolSize,
 		Revoked:       data.Revoked,
-		TotalSubsidy:  int64(data.TotalSubsidy),
+		TotalSubsidy:  dcrutil.Amount(data.TotalSubsidy).String(),
 		Unspent:       data.Unspent,
 		Voted:         data.Voted,
 	}
@@ -310,7 +310,7 @@ func (lib *DcrWalletLib) TicketPrice(ctx context.Context) (int64, error) {
 	return ticketPrice.TicketPrice, nil
 }
 
-func (lib *DcrWalletLib) PurchaseTickets(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch account balance: %s", err.Error())
