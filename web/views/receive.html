@@ -9,31 +9,40 @@
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Generate Receive Address</h5>
-                       <form id="generate-form">
+                       <form id="generate-form" data-controller="receive">
                             <div class="row">
-                                <div class="col-md-9 col-sm-12">
+                                <div class="col-md-6 col-sm-12">
                                   <div class="form-group">
                                        <label for="account">Account</label>
-                                       <select class="form-control" name="account" id="account">
+                                        {{ if gt .accountsCount 1 }}
+                                       <select data-target="receive.account" class="form-control" name="account" id="account">
                                             {{ range $account := .accounts }}
                                             <option value="{{ $account.Number }}">{{ accountString $account }}</option>
                                             {{ end }}
                                        </select>
+                                        {{ else }}
+                                        {{ range $account := .accounts }}
+                                            <input class="form-control" readonly value="{{ accountString $account }}">
+                                        {{ end }}
+                                        {{ end  }}
                                   </div>
                                 </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-group btn-form-group">
-                                      <button type="submit" id="submit" class="btn btn-success form-control">Generate</button>
+                                {{ if gt .accountsCount 1 }}
+                                    <div class="col-md-3 col-sm-12">
+                                        <div class="form-group btn-form-group">
+                                            <button data-action="click->receive#generate" type="submit" id="submit" class="btn btn-success form-control">Generate</button>
+                                        </div>
                                     </div>
-                                </div>
+                                {{ end  }}
+
                             </div>
                         </form>
                         <div class="result-card">
                             <div id="result-text">
                                 <strong>Address:</strong>
-                                <span id="address"></span>
+                                <span data-target="receive.address" id="address">{{ .address }}</span>
                             </div>
-                            <div id="result-img"></div>
+                            <div id="result-img">{{ rawHtml .imageStr }}</div>
                         </div>
                    </div>
                 </div>
@@ -50,31 +59,5 @@
             font-size: 20px;
         }
     </style>
-    <script>
-        $(function(){
-            $("#result-text").hide();
-
-            $("#generate-form").submit(function(e){
-                e.preventDefault()
-                $.ajax({
-                    type: 'GET',
-                    url: '/generate-address/' + $("#account").val(),
-                    data: {},
-                    success: function(response) {
-                        if (response.success) {
-                            $("#address").text(response.address);
-                            $("#result-img").html(response.imageStr);
-                            $("#result-text").show();
-                        } else {
-                            alert(response.message);
-                        }
-                    },
-                    error: function() {
-                        alert("an error occurred");
-                    }
-                })
-            })
-        });
-    </script>
 </body>
 </html>

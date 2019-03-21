@@ -166,9 +166,18 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	accounts = append(accounts, accounts...)
+
 	data := map[string]interface{}{
 		"accounts": accounts,
+		"accountsCount": len(accounts),
 	}
+
+	data = routes.fillAddressData(data, accounts[0].Number)
+	if _, has := data["imageData"]; has {
+		data["imageStr"] = fmt.Sprintf("<img data-target=\"receive.image\" src=\"%s\"/>", data["imageData"])
+	}
+
 	routes.render("receive.html", data, res)
 }
 
@@ -183,28 +192,32 @@ func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.
 		data["message"] = err.Error()
 		return
 	}
+	data = routes.fillAddressData(data, uint32(accountNumber))
+}
 
-	address, err := routes.walletMiddleware.ReceiveAddress(uint32(accountNumber))
+func (routes *Routes) fillAddressData(data map[string]interface{}, accountNumber uint32) map[string]interface{} {
+	address, err := routes.walletMiddleware.ReceiveAddress(accountNumber)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
-		return
+		return data
 	}
 
 	png, err := qrcode.Encode(address, qrcode.Medium, 256)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
-		return
+		return data
 	}
 
 	// encode to base64
 	encodedStr := base64.StdEncoding.EncodeToString(png)
-	imgStr := "data:image/png;base64," + encodedStr
+	imgStr := fmt.Sprintf("data:image/png;base64,%s", encodedStr)
 
 	data["success"] = true
 	data["address"] = address
-	data["imageStr"] = fmt.Sprintf(`<img src="%s" />`, imgStr)
+	data["imageData"] = imgStr
+	return data
 }
 
 func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Request) {
