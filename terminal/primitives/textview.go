@@ -45,6 +45,10 @@ func NewCenterAlignedTextView(text string) *TextView {
 	return NewTextView(text, tview.AlignCenter)
 }
 
+func NewLeftAlignedTextView(text string) *tview.TextView {
+	return NewTextView(text, tview.AlignLeft)
+}
+
 func NewTextView(text string, alignment int) *TextView {
 	return &TextView{
 		TextView: tview.NewTextView().SetTextAlign(alignment).SetText(text),
