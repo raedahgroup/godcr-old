@@ -13,7 +13,7 @@ import (
 func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Send"), 4, 1, false)
+	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Send"), 2, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -21,17 +21,17 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	}
 
 	accountNames := make([]string, len(accounts))
-	accountNumber := make([]uint32, len(accounts))
+	accountNumbers := make([]uint32, len(accounts))
 	for index, account := range accounts {
-		accountNames[index] = fmt.Sprintf("%s - %s ", account.Name, account.Balance.Total.String())
-		accountNumber[index] = account.Number
+		accountNames[index] = account.String()
+		accountNumbers[index] = account.Number
 	}
 
 	// Form for Sending
 	form := primitives.NewForm()
 	var accountNum uint32
 	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
-		accountNum = accountNumber[optionIndex]
+		accountNum = accountNumbers[optionIndex]
 	})
 
 	var amount string
@@ -72,7 +72,6 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 			Amount:  amount,
 		}
 
-		fmt.Println(sendDestination)
 		var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
 		if spendUnconfirmed {
 			requiredConfirmations = 0
@@ -84,11 +83,11 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 			return
 		}
 
-		outputMessage(fmt.Sprintf("Sent txid", txHash))
+		outputMessage("Sent txid " + txHash)
 	})
 
 	form.SetCancelFunc(clearFocus)
-	body.AddItem(form, 16, 1, true)
+	body.AddItem(form, 13, 1, true)
 
 	setFocus(body)
 
