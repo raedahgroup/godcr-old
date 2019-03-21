@@ -18,12 +18,20 @@
                                 <div class="row">
                                     <div class="col-sm-12 col-md-6">
                                         <div class="form-group">
-                                            <label for="source-account">Source Account</label>	                                            
-                                            <select data-target="send.sourceAccount" class="form-control" id="source-account" name="source-account" {{ if eq (len .accounts) 1 }}disabled{{ end }}>
-                                            {{ range $account := .accounts }}	                                                
+                                            <label for="source-account">Source Account</label>
+                                        {{ if eq (len .accounts) 1 }}
+                                            {{ range $account := .accounts }}
+                                                <input data-target="send.sourceAccount" value="{{ $account.Number }}" type="hidden" name="source-account" id="source-account" >
+                                                <input type="text" readonly class="form-control" value="{{ accountString $account }}">
+                                            {{ end }}
+                                        {{ else }}
+                                            <select data-target="send.sourceAccount" class="form-control" id="source-account" name="source-account">
+                                            {{ range $account := .accounts }}
                                                 <option value="{{ $account.Number }}">{{ accountString $account }}</option>
-                                            {{ end }}	                                              
-                                            </select>	                                          
+                                            {{ end }}
+                                            </select>
+                                        {{ end }}
+
                                         </div>
                                         <div class="form-group form-check">
                                             <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
