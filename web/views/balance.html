@@ -20,7 +20,11 @@
                         <!-- if just one account and not detailed, show simple balance -->
                         {{ if and (not .detailed) (eq (len .accounts) 1) }}
                         {{ $account := index .accounts 0 }}
-                        <h3 class="mb-0">{{ simpleBalance $account.Balance false }}</h3>
+                            <p style="font-size: 16px;" class="mb-0"><b>Total</b>: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp; {{ simpleBalance $account.Balance true }}</p>
+                        {{ if ne $account.Balance.Total $account.Balance.Spendable }}
+                            <p style="font-size: 16px;" class="mb-0"><b>Spendable</b>: &nbsp; {{ spendableBalance $account.Balance }}</p>
+                        {{ end }}
                         {{ else }}
                         <table class="table">
                             <thead>
