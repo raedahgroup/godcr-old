@@ -90,11 +90,6 @@ export default class extends Controller {
       return
     }
 
-    if (!this.destinationFieldsValid()) {
-      this.useCustomTarget.checked = false
-      return
-    }
-
     this.openCustomInputsAndChangeOutputsPanel()
   }
 
