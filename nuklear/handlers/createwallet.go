@@ -42,7 +42,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 
 		if handler.err != nil {
 			contentWindow.Row(30).Dynamic(1)
-			contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
+			contentWindow.LabelColored(handler.err.Error(), "LC", helpers.ColorDanger)
 		}
 
 		contentWindow.Row(30).Dynamic(1)
@@ -58,14 +58,14 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 
 		passwordError, ok := handler.validationErrors["password"]
 		if ok {
-			contentWindow.LabelColored(passwordError, "LC", helpers.DangerColor)
+			contentWindow.LabelColored(passwordError, "LC", helpers.ColorDanger)
 		}
 
 		if confirmPasswordError, ok := handler.validationErrors["confirmpassword"]; ok {
 			if passwordError != "" {
 				contentWindow.Label("", "LC")
 			}
-			contentWindow.LabelColored(confirmPasswordError, "LC", helpers.DangerColor)
+			contentWindow.LabelColored(confirmPasswordError, "LC", helpers.ColorDanger)
 		}
 
 		contentWindow.Row(20).Dynamic(1)
@@ -80,13 +80,13 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 
 		contentWindow.Row(50).Dynamic(1)
 		contentWindow.LabelWrapColored(`IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`,
-			helpers.DangerColor,
+			helpers.ColorDanger,
 		)
 
 		contentWindow.Row(30).Dynamic(2)
 		contentWindow.CheckboxText("I've stored the seed in a safe and secure location", &handler.hasStoredSeed)
 		if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
-			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.DangerColor)
+			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.ColorDanger)
 		}
 
 		contentWindow.Row(30).Static(200)

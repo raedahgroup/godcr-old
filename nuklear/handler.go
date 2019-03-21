@@ -36,14 +36,14 @@ func getNavPages() []navPage {
 			handler: &handlers.BalanceHandler{},
 		},
 		{
-			name:    "receive",
-			label:   "Receive",
-			handler: &handlers.ReceiveHandler{},
-		},
-		{
 			name:    "send",
 			label:   "Send",
 			handler: &handlers.SendHandler{},
+		},
+		{
+			name:    "receive",
+			label:   "Receive",
+			handler: &handlers.ReceiveHandler{},
 		},
 		{
 			name:    "history",

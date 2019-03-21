@@ -54,7 +54,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 					accountNames[index] = account.Name
 				}
 
-				contentWindow.Row(30).Ratio(0.75, 0.25)
+				contentWindow.Row(30).Static(300, 100)
 				// draw select account combo
 				handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 30)
 

@@ -82,21 +82,21 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			if handler.err != nil {
 				contentWindow.Row(10).Dynamic(1)
-				contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
+				contentWindow.LabelColored(handler.err.Error(), "LC", helpers.ColorDanger)
 			}
 
 			if handler.successHash != "" {
 				contentWindow.Row(10).Dynamic(1)
-				contentWindow.LabelColored("The transaction was published successfully. Hash: "+handler.successHash, "LC", helpers.SuccessColor)
+				contentWindow.LabelColored("The transaction was published successfully. Hash: "+handler.successHash, "LC", helpers.ColorSuccess)
 			}
 
-			contentWindow.Row(10).Dynamic(2)
+			contentWindow.Row(10).Static(230)
 			contentWindow.Label("Source Account", "LC")
 
-			contentWindow.Row(25).Dynamic(1)
+			contentWindow.Row(30).Static(460)
 			handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
 
-			contentWindow.Row(15).Dynamic(2)
+			contentWindow.Row(15).Static(100)
 			if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
 				handler.fetchCustomInputsCheck(wallet, masterWindow)
 			}
@@ -104,22 +104,22 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 			contentWindow.Spacing(2)
 
 			for _, destInputPair := range handler.sendDetailInputPairs {
-				contentWindow.Row(10).Dynamic(2)
+				contentWindow.Row(10).Static(230, 230)
 				contentWindow.Label("Destination Address", "LC")
 				contentWindow.Label("Amount (DCR)", "LC")
 
-				contentWindow.Row(25).Dynamic(2)
+				contentWindow.Row(30).Static(230, 230)
 				destInputPair.destinationAddress.Edit(contentWindow.Window)
 				destInputPair.amount.Edit(contentWindow.Window)
 
 				if destInputPair.addressErr != "" || destInputPair.amountErr != "" {
-					contentWindow.Row(10).Dynamic(2)
-					contentWindow.LabelColored(destInputPair.addressErr, "LC", helpers.DangerColor)
-					contentWindow.LabelColored(destInputPair.amountErr, "LC", helpers.DangerColor)
+					contentWindow.Row(30).Static(230, 230)
+					contentWindow.LabelColored(destInputPair.addressErr, "LC", helpers.ColorDanger)
+					contentWindow.LabelColored(destInputPair.amountErr, "LC", helpers.ColorDanger)
 				}
 			}
 
-			contentWindow.Row(25).Dynamic(2)
+			contentWindow.Row(30).Static(230, 230)
 			if contentWindow.ButtonText("Add another address") {
 				handler.addSendInputPair(window.Master(), true)
 			}
@@ -130,7 +130,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			contentWindow.Spacing(2)
 
-			contentWindow.Row(15).Dynamic(2)
+			contentWindow.Row(15).Static(100)
 			if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
 				handler.fetchCustomInputsCheck(wallet, masterWindow)
 			}
@@ -139,7 +139,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 				widgets.ShowLoadingWidget(window)
 			} else if handler.fetchUTXOError != nil {
 				contentWindow.Row(10).Dynamic(1)
-				contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", helpers.DangerColor)
+				contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", helpers.ColorDanger)
 			} else if handler.utxos != nil {
 				contentWindow.Row(20).Ratio(0.1, 0.3, 0.2, 0.2, 0.2)
 				contentWindow.Label("", "LC")
@@ -171,10 +171,10 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 			if handler.utxoErr != "" {
 				contentWindow.Row(20).Dynamic(1)
-				contentWindow.LabelColored(handler.utxoErr, "LC", helpers.DangerColor)
+				contentWindow.LabelColored(handler.utxoErr, "LC", helpers.ColorDanger)
 			}
 
-			contentWindow.Row(25).Dynamic(2)
+			contentWindow.Row(30).Static(230)
 			if contentWindow.ButtonText(submitButtonText) {
 				if !handler.isSubmitting && handler.validate(window, wallet) {
 					handler.getPassphraseAndSubmit(window, wallet)

@@ -7,21 +7,24 @@ import (
 )
 
 var (
-	DangerColor = color.RGBA{220, 53, 69, 255}
+	colorWhite             = color.RGBA{255, 255, 255, 255}
+	colorNavBackground     = color.RGBA{9, 20, 64, 255}
+	colorContentBackground = color.RGBA{240, 240, 250, 255}
+	colorPrimaryBorder     = color.RGBA{255, 238, 232, 255}
+	colorPrimary           = color.RGBA{9, 20, 64, 255}
+	colorAccent            = color.RGBA{237, 109, 71, 255}
+	colorAccentDark        = color.RGBA{198, 95, 71, 255}
 
-	whiteColor             = color.RGBA{255, 255, 255, 255}
-	navBackgroundColor     = color.RGBA{9, 20, 64, 255}
-	contentBackgroundColor = color.RGBA{240, 240, 250, 255}
-	primaryBorderColor     = color.RGBA{255, 238, 232, 255}
-	SuccessColor           = color.RGBA{24, 85, 24, 255}
+	ColorSuccess = color.RGBA{24, 85, 24, 255}
+	ColorDanger  = color.RGBA{220, 53, 69, 255}
 )
 
 var colorTable = nstyle.ColorTable{
 	ColorText:                  color.RGBA{106, 106, 106, 255},
-	ColorWindow:                contentBackgroundColor,
+	ColorWindow:                colorContentBackground,
 	ColorHeader:                color.RGBA{175, 175, 175, 255},
 	ColorBorder:                color.RGBA{206, 212, 218, 255},
-	ColorButton:                color.RGBA{9, 20, 64, 255},
+	ColorButton:                colorAccent,
 	ColorButtonHover:           color.RGBA{255, 255, 255, 255},
 	ColorButtonActive:          color.RGBA{0, 153, 204, 255},
 	ColorToggle:                color.RGBA{150, 150, 150, 255},

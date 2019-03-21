@@ -5,7 +5,6 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
-	nstyle "github.com/aarzilli/nucular/style"
 )
 
 type Window struct {
@@ -25,22 +24,40 @@ func NewWindow(title string, w *nucular.Window, flags nucular.WindowFlags) *Wind
 
 func (w *Window) DrawHeader(title string) {
 	w.Row(40).Dynamic(1)
-	bounds := rect.Rect{
-		X: contentArea.X,
-		Y: contentArea.Y,
-		W: contentArea.W,
-		H: 80,
+
+	// style header group
+	style := w.Master().Style()
+	style.GroupWindow.FixedBackground.Data.Color = colorWhite
+	style.Font = PageHeaderFont
+	w.Master().SetStyle(style)
+
+	if group := w.GroupBegin(title, nucular.WindowNoScrollbar); group != nil {
+		group.Row(40).Dynamic(1)
+
+		// set padding
+		style = group.Master().Style()
+		style.GroupWindow.Padding = image.Point{18, 15}
+		group.Master().SetStyle(style)
+
+		if paddedWindow := group.GroupBegin("padded window", nucular.WindowNoScrollbar); paddedWindow != nil {
+			paddedWindow.Row(24).Dynamic(1)
+			paddedWindow.Label(title, "LC")
+			paddedWindow.GroupEnd()
+		}
+
+		// reset padding
+		style = group.Master().Style()
+		style.GroupWindow.Padding = noPadding
+		group.Master().SetStyle(style)
+
+		group.GroupEnd()
 	}
 
-	_, out := w.Custom(nstyle.WidgetStateActive)
-	if out != nil {
-		out.FillRect(bounds, 0, whiteColor)
-	}
-
-	bounds.Y += 25
-	bounds.X += 30
-
-	out.DrawText(bounds, title, PageHeaderFont, colorTable.ColorText)
+	// reset style
+	style.GroupWindow.FixedBackground.Data.Color = colorContentBackground
+	style.GroupWindow.Padding = noPadding
+	style.Font = PageContentFont
+	w.Master().SetStyle(style)
 }
 
 func (w *Window) ContentWindow(title string) *Window {
@@ -57,6 +74,7 @@ func (w *Window) SetErrorMessage(message string) {
 func (w *Window) Style() {
 	style := w.Master().Style()
 	style.GroupWindow.Padding = image.Point{20, 20}
+	style.GroupWindow.Header.Normal.Data.Color = colorAccent
 	style.Font = PageContentFont
 
 	w.Master().SetStyle(style)
