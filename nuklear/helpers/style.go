@@ -1,11 +1,9 @@
 package helpers
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
-	"math"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
@@ -129,7 +127,7 @@ func SetNavStyle(window nucular.MasterWindow) {
 	style.GroupWindow.FixedBackground.Data.Color = colorNavBackground
 	style.GroupWindow.Padding = noPadding
 
-	style.Button.Padding = image.Point{33, 5}
+	style.Button.Padding = image.Point{33, 2}
 	style.Button.Normal.Data.Color = colorPrimary
 	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
 	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
@@ -156,9 +154,4 @@ func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style.NormalWindow.ScalerSize = image.Point{50, 50}
 
 	window.SetStyle(style)
-}
-
-func AmountToString(amount float64) string {
-	amount = math.Round(amount)
-	return fmt.Sprintf("%d DCR", int(amount))
 }

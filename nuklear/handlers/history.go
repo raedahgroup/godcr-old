@@ -28,11 +28,8 @@ func (handler *HistoryHandler) Render(window *nucular.Window, walletMiddleware a
 		go handler.fetchTransactions(walletMiddleware, window)
 	}
 
-	//window.Row(50).Dynamic(1)
-	//window.Label("ddd", "LC")
-
-	// draw page
 	if pageWindow := helpers.NewWindow("History Page", window, nucular.WindowNoScrollbar); pageWindow != nil {
+		pageWindow.DrawHeader("History")
 
 		if contentWindow := pageWindow.ContentWindow("History"); contentWindow != nil {
 			if handler.hasFetchedTransactions {
