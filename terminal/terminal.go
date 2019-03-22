@@ -34,56 +34,64 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 
 
 func pageLoader(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	syncBlockchain(walletMiddleware)
-	if Status == walletcore.SyncStatusError {
-		msgOutput := fmt.Sprintf(Report)
-		helpers.CenterAlignedTextView(msgOutput)
-		tviewApp.Stop()
-	}
-	if Status == walletcore.SyncStatusInProgress {
-		msgOutput := fmt.Sprintf(Report)
-		return helpers.CenterAlignedTextView(msgOutput)
-	}
-	if Status == walletcore.SyncStatusSuccess {
-		return pages.TerminalLayout(tviewApp, walletMiddleware)
-	}
+	syncStatus := make(chan walletcore.SyncStatus)
+	syncBlockchain(walletMiddleware, syncStatus)
 
-	return nil
+	for status := range syncStatus {
+		if status == walletcore.SyncStatusError {
+			msgOutput := fmt.Sprintf(syncMessage)
+			fmt.Println(msgOutput)
+			tviewApp.Stop()
+			return nil
+		}
+		if status == walletcore.SyncStatusInProgress {
+			msgOutput := fmt.Sprintf(syncMessage)
+			fmt.Println(msgOutput)
+			continue
+		}
+		if status == walletcore.SyncStatusSuccess {
+			return pages.TerminalLayout(tviewApp, walletMiddleware)
+		}
+	}
+	return pages.TerminalLayout(tviewApp, walletMiddleware)
 }
 
 
-var Report string
-var Status walletcore.SyncStatus
+var syncMessage string
 
-func syncBlockchain(wallet app.WalletMiddleware) {
-	err := wallet.SyncBlockChain(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			updateStatus("Blockchain sync started...", walletcore.SyncStatusInProgress)
-		},
-		SyncEnded: func(err error) {
-			if err != nil {
-				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
-			} else {
-				updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
-			}
-		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
-		},
-		OnDiscoveredAddress: func(_ string) {
-			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", walletcore.SyncStatusInProgress)
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
-		},
-	}, false)
+func syncBlockchain(wallet app.WalletMiddleware, syncStatus chan walletcore.SyncStatus) {
+	go func() {
+		err := wallet.SyncBlockChain(&app.BlockChainSyncListener{
+			SyncStarted: func() {
+				syncMessage = "Blockchain sync started..."
+				syncStatus <- walletcore.SyncStatusInProgress
+			},
+			SyncEnded: func(err error) {
+				if err != nil {
+					syncMessage = fmt.Sprintf("Blockchain sync completed with error: %s", err.Error())
+					syncStatus <- walletcore.SyncStatusError
+				} else {
+					syncMessage = "Blockchain sync completed successfully"
+					syncStatus <- walletcore.SyncStatusSuccess
+				}
+			},
+			OnHeadersFetched: func(percentageProgress int64) {
+				syncMessage = fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress)
+				syncStatus <- walletcore.SyncStatusSuccess
+			},
+			OnDiscoveredAddress: func(_ string) {
+				syncMessage = "Blockchain sync in progress. Discovering addresses (2/3)"
+				syncStatus <- walletcore.SyncStatusInProgress
+			},
+			OnRescanningBlocks: func(percentageProgress int64) {
+				syncMessage = fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress)
+				syncStatus <- walletcore.SyncStatusInProgress
+			},
+		}, false)
 
-	if err != nil {
-		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), walletcore.SyncStatusError)
-	}
-}
-
-func updateStatus(report string, status walletcore.SyncStatus) {
-	Report = report
-	Status = status
+		if err != nil {
+			syncMessage = fmt.Sprintf("Blockchain sync failed to start. %s", err.Error())
+			syncStatus <- walletcore.SyncStatusError
+		}
+	}()
 }
