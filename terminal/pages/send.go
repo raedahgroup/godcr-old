@@ -40,7 +40,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	var destination string
-	form.AddInputField("Destination Address", "", 40, nil, func(text string) {
+	form.AddInputField("Destination Address", "", 37, nil, func(text string) {
 		destination = text
 	})
 
