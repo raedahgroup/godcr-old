@@ -2,11 +2,11 @@ package pages
 
 import (
 	"fmt"
-	"github.com/raedahgroup/godcr/terminal/primitives"
 	"strconv"
 
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
