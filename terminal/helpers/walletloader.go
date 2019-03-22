@@ -8,7 +8,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 )
 
-// this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
+// OpenWalletIfExist method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
 // hence the need for ctx, so user can cancel the operation if it's taking too long
 func OpenWalletIfExist(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
 	var errMsg string
