@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/pages"
-	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
@@ -32,7 +30,6 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	return tviewApp.SetRoot(page, true).Run()
 }
 
-
 func pageLoader(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	syncStatus := make(chan walletcore.SyncStatus)
 	syncBlockchain(walletMiddleware, syncStatus)
@@ -53,7 +50,8 @@ func pageLoader(tviewApp *tview.Application, walletMiddleware app.WalletMiddlewa
 			return pages.TerminalLayout(tviewApp, walletMiddleware)
 		}
 	}
-	return pages.TerminalLayout(tviewApp, walletMiddleware)
+
+	return nil
 }
 
 

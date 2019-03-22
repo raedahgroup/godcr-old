@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
@@ -13,12 +14,12 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 
 	layout := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	layout.AddItem(helpers.CenterAlignedTextView("Create Wallet"), 4, 1, false)
+	layout.AddItem(primitives.NewCenterAlignedTextView("Create Wallet"), 4, 1, false)
 
 	// get seed and display to user
 	seed, err := walletMiddleware.GenerateNewWalletSeed()
 	if err != nil {
-		return layout.AddItem(helpers.CenterAlignedTextView(err.Error()), 4, 1, false)
+		return layout.AddItem(primitives.NewCenterAlignedTextView(err.Error()), 4, 1, false)
 	}
 
 	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)

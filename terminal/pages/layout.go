@@ -6,11 +6,12 @@ import (
 
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
 func TerminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	header := helpers.CenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
 	header.SetBackgroundColor(helpers.DecredColor)
 	//Creating the View for the Layout
 	gridLayout := tview.NewGrid().SetRows(3, 0).SetColumns(30, 0)
@@ -47,12 +48,8 @@ func TerminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		changePageColumn(HistoryPage(walletMiddleware, setFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Stake Info", "", 'k', func() {
-		changePageColumn(StakeinfoPage(walletMiddleware, setFocus, clearFocus))
-	})
-
-	menuColumn.AddItem("Purchase Tickets", "", 't', func() {
-		changePageColumn(PurchaseTicketsPage(walletMiddleware, setFocus, clearFocus))
+	menuColumn.AddItem("Staking", "", 'k', func() {
+		changePageColumn(StakingPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Exit", "", 'q', func() {
