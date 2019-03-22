@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"strconv"
 
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -27,7 +28,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	}
 
 	// Form for Sending
-	form := tview.NewForm()
+	form := primitives.NewForm()
 	var accountNum uint32
 	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumber[optionIndex]
