@@ -23,9 +23,8 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	columns := []string{
 		"#",
 		"Date",
-		"Amount (DCR)",
 		"Direction",
-		"Hash",
+		"Amount (DCR)",
 		"Type",
 	}
 
@@ -58,33 +57,43 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
 
 		// ask user what to do next
-		prompt := fmt.Sprintf("Showing transactions %d-%d, enter # for details, show (m)ore, or (q)uit",
-			lastTxRowNumber, lastTxRowNumber+len(transactions))
+		 var prompt string
+		pageInfo := fmt.Sprintf("Showing transactions %d-%d", lastTxRowNumber, lastTxRowNumber+len(transactions) - 1)
+		if startBlockHeight >= 0 {
+			prompt = fmt.Sprintf("%s, enter # for details, show (M)ore, or (q)uit", pageInfo)
+		} else {
+			prompt = fmt.Sprintf("%s, enter # for details or (Q)uit", pageInfo)
+		}
+
 		validateUserInput := func(userInput string) error {
-			if strings.EqualFold(userInput, "m") || strings.EqualFold(userInput, "q") {
+			if userInput == "" ||
+				strings.EqualFold(userInput, "q") ||
+				(strings.EqualFold(userInput, "m") && startBlockHeight >= 0) {
 				return nil
 			}
 
 			// check if user input is a valid tx #
 			txRowNumber, err := strconv.ParseUint(userInput, 10, 32)
-			if err != nil || txRowNumber < 1 || int(txRowNumber) > len(pageTxRows) {
+			if err != nil || txRowNumber < 1 || int(txRowNumber) > len(displayedTxHashes) {
 				return fmt.Errorf("invalid response, try again")
 			}
 
 			return nil
 		}
+
 		userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
 		if err != nil {
 			return fmt.Errorf("error reading response: %s", err.Error())
 		}
 
-		if strings.EqualFold(userChoice, "q") {
+		if strings.EqualFold(userChoice, "q") || (userChoice == "" && startBlockHeight < 0) {
 			break
-		} else if strings.EqualFold(userChoice, "m") {
+		} else if strings.EqualFold(userChoice, "M") || (userChoice == "" && startBlockHeight >= 0) {
+			fmt.Println() // print empty line before listing txs for next page
 			continue
 		}
 
-		// if the code execution continues to this point, it means user's response was neither "q" or "m"
+		// if the code execution continues to this point, it means user's response was neither "q" nor "m"
 		// must therefore be a tx # to view tx details
 		txRowNumber, _ := strconv.ParseUint(userChoice, 10, 32)
 		txHash := displayedTxHashes[txRowNumber-1]
@@ -94,6 +103,8 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 			Args:     showTransactionCommandArgs,
 			Detailed: true,
 		}
+
+		fmt.Printf("\nShowing details for tx #%d\n", txRowNumber) // print empty line before showing tx details
 		return showTxDetails.Run(ctx, wallet)
 	}
 
