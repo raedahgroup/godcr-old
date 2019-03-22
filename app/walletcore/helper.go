@@ -53,6 +53,36 @@ func SpendableBalance(balance *Balance) string {
 	return balance.Spendable.String()
 }
 
+// NormalizeBalance adds 0s to the left and the right of balanceString to make it xxxx.xxxxxxxx DCR
+func NormalizeBalance(balanceString string) string {
+	parts := strings.Split(balanceString, " ")
+	if !strings.Contains(parts[0], ".") {
+		parts[0] = parts[0] + ".0"
+	}
+	numberParts := strings.Split(parts[0], ".")
+	if len(numberParts[0]) < 4 {
+		numberParts[0] = padLeft(numberParts[0], "0", 4)
+	}
+	if len(numberParts[1]) < 8 {
+		numberParts[1] = padRight(numberParts[1], "0", 8)
+	}
+	return fmt.Sprintf("%s.%s %s", numberParts[0], numberParts[1], parts[1])
+}
+
+func padLeft(input, niddle string, maxLen int) string {
+	for len(input) < maxLen {
+		input = niddle + input
+	}
+	return input
+}
+
+func padRight(input, niddle string, maxLen int) string {
+	for len(input) < maxLen {
+		input += niddle
+	}
+	return input
+}
+
 // GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
 func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {

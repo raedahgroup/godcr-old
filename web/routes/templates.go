@@ -28,8 +28,14 @@ func templates() []templateData {
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"simpleBalance": walletcore.SimpleBalance,
-		"spendableBalance": walletcore.SpendableBalance,
+		"simpleBalance": func(balance *walletcore.Balance, detailed bool) string {
+			result := walletcore.SimpleBalance(balance, detailed)
+			return walletcore.NormalizeBalance(result)
+		},
+		"spendableBalance": func(balance *walletcore.Balance) string {
+			result := walletcore.SpendableBalance(balance)
+			return walletcore.NormalizeBalance(result)
+		},
 		"accountString": func(account *walletcore.Account) string {
 			return account.String()
 		},
