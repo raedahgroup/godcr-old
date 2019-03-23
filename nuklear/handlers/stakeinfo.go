@@ -37,7 +37,7 @@ func (handler *StakeInfoHandler) Render(window *nucular.Window, wallet app.Walle
 			if handler.err != nil {
 				contentWindow.SetErrorMessage(handler.err.Error())
 			} else {
-				contentWindow.Row(20).Static(43, 43, 43, 43, 43, 43, 80, 43, 43, 43, 43)
+				contentWindow.Row(20).Static(43, 43, 43, 43, 43, 43, 80, 43, 43, 43, 60)
 				contentWindow.Label("Expired", "LC")
 				contentWindow.Label("Immature", "LC")
 				contentWindow.Label("Live", "LC")
