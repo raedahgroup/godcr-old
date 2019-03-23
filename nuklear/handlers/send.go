@@ -8,7 +8,6 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -64,7 +63,7 @@ func (handler *SendHandler) BeforeRender() {
 	handler.successHash = ""
 }
 
-func (handler *SendHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
+func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.fetchAccounts(wallet)

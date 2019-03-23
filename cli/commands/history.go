@@ -25,7 +25,9 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		"Date",
 		"Direction",
 		"Amount (DCR)",
+		"Fee",
 		"Type",
+		"Hash",
 	}
 
 	// show transactions in pages, using infinite loop
@@ -51,7 +53,9 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 				tx.FormattedTime,
 				tx.Direction,
 				tx.Amount,
+				tx.Fee,
 				tx.Type,
+				tx.Hash,
 			}
 		}
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)

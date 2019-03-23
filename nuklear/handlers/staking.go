@@ -8,7 +8,6 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -52,7 +51,7 @@ func (handler *StakingHandler) BeforeRender() {
 	handler.isRendering = false
 }
 
-func (handler *StakingHandler) Render(window *nucular.Window, wallet app.WalletMiddleware) {
+func (handler *StakingHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.stakeInfo, handler.stakeInfoFetchError = wallet.StakeInfo(context.Background())
