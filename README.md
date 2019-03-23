@@ -35,7 +35,9 @@ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgrou
 ```
 
 **Windows**
-`git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgroup/godcr`
+```
+git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgroup/godcr
+```
 
 #### Step 3. Build the source code
 * If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
