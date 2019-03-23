@@ -2,50 +2,47 @@ import { Controller } from 'stimulus'
 import ws from '../services/messagesocket_service'
 
 import axios from 'axios'
-// customTxRow
+
 export default class extends Controller {
   static get targets () {
     return [
-        'container',
+      'container',
       'totalBalance',
       'peersConnected',
-      'lattestBlock',
+      'latestBlock',
       'networkType',
-      'databasePath',
+      'dbDir'
     ]
   }
 
   connect () {
     let _this = this
 
-    ws.registerEvtHandler('newBlock', function (data) {
-      _this.lattestBlockTarget = data.height
-    })
+    ws.registerEvtHandler('updateConnInfo', function (data) {
+      _this.totalBalanceTarget.textContent = data.totalBalance
+      _this.peersConnectedTarget.textContent = data.peersConnected
+      _this.latestBlockTarget.textContent = data.latestBlock
+      _this.networkTypeTarget.textContent = data.networkType
+      _this.dbDirTarget.textContent = data.dbDir
 
-    ws.registerEvtHandler('newPeer', function (data) {
-      _this.peersConnectedBlockTarget = data.peersCount
+      _this.show(_this.containerTarget)
     })
   }
 
   initialize () {
     let _this = this
-    axios.get(url).then(function (response) {
-      let result = response.data
-      if (result.success) {
-        let data = result.data
-        _this.totalBalanceTarget.textContent = data.totalBalance
-        _this.peersConnectedTarget.textContent = data.peersConnected
-        _this.lattestBlockTarget.textContent = data.lattestBlock
-        _this.networkTypeTarget.textContent = data.networkType
-        _this.databasePathTarget.textContent = data.databasePath
+    axios.get('/connection-info').then(function (response) { // TODO use the actual url
+      let data = response.data
+      _this.totalBalanceTarget.textContent = data.totalBalance
+      _this.peersConnectedTarget.textContent = data.peersConnected
+      _this.latestBlockTarget.textContent = data.latestBlock
+      _this.networkTypeTarget.textContent = data.networkType
+      _this.dbDirTarget.textContent = data.dbDir
 
-        _this.show(this.containerTarget)
-      } else {
-        // TODO this message be shown in site wide error board
-        console.log(result.message)
-      }
-    }).catch(function () {
-      console.log('A server error occurred')
+      _this.show(_this.containerTarget)
+    }).catch(function (e) {
+      console.log('Error in updating connection info:', e)
+      _this.hide(_this.containerTarget)
     })
   }
 

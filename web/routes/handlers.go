@@ -11,6 +11,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -520,4 +521,60 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	}
 
 	data["success"] = true
+}
+
+func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request) {
+	var info = walletcore.ConnectionInfo{
+		// DbDir: routes.conf.AppDataDir,
+		NetworkType: routes.walletMiddleware.NetType(),
+		PeersConnected: numberOfPeers,
+	}
+
+	defer renderJSON(&info, res)
+
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
+		return
+	}
+
+	var totalBalance walletcore.Balance
+	for _, acc := range accounts {
+		totalBalance.Spendable += acc.Balance.Spendable
+		totalBalance.Total += acc.Balance.Total
+	}
+	info.TotalBalance = totalBalance.String()
+
+	bestBlock, err := routes.walletMiddleware.BestBlock()
+	if err != nil {
+		weblog.LogError(err)
+	}
+
+	info.LatestBlock = bestBlock
+}
+
+func (routes *Routes) sendConnectionInfo() {
+	var info = walletcore.ConnectionInfo{
+		// DbDir: routes.conf.AppDataDir,
+		NetworkType: routes.walletMiddleware.NetType(),
+		PeersConnected: numberOfPeers,
+	}
+
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
+		return
+	}
+
+	var totalBalance walletcore.Balance
+	for _, acc := range accounts {
+		totalBalance.Spendable += acc.Balance.Spendable
+		totalBalance.Total += acc.Balance.Total
+	}
+	info.TotalBalance = totalBalance.String()
+
+	broadcast <- Message{
+		Event: "updateConnInfo",
+		Message: info,
+	}
 }

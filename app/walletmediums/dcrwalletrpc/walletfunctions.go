@@ -534,8 +534,13 @@ func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, 
 	request := &walletrpc.ChangePassphraseRequest{
 		NewPassphrase: []byte(newPass),
 		OldPassphrase: []byte(oldPass),
-		Key: walletrpc.ChangePassphraseRequest_PRIVATE,
+		Key:           walletrpc.ChangePassphraseRequest_PRIVATE,
 	}
 	_, err := c.walletService.ChangePassphrase(ctx, request)
 	return err
+}
+
+func (c *WalletRPCClient) BestBlock() (uint32, error) {
+	req, err := c.walletService.BestBlock(context.Background(), &walletrpc.BestBlockRequest{})
+	return req.Height, err
 }

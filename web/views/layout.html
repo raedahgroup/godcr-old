@@ -28,10 +28,10 @@
                     {{ if . }}
                         <span class="text-muted">Blockchain status: {{ . }}</span>
                     {{ end }}
-                    <p data-controller="info" data-target="info.container" class="d-none">Total Balance: <b data-target="info.totalBalance">19.29349302 DCR</b> | Synced with <b data-target="info.peersConnected">8</b> Peers:
-                        | Latest Block: <b data-target="info.lattestBlock">129403</b> |
-                        Network Type: <b data-target="info.networkType">Mainnet</b> | Database path:
-                        <b data-target="info.databasePath">C:\Users\Anthony\Documents\decred\godcr</b></p>
+                    <p data-controller="info" data-target="info.container" class="d-none">Balance: <b data-target="info.totalBalance"></b> | Synced with <b data-target="info.peersConnected"></b> Peers:
+                        | Latest Block: <b data-target="info.latestBlock"></b> |
+                        Network Type: <b data-target="info.networkType"></b> <br/>
+                        Database path: <b data-target="info.dbDir"></b></p>
                 </div>
             </div>
         </div>

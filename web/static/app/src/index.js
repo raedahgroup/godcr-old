@@ -14,27 +14,20 @@ const context = require.context('./controllers', true, /\.js$/)
 application.load(definitionsFromContext(context))
 
 function getSocketURI (loc) {
-  var protocol = (loc.protocol === 'https:') ? 'wss' : 'ws'
+  let protocol = (loc.protocol === 'https:') ? 'wss' : 'ws'
   return protocol + '://' + loc.host + '/ws'
 }
 
-function sleep (ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-async function createWebSocket (loc) {
-  // wait a bit to prevent websocket churn from drive by page loads
-  var uri = getSocketURI(loc)
-  await sleep(1000)
-  ws.connect(uri)
-
-/*var updateBlockData = function (event) {
-    console.log('Received newblock message', event)
-    var newBlock = JSON.parse(event)
-    newBlock.block.unixStamp = new Date(newBlock.block.time).getTime() / 1000
-    globalEventBus.publish('BLOCK_RECEIVED', newBlock)
-  }
-  ws.registerEvtHandler('newblock', updateBlockData)*/
+function createWebSocket (loc) {
+  setTimeout(() => {
+    // wait a bit to prevent websocket churn from drive by page loads
+    let uri = getSocketURI(loc)
+    ws.connect(uri)
+  }, 1000)
 }
 
 createWebSocket(window.location)
+
+const application = Application.start()
+const context = require.context('./controllers', true, /\.js$/)
+application.load(definitionsFromContext(context))

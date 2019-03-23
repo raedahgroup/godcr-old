@@ -366,3 +366,7 @@ func (lib *DcrWalletLib) ChangePrivatePassphrase(_ context.Context, oldPass, new
 	}
 	return lib.walletLib.ChangePrivatePassphrase([]byte(oldPass), []byte(newPass))
 }
+
+func (lib *DcrWalletLib) BestBlock() (uint32, error) {
+	return uint32(lib.walletLib.GetBestBlock()), nil
+}
