@@ -9,6 +9,7 @@ func LaunchApp() {
 	a := app.New()
 
 	w := a.NewWindow("Hello")
+	w.FixedSize()
 	w.SetContent(widget.NewVBox(
 		widget.NewLabel("Hello Fyne!"),
 		widget.NewButton("Quit", func() {
