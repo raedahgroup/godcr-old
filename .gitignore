@@ -8,3 +8,4 @@ godcr.conf
 godcr.exe
 web/static/app/node_modules
 *.log
+*.bat
