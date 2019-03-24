@@ -10,8 +10,7 @@ export default class extends Controller {
       'totalBalance',
       'peersConnected',
       'latestBlock',
-      'networkType',
-      'dbDir'
+      'networkType'
     ]
   }
 
@@ -23,7 +22,6 @@ export default class extends Controller {
       _this.peersConnectedTarget.textContent = data.peersConnected
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
-      _this.dbDirTarget.textContent = data.dbDir
 
       _this.show(_this.containerTarget)
     })
@@ -37,7 +35,6 @@ export default class extends Controller {
       _this.peersConnectedTarget.textContent = data.peersConnected
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
-      _this.dbDirTarget.textContent = data.dbDir
 
       _this.show(_this.containerTarget)
     }).catch(function (e) {

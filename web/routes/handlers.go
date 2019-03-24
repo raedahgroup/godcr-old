@@ -525,7 +525,6 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 
 func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request) {
 	var info = walletcore.ConnectionInfo{
-		// DbDir: routes.conf.AppDataDir,
 		NetworkType: routes.walletMiddleware.NetType(),
 		PeersConnected: numberOfPeers,
 	}
@@ -555,7 +554,6 @@ func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request)
 
 func (routes *Routes) sendConnectionInfo() {
 	var info = walletcore.ConnectionInfo{
-		// DbDir: routes.conf.AppDataDir,
 		NetworkType: routes.walletMiddleware.NetType(),
 		PeersConnected: numberOfPeers,
 	}
