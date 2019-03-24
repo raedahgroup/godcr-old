@@ -41,6 +41,6 @@ type BlockChainSyncListener struct {
 	OnHeadersFetched    func(percentageProgress int64)
 	OnDiscoveredAddress func(state string)
 	OnRescanningBlocks  func(percentageProgress int64)
-	OnPeerConnected func(peerCount int32)
-	OnPeerDisconnected func(peerCount int32)
+	OnPeerConnected     func(peerCount int32)
+	OnPeerDisconnected  func(peerCount int32)
 }

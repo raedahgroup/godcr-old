@@ -19,11 +19,11 @@ type eventType string
 
 const (
 	UpdateConnectionInfo eventType = "updateConnInfo"
-	UpdateBalance eventType = "updateBalance"
+	UpdateBalance        eventType = "updateBalance"
 )
 
 type Packet struct {
-	Event   eventType      `json:"event"`
+	Event   eventType   `json:"event"`
 	Message interface{} `json:"message"`
 }
 

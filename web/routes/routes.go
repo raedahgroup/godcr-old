@@ -89,7 +89,6 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
 	router.Get("/connection-info", routes.connectionInfo)
 
-
 	router.Get("/ws", routes.wsHandler)
 	go handleMessages()
 }

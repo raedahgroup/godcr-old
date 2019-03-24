@@ -529,24 +529,11 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 
 func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request) {
 	var info = walletcore.ConnectionInfo{
-		NetworkType: routes.walletMiddleware.NetType(),
+		NetworkType:    routes.walletMiddleware.NetType(),
 		PeersConnected: numberOfPeers,
 	}
 
 	defer renderJSON(&info, res)
-
-	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
-		return
-	}
-
-	var totalBalance walletcore.Balance
-	for _, acc := range accounts {
-		totalBalance.Spendable += acc.Balance.Spendable
-		totalBalance.Total += acc.Balance.Total
-	}
-	info.TotalBalance = totalBalance.String()
 
 	bestBlock, err := routes.walletMiddleware.BestBlock()
 	if err != nil {
@@ -558,25 +545,12 @@ func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request)
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
 	var info = walletcore.ConnectionInfo{
-		NetworkType: routes.walletMiddleware.NetType(),
+		NetworkType:    routes.walletMiddleware.NetType(),
 		PeersConnected: numberOfPeers,
 	}
 
-	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
-		return
-	}
-
-	var totalBalance walletcore.Balance
-	for _, acc := range accounts {
-		totalBalance.Spendable += acc.Balance.Spendable
-		totalBalance.Total += acc.Balance.Total
-	}
-	info.TotalBalance = totalBalance.String()
-
 	wsBroadcast <- Packet{
-		Event: UpdateConnectionInfo,
+		Event:   UpdateConnectionInfo,
 		Message: info,
 	}
 }
@@ -594,7 +568,7 @@ func (routes *Routes) sendWsBalance() {
 		totalBalance.Total += acc.Balance.Total
 	}
 	wsBroadcast <- Packet{
-		Event: UpdateBalance,
+		Event:   UpdateBalance,
 		Message: totalBalance.String(),
 	}
 }

@@ -7,7 +7,6 @@ export default class extends Controller {
   static get targets () {
     return [
       'container',
-      'totalBalance',
       'peersConnected',
       'latestBlock',
       'networkType'
@@ -18,7 +17,6 @@ export default class extends Controller {
     let _this = this
 
     ws.registerEvtHandler('updateConnInfo', function (data) {
-      _this.totalBalanceTarget.textContent = data.totalBalance
       _this.peersConnectedTarget.textContent = data.peersConnected
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
@@ -35,7 +33,6 @@ export default class extends Controller {
     let _this = this
     axios.get('/connection-info').then(function (response) { // TODO use the actual url
       let data = response.data
-      _this.totalBalanceTarget.textContent = data.totalBalance
       _this.peersConnectedTarget.textContent = data.peersConnected
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
