@@ -143,7 +143,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 	// if error fetching accounts, no point displaying the form
 	if handler.fetchAccountsError != nil {
 		contentWindow.Row(30).Dynamic(1)
-		contentWindow.LabelColored(handler.fetchAccountsError.Error(), "LC", helpers.DangerColor)
+		contentWindow.LabelColored(handler.fetchAccountsError.Error(), "LC", helpers.ColorDanger)
 		return
 	}
 
@@ -167,15 +167,15 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 	numTickets := len(handler.purchasedTicketsHashes)
 	if numTickets > 0 {
 		contentWindow.Row(20).Dynamic(1)
-		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), "LC", helpers.SuccessColor)
+		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), "LC", helpers.ColorSuccess)
 
 		for _, ticketHash := range handler.purchasedTicketsHashes {
 			contentWindow.Row(10).Dynamic(1)
-			contentWindow.LabelColored(ticketHash, "LC", helpers.SuccessColor)
+			contentWindow.LabelColored(ticketHash, "LC", helpers.ColorSuccess)
 		}
 	} else if handler.purchaseTicketsError != nil {
 		contentWindow.Row(30).Dynamic(1)
-		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), "LC", helpers.DangerColor)
+		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), "LC", helpers.ColorDanger)
 	}
 
 	submitButtonText := "Purchase"
