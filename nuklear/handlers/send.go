@@ -93,7 +93,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 			contentWindow.Row(10).Static(230)
 			contentWindow.Label("Source Account", "LC")
 
-			contentWindow.Row(30).Static(460)
+			contentWindow.Row(25).Static(460)
 			handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
 
 			contentWindow.Row(15).Static(100)
@@ -108,18 +108,18 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 				contentWindow.Label("Destination Address", "LC")
 				contentWindow.Label("Amount (DCR)", "LC")
 
-				contentWindow.Row(30).Static(230, 230)
+				contentWindow.Row(25).Static(230, 230)
 				destInputPair.destinationAddress.Edit(contentWindow.Window)
 				destInputPair.amount.Edit(contentWindow.Window)
 
 				if destInputPair.addressErr != "" || destInputPair.amountErr != "" {
-					contentWindow.Row(30).Static(230, 230)
+					contentWindow.Row(25).Static(230, 230)
 					contentWindow.LabelColored(destInputPair.addressErr, "LC", helpers.ColorDanger)
 					contentWindow.LabelColored(destInputPair.amountErr, "LC", helpers.ColorDanger)
 				}
 			}
 
-			contentWindow.Row(30).Static(230, 230)
+			contentWindow.Row(25).Static(230, 230)
 			if contentWindow.ButtonText("Add another address") {
 				handler.addSendInputPair(window.Master(), true)
 			}
@@ -174,7 +174,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 				contentWindow.LabelColored(handler.utxoErr, "LC", helpers.ColorDanger)
 			}
 
-			contentWindow.Row(30).Static(230)
+			contentWindow.Row(25).Static(230)
 			if contentWindow.ButtonText(submitButtonText) {
 				if !handler.isSubmitting && handler.validate(window, wallet) {
 					handler.getPassphraseAndSubmit(window, wallet)

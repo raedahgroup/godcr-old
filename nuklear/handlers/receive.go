@@ -54,9 +54,9 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 					accountNames[index] = account.Name
 				}
 
-				contentWindow.Row(30).Static(300, 100)
+				contentWindow.Row(25).Static(300, 100)
 				// draw select account combo
-				handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 30)
+				handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 25)
 
 				// draw submit button
 				if contentWindow.Button(label.T("Generate"), false) {

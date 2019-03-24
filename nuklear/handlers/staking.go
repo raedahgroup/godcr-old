@@ -103,7 +103,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 	if handler.stakeInfoFetchError != nil {
 		contentWindow.SetErrorMessage(handler.stakeInfoFetchError.Error())
 	} else {
-		contentWindow.Row(20).Ratio(0.07, 0.09, 0.06, 0.07, 0.07, 0.08, 0.12, 0.09, 0.09, 0.09, 0.1)
+		contentWindow.Row(20).Static(43, 43, 35, 43, 43, 43, 80, 43, 43, 43, 60)
 		contentWindow.Label("Expired", "LC")
 		contentWindow.Label("Immature", "LC")
 		contentWindow.Label("Live", "LC")
@@ -116,7 +116,6 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 		contentWindow.Label("Voted", "LC")
 		contentWindow.Label("Total Subsidy", "LC")
 
-		contentWindow.Row(20).Ratio(0.07, 0.09, 0.06, 0.07, 0.07, 0.08, 0.12, 0.09, 0.09, 0.09, 0.1)
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Expired)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Immature)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Live)), "LC")
@@ -148,17 +147,22 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 	}
 
 	// display purchase form proper
-	contentWindow.Row(10).Dynamic(2)
+	contentWindow.Row(10).Static(230)
 	contentWindow.Label("Source Account", "LC")
 
 	contentWindow.Row(25).Dynamic(1)
 	handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
 
-	contentWindow.Row(15).Dynamic(2)
+	contentWindow.Row(10).Static(230)
 	contentWindow.Label("Number of tickets", "LC")
 
-	contentWindow.Row(25).Dynamic(2)
+	contentWindow.Row(25).Static(230)
 	handler.numTicketsInput.Edit(contentWindow)
+
+	if handler.numTicketsInputErrStr != "" {
+		contentWindow.Row(20).Static(230)
+		contentWindow.LabelColored(handler.numTicketsInputErrStr, "LC", helpers.ColorDanger)
+	}
 
 	contentWindow.Row(20).Dynamic(1)
 	contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed)
@@ -185,7 +189,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 		submitButtonText = "Purchase again"
 	}
 
-	contentWindow.Row(25).Dynamic(3)
+	contentWindow.Row(25).Static(230)
 	if contentWindow.ButtonText(submitButtonText) {
 		handler.validateAndSubmit(contentWindow, wallet)
 	}
@@ -263,8 +267,9 @@ func (handler *StakingHandler) submit(passphrase string, window *nucular.Window,
 func (handler *StakingHandler) resetPurchaseTicketsForm() {
 	handler.selectedAccountIndex = 0
 
+	handler.numTicketsInput.Flags = nucular.EditClipboard | nucular.EditSimple
 	handler.numTicketsInput.Buffer = []rune{'1'}
-	handler.numTicketsInput.Flags = nucular.EditSimple
+
 	handler.spendUnconfirmed = false
 
 	handler.isPurchasingTickets = false
