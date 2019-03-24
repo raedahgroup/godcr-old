@@ -571,7 +571,7 @@ func (routes *Routes) sendConnectionInfo() {
 	}
 	info.TotalBalance = totalBalance.String()
 
-	broadcast <- Message{
+	broadcast <- Packet{
 		Event: "updateConnInfo",
 		Message: info,
 	}

@@ -8,14 +8,14 @@ import (
 )
 
 var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Message)
+var broadcast = make(chan Packet)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-type Message struct {
+type Packet struct {
 	Event   string      `json:"event"`
 	Message interface{} `json:"message"`
 }
@@ -35,7 +35,7 @@ func handleMessages() {
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {
-				log.Printf("error: %v", err)
+				log.Printf("error: %s", err.Error())
 				client.Close()
 				delete(clients, client)
 			}
