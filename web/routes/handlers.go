@@ -160,6 +160,8 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	data["txHash"] = txHash
+
+	routes.sendWsBalance()
 }
 
 func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
@@ -466,6 +468,8 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 
 	data["success"] = true
 	data["message"] = ticketHashes
+
+	routes.sendWsBalance()
 }
 
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
@@ -552,7 +556,7 @@ func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request)
 	info.LatestBlock = bestBlock
 }
 
-func (routes *Routes) sendConnectionInfo() {
+func (routes *Routes) sendWsConnectionInfoUpdate() {
 	var info = walletcore.ConnectionInfo{
 		NetworkType: routes.walletMiddleware.NetType(),
 		PeersConnected: numberOfPeers,
@@ -571,8 +575,26 @@ func (routes *Routes) sendConnectionInfo() {
 	}
 	info.TotalBalance = totalBalance.String()
 
-	broadcast <- Packet{
-		Event: "updateConnInfo",
+	wsBroadcast <- Packet{
+		Event: UpdateConnectionInfo,
 		Message: info,
+	}
+}
+
+func (routes *Routes) sendWsBalance() {
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
+		return
+	}
+
+	var totalBalance walletcore.Balance
+	for _, acc := range accounts {
+		totalBalance.Spendable += acc.Balance.Spendable
+		totalBalance.Total += acc.Balance.Total
+	}
+	wsBroadcast <- Packet{
+		Event: UpdateBalance,
+		Message: totalBalance.String(),
 	}
 }

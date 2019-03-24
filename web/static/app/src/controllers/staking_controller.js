@@ -1,6 +1,7 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 import { hide, show } from '../utils'
+import ws from '../services/messagesocket_service'
 
 export default class extends Controller {
   static get targets () {
@@ -10,6 +11,17 @@ export default class extends Controller {
       // from wallet passphrase modal (utils.html)
       'walletPassphrase', 'passwordError'
     ]
+  }
+
+  connect () {
+    let _this = this
+    ws.registerEvtHandler('updateBalance', function (data) {
+      if (_this.sourceAccountTarget.options) {
+        _this.sourceAccountTarget.options[_this.sourceAccountTarget.selectedIndex].textContent = data
+      } else {
+        _this.sourceAccountTarget.textContent = data
+      }
+    })
   }
 
   validateForm () {

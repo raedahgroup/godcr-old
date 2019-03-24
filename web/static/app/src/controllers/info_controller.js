@@ -25,6 +25,10 @@ export default class extends Controller {
 
       _this.show(_this.containerTarget)
     })
+
+    ws.registerEvtHandler('updateBalance', function (data) {
+      _this.totalBalanceTarget.textContent = data
+    })
   }
 
   initialize () {

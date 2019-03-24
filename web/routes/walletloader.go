@@ -76,7 +76,7 @@ func (routes *Routes) syncBlockchain() {
 			if err != nil {
 				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
 			} else {
-				routes.sendConnectionInfo()
+				routes.sendWsConnectionInfoUpdate()
 				updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
 			}
 		},

@@ -8,15 +8,22 @@ import (
 )
 
 var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Packet)
+var wsBroadcast = make(chan Packet)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
+type eventType string
+
+const (
+	UpdateConnectionInfo eventType = "updateConnInfo"
+	UpdateBalance eventType = "updateBalance"
+)
+
 type Packet struct {
-	Event   string      `json:"event"`
+	Event   eventType      `json:"event"`
 	Message interface{} `json:"message"`
 }
 
@@ -31,7 +38,7 @@ func (routes *Routes) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func handleMessages() {
 	for {
-		msg := <-broadcast
+		msg := <-wsBroadcast
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {
