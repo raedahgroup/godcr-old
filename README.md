@@ -28,8 +28,15 @@ Follow the steps below to download, setup and run dcrwallet:
 
 #### Step 2. Clone this repo
 It is conventional to clone to $GOPATH, but not necessary.
+
+**Linux**
 ```bash
 git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgroup/godcr
+```
+
+**Windows**
+```
+git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgroup/godcr
 ```
 
 #### Step 3. Build the source code
@@ -37,9 +44,21 @@ git clone https://github.com/raedahgroup/godcr $GOPATH/src/github.com/raedahgrou
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
 * `cd` to the cloned project directory and run `go build` or `go install`.
 Building will place the `godcr` binary in your working directory while install will place the binary in $GOPATH/bin.
-* To build the http frontend, `cd web/static/app` 
-and run `yarn install` then 
+* To build the http frontend, `cd web/static/app`
+and run `yarn install` then
 `yarn build`. You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
+
+**Note: Building on Windows**
+Exporting `GO111MODULE` directly in CLI does not work and it is recommended to trigger
+via a `.bat` file.
+
+* Create `modInstall.bat` in cloned project directory
+* Paste:
+  ```
+  setx GO111MODULE on
+  go mod download
+  ```
+* Execute `modInstall.bat`
 
 ## Running godcr
 ### General usage
@@ -72,7 +91,7 @@ Run `godcr -h` to see the location of the config file. Open the file with a text
 ### Features
 [Go here](status.md) to view updated information about implemented features and known issues and workarounds.
 
-## Contributing 
+## Contributing
 
 See the CONTRIBUTING.md file for details. Here's an overview:
 
