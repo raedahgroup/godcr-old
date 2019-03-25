@@ -37,6 +37,12 @@ func templateFuncMap() template.FuncMap {
 		"spendableBalance": func(balance *walletcore.Balance) string {
 			return walletcore.NormalizeBalance(balance.Spendable.ToCoin())
 		},
+		"intSum": func(numbers ...int) (sum int) {
+			for _, n := range numbers {
+				sum += n
+			}
+			return
+		},
 		"accountString": func(account *walletcore.Account) string {
 			return account.String()
 		},

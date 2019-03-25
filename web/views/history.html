@@ -2,13 +2,14 @@
 <html lang="en">
 {{ template "html-head" }}
 <body>
-    <div class="body">
+    <div class="body" data-controller="history">
         {{ template "header" }}
         <div class="content">
             <div class="container">
                 <table class="table">
                     <thead>
                         <tr>
+                            <th>S/N</th>
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Fee</th>
@@ -17,19 +18,27 @@
                             <th>Hash</th>
                         </tr>
                     </thead>
-                    <tbody>
-                       {{ range $txn := .result }}
+                    <tbody data-target="history.historyTable" data-action="scroll@window->history#didScroll" >
+                       {{ range $index, $txn := .txs }}
                        <tr>
-                            <td>{{ .FormattedTime }}</td>
-                            <td>{{ .Amount }}</td>
-                            <td>{{ .Fee }}</td>
-                            <td>{{ .Direction }}</td>
-                            <td>{{ .Type }}</td>
-                            <td><a href="/transaction-details/{{ .Hash }}" >{{ .Hash }}</a></td>
+                            <td>{{ intSum $index 1 }}</td>
+                            <td>{{ $txn.FormattedTime }}</td>
+                            <td>{{ $txn.Direction }}</td>
+                            <td>{{ $txn.Amount }}</td>
+                            <td>{{ $txn.Fee }}</td>
+                            <td>{{ $txn.Type }}</td>
+                            <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ $txn.Hash }}</a></td>
                         </tr>
                        {{ end }}
                     </tbody>
                 </table>
+                <div data-target="history.errorMessage" class="alert alert-danger d-none"></div>
+                {{ if .nextBlockHeight }}
+                    <a href="/history?start={{ .nextBlockHeight }}" class="btn btn-primary"
+                       data-target="history.nextPageButton" data-next-block-height="{{ .nextBlockHeight }}">
+                        Next Page
+                    </a>
+                {{ end }}
             </div>
         </div>
     </div>
