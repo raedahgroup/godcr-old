@@ -8,7 +8,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
-		"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 	"math"

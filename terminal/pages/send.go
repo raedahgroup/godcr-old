@@ -7,6 +7,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
@@ -15,10 +16,11 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Send"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
+	hintText := primitives.WordWrappedTextView("(TIP: Scroll table with LEFT, RIGHT, UP AND DOWN KEYS. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
+
+	body.AddItem(primitives.NewLeftAlignedTextView("Send").SetTextColor(helpers.TitleColor), 3, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -100,6 +102,11 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	form.SetCancelFunc(clearFocus)
+	form.SetLabelColor(tcell.ColorWhite)
+
+	body.AddItem(form, 17, 0, true)
+	body.SetBorderPadding(1, 0, 1, 0)
+
 	setFocus(body)
 
 	return body
