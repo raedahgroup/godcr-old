@@ -295,26 +295,26 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	start := req.FormValue("start")
-	count := req.FormValue("count")
 
 	startBlockHeight, err := strconv.ParseInt(start, 10, 32)
 	if err != nil || startBlockHeight < 0 {
 		startBlockHeight = -1
 	}
 
-	minTxCount, _ := strconv.ParseInt(count, 10, 32)
-	if minTxCount < 10 {
-		minTxCount = walletcore.TransactionHistoryCountPerPage
-	}
-
-	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight), int(minTxCount))
+	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight),
+		walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching history: %s", err.Error()), res)
 		return
 	}
 
+	lastCount := req.FormValue("last-count")
+	lastTxCount, _ := strconv.ParseInt(lastCount, 10, 32)
+
 	data := map[string]interface{}{
 		"txs": txns,
+		"startTxCount": int(lastTxCount),
+		"lastTxCount": int(lastTxCount) + len(txns),
 	}
 
 	if endBlockHeight > 0 {

@@ -1,16 +1,21 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import '../css/history_style.scss'
 
 export default class extends Controller {
   static get targets () {
-    return ['historyTable', 'nextPageButton', 'errorMessage']
+    return ['historyTable', 'nextPageButton', 'loadingIndicator', 'errorMessage']
   }
 
   initialize () {
     // hide next page button to use infinite scroll
     this.hide(this.nextPageButtonTarget)
     this.nextBlockHeight = this.nextPageButtonTarget.getAttribute('data-next-block-height')
+    this.checkScrollPos()
+  }
+
+  checkScrollPos () {
+    // check if there is space at the bottom to load more now
+    this.didScroll({ target: document })
   }
 
   didScroll (e) {
@@ -20,13 +25,15 @@ export default class extends Controller {
 
     const element = e.target.scrollingElement
     const scrollPos = element.scrollTop + element.clientHeight
-    if (scrollPos >= element.scrollHeight * 0.9) {
+    if (scrollPos >= element.scrollHeight * 0.95) {
       this.isLoading = true
       this.fetchMoreTxs()
     }
   }
 
   fetchMoreTxs () {
+    this.show(this.loadingIndicatorTarget)
+
     const _this = this
     axios.get(`/next-history-page?start=${this.nextBlockHeight}`)
       .then(function (response) {
@@ -35,13 +42,17 @@ export default class extends Controller {
           _this.hide(_this.errorMessageTarget)
           _this.nextBlockHeight = result.nextBlockHeight
           _this.displayTxs(result.txs)
+
+          _this.isLoading = false
+          _this.checkScrollPos()
         } else {
           _this.setErrorMessage(result.message)
         }
-      }).catch(function (e) {
+      }).catch(function () {
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
+        _this.hide(_this.loadingIndicatorTarget)
       })
   }
 
@@ -61,7 +72,7 @@ export default class extends Controller {
                   <td>${++n}</td>
                   <td>${tx.formatted_time}</td>
                   <td>${txDirection(tx.direction)}</td>
-                  <td>${tx.amount / 100000000} DCCR</td>
+                  <td>${tx.amount / 100000000} DCR</td>
                   <td>${tx.fee / 100000000} DCR</td>
                   <td>${tx.type}</td>
                   <td><a href="/transaction-details/${tx.hash}">${tx.hash}</a></td>
