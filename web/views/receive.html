@@ -6,30 +6,32 @@
         {{ template "header" }}
         <div class="content">
             <div class="container">
+
+                <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
+                <div data-target="send.successMessage" class="alert alert-success d-none"></div>
+
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Receiving Decred</h5>
                        <p class="lead-text">Each time you request payment, a new <br/>address is created to protect your privacy</p>
-                       <form id="generate-form">
-                            <div class="row">
-                                <div class="col-md-6 col-sm-12">
-                                    <div class="form-group">
-                                        <label for="account">Account</label>
-                                    {{ if gt (len .accounts) 1 }}
-                                        <select data-target="receive.account" data-action="change->receive#generate" class="form-control" name="account" id="account">
-                                        {{ range $account := .accounts }}
-                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
-                                        {{ end }}
-                                        </select>
-                                    {{ else }}
-                                    {{ range $account := .accounts }}
-                                        <input class="form-control" readonly value="{{ accountString $account }}">
-                                    {{ end }}
-                                    {{ end  }}
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+                       <div class="row">
+                           <div class="col-md-6 col-sm-12">
+                               <div class="form-group">
+                                   <label for="account">Account</label>
+                               {{ if gt (len .accounts) 1 }}
+                                   <select data-target="receive.account" data-action="change->receive#generate" class="form-control" name="account" id="account">
+                                   {{ range $account := .accounts }}
+                                       <option value="{{ $account.Number }}">{{ accountString $account }}</option>
+                                   {{ end }}
+                                   </select>
+                               {{ else }}
+                               {{ range $account := .accounts }}
+                                   <input class="form-control" readonly value="{{ accountString $account }}">
+                               {{ end }}
+                               {{ end  }}
+                               </div>
+                           </div>
+                       </div>
                         <div class="result-card">
                             <div id="result-text">
                                 <strong>Address:</strong>

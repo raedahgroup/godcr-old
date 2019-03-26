@@ -168,7 +168,6 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"accountsCount": len(accounts),
 	}
 
 	data = routes.fillAddressData(data, accounts[0].Number)
@@ -194,7 +193,7 @@ func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) fillAddressData(data map[string]interface{}, accountNumber uint32) map[string]interface{} {
-	address, err := routes.walletMiddleware.ReceiveAddress(accountNumber)
+	address, err := routes.walletMiddleware.GenerateNewAddress(accountNumber)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

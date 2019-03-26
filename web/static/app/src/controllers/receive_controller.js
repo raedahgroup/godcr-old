@@ -1,7 +1,7 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 
-import { copyToClipboard } from '../utils'
+import { copyToClipboard, setErrorMessage } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -14,9 +14,9 @@ export default class extends Controller {
     copyToClipboard(this.addressTarget.textContent)
   }
 
-  generate (e) {
-    e.preventDefault()
+  generate () {
     let _this = this
+    _this.clearMessages()
     axios.get('/generate-address/' + this.accountTarget.value)
       .then((response) => {
         let result = response.data
@@ -24,12 +24,11 @@ export default class extends Controller {
           _this.addressTarget.textContent = result.address
           _this.imageTarget.setAttribute('src', result.imageData)
         } else {
-          window.alert(result.message)
+          setErrorMessage(result.message)
         }
       })
-      .catch((error) => {
-        console.log(error)
-        window.alert('Unable to generate address. Something went wrong.')
+      .catch(() => {
+        setErrorMessage('Unable to generate address. Something went wrong.')
       })
   }
 }
