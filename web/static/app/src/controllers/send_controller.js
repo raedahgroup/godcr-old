@@ -25,6 +25,7 @@ export default class extends Controller {
   }
 
   initialize () {
+    this.destinationCount = 0
     this.newDestination()
   }
 
@@ -34,11 +35,26 @@ export default class extends Controller {
     }
 
     const destinationTemplate = document.importNode(this.destinationTemplateTarget.content, true)
+
+    const addressInput = destinationTemplate.querySelector('input[name="destination-address"]')
+    const amountInput = destinationTemplate.querySelector('input[name="destination-amount"]')
+    const sendMaxButton = destinationTemplate.querySelector('button[type="button"]')
+
+    addressInput.setAttribute('data-index', this.destinationCount)
+    amountInput.setAttribute('data-index', this.destinationCount)
+    sendMaxButton.setAttribute('data-index', this.destinationCount)
+
     this.destinationsTarget.appendChild(destinationTemplate)
 
-    if (this.destinationCount() > 1) {
-      show(this.removeDestinationButtonTarget)
+    if (this.destinationCount > 1) {
+      this.show(this.removeDestinationButtonTarget)
     }
+
+    this.destinationCount++
+  }
+
+  takeMaxSendAmount (e) {
+
   }
 
   destinationFieldsValid () {
@@ -65,17 +81,15 @@ export default class extends Controller {
     return fieldsAreValid
   }
 
-  destinationCount () {
-    return this.destinationsTarget.querySelectorAll('div.destination').length
-  }
-
   removeDestination () {
-    if (this.destinationCount() > 1) {
+    if (this.destinationCount > 1) {
       this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'))
     }
-    if (this.destinationCount() <= 1) {
-      hide(this.removeDestinationButtonTarget)
+    if (this.destinationCount <= 1) {
+      this.hide(this.removeDestinationButtonTarget)
     }
+
+    this.destinationCount--
   }
 
   toggleSpendUnconfirmed () {
@@ -417,10 +431,8 @@ export default class extends Controller {
 
   resetSendForm () {
     this.resetCustomInputsAndChangeOutputs()
-    let destinationCount = this.destinationCount()
-    while (destinationCount > 1) {
+    while (this.destinationCount > 1) {
       this.removeDestination()
-      destinationCount--
     }
     this.addressTargets.forEach(ele => {
       ele.value = ''

@@ -49,21 +49,27 @@
                             <template data-target="send.destinationTemplate">
                                 <div class="col-md-7 col-sm-12 destination">
                                     <div class="row">
-                                        <div class="col-md-8 col-sm-12">
+                                        <div class="col-md-7 col-sm-12">
                                             <div class="form-group">
                                                 <label>Destination Address</label>
                                                 <input data-target="send.address" type="text" class="form-control"
                                                        name="destination-address"/>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 col-sm-12">
+                                        <div class="col-md-5 col-sm-12">
                                             <div class="form-group">
                                                 <label>Amount (DCR)</label>
-                                                <input data-target="send.amount"
-                                                       data-action="keyup->send#calculateCustomInputsPercentage"
-                                                       type="number" class="form-control amount"
-                                                       name="destination-amount"/>
+                                                <div class="input-group mb-3">
+                                                    <input data-target="send.amount"
+                                                           data-action="keyup->send#calculateCustomInputsPercentage"
+                                                           type="text" class="form-control amount"
+                                                           name="destination-amount">
+                                                    <div class="input-group-append">
+                                                        <button data-action="click->send#sendMax" class="btn btn-outline-secondary" type="button">Send Max</button>
+                                                    </div>
+                                                </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
