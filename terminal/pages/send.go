@@ -55,16 +55,18 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
-	outputMessage := func(output string) {
+	OutputMessage := func(output string) {
 		body.RemoveItem(outputTextView)
 		body.AddItem(outputTextView.SetText(output), 0, 1, true)
 	}
 
 	form.AddButton("Send", func() {
+		body.RemoveItem(outputTextView)
+
 		sendDestination := make([]txhelper.TransactionDestination, 1)
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {
-			outputMessage("Error: Invalid amount")
+			OutputMessage("Error: Invalid amount")
 			return
 		}
 		sendDestination[0] = txhelper.TransactionDestination{
@@ -79,11 +81,13 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
 		if err != nil {
-			outputMessage(err.Error())
+			OutputMessage(err.Error())
 			return
 		}
 
-		outputMessage("Sent txid " + txHash)
+		OutputMessage("Sent txid " + txHash)
+		form.ClearFields(false)
+		setFocus(form.GetFormItem(0))
 	})
 
 	form.SetCancelFunc(clearFocus)
