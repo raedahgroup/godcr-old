@@ -46,15 +46,42 @@ export default class extends Controller {
 
     this.destinationsTarget.appendChild(destinationTemplate)
 
+    this.destinationCount++
+
     if (this.destinationCount > 1) {
       this.show(this.removeDestinationButtonTarget)
     }
-
-    this.destinationCount++
   }
 
-  takeMaxSendAmount (e) {
+  setMaxAmountForDestination (event) {
+    const targetElement = event.currentTarget
+    const index = parseInt(targetElement.getAttribute('data-index'))
 
+    let amountField
+    this.amountTargets.forEach(el => {
+      if (index === parseInt(el.getAttribute('data-index'))) {
+        amountField = el
+      }
+    })
+    const currentAmount = amountField.value
+    // temporarily set the destination amount field (if empty) to make destination validation pass
+    if (!(parseInt(currentAmount) > 0)) {
+      amountField.value = 1
+    }
+    if (!this.destinationFieldsValid()) {
+      amountField.value = currentAmount
+      return
+    }
+    this.resetChangeOutput()
+    // set the destination amount to zero and get the server calculated value
+    amountField.value = 0
+    this.getRandomChangeOutputs(1, changeOutputs => {
+      if (!changeOutputs || changeOutputs.length < 1) {
+        amountField.value = currentAmount
+        return
+      }
+      amountField.value = changeOutputs[0].Amount
+    })
   }
 
   destinationFieldsValid () {
@@ -211,6 +238,10 @@ export default class extends Controller {
   toggleCustomChangeOutputsVisibility () {
     this.clearMessages()
     this.useCustomChangeOutput = !this.useCustomChangeOutput
+    this.resetChangeOutput()
+  }
+
+  resetChangeOutput () {
     this.generatedChangeOutputsTarget.innerHTML = ''
     this.numberOfChangeOutputsTarget.value = ''
   }
@@ -234,7 +265,7 @@ export default class extends Controller {
 
     let _this = this
     this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputs) {
-      if (!_this.useCustomChangeOutput) {
+      if (!_this.useCustomChangeOutput || !changeOutputs) {
         return
       }
 
