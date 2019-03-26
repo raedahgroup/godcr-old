@@ -3,12 +3,12 @@ package commands
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"strconv"
 	"strings"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // HistoryCommand enables the user view their transaction history.
@@ -61,8 +61,8 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
 
 		// ask user what to do next
-		 var prompt string
-		pageInfo := fmt.Sprintf("Showing transactions %d-%d", lastTxRowNumber, lastTxRowNumber+len(transactions) - 1)
+		var prompt string
+		pageInfo := fmt.Sprintf("Showing transactions %d-%d", lastTxRowNumber, lastTxRowNumber+len(transactions)-1)
 		if startBlockHeight >= 0 {
 			prompt = fmt.Sprintf("%s, enter # for details, show (M)ore, or (q)uit", pageInfo)
 		} else {

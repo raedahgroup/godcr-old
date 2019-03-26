@@ -312,9 +312,9 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	lastTxCount, _ := strconv.ParseInt(lastCount, 10, 32)
 
 	data := map[string]interface{}{
-		"txs": txns,
+		"txs":          txns,
 		"startTxCount": int(lastTxCount),
-		"lastTxCount": int(lastTxCount) + len(txns),
+		"lastTxCount":  int(lastTxCount) + len(txns),
 	}
 
 	if endBlockHeight > 0 {

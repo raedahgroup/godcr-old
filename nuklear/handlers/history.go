@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
@@ -87,9 +88,8 @@ func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, maste
 	handler.transactions, endBlockHeight, handler.err = wallet.TransactionHistory(handler.ctx, handler.nextBlockHeight,
 		walletcore.TransactionHistoryCountPerPage)
 
-
 	// next start block should be the block immediately preceding the current end block
-	handler.nextBlockHeight = endBlockHeight  - 1
+	handler.nextBlockHeight = endBlockHeight - 1
 
 	handler.isFetchingTransactions = false
 	handler.loadingPreviousPage = false
@@ -144,7 +144,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *helpers.Window
 		handler.nextBlockHeight = handler.pagesBlockHeightHistory[lastPage]
 
 		handler.pagesBlockHeightHistory = handler.pagesBlockHeightHistory[:lastPage]
-		handler.pagesTxCount = handler.pagesTxCount[:lastPage + 1]
+		handler.pagesTxCount = handler.pagesTxCount[:lastPage+1]
 
 		handler.loadingPreviousPage = true
 		handler.fetchTransactions(wallet, contentWindow.Master())

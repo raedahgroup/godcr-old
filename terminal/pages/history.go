@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	"fmt"
+
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -86,9 +87,9 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 	if endBlockHeight > 0 {
 		// set or reset selection changed listener to load more data when the table is almost scrolled to the end
 		historyTable.SetSelectionChangedFunc(func(row, column int) {
-			if row >= historyTable.GetRowCount() - 5 {
+			if row >= historyTable.GetRowCount()-5 {
 				historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
-				go fetchAndDisplayTransactions(endBlockHeight - 1, wallet, historyTable, displayError)
+				go fetchAndDisplayTransactions(endBlockHeight-1, wallet, historyTable, displayError)
 			}
 		})
 	}
