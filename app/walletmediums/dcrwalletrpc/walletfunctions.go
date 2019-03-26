@@ -319,10 +319,22 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (
 	transactions []*walletcore.Transaction, endBlockHeight int32, err error) {
 
-	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
-	if err != nil {
-		err = fmt.Errorf("error reading best block: %s", err.Error())
-		return
+	if startBlockHeight < 0 {
+		// begin reading from the most recent (unmined) transactions to the most recent (best) block
+		bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+		if err != nil {
+			err = fmt.Errorf("error reading best block: %s", err.Error())
+			return
+		}
+
+		startBlockHeight = -1
+		endBlockHeight = int32(bestBlock.Height)
+	} else if startBlockHeight == 0 {
+		// requesting earliest transactions
+		endBlockHeight = 0
+	} else {
+		// read from the provided block height to the one before it
+		endBlockHeight = startBlockHeight - 1
 	}
 
 	fetchTransactions := func(startBlockHeight, endBlockHeight int32) error {
@@ -365,20 +377,27 @@ func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeig
 	}
 
 	for {
-		endBlockHeight = startBlockHeight + 1
-		if endBlockHeight >= int32(bestBlock.Height) {
-			endBlockHeight = -1
-		}
-
 		err = fetchTransactions(int32(startBlockHeight), int32(endBlockHeight))
 		if err != nil {
 			return
 		}
 
-		if len(transactions) >= minReturnTxs || endBlockHeight == -1 {
+		if len(transactions) >= minReturnTxs {
 			break
 		}
-		startBlockHeight++
+
+		if endBlockHeight > 1 {
+			// next round should begin with the block height preceding the range just fetched
+			startBlockHeight = endBlockHeight - 1
+			endBlockHeight = startBlockHeight - 1
+		} else if endBlockHeight == 1 {
+			// last range must have been 2 - 1, now fetch 0 - 0
+			startBlockHeight = 0
+			endBlockHeight = 0
+		} else {
+			// gotten to the end (block height 0 represents earliest possible record)
+			break
+		}
 	}
 
 	// sort transactions by date (list newer first)
