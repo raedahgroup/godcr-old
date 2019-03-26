@@ -88,4 +88,6 @@ type Wallet interface {
 	ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error
 	// BestBlock fetches the best block on the network
 	BestBlock() (uint32, error)
+
+	GetConnectedPeersCount() int32
 }

@@ -103,7 +103,7 @@ func (c *WalletRPCClient) IsWalletOpen() bool {
 func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
 	ctx := context.Background()
 
-	bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+	bestBlockHeight, err := c.BestBlock()
 	if err != nil {
 		return err
 	}
@@ -133,10 +133,14 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 		listener:  listener,
 		netType:   c.NetType(),
 		client:    syncStream,
-		bestBlock: int64(bestBlock.Height),
+		bestBlock: int64(bestBlockHeight),
 	}
 
 	// receive sync updates from stream and send to listener in separate goroutine
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
+}
+
+func (lib *WalletRPCClient) GetConnectedPeersCount() int32 {
+	return numberOfPeers
 }

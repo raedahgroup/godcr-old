@@ -7,6 +7,8 @@ import (
 	"github.com/raedahgroup/godcr/app/walletmediums"
 )
 
+var numberOfPeers int32
+
 type spvSync struct {
 	client    walletrpc.WalletLoaderService_SpvSyncClient
 	bestBlock int64

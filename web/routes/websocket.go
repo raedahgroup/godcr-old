@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"fmt"
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"log"
 	"net/http"
 
@@ -36,7 +39,7 @@ func (routes *Routes) wsHandler(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 }
 
-func handleMessages() {
+func waitToSendMessagesToClients() {
 	for {
 		msg := <-wsBroadcast
 		for client := range clients {
@@ -47,5 +50,35 @@ func handleMessages() {
 				delete(clients, client)
 			}
 		}
+	}
+}
+
+func (routes *Routes) sendWsConnectionInfoUpdate() {
+	var info = walletcore.ConnectionInfo{
+		NetworkType:    routes.walletMiddleware.NetType(),
+		PeersConnected: routes.walletMiddleware.GetConnectedPeersCount(),
+	}
+
+	wsBroadcast <- Packet{
+		Event:   UpdateConnectionInfo,
+		Message: info,
+	}
+}
+
+func (routes *Routes) sendWsBalance() {
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
+		return
+	}
+
+	var totalBalance walletcore.Balance
+	for _, acc := range accounts {
+		totalBalance.Spendable += acc.Balance.Spendable
+		totalBalance.Total += acc.Balance.Total
+	}
+	wsBroadcast <- Packet{
+		Event:   UpdateBalance,
+		Message: totalBalance.String(),
 	}
 }

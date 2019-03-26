@@ -28,7 +28,7 @@ func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 // - wallet is open but blockchain isn't synced
 func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// render error on page if errMsg != ""
+		// renderPage error on page if errMsg != ""
 		var errMsg string
 		defer func() {
 			if errMsg != "" {
@@ -58,8 +58,6 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	})
 }
 
-var numberOfPeers int32
-
 func (routes *Routes) syncBlockchain() {
 	updateStatus := routes.blockchain.updateStatus
 
@@ -88,12 +86,6 @@ func (routes *Routes) syncBlockchain() {
 		},
 		OnRescanningBlocks: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
-		},
-		OnPeerDisconnected: func(peerCount int32) {
-			numberOfPeers = peerCount
-		},
-		OnPeerConnected: func(peerCount int32) {
-			numberOfPeers = peerCount
 		},
 	}, false)
 

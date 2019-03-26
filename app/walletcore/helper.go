@@ -91,3 +91,25 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 	}
 	return
 }
+
+func WalletConnectionInfo(wallet Wallet, netType string) (*ConnectionInfo, error) {
+	accounts, err := wallet.AccountsOverview(DefaultRequiredConfirmations)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching account balance: %s", err.Error())
+	}
+
+	var totalBalance Balance
+	for _, acc := range accounts {
+		totalBalance.Spendable += acc.Balance.Spendable
+		totalBalance.Total += acc.Balance.Total
+	}
+
+	bestBlock, _ := wallet.BestBlock()
+
+	return &ConnectionInfo{
+		NetworkType:    netType,
+		PeersConnected: wallet.GetConnectedPeersCount(),
+		TotalBalance:   totalBalance.String(),
+		LatestBlock:    bestBlock,
+	}, nil
+}

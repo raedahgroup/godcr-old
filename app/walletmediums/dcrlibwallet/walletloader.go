@@ -96,3 +96,7 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 	listener.SyncStarted()
 	return nil
 }
+
+func (lib *DcrWalletLib) GetConnectedPeersCount() int32 {
+	return numberOfPeers
+}

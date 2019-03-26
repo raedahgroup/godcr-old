@@ -1,12 +1,12 @@
 import { Controller } from 'stimulus'
 import ws from '../services/messagesocket_service'
-
 import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
     return [
       'container',
+      'totalBalance',
       'peersConnected',
       'latestBlock',
       'networkType'
@@ -18,6 +18,7 @@ export default class extends Controller {
 
     ws.registerEvtHandler('updateConnInfo', function (data) {
       _this.peersConnectedTarget.textContent = data.peersConnected
+      _this.totalBalanceTarget.textContent = data.totalBalance
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
 
@@ -31,7 +32,7 @@ export default class extends Controller {
 
   initialize () {
     let _this = this
-    axios.get('/connection-info').then(function (response) { // TODO use the actual url
+    axios.get('/connection').then(function (response) { // TODO use the actual url
       let data = response.data
       _this.peersConnectedTarget.textContent = data.peersConnected
       _this.latestBlockTarget.textContent = data.latestBlock

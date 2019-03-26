@@ -19,17 +19,17 @@
 {{ end }}
 
 {{ define "header" }}
-<div data-controller="info" class="header">
+<div data-controller="connection-info" class="header">
     <div class="header-top">
         <div class="inner">
             <div class="container">
                 <div class="text-center">
-                    <h3>GoDCR <small data-target="info.networkType"></small></h3>
-                    {{ if . }}
-                        <span class="text-muted">Blockchain status: {{ . }}</span>
-                    {{ end }}
-                    <p data-target="info.container" class="d-none">Synced with <b data-target="info.peersConnected"></b> Peers:
-                        | Latest Block: <b data-target="info.latestBlock"></b></p>
+                    <h3>GoDCR <small data-target="connection-info.networkType">{{ .NetworkType }}</small></h3>
+                    <p data-target="connection-info.container" class="d-none">
+                        Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
+                        | Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
+                        | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
+                    </p>
                 </div>
             </div>
         </div>

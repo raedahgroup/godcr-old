@@ -3,13 +3,13 @@ package routes
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/app/config"
 	"html/template"
 	"log"
 	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
@@ -66,6 +66,9 @@ func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Post("/change-password", routes.changeSpendingPassword)
 	router.Put("/settings", routes.updateSetting)
 
+	router.Get("/ws", routes.wsHandler)
+	go waitToSendMessagesToClients()
+
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)
 }
@@ -87,8 +90,6 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/transaction-details/{hash}", routes.transactionDetailsPage)
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
-	router.Get("/connection-info", routes.connectionInfo)
+	router.Get("/connection", routes.connectionInfo)
 
-	router.Get("/ws", routes.wsHandler)
-	go handleMessages()
 }

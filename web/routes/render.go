@@ -2,9 +2,20 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"log"
 	"net/http"
 )
+
+func (routes *Routes) renderPage(tplName string, data map[string]interface{}, res http.ResponseWriter) {
+	connectionInfo, err := walletcore.WalletConnectionInfo(routes.walletMiddleware, routes.walletMiddleware.NetType())
+	if err != nil {
+		weblog.LogError(err)
+	}
+	data["connectionInfo"] = connectionInfo
+	routes.render(tplName, data, res)
+}
 
 func (routes *Routes) render(tplName string, data interface{}, res http.ResponseWriter) {
 	if tpl, ok := routes.templates[tplName]; ok {
@@ -22,14 +33,14 @@ func (routes *Routes) renderError(errorMessage string, res http.ResponseWriter) 
 	data := map[string]interface{}{
 		"error": errorMessage,
 	}
-	routes.render("error.html", data, res)
+	routes.renderPage("error.html", data, res)
 }
 
 func (routes *Routes) renderNoWalletError(res http.ResponseWriter) {
 	data := map[string]interface{}{
 		"noWallet": true,
 	}
-	routes.render("error.html", data, res)
+	routes.renderPage("error.html", data, res)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {

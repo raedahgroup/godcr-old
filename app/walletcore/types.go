@@ -85,5 +85,6 @@ type StakeInfo struct {
 type ConnectionInfo struct {
 	NetworkType    string `json:"networkType"`
 	PeersConnected int32  `json:"peersConnected"`
+	TotalBalance   string `json:"totalBalance"`
 	LatestBlock    uint32 `json:"latestBlock"`
 }
