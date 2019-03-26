@@ -1,11 +1,17 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 
+import { copyToClipboard } from '../utils'
+
 export default class extends Controller {
   static get targets () {
     return [
       'account', 'address', 'image'
     ]
+  }
+
+  copyToClipboard () {
+    copyToClipboard(this.addressTarget.textContent)
   }
 
   generate (e) {

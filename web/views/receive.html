@@ -8,13 +8,14 @@
             <div class="container">
                 <div class="card">
                    <div class="card-body">
-                       <h5 class="card-title">Generate Receive Address</h5>
+                       <h5 class="card-title">Receiving Decred</h5>
+                       <p class="lead-text">Each time you request payment, a new <br/>address is created to protect your privacy</p>
                        <form id="generate-form">
                             <div class="row">
                                 <div class="col-md-6 col-sm-12">
                                     <div class="form-group">
                                         <label for="account">Account</label>
-                                    {{ if gt len .accounts 1 }}
+                                    {{ if gt (len .accounts) 1 }}
                                         <select data-target="receive.account" data-action="change->receive#generate" class="form-control" name="account" id="account">
                                         {{ range $account := .accounts }}
                                             <option value="{{ $account.Number }}">{{ accountString $account }}</option>
@@ -33,6 +34,7 @@
                             <div id="result-text">
                                 <strong>Address:</strong>
                                 <span data-target="receive.address" id="address">{{ .address }}</span>
+                                <button data-action="click->receive#copyToClipboard" class="btn btn-xs btnCopy" title="Copy to clipboard"><i class="fa fa-copy"></i></button>
                             </div>
                             <div id="result-img">{{ rawHtml .imageStr }}</div>
                         </div>
