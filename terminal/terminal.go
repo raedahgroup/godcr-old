@@ -6,7 +6,7 @@ import (
 
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
 )
@@ -14,14 +14,14 @@ import (
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 
-	walletExists, err := helpers.OpenWalletIfExist(ctx, walletMiddleware)
+	walletExists, err := nuklear.OpenWalletIfExist(ctx, walletMiddleware)
 	if err != nil {
 		return err
 	}
 
 	var page tview.Primitive
 	if walletExists {
-		page = pageLoader(tviewApp, walletMiddleware)
+		page = sync(tviewApp, walletMiddleware)
 	} else {
 		page = createWallet(tviewApp, walletMiddleware)
 	}
@@ -30,14 +30,12 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	return tviewApp.SetRoot(page, true).Run()
 }
 
-func pageLoader(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func sync(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	syncStatus := make(chan walletcore.SyncStatus)
 	syncBlockchain(walletMiddleware, syncStatus)
 
 	for status := range syncStatus {
 		if status == walletcore.SyncStatusError {
-			msgOutput := fmt.Sprintf(syncMessage)
-			fmt.Println(msgOutput)
 			tviewApp.Stop()
 			return nil
 		}
@@ -51,7 +49,7 @@ func pageLoader(tviewApp *tview.Application, walletMiddleware app.WalletMiddlewa
 		}
 	}
 
-	return nil
+	return pages.TerminalLayout(tviewApp, walletMiddleware)
 }
 
 

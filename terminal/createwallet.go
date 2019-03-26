@@ -64,14 +64,15 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 	})
 	layout.AddItem(checkbox, 2, 1, true)
 
-	createButton := tview.NewForm().
+	// tview button was not used because it cannot be styled with flexbox
+	createWalletButton := tview.NewForm().
 		AddButton("Create Wallet", func() {
 			if len(passphrase) == 0 {
 				outputMessage("Passphrase cannot empty")
 				return
 			}
 			if passphrase != confirmPassphrase {
-				outputMessage("passphrase does not match")
+				outputMessage("Passphrase does not match")
 				return
 			}
 			if !hasStoredSeed {
@@ -84,12 +85,12 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 				outputMessage(err.Error())
 			}
 
-			res := pageLoader(tviewApp, walletMiddleware)
-			pages.AddAndSwitchToPage("sync", res, true)
+			syncPage := sync(tviewApp, walletMiddleware)
+			pages.AddAndSwitchToPage("sync", syncPage, true)
 			return
 		})
 
-	layout.AddItem(createButton, 0, 1, true)
+	layout.AddItem(createWalletButton, 0, 1, true)
 
 	layout.SetFullScreen(true).SetBorder(true).SetBorderPadding(3, 1, 6, 4)
 
@@ -106,7 +107,7 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 		return event
 	})
 
-	// listen to escape and left key press events on all form items and buttons
+	// listen to escape, tab and shiftTab key press events on checkbox and passphraseField items
 	confirmPassphraseField.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			tviewApp.Stop()
@@ -123,14 +124,14 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 		return event
 	})
 
-	// use different key press listener on first form item to watch for backtab press and restore focus to stake info
+	// listen to escape, tab and shiftTab key press events on createWalletButton and confirmPassphraseField items
 	checkbox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			tviewApp.Stop()
 			return nil
 		}
 		if event.Key() == tcell.KeyTAB {
-			setFocus(createButton)
+			setFocus(createWalletButton)
 			return nil
 		}
 		if event.Key() == tcell.KeyBacktab {
@@ -140,8 +141,8 @@ func createWallet(tviewApp *tview.Application, walletMiddleware app.WalletMiddle
 		return event
 	})
 
-	// use different key press listener on form button to watch for tab press and restore focus to stake info
-	createButton.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	// listen to escape, tab and shiftTab key press events on passphraseField and checkbox items
+	createWalletButton.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			tviewApp.Stop()
 			return nil
