@@ -49,28 +49,9 @@ func SimpleBalance(balance *Balance, detailed bool) string {
 	}
 }
 
-func SpendableBalance(balance *Balance) string {
-	return balance.Spendable.String()
-}
-
-// NormalizeBalance adds 0s to the left and the right of balanceString to make it xxxx.xxxxxxxx DCR
-func NormalizeBalance(balanceString string) string {
-	parts := strings.Split(balanceString, " ")
-	if !strings.Contains(parts[0], ".") {
-		parts[0] = parts[0] + ".0"
-	}
-	numberParts := strings.Split(parts[0], ".")
-	if len(numberParts[1]) < 8 {
-		numberParts[1] = padRight(numberParts[1], "0", 8)
-	}
-	return fmt.Sprintf("%s.%s %s", numberParts[0], numberParts[1], parts[1])
-}
-
-func padRight(input, niddle string, maxLen int) string {
-	for len(input) < maxLen {
-		input += niddle
-	}
-	return input
+// NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
+func NormalizeBalance(balance float64) string {
+	return fmt.Sprintf("%010.8f DCR", balance)
 }
 
 // GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want

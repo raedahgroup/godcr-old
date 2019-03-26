@@ -22,11 +22,24 @@
                         <div class="row">
                             <div class="col-md-3 col-sm-6">
                             {{ $account := index .accounts 0 }}
+                                <table class="balance-table">
+                                    <tr>
+                                        <td><b>Total:</b></td>
+                                        <td style="text-align: right;">{{ simpleBalance $account.Balance true }}</td>
+                                    </tr>
+                                {{ if ne $account.Balance.Total $account.Balance.Spendable }}
+                                    <tr>
+                                        <td><b>Spendable:</b></td>
+                                        <td style="text-align: right;">{{ spendableBalance $account.Balance }}</td>
+                                    </tr>
+                                {{ end }}
+                                </table>
+                            {{/*{{ $account := index .accounts 0 }}
                                 <p style="font-size: 16px;" class="mb-0"><b>Total</b>: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp; <span  style="float: right;">{{ simpleBalance $account.Balance true }}</span></p>
                             {{ if ne $account.Balance.Total $account.Balance.Spendable }}
                                 <p style="font-size: 16px;" class="mb-0"><b>Spendable</b>: &nbsp; <span style="float: right;">{{ spendableBalance $account.Balance }}</span></p>
-                            {{ end }}
+                            {{ end }}*/}}
                             </div>
                         </div>
                         {{ else }}
