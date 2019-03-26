@@ -156,20 +156,21 @@ func (f *Form) Clear(includeButtons bool) *Form {
 
 // ClearFields clears texts from InputFields, unchecks Checkboxes and sets the selected index of DropDowns to 0
 func (f *Form) ClearFields(includeButtons bool) *Form {
- for i := 0; i < f.GetFormItemsCount(); i++ {
-  field := f.GetFormItem(i)
-  if inputField, ok := field.(*tview.InputField); ok {
-   inputField.SetText("")
-  } else if dropDown, ok := field.(*tview.DropDown); ok {
-   if selected, _ := dropDown.GetCurrentOption(); selected > 0 {
-    dropDown.SetCurrentOption(0)
-   }
-  } else if checkBox, ok := field.(*tview.Checkbox); ok {
-   checkBox.SetChecked(false)
-  }
- }
- return f
+	for i := 0; i < f.GetFormItemsCount(); i++ {
+		field := f.GetFormItem(i)
+		if inputField, ok := field.(*tview.InputField); ok {
+			inputField.SetText("")
+		} else if dropDown, ok := field.(*tview.DropDown); ok {
+			if selected, _ := dropDown.GetCurrentOption(); selected > 0 {
+				dropDown.SetCurrentOption(0)
+			}
+		} else if checkBox, ok := field.(*tview.Checkbox); ok {
+			checkBox.SetChecked(false)
+		}
+	}
+	return f
 }
+
 // GetFormItemBox returns the form element at the given position as a *tview.Box object,
 // starting with index 0. Elements are referenced in the order they were added.
 // Buttons are not included.
