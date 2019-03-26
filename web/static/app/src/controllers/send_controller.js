@@ -73,6 +73,7 @@ export default class extends Controller {
       return
     }
     this.resetChangeOutput()
+    let _this = this
     // set the destination amount to zero and get the server calculated value
     amountField.value = 0
     this.getRandomChangeOutputs(1, changeOutputs => {
@@ -81,6 +82,7 @@ export default class extends Controller {
         return
       }
       amountField.value = changeOutputs[0].Amount
+      _this.calculateCustomInputsPercentage()
     })
   }
 
@@ -310,6 +312,9 @@ export default class extends Controller {
 
     let queryParams = $('#send-form').serialize()
     queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    if (this.spendUnconfirmedTarget.checked) {
+      queryParams += '&getUnconfirmed=true'
+    }
 
     // add source-account value to post data if source-account element is disabled
     if (this.sourceAccountTarget.disabled) {
