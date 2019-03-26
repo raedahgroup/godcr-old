@@ -16,16 +16,25 @@ func LaunchApp() {
 
 	menu := widget.NewVBox(
 		widget.NewGroup("GoDCR", widget.NewVBox(
-			widget.NewButton("Dashboard", func() {
+			widget.NewButton("Overview", func() {
 
 			}),
-			widget.NewButton("Accounts", func() {
+			widget.NewButton("History", func() {
 
 			}),
 			widget.NewButton("Send", func() {
 
 			}),
 			widget.NewButton("Recieve", func() {
+
+			}),
+			widget.NewButton("Accounts", func() {
+
+			}),
+			widget.NewButton("Security", func() {
+
+			}),
+			widget.NewButton("Governance", func() {
 
 			}),
 			widget.NewButton("Quit", func() {
