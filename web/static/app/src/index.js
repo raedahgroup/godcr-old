@@ -15,7 +15,7 @@ application.load(definitionsFromContext(context))
 
 function getSocketURI (loc) {
   let protocol = (loc.protocol === 'https:') ? 'wss' : 'ws'
-  return `${protocol}://${loc.host}/ws'`
+  return `${protocol}://${loc.host}/ws`
 }
 
 function createWebSocket (loc) {
