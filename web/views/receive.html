@@ -12,29 +12,21 @@
                        <form id="generate-form">
                             <div class="row">
                                 <div class="col-md-6 col-sm-12">
-                                  <div class="form-group">
-                                       <label for="account">Account</label>
-                                        {{ if gt .accountsCount 1 }}
-                                       <select data-target="receive.account" class="form-control" name="account" id="account">
-                                            {{ range $account := .accounts }}
-                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
-                                            {{ end }}
-                                       </select>
-                                        {{ else }}
+                                    <div class="form-group">
+                                        <label for="account">Account</label>
+                                    {{ if gt len .accounts 1 }}
+                                        <select data-target="receive.account" data-action="change->receive#generate" class="form-control" name="account" id="account">
                                         {{ range $account := .accounts }}
-                                            <input class="form-control" readonly value="{{ accountString $account }}">
+                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
                                         {{ end }}
-                                        {{ end  }}
-                                  </div>
-                                </div>
-                                {{ if gt .accountsCount 1 }}
-                                    <div class="col-md-3 col-sm-12">
-                                        <div class="form-group btn-form-group">
-                                            <button data-action="click->receive#generate" type="submit" id="submit" class="btn btn-success form-control">Generate</button>
-                                        </div>
+                                        </select>
+                                    {{ else }}
+                                    {{ range $account := .accounts }}
+                                        <input class="form-control" readonly value="{{ accountString $account }}">
+                                    {{ end }}
+                                    {{ end  }}
                                     </div>
-                                {{ end  }}
-
+                                </div>
                             </div>
                         </form>
                         <div class="result-card">

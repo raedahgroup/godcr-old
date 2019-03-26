@@ -8,8 +8,8 @@ export default class extends Controller {
     ]
   }
 
-  generate (evn) {
-    evn.preventDefault()
+  generate (e) {
+    e.preventDefault()
     let _this = this
     axios.get('/generate-address/' + this.accountTarget.value)
       .then((response) => {
