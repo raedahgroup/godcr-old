@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/pkg/browser"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/web/routes"
 )
@@ -99,6 +100,8 @@ func startServer(ctx context.Context, address string, router chi.Router) error {
 		return ctx.Err()
 	case <-t.C:
 		fmt.Printf("Web server running on %s\n", address)
+		fmt.Printf("Launching browser....\n")
+		browser.OpenURL("http://" + address)
 		return nil
 	}
 }
