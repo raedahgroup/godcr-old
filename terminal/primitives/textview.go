@@ -1,6 +1,14 @@
 package primitives
 
-import "github.com/rivo/tview"
+import (
+	"github.com/raedahgroup/godcr/terminal/helpers"
+	"github.com/rivo/tview"
+)
+
+func TitleTextView(text string) *tview.TextView {
+	return NewLeftAlignedTextView(text).
+		SetTextColor(helpers.PageHeaderColor)
+}
 
 type TextView struct {
 	*tview.TextView

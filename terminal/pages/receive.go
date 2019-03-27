@@ -5,7 +5,6 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
@@ -18,7 +17,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address").SetTextColor(helpers.TitleColor), 2, 0, false)
+	body.AddItem(primitives.TitleTextView("Generate Receive Address"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {

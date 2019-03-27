@@ -7,7 +7,6 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
@@ -20,7 +19,7 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Send").SetTextColor(helpers.TitleColor), 2, 0, false)
+	body.AddItem(primitives.TitleTextView("Send"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
