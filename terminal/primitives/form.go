@@ -155,7 +155,7 @@ func (f *Form) Clear(includeButtons bool) *Form {
 }
 
 // ClearFields clears texts from InputFields, unchecks Checkboxes and sets the selected index of DropDowns to 0
-func (f *Form) ClearFields(includeButtons bool) *Form {
+func (f *Form) ClearFields() *Form {
 	for i := 0; i < f.GetFormItemsCount(); i++ {
 		field := f.GetFormItem(i)
 		if inputField, ok := field.(*tview.InputField); ok {

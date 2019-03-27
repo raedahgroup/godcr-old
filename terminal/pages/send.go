@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"github.com/gdamore/tcell"
 	"strconv"
 
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -13,12 +14,23 @@ import (
 func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Send"), 2, 1, false)
+	// page title and tip
+	body.AddItem(primitives.NewCenterAlignedTextView("Send"), 1, 0, false)
+	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
+	hintText.SetTextColor(tcell.ColorGray)
+	body.AddItem(hintText, 3, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
+
+	// form for Sending
+	form := primitives.NewForm()
+	body.AddItem(form, 14, 0, true)
+
+	outputMessageTextView := primitives.NewCenterAlignedTextView("")
+	body.AddItem(outputMessageTextView, 2, 0, false)
 
 	accountNames := make([]string, len(accounts))
 	accountNumbers := make([]uint32, len(accounts))
@@ -27,8 +39,7 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		accountNumbers[index] = account.Number
 	}
 
-	// Form for Sending
-	form := primitives.NewForm()
+	// add form fields
 	var accountNum uint32
 	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
@@ -54,21 +65,17 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		passphrase = text
 	})
 
-	outputTextView := tview.NewTextView().SetTextAlign(tview.AlignCenter)
-	OutputMessage := func(output string) {
-		body.RemoveItem(outputTextView)
-		body.AddItem(outputTextView.SetText(output), 0, 1, true)
-	}
-
 	form.AddButton("Send", func() {
-		body.RemoveItem(outputTextView)
+		// clear previous message
+		outputMessageTextView.SetText("")
 
-		sendDestination := make([]txhelper.TransactionDestination, 1)
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {
-			OutputMessage("Error: Invalid amount")
+			outputMessageTextView.SetText("Error: Invalid amount")
 			return
 		}
+
+		sendDestination := make([]txhelper.TransactionDestination, 1)
 		sendDestination[0] = txhelper.TransactionDestination{
 			Address: destination,
 			Amount:  amount,
@@ -81,18 +88,18 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
 		if err != nil {
-			OutputMessage(err.Error())
+			outputMessageTextView.SetText(err.Error())
 			return
 		}
 
-		OutputMessage("Sent txid " + txHash)
-		form.ClearFields(false)
+		outputMessageTextView.SetText("Sent txid " + txHash)
+
+		// reset form
+		form.ClearFields()
 		setFocus(form.GetFormItem(0))
 	})
 
 	form.SetCancelFunc(clearFocus)
-	body.AddItem(form, 13, 1, true)
-
 	setFocus(body)
 
 	return body
