@@ -20,7 +20,7 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Send").SetTextColor(helpers.TitleColor), 3, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Send").SetTextColor(helpers.TitleColor), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -30,6 +30,9 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	// form for Sending
 	form := primitives.NewForm()
 	body.AddItem(form, 14, 0, true)
+	form.SetCancelFunc(clearFocus)
+	form.SetLabelColor(tcell.ColorWhite)
+	form.SetBorderPadding(0, 0, 0, 0)
 
 	outputMessageTextView := primitives.NewCenterAlignedTextView("")
 	body.AddItem(outputMessageTextView, 2, 0, false)
@@ -101,10 +104,6 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		setFocus(form.GetFormItem(0))
 	})
 
-	form.SetCancelFunc(clearFocus)
-	form.SetLabelColor(tcell.ColorWhite)
-
-	body.AddItem(form, 17, 0, true)
 	body.SetBorderPadding(1, 0, 1, 0)
 
 	setFocus(body)

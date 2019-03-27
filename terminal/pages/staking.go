@@ -24,7 +24,7 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Staking").SetTextColor(helpers.TitleColor), 3, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Staking").SetTextColor(helpers.TitleColor), 2, 0, false)
 
 	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
@@ -35,7 +35,7 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		body.AddItem(stakeInfo, 8, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
@@ -152,6 +152,8 @@ func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives
 	}
 
 	form := primitives.NewForm()
+	form.SetBorderPadding(0, 0, 0, 0)
+
 	var accountNum uint32
 	form.AddDropDown("Source Account", accountOverviews, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]

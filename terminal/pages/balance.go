@@ -17,7 +17,7 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 4, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Wallet Balance").SetTextColor(helpers.TitleColor), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Wallet Balance").SetTextColor(helpers.TitleColor), 3, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -25,7 +25,10 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	}
 
 	form := tview.NewForm()
+	form.SetBorderPadding(0, 0, 0, 0)
+
 	table := tview.NewTable().SetBorders(true)
+
 	textView := tview.NewTextView()
 	textView.SetBorderPadding(0, 0, 30, 0)
 
@@ -68,7 +71,7 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		}
 	}
 
-	body.AddItem(form.AddButton("Show Detailed", func() {
+	body.AddItem(form.AddButton("Detailed Balance", func() {
 		detailedOutput(accounts)
 	}), 3, 1, true)
 

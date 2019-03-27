@@ -18,7 +18,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address").SetTextColor(helpers.TitleColor), 3, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address").SetTextColor(helpers.TitleColor), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -33,7 +33,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
-		}), 4, 1, true).
+		}), 2, 1, true).
 			AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()
@@ -41,6 +41,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			}), 0, 1, true)
 	} else {
 		form := tview.NewForm()
+		form.SetBorderPadding(0, 0, 0, 0)
 
 		var accountNum uint32
 		accountN := make([]uint32, len(accounts))
@@ -56,7 +57,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 						body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
 						return
 					}
-					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
+					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 2, 1, false).
 						AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetLabelColor(tcell.ColorWhite).SetItemPadding(15).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()
