@@ -41,7 +41,7 @@ func TerminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	})
 
 	menuColumn.AddItem("Send", "", 's', func() {
-		changePageColumn(SendPage(setFocus, clearFocus))
+		changePageColumn(SendPage(walletMiddleware, setFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
