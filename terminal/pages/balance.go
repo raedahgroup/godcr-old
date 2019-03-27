@@ -57,6 +57,7 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	checkbox.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEscape {
+			checkbox.SetChecked(false)
 			clearFocus()
 		}
 	})

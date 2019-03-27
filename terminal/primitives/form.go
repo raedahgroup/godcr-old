@@ -1,6 +1,7 @@
 package primitives
 
 import (
+	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
@@ -58,6 +59,24 @@ func (f *Form) AddPasswordField(label, value string, fieldWidth int, mask rune, 
 	return f
 }
 
+func (f *Form) handlePasteEvents(inputField *tview.InputField) {
+	inputField.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlV {
+			textToPaste, err := clipboard.ReadAll()
+			if err == nil {
+				inputField.SetText(textToPaste)
+				return nil
+			}
+		}
+
+		if f.inputCapture != nil {
+			return f.inputCapture(event)
+		}
+
+		return event // allow this input field to handle key press event
+	})
+}
+
 // AddDropDown adds a drop-down element to the form. It has a label, options,
 // and an (optional) callback function which is invoked when an option was
 // selected. The initial option may be a negative value to indicate that no
@@ -108,7 +127,12 @@ func (f *Form) AddFormItem(item tview.FormItem) *Form {
 	}
 
 	f.formItems = append(f.formItems, box)
-	box.SetInputCapture(f.inputCapture)
+
+	if inputField, ok := item.(*tview.InputField); ok {
+		f.handlePasteEvents(inputField)
+	} else {
+		box.SetInputCapture(f.inputCapture)
+	}
 
 	f.Form.AddFormItem(item)
 	return f
@@ -127,6 +151,23 @@ func (f *Form) AddButton(label string, selected func()) *Form {
 func (f *Form) Clear(includeButtons bool) *Form {
 	f.formItems = nil
 	f.Form.Clear(includeButtons)
+	return f
+}
+
+// ClearFields clears texts from InputFields, unchecks Checkboxes and sets the selected index of DropDowns to 0
+func (f *Form) ClearFields() *Form {
+	for i := 0; i < f.GetFormItemsCount(); i++ {
+		field := f.GetFormItem(i)
+		if inputField, ok := field.(*tview.InputField); ok {
+			inputField.SetText("")
+		} else if dropDown, ok := field.(*tview.DropDown); ok {
+			if selected, _ := dropDown.GetCurrentOption(); selected > 0 {
+				dropDown.SetCurrentOption(0)
+			}
+		} else if checkBox, ok := field.(*tview.Checkbox); ok {
+			checkBox.SetChecked(false)
+		}
+	}
 	return f
 }
 

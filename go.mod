@@ -2,6 +2,7 @@ module github.com/raedahgroup/godcr
 
 require (
 	github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d
+	github.com/atotto/clipboard v0.1.2
 	github.com/decred/dcrd/chaincfg v1.3.0
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/dcrd/dcrutil v1.2.0

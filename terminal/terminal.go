@@ -61,7 +61,7 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 0).
-		SetColumns(30, 0, 1).
+		SetColumns(25, 0, 1).
 		SetGap(0, 2).
 		SetBordersColor(helpers.DecredLightColor)
 
@@ -92,7 +92,7 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	})
 
 	menuColumn.AddItem("Send", "", 's', func() {
-		changePageColumn(pages.SendPage(tviewApp.SetFocus, clearFocus))
+		changePageColumn(pages.SendPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
