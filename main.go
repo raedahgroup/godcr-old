@@ -215,7 +215,7 @@ func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, ap
 }
 
 func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
-	opError = web.StartServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort)
+	opError = web.StartServer(ctx, walletMiddleware, appConfig)
 	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
 	if opError != nil && ctx.Err() == nil {
 		beginShutdown <- true

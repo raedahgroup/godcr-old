@@ -5,7 +5,8 @@ export default class extends Controller {
   static get targets () {
     return [
       'errorMessage', 'successMessage',
-      'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword', 'confirmPasswordError'
+      'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword', 'confirmPasswordError',
+      'spendUnconfirmedFunds'
     ]
   }
 
@@ -25,7 +26,7 @@ export default class extends Controller {
 
     let _this = this
 
-    axios.post('/change-password', postData).then((response) => {
+    axios.post('/settings/change-password', postData).then((response) => {
       let result = response.data
       if (result.error !== undefined) {
         _this.setErrorMessage(result.error)
@@ -73,6 +74,21 @@ export default class extends Controller {
     this.oldPasswordErrorTarget.textContent = ''
     this.newPasswordErrorTarget.textContent = ''
     this.confirmPasswordErrorTarget.textContent = ''
+  }
+
+  updateSpendUnconfirmed () {
+    let _this = this
+    const postData = `spendUnconfirmedFunds=${this.spendUnconfirmedFundsTarget.checked}`
+    axios.post('/settings/update-spend-unconfirmed', postData).then((response) => {
+      let result = response.data
+      if (result.error !== undefined) {
+        _this.setErrorMessage(result.error)
+      } else {
+        _this.setSuccessMessage('Changes saved successfully')
+      }
+    }).catch(() => {
+      _this.setErrorMessage('A server error occurred')
+    })
   }
 
   setErrorMessage (message) {

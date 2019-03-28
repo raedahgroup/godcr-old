@@ -25,7 +25,9 @@
                                 </div>
                                 <p class="mb-1">Required to send fund</p>
                             </a>
-                            <input type="checkbox" id="spendUnconfirmed" value="Value1"/>
+                            <input data-target="settings.spendUnconfirmedFunds" data-action="change->settings#updateSpendUnconfirmed"
+                                   id="spendUnconfirmed" type="checkbox"
+                            {{ if .spendUnconfirmedFunds }} checked {{ end }}/>
                             <label for="spendUnconfirmed" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Spend Unconfirmed Fund</h5>

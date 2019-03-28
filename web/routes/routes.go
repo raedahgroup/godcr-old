@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
@@ -18,11 +19,12 @@ type Routes struct {
 	templates        map[string]*template.Template
 	blockchain       *Blockchain
 	ctx              context.Context
+	cnfg             *config.Config
 }
 
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
 // returns syncBlockchain function
-func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router) (func(), error) {
+func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, appConfig *config.Config) (func(), error) {
 	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
@@ -34,7 +36,12 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
+<<<<<<< 4d5ac49f674f8cba0232d8a03321cd218a22eb5d
 		walletExists:     walletExists,
+=======
+		walletExists: 	  walletExists,
+		cnfg:             appConfig,
+>>>>>>> spending unconfirmed funds settings
 	}
 
 	routes.loadTemplates()
@@ -83,5 +90,6 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
 	router.Get("/settings", routes.settingsPage)
-	router.Post("/change-password", routes.changeSpendingPassword)
+	router.Post("/settings/change-password", routes.changeSpendingPassword)
+	router.Post("/settings/update-spend-unconfirmed", routes.updateSpendUnconfirmedFundSetting)
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -465,8 +466,10 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	data["message"] = ticketHashes
 }
 
-func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request)  {
-	data := map[string]interface{}{}
+func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{
+		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
+	}
 	defer routes.render("settings.html", data, res)
 }
 
@@ -487,4 +490,26 @@ func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.
 	if err != nil {
 		data["error"] = err.Error()
 	}
+}
+
+func (routes *Routes) updateSpendUnconfirmedFundSetting(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	spendUnconfirmedFunds, err := strconv.ParseBool(req.FormValue("spendUnconfirmedFunds"))
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
+	err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+		cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
+		routes.cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
+	})
+
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
 }
