@@ -463,3 +463,8 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	data["success"] = true
 	data["message"] = ticketHashes
 }
+
+func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request)  {
+	data := map[string]interface{}{}
+	defer routes.render("settings.html", &data, res)
+}

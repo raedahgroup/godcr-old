@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+<div class="body">
+{{ template "header" }}
+    <div class="content">
+        <div class="container">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Application Settings</h5>
+
+                    <div class="my-3 p-3 bg-white rounded box-shadow">
+
+                        <h6 class="border-bottom border-gray pb-2 mb-0">General</h6>
+
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Change Spending Password</h5>
+                                </div>
+                                <p class="mb-1">Required to send fund</p>
+                            </a>
+                            <input type="checkbox" id="spendUnconfirmed" value="Value1"/>
+                            <label for="spendUnconfirmed" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Spend Unconfirmed Fund</h5>
+                                </div>
+                            </label>
+
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Incoming Transaction Notification</h5>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Currency Conversion</h5>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">New Block Notification</h5>
+                                </div>
+                            </a>
+                        </div>
+
+
+                        <br/>
+                        <br/>
+                        <h6 class="border-bottom border-gray pb-2 mb-0">Debug</h6>
+
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Rescan Blockchain</h5>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Delete Wallet</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ template "footer" }}
+</body>
+</html>
