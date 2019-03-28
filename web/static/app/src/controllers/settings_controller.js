@@ -12,8 +12,7 @@ export default class extends Controller {
 
   changePassword (e) {
     e.preventDefault()
-
-    if (!this.validateChangePasswordValidationField()) {
+    if (!this.validateChangePasswordFields()) {
       return
     }
     let submitBtn = e.currentTarget
@@ -43,7 +42,7 @@ export default class extends Controller {
     })
   }
 
-  validateChangePasswordValidationField () {
+  validateChangePasswordFields () {
     this.clearChangePasswordValidationErrors()
     let isClean = true
     if (this.oldPasswordTarget.value === '') {

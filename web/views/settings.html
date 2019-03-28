@@ -6,6 +6,9 @@
 {{ template "header" }}
     <div class="content">
         <div class="container">
+            <div data-target="settings.errorMessage" class="alert alert-danger d-none"></div>
+            <div data-target="settings.successMessage" class="alert alert-success d-none"></div>
+
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Application Settings</h5>
@@ -107,5 +110,6 @@
         </form>
     </div>
 </div>
+
 </body>
 </html>
