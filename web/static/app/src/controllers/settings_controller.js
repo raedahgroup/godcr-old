@@ -9,11 +9,9 @@ export default class extends Controller {
     ]
   }
 
-  connect () {
-    console.log('setting ctl...')
-  }
-
   changePassword (e) {
+    e.preventDefault()
+
     if (!this.validateChangePasswordValidationField()) {
       return
     }
@@ -21,11 +19,7 @@ export default class extends Controller {
     submitBtn.textContent = 'Busy...'
     submitBtn.setAttribute('disabled', true)
 
-    const postData = {
-      'oldPassword': this.oldPasswordTarget.value,
-      'newPassword': this.newPasswordTarget.value,
-      'confirmPassword': this.confirmPasswordErrorTarget.value
-    }
+    let postData = $('#change-password-form').serialize()
 
     this.clearMessages()
 
@@ -38,7 +32,7 @@ export default class extends Controller {
       } else {
         this.oldPasswordTarget.value = ''
         this.newPasswordTarget.value = ''
-        this.confirmPasswordErrorTarget.value = ''
+        this.confirmPasswordTarget.value = ''
 
         _this.setSuccessMessage('Password changed')
       }

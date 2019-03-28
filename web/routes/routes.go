@@ -83,4 +83,5 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
 	router.Get("/settings", routes.settingsPage)
+	router.Post("/change-password", routes.changeSpendingPassword)
 }

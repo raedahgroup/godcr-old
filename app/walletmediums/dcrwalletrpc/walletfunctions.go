@@ -525,3 +525,10 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 	}
 	return ticketHashes, nil
 }
+
+func (c *WalletRPCClient) ChangePrivatePhrase(ctx context.Context, oldPass, newPass []byte) error {
+	_, err := c.walletService.ChangePassphrase(ctx, &walletrpc.ChangePassphraseRequest{
+		NewPassphrase: newPass, OldPassphrase: oldPass, Key: walletrpc.ChangePassphraseRequest_PRIVATE,
+	})
+	return err
+}

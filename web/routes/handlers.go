@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -466,5 +467,24 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request)  {
 	data := map[string]interface{}{}
-	defer routes.render("settings.html", &data, res)
+	defer routes.render("settings.html", data, res)
+}
+
+func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	oldPassword := req.FormValue("oldPassword")
+	newPassword := req.FormValue("newPassword")
+	confirmPassword := req.FormValue("confirmPassword")
+
+	if newPassword != confirmPassword {
+		data["error"] = "Confirm password doesn't match"
+		return
+	}
+
+	err := routes.walletMiddleware.ChangePrivatePhrase(context.Background(), []byte(oldPassword), []byte(newPassword))
+	if err != nil {
+		data["error"] = err.Error()
+	}
 }

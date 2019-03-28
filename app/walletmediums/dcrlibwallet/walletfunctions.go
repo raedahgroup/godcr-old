@@ -358,3 +358,7 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 	}
 	return tickets, nil
 }
+
+func (lib *DcrWalletLib) ChangePrivatePhrase(_ context.Context, oldPass, newPass []byte) error {
+	return lib.walletLib.ChangePrivatePassphrase(oldPass, newPass)
+}
