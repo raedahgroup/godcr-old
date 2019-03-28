@@ -61,7 +61,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="spend-unconfirmed">Spend Unconfirmed</label>
-                                        <input data-target="staking.spendUnconfirmed" type="checkbox" name="spend-unconfirmed" id="spend-unconfirmed" value="1" />
+                                        <input data-target="staking.spendUnconfirmed" type="checkbox" name="spend-unconfirmed" id="spend-unconfirmed" value="1" {{ if .spendUnconfirmedFunds }} checked {{ end }} />
                                     </div>
                                 </div>
                             </div>

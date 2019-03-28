@@ -77,6 +77,7 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 
 	data := map[string]interface{}{
 		"accounts": accounts,
+		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
 	}
 	routes.render("send.html", data, res)
 }
@@ -409,6 +410,7 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 		"stakeinfo":   stakeInfo,
 		"accounts":    accounts,
 		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
+		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
 	}
 	routes.render("staking.html", data, res)
 }
