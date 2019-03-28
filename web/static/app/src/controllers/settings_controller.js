@@ -5,7 +5,6 @@ import { setErrorMessage, setSuccessMessage } from '../utils'
 export default class extends Controller {
   static get targets () {
     return [
-      'errorMessage', 'successMessage',
       'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword', 'confirmPasswordError',
       'spendUnconfirmedFunds'
     ]

@@ -513,5 +513,4 @@ func (routes *Routes) updateSpendUnconfirmedFundSetting(res http.ResponseWriter,
 		data["error"] = err.Error()
 		return
 	}
-
 }
