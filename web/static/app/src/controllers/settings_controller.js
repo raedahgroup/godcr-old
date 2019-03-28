@@ -1,10 +1,84 @@
 import { Controller } from 'stimulus'
+import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
     return [
-      'errorMessage', 'successMessage'
+      'errorMessage', 'successMessage',
+      'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword', 'confirmPasswordError'
     ]
+  }
+
+  connect () {
+    console.log('setting ctl...')
+  }
+
+  changePassword (e) {
+    if (!this.validateChangePasswordValidationField()) {
+      return
+    }
+    let submitBtn = e.currentTarget
+    submitBtn.textContent = 'Busy...'
+    submitBtn.setAttribute('disabled', true)
+
+    const postData = {
+      'oldPassword': this.oldPasswordTarget.value,
+      'newPassword': this.newPasswordTarget.value,
+      'confirmPassword': this.confirmPasswordErrorTarget.value
+    }
+
+    this.clearMessages()
+
+    let _this = this
+
+    axios.post('/change-password', postData).then((response) => {
+      let result = response.data
+      if (result.error !== undefined) {
+        _this.setErrorMessage(result.error)
+      } else {
+        this.oldPasswordTarget.value = ''
+        this.newPasswordTarget.value = ''
+        this.confirmPasswordErrorTarget.value = ''
+
+        _this.setSuccessMessage('Password changed')
+      }
+    }).catch(() => {
+      _this.setErrorMessage('A server error occurred')
+    }).then(() => {
+      submitBtn.innerHTML = 'Change Password'
+      submitBtn.removeAttribute('disabled')
+      $('#change-password-modal').modal('hide')
+    })
+  }
+
+  validateChangePasswordValidationField () {
+    this.clearChangePasswordValidationErrors()
+    let isClean = true
+    if (this.oldPasswordTarget.value === '') {
+      this.oldPasswordErrorTarget.textContent = 'Old password is required'
+      isClean = false
+    }
+    if (this.newPasswordTarget.value === '') {
+      this.newPasswordErrorTarget.textContent = 'New password is required'
+      isClean = false
+    }
+    if (this.confirmPasswordTarget.value === '') {
+      this.confirmPasswordErrorTarget.textContent = 'Confirm password is required'
+      isClean = false
+    }
+    if (this.confirmPasswordTarget.value !== this.newPasswordTarget.value) {
+      if (this.confirmPasswordErrorTarget.textContent === '') {
+        this.confirmPasswordErrorTarget.textContent = 'Confirm password doesn\'t match'
+      }
+      isClean = false
+    }
+    return isClean
+  }
+
+  clearChangePasswordValidationErrors () {
+    this.oldPasswordErrorTarget.textContent = ''
+    this.newPasswordErrorTarget.textContent = ''
+    this.confirmPasswordErrorTarget.textContent = ''
   }
 
   setErrorMessage (message) {
@@ -22,7 +96,6 @@ export default class extends Controller {
   clearMessages () {
     this.hide(this.errorMessageTarget)
     this.hide(this.successMessageTarget)
-    this.hide(this.errorsTarget)
   }
 
   hide (el) {

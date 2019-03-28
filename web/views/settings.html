@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 {{ template "html-head" }}
-<body>
+<body data-controller="settings">
 <div class="body">
 {{ template "header" }}
     <div class="content">
         <div class="container">
+            <div data-target="settings.errorMessage" class="alert alert-danger d-none"></div>
+            <div data-target="settings.successMessage" class="alert alert-success d-none"></div>
+
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Application Settings</h5>
@@ -15,7 +18,8 @@
                         <h6 class="border-bottom border-gray pb-2 mb-0">General</h6>
 
                         <div class="list-group">
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-toggle="modal" data-target="#change-password-modal" href="#"
+                               class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Change Spending Password</h5>
                                 </div>
@@ -69,5 +73,40 @@
     </div>
 </div>
 {{ template "footer" }}
+
+<div class="modal" id="change-password-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Spending Password</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="oldPassword">Old Password</label>
+                    <input data-target="settings.oldPassword" id="oldPassword" type="password" class="form-control" />
+                    <div data-target="settings.oldPasswordError" class="alert-danger"></div>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input data-target="settings.newPassword" id="newPassword" type="password" class="form-control" />
+                    <div data-target="settings.newPasswordError" class="alert-danger"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input data-target="settings.confirmPassword" id="confirmPassword" type="password" class="form-control" />
+                    <div data-target="settings.confirmPasswordError" class="alert-danger"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button data-action="click->settings#changePassword" type="button" class="btn btn-success">Change Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
