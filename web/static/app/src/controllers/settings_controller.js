@@ -18,6 +18,7 @@ export default class extends Controller {
     let submitBtn = e.currentTarget
     submitBtn.textContent = 'Busy...'
     submitBtn.setAttribute('disabled', true)
+
     let _this = this
 
     let postData = $('#change-password-form').serialize()
@@ -29,6 +30,7 @@ export default class extends Controller {
         _this.oldPasswordTarget.value = ''
         _this.newPasswordTarget.value = ''
         _this.confirmPasswordTarget.value = ''
+
         setSuccessMessage('Password changed')
       }
     }).catch(() => {
