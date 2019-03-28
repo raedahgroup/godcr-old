@@ -83,25 +83,31 @@ func terminalLayout(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		tviewApp.SetFocus(menuColumn)
 	}
 
-	menuColumn.AddItem("Balance", "", 'b', func() {
+	menuColumn.AddItem("Overview", "", 'o', func() {
 		changePageColumn(pages.BalancePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
-	})
-
-	menuColumn.AddItem("Receive", "", 'r', func() {
-		changePageColumn(pages.ReceivePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
-	})
-
-	menuColumn.AddItem("Send", "", 's', func() {
-		changePageColumn(pages.SendPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
 		changePageColumn(pages.HistoryPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
 
+	menuColumn.AddItem("Send", "", 's', func() {
+		changePageColumn(pages.SendPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+	})
+
+	menuColumn.AddItem("Receive", "", 'r', func() {
+		changePageColumn(pages.ReceivePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+	})
+
 	menuColumn.AddItem("Staking", "", 'k', func() {
 		changePageColumn(pages.StakingPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
+
+	menuColumn.AddItem("Accounts", "", 'a', nil)
+
+	menuColumn.AddItem("Security", "", 'c', nil)
+
+	menuColumn.AddItem("Settings", "", 't', nil)
 
 	menuColumn.AddItem("Exit", "", 'q', func() {
 		tviewApp.Stop()
