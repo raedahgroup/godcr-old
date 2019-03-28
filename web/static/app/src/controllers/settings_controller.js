@@ -1,5 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
+import { setErrorMessage, setSuccessMessage } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -20,25 +21,22 @@ export default class extends Controller {
     submitBtn.textContent = 'Busy...'
     submitBtn.setAttribute('disabled', true)
 
-    let postData = $('#change-password-form').serialize()
-
-    this.clearMessages()
-
     let _this = this
 
+    let postData = $('#change-password-form').serialize()
     axios.post('/settings/change-password', postData).then((response) => {
       let result = response.data
       if (result.error !== undefined) {
-        _this.setErrorMessage(result.error)
+        setErrorMessage(result.error)
       } else {
-        this.oldPasswordTarget.value = ''
-        this.newPasswordTarget.value = ''
-        this.confirmPasswordTarget.value = ''
+        _this.oldPasswordTarget.value = ''
+        _this.newPasswordTarget.value = ''
+        _this.confirmPasswordTarget.value = ''
 
-        _this.setSuccessMessage('Password changed')
+        setSuccessMessage('Password changed')
       }
     }).catch(() => {
-      _this.setErrorMessage('A server error occurred')
+      setErrorMessage('A server error occurred')
     }).then(() => {
       submitBtn.innerHTML = 'Change Password'
       submitBtn.removeAttribute('disabled')
@@ -77,47 +75,16 @@ export default class extends Controller {
   }
 
   updateSpendUnconfirmed () {
-    let _this = this
     const postData = `spendUnconfirmedFunds=${this.spendUnconfirmedFundsTarget.checked}`
     axios.post('/settings/update-spend-unconfirmed', postData).then((response) => {
       let result = response.data
       if (result.error !== undefined) {
-        _this.setErrorMessage(result.error)
+        setErrorMessage(result.error)
       } else {
-        _this.setSuccessMessage('Changes saved successfully')
+        setSuccessMessage('Changes saved successfully')
       }
     }).catch(() => {
-      _this.setErrorMessage('A server error occurred')
+      setErrorMessage('A server error occurred')
     })
-  }
-
-  setErrorMessage (message) {
-    this.hide(this.successMessageTarget)
-    this.show(this.errorMessageTarget)
-    this.errorMessageTarget.innerHTML = message
-  }
-
-  setSuccessMessage (message) {
-    this.hide(this.errorMessageTarget)
-    this.show(this.successMessageTarget)
-    this.successMessageTarget.innerHTML = message
-  }
-
-  clearMessages () {
-    this.hide(this.errorMessageTarget)
-    this.hide(this.successMessageTarget)
-  }
-
-  hide (el) {
-    el.classList.add('d-none')
-  }
-
-  show (el) {
-    el.classList.remove('d-none')
-  }
-
-  showError (error) {
-    this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
-    this.show(this.errorsTarget)
   }
 }

@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "stimulus": "^1.1.0"
+    "stimulus": "^1.1.0",
+    "toastr": "^2.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
