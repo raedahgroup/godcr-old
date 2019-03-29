@@ -17,15 +17,16 @@ func Test_openWalletIfExist(t *Testing.T) {
 	}{
 		// TODO: add test cases
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotWalletExists, err := openWalletIfExist(tt.ctx, tt.walletMiddleware)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("openWalletIfExist() error = %v, wantErr %v", err, tt.wantErr)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotWalletExists, err := openWalletIfExist(test.ctx, test.walletMiddleware)
+			if (err != nil) != test.wantErr {
+				t.Errorf("openWalletIfExist() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if gotWalletExists != tt.wantWalletExists {
-				t.Errorf("openWalletIfExist() = %v, want %v", gotWalletExists, tt.wantWalletExists)
+			if gotWalletExists != test.wantWalletExists {
+				t.Errorf("openWalletIfExist() = %v, want %v", gotWalletExists, test.wantWalletExists)
 			}
 		})
 	}

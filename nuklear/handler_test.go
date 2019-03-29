@@ -5,22 +5,6 @@ import (
 	"testing"
 )
 
-func Test_getHandlers(t *testing.T) {
-	tests := []struct {
-		name string
-		want []handlersData
-	}{
-		// TODO: add test cases
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if got := getHandlers(); !reflect(got, test.want) {
-				t.Errorf("getHandlers() = %v, want %v", got, test.want)
-			}
-		})
-	}
-}
-
 func Test_getNavPages(t *testing.T) {
 	tests := []struct {
 		name string

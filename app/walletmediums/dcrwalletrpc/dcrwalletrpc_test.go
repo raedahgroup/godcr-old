@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 )
 
@@ -120,7 +120,7 @@ func Test_getNetParam(t *testing.T) {
 	tests := []struct {
 		name          string
 		walletService walletrpc.WalletServiceClient
-		wantParam     *chaincfg.Params
+		wantParam     *netparams.Params
 		wantErr       bool
 	}{
 		// TODO: Add test cases.

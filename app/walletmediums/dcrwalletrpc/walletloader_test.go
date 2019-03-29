@@ -3,7 +3,7 @@ package dcrwalletrpc
 import (
 	"testing"
 
-	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/godcr/app"
 )
@@ -12,7 +12,7 @@ func TestWalletRPCClient_NetType(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -41,7 +41,7 @@ func TestWalletRPCClient_WalletExists(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -76,7 +76,7 @@ func TestWalletRPCClient_GenerateNewWalletSeed(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -111,7 +111,7 @@ func TestWalletRPCClient_CreateWallet(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -142,7 +142,7 @@ func TestWalletRPCClient_OpenWallet(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -171,7 +171,7 @@ func TestWalletRPCClient_CloseWallet(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -197,7 +197,7 @@ func TestWalletRPCClient_IsWalletOpen(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -226,7 +226,7 @@ func TestWalletRPCClient_SyncBlockChain(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -16,7 +16,7 @@ func TestWalletRPCClient_AccountBalance(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -53,7 +53,7 @@ func TestWalletRPCClient_AccountsOverview(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -89,7 +89,7 @@ func TestWalletRPCClient_NextAccount(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -126,7 +126,7 @@ func TestWalletRPCClient_AccountNumber(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -162,7 +162,7 @@ func TestWalletRPCClient_AccountName(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -198,7 +198,7 @@ func TestWalletRPCClient_AddressInfo(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -234,7 +234,7 @@ func TestWalletRPCClient_ValidateAddress(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -270,7 +270,7 @@ func TestWalletRPCClient_ReceiveAddress(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -306,7 +306,7 @@ func TestWalletRPCClient_GenerateNewAddress(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -342,7 +342,7 @@ func TestWalletRPCClient_UnspentOutputs(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -380,7 +380,7 @@ func TestWalletRPCClient_SendFromAccount(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -419,7 +419,7 @@ func TestWalletRPCClient_SendFromUTXOs(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -460,7 +460,7 @@ func TestWalletRPCClient_TransactionHistory(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -495,7 +495,7 @@ func TestWalletRPCClient_GetTransaction(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -531,7 +531,7 @@ func TestWalletRPCClient_StakeInfo(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -567,7 +567,7 @@ func TestWalletRPCClient_PurchaseTickets(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {

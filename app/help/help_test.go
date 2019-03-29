@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	flags "github.com/btcsuite/go-flags"
+	flags "github.com/jessevdk/go-flags"
 )
 
 func Test_commandCategoryName(t *testing.T) {

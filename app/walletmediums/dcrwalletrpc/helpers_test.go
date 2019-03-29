@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -14,7 +14,7 @@ func TestWalletRPCClient_unspentOutputStream(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
@@ -52,7 +52,7 @@ func TestWalletRPCClient_signAndPublishTransaction(t *testing.T) {
 	type fields struct {
 		walletLoader  walletrpc.WalletLoaderServiceClient
 		walletService walletrpc.WalletServiceClient
-		activeNet     *chaincfg.Params
+		activeNet     *netparams.Params
 		walletOpen    bool
 	}
 	tests := []struct {
