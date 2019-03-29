@@ -15,7 +15,7 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	body.SetBorderPadding(1, 0, 1, 0)
 
-	hintText := primitives.WordWrappedTextView("(TIP: Hit ENTER to switch between Detailed Balance and Simple Balance, ARROW keys to Scroll table. Return with Esc)")
+	hintText := primitives.WordWrappedTextView("(TIP: use TAB to switch between Detailed and Simple Balance, ARROW keys to Scroll table. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 4, 0, false)
 
@@ -88,22 +88,15 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		body.AddItem(balanceTable, 0, 2, true)
 	}
 
-	//form button was used because tview buttons canot be style when part of flexbox
-	detailedButtonForm := tview.NewForm()
-	detailedButtonForm.SetBorderPadding(0, 0, 0, 0)
-	body.AddItem(detailedButtonForm.AddButton("Detailed Balance", func() {
-		detailedOutput(accounts)
-	}), 3, 1, true)
-
 	simpleOutput(accounts)
 
 	// use different key press listener on first form item to watch for escape and enter key to set focus on table
-	detailedButtonForm.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			clearFocus()
 			return nil
 		}
-		if event.Key() == tcell.KeyEnter {
+		if event.Key() == tcell.KeyTab {					
 			detailedOutput(accounts)
 			setFocus(balanceTable)
 			return nil
@@ -118,10 +111,9 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			clearFocus()
 			return nil
 		}
-		if event.Key() == tcell.KeyEnter {
+		if event.Key() == tcell.KeyTab {
 			simpleOutput(accounts)
-			setFocus(detailedButtonForm.GetButton(0))
-
+			setFocus(body)
 			return nil
 		}
 
