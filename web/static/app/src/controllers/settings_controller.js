@@ -73,15 +73,18 @@ export default class extends Controller {
   }
 
   updateSpendUnconfirmed () {
+    const _this = this
     const postData = `spendUnconfirmedFunds=${this.spendUnconfirmedFundsTarget.checked}`
     axios.post('/settings/update-spend-unconfirmed', postData).then((response) => {
       let result = response.data
-      if (result.error !== undefined) {
-        setErrorMessage(result.error)
-      } else {
+      if (result.success) {
         setSuccessMessage('Changes saved successfully')
+      } else {
+        setErrorMessage(result.error ? result.error : 'Something went wrong, please try again later')
+        _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
       }
     }).catch(() => {
+      _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
       setErrorMessage('A server error occurred')
     })
   }

@@ -508,9 +508,9 @@ func (routes *Routes) updateSpendUnconfirmedFundSetting(res http.ResponseWriter,
 		cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
 		routes.cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
 	})
-
 	if err != nil {
 		data["error"] = err.Error()
 		return
 	}
+	data["success"] = true
 }
