@@ -49,6 +49,11 @@ func SimpleBalance(balance *Balance, detailed bool) string {
 	}
 }
 
+// NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
+func NormalizeBalance(balance float64) string {
+	return fmt.Sprintf("%010.8f DCR", balance)
+}
+
 // GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
 func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
