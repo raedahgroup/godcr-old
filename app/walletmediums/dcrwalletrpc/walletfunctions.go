@@ -3,6 +3,7 @@ package dcrwalletrpc
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -526,9 +527,13 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 	return ticketHashes, nil
 }
 
-func (c *WalletRPCClient) ChangePrivatePhrase(ctx context.Context, oldPass, newPass []byte) error {
-	_, err := c.walletService.ChangePassphrase(ctx, &walletrpc.ChangePassphraseRequest{
-		NewPassphrase: newPass, OldPassphrase: oldPass, Key: walletrpc.ChangePassphraseRequest_PRIVATE,
-	})
+func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error {
+	if oldPass == "" || newPass == "" {
+		return errors.New("Passphrase cannot be empty")
+	}
+	request := &walletrpc.ChangePassphraseRequest{
+		NewPassphrase: []byte(newPass), OldPassphrase: []byte(oldPass), Key: walletrpc.ChangePassphraseRequest_PRIVATE,
+	}
+	_, err := c.walletService.ChangePassphrase(ctx, request)
 	return err
 }

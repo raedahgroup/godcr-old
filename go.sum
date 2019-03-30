@@ -219,17 +219,6 @@ github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-<<<<<<< ca1dd74c8c3317c0030beebd5ea42cca81d3233d
-=======
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190311225301-a7c6034624e9 h1:n+K0sh53A/qsFIhD386R0A7s8enealelFdtLZIvhNHs=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190311225301-a7c6034624e9/go.mod h1:dsT1kRcJIC5RfoEpEwEOJoD5MamHmWoeBOof4tHGK0A=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190320022106-098ac4407068 h1:sjUObl2G9qNhdk5hCDTkV1VhLE/B6rAxAig0QtJt2bg=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190320022106-098ac4407068/go.mod h1:dsT1kRcJIC5RfoEpEwEOJoD5MamHmWoeBOof4tHGK0A=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190320022503-a2afe2e83a6a h1:hXSXFe/EKfpz92VUnwBTFCwzx5JB2hil1tMt7H7iBMw=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190320022503-a2afe2e83a6a/go.mod h1:dsT1kRcJIC5RfoEpEwEOJoD5MamHmWoeBOof4tHGK0A=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190331062720-d5aeb05333c4 h1:rTwDkENj9h4gNDKdHsS6HU+srdQ4Mfyf/r4af+Mcyto=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190331062720-d5aeb05333c4/go.mod h1:dsT1kRcJIC5RfoEpEwEOJoD5MamHmWoeBOof4tHGK0A=
->>>>>>> spending unconfirmed funds settings
 github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190331065313-48f453959cc3 h1:0jBTnGECwlpdgkesSOtP6XsWSvNTHvRi4WK8vzKLQIM=
 github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190331065313-48f453959cc3/go.mod h1:dsT1kRcJIC5RfoEpEwEOJoD5MamHmWoeBOof4tHGK0A=
 github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790 h1:yt1AZgiBi8RcCo0PoyU4gSFwKjlbkSGRFVZGz7R6oB0=

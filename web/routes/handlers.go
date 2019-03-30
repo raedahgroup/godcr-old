@@ -77,7 +77,7 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
 	routes.render("send.html", data, res)
 }
@@ -410,7 +410,7 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 		"stakeinfo":   stakeInfo,
 		"accounts":    accounts,
 		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
-		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
 	routes.render("staking.html", data, res)
 }
@@ -470,9 +470,9 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
-		"spendUnconfirmedFunds": routes.cnfg.SpendUnconfirmedFunds,
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
-	defer routes.render("settings.html", data, res)
+	routes.render("settings.html", data, res)
 }
 
 func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.Request) {
@@ -488,29 +488,32 @@ func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.
 		return
 	}
 
-	err := routes.walletMiddleware.ChangePrivatePhrase(context.Background(), []byte(oldPassword), []byte(newPassword))
+	err := routes.walletMiddleware.ChangePrivatePassphrase(context.Background(), oldPassword, newPassword)
 	if err != nil {
 		data["error"] = err.Error()
 	}
 }
 
-func (routes *Routes) updateSpendUnconfirmedFundSetting(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	spendUnconfirmedFunds, err := strconv.ParseBool(req.FormValue("spendUnconfirmedFunds"))
-	if err != nil {
-		data["error"] = err.Error()
-		return
+	if spendUnconfirmedStr := req.FormValue("spendUnconfirmed"); spendUnconfirmedStr != "" {
+		spendUnconfirmed, err := strconv.ParseBool(spendUnconfirmedStr)
+		if err != nil {
+			data["error"] = "Invalid input"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.SpendUnconfirmed = spendUnconfirmed
+		})
+		if err != nil {
+			data["error"] = err.Error()
+			return
+		}
+		routes.settings.SpendUnconfirmed = spendUnconfirmed
 	}
 
-	err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
-		cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
-		routes.cnfg.SpendUnconfirmedFunds = spendUnconfirmedFunds
-	})
-	if err != nil {
-		data["error"] = err.Error()
-		return
-	}
 	data["success"] = true
 }

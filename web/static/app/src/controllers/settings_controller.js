@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { setErrorMessage, setSuccessMessage } from '../utils'
+import { showErrorMessage, showSuccessMessage } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -22,19 +22,19 @@ export default class extends Controller {
     let _this = this
 
     let postData = $('#change-password-form').serialize()
-    axios.post('/settings/change-password', postData).then((response) => {
+    axios.post('/change-password', postData).then((response) => {
       let result = response.data
       if (result.error !== undefined) {
-        setErrorMessage(result.error)
+        showErrorMessage(result.error)
       } else {
         _this.oldPasswordTarget.value = ''
         _this.newPasswordTarget.value = ''
         _this.confirmPasswordTarget.value = ''
 
-        setSuccessMessage('Password changed')
+        showSuccessMessage('Password changed')
       }
     }).catch(() => {
-      setErrorMessage('A server error occurred')
+      showErrorMessage('A server error occurred')
     }).then(() => {
       submitBtn.innerHTML = 'Change Password'
       submitBtn.removeAttribute('disabled')
@@ -74,18 +74,18 @@ export default class extends Controller {
 
   updateSpendUnconfirmed () {
     const _this = this
-    const postData = `spendUnconfirmedFunds=${this.spendUnconfirmedFundsTarget.checked}`
-    axios.post('/settings/update-spend-unconfirmed', postData).then((response) => {
+    const postData = `spendUnconfirmed=${this.spendUnconfirmedFundsTarget.checked}`
+    axios.put('/settings', postData).then((response) => {
       let result = response.data
       if (result.success) {
-        setSuccessMessage('Changes saved successfully')
+        showSuccessMessage('Changes saved successfully')
       } else {
-        setErrorMessage(result.error ? result.error : 'Something went wrong, please try again later')
+        showErrorMessage(result.error ? result.error : 'Something went wrong, please try again later')
         _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
       }
     }).catch(() => {
       _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
-      setErrorMessage('A server error occurred')
+      showErrorMessage('A server error occurred')
     })
   }
 }

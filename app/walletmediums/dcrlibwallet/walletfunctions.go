@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"sort"
 	"strings"
 	"time"
@@ -359,6 +360,9 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 	return tickets, nil
 }
 
-func (lib *DcrWalletLib) ChangePrivatePhrase(_ context.Context, oldPass, newPass []byte) error {
-	return lib.walletLib.ChangePrivatePassphrase(oldPass, newPass)
+func (lib *DcrWalletLib) ChangePrivatePassphrase(_ context.Context, oldPass, newPass string) error {
+	if oldPass == "" || newPass == "" {
+		return errors.New("Passphrase cannot be empty")
+	}
+	return lib.walletLib.ChangePrivatePassphrase([]byte(oldPass), []byte(newPass))
 }

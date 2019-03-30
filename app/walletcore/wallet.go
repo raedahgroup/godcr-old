@@ -84,6 +84,6 @@ type Wallet interface {
 	// TicketPrice returns the current ticket price
 	TicketPrice(ctx context.Context) (ticketPrice int64, err error)
 
-	// ChangePrivatePhrase changes the private passphrase from the oldPass to the provided newPass
-	ChangePrivatePhrase(ctx context.Context, oldPass, newPass []byte) error
+	// ChangePrivatePassphrase changes the private passphrase from the oldPass to the provided newPass
+	ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error
 }

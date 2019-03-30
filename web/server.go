@@ -19,7 +19,7 @@ import (
 	"github.com/raedahgroup/godcr/web/weblog"
 )
 
-func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) error {
+func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, httpHost, httpPort string, settings *config.Settings) error {
 	router := chi.NewRouter()
 
 	// setup static file serving
@@ -27,23 +27,16 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, app
 	filesDir := filepath.Join(workDir, "web/static/dist")
 	makeStaticFileServer(router, "/static", http.Dir(filesDir))
 
-<<<<<<< 6a2b4f8aa85155e3c1c23672cbbc4893fd20531a
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened
 	// returns error if wallet exists but could not be opened
-	syncBlockchain, err := routes.OpenWalletAndSetupRoutes(ctx, walletMiddleware, router)
+	syncBlockchain, err := routes.OpenWalletAndSetupRoutes(ctx, walletMiddleware, router, settings)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Starting web server")
 
-	serverAddress := net.JoinHostPort(host, port)
-=======
-	// setup routes for templated pages, returns wallet loader function
-	syncBlockchain := routes.Setup(ctx, walletMiddleware, router, appConfig)
-	weblog.LogInfo("Starting web server")
-	serverAddress := net.JoinHostPort(appConfig.HTTPHost, appConfig.HTTPPort)
->>>>>>> spending unconfirmed funds settings
+	serverAddress := net.JoinHostPort(httpHost, httpPort)
 	err = startServer(ctx, serverAddress, router)
 	if err != nil {
 		return err
