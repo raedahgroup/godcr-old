@@ -16,7 +16,7 @@ export default class extends Controller {
       return
     }
     let submitBtn = e.currentTarget
-    submitBtn.textContent = 'Busy...'
+    submitBtn.textContent = 'Changing Password...'
     submitBtn.setAttribute('disabled', true)
 
     let _this = this
@@ -24,7 +24,7 @@ export default class extends Controller {
     let postData = $('#change-password-form').serialize()
     axios.post('/change-password', postData).then((response) => {
       let result = response.data
-      if (result.error !== undefined) {
+      if (result.error) {
         showErrorMessage(result.error)
       } else {
         _this.oldPasswordTarget.value = ''
@@ -32,13 +32,13 @@ export default class extends Controller {
         _this.confirmPasswordTarget.value = ''
 
         showSuccessMessage('Password changed')
+        $('#change-password-modal').modal('hide')
       }
     }).catch(() => {
       showErrorMessage('A server error occurred')
     }).then(() => {
       submitBtn.innerHTML = 'Change Password'
       submitBtn.removeAttribute('disabled')
-      $('#change-password-modal').modal('hide')
     })
   }
 

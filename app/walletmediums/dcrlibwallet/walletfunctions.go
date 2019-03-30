@@ -3,8 +3,8 @@ package dcrlibwallet
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"sort"
 	"strings"
 	"time"

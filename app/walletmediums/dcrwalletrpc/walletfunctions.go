@@ -532,7 +532,9 @@ func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, 
 		return errors.New("Passphrase cannot be empty")
 	}
 	request := &walletrpc.ChangePassphraseRequest{
-		NewPassphrase: []byte(newPass), OldPassphrase: []byte(oldPass), Key: walletrpc.ChangePassphraseRequest_PRIVATE,
+		NewPassphrase: []byte(newPass),
+		OldPassphrase: []byte(oldPass),
+		Key: walletrpc.ChangePassphraseRequest_PRIVATE,
 	}
 	_, err := c.walletService.ChangePassphrase(ctx, request)
 	return err

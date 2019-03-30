@@ -13,20 +13,20 @@ var AppConfigFilePath = filepath.Join(DefaultAppDataDir, "godcr.conf")
 
 // ConfFileOptions holds the top-level options/flags that should be set in config file rather than in command-line
 type ConfFileOptions struct {
-	AppDataDir            string        `long:"appdata" description:"Path to application data directory."`
-	WalletRPCServer       string        `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
-	WalletRPCCert         string        `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if walletrpcserver is set."`
-	NoWalletRPCTLS   bool          `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
-	HTTPHost         string        `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
-	HTTPPort         string        `long:"httpport" description:"HTTP server port when running godcr in http mode."`
-	DebugLevel       string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
-	Wallets          []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
+	AppDataDir      string        `long:"appdata" description:"Path to application data directory."`
+	WalletRPCServer string        `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
+	WalletRPCCert   string        `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if walletrpcserver is set."`
+	NoWalletRPCTLS  bool          `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
+	HTTPHost        string        `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
+	HTTPPort        string        `long:"httpport" description:"HTTP server port when running godcr in http mode."`
+	DebugLevel      string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	Wallets         []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
 
 	Settings `group:"Settings"`
 }
 
 type Settings struct {
-	SpendUnconfirmed  bool `long:"spendunconfirmed" description:"Spend unconfirmed funds"`
+	SpendUnconfirmed bool `long:"spendunconfirmed" description:"Spend unconfirmed funds"`
 }
 
 func defaultFileOptions() ConfFileOptions {
