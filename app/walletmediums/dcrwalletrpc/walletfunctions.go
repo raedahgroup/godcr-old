@@ -321,9 +321,9 @@ func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeig
 
 	if startBlockHeight < 0 {
 		// begin reading from the most recent (unmined) transactions to the most recent (best) block
-		bestBlock, err := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
-		if err != nil {
-			err = fmt.Errorf("error reading best block: %s", err.Error())
+		bestBlock, bestBlockErr := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+		if bestBlockErr != nil {
+			err = fmt.Errorf("error reading best block: %s", bestBlockErr.Error())
 			return
 		}
 
