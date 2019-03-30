@@ -10,7 +10,9 @@ import (
 func TestHelpCommand_Run(t *testing.T) {
 	type fields struct {
 		commanderStub commanderStub
-		Args          struct{ CommandName string }
+		Args          struct {
+			CommandName string `positional-arg-name:"command-name"`
+		} `positional-args:"yes"`
 	}
 	tests := []struct {
 		name    string

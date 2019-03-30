@@ -9,6 +9,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/godcr/cli/commands"
 )
 
 func Test_attemptExecuteSimpleOp(t *testing.T) {
@@ -48,31 +49,47 @@ func Test_attemptExecuteSimpleOp(t *testing.T) {
 }
 
 func Test_connectToWallet(t *testing.T) {
-	cfg, _, err := config.LoadConfig()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	walletMiddleware, err := dcrlibwallet.New(cfg.AppDataDir, config.DefaultWallet(cfg.Wallets))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	tests := []struct {
+	type test struct {
 		name    string
 		ctx     context.Context
 		cfg     *config.Config
 		want    app.WalletMiddleware
 		wantErr bool
-	}{
-		{
-			name:    "valid connection",
-			ctx:     context.Background(),
+	}
+
+	var wallets []*config.WalletInfo
+	var err error
+
+	cfg, _, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	wallets = cfg.Wallets
+	if wallets == nil {
+		wallets, err = commands.DetectWallets(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	tests := make([]test, len(wallets))
+	for i := range wallets {
+		walletMiddleware, err := dcrlibwallet.New(cfg.AppDataDir, wallets[i])
+		if err != nil {
+			t.Fatal(err)
+		}
+		tests[i] = test{
+			name:    "connect to wallet " + wallets[i].DbDir,
+			ctx:     ctx,
 			cfg:     cfg,
 			want:    walletMiddleware,
 			wantErr: false,
-		},
+		}
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := connectToWallet(test.ctx, test.cfg)

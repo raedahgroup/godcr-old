@@ -24,65 +24,6 @@ func TestNewPassphraseWidget(t *testing.T) {
 	}
 }
 
-func TestPassphrase_Get(t *testing.T) {
-	type fields struct {
-		input        nucular.TextEditor
-		bounds       rect.Rect
-		headerBounds rect.Rect
-		errStr       string
-		passphrase   chan string
-	}
-	tests := []struct {
-		name       string
-		fields     fields
-		window     *nucular.Window
-		passphrase chan string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			p := &Passphrase{
-				input:        test.fields.input,
-				bounds:       test.fields.bounds,
-				headerBounds: test.fields.headerBounds,
-				errStr:       test.fields.errStr,
-				passphrase:   test.fields.passphrase,
-			}
-			p.Get(test.window, test.passphrase)
-		})
-	}
-}
-
-func TestPassphrase_popup(t *testing.T) {
-	type fields struct {
-		input        nucular.TextEditor
-		bounds       rect.Rect
-		headerBounds rect.Rect
-		errStr       string
-		passphrase   chan string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		window *nucular.Window
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			p := &Passphrase{
-				input:        test.fields.input,
-				bounds:       test.fields.bounds,
-				headerBounds: test.fields.headerBounds,
-				errStr:       test.fields.errStr,
-				passphrase:   test.fields.passphrase,
-			}
-			p.popup(test.window)
-		})
-	}
-}
-
 func TestPassphrase_validate(t *testing.T) {
 	type fields struct {
 		input        nucular.TextEditor

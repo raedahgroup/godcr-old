@@ -31,7 +31,7 @@ func TestPurchaseTicketsCommand_Run(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ptc := PurchaseTicketsCommand{
+			ptc := PurchaseTicketCommand{
 				commanderStub:    test.fields.commanderStub,
 				MinConfirmations: test.fields.MinConfirmations,
 				TicketAddress:    test.fields.TicketAddress,

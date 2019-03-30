@@ -4,12 +4,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/rivo/tview"
 )
 
 func TestSendPage(t *testing.T) {
 	tests := []struct {
 		name       string
+		wallet     walletcore.Wallet
 		setFocus   func(p tview.Primitive) *tview.Application
 		clearFocus func()
 		want       tview.Primitive
@@ -18,7 +20,7 @@ func TestSendPage(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := SendPage(test.setFocus, test.clearFocus); !reflect.DeepEqual(got, test.want) {
+			if got := SendPage(test.wallet, test.setFocus, test.clearFocus); !reflect.DeepEqual(got, test.want) {
 				t.Errorf("SendPage() = %v, want %v", got, test.want)
 			}
 		})

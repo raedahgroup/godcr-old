@@ -13,7 +13,12 @@ func TestIsFlagErrorType(t *testing.T) {
 		errorType flags.ErrorType
 		want      bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:      "nil error flag",
+			err:       nil,
+			errorType: flags.ErrHelp,
+			want:      false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

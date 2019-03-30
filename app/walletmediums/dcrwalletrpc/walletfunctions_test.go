@@ -29,21 +29,21 @@ func TestWalletRPCClient_AccountBalance(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.AccountBalance(tt.accountNumber, tt.requiredConfirmations)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.AccountBalance() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.AccountBalance(test.accountNumber, test.requiredConfirmations)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.AccountBalance() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.AccountBalance() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.AccountBalance() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -65,21 +65,21 @@ func TestWalletRPCClient_AccountsOverview(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.AccountsOverview(tt.requiredConfirmations)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.AccountsOverview() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.AccountsOverview(test.requiredConfirmations)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.AccountsOverview() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.AccountsOverview() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.AccountsOverview() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -102,21 +102,21 @@ func TestWalletRPCClient_NextAccount(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.NextAccount(tt.accountName, tt.passphrase)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.NextAccount() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.NextAccount(test.accountName, test.passphrase)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.NextAccount() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.NextAccount() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.NextAccount() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -138,21 +138,21 @@ func TestWalletRPCClient_AccountNumber(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.AccountNumber(tt.accountName)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.AccountNumber() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.AccountNumber(test.accountName)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.AccountNumber() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.AccountNumber() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.AccountNumber() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -174,21 +174,21 @@ func TestWalletRPCClient_AccountName(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.AccountName(tt.accountNumber)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.AccountName() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.AccountName(test.accountNumber)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.AccountName() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.AccountName() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.AccountName() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -210,21 +210,21 @@ func TestWalletRPCClient_AddressInfo(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.AddressInfo(tt.address)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.AddressInfo() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.AddressInfo(test.address)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.AddressInfo() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.AddressInfo() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.AddressInfo() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -246,21 +246,21 @@ func TestWalletRPCClient_ValidateAddress(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.ValidateAddress(tt.address)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.ValidateAddress() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.ValidateAddress(test.address)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.ValidateAddress() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.ValidateAddress() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.ValidateAddress() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -282,21 +282,21 @@ func TestWalletRPCClient_ReceiveAddress(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.ReceiveAddress(tt.account)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.ReceiveAddress() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.ReceiveAddress(test.account)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.ReceiveAddress() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.ReceiveAddress() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.ReceiveAddress() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -318,21 +318,21 @@ func TestWalletRPCClient_GenerateNewAddress(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.GenerateNewAddress(tt.account)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.GenerateNewAddress() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.GenerateNewAddress(test.account)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.GenerateNewAddress() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.GenerateNewAddress() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.GenerateNewAddress() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -356,21 +356,21 @@ func TestWalletRPCClient_UnspentOutputs(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.UnspentOutputs(tt.account, tt.targetAmount, tt.requiredConfirmations)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.UnspentOutputs() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.UnspentOutputs(test.account, test.targetAmount, test.requiredConfirmations)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.UnspentOutputs() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.UnspentOutputs() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.UnspentOutputs() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -395,21 +395,21 @@ func TestWalletRPCClient_SendFromAccount(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.SendFromAccount(tt.sourceAccount, tt.requiredConfirmations, tt.destinations, tt.passphrase)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.SendFromAccount() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.SendFromAccount(test.sourceAccount, test.requiredConfirmations, test.destinations, test.passphrase)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.SendFromAccount() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.SendFromAccount() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.SendFromAccount() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -436,21 +436,21 @@ func TestWalletRPCClient_SendFromUTXOs(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.SendFromUTXOs(tt.sourceAccount, tt.requiredConfirmations, tt.utxoKeys, tt.txDestinations, tt.changeDestinations, tt.passphrase)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.SendFromUTXOs() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.SendFromUTXOs(test.sourceAccount, test.requiredConfirmations, test.utxoKeys, test.txDestinations, test.changeDestinations, test.passphrase)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.SendFromUTXOs() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("WalletRPCClient.SendFromUTXOs() = %v, want %v", got, tt.want)
+			if got != test.want {
+				t.Errorf("WalletRPCClient.SendFromUTXOs() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -471,21 +471,21 @@ func TestWalletRPCClient_TransactionHistory(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
 			got, err := c.TransactionHistory()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.TransactionHistory() error = %v, wantErr %v", err, tt.wantErr)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.TransactionHistory() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.TransactionHistory() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.TransactionHistory() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -507,21 +507,21 @@ func TestWalletRPCClient_GetTransaction(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.GetTransaction(tt.transactionHash)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.GetTransaction() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.GetTransaction(test.transactionHash)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.GetTransaction() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.GetTransaction() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.GetTransaction() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -543,21 +543,21 @@ func TestWalletRPCClient_StakeInfo(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.StakeInfo(tt.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.StakeInfo() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.StakeInfo(test.ctx)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.StakeInfo() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.StakeInfo() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.StakeInfo() = %v, want %v", got, test.want)
 			}
 		})
 	}
@@ -580,21 +580,21 @@ func TestWalletRPCClient_PurchaseTickets(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			c := &WalletRPCClient{
-				walletLoader:  tt.fields.walletLoader,
-				walletService: tt.fields.walletService,
-				activeNet:     tt.fields.activeNet,
-				walletOpen:    tt.fields.walletOpen,
+				walletLoader:  test.fields.walletLoader,
+				walletService: test.fields.walletService,
+				activeNet:     test.fields.activeNet,
+				walletOpen:    test.fields.walletOpen,
 			}
-			got, err := c.PurchaseTickets(tt.ctx, tt.request)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("WalletRPCClient.PurchaseTickets() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := c.PurchaseTicket(test.ctx, test.request)
+			if (err != nil) != test.wantErr {
+				t.Errorf("WalletRPCClient.PurchaseTickets() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WalletRPCClient.PurchaseTickets() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("WalletRPCClient.PurchaseTickets() = %v, want %v", got, test.want)
 			}
 		})
 	}

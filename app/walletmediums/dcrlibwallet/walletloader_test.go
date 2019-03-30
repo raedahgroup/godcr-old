@@ -147,28 +147,6 @@ func TestDcrWalletLib_OpenWallet(t *testing.T) {
 	}
 }
 
-func TestDcrWalletLib_CloseWallet(t *testing.T) {
-	type fields struct {
-		walletLib *dcrlibwallet.LibWallet
-		activeNet *netparams.Params
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			lib := &DcrWalletLib{
-				walletLib: test.fields.walletLib,
-				activeNet: test.fields.activeNet,
-			}
-			lib.CloseWallet()
-		})
-	}
-}
-
 func TestDcrWalletLib_IsWalletOpen(t *testing.T) {
 	type fields struct {
 		walletLib *dcrlibwallet.LibWallet

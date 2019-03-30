@@ -9,7 +9,18 @@ func Test_defaultFileOptions(t *testing.T) {
 	tests := []struct {
 		name string
 		want ConfFileOptions
-	}{}
+	}{
+		{
+			name: "default file options",
+			want: ConfFileOptions{
+				AppDataDir:    DefaultAppDataDir,
+				WalletRPCCert: defaultRPCCertFile,
+				HTTPHost:      defaultHTTPHost,
+				HTTPPort:      defaultHTTPPort,
+				DebugLevel:    defaultLogLevel,
+			},
+		},
+	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if got := defaultFileOptions(); !reflect.DeepEqual(got, test.want) {
@@ -23,7 +34,12 @@ func Test_createConfigFile(t *testing.T) {
 	tests := []struct {
 		name           string
 		wantSuccessful bool
-	}{}
+	}{
+		{
+			name:           "create config file",
+			wantSuccessful: true,
+		},
+	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if gotSuccessful := createConfigFile(); gotSuccessful != test.wantSuccessful {
@@ -38,7 +54,19 @@ func TestReadConfigFile(t *testing.T) {
 		name       string
 		wantConfig ConfFileOptions
 		wantErr    bool
-	}{}
+	}{
+		{
+			name: "read config file",
+			wantConfig: ConfFileOptions{
+				AppDataDir:    DefaultAppDataDir,
+				WalletRPCCert: defaultRPCCertFile,
+				HTTPHost:      defaultHTTPHost,
+				HTTPPort:      defaultHTTPPort,
+				DebugLevel:    defaultLogLevel,
+			},
+			wantErr: false,
+		},
+	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			gotConfig, err := ReadConfigFile()
@@ -58,7 +86,15 @@ func TestUpdateConfigFile(t *testing.T) {
 		name         string
 		updateConfig func(config *ConfFileOptions)
 		wantErr      bool
-	}{}
+	}{
+		{
+			name: "update config file",
+			updateConfig: func(config *ConfFileOptions) {
+				config.HTTPHost = defaultHTTPHost
+			},
+			wantErr: false,
+		},
+	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if err := UpdateConfigFile(test.updateConfig); (err != nil) != test.wantErr {
@@ -73,7 +109,19 @@ func Test_saveConfigToFile(t *testing.T) {
 		name    string
 		config  ConfFileOptions
 		wantErr bool
-	}{}
+	}{
+		{
+			name: "save config to file",
+			config: ConfFileOptions{
+				AppDataDir:    DefaultAppDataDir,
+				WalletRPCCert: defaultRPCCertFile,
+				HTTPHost:      defaultHTTPHost,
+				HTTPPort:      defaultHTTPPort,
+				DebugLevel:    defaultLogLevel,
+			},
+			wantErr: false,
+		},
+	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if err := saveConfigToFile(test.config); (err != nil) != test.wantErr {
@@ -88,7 +136,19 @@ func Test_configFileOptions(t *testing.T) {
 		name        string
 		wantOptions []string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "config file options",
+			wantOptions: []string{
+				"--appdata",
+				"--walletrpcserver",
+				"--walletrpccert",
+				"--nowalletrpctls",
+				"--httphost",
+				"--httpport",
+				"--debuglevel",
+				"--wallets",
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

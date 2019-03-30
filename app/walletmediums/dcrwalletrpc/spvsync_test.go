@@ -21,15 +21,15 @@ func Test_spvSync_streamBlockchainSyncUpdates(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			s := spvSync{
-				client:    tt.fields.client,
-				bestBlock: tt.fields.bestBlock,
-				listener:  tt.fields.listener,
-				netType:   tt.fields.netType,
+				client:    test.fields.client,
+				bestBlock: test.fields.bestBlock,
+				listener:  test.fields.listener,
+				netType:   test.fields.netType,
 			}
-			s.streamBlockchainSyncUpdates(tt.args.showLog)
+			s.streamBlockchainSyncUpdates(test.showLog)
 		})
 	}
 }

@@ -502,7 +502,39 @@ func TestDcrWalletLib_StakeInfo(t *testing.T) {
 	}
 }
 
-func TestDcrWalletLib_PurchaseTickets(t *testing.T) {
+func TestDcrWalletLib_TicketPrice(t *testing.T) {
+	type fields struct {
+		walletLib *dcrlibwallet.LibWallet
+		activeNet *netparams.Params
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		ctx     context.Context
+		want    int64
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			lib := &DcrWalletLib{
+				walletLib: test.fields.walletLib,
+				activeNet: test.fields.activeNet,
+			}
+			got, err := lib.TicketPrice(test.ctx)
+			if (err != nil) != test.wantErr {
+				t.Errorf("DcrWalletLib.TicketPrice() error = %v, wantErr %v", err, test.wantErr)
+				return
+			}
+			if got != test.want {
+				t.Errorf("DcrWalletLib.TicketPrice() = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestDcrWalletLib_PurchaseTicket(t *testing.T) {
 	type fields struct {
 		walletLib *dcrlibwallet.LibWallet
 		activeNet *netparams.Params
@@ -523,13 +555,13 @@ func TestDcrWalletLib_PurchaseTickets(t *testing.T) {
 				walletLib: test.fields.walletLib,
 				activeNet: test.fields.activeNet,
 			}
-			got, err := lib.PurchaseTickets(test.ctx, test.request)
+			got, err := lib.PurchaseTicket(test.ctx, test.request)
 			if (err != nil) != test.wantErr {
-				t.Errorf("DcrWalletLib.PurchaseTickets() error = %v, wantErr %v", err, test.wantErr)
+				t.Errorf("DcrWalletLib.PurchaseTicket() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("DcrWalletLib.PurchaseTickets() = %v, want %v", got, test.want)
+				t.Errorf("DcrWalletLib.PurchaseTicket() = %v, want %v", got, test.want)
 			}
 		})
 	}

@@ -107,33 +107,6 @@ func Test_getChangeOutputDestinations(t *testing.T) {
 	}
 }
 
-func Test_getChangeDestinationsWithRandomAmounts(t *testing.T) {
-	tests := []struct {
-		name                         string
-		wallet                       walletcore.Wallet
-		amountInAtom                 int64
-		sourceAccount                uint32
-		nUtxoSelection               int
-		sendDestinations             []txhelper.TransactionDestination
-		wantChangeOutputDestinations []txhelper.TransactionDestination
-		wantErr                      bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotChangeOutputDestinations, err := getChangeDestinationsWithRandomAmounts(test.wallet, test.amountInAtom, test.sourceAccount, test.nUtxoSelection, test.sendDestinations)
-			if (err != nil) != test.wantErr {
-				t.Errorf("getChangeDestinationsWithRandomAmounts() error = %v, wantErr %v", err, test.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotChangeOutputDestinations, test.wantChangeOutputDestinations) {
-				t.Errorf("getChangeDestinationsWithRandomAmounts() = %v, want %v", gotChangeOutputDestinations, test.wantChangeOutputDestinations)
-			}
-		})
-	}
-}
-
 func Test_getChangeDestinationsFromUser(t *testing.T) {
 	tests := []struct {
 		name             string
