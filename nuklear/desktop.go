@@ -59,7 +59,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	// open wallet and start blockchain syncing in background
-	walletExists, err := OpenWalletIfExist(ctx, walletMiddleware)
+	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		return err
 	}

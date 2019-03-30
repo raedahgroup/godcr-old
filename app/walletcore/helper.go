@@ -18,6 +18,11 @@ const (
 	SyncStatusInProgress
 )
 
+
+const StoreSeedWarningText = "Keep the seed in a safe place as you will NOT be able to restore your wallet without it. " +
+	"Please keep in mind that anyone who has access to the seed can also restore your wallet " +
+	"thereby giving them access to all your funds, so it is imperative that you keep it in a secure location."
+
 func SimpleBalance(balance *Balance, detailed bool) string {
 	if detailed {
 		return balance.Total.String()

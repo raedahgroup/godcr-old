@@ -1,8 +1,9 @@
 package dcrlibwallet
 
 import (
-	"fmt"
+	"context"
 	"github.com/raedahgroup/godcr/app"
+	"io/ioutil"
 )
 
 func (lib *DcrWalletLib) NetType() string {
@@ -21,18 +22,30 @@ func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
 	return lib.walletLib.CreateWallet(passphrase, seed)
 }
 
-func (lib *DcrWalletLib) OpenWallet() error {
-	walletExists, err := lib.WalletExists()
-	if err != nil {
-		return err
-	}
+func (lib *DcrWalletLib) OpenWalletIfExist(ctx context.Context) (walletExists bool, err error) {
+	loadWalletDone := make(chan bool)
 
-	if !walletExists {
-		return fmt.Errorf("Wallet does not exist. Please create a wallet first")
-	}
+	go func() {
+		defer func() {
+			loadWalletDone <- true
+		}()
 
-	// open wallet with default public passphrase: "public"
-	return lib.walletLib.OpenWallet([]byte("public"))
+		walletExists, err = lib.WalletExists()
+		if err != nil || !walletExists {
+			return
+		}
+
+		// open wallet with default public passphrase: "public"
+		err = lib.walletLib.OpenWallet([]byte("public"))
+	}()
+
+	select {
+	case <-loadWalletDone:
+		return
+
+	case <-ctx.Done():
+		return false, ctx.Err()
+	}
 }
 
 func (lib *DcrWalletLib) CloseWallet() {
@@ -63,7 +76,12 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 	}
 	lib.walletLib.AddSyncResponse(syncResponse)
 
-	err := lib.walletLib.SpvSync("")
+	cert, err := ioutil.ReadFile("/Users/itswisdomagain/Library/Application Support/Dcrd/rpc.cert")
+	if err != nil {
+		return err
+	}
+	err = lib.walletLib.RpcSync("localhost:19109", "qepFqTbFkAm/8hixpg75Is/NJeY=",
+		"4FwUIrVkNMuVC2E9QqdhDiO2Rv8=", cert)
 	if err != nil {
 		lib.walletLib.SetLogLevel("off")
 		return err

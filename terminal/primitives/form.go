@@ -119,6 +119,8 @@ func (f *Form) AddFormItem(item tview.FormItem) *Form {
 		box = dropDown.Box
 	} else if checkBox, ok := item.(*tview.Checkbox); ok {
 		box = checkBox.Box
+	} else if textView, ok := item.(*TextViewFormItem); ok {
+		box = textView.GetTextView().Box
 	} else {
 		// don't add this form item until we're sure what box element it is,
 		// to prevent disparity between f.items and f.formItems

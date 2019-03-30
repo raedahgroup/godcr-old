@@ -2,11 +2,7 @@ package terminal
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
 )
@@ -14,16 +10,16 @@ import (
 func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 
-	walletExists, err := nuklear.OpenWalletIfExist(ctx, walletMiddleware)
+	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		return err
 	}
 
 	var page tview.Primitive
 	if walletExists {
-		page = sync(tviewApp, walletMiddleware)
+		page = pages.SyncPage(tviewApp, walletMiddleware)
 	} else {
-		page = createWallet(tviewApp, walletMiddleware)
+		page = pages.CreateWalletPage(tviewApp, walletMiddleware)
 	}
 
 	// `Run` blocks until app.Stop() is called before returning

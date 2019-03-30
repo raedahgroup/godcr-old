@@ -55,7 +55,7 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 }
 
 func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	walletExists, err := walletloader.OpenWallet(ctx, walletMiddleware)
+	walletExists, err := walletloader.OpenOrCreateWallet(ctx, walletMiddleware)
 	if err != nil || !walletExists {
 		return err
 	}

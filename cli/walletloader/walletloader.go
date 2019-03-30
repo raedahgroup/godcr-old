@@ -12,7 +12,65 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
-// createWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
+// OpenOrCreateWallet is called whenever an action to be executed requires wallet to be loaded
+// notifies the program to exit if wallet doesn't exist or some other error occurs by returning a non-nil error
+//
+// this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
+// hence the need for ctx, so user can cancel the operation if it's taking too long
+func OpenOrCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
+	walletExists, err = walletMiddleware.OpenWalletIfExist(ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
+		return
+	}
+
+	if !walletExists {
+		createdWalletInfo, err := AttemptToCreateWallet(ctx)
+		walletExists = createdWalletInfo != nil
+		return walletExists, err
+	}
+
+	return
+}
+
+// syncBlockChain uses the WalletMiddleware provided to download block updates
+// this is a long running operation, listen for ctx.Done and stop processing
+func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	syncDone := make(chan error)
+	go func() {
+		syncListener := &app.BlockChainSyncListener{
+			SyncStarted: func() {
+				fmt.Println("Blockchain sync started")
+			},
+			SyncEnded: func(err error) {
+				if err == nil {
+					fmt.Println("Blockchain synced successfully")
+				} else {
+					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", err.Error())
+				}
+				syncDone <- err
+			},
+			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
+			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
+			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+		}
+
+		err := walletMiddleware.SyncBlockChain(syncListener, true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
+			syncDone <- err
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-syncDone:
+		return err
+	}
+}
+
+// CreateWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
 func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	walletMiddleware, err := choseNetworkAndCreateMiddleware()
 	if err != nil {
@@ -103,92 +161,4 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	}
 
 	return walletInfo, SyncBlockChain(ctx, walletMiddleware)
-}
-
-// OpenWallet is called whenever an action to be executed requires wallet to be loaded
-// notifies the program to exit if wallet doesn't exist or some other error occurs by returning a non-nil error
-//
-// this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
-// hence the need for ctx, so user can cancel the operation if it's taking too long
-func OpenWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
-	var errMsg string
-	loadWalletDone := make(chan bool)
-
-	go func() {
-		defer func() {
-			loadWalletDone <- true
-		}()
-
-		walletExists, err = walletMiddleware.WalletExists()
-		if err != nil {
-			errMsg = fmt.Sprintf("Error checking %s wallet", walletMiddleware.NetType())
-			return
-		}
-		if !walletExists {
-			return
-		}
-
-		err = walletMiddleware.OpenWallet()
-		if err != nil {
-			errMsg = fmt.Sprintf("Failed to open %s wallet", walletMiddleware.NetType())
-		}
-	}()
-
-	select {
-	case <-loadWalletDone:
-		if !walletExists {
-			createdWalletInfo, err := AttemptToCreateWallet(ctx)
-			walletExists = createdWalletInfo != nil
-			return walletExists, err
-		}
-
-		if errMsg != "" {
-			fmt.Fprintln(os.Stderr, errMsg)
-		}
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-		}
-		return
-
-	case <-ctx.Done():
-		err = ctx.Err()
-		return
-	}
-}
-
-// syncBlockChain uses the WalletMiddleware provided to download block updates
-// this is a long running operation, listen for ctx.Done and stop processing
-func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	syncDone := make(chan error)
-	go func() {
-		syncListener := &app.BlockChainSyncListener{
-			SyncStarted: func() {
-				fmt.Println("Blockchain sync started")
-			},
-			SyncEnded: func(err error) {
-				if err == nil {
-					fmt.Println("Blockchain synced successfully")
-				} else {
-					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", err.Error())
-				}
-				syncDone <- err
-			},
-			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
-			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
-			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
-		}
-
-		err := walletMiddleware.SyncBlockChain(syncListener, true)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
-			syncDone <- err
-		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-syncDone:
-		return err
-	}
 }
