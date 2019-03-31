@@ -1,16 +1,12 @@
 package walletcore
 
 import (
-	"errors"
 	"fmt"
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"math/rand"
 	"strconv"
 	"strings"
-
-	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/txscript"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
 type SyncStatus uint8
@@ -22,23 +18,12 @@ const (
 	SyncStatusInProgress
 )
 
-// GetAddressFromPkScript extracts the address from the supplied pkScript in the given chaincfg params
-func GetAddressFromPkScript(activeNet *chaincfg.Params, pkScript []byte) (address string, err error) {
-	_, addresses, _, err := txscript.ExtractPkScriptAddrs(txscript.DefaultScriptVersion,
-		pkScript, activeNet)
-	if err != nil {
-		return
-	}
-	if len(addresses) < 1 {
-		return "", errors.New("Cannot extract any address from output")
-	}
-
-	encodedAddresses := make([]string, len(addresses))
-	for i, address := range addresses {
-		encodedAddresses[i] = address.EncodeAddress()
-	}
-
-	return strings.Join(encodedAddresses, ", "), nil
+// FormatTxType returns a more readable representation of a transaction type,
+// returning Regular instead of REGULAR. Ticket Purchase instead of TICKET_PURCHASE, etc
+func FormatTxType(txType string) string {
+	txType = strings.Replace(txType, "_", " ", -1)
+	txType = strings.ToLower(txType)
+	return strings.Title(txType)
 }
 
 func SimpleBalance(balance *Balance, detailed bool) string {

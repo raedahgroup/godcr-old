@@ -64,14 +64,13 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		var prompt string
 		pageInfo := fmt.Sprintf("Showing transactions %d-%d", lastTxRowNumber, lastTxRowNumber+len(transactions)-1)
 		if startBlockHeight >= 0 {
-			prompt = fmt.Sprintf("%s, enter # for details, show (M)ore, or (q)uit", pageInfo)
+			prompt = fmt.Sprintf("%s, enter # for details, show (m)ore, or (q)uit", pageInfo)
 		} else {
-			prompt = fmt.Sprintf("%s, enter # for details or (Q)uit", pageInfo)
+			prompt = fmt.Sprintf("%s, enter # for details or (q)uit", pageInfo)
 		}
 
 		validateUserInput := func(userInput string) error {
-			if userInput == "" ||
-				strings.EqualFold(userInput, "q") ||
+			if strings.EqualFold(userInput, "q") ||
 				(strings.EqualFold(userInput, "m") && startBlockHeight >= 0) {
 				return nil
 			}
@@ -90,9 +89,9 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 			return fmt.Errorf("error reading response: %s", err.Error())
 		}
 
-		if strings.EqualFold(userChoice, "q") || (userChoice == "" && startBlockHeight < 0) {
+		if strings.EqualFold(userChoice, "q") {
 			break
-		} else if strings.EqualFold(userChoice, "M") || (userChoice == "" && startBlockHeight >= 0) {
+		} else if strings.EqualFold(userChoice, "m") {
 			fmt.Println() // print empty line before listing txs for next page
 			continue
 		}
