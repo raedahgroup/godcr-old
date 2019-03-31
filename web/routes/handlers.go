@@ -305,16 +305,16 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	// if no input is selected, then use all inputs.
 	// This is so as to make getting max amount possible for normal sending from the UI
-	if len(utxos) < 1 {
+	if len(utxos) == 0 {
 		requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
 		getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
 		if getUnconfirmed == "true" {
 			requiredConfirmations = 0
 		}
-		utxos, totalInputAmountDcr, err = routes.getAllUtoxs(uint32(account), requiredConfirmations)
+		utxos, totalInputAmountDcr, err = walletcore.GetAllUtoxs(routes.walletMiddleware, uint32(account), requiredConfirmations)
 		if err != nil {
-			data["error"] = err.Error()
+			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
 			return
 		}
 	}
@@ -332,21 +332,6 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 	data["message"] = changeOutputDestinations
-}
-
-func (routes Routes) getAllUtoxs(accountNumber uint32, requiredConfirmations int) ([]string, float64, error) {
-	allUtxos, err := routes.walletMiddleware.UnspentOutputs(accountNumber, 0, int32(requiredConfirmations))
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var total float64
-	var utxos []string
-	for _, utxo := range allUtxos {
-		utxos = append(utxos, utxo.OutputKey)
-		total += utxo.Amount.ToCoin()
-	}
-	return utxos, total, nil
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
