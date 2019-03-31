@@ -11,6 +11,7 @@ export default class extends Controller {
     this.hide(this.nextPageButtonTarget)
     this.nextBlockHeight = this.nextPageButtonTarget.getAttribute('data-next-block-height')
     this.checkScrollPos()
+      this.show(this.loadingIndicatorTarget)
   }
 
   checkScrollPos () {
@@ -27,7 +28,7 @@ export default class extends Controller {
     const scrollPos = element.scrollTop + element.clientHeight
     if (scrollPos >= element.scrollHeight * 0.95) {
       this.isLoading = true
-      this.fetchMoreTxs()
+      // this.fetchMoreTxs()
     }
   }
 
@@ -72,8 +73,8 @@ export default class extends Controller {
                   <td>${++n}</td>
                   <td>${tx.formatted_time}</td>
                   <td>${txDirection(tx.direction)}</td>
-                  <td>${tx.amount / 100000000} DCR</td>
-                  <td>${tx.fee / 100000000} DCR</td>
+                  <td style="text-align: right">${tx.amount}</td>
+                  <td style="text-align: right">${tx.fee}</td>
                   <td>${tx.type}</td>
                   <td><a href="/transaction-details/${tx.hash}">${tx.hash}</a></td>
               </tr>`

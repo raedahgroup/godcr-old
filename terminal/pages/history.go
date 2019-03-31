@@ -79,8 +79,8 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
 		historyTable.SetCell(row, 1, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Fee.String()).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
+		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Fee).SetAlign(tview.AlignRight))
 		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 6, tview.NewTableCell(tx.Hash).SetAlign(tview.AlignCenter))
 	}

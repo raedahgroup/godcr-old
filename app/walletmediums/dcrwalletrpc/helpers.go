@@ -84,8 +84,8 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 
 	tx := &walletcore.Transaction{
 		Hash:          hash.String(),
-		Amount:        dcrutil.Amount(amount),
-		Fee:           txFee,
+		Amount:        walletcore.NormalizeBalance(dcrutil.Amount(amount).ToCoin()),
+		Fee:           walletcore.NormalizeBalance(txFee.ToCoin()),
 		FeeRate:       txFeeRate,
 		Type:          txhelper.RPCTransactionType(txDetail.TransactionType),
 		Direction:     direction,

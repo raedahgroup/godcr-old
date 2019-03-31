@@ -30,6 +30,11 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		"Hash",
 	}
 
+	// formatAmount returns the amount as a 17-character string padded with spaces to the left
+	formatAmount := func(amount string) string {
+		return fmt.Sprintf("%17s", amount)
+	}
+
 	// show transactions in pages, using infinite loop
 	// after displaying transactions for each page,
 	// ask user if to show next page, previous page, tx details or exit the loop
@@ -52,8 +57,8 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 				lastTxRowNumber + i,
 				tx.FormattedTime,
 				tx.Direction,
-				tx.Amount,
-				tx.Fee,
+				formatAmount(tx.Amount),
+				formatAmount(tx.Fee),
 				tx.Type,
 				tx.Hash,
 			}

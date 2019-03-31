@@ -87,8 +87,7 @@ func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, maste
 func (handler *HistoryHandler) displayTransactions(contentWindow *helpers.Window, wallet walletcore.Wallet) {
 	// render table header with nav font
 	helpers.SetFont(contentWindow.Window, helpers.NavFont)
-	contentWindow.Row(30).Static(25, 80, 60, 70, 70, 80, 300)
-	contentWindow.Label("", "LC") // left padding
+	contentWindow.Row(20).Static(25, 80, 60, 70, 70, 80, 300)
 	contentWindow.Label("#", "LC")
 	contentWindow.Label("Date", "LC")
 	contentWindow.Label("Direction", "LC")
@@ -105,8 +104,8 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *helpers.Window
 		contentWindow.Label(fmt.Sprintf("%d", i + 1), "LC")
 		contentWindow.Label(tx.FormattedTime, "LC")
 		contentWindow.Label(tx.Direction.String(), "LC")
-		contentWindow.Label(tx.Amount.String(), "LC")
-		contentWindow.Label(tx.Fee.String(), "LC")
+		contentWindow.Label(tx.Amount, "RC")
+		contentWindow.Label(tx.Fee, "RC")
 		contentWindow.Label(tx.Type, "LC")
 		contentWindow.Label(tx.Hash, "LC")
 	}

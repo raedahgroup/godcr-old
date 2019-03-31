@@ -431,7 +431,9 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
-	transaction.Fee, transaction.FeeRate, transaction.Size = dcrutil.Amount(decodedTx.Fee), dcrutil.Amount(decodedTx.FeeRate), decodedTx.Size
+	transaction.Fee = walletcore.NormalizeBalance(dcrutil.Amount(decodedTx.Fee).ToCoin())
+	transaction.FeeRate = dcrutil.Amount(decodedTx.FeeRate)
+	transaction.Size = decodedTx.Size
 
 	var blockHeight int32 = -1
 	if getTxResponse.BlockHash != nil {

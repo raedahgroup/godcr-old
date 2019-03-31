@@ -24,8 +24,8 @@
                             <td>{{ intSum $.startTxCount $index 1 }}</td>
                             <td>{{ $txn.FormattedTime }}</td>
                             <td>{{ $txn.Direction }}</td>
-                            <td>{{ $txn.Amount }}</td>
-                            <td>{{ $txn.Fee }}</td>
+                            <td style="text-align: right">{{ $txn.Amount }}</td>
+                            <td style="text-align: right">{{ $txn.Fee }}</td>
                             <td>{{ $txn.Type }}</td>
                             <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ $txn.Hash }}</a></td>
                         </tr>
