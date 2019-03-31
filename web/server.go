@@ -31,7 +31,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 	makeStaticFileServer(router, "/static", http.Dir(filesDir))
 
 	// setup routes for templated pages, returns wallet loader function
-	syncBlockchain := routes.Setup(ctx, walletMiddleware, router)
+	_ = routes.Setup(ctx, walletMiddleware, router)
 	weblog.LogInfo("Starting web server")
 	serverAddress := net.JoinHostPort(host, port)
 	err = startServer(ctx, serverAddress, router)
@@ -45,7 +45,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 		weblog.LogInfo("Web server stopped")
 		return err
 	}
-	syncBlockchain()
+	//syncBlockchain()
 
 	// keep alive till ctx is canceled
 	<-ctx.Done()

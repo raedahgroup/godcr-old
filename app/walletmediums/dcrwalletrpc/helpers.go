@@ -3,7 +3,6 @@ package dcrwalletrpc
 import (
 	"context"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
@@ -88,7 +87,7 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		Amount:        dcrutil.Amount(amount),
 		Fee:           txFee,
 		FeeRate:       txFeeRate,
-		Type:          walletcore.FormatTxType(txDetail.TransactionType.String()),
+		Type:          txhelper.RPCTransactionType(txDetail.TransactionType),
 		Direction:     direction,
 		Timestamp:     txDetail.Timestamp,
 		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("2006-01-02 15:04:05"),
@@ -98,45 +97,15 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 }
 
 func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, txhelper.TransactionDirection) {
-	var outputAmounts int64
+	var outputTotal int64
 	for _, credit := range txDetail.Credits {
-		outputAmounts += int64(credit.Amount)
+		outputTotal += int64(credit.Amount)
 	}
 
-	var inputAmounts int64
+	var inputTotal int64
 	for _, debit := range txDetail.Debits {
-		inputAmounts += int64(debit.PreviousAmount)
+		inputTotal += int64(debit.PreviousAmount)
 	}
 
-	var amount int64
-	var direction txhelper.TransactionDirection
-
-	if txDetail.TransactionType == walletrpc.TransactionDetails_REGULAR {
-		amountDifference := outputAmounts - inputAmounts
-		if amountDifference < 0 && (float64(txDetail.Fee) == math.Abs(float64(amountDifference))) {
-			// transferred internally, the only real amount spent was transaction fee
-			direction = txhelper.TransactionDirectionTransferred
-			amount = int64(txDetail.Fee)
-		} else if amountDifference > 0 {
-			// received
-			direction = txhelper.TransactionDirectionReceived
-
-			for _, credit := range txDetail.Credits {
-				amount += int64(credit.Amount)
-			}
-		} else {
-			// sent
-			direction = txhelper.TransactionDirectionSent
-
-			for _, debit := range txDetail.Debits {
-				amount += int64(debit.PreviousAmount)
-			}
-			for _, credit := range txDetail.Credits {
-				amount -= int64(credit.Amount)
-			}
-			amount -= int64(txDetail.Fee)
-		}
-	}
-
-	return amount, direction
+	return txhelper.TransactionAmountAndDirection(inputTotal, outputTotal, int64(txDetail.Fee))
 }

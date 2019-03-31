@@ -21,7 +21,8 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body.AddItem(hintText, 2, 0, false)
 
 	historyTable := tview.NewTable().
-		SetBorders(true).
+		SetBorders(false).
+		SetSeparator('\t').
 		SetFixed(1, 0).
 		SetSelectable(true, false)
 
@@ -87,7 +88,7 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 	if endBlockHeight > 0 {
 		// set or reset selection changed listener to load more data when the table is almost scrolled to the end
 		historyTable.SetSelectionChangedFunc(func(row, column int) {
-			if row >= historyTable.GetRowCount()-5 {
+			if row >= historyTable.GetRowCount()-10 {
 				historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
 				go fetchAndDisplayTransactions(endBlockHeight-1, wallet, historyTable, displayError)
 			}

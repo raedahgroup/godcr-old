@@ -6,7 +6,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"math/rand"
 	"strconv"
-	"strings"
 )
 
 type SyncStatus uint8
@@ -17,14 +16,6 @@ const (
 	SyncStatusError
 	SyncStatusInProgress
 )
-
-// FormatTxType returns a more readable representation of a transaction type,
-// returning Regular instead of REGULAR. Ticket Purchase instead of TICKET_PURCHASE, etc
-func FormatTxType(txType string) string {
-	txType = strings.Replace(txType, "_", " ", -1)
-	txType = strings.ToLower(txType)
-	return strings.Title(txType)
-}
 
 func SimpleBalance(balance *Balance, detailed bool) string {
 	if detailed {

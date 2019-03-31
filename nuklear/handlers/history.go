@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
@@ -38,17 +37,6 @@ func (handler *HistoryHandler) Render(window *nucular.Window, wallet walletcore.
 	// draw page
 	if pageWindow := helpers.NewWindow("History Page", window, 0); pageWindow != nil {
 		pageWindow.DrawHeader("History")
-
-		// render table header with nav font in pageWindow so it doesn't scroll with the rows
-		helpers.SetFont(pageWindow.Window, helpers.NavFont)
-		pageWindow.Row(20).Static(25, 80, 60, 70, 70, 80, 300)
-		pageWindow.Label("#", "LC")
-		pageWindow.Label("Date", "LC")
-		pageWindow.Label("Direction", "LC")
-		pageWindow.Label("Amount", "LC")
-		pageWindow.Label("Fee", "LC")
-		pageWindow.Label("Type", "LC")
-		pageWindow.Label("Hash", "LC")
 
 		// content window
 		if contentWindow := pageWindow.ContentWindow("History"); contentWindow != nil {
@@ -97,6 +85,18 @@ func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, maste
 }
 
 func (handler *HistoryHandler) displayTransactions(contentWindow *helpers.Window, wallet walletcore.Wallet) {
+	// render table header with nav font
+	helpers.SetFont(contentWindow.Window, helpers.NavFont)
+	contentWindow.Row(30).Static(25, 80, 60, 70, 70, 80, 300)
+	contentWindow.Label("", "LC") // left padding
+	contentWindow.Label("#", "LC")
+	contentWindow.Label("Date", "LC")
+	contentWindow.Label("Direction", "LC")
+	contentWindow.Label("Amount", "LC")
+	contentWindow.Label("Fee", "LC")
+	contentWindow.Label("Type", "LC")
+	contentWindow.Label("Hash", "LC")
+
 	// render rows with content font
 	helpers.SetFont(contentWindow.Window, helpers.PageContentFont)
 

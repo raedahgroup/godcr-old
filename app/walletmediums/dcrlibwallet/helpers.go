@@ -24,7 +24,7 @@ func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedT
 			Fee:           txFee,
 			FeeRate:       txFeeRate,
 			Size:          txSize,
-			Type:          walletcore.FormatTxType(tx.Type),
+			Type:          tx.Type,
 			Direction:     tx.Direction,
 			Timestamp:     tx.Timestamp,
 			FormattedTime: time.Unix(tx.Timestamp, 0).Format("2006-01-02 15:04:05"),

@@ -289,7 +289,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		Timestamp:     txInfo.Timestamp,
 		Fee:           dcrutil.Amount(decodedTx.Fee),
 		Direction:     txInfo.Direction,
-		Type:          walletcore.FormatTxType(txInfo.Type),
+		Type:          txInfo.Type,
 		FeeRate:       dcrutil.Amount(decodedTx.FeeRate),
 		Size:          decodedTx.Size,
 	}
