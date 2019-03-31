@@ -7,6 +7,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -14,11 +15,11 @@ import (
 type ReceiveHandler struct {
 	err         error
 	isRendering bool
-	accounts    []*walletcore.Account
 
-	// form selector index
-	selectedAccountIndex  int
-	selectedAccountNumber uint32
+	numAccounts     int
+	accountSelector *widgets.AccountSelection
+
+	addressInput nucular.TextEditor
 
 	// generatedAddress
 	generatedAddress string
@@ -26,18 +27,21 @@ type ReceiveHandler struct {
 
 func (handler *ReceiveHandler) BeforeRender() {
 	handler.err = nil
-	handler.accounts = nil
 	handler.isRendering = false
 
-	// form selector index
-	handler.selectedAccountIndex = 0
-	handler.selectedAccountNumber = uint32(0)
+	handler.addressInput.Flags = nucular.EditClipboard | nucular.EditNoCursor
 }
 
 func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		accounts, err := walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		if err != nil {
+			handler.err = err
+		} else {
+			handler.numAccounts = len(accounts)
+			handler.accountSelector = widgets.NewAccountSelectionWidget(accounts)
+		}
 	}
 
 	// draw page
@@ -49,38 +53,35 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 			if handler.err != nil {
 				contentWindow.SetErrorMessage(handler.err.Error())
 			} else {
-				accountNames := make([]string, len(handler.accounts))
-				for index, account := range handler.accounts {
-					accountNames[index] = account.Name
+				contentWindow.Row(30).Ratio(0.75, 0.25)
+
+				buttonLabel := "Generate"
+				if handler.numAccounts == 1 {
+					buttonLabel = "Regenerate"
 				}
 
-				contentWindow.Row(30).Ratio(0.75, 0.25)
-				// draw select account combo
-				handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 30)
+				if handler.numAccounts == 1 && handler.generatedAddress == "" {
+					handler.generatedAddress, handler.err = walletMiddleware.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
+					handler.RenderAddress(contentWindow)
+				} else {
+					handler.accountSelector.Render(contentWindow.Window)
 
-				// draw submit button
-				if contentWindow.Button(label.T("Generate"), false) {
-					// get selected account by index
-					accountName := accountNames[handler.selectedAccountIndex]
-					for _, account := range handler.accounts {
-						if account.Name == accountName {
-							handler.selectedAccountNumber = account.Number
-							break
+					// draw submit button
+					if contentWindow.Button(label.T(buttonLabel), false) {
+						// get address
+						handler.generatedAddress, handler.err = walletMiddleware.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
+						if handler.err != nil {
+							contentWindow.SetErrorMessage(handler.err.Error())
+						} else {
+							window.Master().Changed()
 						}
 					}
 
-					// get address
-					handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.selectedAccountNumber)
-					if handler.err != nil {
-						contentWindow.SetErrorMessage(handler.err.Error())
-					} else {
-						window.Master().Changed()
+					if handler.generatedAddress != "" {
+						handler.RenderAddress(contentWindow)
 					}
 				}
 
-				if handler.generatedAddress != "" {
-					handler.RenderAddress(contentWindow)
-				}
 			}
 			contentWindow.End()
 		}
@@ -89,14 +90,19 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 }
 
 func (handler *ReceiveHandler) RenderAddress(window *helpers.Window) {
-	window.Row(50).Dynamic(1)
-	window.LabelWrap("Address: " + handler.generatedAddress)
+	window.Row(30).Static(40, 400)
+	window.Label("Address: ", "LC")
+	helpers.StyleClipboardInput(window)
+	handler.addressInput.Buffer = []rune(handler.generatedAddress)
+	handler.addressInput.Edit(window.Window)
+	helpers.ResetInputStyle(window)
 
 	// generate qrcode
 	png, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
 	if err != nil {
 		window.Row(300).Dynamic(1)
 		window.LabelWrap(err.Error())
+
 	} else {
 		window.Row(200).Dynamic(1)
 		img := png.Image(300)

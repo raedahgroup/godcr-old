@@ -151,6 +151,26 @@ func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	window.SetStyle(style)
 }
 
+func StyleClipboardInput(window *Window) {
+	style := window.Master().Style()
+	style.Font = PageContentFont
+	style.Edit.Border = 0
+	style.Edit.Normal.Data.Color = contentBackgroundColor
+	style.Edit.Hover.Data.Color = contentBackgroundColor
+	style.Edit.Active.Data.Color = contentBackgroundColor
+	window.Master().SetStyle(style)
+}
+
+func ResetInputStyle(window *Window) {
+	style := window.Master().Style()
+	style.Font = PageContentFont
+	style.Edit.Border = 1
+	style.Edit.Normal.Data.Color = whiteColor
+	style.Edit.Hover.Data.Color = whiteColor
+	style.Edit.Active.Data.Color = whiteColor
+	window.Master().SetStyle(style)
+}
+
 func AmountToString(amount float64) string {
 	amount = math.Round(amount)
 	return fmt.Sprintf("%d DCR", int(amount))

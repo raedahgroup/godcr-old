@@ -34,9 +34,7 @@ type SendHandler struct {
 	utxoErr         string
 	isFetchingUTXOS bool
 
-	accountNumbers       []uint32
-	accountOverviews     []string
-	selectedAccountIndex int
+	accountSelector *widgets.AccountSelection
 
 	sendDetailInputPairs []*SendDetailInputPair
 
@@ -53,8 +51,6 @@ func (handler *SendHandler) BeforeRender() {
 	handler.fetchUTXOError = nil
 	handler.utxos = nil
 	handler.isFetchingUTXOS = false
-	handler.accountNumbers = nil
-	handler.accountOverviews = nil
 	handler.sendDetailInputPairs = nil
 	handler.spendUnconfirmed = false
 	handler.selectCustomInputs = false
@@ -66,7 +62,13 @@ func (handler *SendHandler) BeforeRender() {
 func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.fetchAccounts(wallet)
+		accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		if err != nil {
+			handler.err = err
+		} else {
+			handler.accountSelector = widgets.NewAccountSelectionWidget(accounts)
+		}
+
 		handler.addSendInputPair(window.Master(), true)
 	}
 
@@ -94,7 +96,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 			contentWindow.Label("Source Account", "LC")
 
 			contentWindow.Row(25).Dynamic(1)
-			handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
+			handler.accountSelector.Render(contentWindow.Window)
 
 			contentWindow.Row(15).Dynamic(2)
 			if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
@@ -186,25 +188,6 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 	}
 }
 
-// fetch accounts to display in select source account dropdown
-func (handler *SendHandler) fetchAccounts(wallet walletcore.Wallet) {
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		handler.err = err
-		return
-	}
-
-	numAccounts := len(accounts)
-	handler.accountNumbers = make([]uint32, numAccounts)
-	handler.accountOverviews = make([]string, numAccounts)
-
-	for index, account := range accounts {
-		handler.accountOverviews[index] = account.String()
-		handler.accountNumbers[index] = account.Number
-	}
-	handler.selectedAccountIndex = 0
-}
-
 // addSendInputPair adds a destinationAddress and amount input field pair on user click of
 // the 'add another address' button. This function is called at least once in the lifetime of
 // the send page
@@ -268,7 +251,7 @@ func (handler *SendHandler) fetchCustomInputs(wallet walletcore.Wallet, masterWi
 		requiredConfirmations = 0
 	}
 
-	accountNumber := handler.accountNumbers[handler.selectedAccountIndex]
+	accountNumber := handler.accountSelector.GetSelectedAccountNumber()
 	utxos, err := wallet.UnspentOutputs(accountNumber, 0, requiredConfirmations)
 	if err != nil {
 		handler.fetchUTXOError = err
@@ -396,7 +379,7 @@ func (handler *SendHandler) submit(passphrase string, window *nucular.Window, wa
 		}
 	}
 
-	accountNumber := handler.accountNumbers[handler.selectedAccountIndex]
+	accountNumber := handler.accountSelector.GetSelectedAccountNumber()
 	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
 	if handler.spendUnconfirmed {
 		requiredConfirmations = 0
@@ -443,9 +426,7 @@ func (handler *SendHandler) getUTXOSAndSelectedAmount() (utxos []string, totalIn
 }
 
 func (handler *SendHandler) resetForm() {
-	if len(handler.accountNumbers) > 1 {
-		handler.selectedAccountIndex = 0
-	}
+	handler.accountSelector.Reset()
 
 	if len(handler.sendDetailInputPairs) > 1 {
 		handler.sendDetailInputPairs = handler.sendDetailInputPairs[:1]
