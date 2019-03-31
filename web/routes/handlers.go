@@ -327,6 +327,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), int64(totalInputAmount), sourceAccount, len(utxos), destinations)
 	if err != nil {
+		// return error key for the frontend to process
 		data["error"] = err.Error()
 		return
 	}
