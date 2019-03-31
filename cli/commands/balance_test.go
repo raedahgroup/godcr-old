@@ -2,62 +2,37 @@ package commands
 
 import (
 	"context"
-	"testing"
+	"errors"
 
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
 )
 
-func TestBalanceCommand_Run(t *testing.T) {
-	type fields struct {
-		commanderStub commanderStub
-		Detailed      bool
+func getWalletForTesting() (walletcore.Wallet, error) {
+	cfg, _, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		ctx     context.Context
-		wallet  walletcore.Wallet
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			balanceCommand := BalanceCommand{
-				commanderStub: test.fields.commanderStub,
-				Detailed:      test.fields.Detailed,
-			}
-			if err := balanceCommand.Run(test.ctx, test.wallet); (err != nil) != test.wantErr {
-				t.Errorf("BalanceCommand.Run() error = %v, wantErr %v", err, test.wantErr)
-			}
-		})
-	}
-}
 
-func Test_showDetailedBalance(t *testing.T) {
-	tests := []struct {
-		name            string
-		accountBalances []*walletcore.Account
-	}{
-		// TODO: Add test cases.
+	if cfg.WalletRPCServer != "" {
+		return dcrwalletrpc.New(context.Background(), cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			showDetailedBalance(test.accountBalances)
-		})
-	}
-}
 
-func Test_showBalanceSummary(t *testing.T) {
-	tests := []struct {
-		name     string
-		accounts []*walletcore.Account
-	}{
-		// TODO: Add test cases.
+	walletInfo := config.DefaultWallet(cfg.Wallets)
+	if walletInfo == nil {
+		// no default wallet, ask if to trigger detect command to discover existing wallets or to create new wallet
+		walletInfos, err := DetectWallets(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		if walletInfos == nil {
+			return nil, errors.New("No wallet detected")
+		}
+
+		walletInfo = config.DefaultWallet(walletInfos)
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			showBalanceSummary(test.accounts)
-		})
-	}
+
+	return dcrlibwallet.New(cfg.AppDataDir, walletInfo)
 }

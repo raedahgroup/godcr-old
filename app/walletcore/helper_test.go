@@ -48,21 +48,3 @@ func TestGetAddressFromPkScript(t *testing.T) {
 		})
 	}
 }
-
-func TestSimpleBalance(t *testing.T) {
-	tests := []struct {
-		name     string
-		balance  *Balance
-		detailed bool
-		want     string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if got := SimpleBalance(test.balance, test.detailed); got != test.want {
-				t.Errorf("SimpleBalance() = %v, want %v", got, test.want)
-			}
-		})
-	}
-}

@@ -8,6 +8,11 @@ import (
 )
 
 func TestReceiveCommand_Run(t *testing.T) {
+	wallet, err := getWalletForTesting()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type fields struct {
 		commanderStub commanderStub
 		Args          ReceiveCommandArgs
@@ -19,7 +24,18 @@ func TestReceiveCommand_Run(t *testing.T) {
 		wallet  walletcore.Wallet
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "receive command",
+			fields: fields{
+				commanderStub: commanderStub{},
+				Args: ReceiveCommandArgs{
+					AccountName: "default",
+				},
+			},
+			ctx:     context.Background(),
+			wallet:  wallet,
+			wantErr: false,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

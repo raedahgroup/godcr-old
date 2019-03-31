@@ -5,42 +5,6 @@ import (
 	"testing"
 )
 
-func Test_logWriter_Write(t *testing.T) {
-	tests := []struct {
-		name    string
-		p       []byte
-		wantN   int
-		wantErr bool
-	}{}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			logWriter := logWriter{}
-			gotN, err := logWriter.Write(tt.p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("logWriter.Write() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if gotN != tt.wantN {
-				t.Errorf("logWriter.Write() = %v, want %v", gotN, tt.wantN)
-			}
-		})
-	}
-}
-
-func Test_initLogRotator(t *testing.T) {
-	tests := []struct {
-		name    string
-		logFile string
-	}{}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			initLogRotator(tt.logFile)
-		})
-	}
-}
-
 func Test_setLogLevel(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -221,25 +185,6 @@ func Test_parseAndSetDebugLevels(t *testing.T) {
 			if err := parseAndSetDebugLevels(tt.debugLevel); (err != nil) != tt.wantErr {
 				t.Errorf("parseAndSetDebugLevels() error = %v, wantErr %v", err, tt.wantErr)
 			}
-		})
-	}
-}
-
-func Test_fatalf(t *testing.T) {
-	tests := []struct {
-		name   string
-		format string
-		args   []interface{}
-	}{
-		{
-			name:   "fatal log message",
-			format: "error starting server. cause: %s",
-			args:   []interface{}{"port :9090 is already in use"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			//fatalf(tt.format, tt.args...)
 		})
 	}
 }

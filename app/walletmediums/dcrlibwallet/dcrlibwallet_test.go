@@ -17,7 +17,6 @@ func TestNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	wallets = cfg.Wallets
 
 	type test struct {
@@ -35,12 +34,16 @@ func TestNew(t *testing.T) {
 			continue
 		}
 
+		lw := dcrlibwallet.LibWalletFromDb(cfg.AppDataDir, wallets[i].DbDir, activeNet)
+		lw.SetLogLevel("off")
+		lw.InitLoaderWithoutShutdownListener()
+
 		tests[i] = test{
 			name:       "new dcrlibwallet " + wallets[i].DbDir,
 			appDataDir: cfg.AppDataDir,
 			wallet:     wallets[i],
 			want: &DcrWalletLib{
-				walletLib: dcrlibwallet.LibWalletFromDb(cfg.AppDataDir, wallets[i].DbDir, activeNet),
+				walletLib: lw,
 				activeNet: activeNet,
 			},
 			wantErr: false,

@@ -9,13 +9,23 @@ import (
 )
 
 func Test_selectAccount(t *testing.T) {
+	wallet, err := getWalletForTesting()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tests := []struct {
 		name    string
 		wallet  walletcore.Wallet
 		want    uint32
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:    "select account",
+			wallet:  wallet,
+			want:    0,
+			wantErr: false,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -26,33 +36,6 @@ func Test_selectAccount(t *testing.T) {
 			}
 			if got != test.want {
 				t.Errorf("selectAccount() = %v, want %v", got, test.want)
-			}
-		})
-	}
-}
-
-func Test_getSendTxDestinations(t *testing.T) {
-	tests := []struct {
-		name                string
-		wallet              walletcore.Wallet
-		wantDestinations    []txhelper.TransactionDestination
-		wantSendAmountTotal float64
-		wantErr             bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotDestinations, gotSendAmountTotal, err := getSendTxDestinations(test.wallet)
-			if (err != nil) != test.wantErr {
-				t.Errorf("getSendTxDestinations() error = %v, wantErr %v", err, test.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotDestinations, test.wantDestinations) {
-				t.Errorf("getSendTxDestinations() gotDestinations = %v, want %v", gotDestinations, test.wantDestinations)
-			}
-			if gotSendAmountTotal != test.wantSendAmountTotal {
-				t.Errorf("getSendTxDestinations() gotSendAmountTotal = %v, want %v", gotSendAmountTotal, test.wantSendAmountTotal)
 			}
 		})
 	}

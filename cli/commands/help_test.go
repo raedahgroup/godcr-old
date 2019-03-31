@@ -5,14 +5,24 @@ import (
 	"testing"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 func TestHelpCommand_Run(t *testing.T) {
+	cfg, _, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	parser := flags.NewParser(&cfg, flags.IgnoreUnknown)
+
+	type Args struct {
+		CommandName string
+	}
+
 	type fields struct {
 		commanderStub commanderStub
-		Args          struct {
-			CommandName string `positional-arg-name:"command-name"`
-		} `positional-args:"yes"`
+		Args          Args
 	}
 	tests := []struct {
 		name    string
@@ -20,7 +30,15 @@ func TestHelpCommand_Run(t *testing.T) {
 		parser  *flags.Parser
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "help command",
+			fields: fields{
+				commanderStub: commanderStub{},
+				Args: Args{
+					CommandName: "detect",
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

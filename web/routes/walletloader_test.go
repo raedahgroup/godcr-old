@@ -70,7 +70,7 @@ func TestBlockchain_report(t *testing.T) {
 				_status: walletcore.SyncStatusInProgress,
 				_report: "Blockchain sync started...",
 			},
-			want: "Blockchain sync started..."
+			want: "Blockchain sync started...",
 		},
 		{
 			name: "blockchain report success",
