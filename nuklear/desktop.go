@@ -30,7 +30,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
-		currentPage:      "balance",
+		currentPage:      "sync",
 	}
 
 	// initialize master window and set style

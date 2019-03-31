@@ -10,12 +10,12 @@ import (
 )
 
 type HistoryHandler struct {
-	err                     error
-	ctx                     context.Context
-	isRendering             bool
-	transactions            []*walletcore.Transaction
-	isFetchingTransactions  bool
-	nextBlockHeight         int32
+	err                    error
+	ctx                    context.Context
+	isRendering            bool
+	transactions           []*walletcore.Transaction
+	isFetchingTransactions bool
+	nextBlockHeight        int32
 }
 
 func (handler *HistoryHandler) BeforeRender() {
@@ -101,7 +101,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *helpers.Window
 
 	for i, tx := range handler.transactions {
 		contentWindow.Row(15).Static(25, 80, 60, 70, 70, 80, 300)
-		contentWindow.Label(fmt.Sprintf("%d", i + 1), "LC")
+		contentWindow.Label(fmt.Sprintf("%d", i+1), "LC")
 		contentWindow.Label(tx.FormattedTime, "LC")
 		contentWindow.Label(tx.Direction.String(), "LC")
 		contentWindow.Label(tx.Amount, "RC")

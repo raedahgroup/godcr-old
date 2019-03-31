@@ -46,8 +46,8 @@ type UnspentOutput struct {
 type Transaction struct {
 	Hash          string                        `json:"hash"`
 	Type          string                        `json:"type"`
-	Amount        string                `json:"amount"`
-	Fee           string                `json:"fee"`
+	Amount        string                        `json:"amount"`
+	Fee           string                        `json:"fee"`
 	FeeRate       dcrutil.Amount                `json:"rate,omitempty"`
 	Direction     txhelper.TransactionDirection `json:"direction"`
 	Timestamp     int64                         `json:"timestamp"`

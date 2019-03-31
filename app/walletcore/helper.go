@@ -2,10 +2,11 @@ package walletcore
 
 import (
 	"fmt"
-	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"math/rand"
 	"strconv"
+
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
 type SyncStatus uint8

@@ -22,10 +22,10 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		return err
 	}
 	if walletExists {
-		//err := SyncBlockChain(ctx, walletMiddleware)
-		//if err != nil {
-		//	fmt.Println(err)
-		//}
+		err := SyncBlockChain(ctx, walletMiddleware)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		// `Run` blocks until app.Stop() is called before returning
 		layout := terminalLayout(tviewApp, walletMiddleware)

@@ -11,7 +11,6 @@ export default class extends Controller {
     this.hide(this.nextPageButtonTarget)
     this.nextBlockHeight = this.nextPageButtonTarget.getAttribute('data-next-block-height')
     this.checkScrollPos()
-      this.show(this.loadingIndicatorTarget)
   }
 
   checkScrollPos () {
@@ -28,7 +27,7 @@ export default class extends Controller {
     const scrollPos = element.scrollTop + element.clientHeight
     if (scrollPos >= element.scrollHeight * 0.95) {
       this.isLoading = true
-      // this.fetchMoreTxs()
+      this.fetchMoreTxs()
     }
   }
 
