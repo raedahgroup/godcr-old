@@ -20,11 +20,11 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
+	body.AddItem(primitives.TitleTextView("Staking"), 1, 0, false)
+
 	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab, Scroll table with LEFT, RIGHT, UP AND DOWN KEYS. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 4, 0, false)
-
-	body.AddItem(primitives.TitleTextView("Staking"), 2, 0, false)
+	body.AddItem(hintText, 3, 0, false)
 
 	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)

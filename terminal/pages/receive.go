@@ -13,11 +13,11 @@ import (
 func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
+	body.AddItem(primitives.TitleTextView("Generate Receive Address"), 1, 0, false)
+
 	hintText := primitives.WordWrappedTextView("(TIP: Navigate with Tab and Shift+Tab, hit ENTER to generate Address. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
-
-	body.AddItem(primitives.TitleTextView("Generate Receive Address"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {

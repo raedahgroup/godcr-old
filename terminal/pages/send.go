@@ -15,11 +15,11 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
+	body.AddItem(primitives.TitleTextView("Send"), 1, 0, false)
+
 	hintText := primitives.WordWrappedTextView("(TIP: Scroll table with LEFT, RIGHT, UP AND DOWN KEYS. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
-
-	body.AddItem(primitives.TitleTextView("Send"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
