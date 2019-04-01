@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"

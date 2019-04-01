@@ -49,6 +49,18 @@
                     </tbody>
                 </table>
 
+                <template data-target="history.txRowTemplate">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="text-align: right"></td>
+                        <td style="text-align: right"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </template>
+
                 <div data-target="history.errorMessage" class="alert alert-danger d-none"></div>
 
                 {{ if .nextBlockHeight }}

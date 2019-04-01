@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['stickyTableHeader', 'historyTable', 'nextPageButton', 'loadingIndicator', 'errorMessage']
+    return ['stickyTableHeader', 'historyTable', 'txRowTemplate', 'nextPageButton', 'loadingIndicator', 'errorMessage']
   }
 
   connect () {
@@ -95,19 +95,21 @@ export default class extends Controller {
 
     let n = this.historyTableTarget.querySelectorAll('tr').length
 
-    const txRows = txs.map(tx => {
-      return `<tr>
-                  <td>${++n}</td>
-                  <td>${tx.formatted_time}</td>
-                  <td>${txDirection(tx.direction)}</td>
-                  <td style="text-align: right">${tx.amount}</td>
-                  <td style="text-align: right">${tx.fee}</td>
-                  <td>${tx.type}</td>
-                  <td><a href="/transaction-details/${tx.hash}">${tx.hash}</a></td>
-              </tr>`
-    })
+    const _this = this
+    txs.forEach(tx => {
+      const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
+      const fields = txRow.querySelectorAll('td')
 
-    this.historyTableTarget.innerHTML += txRows.join('')
+      fields[0].innerText = ++n
+      fields[1].innerText = tx.formatted_time
+      fields[2].innerText = txDirection(tx.direction)
+      fields[3].innerText = tx.amount
+      fields[4].innerText = tx.fee
+      fields[5].innerText = tx.type
+      fields[6].innerHTML = `<a href="/transaction-details/${tx.hash}">${tx.hash}</a>`
+
+      _this.historyTableTarget.appendChild(txRow)
+    })
   }
 
   setErrorMessage (message) {
