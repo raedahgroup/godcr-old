@@ -67,12 +67,14 @@ func (s spvSync) streamBlockchainSyncUpdates(showLog bool) {
 			logUpdate("Blockchain sync in progress. Done rescanning blocks (3/3)")
 
 		case walletrpc.SyncNotificationType_PEER_CONNECTED:
+			s.listener.OnPeersUpdated(update.PeerInformation.PeerCount)
 			logUpdate("New peer %s. Connected to %d peers", update.PeerInformation.Address, update.PeerInformation.PeerCount)
 			// numberOfPeers needs to be updated before send OnPeerConnected
 			numberOfPeers = update.PeerInformation.PeerCount
 			s.listener.OnPeerConnected(update.PeerInformation.PeerCount)
 
 		case walletrpc.SyncNotificationType_PEER_DISCONNECTED:
+			s.listener.OnPeersUpdated(update.PeerInformation.PeerCount)
 			logUpdate("Peer disconnected %s. Connected to %d peers", update.PeerInformation.Address, update.PeerInformation.PeerCount)
 			numberOfPeers = update.PeerInformation.PeerCount
 			s.listener.OnPeerDisconnected(update.PeerInformation.PeerCount)

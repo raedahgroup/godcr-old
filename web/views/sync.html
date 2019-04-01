@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<body>
+<div class="body">
+{{ template "header" }}
+    <div class="content">
+        <div class="container">
+            <h3>Synchronizing</h3>
+            <p><i>progress bar goes here</i></p>
+            <p>Syncing with %{{ .ConnectedPeers }} peers on %{{  }}</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

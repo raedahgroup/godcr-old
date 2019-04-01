@@ -17,7 +17,7 @@ type Routes struct {
 	walletMiddleware app.WalletMiddleware
 	walletExists     bool
 	templates        map[string]*template.Template
-	blockchain       *Blockchain
+	syncInfo         *app.SyncInfoPrivate
 	ctx              context.Context
 	settings         *config.Settings
 }
@@ -33,7 +33,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
-		blockchain:       &Blockchain{},
+		syncInfo:         &app.SyncInfoPrivate{},
 		ctx:              ctx,
 		walletExists:     walletExists,
 		settings:         settings,

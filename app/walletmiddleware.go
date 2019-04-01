@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"sync"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -52,6 +53,69 @@ type BlockChainSyncListener struct {
 	OnHeadersFetched    func(percentageProgress int64)
 	OnDiscoveredAddress func(state string)
 	OnRescanningBlocks  func(percentageProgress int64)
-	OnPeerConnected     func(peerCount int32)
-	OnPeerDisconnected  func(peerCount int32)
+	OnPeersUpdated      func(peerCount int32)
 }
+
+// SyncInfoPrivate holds information about a sync op in private variables
+// to prevent reading/writing the values directly during a sync op.
+type SyncInfoPrivate struct {
+	sync.RWMutex
+	status             SyncStatus
+	bestBlockHeight    int
+	currentBlockHeight int
+	daysBehind         int
+	connectedPeers     int32
+	error              string
+	done               bool
+}
+
+// syncInfo holds information about an ongoing sync op for display on the different UIs.
+// Not to be used directly but with `SyncInfoPrivate`
+type syncInfo struct {
+	Status             SyncStatus
+	BestBlockHeight    int
+	CurrentBlockHeight int
+	DaysBehind         int
+	ConnectedPeers     int32
+	Error              string
+	Done               bool
+}
+
+// Read returns the current sync op info from private variables after locking the mutex for reading
+func (s *SyncInfoPrivate) Read() *syncInfo {
+	s.RLock()
+	defer s.RUnlock()
+
+	return &syncInfo{
+		s.status,
+		s.bestBlockHeight,
+		s.currentBlockHeight,
+		s.daysBehind,
+		s.connectedPeers,
+		s.error,
+		s.done,
+	}
+}
+
+// Write saves info for ongoing sync op to private variables after locking mutex for writing
+func (s *SyncInfoPrivate) Write(info *syncInfo, status SyncStatus) {
+	s.Lock()
+	defer s.Unlock()
+
+	s.status = status
+	s.bestBlockHeight = info.BestBlockHeight
+	s.currentBlockHeight = info.CurrentBlockHeight
+	s.daysBehind = info.DaysBehind
+	s.connectedPeers = info.ConnectedPeers
+	s.error = info.Error
+	s.done = info.Done
+}
+
+type SyncStatus uint8
+
+const (
+	SyncStatusNotStarted SyncStatus = iota
+	SyncStatusSuccess
+	SyncStatusError
+	SyncStatusInProgress
+)

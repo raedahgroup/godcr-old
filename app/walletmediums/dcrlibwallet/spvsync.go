@@ -18,26 +18,29 @@ type SpvSyncResponse struct {
 }
 
 // following functions are used to implement dcrlibwallet.SpvSyncResponse interface
-func (response SpvSyncResponse) OnPeerConnected(peerCount int32) {
+func (response SpvSyncResponse) OnPeerConnected(peerCount int32)    {
 	numberOfPeers = peerCount
-	response.listener.OnPeerConnected(peerCount)
+	response.listener.OnPeersUpdated(peerCount)
 }
 
 func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {
 	numberOfPeers = peerCount
-	response.listener.OnPeerDisconnected(peerCount)
+	response.listener.OnPeersUpdated(peerCount)
 }
 
 func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {
 }
+
 func (response SpvSyncResponse) OnFetchedHeaders(_ int32, lastHeaderTime int64, state string) {
 	if state == "progress" {
 		response.calculateProgress(lastHeaderTime)
 	}
 }
+
 func (response SpvSyncResponse) OnDiscoveredAddresses(state string) {
 	response.listener.OnDiscoveredAddress(state)
 }
+
 func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
 	if state == "progress" {
 		bestBlock := int64(response.walletLib.GetBestBlock())
@@ -45,7 +48,9 @@ func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
 		response.listener.OnRescanningBlocks(scannedPercentage)
 	}
 }
+
 func (response SpvSyncResponse) OnIndexTransactions(totalIndex int32) {}
+
 func (response SpvSyncResponse) OnSynced(synced bool) {
 	var err error
 	if !synced {
@@ -53,6 +58,7 @@ func (response SpvSyncResponse) OnSynced(synced bool) {
 	}
 	response.listener.SyncEnded(err)
 }
+
 func (response SpvSyncResponse) OnSyncError(code int, err error) {
 	e := fmt.Errorf("Code: %d, Error: %s", code, err.Error())
 	response.listener.SyncEnded(e)

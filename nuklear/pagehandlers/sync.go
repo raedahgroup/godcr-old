@@ -6,7 +6,6 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -17,7 +16,7 @@ type SyncHandler struct {
 	isShowingPercentageProgress bool
 	percentageProgress          int
 	report                      string
-	status                      walletcore.SyncStatus
+	status                      app.SyncStatus
 }
 
 func (s *SyncHandler) BeforeRender() {
@@ -33,7 +32,8 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 		s.syncBlockchain(window, wallet)
 	}
 
-	if s.status == walletcore.SyncStatusSuccess {
+	// change page onSyncStatusSuccess
+	if s.status == app.SyncStatusSuccess {
 		changePage(window, "overview")
 		return
 	}
@@ -60,31 +60,29 @@ func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMi
 
 	err := wallet.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
-			s.updateStatus("Blockchain sync started...", walletcore.SyncStatusInProgress)
+			s.updateStatus("Blockchain sync started...", app.SyncStatusInProgress)
 			window.Master().Changed()
 		},
 		SyncEnded: func(err error) {
 			if err != nil {
-				s.updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
+				s.updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), app.SyncStatusError)
 			} else {
-				s.updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
+				s.updateStatus("Blockchain sync completed successfully", app.SyncStatusSuccess)
 			}
 			masterWindow.Changed()
 		},
 		OnHeadersFetched: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Fetching headers (1/3)", walletcore.SyncStatusInProgress, percentageProgress)
+			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Fetching headers (1/3)", app.SyncStatusInProgress, percentageProgress)
 			masterWindow.Changed()
 		},
 		OnDiscoveredAddress: func(_ string) {
-			s.updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", walletcore.SyncStatusInProgress)
+			s.updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", app.SyncStatusInProgress)
 			masterWindow.Changed()
 		},
 		OnRescanningBlocks: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", walletcore.SyncStatusInProgress, percentageProgress)
+			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", app.SyncStatusInProgress, percentageProgress)
 			masterWindow.Changed()
 		},
-		OnPeerConnected:    func(_ int32) {},
-		OnPeerDisconnected: func(_ int32) {},
 	}, false)
 
 	if err != nil {
@@ -93,14 +91,14 @@ func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMi
 	}
 }
 
-func (s *SyncHandler) updateStatusWithPercentageProgress(report string, status walletcore.SyncStatus, percentageProgress int64) {
+func (s *SyncHandler) updateStatusWithPercentageProgress(report string, status app.SyncStatus, percentageProgress int64) {
 	s.isShowingPercentageProgress = true
 	s.report = report
 	s.status = status
 	s.percentageProgress = int(percentageProgress)
 }
 
-func (s *SyncHandler) updateStatus(report string, status walletcore.SyncStatus) {
+func (s *SyncHandler) updateStatus(report string, status app.SyncStatus) {
 	s.isShowingPercentageProgress = false
 	s.report = report
 	s.status = status
