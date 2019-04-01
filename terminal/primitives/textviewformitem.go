@@ -1,42 +1,73 @@
 package primitives
 
 import (
+	"math"
+
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
 type TextViewFormItem struct {
-	tview.Primitive
+	*TextView
+	fieldWidth int
+	fieldHeight int
+	autosize bool
+	autosizeWidth int
 }
 
-func NewTextViewFormItem(textView *tview.TextView) *TextViewFormItem {
-	textView.SetRect(0, 0, 0, 400)
+func NewTextViewFormItem(textView *TextView, fieldWidth, fieldHeight int, autosize bool, autosizeWidth int) *TextViewFormItem {
 	return &TextViewFormItem{
-		Primitive: textView,
+		TextView: textView,
+		fieldWidth:fieldWidth,
+		fieldHeight:fieldHeight,
+		autosize:autosize,
+		autosizeWidth: autosizeWidth,
 	}
 }
 
-func (item *TextViewFormItem) GetLabel() string {
-	return "hey"
+// GetFieldHeight satisfies `primitives.FormItem` interface
+func (item *TextViewFormItem) GetFieldHeight() int {
+	if item.autosize {
+		availableWidth := item.autosizeWidth
+		if item.autosizeWidth <= 0 {
+			_, _, availableWidth, _ = item.GetTextView().GetInnerRect()
+		}
+
+		textWidth := tview.StringWidth(item.GetText())
+		fieldHeight := math.Ceil(float64(textWidth) / float64(availableWidth))
+
+		if item.HasBorder() {
+			fieldHeight += 2
+		}
+
+		return int(fieldHeight)
+	}
+
+	return item.fieldHeight
 }
 
+// GetLabel satisfies `tview.FormItem` interface
+func (item *TextViewFormItem) GetLabel() string {
+	return ""
+}
+
+// SetFormAttributes satisfies `tview.FormItem` interface
 func (item *TextViewFormItem) SetFormAttributes(labelWidth int, labelColor, bgColor, fieldTextColor, fieldBgColor tcell.Color) tview.FormItem {
 	return item
 }
 
+// GetFieldWidth satisfies `tview.FormItem` interface
 func (item *TextViewFormItem) GetFieldWidth() int {
-	return 0
+	return item.fieldWidth
 }
 
+// SetFinishedFunc satisfies `tview.FormItem` interface
 func (item *TextViewFormItem) SetFinishedFunc(handler func(key tcell.Key)) tview.FormItem {
 	// todo confirm this step
 	item.GetTextView().SetDoneFunc(handler)
 	return item
 }
 
-func (item *TextViewFormItem) GetTextView() *tview.TextView {
-	if item.Primitive == nil {
-		return nil
-	}
-	return item.Primitive.(*tview.TextView)
+func (item *TextViewFormItem) GetTextView() *TextView {
+	return item.TextView
 }

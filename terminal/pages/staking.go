@@ -135,7 +135,7 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *tview.TextView, error) {
+func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives.TextView, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return nil, nil, err

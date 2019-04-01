@@ -2,6 +2,9 @@ package pages
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -11,157 +14,151 @@ import (
 )
 
 func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
-	walletPage := tview.NewFlex().SetDirection(tview.FlexRow)
-	walletPage.SetBorderPadding(1, 1, 2, 2).SetBackgroundColor(tcell.ColorBlack)
+	createWalletPage := tview.NewFlex().SetDirection(tview.FlexRow)
+	createWalletPage.SetBorderPadding(1, 1, 2, 2).SetBackgroundColor(tcell.ColorBlack)
 
 	// page title and hint
-	walletPage.AddItem(primitives.NewCenterAlignedTextView("First Time? Create Wallet"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(Use Tab to move between fields, Arrow Keys to scroll each field, Esc to exit)")
+	pageTitle := primitives.NewCenterAlignedTextView("First Time? Create Wallet")
+	createWalletPage.AddItem(pageTitle, 1, 0, false)
+
+	hintText := primitives.WordWrappedTextView("(Use TAB and Shift+TAB to move between fields and ESC to cancel)")
 	hintText.SetTextColor(tcell.ColorGray)
-	walletPage.AddItem(hintText, 3, 0, false)
+	createWalletPage.AddItem(hintText, 2, 0, false)
 
 	// attempt to get seed and display any error to user
 	seed, err := walletMiddleware.GenerateNewWalletSeed()
 	if err != nil {
-		return walletPage.AddItem(primitives.NewCenterAlignedTextView(err.Error()), 4, 1, false)
+		errTextView := primitives.NewCenterAlignedTextView(err.Error())
+		createWalletPage.AddItem(errTextView, 0, 1, false)
+
+		createWalletPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyEsc {
+				tviewApp.Stop()
+				return nil
+			}
+			return event
+		})
+
+		tviewApp.SetFocus(createWalletPage)
+		return createWalletPage
 	}
+
+	createWalletForm := primitives.NewForm()
+	createWalletPage.AddItem(createWalletForm, 0, 1, true)
+
+	passphraseField := tview.NewInputField().
+		SetLabel("Wallet Passphrase:  ").
+		SetMaskCharacter('*').
+		SetFieldWidth(20)
+	createWalletForm.AddFormItem(passphraseField)
+
+	confirmPassphraseField := tview.NewInputField().
+		SetLabel("Confirm Passphrase: ").
+		SetMaskCharacter('*').
+		SetFieldWidth(20)
+	createWalletForm.AddFormItem(confirmPassphraseField)
 
 	walletSeedTextView := primitives.WordWrappedTextView(seed)
 	walletSeedTextView.SetBorder(true).
 		SetTitle("Wallet Seed").
 		SetTitleColor(helpers.SeedLabelColor)
-	walletPage.AddItem(walletSeedTextView, 6, 0, true)
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true,
+		0))
 
 	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
 	storeSeedWarningTextView.SetBorder(true).
 		SetTitle("IMPORTANT NOTICE").
 		SetTitleColor(helpers.WarnColor)
-	walletPage.AddItem(storeSeedWarningTextView, 6, 0, false)
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true,
+		0))
 
-	// add single line space before button
-	walletPage.AddItem(nil, 1, 0, false)
+	storeSeedCheckbox := tview.NewCheckbox().SetLabel("I've stored the seed securely")
+	createWalletForm.AddFormItem(storeSeedCheckbox)
 
-	// text view to display error messages below the create wallet button
-	var errorMessageTextView *tview.TextView
-
-	createWalletButton := tview.NewButton("I've stored the seed. Create Wallet").SetSelectedFunc(func() {
-		x, y := walletSeedTextView.GetScrollOffset()
-		errorMessageTextView.SetText(fmt.Sprintf("%d, %d", x, y))
-	})
-	walletPage.AddItem(createWalletButton, 1, 0, false)
-
-	// add single line space before error message text view
-	walletPage.AddItem(nil, 1, 0, false)
-
-	walletSeedTextView.ScrollToEnd()
-	x, y := walletSeedTextView.GetScrollOffset()
-	errorMessageTextView = primitives.WordWrappedTextView(fmt.Sprintf("%d, %d", x, y))
-	walletPage.AddItem(errorMessageTextView, 3, 0, false)
-
-	//passphraseField := tview.NewInputField().
-	//	SetLabel("Wallet Passphrase:  ").
-	//	SetMaskCharacter('*').
-	//	SetFieldWidth(20)
-	//walletPage.AddItem(passphraseField, 1, 0, true)
-	//
-	//// add single line space between views
-	//walletPage.AddItem(nil, 1, 0, false)
-	//
-	//confirmPassphraseField := tview.NewInputField().
-	//	SetLabel("Confirm Passphrase: ").
-	//	SetMaskCharacter('*').
-	//	SetFieldWidth(20)
-	//walletPage.AddItem(confirmPassphraseField, 1, 0, false)
-	//
-	//// add single line space between views
-	//walletPage.AddItem(nil, 1, 0, false)
-
-	//createWalletFunction := func() {
-		//passphrase := passphraseField.GetText()
-		//if len(passphrase) == 0 {
-		//	errorMessageTextView.SetText("Passphrase cannot empty")
-		//	return
-		//}
-		//
-		//confirmPassphrase := confirmPassphraseField.GetText()
-		//if passphrase != confirmPassphrase {
-		//	errorMessageTextView.SetText("Passphrase does not match")
-		//	return
-		//}
-		//
-		//if !storeSeedCheckbox.IsChecked() {
-		//	errorMessageTextView.SetText("Please store seed in a safe location and check the box")
-		//	return
-		//}
-		//
-		//err = walletMiddleware.CreateWallet(passphrase, seed)
-		//if err != nil {
-		//	errorMessageTextView.SetText(err.Error())
-		//}
-		//
-		//// wallet created, go to sync page and begin sync
-		//tviewApp.SetRoot(SyncPage(tviewApp, walletMiddleware), true)
-	//}
-
-
-	//createWalletButton := tview.NewButton("Create Wallet").SetSelectedFunc(createWalletFunction)
-	//
-	//// add button, single line space and then error message text view
-	//walletPage.AddItem(createWalletButton, 1, 0, false)
-	//walletPage.AddItem(nil, 1, 0, false)
-	//walletPage.AddItem(errorMessageTextView, 1, 0, false)
-
-	allViews := []*tview.Box{
-		walletSeedTextView.Box,
-		storeSeedWarningTextView.Box,
-		createWalletButton.Box,
-		errorMessageTextView.Box,
+	var isShowingMessage bool
+	clearMessages := func() {
+		if isShowingMessage {
+			createWalletForm.RemoveFormItem(createWalletForm.GetFormItemsCount() - 1)
+			isShowingMessage = false
+			tviewApp.ForceDraw()
+		}
 	}
 
-	// exit page on escape key press, switch focus to next view on tab press and focus previous view on backtab press
-	makeInputCaptureListener := func(viewIndex int) func(event *tcell.EventKey) (nextEvent *tcell.EventKey) {
-		return func(event *tcell.EventKey) (nextEvent *tcell.EventKey) {
-			switch event.Key() {
-			case tcell.KeyEscape:
-				tviewApp.Stop()
+	showMessage := func(message string, isError bool) {
+		var messageColor tcell.Color
+		if isError {
+			messageColor = tcell.ColorRed
+			message = fmt.Sprintf("Error: %s", message)
+		} else {
+			messageColor = tcell.ColorGreen
+			message = fmt.Sprintf("Success: %s", message)
+		}
 
-			case tcell.KeyTAB:
-				nextViewIndex := viewIndex + 1
-				if nextViewIndex >= len(allViews) {
-					nextViewIndex = 0 // last view reached, go back to top
-				}
+		messageTextView := primitives.NewCenterAlignedTextView(message)
+		messageTextView.SetTextColor(messageColor)
 
-				nextView := allViews[nextViewIndex]
-				tviewApp.SetFocus(nextView)
+		_, _, widthForTextViewResize, _ := createWalletForm.GetFormItemBox(0).GetInnerRect()
+		messageTextViewAsFormItem := primitives.NewTextViewFormItem(messageTextView, 20, 1, true,
+			widthForTextViewResize)
+		createWalletForm.AddFormItem(messageTextViewAsFormItem)
 
-			case tcell.KeyBacktab:
-				previousViewIndex := viewIndex - 1
-				if previousViewIndex < 0 {
-					previousViewIndex = len(allViews) - 1 // first view reached, go to bottom
-				}
+		isShowingMessage = true
+	}
 
-				previousView := allViews[previousViewIndex]
-				tviewApp.SetFocus(previousView)
+	var isCreatingWallet bool
+	createWalletForm.AddButton("Create Wallet", func() {
+		clearMessages()
 
-			default:
-				nextEvent = event
-			}
+		passphrase := passphraseField.GetText()
+		if len(passphrase) == 0 {
+			showMessage("Passphrase cannot empty", true)
 			return
 		}
-	}
 
-	for i, view := range allViews {
-		view.SetInputCapture(makeInputCaptureListener(i))
-	}
-
-	walletPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEsc {
-			tviewApp.Stop()
-			return nil
+		confirmPassphrase := confirmPassphraseField.GetText()
+		if passphrase != confirmPassphrase {
+			showMessage("Passphrase does not match", true)
+			return
 		}
-		return event
-	})
-	tviewApp.SetFocus(walletPage)
 
-	return walletPage
+		if !storeSeedCheckbox.IsChecked() {
+			showMessage("Please store seed in a safe location and check the box", true)
+			return
+		}
+
+		// create wallet in subroutine to prevent blocking the UI
+		isCreatingWallet = true
+		createWalletForm.GetButton(0).SetLabel("Creating...")
+		go func() {
+			err = walletMiddleware.CreateWallet(passphrase, seed)
+			if err != nil {
+				showMessage(err.Error(), true)
+				isCreatingWallet = false
+				return
+			}
+
+			// wallet created, display success message
+			tviewApp.QueueUpdateDraw(func() {
+				showMessage(fmt.Sprintf(`%s wallet created successfully`, strings.Title(walletMiddleware.NetType())), false)
+				createWalletForm.GetButton(0).SetLabel("Done!")
+			})
+
+			// wait briefly then go to sync page and begin sync
+			time.Sleep(1 * time.Second)
+
+			tviewApp.QueueUpdateDraw(func() {
+				tviewApp.SetRoot(SyncPage(tviewApp, walletMiddleware), true)
+			})
+		}()
+	})
+
+	createWalletForm.SetCancelFunc(func() {
+		if !isCreatingWallet {
+			tviewApp.Stop()
+		}
+	})
+
+	tviewApp.SetFocus(createWalletPage)
+
+	return createWalletPage
 }
