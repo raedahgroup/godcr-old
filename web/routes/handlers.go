@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -41,7 +42,7 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, "/", 303)
 }
 
-func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching account balance: %s", err.Error()), res)
@@ -51,11 +52,19 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	showDetails := req.FormValue("detailed") != ""
 
+	// TODO: use the newly introduced pagination
+	txns, err := routes.walletMiddleware.TransactionHistory()
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching recent activities: %s", err.Error()), res)
+		return
+	}
+
 	data := map[string]interface{}{
 		"accounts": accounts,
 		"detailed": showDetails,
+		"transactions": txns[0: int(math.Min(float64(5), float64(len(txns))))],
 	}
-	routes.render("balance.html", data, res)
+	routes.render("overview.html", data, res)
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
