@@ -129,8 +129,12 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 			Detailed: true,
 		}
 
-		fmt.Printf("\nShowing details for tx #%d\n", txRowNumber) // print empty line before showing tx details
-		return showTxDetails.Run(ctx, wallet)
+		fmt.Println()
+		err = showTxDetails.Run(ctx, wallet)
+		if err == nil {
+			fmt.Println()
+		}
+		return err
 	}
 
 	return nil
