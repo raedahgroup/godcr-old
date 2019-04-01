@@ -140,3 +140,7 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
 }
+
+func (c *WalletRPCClient) CancelSync() {
+
+}

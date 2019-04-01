@@ -2,6 +2,7 @@ package terminal
 
 import (
 	"context"
+
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/pages"
 	"github.com/rivo/tview"
@@ -15,15 +16,14 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 		return err
 	}
 
-	var page tview.Primitive
 	if walletExists {
-		page = pages.SyncPage(tviewApp, walletMiddleware)
+		pages.LaunchSyncPage(ctx, tviewApp, walletMiddleware)
 	} else {
-		page = pages.CreateWalletPage(tviewApp, walletMiddleware)
+		tviewApp.SetRoot(pages.CreateWalletPage(ctx, tviewApp, walletMiddleware), true)
 	}
 
 	// `Run` blocks until app.Stop() is called before returning
-	return tviewApp.SetRoot(page, true).Run()
+	return tviewApp.Run()
 }
 
 func sync(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {

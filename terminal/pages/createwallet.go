@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func CreateWalletPage(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	createWalletPage := tview.NewFlex().SetDirection(tview.FlexRow)
 	createWalletPage.SetBorderPadding(1, 1, 2, 2).SetBackgroundColor(tcell.ColorBlack)
 
@@ -147,7 +148,7 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 			time.Sleep(1 * time.Second)
 
 			tviewApp.QueueUpdateDraw(func() {
-				tviewApp.SetRoot(SyncPage(tviewApp, walletMiddleware), true)
+				LaunchSyncPage(ctx, tviewApp, walletMiddleware)
 			})
 		}()
 	})

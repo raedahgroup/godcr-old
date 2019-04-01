@@ -48,7 +48,7 @@ func (response SpvSyncResponse) OnSyncError(code int, err error) {
 }
 
 func (response SpvSyncResponse) calculateProgress(lastHeaderTime int64) {
-	bestBlock := int64(response.walletLib.GetBestBlock())
-	fetchedPercentage := walletmediums.CalculateBlockSyncProgress(response.activeNet.Params.Name, bestBlock, lastHeaderTime)
+	bestBlockTimeStamp := int64(response.walletLib.GetBestBlockTimeStamp())
+	fetchedPercentage := walletmediums.CalculateBlockSyncProgress(response.activeNet.Params.Name, bestBlockTimeStamp, lastHeaderTime)
 	response.listener.OnHeadersFetched(fetchedPercentage)
 }

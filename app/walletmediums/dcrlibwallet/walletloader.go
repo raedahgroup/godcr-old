@@ -3,7 +3,6 @@ package dcrlibwallet
 import (
 	"context"
 	"github.com/raedahgroup/godcr/app"
-	"io/ioutil"
 )
 
 func (lib *DcrWalletLib) NetType() string {
@@ -76,12 +75,7 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 	}
 	lib.walletLib.AddSyncResponse(syncResponse)
 
-	cert, err := ioutil.ReadFile("/Users/itswisdomagain/Library/Application Support/Dcrd/rpc.cert")
-	if err != nil {
-		return err
-	}
-	err = lib.walletLib.RpcSync("localhost:19109", "qepFqTbFkAm/8hixpg75Is/NJeY=",
-		"4FwUIrVkNMuVC2E9QqdhDiO2Rv8=", cert)
+	err := lib.walletLib.SpvSync("")
 	if err != nil {
 		lib.walletLib.SetLogLevel("off")
 		return err
@@ -89,4 +83,8 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 
 	listener.SyncStarted()
 	return nil
+}
+
+func (lib *DcrWalletLib) CancelSync() {
+	lib.walletLib.DropSpvConnection()
 }
