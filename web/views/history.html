@@ -2,34 +2,74 @@
 <html lang="en">
 {{ template "html-head" }}
 <body>
-    <div class="body">
+    <div class="body" data-controller="history" data-action="scroll@window->history#windowScrolled">
+
         {{ template "header" }}
         <div class="content">
             <div class="container">
+                <!-- sticky header -->
+                <table class="table sticky-table d-none" data-target="history.stickyTableHeader">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Direction</th>
+                        <th>Amount</th>
+                        <th>Fee</th>
+                        <th>Type</th>
+                        <th>Hash</th>
+                    </tr>
+                    </thead>
+                </table>
+
                 <table class="table">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Date</th>
+                            <th>Direction</th>
                             <th>Amount</th>
                             <th>Fee</th>
-                            <th>Direction</th>
                             <th>Type</th>
                             <th>Hash</th>
                         </tr>
                     </thead>
-                    <tbody>
-                       {{ range $txn := .result }}
-                       <tr>
-                            <td>{{ .FormattedTime }}</td>
-                            <td>{{ .Amount }}</td>
-                            <td>{{ .Fee }}</td>
-                            <td>{{ .Direction }}</td>
-                            <td>{{ .Type }}</td>
-                            <td><a href="/transaction-details/{{ .Hash }}" >{{ .Hash }}</a></td>
+                    <tbody data-target="history.historyTable">
+                        {{ range $index, $txn := .txs }}
+                        <tr>
+                            <td>{{ intSum $.startTxCount $index 1 }}</td>
+                            <td>{{ $txn.FormattedTime }}</td>
+                            <td>{{ $txn.Direction }}</td>
+                            <td style="text-align: right">{{ $txn.Amount }}</td>
+                            <td style="text-align: right">{{ $txn.Fee }}</td>
+                            <td>{{ $txn.Type }}</td>
+                            <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ $txn.Hash }}</a></td>
                         </tr>
-                       {{ end }}
+                        {{ end }}
                     </tbody>
                 </table>
+
+                <template data-target="history.txRowTemplate">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="text-align: right"></td>
+                        <td style="text-align: right"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </template>
+
+                <div data-target="history.errorMessage" class="alert alert-danger d-none"></div>
+
+                {{ if .nextBlockHeight }}
+                    <a href="/history?start={{ .nextBlockHeight }}&last-count={{ .lastTxCount }}" class="btn btn-primary"
+                       data-target="history.nextPageButton" data-next-block-height="{{ .nextBlockHeight }}">
+                        Next Page
+                    </a>
+                    {{ template "loading-indicator" "history" }}
+                {{ end }}
             </div>
         </div>
     </div>

@@ -293,16 +293,62 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	txns, err := routes.walletMiddleware.TransactionHistory()
+	req.ParseForm()
+	start := req.FormValue("start")
+
+	startBlockHeight, err := strconv.ParseInt(start, 10, 32)
+	if err != nil || startBlockHeight < 0 {
+		startBlockHeight = -1
+	}
+
+	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight),
+		walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching history: %s", err.Error()), res)
 		return
 	}
 
+	lastCount := req.FormValue("last-count")
+	lastTxCount, _ := strconv.ParseInt(lastCount, 10, 32)
+
 	data := map[string]interface{}{
-		"result": txns,
+		"txs":          txns,
+		"startTxCount": int(lastTxCount),
+		"lastTxCount":  int(lastTxCount) + len(txns),
 	}
+
+	if endBlockHeight > 0 {
+		data["nextBlockHeight"] = endBlockHeight - 1
+	}
+
 	routes.render("history.html", data, res)
+}
+
+func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	req.ParseForm()
+	start := req.FormValue("start")
+	startBlockHeight, err := strconv.ParseInt(start, 10, 32)
+	if err != nil {
+		data["success"] = false
+		data["message"] = "Invalid start block parameter"
+		return
+	}
+
+	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight),
+		walletcore.TransactionHistoryCountPerPage)
+	if err != nil {
+		data["success"] = false
+		data["message"] = err.Error()
+	} else {
+		data["success"] = true
+		data["txs"] = txns
+		if endBlockHeight > 0 {
+			data["nextBlockHeight"] = endBlockHeight - 1
+		}
+	}
 }
 
 func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.Request) {

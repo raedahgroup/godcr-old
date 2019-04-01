@@ -19,20 +19,17 @@ var StdoutWriter = TabWriter(os.Stdout)
 // PrintTabularResult formats and prints the content of `res` to `w`
 func PrintTabularResult(w *tabwriter.Writer, columnsHeaders []string, rows [][]interface{}) {
 	header := ""
-	spaceRow := ""
 	columnLength := len(columnsHeaders)
 
-	for i := range columnsHeaders {
+	for i, columnHeader := range columnsHeaders {
 		tab := " \t "
 		if columnLength == i+1 {
 			tab = " "
 		}
-		header += columnsHeaders[i] + tab
-		spaceRow += " " + tab
+		header += strings.ToUpper(columnHeader) + tab
 	}
-
 	fmt.Fprintln(w, header)
-	fmt.Fprintln(w, spaceRow)
+
 	for _, row := range rows {
 		rowStr := ""
 		for range row {

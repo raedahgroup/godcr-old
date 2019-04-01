@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
@@ -21,10 +20,10 @@ func (handler *BalanceHandler) BeforeRender() {
 	handler.detailed = false
 }
 
-func (handler *BalanceHandler) Render(w *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page

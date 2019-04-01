@@ -36,8 +36,10 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
+		value = strings.TrimSpace(value)
 		if err = validate(value); err != nil {
-			fmt.Printf("%s\n", err.Error())
+			fmt.Println(err.Error())
 			continue
 		}
 		return value, nil
@@ -124,7 +126,6 @@ func RequestYesNoConfirmation(message, defaultOption string) (bool, error) {
 	}
 
 	validateUserResponse := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
 		if defaultOption != "" && userResponse == "" {
 			return nil
 		}

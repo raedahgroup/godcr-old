@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-// customTxRow
+
 export default class extends Controller {
   static get targets () {
     return [

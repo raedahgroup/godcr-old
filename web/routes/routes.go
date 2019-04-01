@@ -67,6 +67,7 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/unspent-outputs/{accountNumber}", routes.getUnspentOutputs)
 	router.Get("/random-change-outputs", routes.getRandomChangeOutputs)
 	router.Get("/history", routes.historyPage)
+	router.Get("/next-history-page", routes.getNextHistoryPage)
 	router.Get("/transaction-details/{hash}", routes.transactionDetailsPage)
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)

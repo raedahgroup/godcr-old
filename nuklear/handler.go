@@ -3,12 +3,13 @@ package nuklear
 import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers"
 )
 
 type navPageHandler interface {
 	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware)
+	Render(*nucular.Window, walletcore.Wallet)
 }
 
 type standalonePageHandler interface {
@@ -47,7 +48,7 @@ func getNavPages() []navPage {
 		{
 			name:    "history",
 			label:   "History",
-			handler: &handlers.TransactionsHandler{},
+			handler: &handlers.HistoryHandler{},
 		},
 		{
 			name:    "staking",

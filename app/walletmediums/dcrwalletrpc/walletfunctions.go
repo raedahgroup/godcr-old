@@ -316,39 +316,88 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 	return c.signAndPublishTransaction(txBuf.Bytes(), passphrase)
 }
 
-func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error) {
-	req := &walletrpc.GetTransactionsRequest{}
+func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (
+	transactions []*walletcore.Transaction, endBlockHeight int32, err error) {
 
-	stream, err := c.walletService.GetTransactions(context.Background(), req)
-	if err != nil {
-		return nil, err
+	if startBlockHeight < 0 {
+		// begin reading from the most recent (unmined) transactions to the most recent (best) block
+		bestBlock, bestBlockErr := c.walletService.BestBlock(ctx, &walletrpc.BestBlockRequest{})
+		if bestBlockErr != nil {
+			err = fmt.Errorf("error reading best block: %s", bestBlockErr.Error())
+			return
+		}
+
+		startBlockHeight = -1
+		endBlockHeight = int32(bestBlock.Height)
+	} else if startBlockHeight == 0 {
+		// requesting earliest transactions
+		endBlockHeight = 0
+	} else {
+		// read from the provided block height to the one before it
+		endBlockHeight = startBlockHeight - 1
 	}
 
-	var transactions []*walletcore.Transaction
+	fetchTransactions := func(startBlockHeight, endBlockHeight int32) error {
+		req := &walletrpc.GetTransactionsRequest{
+			StartingBlockHeight: startBlockHeight,
+			EndingBlockHeight:   endBlockHeight,
+		}
+
+		stream, err := c.walletService.GetTransactions(ctx, req)
+		if err != nil {
+			return err
+		}
+
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+
+			var transactionDetails []*walletrpc.TransactionDetails
+			if in.MinedTransactions != nil {
+				transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
+			}
+			if in.UnminedTransactions != nil {
+				transactionDetails = append(transactionDetails, in.UnminedTransactions...)
+			}
+
+			txs, err := processTransactions(transactionDetails)
+			if err != nil {
+				return err
+			}
+
+			transactions = append(transactions, txs...)
+		}
+
+		return nil
+	}
 
 	for {
-		in, err := stream.Recv()
-		if err == io.EOF {
+		err = fetchTransactions(int32(startBlockHeight), int32(endBlockHeight))
+		if err != nil {
+			return
+		}
+
+		if len(transactions) >= minReturnTxs {
 			break
 		}
-		if err != nil {
-			return nil, err
-		}
 
-		var transactionDetails []*walletrpc.TransactionDetails
-		if in.MinedTransactions != nil {
-			transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
+		if endBlockHeight > 1 {
+			// next round should begin with the block height preceding the range just fetched
+			startBlockHeight = endBlockHeight - 1
+			endBlockHeight = startBlockHeight - 1
+		} else if endBlockHeight == 1 {
+			// last range must have been 2 - 1, now fetch 0 - 0
+			startBlockHeight = 0
+			endBlockHeight = 0
+		} else {
+			// gotten to the end (block height 0 represents earliest possible record)
+			break
 		}
-		if in.UnminedTransactions != nil {
-			transactionDetails = append(transactionDetails, in.UnminedTransactions...)
-		}
-
-		txs, err := processTransactions(transactionDetails)
-		if err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, txs...)
 	}
 
 	// sort transactions by date (list newer first)
@@ -356,7 +405,7 @@ func (c *WalletRPCClient) TransactionHistory() ([]*walletcore.Transaction, error
 		return transactions[i1].Timestamp > transactions[i2].Timestamp
 	})
 
-	return transactions, nil
+	return
 }
 
 func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
@@ -382,7 +431,9 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 	if err != nil {
 		return nil, err
 	}
-	transaction.Fee, transaction.FeeRate, transaction.Size = dcrutil.Amount(decodedTx.Fee), dcrutil.Amount(decodedTx.FeeRate), decodedTx.Size
+	transaction.Fee = walletcore.NormalizeBalance(dcrutil.Amount(decodedTx.Fee).ToCoin())
+	transaction.FeeRate = dcrutil.Amount(decodedTx.FeeRate)
+	transaction.Size = decodedTx.Size
 
 	var blockHeight int32 = -1
 	if getTxResponse.BlockHash != nil {

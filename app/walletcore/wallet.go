@@ -7,9 +7,14 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
-// standard decred min confirmations is 2, this should be used as default for wallet operations
-// provision should me made in individual interface for user to override this default value
-const DefaultRequiredConfirmations = 2
+const (
+	// standard decred min confirmations is 2, this should be used as default for wallet operations
+	// provision should me made in individual interface for user to override this default value
+	DefaultRequiredConfirmations = 2
+
+	// minimum number of transactions to return per call to Wallet.TransactionHistory()
+	TransactionHistoryCountPerPage = 20
+)
 
 // Wallet defines key functions for performing operations on a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
@@ -60,8 +65,11 @@ type Wallet interface {
 	// Returns the transaction hash as string if successful
 	SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
-	// TransactionHistory
-	TransactionHistory() ([]*Transaction, error)
+	// TransactionHistory returns a limited number of wallet transactions
+	// starting with the provided height and fetching transactions for successive blocks
+	// until total number of transactions fetched is greater than or equal to `minReturnTxs`
+	// or all transactions have been fetched
+	TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (transactions []*Transaction, endBlockHeight int32, err error)
 
 	// GetTransaction returns information about the transaction with the given hash.
 	// An error is returned if the no transaction with the given hash is found.
