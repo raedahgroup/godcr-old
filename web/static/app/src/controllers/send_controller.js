@@ -99,7 +99,7 @@ export default class extends Controller {
     let queryParams = $('#send-form').serialize()
     queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
     if (this.spendUnconfirmedTarget.checked) {
-      queryParams += '&getUnconfirmed=true'
+      queryParams += '&get-unconfirmed=true'
     }
 
     // add source-account value to post data if source-account element is disabled
@@ -228,7 +228,7 @@ export default class extends Controller {
 
     let url = `/unspent-outputs/${accountNumber}`
     if (this.spendUnconfirmedTarget.checked) {
-      url += '?getUnconfirmed=true'
+      url += '?get-unconfirmed=true'
     }
 
     let _this = this
@@ -358,7 +358,7 @@ export default class extends Controller {
     let queryParams = $('#send-form').serialize()
     queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
     if (this.spendUnconfirmedTarget.checked) {
-      queryParams += '&getUnconfirmed=true'
+      queryParams += '&get-unconfirmed=true'
     }
 
     // add source-account value to post data if source-account element is disabled

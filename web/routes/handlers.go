@@ -125,15 +125,15 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	}
 
 	// if no input is selected, then use all inputs.
-	// This is so as to make getting max amount possible for normal sending from the UI
+	// This is so as to make change amount possible for situation where custom inputs are not sent
 	if len(utxos) == 0 {
 		requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
-		getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
+		getUnconfirmed := req.URL.Query().Get("get-unconfirmed")
 		if getUnconfirmed == "true" {
 			requiredConfirmations = 0
 		}
-		utxos, totalInputAmountDcr, err = walletcore.GetAllUtoxs(routes.walletMiddleware, uint32(account), requiredConfirmations)
+		utxos, totalInputAmountDcr, err = walletcore.GetAllUtxos(routes.walletMiddleware, uint32(account), requiredConfirmations)
 		if err != nil {
 			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
 			return
@@ -146,6 +146,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	// the max send amount is the change to one output for the payload
 	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount), sourceAccount, len(utxos), destinations)
 	if err != nil {
 		data["error"] = err.Error()
@@ -310,7 +311,7 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 
 	requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
-	getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
+	getUnconfirmed := req.URL.Query().Get("get-unconfirmed")
 	if getUnconfirmed == "true" {
 		requiredConfirmations = 0
 	}
