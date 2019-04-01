@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -14,7 +13,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func CreateWalletPage(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	createWalletPage := tview.NewFlex().SetDirection(tview.FlexRow)
 	createWalletPage.SetBorderPadding(1, 1, 2, 2).SetBackgroundColor(tcell.ColorBlack)
 
@@ -69,7 +68,7 @@ func CreateWalletPage(ctx context.Context, tviewApp *tview.Application, walletMi
 	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
 	storeSeedWarningTextView.SetBorder(true).
 		SetTitle("IMPORTANT NOTICE").
-		SetTitleColor(helpers.WarnColor)
+		SetTitleColor(helpers.DangerColor)
 	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true,
 		0))
 
@@ -148,7 +147,7 @@ func CreateWalletPage(ctx context.Context, tviewApp *tview.Application, walletMi
 			time.Sleep(1 * time.Second)
 
 			tviewApp.QueueUpdateDraw(func() {
-				LaunchSyncPage(ctx, tviewApp, walletMiddleware)
+				LaunchSyncPage(tviewApp, walletMiddleware)
 			})
 		}()
 	})

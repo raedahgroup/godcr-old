@@ -84,7 +84,3 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 	listener.SyncStarted()
 	return nil
 }
-
-func (lib *DcrWalletLib) CancelSync() {
-	lib.walletLib.DropSpvConnection()
-}

@@ -17,9 +17,9 @@ func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware
 	}
 
 	if walletExists {
-		pages.LaunchSyncPage(ctx, tviewApp, walletMiddleware)
+		pages.LaunchSyncPage(tviewApp, walletMiddleware)
 	} else {
-		tviewApp.SetRoot(pages.CreateWalletPage(ctx, tviewApp, walletMiddleware), true)
+		tviewApp.SetRoot(pages.CreateWalletPage(tviewApp, walletMiddleware), true)
 	}
 
 	// `Run` blocks until app.Stop() is called before returning

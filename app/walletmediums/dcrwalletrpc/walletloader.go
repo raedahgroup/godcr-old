@@ -2,6 +2,7 @@ package dcrwalletrpc
 
 import (
 	"context"
+
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
@@ -54,7 +55,6 @@ func (c *WalletRPCClient) CreateWallet(passphrase, seed string) error {
 
 func (c *WalletRPCClient) OpenWalletIfExist(ctx context.Context) (walletExists bool, err error) {
 	c.walletOpen = false
-
 	loadWalletDone := make(chan bool)
 
 	go func() {
@@ -139,8 +139,4 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	// receive sync updates from stream and send to listener in separate goroutine
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
-}
-
-func (c *WalletRPCClient) CancelSync() {
-
 }

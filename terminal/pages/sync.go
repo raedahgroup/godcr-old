@@ -1,15 +1,15 @@
 package pages
 
 import (
-	"context"
 	"fmt"
+
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func LaunchSyncPage(ctx context.Context, tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
+func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and hint
@@ -25,12 +25,7 @@ func LaunchSyncPage(ctx context.Context, tviewApp *tview.Application, walletMidd
 	cancelButton := tview.NewButton("Cancel and Exit")
 	body.AddItem(cancelButton, 1, 0, true)
 
-	var appStopped bool
 	cancelAndExit := func() {
-		if appStopped {
-			return
-		}
-		appStopped = true
 		tviewApp.Stop()
 	}
 	cancelButton.SetSelectedFunc(cancelAndExit)
@@ -46,9 +41,6 @@ func LaunchSyncPage(ctx context.Context, tviewApp *tview.Application, walletMidd
 
 	// function to update the sync page with status report from the sync operation
 	updateStatus := func(status string) {
-		if appStopped {
-			return
-		}
 		tviewApp.QueueUpdateDraw(func() {
 			syncStatusTextView.SetText(status)
 		})
@@ -56,19 +48,15 @@ func LaunchSyncPage(ctx context.Context, tviewApp *tview.Application, walletMidd
 
 	// function to be executed after the sync operation completes successfully
 	afterSyncing := func() {
-		if appStopped {
-			return
-		}
 		tviewApp.QueueUpdateDraw(func() {
 			tviewApp.SetRoot(rootPage(tviewApp, walletMiddleware), true)
 		})
 	}
 
-	startSync(ctx, walletMiddleware, updateStatus, afterSyncing)
+	startSync(walletMiddleware, updateStatus, afterSyncing)
 }
 
-// this is a long running operation, listen for ctx.Done and stop processing
-func startSync(_ context.Context, walletMiddleware app.WalletMiddleware, updateStatus func(string), afterSyncing func()) {
+func startSync(walletMiddleware app.WalletMiddleware, updateStatus func(string), afterSyncing func()) {
 	err := walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
 			updateStatus("Blockchain sync started...")
