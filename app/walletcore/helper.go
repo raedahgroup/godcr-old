@@ -123,6 +123,7 @@ func TxStatus(txBlockHeight, bestBlockHeight int32) (int32, string) {
 		return confirmations, UnconfirmedStatus
 	}
 }
+
 func GetAllUtoxs(walletMiddleware Wallet, accountNumber uint32, requiredConfirmations int) ([]string, float64, error) {
 	allUtxos, err := walletMiddleware.UnspentOutputs(accountNumber, 0, int32(requiredConfirmations))
 	if err != nil {

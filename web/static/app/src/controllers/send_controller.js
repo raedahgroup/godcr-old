@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'amount', 'removeDestinationButton',
+      'destinations', 'destinationTemplate', 'address', 'amount', 'removeDestinationButton', 'maxSendAmountButton',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAmount',
@@ -76,19 +76,59 @@ export default class extends Controller {
     let _this = this
     // set the destination amount to zero and get the server calculated value
     amountField.value = 0
-    this.getRandomChangeOutputs(1, changeOutputs => {
+    this.getMaxSendAmount(changeOutputs => {
       if (!changeOutputs || changeOutputs.length < 1) {
         amountField.value = currentAmount
         return
       }
       amountField.value = changeOutputs[0].Amount
       _this.calculateCustomInputsPercentage()
-    }, (err) => {
-      if (err.indexOf('total input amount not enough to cover transaction') > -1) {
+    }, (errMsg) => {
+      if (errMsg.indexOf('total input amount not enough to cover transaction') > -1) {
         return
       }
-      _this.setErrorMessage(err)
+      _this.setErrorMessage(errMsg)
     })
+  }
+
+  getMaxSendAmount (successCallback, errorCallback) {
+    this.maxSendAmountButtonTargets.forEach(el => {
+      el.setAttribute('disabled', 'disabled')
+    })
+
+    let queryParams = $('#send-form').serialize()
+    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    if (this.spendUnconfirmedTarget.checked) {
+      queryParams += '&getUnconfirmed=true'
+    }
+
+    // add source-account value to post data if source-account element is disabled
+    if (this.sourceAccountTarget.disabled) {
+      queryParams += `&source-account=${this.sourceAccountTarget.value}`
+    }
+
+    let _this = this
+    axios.get('/max-send-amount?' + queryParams)
+      .then((response) => {
+        let result = response.data
+        if (result.error !== undefined) {
+          if (errorCallback) {
+            errorCallback(result.error)
+            return
+          }
+          _this.setErrorMessage(result.error)
+        } else {
+          successCallback(result.message)
+        }
+      })
+      .catch(() => {
+        _this.setErrorMessage('A server error occurred')
+      })
+      .then(() => {
+        _this.maxSendAmountButtonTargets.forEach(el => {
+          el.removeAttribute('disabled')
+        })
+      })
   }
 
   destinationFieldsValid () {

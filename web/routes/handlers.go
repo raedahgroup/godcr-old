@@ -81,6 +81,79 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 	routes.renderPage("send.html", data, res)
 }
 
+func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	req.ParseForm()
+	utxos := req.Form["utxo"]
+
+	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
+	selectedAccount := req.FormValue("source-account")
+
+	account, err := strconv.ParseUint(selectedAccount, 10, 32)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+	sourceAccount := uint32(account)
+
+	destinationAddresses := req.Form["destination-address"]
+	destinationAmounts := req.Form["destination-amount"]
+
+	destinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
+	changeOutputAddreses := req.Form["change-output-address"]
+	changeOutputAmounts := req.Form["change-output-amount"]
+
+	existingChangeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddreses, changeOutputAmounts)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
+	destinations = append(destinations, existingChangeDestinations...)
+
+	totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
+	// if no input is selected, then use all inputs.
+	// This is so as to make getting max amount possible for normal sending from the UI
+	if len(utxos) == 0 {
+		requiredConfirmations := walletcore.DefaultRequiredConfirmations
+
+		getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
+		if getUnconfirmed == "true" {
+			requiredConfirmations = 0
+		}
+		utxos, totalInputAmountDcr, err = walletcore.GetAllUtoxs(routes.walletMiddleware, uint32(account), requiredConfirmations)
+		if err != nil {
+			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
+			return
+		}
+	}
+
+	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+
+	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount), sourceAccount, len(utxos), destinations)
+	if err != nil {
+		data["error"] = err.Error()
+		return
+	}
+	data["message"] = changeOutputDestinations
+}
+
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
@@ -303,22 +376,6 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 
-	// if no input is selected, then use all inputs.
-	// This is so as to make getting max amount possible for normal sending from the UI
-	if len(utxos) == 0 {
-		requiredConfirmations := walletcore.DefaultRequiredConfirmations
-
-		getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
-		if getUnconfirmed == "true" {
-			requiredConfirmations = 0
-		}
-		utxos, totalInputAmountDcr, err = walletcore.GetAllUtoxs(routes.walletMiddleware, uint32(account), requiredConfirmations)
-		if err != nil {
-			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
-			return
-		}
-	}
-
 	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 	if err != nil {
 		data["error"] = err.Error()
@@ -327,7 +384,6 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), int64(totalInputAmount), sourceAccount, len(utxos), destinations)
 	if err != nil {
-		// return error key for the frontend to process
 		data["error"] = err.Error()
 		return
 	}
