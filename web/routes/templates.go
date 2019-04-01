@@ -52,9 +52,6 @@ func templateFuncMap() template.FuncMap {
 		"timestamp": func() int64 {
 			return time.Now().Unix()
 		},
-		"gt": func(a, b int) bool {
-			return a > b
-		},
 		"rawHtml": func (content string) template.HTML {
 			return template.HTML(content)
 		},

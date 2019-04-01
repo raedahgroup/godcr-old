@@ -1,6 +1,5 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-
 import { copyToClipboard, setErrorMessage } from '../utils'
 
 export default class extends Controller {
@@ -10,7 +9,7 @@ export default class extends Controller {
     ]
   }
 
-  copyToClipboard () {
+  copyAddressToClipboard () {
     copyToClipboard(this.addressTarget.textContent)
   }
 

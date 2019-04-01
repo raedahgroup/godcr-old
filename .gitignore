@@ -8,4 +8,5 @@ godcr.conf
 godcr.exe
 web/static/app/node_modules
 web/static/dist/font-awesome/*
-*.log*.bat
+*.log
+*.bat
