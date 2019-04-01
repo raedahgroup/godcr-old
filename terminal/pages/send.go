@@ -15,8 +15,9 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Send"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
+	body.AddItem(primitives.TitleTextView("Send"), 1, 0, false)
+
+	hintText := primitives.WordWrappedTextView("(TIP: Scroll table with LEFT, RIGHT, UP AND DOWN KEYS. Return with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
 	body.AddItem(hintText, 3, 0, false)
 
@@ -27,6 +28,9 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 	// form for Sending
 	form := primitives.NewForm()
+	form.SetCancelFunc(clearFocus)
+	form.SetLabelColor(tcell.ColorWhite)
+	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 14, 0, true)
 
 	outputMessageTextView := primitives.NewCenterAlignedTextView("")
@@ -99,7 +103,8 @@ func SendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		setFocus(form.GetFormItem(0))
 	})
 
-	form.SetCancelFunc(clearFocus)
+	body.SetBorderPadding(1, 0, 1, 0)
+
 	setFocus(body)
 
 	return body

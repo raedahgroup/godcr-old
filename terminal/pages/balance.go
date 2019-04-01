@@ -3,6 +3,7 @@ package pages
 import (
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
@@ -12,6 +13,7 @@ func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	table := tview.NewTable().SetBorders(true)
 	checkbox := tview.NewCheckbox()
 
+ 	body.AddItem(primitives.TitleTextView("Balance"), 1, 0, false)
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return textView.SetText(err.Error())

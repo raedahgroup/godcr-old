@@ -61,6 +61,7 @@ func HistoryPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
 
+	body.SetBorderPadding(1, 0, 1, 0)
 	body.AddItem(nil, 1, 0, false) // add some "padding" at the bottom
 	setFocus(body)
 
