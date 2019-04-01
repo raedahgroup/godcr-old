@@ -3,7 +3,23 @@ import axios from 'axios'
 
 export default class extends Controller {
   static get targets () {
-    return ['historyTable', 'nextPageButton', 'loadingIndicator', 'errorMessage']
+    return ['stickyTableHeader', 'historyTable', 'nextPageButton', 'loadingIndicator', 'errorMessage']
+  }
+
+  connect () {
+    window.addEventListener('resize', this.alignTableHeaderWithStickyHeader.bind(this))
+    this.alignTableHeaderWithStickyHeader()
+  }
+
+  alignTableHeaderWithStickyHeader () {
+    this.stickyTableHeaderTarget.style.width = `${this.historyTableTarget.clientWidth}px`
+
+    // set column width on sticky header to match real table
+    const tableColumns = this.historyTableTarget.querySelector('tr').querySelectorAll('td')
+    const staticHeaderColumns = this.stickyTableHeaderTarget.querySelector('tr').querySelectorAll('th')
+    staticHeaderColumns.forEach((headerColumn, index) => {
+      headerColumn.style.width = `${tableColumns[index].clientWidth}px`
+    })
   }
 
   initialize () {
@@ -15,19 +31,31 @@ export default class extends Controller {
 
   checkScrollPos () {
     // check if there is space at the bottom to load more now
-    this.didScroll({ target: document })
+    this.windowScrolled({ target: document })
   }
 
-  didScroll (e) {
+  windowScrolled (e) {
+    const element = e.target.scrollingElement
+    const scrollTop = element.scrollTop
+    this.makeTableHeaderSticky(scrollTop)
+
     if (this.isLoading || !this.nextBlockHeight) {
       return
     }
 
-    const element = e.target.scrollingElement
-    const scrollPos = element.scrollTop + element.clientHeight
+    const scrollPos = scrollTop + element.clientHeight
     if (scrollPos >= element.scrollHeight * 0.95) {
       this.isLoading = true
       this.fetchMoreTxs()
+    }
+  }
+
+  makeTableHeaderSticky (scrollTop) {
+    const historyTableOffset = this.historyTableTarget.parentElement.offsetTop
+    if (this.stickyTableHeaderTarget.classList.contains('d-none') && scrollTop >= historyTableOffset) {
+      this.show(this.stickyTableHeaderTarget)
+    } else if (scrollTop < historyTableOffset) {
+      this.hide(this.stickyTableHeaderTarget)
     }
   }
 

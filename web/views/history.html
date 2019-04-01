@@ -2,10 +2,26 @@
 <html lang="en">
 {{ template "html-head" }}
 <body>
-    <div class="body" data-controller="history">
+    <div class="body" data-controller="history" data-action="scroll@window->history#windowScrolled">
+
         {{ template "header" }}
         <div class="content">
             <div class="container">
+                <!-- sticky header -->
+                <table class="table sticky-table d-none" data-target="history.stickyTableHeader">
+                    <thead>
+                    <tr>
+                        <th>S/N</th>
+                        <th>Date</th>
+                        <th>Direction</th>
+                        <th>Amount</th>
+                        <th>Fee</th>
+                        <th>Type</th>
+                        <th>Hash</th>
+                    </tr>
+                    </thead>
+                </table>
+
                 <table class="table">
                     <thead>
                         <tr>
@@ -18,7 +34,7 @@
                             <th>Hash</th>
                         </tr>
                     </thead>
-                    <tbody data-target="history.historyTable" data-action="scroll@window->history#didScroll" >
+                    <tbody data-target="history.historyTable">
                         {{ range $index, $txn := .txs }}
                         <tr>
                             <td>{{ intSum $.startTxCount $index 1 }}</td>

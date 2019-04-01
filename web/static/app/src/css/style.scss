@@ -170,6 +170,12 @@ select#source-account[disabled] {
   font-size: 16px;
 }
 
+.table.sticky-table {
+  position: sticky;
+  top: 0;
+  background: #f5f5f5;
+}
+
 /** loading indicator styles **/
 .lds-ellipsis {
   display: inline-block;

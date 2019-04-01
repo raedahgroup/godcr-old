@@ -27,15 +27,15 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		return err
 	}
 
-	basicOutput := "Hash\t%s\n" +
-		"Confirmations\t%d\n" +
-		"Included in block\t%d\n" +
-		"Type\t%s\n" +
-		"Amount %s\t%s\n" +
-		"Date\t%s\n" +
-		"Size\t%s\n" +
-		"Fee\t%s\n" +
-		"Rate\t%s/kB\n"
+	basicOutput := "  Hash\t%s\n" +
+		"  Confirmations\t%d\n" +
+		"  Included in block\t%d\n" +
+		"  Type\t%s\n" +
+		"  Amount %s\t%s\n" +
+		"  Date\t%s\n" +
+		"  Size\t%s\n" +
+		"  Fee\t%s\n" +
+		"  Rate\t%s/kB\n"
 
 	txDirection := strings.ToLower(transaction.Direction.String())
 	txSize := fmt.Sprintf("%.1f kB", float64(transaction.Size)/1000)
@@ -54,24 +54,24 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		detailedOutput := strings.Builder{}
 		detailedOutput.WriteString("General Info\n")
 		detailedOutput.WriteString(basicOutput)
-		detailedOutput.WriteString("\nInputs\n")
+		detailedOutput.WriteString("Inputs\n")
 		for _, input := range transaction.Inputs {
-			detailedOutput.WriteString(fmt.Sprintf("%s\t%s\n", dcrutil.Amount(input.AmountIn).String(), input.PreviousOutpoint))
+			detailedOutput.WriteString(fmt.Sprintf("  %s\t%s\n", dcrutil.Amount(input.AmountIn).String(), input.PreviousOutpoint))
 		}
-		detailedOutput.WriteString("\nOutputs\n")
+		detailedOutput.WriteString("Outputs\n")
 		for _, out := range transaction.Outputs {
 			if len(out.Addresses) == 0 {
-				detailedOutput.WriteString(fmt.Sprintf("%s\t (no address)\n", dcrutil.Amount(out.Value).String()))
+				detailedOutput.WriteString(fmt.Sprintf("  %s\t (no address)\n", dcrutil.Amount(out.Value).String()))
 				continue
 			}
 
-			detailedOutput.WriteString(fmt.Sprintf("%s", dcrutil.Amount(out.Value).String()))
+			detailedOutput.WriteString(fmt.Sprintf("  %s", dcrutil.Amount(out.Value).String()))
 			for _, address := range out.Addresses {
 				accountName := address.AccountName
 				if !address.IsMine {
 					accountName = "external"
 				}
-				detailedOutput.WriteString(fmt.Sprintf("\t%s (%s)\n", address.Address, accountName))
+				detailedOutput.WriteString(fmt.Sprintf("%s (%s)\n", address.Address, accountName))
 			}
 		}
 		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))

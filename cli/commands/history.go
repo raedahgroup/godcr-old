@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -20,19 +21,35 @@ type HistoryCommand struct {
 func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	var startBlockHeight int32 = -1
 	var displayedTxHashes []string
-	columns := []string{
-		"#",
-		"Date",
-		"Direction",
-		"Amount (DCR)",
-		"Fee",
-		"Type",
-		"Hash",
-	}
 
 	// formatAmount returns the amount as a 17-character string padded with spaces to the left
 	formatAmount := func(amount string) string {
 		return fmt.Sprintf("%17s", amount)
+	}
+
+	// centerAlignAmountHeader returns the Amount or Fee header as a 17-character string
+	// padded with equal spaces to the left and right
+	centerAlignAmountHeader := func(header string) string {
+		nHeaderCharacters := len(header)
+		if nHeaderCharacters < 17 {
+			spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters) / 2.0)
+			nLeftSpaces := int(spacesToPad)
+			nRightSpaces := int(17 - nHeaderCharacters - nLeftSpaces)
+
+			header = fmt.Sprintf("%*s", nLeftSpaces, header) // pad with spaces to the left
+			header = fmt.Sprintf("%-*s", nRightSpaces, header) // pad with spaces to the right
+		}
+		return header
+	}
+
+	columns := []string{
+		"#",
+		"Date",
+		"Direction",
+		centerAlignAmountHeader("Amount"),
+		centerAlignAmountHeader("Fee"),
+		"Type",
+		"Hash",
 	}
 
 	// show transactions in pages, using infinite loop
