@@ -5,7 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	 	"github.com/raedahgroup/godcr/terminal/primitives"
+	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -15,7 +15,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	form := tview.NewForm()
 
 	body.AddItem(primitives.NewCenterAlignedTextView("Generate Receive Address"), 4, 1, false)
-	
+
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
@@ -25,12 +25,12 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		if err != nil {
 			return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 		}
- 		body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+		body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
 		}), 2, 1, true).
- 			AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
+			AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()
 				}
@@ -41,7 +41,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		accountNames := make([]string, len(accounts))
 		for index, account := range accounts {
 			accountNames[index] = account.Name
- 			body.AddItem(form.AddDropDown("Account", []string{accountNames[index]}, 0, func(option string, optionIndex int) {
+			body.AddItem(form.AddDropDown("Account", []string{accountNames[index]}, 0, func(option string, optionIndex int) {
 				accountNum = accountN[optionIndex]
 			}).
 				AddButton("Generate", func() {
@@ -50,7 +50,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 						body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
 						return
 					}
-						body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
+					body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
 						AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()

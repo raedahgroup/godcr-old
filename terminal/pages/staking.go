@@ -23,16 +23,16 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body.AddItem(primitives.NewCenterAlignedTextView("Staking"), 1, 0, false)
 	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
 	hintText.SetTextColor(tcell.ColorGray)
- 	body.AddItem(hintText, 2, 0, false)
+	body.AddItem(hintText, 2, 0, false)
 
- 	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
 	} else {
- 		body.AddItem(stakeInfo, 6, 0, true)
- 			}
+		body.AddItem(stakeInfo, 6, 0, true)
+	}
 
 	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)

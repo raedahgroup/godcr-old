@@ -99,7 +99,7 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 		setFocus(form.GetFormItem(0))
 	})
 
- 	form.SetCancelFunc(clearFocus)
+	form.SetCancelFunc(clearFocus)
 	setFocus(body)
 
 	return body
