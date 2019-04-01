@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
-	"math"
 	"net/http"
 	"strconv"
 
@@ -52,17 +51,16 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	showDetails := req.FormValue("detailed") != ""
 
-	// TODO: use the newly introduced pagination
-	txns, err := routes.walletMiddleware.TransactionHistory()
+	txns, _, err := routes.walletMiddleware.TransactionHistory(routes.ctx, -1, 5)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching recent activities: %s", err.Error()), res)
 		return
 	}
 
 	data := map[string]interface{}{
-		"accounts": accounts,
-		"detailed": showDetails,
-		"transactions": txns[0: int(math.Min(float64(5), float64(len(txns))))],
+		"accounts":     accounts,
+		"detailed":     showDetails,
+		"transactions": txns,
 	}
 	routes.render("overview.html", data, res)
 }
