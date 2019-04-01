@@ -100,7 +100,7 @@ func (c *WalletRPCClient) IsWalletOpen() bool {
 	return c.walletOpen
 }
 
-func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
+func (c *WalletRPCClient) SyncBlockChainOld(listener *app.BlockChainSyncListener, showLog bool) error {
 	ctx := context.Background()
 
 	bestBlockHeight, err := c.BestBlock()
@@ -122,7 +122,7 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 		if err != nil {
 			_, err := c.walletLoader.SubscribeToBlockNotifications(ctx, &walletrpc.SubscribeToBlockNotificationsRequest{})
 			if err != nil {
-				// no point pubslishing if above function did not succeed
+				// no point publishing if above function did not succeed
 				c.walletService.PublishUnminedTransactions(ctx, &walletrpc.PublishUnminedTransactionsRequest{})
 			}
 		}
@@ -182,4 +182,8 @@ func (c *WalletRPCClient) BestBlock() (uint32, error) {
 
 func (c *WalletRPCClient) GetConnectedPeersCount() int32 {
 	return numberOfPeers
+}
+
+func (c *WalletRPCClient) SyncBlockChain(syncInfo *app.SyncInfoPrivate, syncInfoUpdated func()) error {
+	return nil
 }

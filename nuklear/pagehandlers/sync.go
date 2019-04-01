@@ -58,7 +58,7 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMiddleware) {
 	masterWindow := window.Master()
 
-	err := wallet.SyncBlockChain(&app.BlockChainSyncListener{
+	err := wallet.SyncBlockChainOld(&app.BlockChainSyncListener{
 		SyncStarted: func() {
 			s.updateStatus("Blockchain sync started...", app.SyncStatusInProgress)
 			window.Master().Changed()

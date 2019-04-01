@@ -3,12 +3,15 @@
 {{ template "html-head" }}
 <body>
 <div class="body">
-{{ template "header" }}
     <div class="content">
-        <div class="container">
+        <div class="container text-center" style="max-width: 500px;">
             <h3>Synchronizing</h3>
-            <p><i>progress bar goes here</i></p>
-            <p>Syncing with %{{ .ConnectedPeers }} peers on %{{  }}</p>
+            <div class="progress my-3" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 5%"
+                     role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p>Fetched {{ .CurrentBlockHeight }} of {{ .BestBlockHeight }} block headers.</p>
+            <p>Syncing with <b>{{ .ConnectedPeers }}</b> on {{ .networkType }}</p>
         </div>
     </div>
 </div>

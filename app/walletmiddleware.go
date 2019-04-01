@@ -16,7 +16,9 @@ type WalletMiddleware interface {
 
 	CreateWallet(passphrase, seed string) error
 
-	SyncBlockChain(listener *BlockChainSyncListener, showLog bool) error
+	SyncBlockChainOld(listener *BlockChainSyncListener, showLog bool) error
+
+	SyncBlockChain(syncInfo *SyncInfoPrivate, syncInfoUpdated func()) error
 
 	RescanBlockChain() error
 

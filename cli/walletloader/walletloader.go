@@ -33,45 +33,6 @@ func OpenOrCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddlewa
 	return
 }
 
-// syncBlockChain uses the WalletMiddleware provided to download block updates
-// this is a long running operation, listen for ctx.Done and stop processing
-func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	syncDone := make(chan error)
-	go func() {
-		syncListener := &app.BlockChainSyncListener{
-			SyncStarted: func() {
-				fmt.Println("Blockchain sync started")
-			},
-			SyncEnded: func(err error) {
-				if err == nil {
-					fmt.Println("Blockchain synced successfully")
-				} else {
-					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", err.Error())
-				}
-				syncDone <- err
-			},
-			OnHeadersFetched:    func(_ int64) {},
-			OnDiscoveredAddress: func(_ string) {},
-			OnRescanningBlocks:  func(_ int64) {},
-			OnPeerConnected:     func(_ int32) {},
-			OnPeerDisconnected:  func(_ int32) {},
-		}
-
-		err := walletMiddleware.SyncBlockChain(syncListener, true)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
-			syncDone <- err
-		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-syncDone:
-		return err
-	}
-}
-
 // CreateWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
 func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	walletMiddleware, err := choseNetworkAndCreateMiddleware()
@@ -163,4 +124,41 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 	}
 
 	return walletInfo, SyncBlockChain(ctx, walletMiddleware)
+}
+
+// syncBlockChain uses the WalletMiddleware provided to download block updates
+// this is a long running operation, listen for ctx.Done and stop processing
+func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	syncDone := make(chan error)
+	go func() {
+		syncListener := &app.BlockChainSyncListener{
+			SyncStarted: func() {
+				fmt.Println("Blockchain sync started")
+			},
+			SyncEnded: func(err error) {
+				if err == nil {
+					fmt.Println("Blockchain synced successfully")
+				} else {
+					fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", err.Error())
+				}
+				syncDone <- err
+			},
+			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
+			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
+			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+		}
+
+		err := walletMiddleware.SyncBlockChainOld(syncListener, true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
+			syncDone <- err
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-syncDone:
+		return err
+	}
 }

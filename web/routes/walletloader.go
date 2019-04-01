@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/raedahgroup/godcr/app"
 	"net/http"
+
+	"github.com/raedahgroup/godcr/app"
 )
 
 func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
@@ -46,7 +48,10 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		case app.SyncStatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
 		case app.SyncStatusInProgress:
-			routes.renderSyncPage(syncInfo, res)
+			var syncInfoMap map[string]interface{}
+			syncInfoBytes, _ := json.Marshal(syncInfo)
+			json.Unmarshal(syncInfoBytes, &syncInfoMap)
+			routes.renderSyncPage(syncInfoMap, res)
 		case app.SyncStatusError:
 			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncInfo.Error)
 		default:
@@ -61,7 +66,7 @@ func (routes *Routes) syncBlockchain() {
 		routes.syncInfo.Write(syncInfo, status)
 	}
 
-	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
+	err := routes.walletMiddleware.SyncBlockChainOld(&app.BlockChainSyncListener{
 		SyncStarted: func() {
 			updateSyncInfo(app.SyncStatusInProgress)
 		},

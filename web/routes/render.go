@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -29,7 +30,16 @@ func (routes *Routes) render(tplName string, data interface{}, res http.Response
 	log.Fatalf("template %s is not registered", tplName)
 }
 
-func (routes *Routes) renderSyncPage(syncInfo interface{}, res http.ResponseWriter) {
+func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.ResponseWriter) {
+	syncInfo["networkType"] = routes.walletMiddleware.NetType()
+
+	connectedPeers := syncInfo["ConnectedPeers"].(float64)
+	if connectedPeers == 1 {
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%d peer", int(connectedPeers))
+	} else {
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%d peers", int(connectedPeers))
+	}
+
 	routes.render("sync.html", syncInfo, res)
 }
 
