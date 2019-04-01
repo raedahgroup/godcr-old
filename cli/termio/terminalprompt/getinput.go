@@ -29,7 +29,11 @@ func getTextInput(prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimRight(text, "\n"), nil
+	
+	text = strings.TrimSuffix(text, "\n")
+	text = strings.TrimSuffix(text, "\r")
+	
+	return text, nil
 }
 
 // getPasswordInput - Prompt for password.
