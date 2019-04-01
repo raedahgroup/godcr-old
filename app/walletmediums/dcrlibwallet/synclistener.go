@@ -18,6 +18,7 @@ type spvSyncData struct {
 	activeNet *netparams.Params
 	walletLib *dcrlibwallet.LibWallet
 	syncInfo *app.SyncInfoPrivate
+	syncInfoUpdated func(*app.SyncInfoPrivate)
 
 	beginFetchHeaderTimeStamp int64
 	syncStartPoint int32
@@ -31,6 +32,7 @@ func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWal
 		activeNet: activeNet,
 		walletLib:walletLib,
 		syncInfo:&app.SyncInfoPrivate{},
+		syncInfoUpdated:syncInfoUpdated,
 		beginFetchHeaderTimeStamp: -1,
 	}
 
