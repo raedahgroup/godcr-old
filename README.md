@@ -84,9 +84,7 @@ The behaviour of the godcr program can be customized by editing the godcr config
 The config file is where you set most options used by the godcr app, such as:
 - the host and port to use for the http web server (if running godcr with `--mode=http`)
 - the default interface mode to run (if you're tired of having to set `--mode=` everytime you run godcr)
-- whether or not to use dcrwallet over gRPC for wallet functionality
-
-To use dcrwallet, Set the wallet rpc address in config to `localhost:19111` (if the rpc address is set in config, connection is made to dcrwallet. If not, dcrlibwallet is used by default)
+- whether or not to use dcrwallet over gRPC for wallet functionality. To use dcrwallet, Set the wallet rpc address in config (e.g. `wallerrpcaddress=localhost:19111`). If the rpc address is set in config, connection is made to dcrwallet. If not, dcrlibwallet is used by default
 
 Run `godcr -h` to see the location of the config file. Open the file with a text editor to see all customizable options.
 
