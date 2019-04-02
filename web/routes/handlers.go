@@ -92,14 +92,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	// if no input is selected, then use all inputs.
 	// This is so as to make set max amount possible for situations where custom inputs are not sent
 	if len(payload.Utxos) == 0 {
-		requiredConfirmations := walletcore.DefaultRequiredConfirmations
-
-		req.ParseForm()
-		getUnconfirmed := req.URL.Query().Get("get-unconfirmed")
-		if getUnconfirmed == "true" {
-			requiredConfirmations = 0
-		}
-		payload.Utxos, payload.TotalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.SourceAccount, requiredConfirmations)
+		payload.Utxos, payload.TotalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.SourceAccount, payload.RequiredConfirmations)
 		if err != nil {
 			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
 			return

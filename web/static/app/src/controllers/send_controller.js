@@ -108,7 +108,7 @@ export default class extends Controller {
       .then((response) => {
         let result = response.data
         if (!result.error) {
-          successCallback(result.message)
+          successCallback(result.amount)
         } else if (errorCallback) {
           errorCallback(result.error)
         } else {
