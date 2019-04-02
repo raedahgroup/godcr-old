@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -31,7 +30,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	selectedAccount := req.FormValue("source-account")
 	payload.Passphrase = req.FormValue("wallet-passphrase")
 	spendUnconfirmed := req.FormValue("spend-unconfirmed")
-	payload.UseCustom = strings.EqualFold(req.FormValue("use-custom"), "true")
+	payload.UseCustom = req.FormValue("use-custom") != ""
 
 	destinationAddresses := req.Form["destination-address"]
 	destinationAmounts := req.Form["destination-amount"]

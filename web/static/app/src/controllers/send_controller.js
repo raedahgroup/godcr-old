@@ -72,16 +72,20 @@ export default class extends Controller {
       amountField.value = currentAmount
       return
     }
-    this.resetChangeOutput()
     let _this = this
     // set the destination amount to zero and get the server calculated value
     amountField.value = 0
-    this.getMaxSendAmount(changeOutputs => {
-      if (!changeOutputs || changeOutputs.length < 1) {
-        amountField.value = currentAmount
-        return
+
+    let selectedAddress
+    this.addressTargets.forEach(el => {
+      if (index === parseInt(el.getAttribute('data-index'))) {
+        selectedAddress = el.value
       }
-      amountField.value = changeOutputs[0].Amount
+    })
+
+    this.getMaxSendAmount(selectedAddress, amount => {
+      amountField.value = amount
+      _this.resetChangeOutput()
       _this.calculateCustomInputsPercentage()
     }, (errMsg) => {
       if (errMsg.indexOf('total input amount not enough to cover transaction') > -1) {
@@ -91,13 +95,13 @@ export default class extends Controller {
     })
   }
 
-  getMaxSendAmount (successCallback, errorCallback) {
+  getMaxSendAmount (selectedAddress, successCallback, errorCallback) {
     this.maxSendAmountButtonTargets.forEach(el => {
       el.setAttribute('disabled', 'disabled')
     })
 
     let queryParams = $('#send-form').serialize()
-    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    queryParams += `&selected-address=${selectedAddress}&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
     if (this.spendUnconfirmedTarget.checked) {
       queryParams += '&get-unconfirmed=true'
     }
@@ -118,7 +122,7 @@ export default class extends Controller {
           }
           _this.setErrorMessage(result.error)
         } else {
-          successCallback(result.message)
+          successCallback(result.amount)
         }
       })
       .catch(() => {

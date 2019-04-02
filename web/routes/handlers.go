@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
@@ -87,10 +88,8 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 
 	payload, err := retrieveSendPagePayload(req)
 
-	destinations := append(payload.SendDestinations, payload.ChangeDestinations...)
-
 	// if no input is selected, then use all inputs.
-	// This is so as to make change amount possible for situation where custom inputs are not sent
+	// This is so as to make set max amount possible for situations where custom inputs are not sent
 	if len(payload.Utxos) == 0 {
 		requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
@@ -106,13 +105,21 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	// the max send amount is the change to one output for the payload
-	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, payload.TotalInputAmount, payload.SourceAccount, len(payload.Utxos), destinations)
+	selectedAddress := req.FormValue("selected-address")
+	for i := 0; i < len(payload.SendDestinations); i++ {
+		if payload.SendDestinations[i].Address == selectedAddress {
+			payload.SendDestinations = append(payload.SendDestinations[:i], payload.SendDestinations[i+1:]...)
+			break
+		}
+	}
+
+	changeAmount, err := txhelper.EstimateChange(len(payload.Utxos), payload.TotalInputAmount, payload.SendDestinations, []string{selectedAddress})
+
 	if err != nil {
-		data["error"] = err.Error()
+		data["error"] = fmt.Sprintf("Error in getting change amount: %s", err.Error())
 		return
 	}
-	data["message"] = changeOutputDestinations
+	data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
 }
 
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
@@ -128,20 +135,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	var txHash string
 	if payload.UseCustom {
 		if len(payload.ChangeDestinations) < 1 {
-			// add at-least one change output
-			totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
-
-			totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
-			if err != nil {
-				return
-			}
-
-			totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
-			if err != nil {
-				return
-			}
-
-			payload.ChangeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount),
+			payload.ChangeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, payload.TotalInputAmount,
 				payload.SourceAccount, len(payload.Utxos), payload.SendDestinations)
 			if err != nil {
 				return
