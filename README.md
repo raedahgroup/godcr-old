@@ -86,6 +86,8 @@ The config file is where you set most options used by the godcr app, such as:
 - the default interface mode to run (if you're tired of having to set `--mode=` everytime you run godcr)
 - whether or not to use dcrwallet over gRPC for wallet functionality
 
+There is no longer a `usewalletrpc` config option. Set the wallet rpc address in config to `localhost:19111` (if the rpc address is set in config, connection is made to dcrwallet. If not, dcrlibwallet is used by default)
+
 Run `godcr -h` to see the location of the config file. Open the file with a text editor to see all customizable options.
 
 ### Features
