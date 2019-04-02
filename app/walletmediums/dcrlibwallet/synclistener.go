@@ -12,10 +12,12 @@ import (
 type syncListener struct {
 	activeNet *netparams.Params
 	walletLib *dcrlibwallet.LibWallet
+	showLog bool
 	data *syncData
 }
 
 type syncData struct {
+	netType string
 	syncInfo *app.SyncInfoPrivate
 	syncInfoUpdated func(*app.SyncInfoPrivate)
 
@@ -25,8 +27,11 @@ type syncData struct {
 
 var numberOfPeers int32
 
-func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWallet, syncInfoUpdated func(*app.SyncInfoPrivate)) *syncListener {
+func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWallet, showLog bool,
+	syncInfoUpdated func(*app.SyncInfoPrivate)) *syncListener {
+
 	data := &syncData{
+		netType: activeNet.Params.Name,
 		syncInfo: app.NewSyncInfo(),
 		syncInfoUpdated:syncInfoUpdated,
 		syncing:true,
@@ -38,6 +43,7 @@ func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWal
 	return &syncListener{
 		activeNet: activeNet,
 		walletLib:walletLib,
+		showLog:showLog,
 		data:data,
 	}
 }
@@ -45,15 +51,17 @@ func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWal
 // following functions are used to implement dcrlibwallet.SpvSyncResponse interface
 func (listener *syncListener) OnPeerConnected(peerCount int32)    {
 	numberOfPeers = peerCount
+	if listener.showLog {
+		if peerCount == 1 {
+			fmt.Printf("Connected to %d peer on %s.\n", peerCount, listener.data.netType)
+		} else {
+			fmt.Printf("Connected to %d peers on %s.\n", peerCount, listener.data.netType)
+		}
+	}
 
 	syncInfo := listener.data.syncInfo.Read()
 	syncInfo.ConnectedPeers = peerCount
-
-	if listener.data.syncing {
-		listener.data.syncInfo.Write(syncInfo, app.SyncStatusInProgress)
-	} else {
-		listener.data.syncInfo.Write(syncInfo, syncInfo.Status)
-	}
+	listener.data.syncInfo.Write(syncInfo, syncInfo.Status)
 
 	// notify interface of update
 	listener.data.syncInfoUpdated(listener.data.syncInfo)
@@ -61,15 +69,17 @@ func (listener *syncListener) OnPeerConnected(peerCount int32)    {
 
 func (listener *syncListener) OnPeerDisconnected(peerCount int32) {
 	numberOfPeers = peerCount
+	if listener.showLog {
+		if peerCount == 1 {
+			fmt.Printf("Connected to %d peer on %s.\n", peerCount, listener.data.netType)
+		} else {
+			fmt.Printf("Connected to %d peers on %s.\n", peerCount, listener.data.netType)
+		}
+	}
 
 	syncInfo := listener.data.syncInfo.Read()
 	syncInfo.ConnectedPeers = peerCount
-
-	if listener.data.syncing {
-		listener.data.syncInfo.Write(syncInfo, app.SyncStatusInProgress)
-	} else {
-		listener.data.syncInfo.Write(syncInfo, syncInfo.Status)
-	}
+	listener.data.syncInfo.Write(syncInfo, syncInfo.Status)
 
 	// notify interface of update
 	listener.data.syncInfoUpdated(listener.data.syncInfo)
@@ -88,10 +98,9 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 		return
 	}
 
-	netType := listener.activeNet.Params.Name
 	bestBlockTimeStamp := listener.walletLib.GetBestBlockTimeStamp()
 	bestBlock := listener.walletLib.GetBestBlock()
-	estimatedFinalBlockHeight := app.EstimateFinalBlockHeight(netType, bestBlockTimeStamp, bestBlock)
+	estimatedFinalBlockHeight := app.EstimateFinalBlockHeight(listener.data.netType, bestBlockTimeStamp, bestBlock)
 
 	switch state {
 	case dcrlibwallet.START:
@@ -104,8 +113,11 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 		listener.data.headers.CurrentHeaderHeight = listener.data.headers.StartHeaderHeight
 
 		syncInfo.TotalHeadersToFetch = int32(estimatedFinalBlockHeight) - listener.data.headers.StartHeaderHeight
-		syncInfo.DaysBehind = app.CalculateDaysBehind(bestBlockTimeStamp)
 		syncInfo.CurrentStep = 1
+
+		if listener.showLog {
+			fmt.Printf("Step 1 of 3 - fetching %d block headers.\n", syncInfo.TotalHeadersToFetch)
+		}
 
 	case dcrlibwallet.PROGRESS:
 		headersFetchReport := app.FetchHeadersProgressReport{
@@ -115,10 +127,21 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 		}
 		app.UpdateFetchHeadersProgress(listener.data.headers, headersFetchReport, syncInfo)
 
+		if listener.showLog {
+			fmt.Printf("Syncing %d%%, %s remaining, fetched %d of %d block headers, %s behind.\n",
+				syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining,
+				syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch,
+				syncInfo.DaysBehind)
+		}
+
 	case dcrlibwallet.FINISH:
 		syncInfo.HeadersFetchTimeTaken = time.Now().Unix() - listener.data.headers.BeginFetchTimeStamp
 		listener.data.headers.StartHeaderHeight = -1
 		listener.data.headers.CurrentHeaderHeight = -1
+
+		if listener.showLog {
+			fmt.Println("Fetch headers completed.")
+		}
 	}
 
 	listener.data.syncInfo.Write(syncInfo, app.SyncStatusInProgress)

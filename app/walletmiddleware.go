@@ -18,7 +18,7 @@ type WalletMiddleware interface {
 
 	SyncBlockChainOld(listener *BlockChainSyncListener, showLog bool) error
 
-	SyncBlockChain(syncInfoUpdated func(*SyncInfoPrivate)) error
+	SyncBlockChain(showLog bool, syncInfoUpdated func(*SyncInfoPrivate)) error
 
 	RescanBlockChain() error
 

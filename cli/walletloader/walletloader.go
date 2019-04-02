@@ -131,54 +131,25 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	syncDone := make(chan error)
 
-	netType := walletMiddleware.NetType()
-	var syncReport string
-
 	processSyncUpdates := func(syncInfoPrivate *app.SyncInfoPrivate) {
 		syncInfo := syncInfoPrivate.Read()
-
 		if syncInfo.Done {
 			if syncInfo.Error == "" {
-				fmt.Println("Blockchain synced successfully")
+				fmt.Println("Synced successfully")
 			} else {
-				fmt.Fprintf(os.Stderr, "Blockchain sync completed with error: %s\n", syncInfo.Error)
+				fmt.Fprintf(os.Stderr, "Sync completed with error: %s\n", syncInfo.Error)
 			}
 			syncDone <- fmt.Errorf(syncInfo.Error)
 			return
 		}
-
-		// begin with general report -> percentage progress and eta
-		if syncInfo.TotalTimeRemaining == "" || syncInfo.TotalTimeRemaining == "0 min" {
-			syncReport = fmt.Sprintf("%d%% completed.", syncInfo.TotalSyncProgress)
-		} else {
-			syncReport = fmt.Sprintf("%d%% completed, %s remaining.", syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining)
-		}
-
-		// show peer count
-		if syncInfo.ConnectedPeers == 1 {
-			syncReport += fmt.Sprintf(" Syncing with %d peer on %s\n", syncInfo.ConnectedPeers, netType)
-		} else {
-			syncReport += fmt.Sprintf(" Syncing with %d peers on %s\n", syncInfo.ConnectedPeers, netType)
-		}
-
-		switch syncInfo.CurrentStep {
-		case 1: // currently fetching headers...
-			syncReport += fmt.Sprintf("%d%% through step 1 of 3. Fetched %d of %d block headers.\n",
-				syncInfo.HeadersFetchProgress, syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch)
-			if syncInfo.DaysBehind != "" {
-				syncReport += fmt.Sprintf("Your wallet is %s behind.\n", syncInfo.DaysBehind)
-			}
-		}
-
-		fmt.Printf("[REPORT]\n%s", syncReport)
 	}
 
-	if err := walletMiddleware.SyncBlockChain(processSyncUpdates); err != nil {
-		fmt.Fprintf(os.Stderr, "Blockchain sync failed to start. %s\n", err.Error())
+	if err := walletMiddleware.SyncBlockChain(true, processSyncUpdates); err != nil {
+		fmt.Fprintf(os.Stderr, "Sync failed to start. %s\n", err.Error())
 		return err
 	}
 
-	fmt.Println("Blockchain sync started")
+	fmt.Println("Sync started")
 
 	// wait for context cancel or sync done trigger before exiting function
 	select {
