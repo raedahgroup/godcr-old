@@ -27,9 +27,9 @@ type FetchHeadersData struct {
 }
 
 type FetchHeadersProgressReport struct {
-	FetchedHeadersCount int32
-	LastHeaderTime int64
-	EstimatedBlocksToFetch int32
+	FetchedHeadersCount       int32
+	LastHeaderTime            int64
+	EstimatedFinalBlockHeight int32
 }
 
 func UpdateFetchHeadersProgress(fetchHeadersData *FetchHeadersData, report FetchHeadersProgressReport, syncInfo *syncInfo) {
@@ -42,7 +42,7 @@ func UpdateFetchHeadersProgress(fetchHeadersData *FetchHeadersData, report Fetch
 		totalFetchedHeaders -= fetchHeadersData.StartHeaderHeight
 	}
 
-	syncEndPoint := report.EstimatedBlocksToFetch - fetchHeadersData.StartHeaderHeight
+	syncEndPoint := report.EstimatedFinalBlockHeight - fetchHeadersData.StartHeaderHeight
 	headersFetchingRate := float64(totalFetchedHeaders) / float64(syncEndPoint)
 
 	timeTakenSoFar := time.Now().Unix() - fetchHeadersData.BeginFetchTimeStamp
@@ -62,20 +62,22 @@ func UpdateFetchHeadersProgress(fetchHeadersData *FetchHeadersData, report Fetch
 	syncInfo.HeadersFetchProgress = int32(math.Round(headersFetchingRate * 100))
 	syncInfo.TotalTimeRemaining = fmt.Sprintf("%d min", totalTimeRemaining)
 	syncInfo.TotalSyncProgress = int32(math.Round(totalSyncProgress))
+	syncInfo.DaysBehind = CalculateDaysBehind(report.LastHeaderTime)
+}
 
-	// calculate block header time difference
-	hoursBehind := float64(time.Now().Unix() - report.LastHeaderTime) / 60
+func CalculateDaysBehind(lastHeaderTime int64) string {
+	hoursBehind := float64(time.Now().Unix() - lastHeaderTime) / 60
 	daysBehind := int(math.Round(hoursBehind / 24))
 	if daysBehind < 1 {
-		syncInfo.DaysBehind = "<1 day"
+		return "<1 day"
 	} else if daysBehind == 1 {
-		syncInfo.DaysBehind = "1 day"
+		return "1 day"
 	} else {
-		syncInfo.DaysBehind = fmt.Sprintf("%d days", daysBehind)
+		return fmt.Sprintf("%d days", daysBehind)
 	}
 }
 
-func EstimateBlocksCount(netType string, bestBlockTimeStamp int64, bestBlock int32) int32 {
+func EstimateFinalBlockHeight(netType string, bestBlockTimeStamp int64, bestBlock int32) int32 {
 	var targetTimePerBlock int32
 	if netType == "mainnet" {
 		targetTimePerBlock = MainNetTargetTimePerBlock

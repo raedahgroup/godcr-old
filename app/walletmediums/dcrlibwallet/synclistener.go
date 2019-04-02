@@ -91,7 +91,7 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 	netType := listener.activeNet.Params.Name
 	bestBlockTimeStamp := listener.walletLib.GetBestBlockTimeStamp()
 	bestBlock := listener.walletLib.GetBestBlock()
-	estimatedBlocksToFetch := app.EstimateBlocksCount(netType, bestBlockTimeStamp, bestBlock)
+	estimatedFinalBlockHeight := app.EstimateFinalBlockHeight(netType, bestBlockTimeStamp, bestBlock)
 
 	switch state {
 	case dcrlibwallet.START:
@@ -103,13 +103,15 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 		listener.data.headers.StartHeaderHeight = bestBlock
 		listener.data.headers.CurrentHeaderHeight = listener.data.headers.StartHeaderHeight
 
-		syncInfo.TotalHeadersToFetch = int32(estimatedBlocksToFetch) - listener.data.headers.StartHeaderHeight
+		syncInfo.TotalHeadersToFetch = int32(estimatedFinalBlockHeight) - listener.data.headers.StartHeaderHeight
+		syncInfo.DaysBehind = app.CalculateDaysBehind(bestBlockTimeStamp)
+		syncInfo.CurrentStep = 1
 
 	case dcrlibwallet.PROGRESS:
 		headersFetchReport := app.FetchHeadersProgressReport{
-			FetchedHeadersCount: fetchedHeadersCount,
-			LastHeaderTime: lastHeaderTime,
-			EstimatedBlocksToFetch: estimatedBlocksToFetch,
+			FetchedHeadersCount:       fetchedHeadersCount,
+			LastHeaderTime:            lastHeaderTime,
+			EstimatedFinalBlockHeight: estimatedFinalBlockHeight,
 		}
 		app.UpdateFetchHeadersProgress(listener.data.headers, headersFetchReport, syncInfo)
 

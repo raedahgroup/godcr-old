@@ -24,10 +24,9 @@
         {{ if eq .CurrentStep "1" }}
             <p class="mb-0">Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
             <p class="mb-0">{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
-        {{ end }}
-
         {{ if ne .DaysBehind "" }}
             <p class="mb-0">Your wallet is {{ .DaysBehind }} behind.</p>
+        {{ end }}
         {{ end }}
 
             <p class="mb-0">Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
