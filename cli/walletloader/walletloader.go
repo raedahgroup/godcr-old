@@ -3,6 +3,7 @@ package walletloader
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/app/sync"
 	"os"
 	"path/filepath"
 	"strings"
@@ -131,8 +132,8 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	syncDone := make(chan error)
 
-	processSyncUpdates := func(syncInfoPrivate *app.SyncInfoPrivate) {
-		syncInfo := syncInfoPrivate.Read()
+	processSyncUpdates := func(syncPrivateInfo *sync.PrivateInfo) {
+		syncInfo := syncPrivateInfo.Read()
 		if syncInfo.Done {
 			if syncInfo.Error == "" {
 				fmt.Println("Synced successfully.")

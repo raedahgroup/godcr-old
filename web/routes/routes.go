@@ -9,7 +9,11 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+<<<<<<< HEAD
 	"github.com/raedahgroup/godcr/app/config"
+=======
+	"github.com/raedahgroup/godcr/app/sync"
+>>>>>>> refactor
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
@@ -17,7 +21,7 @@ type Routes struct {
 	walletMiddleware app.WalletMiddleware
 	walletExists     bool
 	templates        map[string]*template.Template
-	syncInfo         *app.SyncInfoPrivate
+	syncPrivateInfo  *sync.PrivateInfo
 	ctx              context.Context
 	settings         *config.Settings
 }
@@ -33,7 +37,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
-		syncInfo:         &app.SyncInfoPrivate{},
+		syncPrivateInfo:  sync.NewPrivateInfo(),
 		ctx:              ctx,
 		walletExists:     walletExists,
 		settings:         settings,

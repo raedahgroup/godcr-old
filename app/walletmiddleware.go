@@ -2,8 +2,7 @@ package app
 
 import (
 	"context"
-	"sync"
-
+	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -18,7 +17,7 @@ type WalletMiddleware interface {
 
 	SyncBlockChainOld(listener *BlockChainSyncListener, showLog bool) error
 
-	SyncBlockChain(showLog bool, syncInfoUpdated func(*SyncInfoPrivate)) error
+	SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error
 
 	RescanBlockChain() error
 
@@ -57,101 +56,3 @@ type BlockChainSyncListener struct {
 	OnRescanningBlocks  func(percentageProgress int64)
 	OnPeersUpdated      func(peerCount int32)
 }
-
-// SyncInfoPrivate holds information about a sync op in private variables
-// to prevent reading/writing the values directly during a sync op.
-type SyncInfoPrivate struct {
-	sync.RWMutex
-
-	status             SyncStatus
-	connectedPeers     int32
-	error              string
-	done               bool
-
-	currentStep			int
-	totalSyncProgress     int32
-	totalTimeRemaining    string
-
-	totalHeadersToFetch   int32
-	daysBehind            string
-	fetchedHeadersCount   int32
-	headersFetchProgress  int32
-	headersFetchTimeTaken int64
-}
-
-// NewSyncInfo returns SyncInfoPrivate pointer with default values set
-func NewSyncInfo() *SyncInfoPrivate {
-	return &SyncInfoPrivate{
-		headersFetchTimeTaken: -1,
-	}
-}
-
-// syncInfo holds information about an ongoing sync op for display on the different UIs.
-// Not to be used directly but with `SyncInfoPrivate`
-type syncInfo struct {
-	Status             SyncStatus
-	ConnectedPeers     int32
-	Error              string
-	Done               bool
-
-	CurrentStep			int
-	TotalSyncProgress     int32
-	TotalTimeRemaining    string
-
-	TotalHeadersToFetch   int32
-	DaysBehind            string
-	FetchedHeadersCount   int32
-	HeadersFetchProgress  int32
-	HeadersFetchTimeTaken int64
-}
-
-// Read returns the current sync op info from private variables after locking the mutex for reading
-func (s *SyncInfoPrivate) Read() *syncInfo {
-	s.RLock()
-	defer s.RUnlock()
-
-	return &syncInfo{
-		s.status,
-		s.connectedPeers,
-		s.error,
-		s.done,
-		s.currentStep,
-		s.totalSyncProgress,
-		s.totalTimeRemaining,
-		s.totalHeadersToFetch,
-		s.daysBehind,
-		s.fetchedHeadersCount,
-		s.headersFetchProgress,
-		s.headersFetchTimeTaken,
-	}
-}
-
-// Write saves info for ongoing sync op to private variables after locking mutex for writing
-func (s *SyncInfoPrivate) Write(info *syncInfo, status SyncStatus) {
-	s.Lock()
-	defer s.Unlock()
-
-	s.status = status
-	s.connectedPeers = info.ConnectedPeers
-	s.error = info.Error
-	s.done = info.Done
-
-	s.currentStep = info.CurrentStep
-	s.totalSyncProgress = info.TotalSyncProgress
-	s.totalTimeRemaining = info.TotalTimeRemaining
-
-	s.totalHeadersToFetch = info.TotalHeadersToFetch
-	s.daysBehind = info.DaysBehind
-	s.fetchedHeadersCount = info.FetchedHeadersCount
-	s.headersFetchProgress = info.HeadersFetchProgress
-	s.headersFetchTimeTaken = info.HeadersFetchTimeTaken
-}
-
-type SyncStatus uint8
-
-const (
-	SyncStatusNotStarted SyncStatus = iota
-	SyncStatusSuccess
-	SyncStatusError
-	SyncStatusInProgress
-)

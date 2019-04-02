@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
 )
@@ -184,9 +185,10 @@ func (c *WalletRPCClient) GetConnectedPeersCount() int32 {
 	return numberOfPeers
 }
 
-func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(*app.SyncInfoPrivate)) error {
-	info := &app.SyncInfoPrivate{}
-	info.Write(info.Read(), app.SyncStatusSuccess)
-	syncInfoUpdated(info)
+// todo update this method's implementation
+func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
+	privateSyncData := sync.NewPrivateInfo()
+	privateSyncData.Write(privateSyncData.Read(), sync.StatusSuccess)
+	syncInfoUpdated(privateSyncData)
 	return nil
 }

@@ -1,4 +1,4 @@
-package app
+package sync
 
 import (
 	"fmt"
@@ -20,19 +20,7 @@ const (
 	DiscoveryPercentage = 0.8
 )
 
-type FetchHeadersData struct {
-	StartHeaderHeight int32
-	CurrentHeaderHeight int32
-	BeginFetchTimeStamp int64
-}
-
-type FetchHeadersProgressReport struct {
-	FetchedHeadersCount       int32
-	LastHeaderTime            int64
-	EstimatedFinalBlockHeight int32
-}
-
-func UpdateFetchHeadersProgress(fetchHeadersData *FetchHeadersData, report FetchHeadersProgressReport, syncInfo *syncInfo) {
+func UpdateFetchHeadersProgress(syncInfo *info, fetchHeadersData *FetchHeadersData, report FetchHeadersProgressReport) {
 	// increment current block height value
 	fetchHeadersData.CurrentHeaderHeight += report.FetchedHeadersCount
 
@@ -66,7 +54,7 @@ func UpdateFetchHeadersProgress(fetchHeadersData *FetchHeadersData, report Fetch
 }
 
 func CalculateDaysBehind(lastHeaderTime int64) string {
-	hoursBehind := float64(time.Now().Unix() - lastHeaderTime) / 60
+	hoursBehind := float64(time.Now().Unix()-lastHeaderTime) / 60
 	daysBehind := int(math.Round(hoursBehind / 24))
 	if daysBehind < 1 {
 		return "<1 day"

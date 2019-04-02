@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/sync"
 	"net/http"
 )
 
@@ -40,14 +40,14 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		}
 
 		// wallet is open, check if blockchain is synced
-		syncInfo := routes.syncInfo.Read()
+		syncInfo := routes.syncPrivateInfo.Read()
 
 		switch syncInfo.Status {
-		case app.SyncStatusSuccess:
+		case sync.StatusSuccess:
 			next.ServeHTTP(res, req)
-		case app.SyncStatusNotStarted:
+		case sync.StatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case app.SyncStatusInProgress:
+		case sync.StatusInProgress:
 			var syncInfoMap map[string]interface{}
 			syncInfoBytes, _ := json.Marshal(syncInfo)
 
@@ -60,7 +60,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			} else {
 				routes.renderSyncPage(syncInfoMap, res)
 			}
-		case app.SyncStatusError:
+		case sync.StatusError:
 			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncInfo.Error)
 		default:
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
@@ -69,6 +69,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockchain() {
+<<<<<<< HEAD
 	err := routes.walletMiddleware.SyncBlockChain(false, func(syncInfo *app.SyncInfoPrivate) {
 		currentInfo := routes.syncInfo.Read()
 		newInfo := routes.syncInfo.Read()
@@ -76,16 +77,20 @@ func (routes *Routes) syncBlockchain() {
 			routes.sendWsConnectionInfoUpdate()
 		}
 		routes.syncInfo = syncInfo
+=======
+	err := routes.walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
+		routes.syncPrivateInfo = syncPrivateInfo
+>>>>>>> refactor
 	})
 
 	// update sync status
-	syncInfo := routes.syncInfo.Read()
+	syncInfo := routes.syncPrivateInfo.Read()
 
 	if err != nil {
 		syncInfo.Error = err.Error()
 		syncInfo.Done = true
-		routes.syncInfo.Write(syncInfo, app.SyncStatusError)
+		routes.syncPrivateInfo.Write(syncInfo, sync.StatusError)
 	} else {
-		routes.syncInfo.Write(syncInfo, app.SyncStatusInProgress)
+		routes.syncPrivateInfo.Write(syncInfo, sync.StatusInProgress)
 	}
 }

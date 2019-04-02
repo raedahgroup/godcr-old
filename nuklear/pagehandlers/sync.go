@@ -3,6 +3,7 @@ package pagehandlers
 import (
 	"fmt"
 	"image"
+	"github.com/raedahgroup/godcr/app/sync"
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
@@ -16,7 +17,7 @@ type SyncHandler struct {
 	isShowingPercentageProgress bool
 	percentageProgress          int
 	report                      string
-	status                      app.SyncStatus
+	status                      sync.Status
 }
 
 func (s *SyncHandler) BeforeRender() {
@@ -33,7 +34,7 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 	}
 
 	// change page onSyncStatusSuccess
-	if s.status == app.SyncStatusSuccess {
+	if s.status == sync.StatusSuccess {
 		changePage(window, "overview")
 		return
 	}
@@ -60,27 +61,27 @@ func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMi
 
 	err := wallet.SyncBlockChainOld(&app.BlockChainSyncListener{
 		SyncStarted: func() {
-			s.updateStatus("Blockchain sync started...", app.SyncStatusInProgress)
+			s.updateStatus("Blockchain sync started...", sync.StatusInProgress)
 			window.Master().Changed()
 		},
 		SyncEnded: func(err error) {
 			if err != nil {
-				s.updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), app.SyncStatusError)
+				s.updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), sync.StatusError)
 			} else {
-				s.updateStatus("Blockchain sync completed successfully", app.SyncStatusSuccess)
+				s.updateStatus("Blockchain sync completed successfully", sync.StatusSuccess)
 			}
 			masterWindow.Changed()
 		},
 		OnHeadersFetched: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Fetching headers (1/3)", app.SyncStatusInProgress, percentageProgress)
+			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Fetching headers (1/3)", sync.StatusInProgress, percentageProgress)
 			masterWindow.Changed()
 		},
 		OnDiscoveredAddress: func(_ string) {
-			s.updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", app.SyncStatusInProgress)
+			s.updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", sync.StatusInProgress)
 			masterWindow.Changed()
 		},
 		OnRescanningBlocks: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", app.SyncStatusInProgress, percentageProgress)
+			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", sync.StatusInProgress, percentageProgress)
 			masterWindow.Changed()
 		},
 	}, false)
@@ -91,14 +92,14 @@ func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMi
 	}
 }
 
-func (s *SyncHandler) updateStatusWithPercentageProgress(report string, status app.SyncStatus, percentageProgress int64) {
+func (s *SyncHandler) updateStatusWithPercentageProgress(report string, status sync.Status, percentageProgress int64) {
 	s.isShowingPercentageProgress = true
 	s.report = report
 	s.status = status
 	s.percentageProgress = int(percentageProgress)
 }
 
-func (s *SyncHandler) updateStatus(report string, status app.SyncStatus) {
+func (s *SyncHandler) updateStatus(report string, status sync.Status) {
 	s.isShowingPercentageProgress = false
 	s.report = report
 	s.status = status

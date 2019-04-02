@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -75,16 +75,11 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 }
 
 func (lib *DcrWalletLib) SyncBlockChainOld(listener *app.BlockChainSyncListener, showLog bool) error {
-	if showLog {
-		dcrlibwallet.SetLogLevel("info")
-	}
-
-	return lib.SyncBlockChain(showLog, func(syncInfoPrivate *app.SyncInfoPrivate) {
-		info := syncInfoPrivate.Read()
-		if info.Done {
-			dcrlibwallet.SetLogLevel("off")
-			if info.Error != "" {
-				listener.SyncEnded(fmt.Errorf(info.Error))
+	return lib.SyncBlockChain(showLog, func(privateSyncData *sync.PrivateInfo) {
+		syncData := privateSyncData.Read()
+		if syncData.Done {
+			if syncData.Error != "" {
+				listener.SyncEnded(fmt.Errorf(syncData.Error))
 			} else {
 				listener.SyncEnded(nil)
 			}
@@ -92,9 +87,9 @@ func (lib *DcrWalletLib) SyncBlockChainOld(listener *app.BlockChainSyncListener,
 	})
 }
 
-func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(*app.SyncInfoPrivate)) error {
-	syncListener := NewSyncListener(lib.activeNet, lib.walletLib, showLog, syncInfoUpdated)
-	lib.walletLib.AddSyncProgressListener(syncListener)
+func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
+	syncResponse := NewSyncListener(lib.activeNet, lib.walletLib, showLog, syncInfoUpdated)
+	lib.walletLib.AddSyncResponse(syncResponse)
 	return lib.walletLib.SpvSync("")
 }
 
