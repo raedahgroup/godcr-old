@@ -135,9 +135,9 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 		syncInfo := syncInfoPrivate.Read()
 		if syncInfo.Done {
 			if syncInfo.Error == "" {
-				fmt.Println("Synced successfully")
+				fmt.Println("Synced successfully.")
 			} else {
-				fmt.Fprintf(os.Stderr, "Sync completed with error: %s\n", syncInfo.Error)
+				fmt.Fprintf(os.Stderr, "Sync completed with error: %s.\n", syncInfo.Error)
 			}
 			syncDone <- fmt.Errorf(syncInfo.Error)
 			return
@@ -145,11 +145,11 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	}
 
 	if err := walletMiddleware.SyncBlockChain(true, processSyncUpdates); err != nil {
-		fmt.Fprintf(os.Stderr, "Sync failed to start. %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Sync failed to start. %s.\n", err.Error())
 		return err
 	}
 
-	fmt.Println("Sync started")
+	fmt.Println("Sync started.")
 
 	// wait for context cancel or sync done trigger before exiting function
 	select {
