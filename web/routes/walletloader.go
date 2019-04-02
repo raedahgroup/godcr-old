@@ -36,25 +36,14 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			}
 		}()
 
-		// check if wallet exists
-		walletExists, err := routes.walletMiddleware.WalletExists()
-		if err != nil {
-			errMsg = fmt.Sprintf("Error checking for wallet: %s", err.Error())
-			return
-		}
-		if !walletExists {
+		if !routes.walletExists {
 			routes.renderNoWalletError(res)
 			return
 		}
 
-		if !routes.walletMiddleware.IsWalletOpen() {
-			errMsg = "Wallet is not open. Restart the server"
-			return
-		}
-
-		// wallet is open, check if blockchain is synced
-		blockchainSyncStatus := routes.blockchain.status()
-		switch blockchainSyncStatus {
+		// if wallet exists, then it must be open, check if blockchain is synced
+		currentSyncStatus := routes.blockchain.status()
+		switch currentSyncStatus {
 		case walletcore.SyncStatusSuccess:
 			next.ServeHTTP(res, req)
 		case walletcore.SyncStatusNotStarted:
@@ -71,6 +60,11 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 
 func (routes *Routes) syncBlockchain() {
 	updateStatus := routes.blockchain.updateStatus
+
+	if !routes.walletExists {
+		updateStatus("Wallet is not open. Cannot sync", walletcore.SyncStatusError)
+		return
+	}
 
 	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {

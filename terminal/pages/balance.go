@@ -6,7 +6,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func BalancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	textView := tview.NewTextView()
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	table := tview.NewTable().SetBorders(true)

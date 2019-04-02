@@ -2,8 +2,10 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"log"
+	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
@@ -12,24 +14,33 @@ import (
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
 	walletMiddleware app.WalletMiddleware
+	walletExists     bool
 	templates        map[string]*template.Template
 	blockchain       *Blockchain
 	ctx              context.Context
 }
 
-// Setup prepares page templates and creates route handlers, returns syncBlockchain function
-func Setup(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router) func() {
+// OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
+// returns syncBlockchain function
+func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router) (func(), error) {
+	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
+		return nil, err
+	}
+
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
+		walletExists: 	  walletExists,
 	}
 
 	routes.loadTemplates()
 	routes.loadRoutes(router)
 
-	return routes.syncBlockchain
+	return routes.syncBlockchain, nil
 }
 
 func (routes *Routes) loadTemplates() {

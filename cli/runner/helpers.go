@@ -25,7 +25,7 @@ func CommandRequiresWallet(command flags.Commander) bool {
 // prepareWallet gets a wallet ready for use by opening the wallet using the provided walletMiddleware
 // and performing sync operations if requested
 func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) (walletExists bool, err error) {
-	walletExists, err = walletloader.OpenWallet(ctx, middleware)
+	walletExists, err = walletloader.OpenOrCreateWallet(ctx, middleware)
 	if err != nil || !walletExists {
 		return
 	}
@@ -41,7 +41,7 @@ func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options
 
 // brokenCommandError returns an error message for a command that does not have an Execute method
 func brokenCommandError(command *flags.Command) error {
-	return fmt.Errorf("The command %q was not properly setup.\n"+
+	return fmt.Errorf("The command %s was not properly setup.\n"+
 		"Please report this bug at https://github.com/raedahgroup/godcr/issues",
 		commandName(command))
 }

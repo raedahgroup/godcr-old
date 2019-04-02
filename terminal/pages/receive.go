@@ -10,7 +10,7 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func ReceivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	form := tview.NewForm()
 

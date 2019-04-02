@@ -53,24 +53,46 @@ func (c *WalletRPCClient) CreateWallet(passphrase, seed string) error {
 	return err
 }
 
-// ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
-// or godcr opened the wallet without closing it
-func (c *WalletRPCClient) OpenWallet() (err error) {
-	defer func() {
-		c.walletOpen = err == nil
+func (c *WalletRPCClient) OpenWalletIfExist(ctx context.Context) (walletExists bool, err error) {
+	c.walletOpen = false
+	loadWalletDone := make(chan bool)
+
+	go func() {
+		defer func() {
+			loadWalletDone <- true
+		}()
+
+		walletExists, err = c.WalletExists()
+		if err != nil || !walletExists {
+			return
+		}
+
+		_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
+
+		// ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
+		// or godcr opened the wallet without closing it
+		if isRpcErrorCode(err, codes.AlreadyExists) {
+			err = nil
+		}
 	}()
 
-	_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
-	if isRpcErrorCode(err, codes.AlreadyExists) {
-		err = nil
+	select {
+	case <-loadWalletDone:
+		// if err is nil, then wallet was opened
+		c.walletOpen = err == nil
+		return
+
+	case <-ctx.Done():
+		return false, ctx.Err()
 	}
-	return
 }
 
-// don't actually close dcrwallet
-// - if wallet wasn't opened by godcr, closing it could cause troubles for user
-// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user when they next launch godcr
-func (c *WalletRPCClient) CloseWallet() {}
+func (c *WalletRPCClient) CloseWallet() {
+	// don't actually close wallet loaded by dcrwallet
+	// - if wallet wasn't opened by godcr, closing it could cause troubles for user
+	// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user
+	// when they next launch godcr
+}
 
 func (c *WalletRPCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
