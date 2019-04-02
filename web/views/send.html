@@ -19,12 +19,11 @@
                                     <div class="form-group">
                                         <label for="source-account">Source Account</label>
                                     {{ if eq (len .accounts) 1 }}
-                                    {{ range $account := .accounts }}
+                                    {{ $account := index .accounts 0 }}
                                         <input data-target="send.sourceAccount" value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
                                         <input type="text" readonly class="form-control"
                                                value="{{ accountString $account }}">
-                                    {{ end }}
                                     {{ else }}
                                         <select data-target="send.sourceAccount" class="form-control"
                                                 id="source-account" name="source-account">
@@ -36,7 +35,9 @@
 
                                         </div>
                                         <div class="form-group form-check">
-                                            <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
+                                            <input data-action="click->send#toggleSpendUnconfirmed"
+                                                   data-target="send.spendUnconfirmed" type="checkbox"
+                                                   class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
                                             {{ if .spendUnconfirmedFunds }} checked {{ end }}>
                                             <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
                                         </div>
@@ -77,12 +78,11 @@
                                 </div>
                             </template>
                             <div class="form-group">
-                                <button id="add-destinatvion-btn" type="button" data-action="click->send#newDestination"
+                                <button type="button" data-action="click->send#newDestination"
                                         class="btn btn-sm btn-outline-secondary btn-primary">
                                     Add another address
                                 </button> &nbsp;&nbsp;
-                                <button data-target="send.removeDestinationButton"
-                                        data-action="click->send#removeDestination" id="remove-destination-btn"
+                                <button data-target="send.removeDestinationButton" data-action="click->send#removeDestination"
                                         type="button" class="btn btn-sm btn-outline-secondary btn-primary d-none">
                                     Remove Last address
                                 </button>

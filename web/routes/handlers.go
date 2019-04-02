@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
@@ -116,7 +117,11 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	changeAmount, err := txhelper.EstimateChange(len(payload.Utxos), payload.TotalInputAmount, payload.SendDestinations, []string{selectedAddress})
 
 	if err != nil {
-		data["error"] = fmt.Sprintf("Error in getting change amount: %s", err.Error())
+		if strings.Contains(err.Error(), "total input amount not enough to cover transaction") {
+			data["error"] = "Total send amount is already at maximum"
+			return
+		}
+		data["error"] = fmt.Sprintf("Error in getting max send amount: %s", err.Error())
 		return
 	}
 	data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
@@ -229,8 +234,8 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 
 	requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
-	getUnconfirmed := req.URL.Query().Get("get-unconfirmed")
-	if getUnconfirmed == "true" {
+	spendUnconfirmed := req.URL.Query().Get("spend-unconfirmed")
+	if spendUnconfirmed == "true" {
 		requiredConfirmations = 0
 	}
 

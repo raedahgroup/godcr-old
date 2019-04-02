@@ -88,9 +88,6 @@ export default class extends Controller {
       _this.resetChangeOutput()
       _this.calculateCustomInputsPercentage()
     }, (errMsg) => {
-      if (errMsg.indexOf('total input amount not enough to cover transaction') > -1) {
-        return
-      }
       _this.setErrorMessage(errMsg)
     })
   }
@@ -103,26 +100,19 @@ export default class extends Controller {
     let queryParams = $('#send-form').serialize()
     queryParams += `&selected-address=${selectedAddress}&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
     if (this.spendUnconfirmedTarget.checked) {
-      queryParams += '&get-unconfirmed=true'
-    }
-
-    // add source-account value to post data if source-account element is disabled
-    if (this.sourceAccountTarget.disabled) {
-      queryParams += `&source-account=${this.sourceAccountTarget.value}`
+      queryParams += '&spend-unconfirmed=true'
     }
 
     let _this = this
     axios.get('/max-send-amount?' + queryParams)
       .then((response) => {
         let result = response.data
-        if (result.error !== undefined) {
-          if (errorCallback) {
-            errorCallback(result.error)
-            return
-          }
-          _this.setErrorMessage(result.error)
+        if (!result.error) {
+          successCallback(result.message)
+        } else if (errorCallback) {
+          errorCallback(result.error)
         } else {
-          successCallback(result.amount)
+          _this.setErrorMessage(result.error)
         }
       })
       .catch(() => {
@@ -232,7 +222,7 @@ export default class extends Controller {
 
     let url = `/unspent-outputs/${accountNumber}`
     if (this.spendUnconfirmedTarget.checked) {
-      url += '?get-unconfirmed=true'
+      url += '?spend-unconfirmed=true'
     }
 
     let _this = this
@@ -316,7 +306,7 @@ export default class extends Controller {
 
     let _this = this
     this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputs) {
-      if (!_this.useCustomChangeOutput || !changeOutputs) {
+      if (!_this.useCustomChangeOutput) {
         return
       }
 
@@ -361,14 +351,6 @@ export default class extends Controller {
 
     let queryParams = $('#send-form').serialize()
     queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
-    if (this.spendUnconfirmedTarget.checked) {
-      queryParams += '&get-unconfirmed=true'
-    }
-
-    // add source-account value to post data if source-account element is disabled
-    if (this.sourceAccountTarget.disabled) {
-      queryParams += `&source-account=${this.sourceAccountTarget.value}`
-    }
 
     queryParams += `&nChangeOutput=${numberOfOutputs}`
 
@@ -376,14 +358,12 @@ export default class extends Controller {
     axios.get('/random-change-outputs?' + queryParams)
       .then((response) => {
         let result = response.data
-        if (result.error !== undefined) {
-          if (errorCallback) {
-            errorCallback(result.error)
-            return
-          }
-          _this.setErrorMessage(result.error)
-        } else {
+        if (!result.error) {
           successCallback(result.message)
+        } else if (errorCallback) {
+          errorCallback(result.error)
+        } else {
+          _this.setErrorMessage(result.error)
         }
       })
       .catch(() => {
@@ -484,11 +464,6 @@ export default class extends Controller {
 
     // clear password input
     this.walletPassphraseTarget.value = ''
-
-    // add source-account value to post data if source-account element is disabled
-    if (this.sourceAccountTarget.disabled) {
-      postData += `&source-account=${this.sourceAccountTarget.value}`
-    }
 
     let _this = this
     axios.post('/send', postData).then((response) => {
