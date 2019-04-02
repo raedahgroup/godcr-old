@@ -184,6 +184,9 @@ func (c *WalletRPCClient) GetConnectedPeersCount() int32 {
 	return numberOfPeers
 }
 
-func (c *WalletRPCClient) SyncBlockChain(syncInfo *app.SyncInfoPrivate, syncInfoUpdated func()) error {
+func (c *WalletRPCClient) SyncBlockChain(syncInfoUpdated func(*app.SyncInfoPrivate)) error {
+	info := &app.SyncInfoPrivate{}
+	info.Write(info.Read(), app.SyncStatusSuccess)
+	syncInfoUpdated(info)
 	return nil
 }

@@ -33,11 +33,11 @@ func (routes *Routes) render(tplName string, data interface{}, res http.Response
 func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.ResponseWriter) {
 	syncInfo["networkType"] = routes.walletMiddleware.NetType()
 
-	connectedPeers := syncInfo["ConnectedPeers"].(float64)
-	if connectedPeers == 1 {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%d peer", int(connectedPeers))
+	connectedPeers := syncInfo["ConnectedPeers"].(json.Number)
+	if connectedPeers == "1" {
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peer", connectedPeers)
 	} else {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%d peers", int(connectedPeers))
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peers", connectedPeers)
 	}
 
 	routes.render("sync.html", syncInfo, res)

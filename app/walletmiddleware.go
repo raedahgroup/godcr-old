@@ -18,7 +18,7 @@ type WalletMiddleware interface {
 
 	SyncBlockChainOld(listener *BlockChainSyncListener, showLog bool) error
 
-	SyncBlockChain(syncInfo *SyncInfoPrivate, syncInfoUpdated func()) error
+	SyncBlockChain(syncInfoUpdated func(*SyncInfoPrivate)) error
 
 	RescanBlockChain() error
 
@@ -62,25 +62,38 @@ type BlockChainSyncListener struct {
 // to prevent reading/writing the values directly during a sync op.
 type SyncInfoPrivate struct {
 	sync.RWMutex
+
 	status             SyncStatus
-	bestBlockHeight    int
-	currentBlockHeight int
-	daysBehind         int
 	connectedPeers     int32
 	error              string
 	done               bool
+
+	currentStep			int
+	totalSyncProgress     int32
+	totalTimeRemaining    string
+
+	headersFetchProgress  int32
+	totalHeadersToFetch    int32
+	fetchedHeadersCount int32
+	daysBehind         string
 }
 
 // syncInfo holds information about an ongoing sync op for display on the different UIs.
 // Not to be used directly but with `SyncInfoPrivate`
 type syncInfo struct {
 	Status             SyncStatus
-	BestBlockHeight    int
-	CurrentBlockHeight int
-	DaysBehind         int
 	ConnectedPeers     int32
 	Error              string
 	Done               bool
+
+	CurrentStep			int
+	TotalSyncProgress     int32
+	TotalTimeRemaining    string
+
+	HeadersFetchProgress int32
+	TotalHeadersToFetch  int32
+	FetchedHeadersCount  int32
+	DaysBehind           string
 }
 
 // Read returns the current sync op info from private variables after locking the mutex for reading
@@ -90,12 +103,16 @@ func (s *SyncInfoPrivate) Read() *syncInfo {
 
 	return &syncInfo{
 		s.status,
-		s.bestBlockHeight,
-		s.currentBlockHeight,
-		s.daysBehind,
 		s.connectedPeers,
 		s.error,
 		s.done,
+		s.currentStep,
+		s.totalSyncProgress,
+		s.totalTimeRemaining,
+		s.headersFetchProgress,
+		s.totalHeadersToFetch,
+		s.fetchedHeadersCount,
+		s.daysBehind,
 	}
 }
 
@@ -105,12 +122,18 @@ func (s *SyncInfoPrivate) Write(info *syncInfo, status SyncStatus) {
 	defer s.Unlock()
 
 	s.status = status
-	s.bestBlockHeight = info.BestBlockHeight
-	s.currentBlockHeight = info.CurrentBlockHeight
-	s.daysBehind = info.DaysBehind
 	s.connectedPeers = info.ConnectedPeers
 	s.error = info.Error
 	s.done = info.Done
+
+	s.currentStep = info.CurrentStep
+	s.totalSyncProgress = info.TotalSyncProgress
+	s.totalTimeRemaining = info.TotalTimeRemaining
+
+	s.headersFetchProgress = info.HeadersFetchProgress
+	s.totalHeadersToFetch = info.TotalHeadersToFetch
+	s.fetchedHeadersCount = info.FetchedHeadersCount
+	s.daysBehind = info.DaysBehind
 }
 
 type SyncStatus uint8

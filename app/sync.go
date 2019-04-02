@@ -7,7 +7,7 @@ const (
 	TestNetTargetTimePerBlock = 120
 )
 
-func EstimateBlocksCount(netType string, bestBlockTimeStamp, lastHeaderTimeStamp int64) int64 {
+func EstimateBlocksCount(netType string, bestBlockTimeStamp int64, bestBlock int32) int64 {
 	var targetTimePerBlock int64
 	if netType == "mainnet" {
 		targetTimePerBlock = MainNetTargetTimePerBlock
@@ -15,5 +15,5 @@ func EstimateBlocksCount(netType string, bestBlockTimeStamp, lastHeaderTimeStamp
 		targetTimePerBlock = TestNetTargetTimePerBlock
 	}
 
-	return ((time.Now().Unix() - lastHeaderTimeStamp) / targetTimePerBlock) + bestBlockTimeStamp
+	return ((time.Now().Unix() - bestBlockTimeStamp) / targetTimePerBlock) + int64(bestBlock)
 }

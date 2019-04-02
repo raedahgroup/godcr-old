@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
-
 	"github.com/raedahgroup/godcr/app"
+	"net/http"
 )
 
 func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
@@ -50,8 +50,16 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		case app.SyncStatusInProgress:
 			var syncInfoMap map[string]interface{}
 			syncInfoBytes, _ := json.Marshal(syncInfo)
-			json.Unmarshal(syncInfoBytes, &syncInfoMap)
-			routes.renderSyncPage(syncInfoMap, res)
+
+			jsonDecoder := json.NewDecoder(bytes.NewReader(syncInfoBytes))
+			jsonDecoder.UseNumber()
+
+			err := jsonDecoder.Decode(&syncInfoMap)
+			if err != nil {
+				errMsg = err.Error()
+			} else {
+				routes.renderSyncPage(syncInfoMap, res)
+			}
 		case app.SyncStatusError:
 			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncInfo.Error)
 		default:
@@ -61,49 +69,23 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockchain() {
+	err := routes.walletMiddleware.SyncBlockChain(func(syncInfo *app.SyncInfoPrivate) {
+		currentInfo := routes.syncInfo.Read()
+		newInfo := routes.syncInfo.Read()
+		if currentInfo.ConnectedPeers != newInfo.ConnectedPeers || !currentInfo.Done && newInfo.Done {
+			routes.sendWsConnectionInfoUpdate()
+		}
+		routes.syncInfo = syncInfo
+	})
+
+	// update sync status
 	syncInfo := routes.syncInfo.Read()
-	updateSyncInfo := func(status app.SyncStatus) {
-		routes.syncInfo.Write(syncInfo, status)
-	}
-
-	err := routes.walletMiddleware.SyncBlockChainOld(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			updateSyncInfo(app.SyncStatusInProgress)
-		},
-		SyncEnded: func(err error) {
-			routes.sendWsConnectionInfoUpdate()
-			if syncInfo.Done {
-				// ignore subsequent sync ended updates after the sync is already set to done
-				return
-			}
-
-			syncInfo.Done = true
-			if err != nil {
-				syncInfo.Error = err.Error()
-				updateSyncInfo(app.SyncStatusError)
-			} else {
-				updateSyncInfo(app.SyncStatusSuccess)
-			}
-		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			syncInfo.CurrentBlockHeight = int(percentageProgress)
-			updateSyncInfo(app.SyncStatusInProgress)
-		},
-		OnDiscoveredAddress: func(_ string) {
-			updateSyncInfo(app.SyncStatusInProgress)
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			updateSyncInfo(app.SyncStatusInProgress)
-		},
-		OnPeersUpdated: func(peerCount int32) {
-			syncInfo.ConnectedPeers = peerCount
-			updateSyncInfo(app.SyncStatusInProgress)
-			routes.sendWsConnectionInfoUpdate()
-		},
-	}, false)
 
 	if err != nil {
 		syncInfo.Error = err.Error()
-		updateSyncInfo(app.SyncStatusError)
+		syncInfo.Done = true
+		routes.syncInfo.Write(syncInfo, app.SyncStatusError)
+	} else {
+		routes.syncInfo.Write(syncInfo, app.SyncStatusInProgress)
 	}
 }

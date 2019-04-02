@@ -6,12 +6,31 @@
     <div class="content">
         <div class="container text-center" style="max-width: 500px;">
             <h3>Synchronizing</h3>
+            <i>(Refresh to update)</i>
             <div class="progress my-3" style="height: 10px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 5%"
-                     role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width: {{ .TotalSyncProgress }}%"
+                     role="progressbar" aria-valuenow="{{ .TotalSyncProgress }}" aria-valuemin="0"
+                     aria-valuemax="100"></div>
             </div>
-            <p>Fetched {{ .CurrentBlockHeight }} of {{ .BestBlockHeight }} block headers.</p>
-            <p>Syncing with <b>{{ .ConnectedPeers }}</b> on {{ .networkType }}</p>
+            <p class="mb-0">
+            {{ if ne .TotalTimeRemaining "" }}
+            {{ .TotalSyncProgress }}% completed, {{ .TotalTimeRemaining }} remaining.
+            {{ else }}
+            {{ .TotalSyncProgress }}% completed.
+            {{ end }}
+            </p>
+
+        {{ if eq .CurrentStep "1" }}
+            <p class="mb-0">Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
+            <p class="mb-0">{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
+        {{ end }}
+
+        {{ if ne .DaysBehind "" }}
+            <p class="mb-0">Your wallet is {{ .DaysBehind }} behind.</p>
+        {{ end }}
+
+            <p class="mb-0">Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
         </div>
     </div>
 </div>

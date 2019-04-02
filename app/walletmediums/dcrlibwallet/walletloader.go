@@ -75,20 +75,40 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 }
 
 func (lib *DcrWalletLib) SyncBlockChainOld(listener *app.BlockChainSyncListener, showLog bool) error {
-	return nil
+	if showLog {
+		dcrlibwallet.SetLogLevel("info")
+	}
+
+	return lib.SyncBlockChain(func(syncInfoPrivate *app.SyncInfoPrivate) {
+		info := syncInfoPrivate.Read()
+		if info.Done {
+			dcrlibwallet.SetLogLevel("off")
+			if info.Error != "" {
+				listener.SyncEnded(fmt.Errorf(info.Error))
+			} else {
+				listener.SyncEnded(nil)
+			}
+		}
+	})
 }
 
 func (lib *DcrWalletLib) SyncBlockChain(syncInfoUpdated func(*app.SyncInfoPrivate)) error {
-	syncResponse := NewSyncListener(lib.activeNet, lib.walletLib, syncInfoUpdated)
-	lib.walletLib.AddSyncResponse(syncResponse)
+	syncListener := NewSyncListener(lib.activeNet, lib.walletLib, syncInfoUpdated)
+	lib.walletLib.AddSyncProgressListener(syncListener)
+
+	//cert, err := ioutil.ReadFile("/Users/itswisdomagain/Library/Application Support/Dcrd/rpc.cert")
+	//if err != nil {
+	//	return err
+	//}
+	//err = lib.walletLib.RpcSync("localhost:19109", "qepFqTbFkAm/8hixpg75Is/NJeY=",
+	//	"4FwUIrVkNMuVC2E9QqdhDiO2Rv8=", cert)
 
 	err := lib.walletLib.SpvSync("")
 	if err != nil {
-		dcrlibwallet.SetLogLevel("off")
 		return err
 	}
 
-	return nil
+	return err
 }
 
 func (lib *DcrWalletLib) RescanBlockChain() error {
