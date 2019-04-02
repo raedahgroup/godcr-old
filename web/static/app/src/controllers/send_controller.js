@@ -25,9 +25,15 @@ export default class extends Controller {
     let _this = this
     ws.registerEvtHandler('updateBalance', function (data) {
       if (_this.sourceAccountTarget.options) {
-        _this.sourceAccountTarget.options[_this.sourceAccountTarget.selectedIndex].textContent = data
+        data.accounts.forEach(account => {
+          _this.sourceAccountTarget.options.forEach(opt => {
+            if (parseInt(opt.value) === account.number) {
+              opt.textContent = account.balance
+            }
+          })
+        })
       } else {
-        _this.sourceAccountTarget.textContent = data
+        _this.sourceAccountTarget.textContent = data.accounts[0].balance
       }
     })
   }

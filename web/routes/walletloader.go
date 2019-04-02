@@ -28,7 +28,7 @@ func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 // - wallet is open but blockchain isn't synced
 func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// renderPage error on page if errMsg != ""
+		// render error on page if errMsg != ""
 		var errMsg string
 		defer func() {
 			if errMsg != "" {
@@ -69,6 +69,12 @@ func (routes *Routes) syncBlockchain() {
 	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
 		SyncStarted: func() {
 			updateStatus("Blockchain sync started...", walletcore.SyncStatusInProgress)
+		},
+		OnPeerConnected: func(_ int32) {
+			routes.sendWsConnectionInfoUpdate()
+		},
+		OnPeerDisconnected: func(_ int32) {
+			routes.sendWsConnectionInfoUpdate()
 		},
 		SyncEnded: func(err error) {
 			if err != nil {

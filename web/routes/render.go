@@ -2,10 +2,11 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/web/weblog"
 	"log"
 	"net/http"
+
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 func (routes *Routes) renderPage(tplName string, data map[string]interface{}, res http.ResponseWriter) {

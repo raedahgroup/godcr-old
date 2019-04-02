@@ -4,7 +4,6 @@ import ws from '../services/messagesocket_service'
 export default class extends Controller {
   static get targets () {
     return [
-      'container',
       'totalBalance',
       'peersConnected',
       'latestBlock',
@@ -20,12 +19,10 @@ export default class extends Controller {
       _this.totalBalanceTarget.textContent = data.totalBalance
       _this.latestBlockTarget.textContent = data.latestBlock
       _this.networkTypeTarget.textContent = data.networkType
-
-      _this.show(_this.containerTarget)
     })
 
     ws.registerEvtHandler('updateBalance', function (data) {
-      _this.totalBalanceTarget.textContent = data
+      _this.totalBalanceTarget.textContent = data.total
     })
   }
 

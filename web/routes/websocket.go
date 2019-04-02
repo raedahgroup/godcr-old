@@ -2,12 +2,12 @@ package routes
 
 import (
 	"fmt"
-	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/web/weblog"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 var clients = make(map[*websocket.Conn]bool)
@@ -71,14 +71,22 @@ func (routes *Routes) sendWsBalance() {
 		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
 		return
 	}
+	type accountInfo struct {
+		Number uint32 `json:"number"`
+		Balance string `json:"balance"`
+	}
+
+	var accountInfos []accountInfo
 
 	var totalBalance walletcore.Balance
 	for _, acc := range accounts {
 		totalBalance.Spendable += acc.Balance.Spendable
 		totalBalance.Total += acc.Balance.Total
+
+		accountInfos = append(accountInfos, accountInfo{Number: acc.Number, Balance: acc.Balance.Total.String()})
 	}
 	wsBroadcast <- Packet{
 		Event:   UpdateBalance,
-		Message: totalBalance.String(),
+		Message: map[string]interface{}{"accounts": accountInfos, "total": totalBalance.String()},
 	}
 }
