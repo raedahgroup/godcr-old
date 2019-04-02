@@ -72,10 +72,18 @@ type SyncInfoPrivate struct {
 	totalSyncProgress     int32
 	totalTimeRemaining    string
 
+	totalHeadersToFetch   int32
+	daysBehind            string
+	fetchedHeadersCount   int32
 	headersFetchProgress  int32
-	totalHeadersToFetch    int32
-	fetchedHeadersCount int32
-	daysBehind         string
+	headersFetchTimeTaken int64
+}
+
+// NewSyncInfo returns SyncInfoPrivate pointer with default values set
+func NewSyncInfo() *SyncInfoPrivate {
+	return &SyncInfoPrivate{
+		headersFetchTimeTaken: -1,
+	}
 }
 
 // syncInfo holds information about an ongoing sync op for display on the different UIs.
@@ -90,10 +98,11 @@ type syncInfo struct {
 	TotalSyncProgress     int32
 	TotalTimeRemaining    string
 
-	HeadersFetchProgress int32
-	TotalHeadersToFetch  int32
-	FetchedHeadersCount  int32
-	DaysBehind           string
+	TotalHeadersToFetch   int32
+	DaysBehind            string
+	FetchedHeadersCount   int32
+	HeadersFetchProgress  int32
+	HeadersFetchTimeTaken int64
 }
 
 // Read returns the current sync op info from private variables after locking the mutex for reading
@@ -109,10 +118,11 @@ func (s *SyncInfoPrivate) Read() *syncInfo {
 		s.currentStep,
 		s.totalSyncProgress,
 		s.totalTimeRemaining,
-		s.headersFetchProgress,
 		s.totalHeadersToFetch,
-		s.fetchedHeadersCount,
 		s.daysBehind,
+		s.fetchedHeadersCount,
+		s.headersFetchProgress,
+		s.headersFetchTimeTaken,
 	}
 }
 
@@ -130,10 +140,11 @@ func (s *SyncInfoPrivate) Write(info *syncInfo, status SyncStatus) {
 	s.totalSyncProgress = info.TotalSyncProgress
 	s.totalTimeRemaining = info.TotalTimeRemaining
 
-	s.headersFetchProgress = info.HeadersFetchProgress
 	s.totalHeadersToFetch = info.TotalHeadersToFetch
-	s.fetchedHeadersCount = info.FetchedHeadersCount
 	s.daysBehind = info.DaysBehind
+	s.fetchedHeadersCount = info.FetchedHeadersCount
+	s.headersFetchProgress = info.HeadersFetchProgress
+	s.headersFetchTimeTaken = info.HeadersFetchTimeTaken
 }
 
 type SyncStatus uint8

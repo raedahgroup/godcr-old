@@ -2,7 +2,6 @@ package dcrlibwallet
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/decred/dcrwallet/netparams"
@@ -21,31 +20,18 @@ type syncData struct {
 	syncInfoUpdated func(*app.SyncInfoPrivate)
 
 	syncing 		bool
-	headers       fetchHeadersData
+	headers       *app.FetchHeadersData
 }
-
-type fetchHeadersData struct {
-	startHeaderHeight int32
-	currentHeaderHeight int32
-	beginFetchTimeStamp int64
-	totalFetchTime  int64
-}
-
-const (
-	RescanPercentage = 0.1
-	DiscoveryPercentage = 0.8
-)
 
 var numberOfPeers int32
 
 func NewSyncListener(activeNet *netparams.Params, walletLib *dcrlibwallet.LibWallet, syncInfoUpdated func(*app.SyncInfoPrivate)) *syncListener {
 	data := &syncData{
-		syncInfo:&app.SyncInfoPrivate{},
+		syncInfo: app.NewSyncInfo(),
 		syncInfoUpdated:syncInfoUpdated,
 		syncing:true,
-		headers: fetchHeadersData{
-			beginFetchTimeStamp: -1,
-			totalFetchTime:-1,
+		headers: &app.FetchHeadersData{
+			BeginFetchTimeStamp: -1,
 		},
 	}
 
@@ -93,10 +79,12 @@ func (listener *syncListener) OnFetchMissingCFilters(missingCFiltersStart, missi
 }
 
 func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHeaderTime int64, state string) {
-	if !listener.data.syncing || listener.data.headers.totalFetchTime != -1 {
+	syncInfo := listener.data.syncInfo.Read()
+
+	if !listener.data.syncing || syncInfo.HeadersFetchTimeTaken != -1 {
 		// Ignore this call because this function gets called for each peer and
-		// we'd want to ignore those calls as far as the wallet is synced ()
-		// or headers are completely fetched (listener.data.headers.totalFetchTime != -1)
+		// we'd want to ignore those calls as far as the wallet is synced (i.e. !listener.data.syncing)
+		// or headers are completely fetched (i.e. syncInfo.HeadersFetchTimeTaken != -1)
 		return
 	}
 
@@ -105,68 +93,30 @@ func (listener *syncListener) OnFetchedHeaders(fetchedHeadersCount int32, lastHe
 	bestBlock := listener.walletLib.GetBestBlock()
 	estimatedBlocksToFetch := app.EstimateBlocksCount(netType, bestBlockTimeStamp, bestBlock)
 
-	// update sync info
-	syncInfo := listener.data.syncInfo.Read()
-	syncInfo.CurrentStep = 1
-
 	switch state {
 	case dcrlibwallet.START:
-		if listener.data.headers.beginFetchTimeStamp != -1 {
+		if listener.data.headers.BeginFetchTimeStamp != -1 {
 			break
 		}
 
-		syncEndPoint := int32(estimatedBlocksToFetch) - listener.data.headers.startHeaderHeight
-		syncInfo.TotalHeadersToFetch = syncEndPoint
+		listener.data.headers.BeginFetchTimeStamp = time.Now().Unix()
+		listener.data.headers.StartHeaderHeight = bestBlock
+		listener.data.headers.CurrentHeaderHeight = listener.data.headers.StartHeaderHeight
 
-		listener.data.headers.beginFetchTimeStamp = time.Now().Unix()
-		listener.data.headers.startHeaderHeight = bestBlock
-		listener.data.headers.currentHeaderHeight = listener.data.headers.startHeaderHeight
+		syncInfo.TotalHeadersToFetch = int32(estimatedBlocksToFetch) - listener.data.headers.StartHeaderHeight
 
 	case dcrlibwallet.PROGRESS:
-		// increment current block height value
-		listener.data.headers.currentHeaderHeight += fetchedHeadersCount
-
-		// calculate percentage progress and eta
-		totalFetchedHeaders := listener.data.headers.currentHeaderHeight
-		if listener.data.headers.startHeaderHeight > 0 {
-			totalFetchedHeaders -= listener.data.headers.startHeaderHeight
+		headersFetchReport := app.FetchHeadersProgressReport{
+			FetchedHeadersCount: fetchedHeadersCount,
+			LastHeaderTime: lastHeaderTime,
+			EstimatedBlocksToFetch: estimatedBlocksToFetch,
 		}
-
-		syncEndPoint := int32(estimatedBlocksToFetch) - listener.data.headers.startHeaderHeight
-		headersFetchingRate := float64(totalFetchedHeaders) / float64(syncEndPoint)
-
-		timeTakenSoFar := time.Now().Unix() - listener.data.headers.beginFetchTimeStamp
-		estimatedTotalHeadersFetchTime := math.Round(float64(timeTakenSoFar) / headersFetchingRate)
-
-		// 10% of estimated fetch time is used for estimating rescan time while 80% is used for estimating address discovery time
-		estimatedRescanTime := estimatedTotalHeadersFetchTime * RescanPercentage
-		estimatedDiscoveryTime := estimatedTotalHeadersFetchTime * DiscoveryPercentage
-		estimatedTotalSyncTime := estimatedTotalHeadersFetchTime + estimatedRescanTime + estimatedDiscoveryTime
-
-		totalTimeRemaining := (int64(estimatedTotalSyncTime) - timeTakenSoFar) / 60
-		totalSyncProgress := (float64(timeTakenSoFar) / float64(estimatedTotalSyncTime)) * 100.0
-
-		syncInfo.FetchedHeadersCount = totalFetchedHeaders
-		syncInfo.TotalHeadersToFetch = syncEndPoint
-		syncInfo.HeadersFetchProgress = int32(math.Round(headersFetchingRate * 100))
-		syncInfo.TotalTimeRemaining = fmt.Sprintf("%d min", totalTimeRemaining)
-		syncInfo.TotalSyncProgress = int32(math.Round(totalSyncProgress))
-
-		// calculate block header time difference
-		hoursBehind := float64(time.Now().Unix() - lastHeaderTime) / 60
-		daysBehind := int(math.Round(hoursBehind / 24))
-		if daysBehind < 1 {
-			syncInfo.DaysBehind = "<1 day"
-		} else if daysBehind == 1 {
-			syncInfo.DaysBehind = "1 day"
-		} else {
-			syncInfo.DaysBehind = fmt.Sprintf("%d days", daysBehind)
-		}
+		app.UpdateFetchHeadersProgress(listener.data.headers, headersFetchReport, syncInfo)
 
 	case dcrlibwallet.FINISH:
-		listener.data.headers.totalFetchTime = time.Now().Unix() - listener.data.headers.beginFetchTimeStamp
-		listener.data.headers.startHeaderHeight = -1
-		listener.data.headers.currentHeaderHeight = -1
+		syncInfo.HeadersFetchTimeTaken = time.Now().Unix() - listener.data.headers.BeginFetchTimeStamp
+		listener.data.headers.StartHeaderHeight = -1
+		listener.data.headers.CurrentHeaderHeight = -1
 	}
 
 	listener.data.syncInfo.Write(syncInfo, app.SyncStatusInProgress)
