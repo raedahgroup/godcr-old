@@ -34,7 +34,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
-		walletExists: 	  walletExists,
+		walletExists:     walletExists,
 	}
 
 	routes.loadTemplates()

@@ -4,7 +4,7 @@ import "github.com/rivo/tview"
 
 type TextView struct {
 	*tview.TextView
-	text string
+	text   string
 	border bool
 }
 
@@ -41,7 +41,6 @@ func WordWrappedTextView(text string) *TextView {
 	return t
 }
 
-
 func TitleTextView(text string) *TextView {
 	return NewLeftAlignedTextView(text)
 }
@@ -57,6 +56,6 @@ func NewLeftAlignedTextView(text string) *TextView {
 func NewTextView(text string, alignment int) *TextView {
 	return &TextView{
 		TextView: tview.NewTextView().SetTextAlign(alignment).SetText(text),
-		text:text,
+		text:     text,
 	}
 }
