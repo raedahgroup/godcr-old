@@ -130,17 +130,24 @@ func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
 // syncBlockChain uses the WalletMiddleware provided to download block updates
 // this is a long running operation, listen for ctx.Done and stop processing
 func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	syncDone := make(chan error)
+	syncError := make(chan error)
+	var syncDone bool
 
 	processSyncUpdates := func(syncPrivateInfo *sync.PrivateInfo) {
+		if syncDone {
+			return
+		}
+
 		syncInfo := syncPrivateInfo.Read()
 		if syncInfo.Done {
+			syncDone = true
 			if syncInfo.Error == "" {
 				fmt.Println("Synced successfully.")
+				syncError <- nil
 			} else {
 				fmt.Fprintf(os.Stderr, "Sync completed with error: %s.\n", syncInfo.Error)
+				syncError <- fmt.Errorf(syncInfo.Error)
 			}
-			syncDone <- fmt.Errorf(syncInfo.Error)
 			return
 		}
 	}
@@ -156,7 +163,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case err := <-syncDone:
+	case err := <-syncError:
 		return err
 	}
 }

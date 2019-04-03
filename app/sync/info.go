@@ -22,14 +22,18 @@ type PrivateInfo struct {
 	headersFetchProgress  int32
 	headersFetchTimeTaken int64
 
-	accountDiscoveryStartTime int64
-	totalDiscoveryTime int64
+	addressDiscoveryProgress int32
+	totalDiscoveryTime       int64
+
+	rescanProgress      int32
+	currentRescanHeight int32
 }
 
 // NewPrivateInfo returns a new PrivateInfo pointer with default values set
 func NewPrivateInfo() *PrivateInfo {
 	return &PrivateInfo{
 		headersFetchTimeTaken: -1,
+		totalDiscoveryTime:    -1,
 	}
 }
 
@@ -51,8 +55,11 @@ type info struct {
 	HeadersFetchProgress  int32
 	HeadersFetchTimeTaken int64
 
-	AccountDiscoveryStartTime int64
-	TotalDiscoveryTime int64
+	AddressDiscoveryProgress int32
+	TotalDiscoveryTime       int64
+
+	RescanProgress      int32
+	CurrentRescanHeight int32
 }
 
 // Read returns the current sync op info from private variables after locking the mutex for reading
@@ -73,8 +80,10 @@ func (privateInfo *PrivateInfo) Read() *info {
 		privateInfo.fetchedHeadersCount,
 		privateInfo.headersFetchProgress,
 		privateInfo.headersFetchTimeTaken,
-		privateInfo.accountDiscoveryStartTime,
+		privateInfo.addressDiscoveryProgress,
 		privateInfo.totalDiscoveryTime,
+		privateInfo.rescanProgress,
+		privateInfo.currentRescanHeight,
 	}
 }
 
@@ -98,6 +107,9 @@ func (privateInfo *PrivateInfo) Write(info *info, status Status) {
 	privateInfo.headersFetchProgress = info.HeadersFetchProgress
 	privateInfo.headersFetchTimeTaken = info.HeadersFetchTimeTaken
 
-	privateInfo.accountDiscoveryStartTime = info.AccountDiscoveryStartTime
+	privateInfo.addressDiscoveryProgress = info.AddressDiscoveryProgress
 	privateInfo.totalDiscoveryTime = info.TotalDiscoveryTime
+
+	privateInfo.rescanProgress = info.RescanProgress
+	privateInfo.currentRescanHeight = info.CurrentRescanHeight
 }

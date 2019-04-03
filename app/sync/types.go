@@ -1,5 +1,14 @@
 package sync
 
+type Status uint8
+
+const (
+	StatusNotStarted Status = iota
+	StatusSuccess
+	StatusError
+	StatusInProgress
+)
+
 type FetchHeadersData struct {
 	StartHeaderHeight   int32
 	CurrentHeaderHeight int32
@@ -11,12 +20,3 @@ type FetchHeadersProgressReport struct {
 	LastHeaderTime            int64
 	EstimatedFinalBlockHeight int32
 }
-
-type Status uint8
-
-const (
-	StatusNotStarted Status = iota
-	StatusSuccess
-	StatusError
-	StatusInProgress
-)

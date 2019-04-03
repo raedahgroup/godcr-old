@@ -9,11 +9,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
-<<<<<<< HEAD
 	"github.com/raedahgroup/godcr/app/config"
-=======
 	"github.com/raedahgroup/godcr/app/sync"
->>>>>>> refactor
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page

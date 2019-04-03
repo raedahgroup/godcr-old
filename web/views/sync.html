@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 {{ template "html-head" }}
+<style>
+    p {
+        margin-bottom: 0 !important;
+    }
+</style>
 <body>
 <div class="body">
     <div class="content">
@@ -13,7 +18,7 @@
                      role="progressbar" aria-valuenow="{{ .TotalSyncProgress }}" aria-valuemin="0"
                      aria-valuemax="100"></div>
             </div>
-            <p class="mb-0">
+            <p>
             {{ if ne .TotalTimeRemaining "" }}
             {{ .TotalSyncProgress }}% completed, {{ .TotalTimeRemaining }} remaining.
             {{ else }}
@@ -22,14 +27,24 @@
             </p>
 
         {{ if eq .CurrentStep "1" }}
-            <p class="mb-0">Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
-            <p class="mb-0">{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
+            <p>Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
+            <p>{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
         {{ if ne .DaysBehind "" }}
-            <p class="mb-0">Your wallet is {{ .DaysBehind }} behind.</p>
+            <p>Your wallet is {{ .DaysBehind }} behind.</p>
         {{ end }}
         {{ end }}
 
-            <p class="mb-0">Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
+        {{ if eq .CurrentStep "2" }}
+            <p>Discovering used addresses.</p>
+            <p>{{ .AddressDiscoveryProgress }} through step 2 of 3.</p>
+        {{ end }}
+
+        {{ if eq .CurrentStep "3" }}
+            <p>Scanning {{ .CurrentRescanHeight }} of {{ .TotalHeadersToFetch }} block headers.</p>
+            <p>{{ .RescanProgress }}% through step 3 of 3.</p>
+        {{ end }}
+
+            <p>Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
         </div>
     </div>
 </div>

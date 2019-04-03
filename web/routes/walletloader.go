@@ -43,11 +43,11 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		syncInfo := routes.syncPrivateInfo.Read()
 
 		switch syncInfo.Status {
-		case sync.StatusSuccess:
-			next.ServeHTTP(res, req)
+		//case sync.StatusSuccess:
+		//	next.ServeHTTP(res, req)
 		case sync.StatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case sync.StatusInProgress:
+		case sync.StatusInProgress, sync.StatusSuccess:
 			var syncInfoMap map[string]interface{}
 			syncInfoBytes, _ := json.Marshal(syncInfo)
 
