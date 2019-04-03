@@ -29,10 +29,10 @@ func getTextInput(prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	text = strings.TrimSuffix(text, "\n")
 	text = strings.TrimSuffix(text, "\r")
-	
+
 	return text, nil
 }
 

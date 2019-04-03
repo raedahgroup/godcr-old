@@ -8,6 +8,7 @@ type TextView struct {
 	border bool
 }
 
+<<<<<<< HEAD
 // SetText sets the text of this text view to the provided string. Previously
 // contained text will be removed.
 // Wrapper around `tview.TextView.SetText`
@@ -42,6 +43,17 @@ func WordWrappedTextView(text string) *TextView {
 }
 
 func NewCenterAlignedTextView(text string) *TextView {
+=======
+func TitleTextView(text string) *tview.TextView {
+	return NewLeftAlignedTextView(text)
+}
+
+func NewLeftAlignedTextView(text string) *tview.TextView {
+	return NewTextView(text, tview.AlignLeft)
+}
+
+func NewCenterAlignedTextView(text string) *tview.TextView {
+>>>>>>> implemented terminal transaction details page
 	return NewTextView(text, tview.AlignCenter)
 }
 
