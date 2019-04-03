@@ -81,6 +81,7 @@ func (routes *Routes) syncBlockchain() {
 				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
 			} else {
 				routes.sendWsConnectionInfoUpdate()
+				// TODO: register a TransactionNotification listener with either dcrlibwallet or dcrwallet to update the best block when there's a new block
 				updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
 			}
 		},

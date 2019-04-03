@@ -73,7 +73,7 @@ func (routes *Routes) sendWsBalance() {
 	}
 	type accountInfo struct {
 		Number uint32 `json:"number"`
-		Balance string `json:"balance"`
+		Info string `json:"info"`
 	}
 
 	var accountInfos []accountInfo
@@ -83,7 +83,7 @@ func (routes *Routes) sendWsBalance() {
 		totalBalance.Spendable += acc.Balance.Spendable
 		totalBalance.Total += acc.Balance.Total
 
-		accountInfos = append(accountInfos, accountInfo{Number: acc.Number, Balance: acc.Balance.Total.String()})
+		accountInfos = append(accountInfos, accountInfo{Number: acc.Number, Info: acc.String()})
 	}
 	wsBroadcast <- Packet{
 		Event:   UpdateBalance,

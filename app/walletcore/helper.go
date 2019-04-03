@@ -92,24 +92,29 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 	return
 }
 
-func WalletConnectionInfo(wallet Wallet, netType string) (*ConnectionInfo, error) {
-	accounts, err := wallet.AccountsOverview(DefaultRequiredConfirmations)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching account balance: %s", err.Error())
-	}
-
+func WalletConnectionInfo(wallet Wallet, netType string) (info ConnectionInfo, err error) {
 	var totalBalance Balance
-	for _, acc := range accounts {
-		totalBalance.Spendable += acc.Balance.Spendable
-		totalBalance.Total += acc.Balance.Total
+	accounts, loadAccountErr := wallet.AccountsOverview(DefaultRequiredConfirmations)
+	if loadAccountErr != nil {
+		err = fmt.Errorf("error fetching account balance: %s", err.Error())
+	} else {
+		for _, acc := range accounts {
+			totalBalance.Spendable += acc.Balance.Spendable
+			totalBalance.Total += acc.Balance.Total
+		}
+		info.TotalBalance = totalBalance.String()
 	}
 
-	bestBlock, _ := wallet.BestBlock()
+	bestBlock, bestBlockErr := wallet.BestBlock()
+	if bestBlockErr != nil && err != nil {
+		err = fmt.Errorf("%s, error in fetching best block %s", err.Error(), bestBlockErr.Error())
+	} else if bestBlockErr != nil {
+		err = bestBlockErr
+	}
 
-	return &ConnectionInfo{
-		NetworkType:    netType,
-		PeersConnected: wallet.GetConnectedPeersCount(),
-		TotalBalance:   totalBalance.String(),
-		LatestBlock:    bestBlock,
-	}, nil
+	info.LatestBlock = bestBlock
+	info.NetworkType = netType
+	info.PeersConnected = wallet.GetConnectedPeersCount()
+
+	return
 }

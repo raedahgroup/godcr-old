@@ -13,20 +13,20 @@ const application = Application.start()
 const context = require.context('./controllers', true, /\.js$/)
 application.load(definitionsFromContext(context))
 
-function getSocketURI (loc) {
-  let protocol = (loc.protocol === 'https:') ? 'wss' : 'ws'
-  return `${protocol}://${loc.host}/ws`
+function getSocketURI () {
+  let protocol = (window.location.protocol === 'https:') ? 'wss' : 'ws'
+  return `${protocol}://${window.location.host}/ws`
 }
 
-function createWebSocket (loc) {
+function createWebSocket () {
   setTimeout(() => {
     // wait a bit to prevent websocket churn from drive by page loads
-    let uri = getSocketURI(loc)
+    let uri = getSocketURI()
     ws.connect(uri)
   }, 1000)
 }
 
-createWebSocket(window.location)
+createWebSocket()
 
 const application = Application.start()
 const context = require.context('./controllers', true, /\.js$/)
