@@ -68,8 +68,9 @@
                 {{ end }}
 
                     <h4 class="mt-5">Recent Activities</h4>
+                    {{ if .loadTransactionErr }}
                     <div class="alert-danger"><p>{{.loadTransactionErr}}</p></div>
-                    {{ if eq (len .transactions) 0 }}
+                    {{ else if eq (len .transactions) 0 }}
                     <p class="mt-3 text-center">No transaction found</p>
 
                     {{ else }}
