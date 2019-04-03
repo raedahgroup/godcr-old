@@ -8,10 +8,8 @@ import (
 )
 
 func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
-	textView := tview.NewTextView()
-
-	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	body.SetBorderPadding(1, 0, 1, 0)
+	balancePage := tview.NewFlex().SetDirection(tview.FlexRow)
+	balancePage.SetBorderPadding(1, 0, 1, 0)
 
 	titleTextView := primitives.TitleTextView("")
 	balancePage.AddItem(titleTextView.SetText("Balance"), 1, 0, false)

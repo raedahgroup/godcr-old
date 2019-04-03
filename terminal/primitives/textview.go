@@ -1,13 +1,11 @@
 package primitives
 
 import (
-	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/rivo/tview"
 )
 
-func TitleTextView(text string) *tview.TextView {
-	return NewLeftAlignedTextView(text).
-		SetTextColor(helpers.PageHeaderColor)
+func TitleTextView(text string) *TextView {
+	return NewLeftAlignedTextView(text)
 }
 
 type TextView struct {
@@ -53,7 +51,7 @@ func NewCenterAlignedTextView(text string) *TextView {
 	return NewTextView(text, tview.AlignCenter)
 }
 
-func NewLeftAlignedTextView(text string) *tview.TextView {
+func NewLeftAlignedTextView(text string) *TextView {
 	return NewTextView(text, tview.AlignLeft)
 }
 
