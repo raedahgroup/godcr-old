@@ -17,15 +17,11 @@ import (
 func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	body.SetBorderPadding(1, 0, 2, 0)
 
-	// page title and tip
-	titleTextView := primitives.NewCenterAlignedTextView("History")
-	body.AddItem(titleTextView, 1, 0, false)
-
-	hintText := primitives.WordWrappedTextView("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to Navigation menu)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 3, 0, false)
-
+	// page title
+	body.AddItem(primitives.NewLeftAlignedTextView("HISTORY"), 2, 0, false)
+	
 	historyTable := tview.NewTable().
 		SetBorders(false).
 		SetFixed(1, 0).
@@ -104,6 +100,11 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	displayHistoryTable()
 
 	fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
+
+	body.AddItem(nil, 1, 0, false) // add some "padding" at the bottom
+	hintText := primitives.WordWrappedTextView("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu)")
+	hintText.SetTextColor(tcell.ColorGray)
+	body.AddItem(hintText, 2, 0, false)
 
 	setFocus(body)
 

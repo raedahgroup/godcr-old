@@ -29,6 +29,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
 	}
 
+
 	menuColumn := tview.NewList()
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
@@ -66,7 +67,8 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		tviewApp.Stop()
 	})
 
-	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n%s Terminal", strings.ToUpper(app.Name)))
+	netType := walletMiddleware.NetType()
+	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n %s %s\n", strings.ToUpper(app.Name), netType))
 	header.SetBackgroundColor(helpers.DecredColor)
 	gridLayout.AddItem(header, 0, 0, 1, 3, 0, 0, false)
 

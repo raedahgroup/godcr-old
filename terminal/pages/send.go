@@ -13,13 +13,11 @@ import (
 
 func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	body.SetBorderPadding(1, 0, 2, 0)
 
 	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Send"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 3, 0, false)
-
+	body.AddItem(primitives.NewLeftAlignedTextView("SEND"), 2, 0, false)
+	
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
@@ -27,10 +25,11 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 
 	// form for Sending
 	form := primitives.NewForm()
+	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 14, 0, true)
 
 	outputMessageTextView := primitives.NewCenterAlignedTextView("")
-	body.AddItem(outputMessageTextView, 2, 0, false)
+	body.AddItem(outputMessageTextView, 0, 1, false)
 
 	accountNames := make([]string, len(accounts))
 	accountNumbers := make([]uint32, len(accounts))
@@ -100,6 +99,11 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	form.SetCancelFunc(clearFocus)
+
+	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
+	hintText.SetTextColor(tcell.ColorGray)
+	body.AddItem(hintText, 2, 0, false)
+
 	setFocus(body)
 
 	return body

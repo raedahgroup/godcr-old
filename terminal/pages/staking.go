@@ -18,30 +18,28 @@ import (
 func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	body.SetBorderPadding(1, 0, 2, 0)
 
 	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Staking"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 2, 0, false)
-
-	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
+	
+	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
 	} else {
-		body.AddItem(stakeInfo, 6, 0, true)
+		body.AddItem(stakeInfo, 8, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
 	} else {
-		body.AddItem(purchaseTicket, 12, 0, true)
-		body.AddItem(statusTextView, 3, 0, true)
+		body.AddItem(purchaseTicket, 12, 1, true)
+		body.AddItem(statusTextView, 0, 1, true)
 	}
 
 	stakeInfo.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -92,6 +90,10 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		}
 		return event
 	})
+
+	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
+	hintText.SetTextColor(tcell.ColorGray)
+	body.AddItem(hintText, 2, 0, false)
 
 	setFocus(body)
 

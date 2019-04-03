@@ -12,25 +12,27 @@ import (
 
 func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	body.SetBorderPadding(1, 0, 2, 0)
+
 	form := tview.NewForm()
 
-	body.AddItem(primitives.NewCenterAlignedTextView("Generate Receive Address"), 4, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("GENERATE RECEIVE ADDRESS"), 2, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
-			return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+			return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 		}
-		body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
-		}), 4, 1, true).
-			AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
+		}), 2, 1, true).
+			AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()
 				}
@@ -47,16 +49,20 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 				AddButton("Generate", func() {
 					address, qr, err := generateAddress(wallet, accountNum)
 					if err != nil {
-						body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
+						body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
 						return
 					}
-					body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
-						AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
+					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 2, 1, false).
+						AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()
 			}), 4, 1, true)
 		}
 	}
+
+	hintText := primitives.WordWrappedTextView("(TIP: Navigate with Tab and Shift+Tab, hit ENTER to generate Address. Return with Esc)")
+	hintText.SetTextColor(tcell.ColorGray)
+	body.AddItem(hintText, 2, 0, false)
 
 	setFocus(body)
 	return body
