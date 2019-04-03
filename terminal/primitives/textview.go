@@ -41,16 +41,8 @@ func WordWrappedTextView(text string) *TextView {
 	return t
 }
 
-func TitleTextView(text string) *TextView {
-	return NewLeftAlignedTextView(text)
-}
-
 func NewCenterAlignedTextView(text string) *TextView {
 	return NewTextView(text, tview.AlignCenter)
-}
-
-func NewLeftAlignedTextView(text string) *TextView {
-	return NewTextView(text, tview.AlignLeft)
 }
 
 func NewTextView(text string, alignment int) *TextView {

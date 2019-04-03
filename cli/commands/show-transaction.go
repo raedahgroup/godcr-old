@@ -35,7 +35,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		"  Date \t %s\n" +
 		"  Size \t %s\n" +
 		"  Fee \t %s\n" +
-		"  Rate \t %s/kB\n"
+		"  Fee Rate \t %s/kB\n"
 
 	txDirection := strings.ToLower(transaction.Direction.String())
 	txSize := fmt.Sprintf("%.1f kB", float64(transaction.Size)/1000)

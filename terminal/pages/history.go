@@ -17,7 +17,7 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	titleTextView := primitives.TitleTextView("")
+	titleTextView := primitives.NewCenterAlignedTextView("")
 	body.AddItem(titleTextView.SetText("History"), 1, 0, false)
 
 	hintText := primitives.WordWrappedTextView("")
@@ -45,52 +45,34 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	}
 
 	// clearHistoryPage clear the screen before outputing new data
-	clearHistoryPage := func(hintText, historyTable, transactionDetailsTable, titleTextView tview.Primitive) {
+	clearHistoryPage := func() {
 		body.RemoveItem(historyTable)
 		body.RemoveItem(transactionDetailsTable)
-		body.RemoveItem(titleTextView)
-		body.RemoveItem(hintText)
 	}
 
-	// Table header
-	detailedTableHeaderCell := func(text string) *tview.TableCell {
-		return tview.NewTableCell(text).SetAlign(tview.AlignLeft).SetSelectable(false)
-	}
-
+	// method for getting transaction details
 	historyTable.SetSelectedFunc(func(row, column int) {
-		clearHistoryPage(hintText, historyTable, transactionDetailsTable, titleTextView)
-		setFocus(transactionDetailsTable)
+		clearHistoryPage()
 		txHash := historyTable.GetCell(row, 6).Text
 
-		body.AddItem(titleTextView.SetText("Transaction Detail"), 1, 0, false)
-		body.AddItem(hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)"), 3, 0, false)
+		titleTextView.SetText("Transaction Detail")
+		hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
 		
-		transactionDetailsTable.Clear()
-		transactionDetailsTable.SetCell(0, 0, detailedTableHeaderCell("Date"))
-		transactionDetailsTable.SetCell(1, 0, detailedTableHeaderCell("Direction"))
-		transactionDetailsTable.SetCell(2, 0, detailedTableHeaderCell("Amount"))
-		transactionDetailsTable.SetCell(3, 0, detailedTableHeaderCell("Fee"))
-		transactionDetailsTable.SetCell(4, 0, detailedTableHeaderCell("Rate"))
-		transactionDetailsTable.SetCell(5, 0, detailedTableHeaderCell("Type"))
-		transactionDetailsTable.SetCell(6, 0, detailedTableHeaderCell("Confirmation"))
-		transactionDetailsTable.SetCell(7, 0, detailedTableHeaderCell("Included in block \n \n \t"))
-		transactionDetailsTable.SetCell(8, 0, detailedTableHeaderCell("Hash "))
-		transactionDetailsTable.SetCell(9, 0, detailedTableHeaderCell(" "))
-		transactionDetailsTable.SetCell(10, 0, detailedTableHeaderCell("Input"))
-
 		body.AddItem(transactionDetailsTable, 0, 1, true)
 
+		setFocus(transactionDetailsTable)
 		fetchTransactionDetail(txHash, wallet, displayError, transactionDetailsTable)
 	})
 
 	var history func()
+	// hander for setting focus on transaction Details Table and returning back to history table
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			clearFocus()
 			return nil
 		}
 		if event.Key() == tcell.KeyBackspace {
-			clearHistoryPage(hintText, historyTable, transactionDetailsTable, titleTextView)
+			clearHistoryPage()
 			history()
 			setFocus(historyTable)
 			return nil
@@ -106,10 +88,10 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	})
 
 	history = func() {
-		clearHistoryPage(hintText, historyTable, transactionDetailsTable, titleTextView)
+		clearHistoryPage()
 
-		body.AddItem(titleTextView.SetText("History"), 1, 0, false)
-		body.AddItem(hintText.SetText("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu)"), 3, 0, false)
+		titleTextView.SetText("History")
+		hintText.SetText("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu)")
 
 		tableHeaderCell := func(text string) *tview.TableCell {
 			return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false)
@@ -174,28 +156,40 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 		return
 	}
 
-	transactionDetailsTable.SetCell(0, 1, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(1, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(2, 1, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(3, 1, tview.NewTableCell(tx.Fee).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(4, 1, tview.NewTableCell(fmt.Sprintf("%s/kB\n", tx.FeeRate)).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(5, 1, tview.NewTableCell(tx.Type).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(6, 1, tview.NewTableCell(strconv.Itoa(int(tx.Confirmations))).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(7, 1, tview.NewTableCell(strconv.Itoa(int(tx.BlockHeight))).SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(8, 1, tview.NewTableCell(tx.Hash).SetAlign(tview.AlignLeft))
+	transactionDetailsTable.Clear()
+	transactionDetailsTable.SetCellSimple(0, 0, "Hash ")
+	transactionDetailsTable.SetCellSimple(1, 0, "Confirmations")
+	transactionDetailsTable.SetCellSimple(2, 0, "Included in block  ")
+	transactionDetailsTable.SetCellSimple(3, 0, "Type")
+	transactionDetailsTable.SetCellSimple(4, 0, "Amount received")
+	transactionDetailsTable.SetCellSimple(5, 0, "Date")
+	transactionDetailsTable.SetCellSimple(6, 0, "Direction")
+	transactionDetailsTable.SetCellSimple(7, 0, "Fee")
+	transactionDetailsTable.SetCellSimple(8, 0, "Fee Rate")
+	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")
+
+	transactionDetailsTable.SetCellSimple(0, 1, tx.Hash)
+	transactionDetailsTable.SetCellSimple(1, 1, strconv.Itoa(int(tx.Confirmations)))
+	transactionDetailsTable.SetCellSimple(2, 1, strconv.Itoa(int(tx.BlockHeight)))
+	transactionDetailsTable.SetCellSimple(3, 1, tx.Type)
+	transactionDetailsTable.SetCellSimple(4, 1, tx.Amount)
+	transactionDetailsTable.SetCellSimple(5, 1, tx.FormattedTime)
+	transactionDetailsTable.SetCellSimple(6, 1, tx.Direction.String())
+	transactionDetailsTable.SetCellSimple(7, 1, tx.Fee)
+	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", tx.FeeRate))
+	
 	for _, txIn := range tx.Inputs {
 		row := transactionDetailsTable.GetRowCount()
-		transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(dcrutil.Amount(txIn.AmountIn).String()).SetAlign(tview.AlignLeft))
-		transactionDetailsTable.SetCell(row, 1, tview.NewTableCell(txIn.PreviousOutpoint).SetAlign(tview.AlignLeft))
+		transactionDetailsTable.SetCellSimple(row, 0, dcrutil.Amount(txIn.AmountIn).String())
+		transactionDetailsTable.SetCellSimple(row, 1, txIn.PreviousOutpoint)
 	}
 
 	row := transactionDetailsTable.GetRowCount()
-	transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(" ").SetAlign(tview.AlignLeft))
-	transactionDetailsTable.SetCell(row, 0, tview.NewTableCell("Output").SetAlign(tview.AlignLeft))
+	transactionDetailsTable.SetCellSimple(row, 0, "-Outputs-")
 	for _, txOut := range tx.Outputs {
 		row := transactionDetailsTable.GetRowCount()
 		if len(txOut.Addresses) == 0 {
-			transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf("  %s \t (no address)\n", dcrutil.Amount(txOut.Value).String())).SetAlign(tview.AlignLeft))
+			transactionDetailsTable.SetCellSimple(row, 0, fmt.Sprintf("  %s (no address)", dcrutil.Amount(txOut.Value).String()))
 			continue
 		}
 
@@ -206,8 +200,8 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 				accountName = "external"
 			}
 
-			transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(outputAmount).SetAlign(tview.AlignLeft))
-			transactionDetailsTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintf("%s (%s)\n", address.Address, accountName)).SetAlign(tview.AlignLeft))
+			transactionDetailsTable.SetCellSimple(row, 0, outputAmount)
+			transactionDetailsTable.SetCellSimple(row, 1, fmt.Sprintf("%s (%s)", address.Address, accountName))
 		}
 	}
 }
