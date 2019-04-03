@@ -63,7 +63,7 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		txHash := historyTable.GetCell(row, 6).Text
 
 		body.AddItem(titleTextView.SetText("Transaction Detail"), 1, 0, false)
-		body.AddItem(hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History pade, ESC to return to nav menu)"), 3, 0, false)
+		body.AddItem(hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)"), 3, 0, false)
 
 		transactionDetailsTable.SetCell(0, 0, detailedTableHeaderCell("Date"))
 		transactionDetailsTable.SetCell(1, 0, detailedTableHeaderCell("Direction"))
@@ -123,9 +123,9 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		historyTable.SetCell(0, 5, tableHeaderCell("Type"))
 		historyTable.SetCell(0, 6, tableHeaderCell("Hash"))
 
-		body.AddItem(historyTable, 0, 1, true)
-
 		fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
+			body.AddItem(historyTable, 0, 1, true)
+
 	}
 
 	history()
