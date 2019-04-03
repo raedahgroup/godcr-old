@@ -38,9 +38,6 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 		return
 	}
 
-	changePage("balance")
-	return
-
 	if contentWindow := helpers.NewWindow("Sync page", window, 0); contentWindow != nil {
 		if s.err != nil {
 			contentWindow.Row(50).Dynamic(1)
