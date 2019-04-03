@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"image"
-	"image/color"
 	"io/ioutil"
 
 	"github.com/aarzilli/nucular"
@@ -22,7 +21,7 @@ var (
 )
 
 const (
-	scaling             = 1.9
+	scaling             = 2.0
 	pageHeaderFontSize  = 13
 	pageHeaderFontDPI   = 72
 	pageContentFontSize = 8
@@ -91,32 +90,32 @@ func GetStyle() *nstyle.Style {
 	/**buttons**/
 	style.Button.Rounding = 0
 	style.Button.Border = 0
-	style.Button.TextNormal = colorWhite
+	style.Button.TextNormal = whiteColor
 
 	/**inputs**/
-	style.Edit.Normal.Data.Color = colorWhite
-	style.Edit.Active.Data.Color = colorWhite
-	style.Edit.Hover.Data.Color = colorWhite
+	style.Edit.Normal.Data.Color = whiteColor
+	style.Edit.Active.Data.Color = whiteColor
+	style.Edit.Hover.Data.Color = whiteColor
 	style.Edit.Border = 1
 	style.Edit.BorderColor = colorTable.ColorBorder
 
 	/**checkbox**/
-	style.Checkbox.Normal.Data.Color = colorWhite
-	style.Checkbox.Active.Data.Color = colorAccent
-	style.Checkbox.CursorHover.Data.Color = colorAccent
-	style.Checkbox.CursorNormal.Data.Color = colorAccent
-	style.Checkbox.Hover.Data.Color = colorAccent
+	style.Checkbox.Normal.Data.Color = whiteColor
+	style.Checkbox.Active.Data.Color = secondaryColor
+	style.Checkbox.CursorHover.Data.Color = secondaryColor
+	style.Checkbox.CursorNormal.Data.Color = secondaryColor
+	style.Checkbox.Hover.Data.Color = secondaryColor
 
 	/**form inputs**/
 	style.Edit.Border = 1
-	style.Edit.Normal.Data.Color = colorWhite
-	style.Edit.BorderColor = colorPrimaryBorder
-	style.Edit.Active.Data.Color = colorWhite
-	style.Edit.Hover.Data.Color = colorWhite
-	style.Combo.Normal.Data.Color = colorWhite
-	style.Combo.BorderColor = colorPrimaryBorder
-	style.Combo.Active.Data.Color = colorWhite
-	style.Combo.Hover.Data.Color = colorWhite
+	style.Edit.Normal.Data.Color = whiteColor
+	style.Edit.BorderColor = borderColor
+	style.Edit.Active.Data.Color = whiteColor
+	style.Edit.Hover.Data.Color = whiteColor
+	style.Combo.Normal.Data.Color = whiteColor
+	style.Combo.BorderColor = borderColor
+	style.Combo.Active.Data.Color = whiteColor
+	style.Combo.Hover.Data.Color = whiteColor
 
 	return style
 }
@@ -124,14 +123,14 @@ func GetStyle() *nstyle.Style {
 func SetNavStyle(window nucular.MasterWindow) {
 	style := window.Style()
 	// nav window background color
-	style.GroupWindow.FixedBackground.Data.Color = colorNavBackground
+	style.GroupWindow.FixedBackground.Data.Color = primaryColor
 	style.GroupWindow.Padding = noPadding
 
 	style.Button.Padding = image.Point{33, 2}
-	style.Button.Normal.Data.Color = colorPrimary
-	style.Button.Hover.Data.Color = color.RGBA{7, 16, 52, 255}
-	style.Button.Active.Data.Color = color.RGBA{7, 16, 52, 255}
-	style.Button.TextHover = colorWhite
+	style.Button.Normal.Data.Color = primaryColor
+	style.Button.Hover.Data.Color = primaryColorLight
+	style.Button.Active.Data.Color = primaryColorLight
+	style.Button.TextHover = whiteColor
 	style.Font = NavFont
 
 	window.SetStyle(style)
@@ -139,17 +138,17 @@ func SetNavStyle(window nucular.MasterWindow) {
 
 func SetPageStyle(window nucular.MasterWindow) {
 	style := window.Style()
-	style.Button.Normal.Data.Color = colorAccent
-	style.Button.Hover.Data.Color = colorAccentDark
-	style.Button.Active.Data.Color = colorAccentDark
-	style.GroupWindow.FixedBackground.Data.Color = colorContentBackground
+	style.Button.Normal.Data.Color = secondaryColor
+	style.Button.Hover.Data.Color = secondaryColorLight
+	style.Button.Active.Data.Color = secondaryColorLight
+	style.GroupWindow.FixedBackground.Data.Color = windowColor
 
 	window.SetStyle(style)
 }
 
 func SetStandaloneWindowStyle(window nucular.MasterWindow) {
 	style := window.Style()
-	style.GroupWindow.FixedBackground.Data.Color = colorWhite
+	style.GroupWindow.FixedBackground.Data.Color = whiteColor
 	style.GroupWindow.Padding = image.Point{20, 15}
 	style.NormalWindow.ScalerSize = image.Point{50, 50}
 

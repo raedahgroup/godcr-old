@@ -41,55 +41,55 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		helpers.SetFont(window, helpers.PageContentFont)
 
 		if handler.err != nil {
-			contentWindow.Row(30).Dynamic(1)
-			contentWindow.LabelColored(handler.err.Error(), "LC", helpers.ColorDanger)
+			contentWindow.Row(helpers.ErrorTextHeight).Dynamic(1)
+			contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
 		}
 
-		contentWindow.Row(30).Dynamic(1)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
 		contentWindow.Label("Create Wallet", "LC")
 
-		contentWindow.Row(10).Dynamic(2)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(2)
 		contentWindow.Label("Wallet Password", "LC")
 		contentWindow.Label("Confirm Password", "LC")
 
-		contentWindow.Row(20).Dynamic(2)
+		contentWindow.Row(helpers.TextEditorWidth).Dynamic(2)
 		handler.passwordInput.Edit(contentWindow.Window)
 		handler.confirmPasswordInput.Edit(contentWindow.Window)
 
 		passwordError, ok := handler.validationErrors["password"]
 		if ok {
-			contentWindow.LabelColored(passwordError, "LC", helpers.ColorDanger)
+			contentWindow.LabelColored(passwordError, "LC", helpers.DangerColor)
 		}
 
 		if confirmPasswordError, ok := handler.validationErrors["confirmpassword"]; ok {
 			if passwordError != "" {
 				contentWindow.Label("", "LC")
 			}
-			contentWindow.LabelColored(confirmPasswordError, "LC", helpers.ColorDanger)
+			contentWindow.LabelColored(confirmPasswordError, "LC", helpers.DangerColor)
 		}
 
-		contentWindow.Row(20).Dynamic(1)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
 		contentWindow.Label("Wallet Seed", "LC")
 
 		contentWindow.Row(110).Dynamic(1)
 		if seedWindow := helpers.NewWindow("Seed Window", contentWindow.Window, nucular.WindowBorder); seedWindow != nil {
-			seedWindow.Row(80).Dynamic(1)
+			seedWindow.Row(helpers.SeedTextHeight).Dynamic(1)
 			seedWindow.LabelWrap(handler.seed)
 			seedWindow.End()
 		}
 
 		contentWindow.Row(50).Dynamic(1)
 		contentWindow.LabelWrapColored(`IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`,
-			helpers.ColorDanger,
+			helpers.DangerColor,
 		)
 
 		contentWindow.Row(30).Dynamic(2)
 		contentWindow.CheckboxText("I've stored the seed in a safe and secure location", &handler.hasStoredSeed)
 		if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
-			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.ColorDanger)
+			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.DangerColor)
 		}
 
-		contentWindow.Row(30).Static(200)
+		contentWindow.Row(helpers.ButtonHeight).Static(200)
 		if contentWindow.Button(label.T("Create Wallet"), false) {
 			if !handler.hasErrors() {
 				handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)

@@ -34,7 +34,7 @@ func (w *Window) DrawHeader(title string) {
 
 	_, out := w.Custom(nstyle.WidgetStateActive)
 	if out != nil {
-		out.FillRect(bounds, 0, colorWhite)
+		out.FillRect(bounds, 0, whiteColor)
 	}
 
 	bounds.Y += 25
@@ -57,7 +57,7 @@ func (w *Window) SetErrorMessage(message string) {
 func (w *Window) Style() {
 	style := w.Master().Style()
 	style.GroupWindow.Padding = image.Point{20, 20}
-	style.GroupWindow.Header.Normal.Data.Color = colorAccent
+	style.GroupWindow.Header.Normal.Data.Color = secondaryColor
 	style.Font = PageContentFont
 
 	w.Master().SetStyle(style)

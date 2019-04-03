@@ -94,7 +94,7 @@ func (handler *StakingHandler) fetchAccounts(wallet walletcore.Wallet) {
 func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 	// display section title with nav font
 	helpers.SetFont(contentWindow.Window, helpers.NavFont)
-	contentWindow.Row(20).Dynamic(1)
+	contentWindow.Row(helpers.LabelHeight).Dynamic(1)
 	contentWindow.Label("Stake Info", "LC")
 
 	// reset page font
@@ -133,7 +133,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.Window, wallet walletcore.Wallet) {
 	// display form title with nav font
 	helpers.SetFont(contentWindow, helpers.NavFont)
-	contentWindow.Row(30).Dynamic(1)
+	contentWindow.Row(helpers.LabelHeight).Dynamic(1)
 	contentWindow.Label("Purchase Ticket", "LC")
 
 	// reset page font
@@ -141,45 +141,45 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 
 	// if error fetching accounts, no point displaying the form
 	if handler.fetchAccountsError != nil {
-		contentWindow.Row(30).Dynamic(1)
-		contentWindow.LabelColored(handler.fetchAccountsError.Error(), "LC", helpers.ColorDanger)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
+		contentWindow.LabelColored(handler.fetchAccountsError.Error(), "LC", helpers.DangerColor)
 		return
 	}
 
 	// display purchase form proper
-	contentWindow.Row(10).Static(230)
+	contentWindow.Row(helpers.LabelHeight).Static(helpers.TextEditorWidth)
 	contentWindow.Label("Source Account", "LC")
 
-	contentWindow.Row(25).Dynamic(1)
+	contentWindow.Row(helpers.TextEditorHeight).Static(helpers.AccountSelectorWidth)
 	handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
 
-	contentWindow.Row(10).Static(230)
+	contentWindow.Row(helpers.LabelHeight).Static(helpers.TextEditorWidth)
 	contentWindow.Label("Number of tickets", "LC")
 
-	contentWindow.Row(25).Static(230)
+	contentWindow.Row(helpers.TextEditorHeight).Static(helpers.TextEditorWidth)
 	handler.numTicketsInput.Edit(contentWindow)
 
 	if handler.numTicketsInputErrStr != "" {
-		contentWindow.Row(20).Static(230)
-		contentWindow.LabelColored(handler.numTicketsInputErrStr, "LC", helpers.ColorDanger)
+		contentWindow.Row(helpers.LabelHeight).Static(helpers.TextEditorWidth)
+		contentWindow.LabelColored(handler.numTicketsInputErrStr, "LC", helpers.DangerColor)
 	}
 
-	contentWindow.Row(20).Dynamic(1)
+	contentWindow.Row(helpers.CheckboxHeight).Static(helpers.TextEditorWidth)
 	contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed)
 
 	// show tickets hashes after successful tickets purchase, or show error message if purchase failed
 	numTickets := len(handler.purchasedTicketsHashes)
 	if numTickets > 0 {
-		contentWindow.Row(20).Dynamic(1)
-		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), "LC", helpers.ColorSuccess)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
+		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), "LC", helpers.SuccessColor)
 
 		for _, ticketHash := range handler.purchasedTicketsHashes {
-			contentWindow.Row(10).Dynamic(1)
-			contentWindow.LabelColored(ticketHash, "LC", helpers.ColorSuccess)
+			contentWindow.Row(helpers.LabelHeight).Dynamic(1)
+			contentWindow.LabelColored(ticketHash, "LC", helpers.SuccessColor)
 		}
 	} else if handler.purchaseTicketsError != nil {
-		contentWindow.Row(30).Dynamic(1)
-		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), "LC", helpers.ColorDanger)
+		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
+		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), "LC", helpers.DangerColor)
 	}
 
 	submitButtonText := "Purchase"
@@ -189,7 +189,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 		submitButtonText = "Purchase again"
 	}
 
-	contentWindow.Row(25).Static(230)
+	contentWindow.Row(helpers.ButtonHeight).Static(helpers.ButtonWidth)
 	if contentWindow.ButtonText(submitButtonText) {
 		handler.validateAndSubmit(contentWindow, wallet)
 	}

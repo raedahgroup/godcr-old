@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
@@ -13,6 +14,10 @@ type HistoryHandler struct {
 	isRendering            bool
 	transactions           []*walletcore.Transaction
 	hasFetchedTransactions bool
+
+	// pagination params
+	startBlockHeight int32
+	endBlockHeight   int32
 }
 
 func (handler *HistoryHandler) BeforeRender() {
@@ -20,12 +25,15 @@ func (handler *HistoryHandler) BeforeRender() {
 	handler.transactions = nil
 	handler.isRendering = false
 	handler.hasFetchedTransactions = false
+
+	handler.startBlockHeight = -1
+	handler.endBlockHeight = 0
 }
 
-func (handler *HistoryHandler) Render(window *nucular.Window, walletMiddleware app.WalletMiddleware) {
+func (handler *HistoryHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		go handler.fetchTransactions(walletMiddleware, window)
+		go handler.fetchHistory(wallet, window)
 	}
 
 	if pageWindow := helpers.NewWindow("History Page", window, nucular.WindowNoScrollbar); pageWindow != nil {
@@ -37,20 +45,20 @@ func (handler *HistoryHandler) Render(window *nucular.Window, walletMiddleware a
 					contentWindow.SetErrorMessage(handler.err.Error())
 				} else {
 					helpers.SetFont(window, helpers.NavFont)
-					contentWindow.Row(20).Static(100, 70, 70, 60, 50, 280)
+					contentWindow.Row(helpers.LabelHeight).Static(100, 60, 70, 70, 40, 200)
 					contentWindow.Label("Date", "LC")
+					contentWindow.Label("Direction", "LC")
 					contentWindow.Label("Amount", "LC")
 					contentWindow.Label("Fee", "LC")
-					contentWindow.Label("Direction", "LC")
 					contentWindow.Label("Type", "LC")
 					contentWindow.Label("Hash", "LC")
 
+					helpers.SetFont(window, helpers.PageContentFont)
 					for _, tx := range handler.transactions {
-						helpers.SetFont(window, helpers.PageContentFont)
 						contentWindow.Label(tx.FormattedTime, "LC")
-						contentWindow.Label(tx.Amount.String(), "LC")
-						contentWindow.Label(tx.Fee.String(), "LC")
 						contentWindow.Label(tx.Direction.String(), "LC")
+						contentWindow.Label(tx.Amount, "LC")
+						contentWindow.Label(tx.Fee, "LC")
 						contentWindow.Label(tx.Type, "LC")
 						contentWindow.Label(tx.Hash, "LC")
 					}
@@ -64,8 +72,8 @@ func (handler *HistoryHandler) Render(window *nucular.Window, walletMiddleware a
 	}
 }
 
-func (handler *HistoryHandler) fetchTransactions(walletMiddleware app.WalletMiddleware, window *nucular.Window) {
-	handler.transactions, handler.err = walletMiddleware.TransactionHistory()
+func (handler *HistoryHandler) fetchHistory(wallet walletcore.Wallet, window *nucular.Window) {
+	handler.transactions, handler.endBlockHeight, handler.err = wallet.TransactionHistory(context.Background(), handler.startBlockHeight, walletcore.TransactionHistoryCountPerPage)
 	handler.hasFetchedTransactions = true
 	window.Master().Changed()
 }

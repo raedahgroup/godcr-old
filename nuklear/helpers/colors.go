@@ -7,26 +7,28 @@ import (
 )
 
 var (
-	colorWhite             = color.RGBA{255, 255, 255, 255}
-	colorNavBackground     = color.RGBA{9, 20, 64, 255}
-	colorContentBackground = color.RGBA{240, 240, 250, 255}
-	colorPrimaryBorder     = color.RGBA{255, 238, 232, 255}
-	colorPrimary           = color.RGBA{9, 20, 64, 255}
-	colorAccent            = color.RGBA{237, 109, 71, 255}
-	colorAccentDark        = color.RGBA{198, 95, 71, 255}
+	whiteColor          = color.RGBA{255, 255, 255, 255}
+	primaryColor        = color.RGBA{9, 20, 64, 255}
+	primaryColorLight   = color.RGBA{9, 20, 60, 242}
+	secondaryColor      = color.RGBA{41, 112, 255, 255}
+	secondaryColorLight = color.RGBA{41, 112, 222, 232}
+	windowColor         = color.RGBA{240, 240, 250, 255}
+	normalButtonColor   = color.RGBA{237, 109, 71, 255}
+	hoverButtonColor    = primaryColorLight
+	borderColor         = color.RGBA{255, 238, 232, 255}
 
-	ColorSuccess = color.RGBA{24, 85, 24, 255}
-	ColorDanger  = color.RGBA{220, 53, 69, 255}
+	DangerColor  = color.RGBA{237, 109, 71, 255}
+	SuccessColor = color.RGBA{65, 191, 83, 255}
 )
 
 var colorTable = nstyle.ColorTable{
 	ColorText:                  color.RGBA{106, 106, 106, 255},
-	ColorWindow:                colorContentBackground,
+	ColorWindow:                windowColor,
 	ColorHeader:                color.RGBA{175, 175, 175, 255},
 	ColorBorder:                color.RGBA{206, 212, 218, 255},
-	ColorButton:                colorAccent,
-	ColorButtonHover:           color.RGBA{255, 255, 255, 255},
-	ColorButtonActive:          color.RGBA{0, 153, 204, 255},
+	ColorButton:                normalButtonColor,
+	ColorButtonHover:           primaryColorLight,
+	ColorButtonActive:          primaryColorLight,
 	ColorToggle:                color.RGBA{150, 150, 150, 255},
 	ColorToggleHover:           color.RGBA{120, 120, 120, 255},
 	ColorToggleCursor:          color.RGBA{175, 175, 175, 255},

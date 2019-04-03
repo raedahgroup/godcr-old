@@ -40,7 +40,7 @@ func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Walle
 					detailsCheckboxText = "Hide details"
 				}
 
-				content.Row(20).Dynamic(1)
+				content.Row(helpers.CheckboxHeight).Dynamic(helpers.TextEditorWidth)
 				if content.CheckboxText(detailsCheckboxText, &handler.detailed) {
 					content.Master().Changed()
 				}
@@ -65,7 +65,7 @@ func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
 
 func (handler *BalanceHandler) showTabularView(window *nucular.Window) {
 	helpers.SetFont(window, helpers.NavFont)
-	window.Row(20).Ratio(0.16, 0.18, 0.2, 0.2, 0.2, 0.25)
+	window.Row(helpers.LabelHeight).Static(80, 60, 60, 75, 80, 80)
 	window.Label("Account Name", "LC")
 	window.Label("Balance", "LC")
 
@@ -79,7 +79,7 @@ func (handler *BalanceHandler) showTabularView(window *nucular.Window) {
 	// rows
 	helpers.SetFont(window, helpers.PageContentFont)
 	for _, account := range handler.accounts {
-		window.Row(20).Ratio(0.16, 0.18, 0.2, 0.2, 0.2, 0.25)
+		window.Row(helpers.LabelHeight).Static(80, 60, 60, 75, 80, 80)
 		window.Label(account.Name, "LC")
 		window.Label(walletcore.SimpleBalance(account.Balance, handler.detailed), "LC")
 

@@ -54,11 +54,12 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 					accountNames[index] = account.Name
 				}
 
-				contentWindow.Row(25).Static(300, 100)
 				// draw select account combo
+				contentWindow.Row(helpers.TextEditorHeight).Static(helpers.AccountSelectorWidth)
 				handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 25)
 
 				// draw submit button
+				contentWindow.Row(helpers.ButtonHeight).Static(helpers.ButtonWidth)
 				if contentWindow.Button(label.T("Generate"), false) {
 					// get selected account by index
 					accountName := accountNames[handler.selectedAccountIndex]
@@ -89,13 +90,13 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 }
 
 func (handler *ReceiveHandler) RenderAddress(window *helpers.Window) {
-	window.Row(50).Dynamic(1)
+	window.Row(helpers.LabelHeight).Dynamic(1)
 	window.LabelWrap("Address: " + handler.generatedAddress)
 
 	// generate qrcode
 	png, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
 	if err != nil {
-		window.Row(300).Dynamic(1)
+		window.Row(helpers.ErrorTextHeight).Dynamic(1)
 		window.LabelWrap(err.Error())
 	} else {
 		window.Row(200).Dynamic(1)
