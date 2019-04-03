@@ -103,7 +103,8 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 	if handler.stakeInfoFetchError != nil {
 		contentWindow.SetErrorMessage(handler.stakeInfoFetchError.Error())
 	} else {
-		contentWindow.Row(20).Static(43, 43, 35, 43, 43, 43, 80, 43, 43, 43, 60)
+		helpers.SetFont(contentWindow.Window, helpers.NavFont)
+		contentWindow.Row(helpers.LabelHeight).Static(43, 48, 35, 46, 46, 43, 80, 46, 43, 43, 67)
 		contentWindow.Label("Expired", "LC")
 		contentWindow.Label("Immature", "LC")
 		contentWindow.Label("Live", "LC")
@@ -116,6 +117,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *helpers.Window) {
 		contentWindow.Label("Voted", "LC")
 		contentWindow.Label("Total Subsidy", "LC")
 
+		helpers.SetFont(contentWindow.Window, helpers.PageContentFont)
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Expired)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Immature)), "LC")
 		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Live)), "LC")
