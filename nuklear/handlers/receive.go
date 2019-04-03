@@ -35,7 +35,7 @@ func (handler *ReceiveHandler) BeforeRender() {
 func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		accounts, err := walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+		accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 		if err != nil {
 			handler.err = err
 		} else {
@@ -61,7 +61,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 				}
 
 				if handler.numAccounts == 1 && handler.generatedAddress == "" {
-					handler.generatedAddress, handler.err = walletMiddleware.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
+					handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
 					handler.RenderAddress(contentWindow)
 				} else {
 					handler.accountSelector.Render(contentWindow.Window)
@@ -69,7 +69,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 					// draw submit button
 					if contentWindow.Button(label.T(buttonLabel), false) {
 						// get address
-						handler.generatedAddress, handler.err = walletMiddleware.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
+						handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.accountSelector.GetSelectedAccountNumber())
 						if handler.err != nil {
 							contentWindow.SetErrorMessage(handler.err.Error())
 						} else {
