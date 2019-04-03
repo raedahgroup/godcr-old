@@ -58,7 +58,7 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 }
 
 func startSync(walletMiddleware app.WalletMiddleware, updateStatus func(string), afterSyncing func()) {
-	err := walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
+	err := walletMiddleware.SyncBlockChainOld(&app.BlockChainSyncListener{
 		SyncStarted: func() {
 			updateStatus("Blockchain sync started...")
 		},
