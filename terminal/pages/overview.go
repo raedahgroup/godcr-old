@@ -72,7 +72,7 @@ func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tv
 
 func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
 	balanceTitleTextView := primitives.NewLeftAlignedTextView("BALANCE")
-	overviewPage.AddItem(balanceTitleTextView, 1, 0, false)
+	overviewPage.AddItem(balanceTitleTextView, 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
