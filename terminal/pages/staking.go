@@ -98,7 +98,7 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	return body
 }
 
-func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
+func stakeInfoTable(wallet walletcore.Wallet) (*primitives.Table, error) {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
 	if err != nil {
 		return nil, err
@@ -106,31 +106,36 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 		return nil, errors.New("no tickets in wallet")
 	}
 
-	table := tview.NewTable().SetBorders(true)
+	table := primitives.NewTable()
+	table.SetBorders(true)
 
-	table.SetCell(0, 0, tview.NewTableCell("Expired").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 1, tview.NewTableCell("Immature").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 2, tview.NewTableCell("Live").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 3, tview.NewTableCell("Revoked").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 4, tview.NewTableCell("Unmined").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 5, tview.NewTableCell("Unspent").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 6, tview.NewTableCell("AllmempoolTix").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 7, tview.NewTableCell("PoolSize").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 8, tview.NewTableCell("Missed").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 9, tview.NewTableCell("Voted").SetAlign(tview.AlignCenter))
-	table.SetCell(0, 10, tview.NewTableCell("Total Subsidy").SetAlign(tview.AlignCenter))
+	table.SetHeaderCell(0, 0, "Expired")
+	table.SetHeaderCell(0, 1, "Immature")
+	table.SetHeaderCell(0, 2, "Live")
+	table.SetHeaderCell(0, 3, "Revoked")
+	table.SetHeaderCell(0, 4, "Unmined")
+	table.SetHeaderCell(0, 5, "Unspent")
+	table.SetHeaderCell(0, 6, "AllmempoolTix")
+	table.SetHeaderCell(0, 7, "PoolSize")
+	table.SetHeaderCell(0, 8, "Missed")
+	table.SetHeaderCell(0, 9, "Voted")
+	table.SetHeaderCell(0, 10, "Total Subsidy")
 
-	table.SetCell(1, 0, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Expired))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 1, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Immature))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 2, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Live))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 3, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Revoked))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 4, tview.NewTableCell(strconv.Itoa(int(stakeInfo.OwnMempoolTix))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 5, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Unspent))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 6, tview.NewTableCell(strconv.Itoa(int(stakeInfo.AllMempoolTix))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 7, tview.NewTableCell(strconv.Itoa(int(stakeInfo.PoolSize))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 8, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Missed))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 9, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Voted))).SetAlign(tview.AlignCenter))
-	table.SetCell(1, 10, tview.NewTableCell(stakeInfo.TotalSubsidy).SetAlign(tview.AlignCenter))
+	numberToString := func(n uint32) string {
+		return strconv.Itoa(int(n))
+	}
+
+	table.SetCellCenterAlign(1, 0, numberToString(stakeInfo.Expired))
+	table.SetCellCenterAlign(1, 1, numberToString(stakeInfo.Immature))
+	table.SetCellCenterAlign(1, 2, numberToString(stakeInfo.Live))
+	table.SetCellCenterAlign(1, 3, numberToString(stakeInfo.Revoked))
+	table.SetCellCenterAlign(1, 4, numberToString(stakeInfo.OwnMempoolTix))
+	table.SetCellCenterAlign(1, 5, numberToString(stakeInfo.Unspent))
+	table.SetCellCenterAlign(1, 6, numberToString(stakeInfo.AllMempoolTix))
+	table.SetCellCenterAlign(1, 7, numberToString(stakeInfo.PoolSize))
+	table.SetCellCenterAlign(1, 8, numberToString(stakeInfo.Missed))
+	table.SetCellCenterAlign(1, 9, numberToString(stakeInfo.Voted))
+	table.SetCellCenterAlign(1, 10, stakeInfo.TotalSubsidy)
 
 	return table, nil
 }

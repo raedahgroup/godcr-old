@@ -110,7 +110,7 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	return body
 }
 
-func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *tview.Table, displayError func(errorMessage string)) {
+func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *primitives.Table, displayError func(errorMessage string)) {
 	txns, endBlockHeight, err := wallet.TransactionHistory(context.Background(), startBlockHeight, walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
 		displayError(err.Error())
