@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -28,9 +29,15 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 0, 1, true)
 
-	outputMessageTextView := primitives.NewCenterAlignedTextView("")
-	body.AddItem(outputMessageTextView, 2, 0, false)
+	outputMessageTextView := primitives.WordWrappedTextView("")
+	outputMessageTextView.SetTextColor(tcell.ColorOrangeRed)
 
+	displayMessage := func(message string) {
+		body.RemoveItem(outputMessageTextView)
+		outputMessageTextView.SetText(message)
+		body.AddItem(outputMessageTextView, 2, 0, false)
+	}
+	
 	accountNames := make([]string, len(accounts))
 	accountNumbers := make([]uint32, len(accounts))
 	for index, account := range accounts {
@@ -65,12 +72,9 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	})
 
 	form.AddButton("Send", func() {
-		// clear previous message
-		outputMessageTextView.SetText("")
-
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {
-			outputMessageTextView.SetText("Error: Invalid amount")
+			displayMessage("Error: Invalid amount")
 			return
 		}
 
@@ -87,11 +91,11 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
 		if err != nil {
-			outputMessageTextView.SetText(err.Error())
+			displayMessage(err.Error())
 			return
 		}
 
-		outputMessageTextView.SetText("Sent txid " + txHash)
+		displayMessage("Sent txid " + txHash)
 
 		// reset form
 		form.ClearFields()
