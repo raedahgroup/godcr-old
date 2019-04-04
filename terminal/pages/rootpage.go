@@ -29,6 +29,8 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
 	}
 
+	hintText := primitives.WordWrappedTextView("")
+	hintText.SetTextColor(tcell.ColorGray)
 
 	menuColumn := tview.NewList()
 	clearFocus := func() {
@@ -38,23 +40,23 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	}
 
 	menuColumn.AddItem("Overview", "", 'o', func() {
-		displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(overviewPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
-		displayPage(historyPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(historyPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Send", "", 's', func() {
-		displayPage(sendPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(sendPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Receive", "", 'r', func() {
-		displayPage(receivePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(receivePage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Staking", "", 'k', func() {
-		displayPage(stakingPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(stakingPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Accounts", "", 'a', nil)
@@ -76,8 +78,14 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightColor)
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 
+	gridLayout.AddItem(hintText, 2, 1, 1, 2, 0, 0, false)
+
 	menuColumn.SetCurrentItem(0)
+<<<<<<< HEAD
 	displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+=======
+	displayPage(balancePage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+>>>>>>> moved hit text to gridlayout footer
 
 	return gridLayout
 }

@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func sendPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	body.SetBorderPadding(1, 0, 2, 0)
+	
+	hintText.SetText("TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc")
 
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("SEND"), 2, 0, false)
@@ -99,10 +100,6 @@ func sendPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.
 	})
 
 	form.SetCancelFunc(clearFocus)
-
-	hintText := primitives.WordWrappedTextView("(TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 2, 0, false)
 
 	setFocus(body)
 

@@ -10,11 +10,13 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func receivePage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	body.SetBorderPadding(1, 0, 2, 0)
 
 	form := tview.NewForm()
+
+	hintText.SetText("TIP: Navigate with Tab and Shift+Tab, hit ENTER to generate Address. Return with Esc")
 
 	body.AddItem(primitives.NewLeftAlignedTextView("GENERATE RECEIVE ADDRESS"), 2, 1, false)
 
@@ -59,10 +61,6 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			}), 4, 1, true)
 		}
 	}
-
-	hintText := primitives.WordWrappedTextView("(TIP: Navigate with Tab and Shift+Tab, hit ENTER to generate Address. Return with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 2, 0, false)
 
 	setFocus(body)
 	return body
