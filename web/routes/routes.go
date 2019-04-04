@@ -70,7 +70,7 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	// if wallet is not loaded, it tries to load it, if that fails, it shows an error page instead
 	router.Use(routes.walletLoaderMiddleware())
 
-	router.Get("/", routes.balancePage)
+	router.Get("/", routes.overviewPage)
 	router.Get("/send", routes.sendPage)
 	router.Post("/send", routes.submitSendTxForm)
 	router.Get("/receive", routes.receivePage)

@@ -32,11 +32,11 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	centerAlignAmountHeader := func(header string) string {
 		nHeaderCharacters := len(header)
 		if nHeaderCharacters < 17 {
-			spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters) / 2.0)
+			spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters)/2.0)
 			nLeftSpaces := int(spacesToPad)
 			nRightSpaces := int(17 - nHeaderCharacters - nLeftSpaces)
 
-			header = fmt.Sprintf("%*s", nLeftSpaces, header) // pad with spaces to the left
+			header = fmt.Sprintf("%*s", nLeftSpaces, header)   // pad with spaces to the left
 			header = fmt.Sprintf("%-*s", nRightSpaces, header) // pad with spaces to the right
 		}
 		return header

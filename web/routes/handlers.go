@@ -42,7 +42,7 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, "/", 303)
 }
 
-func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching account balance: %s", err.Error()), res)
@@ -53,10 +53,17 @@ func (routes *Routes) balancePage(res http.ResponseWriter, req *http.Request) {
 	showDetails := req.FormValue("detailed") != ""
 
 	data := map[string]interface{}{
-		"accounts": accounts,
-		"detailed": showDetails,
+		"accounts":     accounts,
+		"detailed":     showDetails,
 	}
-	routes.render("balance.html", data, res)
+
+	txns, _, err := routes.walletMiddleware.TransactionHistory(routes.ctx, -1, 5)
+	if err != nil {
+		data["loadTransactionErr"] = fmt.Sprintf("Error fetching recent activity: %s", err.Error())
+	}
+	data["transactions"] = txns
+
+	routes.render("overview.html", data, res)
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
