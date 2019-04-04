@@ -13,9 +13,8 @@ import (
 
 func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
-		SetRows(3, 0).
-		SetColumns(25, 0, 1).
-		SetGap(0, 2).
+		SetRows(3, 1, 0, 1, 3).
+		SetColumns(25, 2, 0, 2).
 		SetBordersColor(helpers.DecredLightColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
@@ -26,11 +25,11 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	displayPage := func(page tview.Primitive) {
 		gridLayout.RemoveItem(activePage)
 		activePage = page
-		gridLayout.AddItem(activePage, 1, 1, 1, 1, 0, 0, true)
+		gridLayout.AddItem(activePage, 2, 2, 1, 1, 0, 0, true)
 	}
 
-	hintText := primitives.WordWrappedTextView("")
-	hintText.SetTextColor(tcell.ColorGray)
+	hintTextView := primitives.WordWrappedTextView("")
+	hintTextView.SetTextColor(tcell.ColorGray)
 
 	menuColumn := tview.NewList()
 	clearFocus := func() {
@@ -40,23 +39,23 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	}
 
 	menuColumn.AddItem("Overview", "", 'o', func() {
-		displayPage(overviewPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+		displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
-		displayPage(historyPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+		displayPage(historyPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Send", "", 's', func() {
-		displayPage(sendPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+		displayPage(sendPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Receive", "", 'r', func() {
-		displayPage(receivePage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+		displayPage(receivePage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Staking", "", 'k', func() {
-		displayPage(stakingPage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
+		displayPage(stakingPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Accounts", "", 'a', nil)
@@ -72,20 +71,24 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	netType := walletMiddleware.NetType()
 	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n %s %s\n", strings.ToUpper(app.Name), netType))
 	header.SetBackgroundColor(helpers.DecredColor)
-	gridLayout.AddItem(header, 0, 0, 1, 3, 0, 0, false)
+	gridLayout.AddItem(header, 0, 0, 1, 4, 0, 0, false)
 
 	menuColumn.SetShortcutColor(helpers.DecredLightColor)
 	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightColor)
-	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
+	gridLayout.AddItem(menuColumn, 1, 0, 4	, 1, 0, 0, true)
 
-	gridLayout.AddItem(hintText, 2, 1, 1, 2, 0, 0, false)
+	gridLayout.AddItem(hintTextView, 4, 2, 1, 1, 0, 0, false)
 
 	menuColumn.SetCurrentItem(0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 	displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 =======
 	displayPage(balancePage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
 >>>>>>> moved hit text to gridlayout footer
+=======
+	displayPage(balancePage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
+>>>>>>> resolved issues with footer, renamed variables, aligned components and cleaned up code
 
 	return gridLayout
 }

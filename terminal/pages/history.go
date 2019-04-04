@@ -14,12 +14,11 @@ import (
 	"strings"
 )
 
-func historyPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	body.SetBorderPadding(1, 0, 2, 0)
 
-	hintText.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu")
+	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to Navigation menu")
 
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("HISTORY"), 2, 0, false)

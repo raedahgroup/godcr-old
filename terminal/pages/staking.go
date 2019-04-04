@@ -15,15 +15,14 @@ import (
 	"github.com/rivo/tview"
 )
 
-func stakingPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	body.SetBorderPadding(1, 0, 2, 0)
 
 	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Staking"), 1, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
 	
-	hintText.SetText("TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc")
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
 
 	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
@@ -34,7 +33,7 @@ func stakingPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFoc
 		body.AddItem(stakeInfo, 6, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
 	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())

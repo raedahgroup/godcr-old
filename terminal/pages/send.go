@@ -10,11 +10,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-func sendPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	body.SetBorderPadding(1, 0, 2, 0)
 	
-	hintText.SetText("TIP: Select source account with Arrow Down and Enter. Move around with Tab and Shift+Tab. Return to nav menu with Esc")
+	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
 
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("SEND"), 2, 0, false)
@@ -27,10 +26,10 @@ func sendPage(wallet walletcore.Wallet, hintText *primitives.TextView, setFocus 
 	// form for Sending
 	form := primitives.NewForm()
 	form.SetBorderPadding(0, 0, 0, 0)
-	body.AddItem(form, 14, 0, true)
+	body.AddItem(form, 0, 1, true)
 
 	outputMessageTextView := primitives.NewCenterAlignedTextView("")
-	body.AddItem(outputMessageTextView, 0, 1, false)
+	body.AddItem(outputMessageTextView, 2, 0, false)
 
 	accountNames := make([]string, len(accounts))
 	accountNumbers := make([]uint32, len(accounts))
