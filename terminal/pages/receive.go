@@ -29,7 +29,7 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
-		}), 2, 1, true).
+		}), 4, 1, true).
 			AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()

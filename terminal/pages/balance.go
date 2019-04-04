@@ -11,8 +11,8 @@ func balancePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	balancePage := tview.NewFlex().SetDirection(tview.FlexRow)
 	balancePage.SetBorderPadding(1, 0, 1, 0)
 
-	titleTextView := primitives.TitleTextView("")
-	balancePage.AddItem(titleTextView.SetText("Balance"), 1, 0, false)
+	titleTextView := primitives.NewLeftAlignedTextView("Balance")
+	balancePage.AddItem(titleTextView, 1, 0, false)
 
 	hintText := primitives.WordWrappedTextView("")
 	hintText.SetTextColor(tcell.ColorGray)

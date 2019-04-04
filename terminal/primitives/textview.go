@@ -4,10 +4,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-func TitleTextView(text string) *TextView {
-	return NewLeftAlignedTextView(text)
-}
-
 type TextView struct {
 	*tview.TextView
 	text   string

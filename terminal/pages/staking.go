@@ -34,7 +34,7 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		body.AddItem(stakeInfo, 6, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
 	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
