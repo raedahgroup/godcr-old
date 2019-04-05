@@ -234,9 +234,7 @@ func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware
 
 func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	logInfo("Launching desktop app with fyne")
-	//fyne.LaunchApp(ctx, walletMiddleware)
-	fyne.LaunchApp()
-	// todo need to properly listen for shutdown and trigger shutdown
+	fyne.LaunchApp(ctx, walletMiddleware)
 	beginShutdown <- true
 }
 
