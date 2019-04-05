@@ -25,7 +25,7 @@ type fyneApp struct {
 	ctx              context.Context
 	walletMiddleware godcrApp.WalletMiddleware
 
-	mainWindow fyne.Window
+	mainWindow        fyne.Window
 	mainWindowContent fyne.CanvasObject
 
 	menuSectionOnLeft *fyne.Container

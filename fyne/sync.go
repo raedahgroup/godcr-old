@@ -1,16 +1,16 @@
 package fyne
 
 import (
-	"time"
 	"fmt"
 	"math"
+	"time"
 
 	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
+	"fyne.io/fyne/widget"
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/fyne/widgets"
-	"fyne.io/fyne/layout"
 )
 
 const (
@@ -34,7 +34,7 @@ func (app *fyneApp) showSyncWindow() {
 		widgets.NewVSpacer(20),
 	)
 
-	syncWindowHeight := syncWindowContent.MinSize().Height + theme.Padding() * 2
+	syncWindowHeight := syncWindowContent.MinSize().Height + theme.Padding()*2
 	syncWindowWidth := int(math.Round(defaultWindowWidth / 1.5))
 
 	app.mainWindow.SetTitle(godcrApp.DisplayName)
