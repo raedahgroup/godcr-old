@@ -18,23 +18,27 @@ export const copyToClipboard = str => {
   }
 }
 
-export const setErrorMessage = (ctl, message) => {
-  ctl.errorMessageTarget.innerHTML = message
-  hide(ctl.successMessageTarget)
-  show(ctl.errorMessageTarget)
+export const setErrorMessage = (controller, message) => {
+  controller.errorMessageTarget.innerHTML = message
+  hide(controller.successMessageTarget)
+  show(controller.errorMessageTarget)
 }
 
-export const setSuccessMessage = (ctl, message) => {
-  ctl.successMessageTarget.innerHTML = message
-  hide(ctl.errorMessageTarget)
-  show(ctl.successMessageTarget)
+export const setSuccessMessage = (controller, message) => {
+  controller.successMessageTarget.innerHTML = message
+  hide(controller.errorMessageTarget)
+  show(controller.successMessageTarget)
 }
 
-export const clearMessages = (ctl) => {
-  hide(ctl.errorMessageTarget)
-  hide(ctl.successMessageTarget)
-  ctl.errorsTarget.innerHTML = ''
-  ctl.successMessageTarget.innerHTML = ''
+export const clearMessages = (controller) => {
+  if (controller.errorMessageTarget) {
+    hide(controller.errorMessageTarget)
+    controller.errorMessageTarget.innerHTML = ''
+  }
+  if (controller.successMessageTarget) {
+    hide(controller.successMessageTarget)
+    controller.successMessageTarget.innerHTML = ''
+  }
 }
 
 export const hide = (el) => {

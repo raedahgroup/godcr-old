@@ -13,7 +13,7 @@
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Receiving Decred</h5>
-                       <p class="lead-text">Each time you request payment, a new <br/>address is created to protect your privacy</p>
+                       <p class="lead-text">Each time you request payment, a new address is created to protect your privacy</p>
                        <div class="row">
                            <div class="col-md-6 col-sm-12">
                                <div class="form-group">
@@ -26,6 +26,7 @@
                                    </select>
                                {{ else }}
                                {{ range $account := .accounts }}
+                                       <input data-target="receive.account" value="{{ $account.Number }}" type="hidden" name="account">
                                    <input class="form-control" readonly value="{{ accountString $account }}">
                                {{ end }}
                                {{ end  }}
@@ -36,10 +37,16 @@
                             <div id="result-text">
                                 <strong>Address:</strong>
                                 <span data-target="receive.address" id="address">{{ .address }}</span>
-                                <button data-action="click->receive#copyAddressToClipboard" class="btn btn-xs btnCopy" title="Copy to clipboard"><i class="fas fa-copy"></i></button>
+                                <button data-action="click->receive#copyAddressToClipboard" class="btn btn-xs btnCopy" title="Copy to clipboard"><i class="fas fa-copy"></i> (<span data-target="receive.copyButtonText" >copy</span>)</button>
                             </div>
                             <div id="result-img">{{ rawHtml .imageStr }}</div>
                         </div>
+                       <div class="row">
+                           <div class="col-md-6">
+                               <button data-target="receive.generateNewAddressButton" data-action="click->receive#generateNewAddress"
+                                       class="btn btn-primary">Generate New Address</button>
+                           </div>
+                       </div>
                    </div>
                 </div>
             </div>

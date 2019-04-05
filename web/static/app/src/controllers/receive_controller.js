@@ -1,21 +1,37 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { copyToClipboard, setErrorMessage } from '../utils'
+import { clearMessages, copyToClipboard, setErrorMessage } from '../utils'
 
 export default class extends Controller {
   static get targets () {
     return [
-      'account', 'address', 'image'
+      'account', 'address', 'image', 'copyButtonText', 'generateNewAddressButton'
     ]
   }
 
   copyAddressToClipboard () {
     copyToClipboard(this.addressTarget.textContent)
+    this.copyButtonTextTarget.textContent = 'copied'
+    let _this = this
+    setTimeout(function () {
+      _this.copyButtonTextTarget.textContent = 'copy'
+    }, 1500)
   }
 
-  generate () {
+  generateNewAddress () {
+    this.generateNewAddressButtonTarget.textContent = 'Generating...'
+    this.generateNewAddressButtonTarget.setAttribute('disabled', 'disabled')
+
     let _this = this
-    _this.clearMessages()
+    this.generate(function () {
+      _this.generateNewAddressButtonTarget.textContent = 'Generate New Address'
+      _this.generateNewAddressButtonTarget.removeAttribute('disabled')
+    })
+  }
+
+  generate (onComplete) {
+    let _this = this
+    clearMessages(this)
     axios.get('/generate-address/' + this.accountTarget.value)
       .then((response) => {
         let result = response.data
@@ -23,11 +39,16 @@ export default class extends Controller {
           _this.addressTarget.textContent = result.address
           _this.imageTarget.setAttribute('src', result.imageData)
         } else {
-          setErrorMessage(result.message)
+          setErrorMessage(_this, result.message)
         }
       })
       .catch(() => {
-        setErrorMessage('Unable to generate address. Something went wrong.')
+        setErrorMessage(_this, 'Unable to generate address. Something went wrong.')
+      })
+      .then(function () {
+        if (onComplete) {
+          onComplete()
+        }
       })
   }
 }
