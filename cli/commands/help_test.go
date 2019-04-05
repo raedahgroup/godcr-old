@@ -17,7 +17,7 @@ func TestHelpCommand_Run(t *testing.T) {
 	parser := flags.NewParser(&cfg, flags.IgnoreUnknown)
 
 	type Args struct {
-		CommandName string
+		CommandName string `positional-arg-name:"command-name"`
 	}
 
 	type fields struct {
@@ -38,6 +38,8 @@ func TestHelpCommand_Run(t *testing.T) {
 					CommandName: "detect",
 				},
 			},
+			parser:  parser,
+			wantErr: false,
 		},
 	}
 	for _, test := range tests {
