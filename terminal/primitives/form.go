@@ -66,8 +66,8 @@ type FormItem interface {
 // NewForm returns a new form.
 func NewForm() *Form {
 	return &Form{
-		Form: tview.NewForm(),
-		backgroundColor: tview.Styles.PrimitiveBackgroundColor,
+		Form:                  tview.NewForm(),
+		backgroundColor:       tview.Styles.PrimitiveBackgroundColor,
 		itemPadding:           1,
 		labelColor:            tview.Styles.SecondaryTextColor,
 		fieldBackgroundColor:  tview.Styles.ContrastBackgroundColor,

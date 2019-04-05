@@ -6,14 +6,16 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/pkg/browser"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/web/routes"
+	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
@@ -100,8 +102,31 @@ func startServer(ctx context.Context, address string, router chi.Router) error {
 		return ctx.Err()
 	case <-t.C:
 		fmt.Printf("Web server running on %s\n", address)
-		fmt.Printf("Launching browser....\n")
-		browser.OpenURL("http://" + address)
+		fmt.Print("Launching browser... ") // use print so next text can be added to same line
+		if launchError := launchBrowser("http://" + address); launchError != nil {
+			weblog.Log.Error("Failed to launch browser", launchError.Error())
+			fmt.Println("Browser failed to launch")
+		} else {
+			fmt.Println("Ready") // append
+		}
 		return nil
 	}
+}
+
+func launchBrowser(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+
+	return exec.Command(cmd, args...).Start()
 }

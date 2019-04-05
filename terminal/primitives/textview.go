@@ -4,7 +4,7 @@ import "github.com/rivo/tview"
 
 type TextView struct {
 	*tview.TextView
-	text string
+	text   string
 	border bool
 }
 
@@ -48,6 +48,6 @@ func NewCenterAlignedTextView(text string) *TextView {
 func NewTextView(text string, alignment int) *TextView {
 	return &TextView{
 		TextView: tview.NewTextView().SetTextAlign(alignment).SetText(text),
-		text:text,
+		text:     text,
 	}
 }
