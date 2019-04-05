@@ -6,6 +6,7 @@ import (
 
 // Name is the name of the program.
 const Name = "godcr"
+const DisplayName = "GoDCR"
 
 // version provides version information for the program
 type version struct {

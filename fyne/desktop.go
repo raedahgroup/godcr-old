@@ -5,54 +5,59 @@ import (
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
+	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/fyne/pages"
 )
 
-func LaunchApp() {
-	a := app.New()
-	w := a.NewWindow("GoDCR Wallet")
+type fyneApp struct {
+	fyne.App
+	walletMiddleware godcrApp.WalletMiddleware
+	menuButtons []*widget.Button
+	pageContentSection *widget.Box
+}
 
-	content := widget.NewVBox(
-	)
+func LaunchApp(walletMiddleware godcrApp.WalletMiddleware) {
+	this := &fyneApp{
+		App: app.New(),
+		walletMiddleware:walletMiddleware,
+	}
 
-	menu := widget.NewVBox(
-		widget.NewGroup("GoDCR", widget.NewVBox(
-			widget.NewButton("Overview", func() {
+	mainWindow := this.NewWindow(godcrApp.DisplayName)
+	mainWindowContent := fyne.NewContainerWithLayout(layout.NewHBoxLayout())
 
-			}),
-			widget.NewButton("History", func() {
+	menuOptionsHolder := widget.NewVBox()
+	navPages := pages.NavPages()
+	this.menuButtons = make([]*widget.Button, len(navPages))
+	for i, page := range pages.NavPages() {
+		this.menuButtons[i] = widget.NewButton(page.Title, this.displayPageFunc(page))
+		menuOptionsHolder.Append(this.menuButtons[i])
+	}
 
-			}),
-			widget.NewButton("Send", func() {
+	// add menu to main window
+	menuSection := widget.NewGroup("Menu", menuOptionsHolder)
+	menuSectionLayout := layout.NewFixedGridLayout(fyne.NewSize(200, menuSection.MinSize().Height))
+	menuSectionContainer := fyne.NewContainerWithLayout(menuSectionLayout, menuSection)
+	mainWindowContent.AddObject(menuSectionContainer)
 
-			}),
-			widget.NewButton("Recieve", func() {
+	// add page content to main window
+	this.pageContentSection = widget.NewVBox()
+	pageContentLayout := layout.NewGridLayout(1)
+	pageContentContainer := fyne.NewContainerWithLayout(pageContentLayout, this.pageContentSection)
+	mainWindowContent.AddObject(pageContentContainer)
 
-			}),
-			widget.NewButton("Accounts", func() {
+	mainWindow.SetContent(mainWindowContent)
 
-			}),
-			widget.NewButton("Security", func() {
+	// ShowAndRun blocks until the app is exited, then returns to the caller of this LaunchApp function
+	mainWindow.ShowAndRun()
+}
 
-			}),
-			widget.NewButton("Governance", func() {
-
-			}),
-			widget.NewButton("Quit", func() {
-				a.Quit()
-			}),
-		)),
-	)
-
-	w.SetContent(fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		fyne.NewContainerWithLayout(layout.NewGridLayout(4),
-			fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-				menu,
-			),
-			fyne.NewContainerWithLayout(layout.NewGridLayout(8),
-				content,
-			),
-		),
-	))
-
-	w.ShowAndRun()
+// displayPageFunc returns the function that will be triggered to display a page
+func (app *fyneApp) displayPageFunc(page *pages.Page) func() {
+	return func() {
+		app.pageContentSection.Children = []fyne.CanvasObject{
+			widget.NewLabel(page.Title),
+			page.Content(app.walletMiddleware),
+		}
+	}
 }
