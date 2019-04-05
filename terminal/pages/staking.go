@@ -22,8 +22,6 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
 	
-	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
-
 	errorTextView := primitives.WordWrappedTextView("")
 	errorTextView.SetTextColor(tcell.ColorOrangeRed)
 
@@ -102,6 +100,8 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	})
 
 	setFocus(body)
+	
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
 
 	return body
 }

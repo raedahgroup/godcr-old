@@ -21,10 +21,6 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	pageTitle := primitives.NewCenterAlignedTextView("First Time? Create Wallet")
 	createWalletPage.AddItem(pageTitle, 1, 0, false)
 
-	hintText := primitives.WordWrappedTextView("(Use TAB and Shift+TAB to move between fields and ESC to cancel)")
-	hintText.SetTextColor(tcell.ColorGray)
-	createWalletPage.AddItem(hintText, 2, 0, false)
-
 	// attempt to get seed and display any error to user
 	seed, err := walletMiddleware.GenerateNewWalletSeed()
 	if err != nil {
@@ -160,5 +156,9 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 
 	tviewApp.SetFocus(createWalletPage)
 
+	hintText := primitives.WordWrappedTextView("(Use TAB and Shift+TAB to move between fields and ESC to cancel)")
+	hintText.SetTextColor(tcell.ColorGray)
+	createWalletPage.AddItem(hintText, 2, 0, false)
+	
 	return createWalletPage
 }
