@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,69 +11,67 @@ import (
 )
 
 type sendPagePayload struct {
-	Utxos []string
-	SourceAccount uint32
-	Passphrase string
-	RequiredConfirmations int32
-	UseCustom bool
-	SendDestinations []txhelper.TransactionDestination
-	ChangeDestinations []txhelper.TransactionDestination
-	TotalInputAmount int64
-
+	utxos                 []string
+	sourceAccount         uint32
+	passphrase            string
+	requiredConfirmations int32
+	useCustom             bool
+	sendDestinations      []txhelper.TransactionDestination
+	changeDestinations    []txhelper.TransactionDestination
+	totalInputAmount      int64
 }
-
 
 func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err error) {
 	payload = new(sendPagePayload)
 
 	req.ParseForm()
-	payload.Utxos = req.Form["utxo"]
+	payload.utxos = req.Form["utxo"]
 	selectedAccount := req.FormValue("source-account")
-	payload.Passphrase = req.FormValue("wallet-passphrase")
+	payload.passphrase = req.FormValue("wallet-passphrase")
 	spendUnconfirmed := req.FormValue("spend-unconfirmed")
-	payload.UseCustom = req.FormValue("use-custom") != ""
+	payload.useCustom = req.FormValue("use-custom") != ""
 
 	destinationAddresses := req.Form["destination-address"]
 	destinationAmounts := req.Form["destination-amount"]
 
 	sendDestinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error in building transaction destinations: %s", err.Error())
 	}
-	payload.SendDestinations = sendDestinations
+	payload.sendDestinations = sendDestinations
 
 	account, err := strconv.ParseUint(selectedAccount, 10, 32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error in retreiving selected account: %s", err.Error())
 	}
-	payload.SourceAccount = uint32(account)
+	payload.sourceAccount = uint32(account)
 
-	payload.RequiredConfirmations = walletcore.DefaultRequiredConfirmations
+	payload.requiredConfirmations = walletcore.DefaultRequiredConfirmations
 	if spendUnconfirmed != "" {
-		payload.RequiredConfirmations = 0
+		payload.requiredConfirmations = 0
 	}
 
 	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
 	totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("error in getting total selected input amount: %s", err.Error())
 	}
 
 	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("error in getting total selected input amount: %s", err.Error())
 	}
 
-	payload.TotalInputAmount = int64(totalInputAmount)
+	payload.totalInputAmount = int64(totalInputAmount)
 
 	changeOutputAddresses := req.Form["change-output-address"]
 	changeOutputAmounts := req.Form["change-output-amount"]
 
 	changeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddresses, changeOutputAmounts)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("error in building change destinations: %s", err.Error())
 	}
-	payload.ChangeDestinations = changeDestinations
+	payload.changeDestinations = changeDestinations
 
 	return
 }

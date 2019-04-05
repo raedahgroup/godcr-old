@@ -88,26 +88,29 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	defer renderJSON(data, res)
 
 	payload, err := retrieveSendPagePayload(req)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("cannot get max amount, %s", err.Error()), res)
+	}
 
 	// if no input is selected, then use all inputs.
 	// This is so as to make set max amount possible for situations where custom inputs are not sent
-	if len(payload.Utxos) == 0 {
-		payload.Utxos, payload.TotalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.SourceAccount, payload.RequiredConfirmations)
+	if len(payload.utxos) == 0 {
+		payload.utxos, payload.totalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.sourceAccount, payload.requiredConfirmations)
 		if err != nil {
-			data["error"] = fmt.Errorf("error fetching unspent outputs for new tx: %s", err.Error())
+			data["error"] = fmt.Errorf("cannot get max amount, error fetching unspent outputs for new tx: %s", err.Error())
 			return
 		}
 	}
 
 	selectedAddress := req.FormValue("selected-address")
-	for i := 0; i < len(payload.SendDestinations); i++ {
-		if payload.SendDestinations[i].Address == selectedAddress {
-			payload.SendDestinations = append(payload.SendDestinations[:i], payload.SendDestinations[i+1:]...)
+	for i := 0; i < len(payload.sendDestinations); i++ {
+		if payload.sendDestinations[i].Address == selectedAddress {
+			payload.sendDestinations = append(payload.sendDestinations[:i], payload.sendDestinations[i+1:]...)
 			break
 		}
 	}
 
-	changeAmount, err := txhelper.EstimateChange(len(payload.Utxos), payload.TotalInputAmount, payload.SendDestinations, []string{selectedAddress})
+	changeAmount, err := txhelper.EstimateChange(len(payload.utxos), payload.totalInputAmount, payload.sendDestinations, []string{selectedAddress})
 
 	if err != nil {
 		if strings.Contains(err.Error(), "total input amount not enough to cover transaction") {
@@ -131,17 +134,17 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	var txHash string
-	if payload.UseCustom {
-		if len(payload.ChangeDestinations) < 1 {
-			payload.ChangeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, payload.TotalInputAmount,
-				payload.SourceAccount, len(payload.Utxos), payload.SendDestinations)
+	if payload.useCustom {
+		if len(payload.changeDestinations) < 1 {
+			payload.changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, payload.totalInputAmount,
+				payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
 			if err != nil {
 				return
 			}
 		}
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(payload.SourceAccount, payload.RequiredConfirmations, payload.Utxos, payload.SendDestinations, payload.ChangeDestinations, payload.Passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(payload.sourceAccount, payload.requiredConfirmations, payload.utxos, payload.sendDestinations, payload.changeDestinations, payload.passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(payload.SourceAccount, payload.RequiredConfirmations, payload.SendDestinations, payload.Passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(payload.sourceAccount, payload.requiredConfirmations, payload.sendDestinations, payload.passphrase)
 	}
 	if err != nil {
 		data["error"] = err.Error()
@@ -262,9 +265,9 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 
-	destinations := append(payload.SendDestinations, payload.ChangeDestinations...)
+	destinations := append(payload.sendDestinations, payload.changeDestinations...)
 
-	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), payload.TotalInputAmount, payload.SourceAccount, len(payload.Utxos), destinations)
+	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), payload.totalInputAmount, payload.sourceAccount, len(payload.utxos), destinations)
 	if err != nil {
 		data["error"] = err.Error()
 		return
