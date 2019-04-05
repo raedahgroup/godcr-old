@@ -14,18 +14,27 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	form := tview.NewForm()
 
-	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to Navigation menu")
-
 	body.AddItem(primitives.NewLeftAlignedTextView("GENERATE RECEIVE ADDRESS"), 2, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
+
+	outputMessageTextView := primitives.WordWrappedTextView("")
+	outputMessageTextView.SetTextColor(tcell.ColorOrangeRed)
+
+	displayErrorMessage := func(message string) {
+		body.RemoveItem(outputMessageTextView)
+		outputMessageTextView.SetText(message)
+		body.AddItem(outputMessageTextView, 2, 0, false)
+	}
+
 	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
-			return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+			errorText := fmt.Sprintf("Error: %s", err.Error())
+			displayErrorMessage(errorText)
 		}
 		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
@@ -49,7 +58,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 				AddButton("Generate", func() {
 					address, qr, err := generateAddress(wallet, accountNum)
 					if err != nil {
-						body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
+						errorText := fmt.Sprintf("Error: %s", err.Error())
+						displayErrorMessage(errorText)
 						return
 					}
 					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 2, 1, false).
@@ -59,6 +69,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			}), 4, 1, true)
 		}
 	}
+
+	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to Navigation menu")
 
 	setFocus(body)
 	return body

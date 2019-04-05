@@ -24,20 +24,29 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	
 	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
 
+	errorTextView := primitives.WordWrappedTextView("")
+	errorTextView.SetTextColor(tcell.ColorOrangeRed)
+
+	displayError := func(errorMessage string) {
+		body.RemoveItem(errorTextView)
+		errorTextView.SetText(errorMessage)
+		body.AddItem(errorTextView, 0, 1, false)
+	}
+
 	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
-		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
+		displayError(errorText)
 	} else {
 		body.AddItem(stakeInfo, 6, 0, true)
 	}
 
 	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
-	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
+	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet, displayError)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
-		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
+		displayError(errorText)
 	} else {
 		body.AddItem(purchaseTicket, 12, 0, true)
 		body.AddItem(statusTextView, 3, 0, true)
@@ -139,7 +148,7 @@ func stakeInfoTable(wallet walletcore.Wallet) (*primitives.Table, error) {
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives.TextView, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayError func(errorMessage string)) (*primitives.Form, *primitives.TextView, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return nil, nil, err
@@ -180,17 +189,17 @@ func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives
 
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
-			statusTextView.SetText("Error: please specify the number of tickets to purchase")
+			displayError("Error: please specify the number of tickets to purchase")
 			return
 		}
 		if len(passphrase) == 0 {
-			statusTextView.SetText("Error: please enter your spending passphrase")
+			displayError("Error: please enter your spending passphrase")
 			return
 		}
 
 		ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
 		if err != nil {
-			statusTextView.SetText(err.Error())
+			displayError(err.Error())
 			return
 		}
 

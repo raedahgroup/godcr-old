@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
@@ -69,7 +68,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	netType := walletMiddleware.NetType()
-	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n %s %s\n", strings.ToUpper(app.Name), netType))
+	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n %s %s\n", app.DisplayName, netType))
 	header.SetBackgroundColor(helpers.DecredColor)
 	gridLayout.AddItem(header, 0, 0, 1, 4, 0, 0, false)
 

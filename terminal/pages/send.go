@@ -29,13 +29,13 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 0, 1, true)
 
-	outputMessageTextView := primitives.WordWrappedTextView("")
-	outputMessageTextView.SetTextColor(tcell.ColorOrangeRed)
+	errorTextView := primitives.WordWrappedTextView("")
+	errorTextView.SetTextColor(tcell.ColorOrangeRed)
 
 	displayMessage := func(message string) {
-		body.RemoveItem(outputMessageTextView)
-		outputMessageTextView.SetText(message)
-		body.AddItem(outputMessageTextView, 2, 0, false)
+		body.RemoveItem(errorTextView)
+		errorTextView.SetText(message)
+		body.AddItem(errorTextView, 2, 0, false)
 	}
 	
 	accountNames := make([]string, len(accounts))
@@ -95,7 +95,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 			return
 		}
 
-		displayMessage("Sent txid " + txHash)
+		body.AddItem(primitives.WordWrappedTextView("Sent txid " + txHash), 2, 0, false)
 
 		// reset form
 		form.ClearFields()
