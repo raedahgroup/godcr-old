@@ -1,5 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
+import {hide} from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -85,21 +86,21 @@ export default class extends Controller {
   }
 
   setErrorMessage (message) {
-    this.hide(this.successMessageTarget)
-    this.show(this.errorMessageTarget)
+    hide(this.successMessageTarget)
+    show(this.errorMessageTarget)
     this.errorMessageTarget.innerHTML = message
   }
 
   setSuccessMessage (message) {
-    this.hide(this.errorMessageTarget)
-    this.show(this.successMessageTarget)
+    hide(this.errorMessageTarget)
+    show(this.successMessageTarget)
     this.successMessageTarget.innerHTML = message
   }
 
   clearMessages () {
-    this.hide(this.errorMessageTarget)
-    this.hide(this.successMessageTarget)
-    this.hide(this.errorsTarget)
+    hide(this.errorMessageTarget)
+    hide(this.successMessageTarget)
+    hide(this.errorsTarget)
   }
 
   hide (el) {
@@ -112,6 +113,6 @@ export default class extends Controller {
 
   showError (error) {
     this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
-    this.show(this.errorsTarget)
+    show(this.errorsTarget)
   }
 }
