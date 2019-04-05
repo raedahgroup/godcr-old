@@ -14,7 +14,7 @@ func (app *fyneApp) showSyncWindow() {
 
 	// todo create the sync window content (widgets to show sync progress)
 	syncWindowContent := widget.NewVBox(
-		widget.NewLabelWithStyle("Sync progress will be appear here after sync is implemented.", fyne.TextAlignCenter, fyne.TextStyle{Italic:true}),
+		widget.NewLabelWithStyle("Sync progress will appear here after sync is implemented.", fyne.TextAlignCenter, fyne.TextStyle{Italic:true}),
 		widget.NewLabelWithStyle("App will launch fully in a few seconds.", fyne.TextAlignCenter, fyne.TextStyle{Italic:true}),
 	)
 

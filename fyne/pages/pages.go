@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"context"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 
@@ -8,48 +10,60 @@ import (
 )
 
 type Page struct {
-	Title    string
-	LoadContent func(wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject))
+	Title string
+	PageLoader interface{}
 }
 
-func pageNotImplementedContent(_ walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject)) {
+type SimplePageLoader interface {
+	Load(updatePageOnMainWindow func(object fyne.CanvasObject))
+}
+
+type WalletPageLoader interface {
+	Load(ctx context.Context, wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject))
+}
+
+type pageNotImplemented struct {}
+
+func (_ *pageNotImplemented) Load(updatePageOnMainWindow func(object fyne.CanvasObject)) {
 	notice := widget.NewLabelWithStyle("Page is not implemented yet.", fyne.TextAlignLeading, fyne.TextStyle{Italic:true})
 	updatePageOnMainWindow(notice)
 }
+
+var defaultPageNotImplemented = &pageNotImplemented{}
 
 func NavPages() []*Page {
 	return []*Page{
 		{
 			"Overview",
-			overviewPageContent,
+			&overviewPageLoader{},
 		},
 		{
 			"History",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Send",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Receive",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Staking",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Accounts",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Security",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 		{
 			"Settings",
-			pageNotImplementedContent,
+			defaultPageNotImplemented,
 		},
 	}
 }

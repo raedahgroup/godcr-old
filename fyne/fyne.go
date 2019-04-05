@@ -10,6 +10,8 @@ import (
 
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/fyne/pages"
+	"github.com/raedahgroup/godcr/fyne/log"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const (
@@ -37,7 +39,7 @@ type fyneApp struct {
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) error {
-	// open wallet and start sync operation in background before loading app window
+	// open wallet before loading app window in case there's an error while trying to load wallet
 	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		return err
@@ -53,11 +55,10 @@ func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) 
 	this.preparePageSectionOnRight()
 
 	// create main window content holder and add menu and page sections, separated with space
-	space := fyne.NewSize(menuSectionPageSectionSeparation / 2, 0)
 	mainWindowContentHolder := fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(),
 		this.menuSectionOnLeft,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(space), layout.NewSpacer()),
+		widgets.NewHSpacer(menuSectionPageSectionSeparation / 2),
 		this.pageSectionOnRight,
 	)
 
@@ -99,7 +100,7 @@ func (app *fyneApp) prepareNavSectionOnLeft() {
 
 func (app *fyneApp) preparePageSectionOnRight() {
 	// page section contents
-	app.pageTitle = widget.NewLabel("")
+	app.pageTitle = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic:true, Bold:true})
 
 	// put page title and scrollable content area in v-box
 	app.pageSectionOnRight = widget.NewVBox(app.pageTitle)
@@ -110,7 +111,14 @@ func (app *fyneApp) displayPageFunc(page *pages.Page) func() {
 	return func() {
 		app.pageTitle.SetText(page.Title)
 		app.highlightCurrentPageMenuButton(page.Title)
-		page.LoadContent(app.walletMiddleware, app.updatePageFunc)
+
+		if simplePageLoader, ok := page.PageLoader.(pages.SimplePageLoader); ok {
+			simplePageLoader.Load(app.updatePageFunc)
+		} else if walletPageLoader, ok := page.PageLoader.(pages.WalletPageLoader); ok {
+			walletPageLoader.Load(app.ctx, app.walletMiddleware, app.updatePageFunc)
+		} else {
+			log.PrintError("Page not properly set up: ", page.Title)
+		}
 	}
 }
 
@@ -156,7 +164,4 @@ func (app *fyneApp) resizeScrollableContainer() {
 	app.pageSectionOnRight.Children = []fyne.CanvasObject{}
 	app.pageSectionOnRight.Append(app.pageTitle)
 	app.pageSectionOnRight.Append(scrollableContainer)
-
-	//fmt.Println("page content size", app.pageContent.Size())
-	//fmt.Println("page content min size", app.pageContent.MinSize())
 }
