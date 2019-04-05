@@ -87,7 +87,8 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 
 	payload, err := retrieveSendPagePayload(req)
 	if err != nil {
-		routes.renderError(fmt.Sprintf("cannot get max amount, %s", err.Error()), res)
+		data["error"] = fmt.Sprintf("cannot get max amount: %s", err.Error())
+		return
 	}
 
 	// if no input is selected, then use all inputs.

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 
@@ -36,7 +37,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 
 	sendDestinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
 	if err != nil {
-		return nil, fmt.Errorf("error in building transaction destinations: %s", err.Error())
+		return nil, errors.New("invalid source account selected")
 	}
 	payload.sendDestinations = sendDestinations
 
@@ -54,12 +55,13 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
 	totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
 	if err != nil {
-		return nil, fmt.Errorf("error in getting total selected input amount: %s", err.Error())
+		return nil, errors.New("cannot read total send amount value")
 	}
 
 	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
 	if err != nil {
-		return nil, fmt.Errorf("error in getting total selected input amount: %s", err.Error())
+		err = errors.New("cannot read total send amount value")
+		return
 	}
 
 	payload.totalInputAmount = int64(totalInputAmount)
