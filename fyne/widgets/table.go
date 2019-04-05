@@ -7,7 +7,7 @@ import (
 )
 
 type Table struct {
-	*fyne.Container
+	container *fyne.Container
 }
 
 func NewTable() *Table {
@@ -16,16 +16,29 @@ func NewTable() *Table {
 	}
 }
 
-func (table *Table) AddRow(objects ...fyne.CanvasObject) *Table {
+func (table *Table) AddRow(objects ...fyne.CanvasObject) {
 	row := fyne.NewContainerWithLayout(layout.NewGridLayout(len(objects)), objects...)
-	table.AddObject(row)
-	return table
+	table.container.AddObject(row)
 }
 
-func (table *Table) AddRowSimple(texts ...string) *Table {
+func (table *Table) AddRowSimple(texts ...string) {
 	tableCells := make([]fyne.CanvasObject, len(texts))
 	for i, text := range texts {
 		tableCells[i] = widget.NewLabel(text)
 	}
-	return table.AddRow(tableCells...)
+	table.AddRow(tableCells...)
+}
+
+func (table *Table) Clear() {
+	table.container.Objects = []fyne.CanvasObject{}
+}
+
+// DefaultTable returns a table that grows beyond the minimum size to cover all available space
+func (table *Table) DefaultTable() *fyne.Container {
+	return table.container
+}
+
+// CondensedTable returns a table that does not grow beyond the minimum size required to display the longest row
+func (table *Table) CondensedTable() *fyne.Container {
+	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(table.container.MinSize()), table.container)
 }

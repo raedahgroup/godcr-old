@@ -3,16 +3,18 @@ package pages
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type Page struct {
 	Title    string
-	Content func(wallet walletcore.Wallet) fyne.CanvasObject
+	LoadContent func(wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject))
 }
 
-func pageNotImplementedContent(_ walletcore.Wallet) fyne.CanvasObject {
-	return widget.NewLabelWithStyle("Page is not implemented yet.", fyne.TextAlignLeading, fyne.TextStyle{Italic:true})
+func pageNotImplementedContent(_ walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject)) {
+	notice := widget.NewLabelWithStyle("Page is not implemented yet.", fyne.TextAlignLeading, fyne.TextStyle{Italic:true})
+	updatePageOnMainWindow(notice)
 }
 
 func NavPages() []*Page {
