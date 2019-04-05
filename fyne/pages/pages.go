@@ -5,12 +5,11 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
-
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type Page struct {
-	Title string
+	Title      string
 	PageLoader interface{}
 }
 
@@ -22,10 +21,10 @@ type WalletPageLoader interface {
 	Load(ctx context.Context, wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject))
 }
 
-type pageNotImplemented struct {}
+type pageNotImplemented struct{}
 
 func (_ *pageNotImplemented) Load(updatePageOnMainWindow func(object fyne.CanvasObject)) {
-	notice := widget.NewLabelWithStyle("Page is not implemented yet.", fyne.TextAlignLeading, fyne.TextStyle{Italic:true})
+	notice := widget.NewLabelWithStyle("Page is not implemented yet.", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
 	updatePageOnMainWindow(notice)
 }
 

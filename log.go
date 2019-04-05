@@ -52,7 +52,7 @@ var (
 	nuklearLog = backendLog.Logger("NUK")
 	cliLog     = backendLog.Logger("CLI")
 	terLog     = backendLog.Logger("TER")
-	fyneLogger    = backendLog.Logger("FYN")
+	fyneLogger = backendLog.Logger("FYN")
 )
 
 // Initialize package-global logger variables.
@@ -71,7 +71,7 @@ var subsystemLoggers = map[string]slog.Logger{
 	"NUK":  nuklearLog,
 	"CLI":  cliLog,
 	"TER":  terLog,
-	"FYN": fyneLogger,
+	"FYN":  fyneLogger,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

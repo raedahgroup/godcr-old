@@ -9,33 +9,31 @@ import (
 	"fyne.io/fyne/widget"
 
 	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/fyne/pages"
 	"github.com/raedahgroup/godcr/fyne/log"
+	"github.com/raedahgroup/godcr/fyne/pages"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const (
-	defaultWindowWidth = 800
-	defaultWindowHeight = 600
-
-	menuSectionWidth = 200
+	menuSectionWidth                 = 200
 	menuSectionPageSectionSeparation = 20
 )
 
 type fyneApp struct {
 	fyne.App
 
-	ctx context.Context
+	ctx              context.Context
 	walletMiddleware godcrApp.WalletMiddleware
 
 	mainWindow fyne.Window
+	mainWindowContent fyne.CanvasObject
 
 	menuSectionOnLeft *fyne.Container
 	menuButtons       []*widget.Button
 
 	pageSectionOnRight *widget.Box
-	pageTitle *widget.Label
-	pageContent fyne.CanvasObject
+	pageTitle          *widget.Label
+	pageContent        fyne.CanvasObject
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) error {
@@ -46,28 +44,25 @@ func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) 
 	}
 
 	this := &fyneApp{
-		App: app.New(),
-		ctx: ctx,
-		walletMiddleware:walletMiddleware,
+		App:              app.New(),
+		ctx:              ctx,
+		walletMiddleware: walletMiddleware,
 	}
 
 	this.prepareNavSectionOnLeft()
 	this.preparePageSectionOnRight()
 
 	// create main window content holder and add menu and page sections, separated with space
-	mainWindowContentHolder := fyne.NewContainerWithLayout(
+	this.mainWindowContent = fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(),
 		this.menuSectionOnLeft,
-		widgets.NewHSpacer(menuSectionPageSectionSeparation / 2),
+		widgets.NewHSpacer(menuSectionPageSectionSeparation/2),
 		this.pageSectionOnRight,
 	)
 
-	// main window
 	this.mainWindow = this.NewWindow(godcrApp.DisplayName)
-	this.mainWindow.SetContent(mainWindowContentHolder)
-	this.mainWindow.Resize(fyne.NewSize(defaultWindowWidth, defaultWindowHeight))
 
-	// main window will be displayed after sync completes
+	// main window content will be displayed after sync completes
 	// if there's no wallet, the create wallet window will trigger the sync operation after a wallet is created
 	if !walletExists {
 		this.showCreateWalletWindow()
@@ -100,7 +95,7 @@ func (app *fyneApp) prepareNavSectionOnLeft() {
 
 func (app *fyneApp) preparePageSectionOnRight() {
 	// page section contents
-	app.pageTitle = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic:true, Bold:true})
+	app.pageTitle = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 
 	// put page title and scrollable content area in v-box
 	app.pageSectionOnRight = widget.NewVBox(app.pageTitle)

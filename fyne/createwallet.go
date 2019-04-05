@@ -3,21 +3,22 @@ package fyne
 import (
 	"fmt"
 
-	godcrApp "github.com/raedahgroup/godcr/app"
 	"fyne.io/fyne/widget"
+	godcrApp "github.com/raedahgroup/godcr/app"
 )
 
 func (app *fyneApp) showCreateWalletWindow() {
-	window := app.NewWindow(fmt.Sprintf("%s Create Wallet", godcrApp.DisplayName))
+	app.mainWindow.SetTitle(fmt.Sprintf("%s Create Wallet", godcrApp.DisplayName))
 
 	createWalletButton := widget.NewButton("Create Wallet", func() {
-		// todo this function should not quit the app but actually create a wallet and then open the sync window
+		// todo this function should not quit the app but actually create a wallet
+		// and then open the sync window using app.showSyncWindow()
 		app.Quit()
 	})
 
 	// todo complete this create wallet window's content
-	window.SetContent(createWalletButton)
+	app.mainWindow.SetContent(createWalletButton)
 
-	window.CenterOnScreen()
-	window.Show()
+	app.mainWindow.CenterOnScreen()
+	app.mainWindow.Show()
 }

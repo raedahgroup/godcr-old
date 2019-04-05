@@ -19,8 +19,8 @@ import (
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/fyne"
+	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal"
 	"github.com/raedahgroup/godcr/web"
 )
