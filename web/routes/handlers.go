@@ -3,10 +3,6 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -14,6 +10,8 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
+	"net/http"
+	"strconv"
 )
 
 func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
@@ -104,19 +102,31 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 
 	selectedAddress := req.FormValue("selected-address")
 	for i := 0; i < len(payload.sendDestinations); i++ {
-		if payload.sendDestinations[i].Address == selectedAddress {
+		// the amount field of the selected address is set to 0 from the frontend
+		if payload.sendDestinations[i].Address == selectedAddress && payload.sendDestinations[i].Amount == 0 {
 			payload.sendDestinations = append(payload.sendDestinations[:i], payload.sendDestinations[i+1:]...)
 			break
 		}
 	}
 
+	var totalSendAmount int64
+	for _, destination := range payload.sendDestinations {
+		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
+		if err != nil {
+			data["error"] = fmt.Errorf("cannot get max amount, error in converting input amount to atom: %s", err.Error())
+			return
+		}
+		totalSendAmount += amountInAtom
+	}
+
+	if payload.totalInputAmount < totalSendAmount {
+		data["error"] = "Total send amount is already at maximum"
+		return
+	}
+
 	changeAmount, err := txhelper.EstimateChange(len(payload.utxos), payload.totalInputAmount, payload.sendDestinations, []string{selectedAddress})
 
 	if err != nil {
-		if strings.Contains(err.Error(), "total input amount not enough to cover transaction") {
-			data["error"] = "Total send amount is already at maximum"
-			return
-		}
 		data["error"] = fmt.Sprintf("Error in getting max send amount: %s", err.Error())
 		return
 	}
