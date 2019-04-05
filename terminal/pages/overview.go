@@ -148,8 +148,8 @@ func displayMultipleAccountsSimpleBalance(accounts []*walletcore.Account, balanc
 	for i, account := range accounts {
 		row := i + 1
 		balanceTable.SetCellCenterAlign(row, 0, account.Name).
-			SetCellRightAlign(row, 1, account.Balance.Total.String()).
-			SetCellRightAlign(row, 2, account.Balance.Spendable.String())
+			SetCellRightAlign(row, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin())).
+			SetCellRightAlign(row, 2, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()))
 	}
 }
 
@@ -165,8 +165,8 @@ func displayDetailedAccountsBalances(accounts []*walletcore.Account, balanceTabl
 	for i, account := range accounts {
 		row := i + 1
 		balanceTable.SetCellCenterAlign(row, 0, account.Name).
-			SetCellRightAlign(row, 1, account.Balance.Total.String()).
-			SetCellRightAlign(row, 2, account.Balance.Spendable.String()).
+			SetCellRightAlign(row, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin())).
+			SetCellRightAlign(row, 2, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin())).
 			SetCellCenterAlign(row, 3, account.Balance.LockedByTickets.String()).
 			SetCellCenterAlign(row, 4, account.Balance.VotingAuthority.String()).
 			SetCellCenterAlign(row, 5, account.Balance.Unconfirmed.String())
