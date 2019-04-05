@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import {hide, show} from '../utils'
+import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {

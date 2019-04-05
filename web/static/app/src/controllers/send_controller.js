@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import {hide, show} from '../utils'
+import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -43,7 +43,7 @@ export default class extends Controller {
 
     for (const addressTarget of this.addressTargets) {
       if (addressTarget.value === '') {
-        showError('Destination address should not be empty')
+        this.showError('Destination address should not be empty')
         fieldsAreValid = false
         break
       }
@@ -52,7 +52,7 @@ export default class extends Controller {
     for (const amountTarget of this.amountTargets) {
       const amount = parseFloat(amountTarget.value)
       if (isNaN(amount) || amount <= 0) {
-        showError('Amount must be a non-zero positive number')
+        this.showError('Amount must be a non-zero positive number')
         fieldsAreValid = false
         break
       }
