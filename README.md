@@ -78,7 +78,7 @@ Run `godcr --mode=terminal`
 Run `godcr --mode=http`
 3. Native desktop app with [nuklear](https://github.com/aarzilli/nucular) library.
 Run `godcr --mode=nuklear`
-4. Native desktop app with [fyne](https://fyne.io/r) library.
+4. Native desktop app with [fyne](https://github.com/fyne-io/fyne) library.
 Run `godcr --mode=fyne`
 
 ### Configuration
