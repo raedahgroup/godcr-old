@@ -17,8 +17,8 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	titleTextView := primitives.NewCenterAlignedTextView("")
-	body.AddItem(titleTextView.SetText("History"), 1, 0, false)
+	titleTextView := primitives.NewCenterAlignedTextView("History")
+	body.AddItem(titleTextView, 1, 0, false)
 
 	hintText := primitives.WordWrappedTextView("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to Navigation menu)")
 	hintText.SetTextColor(tcell.ColorGray)
@@ -26,13 +26,10 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
-		SetSeparator('\t').
 		SetFixed(1, 0).
 		SetSelectable(true, false)
 
-	transactionDetailsTable := tview.NewTable().
-		SetBorders(false).
-		SetSeparator(' ')
+	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
 	displayHistoryTable  := func() {
 		body.RemoveItem(transactionDetailsTable)
@@ -43,7 +40,6 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		body.AddItem(historyTable, 0, 1, true)
 	}
 
-	// error handler
 	errorTextView := primitives.WordWrappedTextView("")
 	errorTextView.SetTextColor(tcell.ColorOrangeRed)
 
@@ -59,12 +55,12 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		}
 	})
 
-	// method for getting transaction details
+	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
 		body.RemoveItem(historyTable)
 		txHash := historyTable.GetCell(row, 6).Text
 
-		titleTextView.SetText("Transaction Detail")
+		titleTextView.SetText("Transaction Details")
 		hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
 		
 		transactionDetailsTable.Clear()
@@ -81,7 +77,7 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 			clearFocus()
 			return nil
 		}
-		if event.Key() == tcell.KeyBackspace {
+		if event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			displayHistoryTable()
 			return nil
 		}
@@ -89,13 +85,11 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 		return event
 	})
 
-	displayHistoryTable()
-
 	tableHeaderCell := func(text string) *tview.TableCell {
 		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false)
 	}
 
-	// Table header
+	// Histroy Table header
 	historyTable.SetCell(0, 0, tableHeaderCell("#"))
 	historyTable.SetCell(0, 1, tableHeaderCell("Date"))
 	historyTable.SetCell(0, 4, tableHeaderCell("Direction"))
@@ -103,6 +97,8 @@ func historyPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 	historyTable.SetCell(0, 3, tableHeaderCell("Fee"))
 	historyTable.SetCell(0, 5, tableHeaderCell("Type"))
 	historyTable.SetCell(0, 6, tableHeaderCell("Hash"))
+
+	displayHistoryTable()
 
 	fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
 
@@ -151,7 +147,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 
 	transactionDetailsTable.SetCellSimple(0, 0, "Hash ")
 	transactionDetailsTable.SetCellSimple(1, 0, "Confirmations")
-	transactionDetailsTable.SetCellSimple(2, 0, "Included in block  ")
+	transactionDetailsTable.SetCellSimple(2, 0, "Included in block")
 	transactionDetailsTable.SetCellSimple(3, 0, "Type")
 	transactionDetailsTable.SetCellSimple(4, 0, "Amount received")
 	transactionDetailsTable.SetCellSimple(5, 0, "Date")
@@ -172,7 +168,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")
 	for _, txIn := range tx.Inputs {
 		row := transactionDetailsTable.GetRowCount()
-		transactionDetailsTable.SetCellSimple(row, 0, dcrutil.Amount(txIn.AmountIn).String())
+		transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(dcrutil.Amount(txIn.AmountIn).String()).SetAlign(tview.AlignRight))
 		transactionDetailsTable.SetCellSimple(row, 1, txIn.PreviousOutpoint)
 	}
 
@@ -192,7 +188,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 				accountName = "external"
 			}
 
-			transactionDetailsTable.SetCellSimple(row, 0, outputAmount)
+			transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(outputAmount).SetAlign(tview.AlignRight))
 			transactionDetailsTable.SetCellSimple(row, 1, fmt.Sprintf("%s (%s)", address.Address, accountName))
 		}
 	}
