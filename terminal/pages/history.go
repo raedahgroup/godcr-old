@@ -17,8 +17,11 @@ import (
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	body.AddItem(primitives.NewLeftAlignedTextView("HISTORY"), 2, 0, false)
-	
+
+	// page title and tip
+	titleTextView := primitives.NewCenterAlignedTextView("History")
+	body.AddItem(titleTextView, 1, 0, false)
+
 	historyTable := tview.NewTable().
 		SetBorders(false).
 		SetFixed(1, 0).
@@ -26,11 +29,11 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
-	displayHistoryTable  := func() {
+	displayHistoryTable := func() {
 		body.RemoveItem(transactionDetailsTable)
 
 		titleTextView.SetText("History")
-		hintText.SetText("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu)")
+		hintTextView.SetText("(TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to nav menu)")
 
 		body.AddItem(historyTable, 0, 1, true)
 		setFocus(historyTable)
@@ -57,7 +60,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		txHash := historyTable.GetCell(row, 6).Text
 
 		titleTextView.SetText("Transaction Details")
-		hintText.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
+		hintTextView .SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
 		
 		transactionDetailsTable.Clear()
 		body.AddItem(transactionDetailsTable, 0, 1, true)

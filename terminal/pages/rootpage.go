@@ -33,6 +33,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn := tview.NewList()
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
+		hintTextView.Clear()
 		tviewApp.Draw()
 		tviewApp.SetFocus(menuColumn)
 	}
