@@ -89,5 +89,9 @@ type Wallet interface {
 	// BestBlock fetches the best block on the network
 	BestBlock() (uint32, error)
 
+	// GetConnectedPeersCount returns the number of connected peers
 	GetConnectedPeersCount() int32
+
+	// NetType returns the network type of this wallet
+	NetType() string
 }

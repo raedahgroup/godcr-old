@@ -1,7 +1,7 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 import { hide, show } from '../utils'
-import ws from '../services/messagesocket_service'
+import { listenForBalanceUpdate } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -14,21 +14,7 @@ export default class extends Controller {
   }
 
   connect () {
-    let _this = this
-    ws.registerEvtHandler('updateBalance', function (data) {
-      if (_this.sourceAccountTarget.options) {
-        data.accounts.forEach(account => {
-          for (let i = 0; i < _this.sourceAccountTarget.length; i++) {
-            const opt = _this.sourceAccountTarget.options[i]
-            if (parseInt(opt.value) === account.number) {
-              opt.textContent = account.info
-            }
-          }
-        })
-      } else {
-        _this.sourceAccountTarget.textContent = data.accounts[0].balance
-      }
-    })
+    listenForBalanceUpdate(this)
   }
 
   validateForm () {

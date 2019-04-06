@@ -65,7 +65,7 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	}
 	data["transactions"] = txns
 
-	routes.render("overview.html", data, res)
+	routes.renderPage("overview.html", data, res)
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {

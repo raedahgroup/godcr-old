@@ -9,7 +9,7 @@
         <a href="/createwallet" class="btn btn-success">Create Wallet</a>
     </div>
 {{ else }}
-{{ template "header" }}
+    {{ template "header" .connectionInfo }}
     <div class="content">
         <div class="container">
             <div class="alert alert-danger">{{ .error }}</div>

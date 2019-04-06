@@ -1,4 +1,22 @@
 import toastr from 'toastr'
+import ws from './services/messagesocket_service'
+
+export function listenForBalanceUpdate (_this) {
+  ws.registerEvtHandler('updateBalance', function (data) {
+    if (_this.sourceAccountTarget.options) {
+      data.accounts.forEach(account => {
+        for (let i = 0; i < _this.sourceAccountTarget.length; i++) {
+          const opt = _this.sourceAccountTarget.options[i]
+          if (parseInt(opt.value) === account.number) {
+            opt.textContent = account.info
+          }
+        }
+      })
+    } else {
+      _this.sourceAccountTarget.textContent = data.accounts[0].balance
+    }
+  })
+}
 
 export const copyToClipboard = str => {
   const el = document.createElement('textarea')

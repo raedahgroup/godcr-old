@@ -8,8 +8,6 @@ import (
 // WalletMiddleware defines key functions for interacting with a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
 type WalletMiddleware interface {
-	NetType() string
-
 	WalletExists() (bool, error)
 
 	GenerateNewWalletSeed() (string, error)

@@ -92,7 +92,7 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 	return
 }
 
-func WalletConnectionInfo(wallet Wallet, netType string) (info ConnectionInfo, err error) {
+func WalletConnectionInfo(wallet Wallet) (info ConnectionInfo, err error) {
 	var totalBalance Balance
 	accounts, loadAccountErr := wallet.AccountsOverview(DefaultRequiredConfirmations)
 	if loadAccountErr != nil {
@@ -113,7 +113,7 @@ func WalletConnectionInfo(wallet Wallet, netType string) (info ConnectionInfo, e
 	}
 
 	info.LatestBlock = bestBlock
-	info.NetworkType = netType
+	info.NetworkType = wallet.NetType()
 	info.PeersConnected = wallet.GetConnectedPeersCount()
 
 	return

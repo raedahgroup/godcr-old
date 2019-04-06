@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-{{ template "html-head" .connectionInfo }}
+{{ template "html-head" }}
 <body>
     <div class="body" data-controller="staking">
-        {{ template "header" }}
+        {{ template "header" .connectionInfo }}
         <div class="content">
             <div class="container">
                 <div class="card">

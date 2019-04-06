@@ -10,7 +10,7 @@ import (
 )
 
 func (routes *Routes) renderPage(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	connectionInfo, err := walletcore.WalletConnectionInfo(routes.walletMiddleware, routes.walletMiddleware.NetType())
+	connectionInfo, err := walletcore.WalletConnectionInfo(routes.walletMiddleware)
 	if err != nil {
 		weblog.LogError(err)
 	}
@@ -41,7 +41,7 @@ func (routes *Routes) renderNoWalletError(res http.ResponseWriter) {
 	data := map[string]interface{}{
 		"noWallet": true,
 	}
-	routes.renderPage("error.html", data, res)
+	routes.render("error.html", data, res)
 }
 
 func renderJSON(data interface{}, res http.ResponseWriter) {

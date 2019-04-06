@@ -54,9 +54,9 @@ func waitToSendMessagesToClients() {
 }
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
-	var info = walletcore.ConnectionInfo{
-		NetworkType:    routes.walletMiddleware.NetType(),
-		PeersConnected: routes.walletMiddleware.GetConnectedPeersCount(),
+	info, err := walletcore.WalletConnectionInfo(routes.walletMiddleware)
+	if err != nil {
+		weblog.LogError(err)
 	}
 
 	wsBroadcast <- Packet{
