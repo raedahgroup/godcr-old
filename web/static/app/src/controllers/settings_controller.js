@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { showErrorMessage, showSuccessMessage } from '../utils'
+import { showErrorNotification, showSuccessNotification } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -25,17 +25,17 @@ export default class extends Controller {
     axios.post('/change-password', postData).then((response) => {
       let result = response.data
       if (result.error) {
-        showErrorMessage(result.error)
+        showErrorNotification(result.error)
       } else {
         _this.oldPasswordTarget.value = ''
         _this.newPasswordTarget.value = ''
         _this.confirmPasswordTarget.value = ''
 
-        showSuccessMessage('Password changed')
+        showSuccessNotification('Password changed')
         $('#change-password-modal').modal('hide')
       }
     }).catch(() => {
-      showErrorMessage('A server error occurred')
+      showErrorNotification('A server error occurred')
     }).then(() => {
       submitBtn.innerHTML = 'Change Password'
       submitBtn.removeAttribute('disabled')
@@ -78,14 +78,14 @@ export default class extends Controller {
     axios.put('/settings', postData).then((response) => {
       let result = response.data
       if (result.success) {
-        showSuccessMessage('Changes saved successfully')
+        showSuccessNotification('Changes saved successfully')
       } else {
-        showErrorMessage(result.error ? result.error : 'Something went wrong, please try again later')
+        showErrorNotification(result.error ? result.error : 'Something went wrong, please try again later')
         _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
       }
     }).catch(() => {
       _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
-      showErrorMessage('A server error occurred')
+      showErrorNotification('A server error occurred')
     })
   }
 }

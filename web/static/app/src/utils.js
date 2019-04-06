@@ -43,11 +43,11 @@ export const clearMessages = (controller) => {
   }
 }
 
-export const notifyError = (message) => {
+export const showErrorNotification = (message) => {
   toastr.error(message)
 }
 
-export const notifySuccess = (message) => {
+export const showSuccessNotification = (message) => {
   toastr.success(message)
 }
 
