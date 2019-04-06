@@ -1,8 +1,8 @@
 package routes
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 
@@ -18,6 +18,7 @@ type sendPagePayload struct {
 	requiredConfirmations int32
 	useCustom             bool
 	sendDestinations      []txhelper.TransactionDestination
+	totalSendAmount		  int64
 	changeDestinations    []txhelper.TransactionDestination
 	totalInputAmount      int64
 }

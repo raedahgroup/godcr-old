@@ -3,6 +3,9 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -10,8 +13,6 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
-	"net/http"
-	"strconv"
 )
 
 func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
@@ -87,7 +88,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 
 	payload, err := retrieveSendPagePayload(req)
 	if err != nil {
-		data["error"] = fmt.Sprintf("cannot get max amount: %s", err.Error())
+		data["error"] = fmt.Sprintf("Cannot get max amount: %s", err.Error())
 		return
 	}
 
@@ -96,7 +97,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	if len(payload.utxos) == 0 {
 		payload.utxos, payload.totalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.sourceAccount, payload.requiredConfirmations)
 		if err != nil {
-			data["error"] = fmt.Errorf("cannot get max amount, error fetching unspent outputs for new tx: %s", err.Error())
+			data["error"] = fmt.Sprintf("Cannot get max amount, error fetching unspent outputs for new tx: %s", err.Error())
 			return
 		}
 	}
@@ -110,17 +111,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	var totalSendAmount int64
-	for _, destination := range payload.sendDestinations {
-		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
-		if err != nil {
-			data["error"] = fmt.Errorf("cannot get max amount, error in converting input amount to atom: %s", err.Error())
-			return
-		}
-		totalSendAmount += amountInAtom
-	}
-
-	if payload.totalInputAmount < totalSendAmount {
+	if payload.totalSendAmount >= payload.totalInputAmount {
 		data["error"] = "Total send amount is already at maximum"
 		return
 	}
@@ -133,7 +124,6 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	}
 	data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
 }
-
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
@@ -276,9 +266,13 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 
-	destinations := append(payload.sendDestinations, payload.changeDestinations...)
+	if payload.totalSendAmount >= payload.totalInputAmount {
+		data["error"] = "Error in getting change amount: total input amount cannot cover total send amount and transaction fee"
+		return
+	}
 
-	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), payload.totalInputAmount, payload.sourceAccount, len(payload.utxos), destinations)
+	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware,
+		int(nChangeOutputs), payload.totalInputAmount, payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = err.Error()
 		return
