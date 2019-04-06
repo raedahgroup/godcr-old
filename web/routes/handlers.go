@@ -103,13 +103,9 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	}
 
 	selectedAddress := req.FormValue("selected-address")
-	for i := 0; i < len(payload.sendDestinations); i++ {
-		// the amount field of the selected address is set to 0 from the frontend
-		if payload.sendDestinations[i].Address == selectedAddress && payload.sendDestinations[i].Amount == 0 {
-			payload.sendDestinations = append(payload.sendDestinations[:i], payload.sendDestinations[i+1:]...)
-			break
-		}
-	}
+
+	// add selected address to destination so the fee for the address will be consider in the estimated change
+	payload.sendDestinations = append(payload.sendDestinations, txhelper.TransactionDestination{Address:selectedAddress})
 
 	if payload.totalSendAmount >= payload.totalInputAmount {
 		data["error"] = "Total send amount is already at maximum"
