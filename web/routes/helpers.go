@@ -18,7 +18,7 @@ type sendPagePayload struct {
 	requiredConfirmations int32
 	useCustom             bool
 	sendDestinations      []txhelper.TransactionDestination
-	totalSendAmount		  int64
+	totalSendAmount       int64
 	changeDestinations    []txhelper.TransactionDestination
 	totalInputAmount      int64
 }
