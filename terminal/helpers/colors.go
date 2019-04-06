@@ -7,5 +7,7 @@ var (
 	DecredColor      = tcell.NewRGBColor(41, 112, 255)
 	DangerColor      = tcell.NewRGBColor(255, 0, 0)
 	SeedLabelColor   = tcell.NewRGBColor(0, 255, 255)
-	PageHeaderColor  = tcell.NewRGBColor(0, 255, 255)
+	ErrorColor  = tcell.ColorOrangeRed
+	SuccessColor = tcell.ColorGreen
+	HintTextColor = tcell.ColorGray
 )

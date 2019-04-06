@@ -7,6 +7,7 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
@@ -40,7 +41,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	errorTextView := primitives.WordWrappedTextView("")
-	errorTextView.SetTextColor(tcell.ColorOrangeRed)
+	errorTextView.SetTextColor(helpers.ErrorColor)
 
 	displayError := func(errorMessage string) {
 		body.RemoveItem(errorTextView)

@@ -28,7 +28,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	}
 
 	hintTextView := primitives.WordWrappedTextView("")
-	hintTextView.SetTextColor(tcell.ColorGray)
+	hintTextView.SetTextColor(helpers.HintTextColor)
 
 	menuColumn := tview.NewList()
 	clearFocus := func() {

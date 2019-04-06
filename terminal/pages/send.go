@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
@@ -28,9 +28,9 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body.AddItem(form, 0, 1, true)
 
 	errorTextView := primitives.WordWrappedTextView("")
-	errorTextView.SetTextColor(tcell.ColorOrangeRed)
+	errorTextView.SetTextColor(helpers.ErrorColor)
 
-	displayMessage := func(message string) {
+	displayErrorMessage := func(message string) {
 		body.RemoveItem(errorTextView)
 		errorTextView.SetText(message)
 		body.AddItem(errorTextView, 2, 0, false)
@@ -72,7 +72,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	form.AddButton("Send", func() {
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {
-			displayMessage("Error: Invalid amount")
+			displayErrorMessage("Error: Invalid amount")
 			return
 		}
 
@@ -89,7 +89,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
 		if err != nil {
-			displayMessage(err.Error())
+			displayErrorMessage(err.Error())
 			return
 		}
 

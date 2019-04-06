@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
@@ -22,7 +23,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	outputMessageTextView := primitives.WordWrappedTextView("")
-	outputMessageTextView.SetTextColor(tcell.ColorOrangeRed)
+	outputMessageTextView.SetTextColor(helpers.ErrorColor)
 
 	displayErrorMessage := func(message string) {
 		body.RemoveItem(outputMessageTextView)

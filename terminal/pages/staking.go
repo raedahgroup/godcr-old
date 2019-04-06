@@ -23,15 +23,14 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
 	
 	messageTextView := primitives.WordWrappedTextView("")
-	messageTextView.SetTextColor(tcell.ColorOrangeRed)
 
 	displayMessage := func(message string, error bool) {
 		body.RemoveItem(messageTextView)
 		messageTextView.SetText(message)
 		if error {
-			messageTextView.SetTextColor(tcell.ColorOrangeRed)
+			messageTextView.SetTextColor(helpers.ErrorColor)
 		} else {
-			messageTextView.SetTextColor(tcell.ColorGreen)
+			messageTextView.SetTextColor(helpers.SuccessColor)
 		}
 		body.AddItem(messageTextView, 2, 0, false)
 	}
@@ -42,7 +41,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		displayMessage(errorText, true)
 	} else {
-		body.AddItem(stakeInfo, 6, 0, true)
+		body.AddItem(stakeInfo, 4, 0, true)
 	}
 
 	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
