@@ -37,7 +37,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	}
 
 	menuColumn.AddItem("Overview", "", 'o', func() {
-		displayPage(balancePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("History", "", 'h', func() {
@@ -75,7 +75,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	gridLayout.AddItem(menuColumn, 1, 0, 1, 1, 0, 0, true)
 
 	menuColumn.SetCurrentItem(0)
-	displayPage(balancePage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+	displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
 
 	return gridLayout
 }
