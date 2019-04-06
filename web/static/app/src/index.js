@@ -9,10 +9,6 @@ import { faCog, faCopy } from '@fortawesome/free-solid-svg-icons'
 library.add(faCog, faCopy)
 dom.watch()
 
-const application = Application.start()
-const context = require.context('./controllers', true, /\.js$/)
-application.load(definitionsFromContext(context))
-
 function getSocketURI () {
   let protocol = (window.location.protocol === 'https:') ? 'wss' : 'ws'
   return `${protocol}://${window.location.host}/ws`
