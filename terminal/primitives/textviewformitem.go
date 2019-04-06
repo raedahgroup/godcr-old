@@ -9,18 +9,18 @@ import (
 
 type TextViewFormItem struct {
 	*TextView
-	fieldWidth int
-	fieldHeight int
-	autosize bool
+	fieldWidth    int
+	fieldHeight   int
+	autosize      bool
 	autosizeWidth int
 }
 
 func NewTextViewFormItem(textView *TextView, fieldWidth, fieldHeight int, autosize bool, autosizeWidth int) *TextViewFormItem {
 	return &TextViewFormItem{
-		TextView: textView,
-		fieldWidth:fieldWidth,
-		fieldHeight:fieldHeight,
-		autosize:autosize,
+		TextView:      textView,
+		fieldWidth:    fieldWidth,
+		fieldHeight:   fieldHeight,
+		autosize:      autosize,
 		autosizeWidth: autosizeWidth,
 	}
 }

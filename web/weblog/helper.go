@@ -8,16 +8,16 @@ package weblog
 import "fmt"
 
 func LogInfo(message string) {
-	log.Info(message)
+	Log.Info(message)
 	fmt.Println(message)
 }
 
 func LogWarn(message string) {
-	log.Warn(message)
+	Log.Warn(message)
 	fmt.Println(message)
 }
 
 func LogError(message error) {
-	log.Error(message)
+	Log.Error(message)
 	fmt.Println(message)
 }

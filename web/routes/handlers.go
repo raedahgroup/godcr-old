@@ -53,8 +53,8 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	showDetails := req.FormValue("detailed") != ""
 
 	data := map[string]interface{}{
-		"accounts":     accounts,
-		"detailed":     showDetails,
+		"accounts": accounts,
+		"detailed": showDetails,
 	}
 
 	txns, _, err := routes.walletMiddleware.TransactionHistory(routes.ctx, -1, 5)
