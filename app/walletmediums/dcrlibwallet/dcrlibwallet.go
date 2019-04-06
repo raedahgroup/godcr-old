@@ -2,6 +2,7 @@ package dcrlibwallet
 
 import (
 	"fmt"
+
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/util"

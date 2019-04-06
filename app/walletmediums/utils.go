@@ -1,6 +1,8 @@
 package walletmediums
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	MainNetTargetTimePerBlock = 300

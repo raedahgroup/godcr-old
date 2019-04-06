@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"io/ioutil"
 	"math"
+	"os"
 
 	"github.com/aarzilli/nucular"
 	nstyle "github.com/aarzilli/nucular/style"
@@ -31,12 +32,14 @@ const (
 )
 
 func InitFonts() error {
-	robotoMediumFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Medium.ttf")
+	workingDirectory, _ := os.Getwd()
+
+	robotoMediumFontData, err := ioutil.ReadFile(workingDirectory + "/assets/font/Roboto-Medium.ttf")
 	if err != nil {
 		return err
 	}
 
-	robotoLightFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Light.ttf")
+	robotoLightFontData, err := ioutil.ReadFile(workingDirectory + "/assets/font/Roboto-Light.ttf")
 	if err != nil {
 		return err
 	}
