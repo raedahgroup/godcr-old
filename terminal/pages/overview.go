@@ -10,7 +10,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	overviewPage := tview.NewFlex().SetDirection(tview.FlexRow)
 	overviewPage.SetBorderPadding(1, 0, 1, 0)
 
@@ -27,11 +27,9 @@ func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tv
 	views = append(views, recentActivityViews...)
 	viewBoxes = append(viewBoxes, recentActivityViewBoxes...)
 
-	hintText := primitives.WordWrappedTextView("(TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
-		"Return to navigation menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	overviewPage.AddItem(hintText, 2, 0, false)
-
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
+		"Return to navigation menu with Esc")
+	
 	tabAndEscInputCapture := func(viewIndex int) func(event *tcell.EventKey) *tcell.EventKey {
 		var nextView, previousView tview.Primitive
 		if viewIndex == len(views)-1 {

@@ -80,15 +80,8 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	gridLayout.AddItem(hintTextView, 4, 2, 1, 1, 0, 0, false)
 
 	menuColumn.SetCurrentItem(0)
-<<<<<<< HEAD
-<<<<<<< HEAD
-	displayPage(overviewPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
-=======
-	displayPage(balancePage(walletMiddleware, hintText, tviewApp.SetFocus, clearFocus))
->>>>>>> moved hit text to gridlayout footer
-=======
-	displayPage(balancePage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
->>>>>>> resolved issues with footer, renamed variables, aligned components and cleaned up code
+
+	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 
 	return gridLayout
 }

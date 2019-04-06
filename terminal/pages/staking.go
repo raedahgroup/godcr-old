@@ -111,7 +111,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	return body
 }
 
-func stakeInfoTable(wallet walletcore.Wallet) (*primitives.Table, error) {
+func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
 	if err != nil {
 		return nil, err
