@@ -13,9 +13,9 @@
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Receiving Decred</h5>
-                       <p class="lead-text">Each time you request payment, a new address is created to protect your privacy</p>
+                       <p class="lead-text">Each time you request payment, a new address is created to protect your privacy.</p>
                        <div class="row">
-                           <div class="col-md-6 col-sm-12">
+                           <div class="col-md-5 col-sm-12">
                                <div class="form-group">
                                    <label for="account">Account</label>
                                {{ if gt (len .accounts) 1 }}
@@ -35,18 +35,13 @@
                        </div>
                         <div class="result-card">
                             <div id="result-text">
-                                <strong>Address:</strong>
-                                <span data-target="receive.address" id="address">{{ .address }}</span>
-                                <button data-action="click->receive#copyAddressToClipboard" class="btn btn-xs btnCopy" title="Copy to clipboard"><i class="fas fa-copy"></i> (<span data-target="receive.copyButtonText" >copy</span>)</button>
+                                Address:
+                                <span data-action="click->receive#copyAddressToClipboard" data-target="receive.address" id="address">{{ .address }}</span>
                             </div>
-                            <div id="result-img">{{ rawHtml .imageStr }}</div>
+                            <div data-action="click->receive#copyAddressToClipboard" id="result-img">{{ rawHtml .imageStr }}</div>
+                            <a href="javascript:void(0)" data-target="receive.generateNewAddressButton" data-action="click->receive#generateNewAddress"
+                            >generate new address</a>
                         </div>
-                       <div class="row">
-                           <div class="col-md-6">
-                               <button data-target="receive.generateNewAddressButton" data-action="click->receive#generateNewAddress"
-                                       class="btn btn-primary">Generate New Address</button>
-                           </div>
-                       </div>
                    </div>
                 </div>
             </div>
@@ -59,7 +54,7 @@
         }
 
         .result-card {
-            font-size: 20px;
+            font-size: 15px;
         }
     </style>
 </body>
