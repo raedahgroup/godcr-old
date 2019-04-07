@@ -35,23 +35,22 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(messageTextView, 2, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		displayMessage(errorText, true)
 	} else {
-		body.AddItem(stakeInfo, 4, 0, true)
+		body.AddItem(stakeInfo, 3, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
-	purchaseTicket, statusOutput, err := purchaseTicketForm(wallet, displayMessage)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		displayMessage(errorText, true)
 	} else {
 		body.AddItem(purchaseTicket, 0, 1, true)
-		displayMessage(statusOutput, false)
 	}
 
 	stakeInfo.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -105,7 +104,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	setFocus(body)
 
-	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
 
 	return body
 }
@@ -147,10 +146,10 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool)) (*primitives.Form, string, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool)) (*primitives.Form, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -183,7 +182,6 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		passphrase = text
 	})
 
-	var statusOutput string
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
 			displayMessage("Error: please specify the number of tickets to purchase", true)
@@ -200,10 +198,11 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 			return
 		}
 
-		statusOutput = fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
+		successMessage := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
+		displayMessage(successMessage, false)
 	})
 
-	return form, statusOutput, nil
+	return form, nil
 }
 
 func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {

@@ -15,7 +15,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewLeftAlignedTextView("SEND"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Send"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -102,7 +102,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	form.SetCancelFunc(clearFocus)
 
-	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
+	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
 
 	setFocus(body)
 
