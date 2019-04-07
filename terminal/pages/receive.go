@@ -15,7 +15,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	form := tview.NewForm()
 
-	body.AddItem(primitives.NewLeftAlignedTextView("GENERATE RECEIVE ADDRESS"), 2, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address"), 2, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -71,7 +71,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		}
 	}
 
-	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to Navigation menu")
+	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to navigation menu")
 
 	setFocus(body)
 	return body
