@@ -21,7 +21,7 @@ type resizeListenerData = struct {
 func (app *fyneApp) listenForWindowResizeEvents() {
 	resizeListener := &resizeListenerData{
 		lastWindowSize: app.mainWindow.Content().Size(),
-		everySecondTicker: time.NewTicker(1 * time.Second),
+		everySecondTicker: time.NewTicker(100 * time.Millisecond),
 	}
 
 	go func() {
