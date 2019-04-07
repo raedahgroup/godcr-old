@@ -68,7 +68,7 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 }
 
 func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
-	balanceTitleTextView := primitives.NewLeftAlignedTextView("-Balance-")
+	balanceTitleTextView := primitives.NewLeftAlignedTextView("Balance")
 	overviewPage.AddItem(balanceTitleTextView, 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
@@ -93,7 +93,7 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 
 		if showSimpleBalanceNext {
 			showSimpleBalanceNext = false
-			balanceTitleTextView.SetText("-Balance-")
+			balanceTitleTextView.SetText("Balance")
 			toggleBalanceForm.GetButton(0).SetLabel("Show Detailed Balance")
 
 			if len(accounts) == 1 {
@@ -103,7 +103,7 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 			}
 		} else {
 			showSimpleBalanceNext = true
-			balanceTitleTextView.SetText("-Balance- (Detailed)")
+			balanceTitleTextView.SetText("Balance (Detailed)")
 			toggleBalanceForm.GetButton(0).SetLabel("Show Simple Balance")
 			displayDetailedAccountsBalances(accounts, balanceTable)
 		}

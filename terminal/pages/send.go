@@ -15,7 +15,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewLeftAlignedTextView("-Send-"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Send"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {

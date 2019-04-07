@@ -20,7 +20,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewLeftAlignedTextView("-Staking-"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Staking"), 2, 0, false)
 
 	messageTextView := primitives.WordWrappedTextView("")
 
@@ -35,7 +35,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(messageTextView, 2, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("-Stake Info-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
@@ -44,7 +44,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(stakeInfo, 3, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
