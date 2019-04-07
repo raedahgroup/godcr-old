@@ -88,8 +88,8 @@ func (lib *DcrWalletLib) SyncBlockChainOld(listener *app.BlockChainSyncListener,
 }
 
 func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
-	syncResponse := NewSyncListener(lib.activeNet, lib.walletLib, showLog, syncInfoUpdated)
-	lib.walletLib.AddSyncResponse(syncResponse)
+	syncListener := NewSyncListener(lib.activeNet, lib.walletLib, showLog, syncInfoUpdated)
+	lib.walletLib.AddSyncProgressListener(syncListener)
 	return lib.walletLib.SpvSync("")
 }
 
