@@ -21,21 +21,21 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
-	
+
 	messageTextView := primitives.WordWrappedTextView("")
 
 	displayMessage := func(message string, error bool) {
 		body.RemoveItem(messageTextView)
 		messageTextView.SetText(message)
 		if error {
-			messageTextView.SetTextColor(helpers.ErrorColor)
+			messageTextView.SetTextColor(helpers.DecredOrangeColor)
 		} else {
-			messageTextView.SetTextColor(helpers.SuccessColor)
+			messageTextView.SetTextColor(helpers.DecredGreenColor)
 		}
 		body.AddItem(messageTextView, 2, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 2, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
@@ -44,7 +44,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(stakeInfo, 4, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 2, 0, false)
+	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
 	purchaseTicket, statusOutput, err := purchaseTicketForm(wallet, displayMessage)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
@@ -104,7 +104,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	})
 
 	setFocus(body)
-	
+
 	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to Navigation menu")
 
 	return body
@@ -147,7 +147,7 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage  func(message string, error bool)) (*primitives.Form, string, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool)) (*primitives.Form, string, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return nil, "", err

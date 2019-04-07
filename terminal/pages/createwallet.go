@@ -57,14 +57,14 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	walletSeedTextView := primitives.WordWrappedTextView(seed)
 	walletSeedTextView.SetBorder(true).
 		SetTitle("Wallet Seed").
-		SetTitleColor(helpers.SeedLabelColor)
+		SetTitleColor(helpers.DecredLightBlueColor)
 	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true,
 		0))
 
 	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
 	storeSeedWarningTextView.SetBorder(true).
 		SetTitle("IMPORTANT NOTICE").
-		SetTitleColor(helpers.DangerColor)
+		SetTitleColor(helpers.DecredOrangeColor)
 	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true,
 		0))
 
@@ -83,10 +83,10 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	showMessage := func(message string, isError bool) {
 		var messageColor tcell.Color
 		if isError {
-			messageColor = tcell.ColorRed
+			messageColor = helpers.DecredOrangeColor
 			message = fmt.Sprintf("Error: %s", message)
 		} else {
-			messageColor = tcell.ColorGreen
+			messageColor = helpers.DecredGreenColor
 			message = fmt.Sprintf("Success: %s", message)
 		}
 
@@ -159,6 +159,6 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	hintText := primitives.WordWrappedTextView("(Use TAB and Shift+TAB to move between fields and ESC to cancel)")
 	hintText.SetTextColor(tcell.ColorGray)
 	createWalletPage.AddItem(hintText, 2, 0, false)
-	
+
 	return createWalletPage
 }

@@ -14,7 +14,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	gridLayout := tview.NewGrid().
 		SetRows(3, 1, 0, 1, 3).
 		SetColumns(25, 2, 0, 2).
-		SetBordersColor(helpers.DecredLightColor)
+		SetBordersColor(helpers.DecredLightBlueColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
 
@@ -33,7 +33,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn := tview.NewList()
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
-		hintTextView.Clear()
+		hintTextView.SetText("")
 		tviewApp.Draw()
 		tviewApp.SetFocus(menuColumn)
 	}
@@ -70,12 +70,12 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 
 	netType := walletMiddleware.NetType()
 	header := primitives.NewCenterAlignedTextView(fmt.Sprintf("\n %s %s\n", app.DisplayName, netType))
-	header.SetBackgroundColor(helpers.DecredColor)
+	header.SetBackgroundColor(helpers.DecredBlueColor)
 	gridLayout.AddItem(header, 0, 0, 1, 4, 0, 0, false)
 
-	menuColumn.SetShortcutColor(helpers.DecredLightColor)
-	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightColor)
-	gridLayout.AddItem(menuColumn, 1, 0, 4	, 1, 0, 0, true)
+	menuColumn.SetShortcutColor(helpers.DecredLightBlueColor)
+	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightBlueColor)
+	gridLayout.AddItem(menuColumn, 1, 0, 4, 1, 0, 0, true)
 
 	gridLayout.AddItem(hintTextView, 4, 2, 1, 1, 0, 0, false)
 

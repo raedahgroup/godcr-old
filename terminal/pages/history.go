@@ -3,16 +3,16 @@ package pages
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
+	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
-	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
-	"math"
-	"strings"
 )
 
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -41,7 +41,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	errorTextView := primitives.WordWrappedTextView("")
-	errorTextView.SetTextColor(helpers.ErrorColor)
+	errorTextView.SetTextColor(helpers.DecredOrangeColor)
 
 	displayError := func(errorMessage string) {
 		body.RemoveItem(errorTextView)
@@ -61,12 +61,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		txHash := historyTable.GetCell(row, 6).Text
 
 		titleTextView.SetText("Transaction Details")
-		hintTextView .SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
-		
+		hintTextView.SetText("(TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to nav menu)")
+
 		transactionDetailsTable.Clear()
 		body.AddItem(transactionDetailsTable, 0, 1, true)
-		
-		setFocus(transactionDetailsTable) 
+
+		setFocus(transactionDetailsTable)
 
 		fetchTransactionDetail(txHash, wallet, displayError, transactionDetailsTable)
 	})
@@ -101,8 +101,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	displayHistoryTable()
 
 	fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
-
-	body.AddItem(nil, 1, 0, false) // add some "padding" at the bottom
 
 	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to Navigation menu")
 
@@ -170,7 +168,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", tx.FeeRate))
 
 	decimalPlaces := func(n float64) string {
-		decimalPlaces := fmt.Sprintf("%f", n - math.Floor(n))
+		decimalPlaces := fmt.Sprintf("%f", n-math.Floor(n))
 		decimalPlaces = strings.Replace(decimalPlaces, "0", "", -1)
 		decimalPlaces = strings.Replace(decimalPlaces, ".", "", -1)
 		return decimalPlaces
@@ -200,7 +198,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 
 		if len(decimalPlaces) == 0 {
 			//decimalPlaces = "0"
-			return fmt.Sprintf("%d%-*s DCR", wholeNumber, maxDecimalPlaces + 1, decimalPlaces)
+			return fmt.Sprintf("%d%-*s DCR", wholeNumber, maxDecimalPlaces+1, decimalPlaces)
 		}
 
 		return fmt.Sprintf("%d.%-*s DCR", wholeNumber, maxDecimalPlaces, decimalPlaces)

@@ -29,7 +29,7 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 
 	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
 		"Return to navigation menu with Esc")
-	
+
 	tabAndEscInputCapture := func(viewIndex int) func(event *tcell.EventKey) *tcell.EventKey {
 		var nextView, previousView tview.Primitive
 		if viewIndex == len(views)-1 {

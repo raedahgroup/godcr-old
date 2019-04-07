@@ -13,10 +13,10 @@ import (
 
 func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	
+
 	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("SEND"), 2, 0, false)
-	
+
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
@@ -28,14 +28,14 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body.AddItem(form, 0, 1, true)
 
 	errorTextView := primitives.WordWrappedTextView("")
-	errorTextView.SetTextColor(helpers.ErrorColor)
+	errorTextView.SetTextColor(helpers.DecredOrangeColor)
 
 	displayErrorMessage := func(message string) {
 		body.RemoveItem(errorTextView)
 		errorTextView.SetText(message)
 		body.AddItem(errorTextView, 2, 0, false)
 	}
-	
+
 	accountNames := make([]string, len(accounts))
 	accountNumbers := make([]uint32, len(accounts))
 	for index, account := range accounts {
@@ -93,7 +93,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 			return
 		}
 
-		body.AddItem(primitives.WordWrappedTextView("Sent txid " + txHash), 2, 0, false)
+		body.AddItem(primitives.WordWrappedTextView("Sent txid "+txHash), 2, 0, false)
 
 		// reset form
 		form.ClearFields()

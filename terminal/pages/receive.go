@@ -23,7 +23,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	outputMessageTextView := primitives.WordWrappedTextView("")
-	outputMessageTextView.SetTextColor(helpers.ErrorColor)
+	outputMessageTextView.SetTextColor(helpers.DecredOrangeColor)
 
 	displayErrorMessage := func(message string) {
 		body.RemoveItem(outputMessageTextView)
