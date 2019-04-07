@@ -70,6 +70,8 @@ func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) 
 		this.showSyncWindow()
 	}
 
+	this.listenForWindowResizeEvents()
+
 	// fyneApp.Run() blocks until the app is exited, before returning nil error to the caller of this LaunchApp function
 	this.Run()
 
@@ -133,30 +135,4 @@ func (app *fyneApp) highlightCurrentPageMenuButton(currentPage string) {
 func (app *fyneApp) updatePageFunc(pageContent fyne.CanvasObject) {
 	app.pageContent = pageContent
 	app.resizeScrollableContainer()
-}
-
-// resizeScrollableContainer ensures that
-// - the content of each page is wrapped in scrollable container
-// - the scrollable container takes the maximum space available
-//
-// The idea is, if the content size is bigger than the maximum space available,
-// scroll bars become visible and more of the content can be seen by scrolling.
-//
-// We really only need to resize the scroll container when the window is resized
-// but can't seem to find a window resize event
-func (app *fyneApp) resizeScrollableContainer() {
-	// calculate the maximum available width and height to use for scroll container
-	windowSize := app.mainWindow.Content().Size()
-	scrollAreaWidth := windowSize.Width - menuSectionWidth - menuSectionPageSectionSeparation
-	scrollAreaHeight := windowSize.Height - app.pageTitle.Size().Height
-	scrollAreaSize := fyne.NewSize(scrollAreaWidth, scrollAreaHeight)
-
-	// use calculated max size to layout the scrollable container
-	scrollContainerLayout := layout.NewFixedGridLayout(scrollAreaSize)
-	scrollableContainer := fyne.NewContainerWithLayout(scrollContainerLayout, widget.NewScrollContainer(app.pageContent))
-
-	// must clear items and re-add otherwise the added content will not display
-	app.pageSectionOnRight.Children = []fyne.CanvasObject{}
-	app.pageSectionOnRight.Append(app.pageTitle)
-	app.pageSectionOnRight.Append(scrollableContainer)
 }
