@@ -1,7 +1,7 @@
 /*
 This file contains workarounds to achieve proper sizing of window content on the fyne app.
 This should be replaced with a standard window resize event listener from the fyne library.
- */
+*/
 
 package fyne
 
@@ -14,13 +14,13 @@ import (
 )
 
 type resizeListenerData = struct {
-	lastWindowSize fyne.Size
+	lastWindowSize    fyne.Size
 	everySecondTicker *time.Ticker
 }
 
 func (app *fyneApp) listenForWindowResizeEvents() {
 	resizeListener := &resizeListenerData{
-		lastWindowSize: app.mainWindow.Content().Size(),
+		lastWindowSize:    app.mainWindow.Content().Size(),
 		everySecondTicker: time.NewTicker(100 * time.Millisecond),
 	}
 

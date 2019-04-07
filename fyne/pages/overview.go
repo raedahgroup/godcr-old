@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -16,8 +17,7 @@ type overviewPageLoader struct {
 	updatePageOnMainWindow func()
 
 	balanceSectionTitle *widget.Label
-	showDetailsCheckbox *widget.Check
-	balanceTable        *widgets.Table
+	balanceLabel        *widget.Label
 	fetchBalanceError   string
 
 	recentActivitySectionTitle *widget.Label
@@ -31,75 +31,31 @@ func (page *overviewPageLoader) Load(ctx context.Context, wallet walletcore.Wall
 	page.updatePageOnMainWindow = page.makePageUpdateFunc(updatePageOnMainWindow)
 
 	// init balance views
-	page.balanceSectionTitle = widget.NewLabelWithStyle("- Balance -", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	page.balanceTable = widgets.NewTable()
-	page.showDetailsCheckbox = widget.NewCheck("Show details", func(showDetails bool) {
-		page.fetchBalance(showDetails)
-	})
+	page.balanceSectionTitle = widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	page.fetchBalance()
 
 	// init recent activity views
-	page.recentActivitySectionTitle = widget.NewLabelWithStyle("- Recent Activity -", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	page.recentActivitySectionTitle = widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	page.recentActivityTable = widgets.NewTable()
 
-	// fetch balance before updating window, shouldn't be a long-running operation
-	// the page.fetchBalance() method will update the window when done
-	page.fetchBalance(false)
-
-	// fetch recent activity in background, "may" take some time
+	// update window now, then fetch recent activity in background, as it "may" take some time
+	page.updatePageOnMainWindow()
 	go page.fetchRecentActivity()
 }
 
-func (page *overviewPageLoader) fetchBalance(detailed bool) {
-	// update main window after fetching balance
-	defer page.updatePageOnMainWindow()
-
-	page.balanceTable.Clear()
-
+func (page *overviewPageLoader) fetchBalance() {
 	accounts, err := page.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		page.fetchBalanceError = err.Error()
 		return
 	}
 
-	if len(accounts) == 1 && !detailed {
-		account := accounts[0]
-		if account.Balance.Total == account.Balance.Spendable {
-			// show only total since it is equal to spendable
-			page.balanceTable.AddRowSimple(walletcore.NormalizeBalance(account.Balance.Total.ToCoin()))
-		} else {
-			page.balanceTable.AddRowSimple("Total", walletcore.NormalizeBalance(account.Balance.Total.ToCoin()))
-			page.balanceTable.AddRowSimple("Spendable", walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()))
-		}
-		return
-	}
-
-	// if there are more than 1 account or it's 1 account but we're required to show details,
-	// let's use a proper table with headers
-	columnHeaders := []string{
-		"Account",
-		"Total",
-		"Spendable",
-	}
-	if detailed {
-		columnHeaders = append(columnHeaders, "Locked")
-		columnHeaders = append(columnHeaders, "Voting Authority")
-		columnHeaders = append(columnHeaders, "Unconfirmed")
-	}
-	page.balanceTable.AddRowSimple(columnHeaders...)
-
+	var totalBalance dcrutil.Amount
 	for _, account := range accounts {
-		rowValues := []string{
-			account.Name,
-			walletcore.NormalizeBalance(account.Balance.Total.ToCoin()),
-			walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()),
-		}
-		if detailed {
-			rowValues = append(rowValues, account.Balance.LockedByTickets.String())
-			rowValues = append(rowValues, account.Balance.VotingAuthority.String())
-			rowValues = append(rowValues, account.Balance.Unconfirmed.String())
-		}
-		page.balanceTable.AddRowSimple(rowValues...)
+		totalBalance += account.Balance.Total
 	}
+
+	page.balanceLabel = widget.NewLabel(walletcore.NormalizeBalance(accounts[0].Balance.Total.ToCoin()))
 }
 
 func (page *overviewPageLoader) fetchRecentActivity() {
@@ -136,7 +92,7 @@ func (page *overviewPageLoader) makePageUpdateFunc(updatePageOnMainWindow func(o
 		if page.fetchBalanceError != "" {
 			balanceView = widget.NewLabel(fmt.Sprintf("Error fetching balance: %s", page.fetchBalanceError))
 		} else {
-			balanceView = page.balanceTable.CondensedTable()
+			balanceView = page.balanceLabel
 		}
 
 		var recentActivityObject fyne.CanvasObject
@@ -149,7 +105,6 @@ func (page *overviewPageLoader) makePageUpdateFunc(updatePageOnMainWindow func(o
 		pageViews := widget.NewVBox(
 			page.balanceSectionTitle,
 			balanceView,
-			page.showDetailsCheckbox,
 			widgets.NewVSpacer(20),
 			page.recentActivitySectionTitle,
 			recentActivityObject,
