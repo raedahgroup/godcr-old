@@ -19,7 +19,6 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	// page title and tip
 	body.AddItem(primitives.NewLeftAlignedTextView("Staking"), 2, 0, false)
 
 	messageTextView := primitives.WordWrappedTextView("")
