@@ -20,7 +20,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	titleTextView := primitives.NewLeftAlignedTextView("History")
+	titleTextView := primitives.NewLeftAlignedTextView("-History-")
 	body.AddItem(titleTextView, 1, 0, false)
 
 	historyTable := tview.NewTable().

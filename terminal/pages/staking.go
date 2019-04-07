@@ -20,7 +20,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
-	body.AddItem(primitives.NewLeftAlignedTextView("STAKING"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("-Staking-"), 2, 0, false)
 
 	messageTextView := primitives.WordWrappedTextView("")
 
