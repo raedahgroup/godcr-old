@@ -93,14 +93,14 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 }
 
 func WalletConnectionInfo(wallet Wallet) (info ConnectionInfo, err error) {
-	var totalBalance Balance
 	accounts, loadAccountErr := wallet.AccountsOverview(DefaultRequiredConfirmations)
 	if loadAccountErr != nil {
-		err = fmt.Errorf("error fetching account balance: %s", err.Error())
+		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
+		info.TotalBalance = "0 DCR"
 	} else {
+		var totalBalance dcrutil.Amount
 		for _, acc := range accounts {
-			totalBalance.Spendable += acc.Balance.Spendable
-			totalBalance.Total += acc.Balance.Total
+			totalBalance += acc.Balance.Total
 		}
 		info.TotalBalance = totalBalance.String()
 	}

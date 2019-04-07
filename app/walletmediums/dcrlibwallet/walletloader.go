@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-func (lib *DcrWalletLib) NetType() string {
-	return lib.activeNet.Params.Name
-}
-
 func (lib *DcrWalletLib) WalletExists() (bool, error) {
 	return lib.walletLib.WalletExists()
 }

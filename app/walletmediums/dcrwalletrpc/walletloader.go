@@ -10,13 +10,6 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func (c *WalletRPCClient) NetType() string {
-	if c.activeNet.Name == "mainnet" {
-		return "mainnet"
-	}
-	return "testnet"
-}
-
 func (c *WalletRPCClient) WalletExists() (bool, error) {
 	res, err := c.walletLoader.WalletExists(context.Background(), &walletrpc.WalletExistsRequest{})
 	if err != nil {

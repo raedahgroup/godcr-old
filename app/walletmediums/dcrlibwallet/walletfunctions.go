@@ -19,6 +19,10 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
+func (lib *DcrWalletLib) NetType() string {
+	return lib.activeNet.Params.Name
+}
+
 func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {

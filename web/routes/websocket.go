@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/decred/dcrd/dcrutil"
 	"log"
 	"net/http"
 
@@ -78,11 +79,9 @@ func (routes *Routes) sendWsBalance() {
 
 	var accountInfos []accountInfo
 
-	var totalBalance walletcore.Balance
+	var totalBalance dcrutil.Amount
 	for _, acc := range accounts {
-		totalBalance.Spendable += acc.Balance.Spendable
-		totalBalance.Total += acc.Balance.Total
-
+		totalBalance += acc.Balance.Total
 		accountInfos = append(accountInfos, accountInfo{Number: acc.Number, Info: acc.String()})
 	}
 	wsBroadcast <- Packet{
