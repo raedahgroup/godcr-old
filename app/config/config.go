@@ -31,7 +31,7 @@ type Config struct {
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
 type CommandLineOptions struct {
-	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear" choice:"terminal" default:"cli"`
+	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear" choice:"fyne" choice:"terminal" default:"cli"`
 	CliOptions
 }
 

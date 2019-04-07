@@ -19,6 +19,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"github.com/raedahgroup/godcr/fyne"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal"
 	"github.com/raedahgroup/godcr/web"
@@ -107,6 +108,8 @@ func main() {
 		enterHttpMode(ctx, walletMiddleware, appConfig)
 	case "nuklear":
 		enterNuklearMode(ctx, walletMiddleware)
+	case "fyne":
+		enterFyneMode(ctx, walletMiddleware)
 	case "terminal":
 		enterTerminalMode(ctx, walletMiddleware)
 	}
@@ -226,6 +229,12 @@ func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware
 	logInfo("Launching desktop app with nuklear")
 	nuklear.LaunchApp(ctx, walletMiddleware)
 	// todo need to properly listen for shutdown and trigger shutdown
+	beginShutdown <- true
+}
+
+func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
+	logInfo("Launching desktop app with fyne")
+	fyne.LaunchApp(ctx, walletMiddleware)
 	beginShutdown <- true
 }
 

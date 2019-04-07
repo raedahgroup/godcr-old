@@ -15,6 +15,7 @@ import (
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
 	"github.com/raedahgroup/godcr/cli/clilog"
+	fyneLog "github.com/raedahgroup/godcr/fyne/log"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/terminal/terlog"
 	"github.com/raedahgroup/godcr/web/weblog"
@@ -51,6 +52,7 @@ var (
 	nuklearLog = backendLog.Logger("NUK")
 	cliLog     = backendLog.Logger("CLI")
 	terLog     = backendLog.Logger("TER")
+	fyneLogger = backendLog.Logger("FYN")
 )
 
 // Initialize package-global logger variables.
@@ -59,6 +61,7 @@ func init() {
 	nuklog.UseLogger(nuklearLog)
 	weblog.UseLogger(webLog)
 	terlog.UseLogger(terLog)
+	fyneLog.UseLogger(fyneLogger)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
@@ -68,6 +71,7 @@ var subsystemLoggers = map[string]slog.Logger{
 	"NUK":  nuklearLog,
 	"CLI":  cliLog,
 	"TER":  terLog,
+	"FYN":  fyneLogger,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and
