@@ -85,40 +85,14 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 	views = append(views, balanceTable)
 	viewBoxes = append(viewBoxes, balanceTable.Box)
 
-	var toggleBalanceForm *tview.Form
-	var showSimpleBalanceNext bool
-
 	toggleBalanceDisplay := func() {
-		balanceTable.Clear()
-
-		if showSimpleBalanceNext {
-			showSimpleBalanceNext = false
-			balanceTitleTextView.SetText("Balance")
-			toggleBalanceForm.GetButton(0).SetLabel("Show Detailed Balance")
-
-			if len(accounts) == 1 {
-				displaySingleAccountSimpleBalance(accounts[0], balanceTable)
-			} else {
-				displayMultipleAccountsSimpleBalance(accounts, balanceTable)
-			}
+		if len(accounts) == 1 {
+			displaySingleAccountSimpleBalance(accounts[0], balanceTable)
 		} else {
-			showSimpleBalanceNext = true
-			balanceTitleTextView.SetText("Balance (Detailed)")
-			toggleBalanceForm.GetButton(0).SetLabel("Show Simple Balance")
-			displayDetailedAccountsBalances(accounts, balanceTable)
+			displayMultipleAccountsSimpleBalance(accounts, balanceTable)
 		}
 	}
 
-	// display button to toggle balance display, embed button in form so it doesn't fill screen width
-	toggleBalanceForm = tview.NewForm().AddButton("Show Detailed Balance", toggleBalanceDisplay)
-	toggleBalanceForm.SetBorderPadding(0, 0, 0, 0)
-	toggleBalanceForm.SetItemPadding(0)
-
-	overviewPage.AddItem(toggleBalanceForm, 2, 0, false)
-	views = append(views, toggleBalanceForm.GetButton(0))
-	viewBoxes = append(viewBoxes, toggleBalanceForm.GetButton(0).Box)
-
-	showSimpleBalanceNext = true
 	toggleBalanceDisplay()
 
 	return
@@ -147,26 +121,6 @@ func displayMultipleAccountsSimpleBalance(accounts []*walletcore.Account, balanc
 		balanceTable.SetCellCenterAlign(row, 0, account.Name).
 			SetCellRightAlign(row, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin())).
 			SetCellRightAlign(row, 2, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()))
-	}
-}
-
-func displayDetailedAccountsBalances(accounts []*walletcore.Account, balanceTable *primitives.Table) {
-	// draw table header
-	balanceTable.SetHeaderCell(0, 0, "Account Name").
-		SetHeaderCell(0, 1, "Balance").
-		SetHeaderCell(0, 2, "Spendable").
-		SetHeaderCell(0, 3, "Locked").
-		SetHeaderCell(0, 4, "Voting Authority").
-		SetHeaderCell(0, 5, "Unconfirmed")
-
-	for i, account := range accounts {
-		row := i + 1
-		balanceTable.SetCellCenterAlign(row, 0, account.Name).
-			SetCellRightAlign(row, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin())).
-			SetCellRightAlign(row, 2, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin())).
-			SetCellCenterAlign(row, 3, account.Balance.LockedByTickets.String()).
-			SetCellCenterAlign(row, 4, account.Balance.VotingAuthority.String()).
-			SetCellCenterAlign(row, 5, account.Balance.Unconfirmed.String())
 	}
 }
 
