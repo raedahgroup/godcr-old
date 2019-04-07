@@ -5,32 +5,44 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	form := tview.NewForm()
 
-	body.AddItem(primitives.NewCenterAlignedTextView("Generate Receive Address"), 4, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address"), 2, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
+
+	outputMessageTextView := primitives.WordWrappedTextView("")
+	outputMessageTextView.SetTextColor(helpers.DecredOrangeColor)
+
+	displayErrorMessage := func(message string) {
+		body.RemoveItem(outputMessageTextView)
+		outputMessageTextView.SetText(message)
+		body.AddItem(outputMessageTextView, 2, 0, false)
+	}
+
 	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
-			return body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
+			errorText := fmt.Sprintf("Error: %s", err.Error())
+			displayErrorMessage(errorText)
 		}
-		body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
-		}), 4, 1, true).
-			AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
+		}), 2, 1, true).
+			AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
 				if key == tcell.KeyEscape {
 					clearFocus()
 				}
@@ -47,16 +59,19 @@ func receivePage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 				AddButton("Generate", func() {
 					address, qr, err := generateAddress(wallet, accountNum)
 					if err != nil {
-						body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 3, 1, false)
+						errorText := fmt.Sprintf("Error: %s", err.Error())
+						displayErrorMessage(errorText)
 						return
 					}
-					body.AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf("Address: %s", address)), 4, 1, false).
-						AddItem(primitives.NewCenterAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
+					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 2, 1, false).
+						AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
 				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
 				clearFocus()
 			}), 4, 1, true)
 		}
 	}
+
+	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to navigation menu")
 
 	setFocus(body)
 	return body

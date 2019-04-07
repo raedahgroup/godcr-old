@@ -15,33 +15,41 @@ import (
 	"github.com/rivo/tview"
 )
 
-func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	// page title and tip
-	body.AddItem(primitives.NewCenterAlignedTextView("Staking"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(TIP: Move around with Tab and Shift+Tab. Return to nav menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	body.AddItem(hintText, 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Staking"), 2, 0, false)
 
-	body.AddItem(tview.NewTextView().SetText("Stake Info").SetTextColor(helpers.DecredLightColor), 1, 0, false)
+	messageTextView := primitives.WordWrappedTextView("")
+
+	displayMessage := func(message string, error bool) {
+		body.RemoveItem(messageTextView)
+		messageTextView.SetText(message)
+		if error {
+			messageTextView.SetTextColor(helpers.DecredOrangeColor)
+		} else {
+			messageTextView.SetTextColor(helpers.DecredGreenColor)
+		}
+		body.AddItem(messageTextView, 2, 0, false)
+	}
+
+	body.AddItem(tview.NewTextView().SetText("-Stake Info-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 	stakeInfo, err := stakeInfoTable(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
-		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
+		displayMessage(errorText, true)
 	} else {
-		body.AddItem(stakeInfo, 6, 0, true)
+		body.AddItem(stakeInfo, 3, 0, true)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("Purchase Ticket").SetTextColor(helpers.DecredLightColor), 1, 0, false)
-	purchaseTicket, statusTextView, err := purchaseTicketForm(wallet)
+	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
-		body.AddItem(primitives.WordWrappedTextView(errorText), 1, 0, false)
+		displayMessage(errorText, true)
 	} else {
-		body.AddItem(purchaseTicket, 12, 0, true)
-		body.AddItem(statusTextView, 3, 0, true)
+		body.AddItem(purchaseTicket, 0, 1, true)
 	}
 
 	stakeInfo.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -95,10 +103,12 @@ func stakingPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tvi
 
 	setFocus(body)
 
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
+
 	return body
 }
 
-func stakeInfoTable(wallet walletcore.Wallet) (*primitives.Table, error) {
+func stakeInfoTable(wallet walletcore.Wallet) (*tview.Table, error) {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
 	if err != nil {
 		return nil, err
@@ -106,44 +116,39 @@ func stakeInfoTable(wallet walletcore.Wallet) (*primitives.Table, error) {
 		return nil, errors.New("no tickets in wallet")
 	}
 
-	table := primitives.NewTable()
-	table.SetBorders(true)
+	table := tview.NewTable()
 
-	table.SetHeaderCell(0, 0, "Expired")
-	table.SetHeaderCell(0, 1, "Immature")
-	table.SetHeaderCell(0, 2, "Live")
-	table.SetHeaderCell(0, 3, "Revoked")
-	table.SetHeaderCell(0, 4, "Unmined")
-	table.SetHeaderCell(0, 5, "Unspent")
-	table.SetHeaderCell(0, 6, "AllmempoolTix")
-	table.SetHeaderCell(0, 7, "PoolSize")
-	table.SetHeaderCell(0, 8, "Missed")
-	table.SetHeaderCell(0, 9, "Voted")
-	table.SetHeaderCell(0, 10, "Total Subsidy")
+	table.SetCell(0, 0, tview.NewTableCell("Expired").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 1, tview.NewTableCell("Immature").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 2, tview.NewTableCell("Live").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 3, tview.NewTableCell("Revoked").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 4, tview.NewTableCell("Unmined").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 5, tview.NewTableCell("Unspent").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 6, tview.NewTableCell("AllmempoolTix").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 7, tview.NewTableCell("PoolSize").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 8, tview.NewTableCell("Missed").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 9, tview.NewTableCell("Voted").SetAlign(tview.AlignCenter))
+	table.SetCell(0, 10, tview.NewTableCell("Total Subsidy").SetAlign(tview.AlignCenter))
 
-	numberToString := func(n uint32) string {
-		return strconv.Itoa(int(n))
-	}
-
-	table.SetCellCenterAlign(1, 0, numberToString(stakeInfo.Expired))
-	table.SetCellCenterAlign(1, 1, numberToString(stakeInfo.Immature))
-	table.SetCellCenterAlign(1, 2, numberToString(stakeInfo.Live))
-	table.SetCellCenterAlign(1, 3, numberToString(stakeInfo.Revoked))
-	table.SetCellCenterAlign(1, 4, numberToString(stakeInfo.OwnMempoolTix))
-	table.SetCellCenterAlign(1, 5, numberToString(stakeInfo.Unspent))
-	table.SetCellCenterAlign(1, 6, numberToString(stakeInfo.AllMempoolTix))
-	table.SetCellCenterAlign(1, 7, numberToString(stakeInfo.PoolSize))
-	table.SetCellCenterAlign(1, 8, numberToString(stakeInfo.Missed))
-	table.SetCellCenterAlign(1, 9, numberToString(stakeInfo.Voted))
-	table.SetCellCenterAlign(1, 10, stakeInfo.TotalSubsidy)
+	table.SetCell(1, 0, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Expired))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 1, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Immature))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 2, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Live))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 3, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Revoked))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 4, tview.NewTableCell(strconv.Itoa(int(stakeInfo.OwnMempoolTix))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 5, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Unspent))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 6, tview.NewTableCell(strconv.Itoa(int(stakeInfo.AllMempoolTix))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 7, tview.NewTableCell(strconv.Itoa(int(stakeInfo.PoolSize))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 8, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Missed))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 9, tview.NewTableCell(strconv.Itoa(int(stakeInfo.Voted))).SetAlign(tview.AlignCenter))
+	table.SetCell(1, 10, tview.NewTableCell(stakeInfo.TotalSubsidy).SetAlign(tview.AlignCenter))
 
 	return table, nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives.TextView, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool)) (*primitives.Form, error) {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -176,30 +181,27 @@ func purchaseTicketForm(wallet walletcore.Wallet) (*primitives.Form, *primitives
 		passphrase = text
 	})
 
-	// empty status text view for updating status of ticket purchase operation
-	statusTextView := primitives.WordWrappedTextView("")
-
 	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
-			statusTextView.SetText("Error: please specify the number of tickets to purchase")
+			displayMessage("Error: please specify the number of tickets to purchase", true)
 			return
 		}
 		if len(passphrase) == 0 {
-			statusTextView.SetText("Error: please enter your spending passphrase")
+			displayMessage("Error: please enter your spending passphrase", true)
 			return
 		}
 
 		ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
 		if err != nil {
-			statusTextView.SetText(err.Error())
+			displayMessage(err.Error(), true)
 			return
 		}
 
-		output := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
-		statusTextView.SetText(output)
+		successMessage := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
+		displayMessage(successMessage, false)
 	})
 
-	return form, statusTextView, nil
+	return form, nil
 }
 
 func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {

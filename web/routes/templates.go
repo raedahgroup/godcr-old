@@ -52,7 +52,7 @@ func templateFuncMap() template.FuncMap {
 		"timestamp": func() int64 {
 			return time.Now().Unix()
 		},
-		"rawHtml": func (content string) template.HTML {
+		"rawHtml": func(content string) template.HTML {
 			return template.HTML(content)
 		},
 	}

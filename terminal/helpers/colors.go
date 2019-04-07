@@ -3,9 +3,9 @@ package helpers
 import "github.com/gdamore/tcell"
 
 var (
-	DecredLightColor = tcell.NewRGBColor(112, 203, 255)
-	DecredColor      = tcell.NewRGBColor(41, 112, 255)
-	DangerColor      = tcell.NewRGBColor(255, 0, 0)
-	SeedLabelColor   = tcell.NewRGBColor(0, 255, 255)
-	PageHeaderColor  = tcell.NewRGBColor(0, 255, 255)
+	DecredLightBlueColor = tcell.NewRGBColor(112, 203, 255)
+	DecredBlueColor      = tcell.NewRGBColor(41, 112, 255)
+	DecredOrangeColor    = tcell.NewRGBColor(237, 109, 71)
+	DecredGreenColor     = tcell.NewRGBColor(65, 191, 83)
+	HintTextColor        = tcell.ColorGray
 )

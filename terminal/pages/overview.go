@@ -10,9 +10,8 @@ import (
 	"github.com/rivo/tview"
 )
 
-func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	overviewPage := tview.NewFlex().SetDirection(tview.FlexRow)
-	overviewPage.SetBorderPadding(1, 0, 1, 0)
 
 	var views []tview.Primitive
 	var viewBoxes []*tview.Box
@@ -27,10 +26,8 @@ func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tv
 	views = append(views, recentActivityViews...)
 	viewBoxes = append(viewBoxes, recentActivityViewBoxes...)
 
-	hintText := primitives.WordWrappedTextView("(TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
-		"Return to navigation menu with Esc)")
-	hintText.SetTextColor(tcell.ColorGray)
-	overviewPage.AddItem(hintText, 2, 0, false)
+	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
+		"Return to navigation menu with Esc")
 
 	tabAndEscInputCapture := func(viewIndex int) func(event *tcell.EventKey) *tcell.EventKey {
 		var nextView, previousView tview.Primitive
@@ -71,7 +68,7 @@ func overviewPage(wallet walletcore.Wallet, setFocus func(p tview.Primitive) *tv
 }
 
 func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
-	balanceTitleTextView := primitives.NewLeftAlignedTextView("BALANCE")
+	balanceTitleTextView := primitives.NewLeftAlignedTextView("Balance")
 	overviewPage.AddItem(balanceTitleTextView, 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
@@ -96,7 +93,7 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 
 		if showSimpleBalanceNext {
 			showSimpleBalanceNext = false
-			balanceTitleTextView.SetText("BALANCE")
+			balanceTitleTextView.SetText("Balance")
 			toggleBalanceForm.GetButton(0).SetLabel("Show Detailed Balance")
 
 			if len(accounts) == 1 {
@@ -106,7 +103,7 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 			}
 		} else {
 			showSimpleBalanceNext = true
-			balanceTitleTextView.SetText("BALANCE (Detailed)")
+			balanceTitleTextView.SetText("Balance (Detailed)")
 			toggleBalanceForm.GetButton(0).SetLabel("Show Simple Balance")
 			displayDetailedAccountsBalances(accounts, balanceTable)
 		}
@@ -174,7 +171,7 @@ func displayDetailedAccountsBalances(accounts []*walletcore.Account, balanceTabl
 }
 
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
-	overviewPage.AddItem(primitives.NewLeftAlignedTextView("RECENT ACTIVITY"), 1, 0, false)
+	overviewPage.AddItem(primitives.NewLeftAlignedTextView("Recent Activity"), 1, 0, false)
 
 	txns, _, err := wallet.TransactionHistory(context.Background(), -1, 5)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
@@ -15,7 +16,7 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	// page title and hint
 	body.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 2, 0, false)
 	hintText := primitives.WordWrappedTextView("(Press Enter or Esc to cancel sync and exit the app)")
-	hintText.SetTextColor(tcell.ColorGray)
+	hintText.SetTextColor(helpers.HintTextColor)
 	body.AddItem(hintText, 3, 0, false)
 
 	// text view to show sync progress updates
