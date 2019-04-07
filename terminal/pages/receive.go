@@ -36,6 +36,11 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(outputMessageTextView, 2, 0, false)
 	}
 
+	displayOutput := func (qrCode, address string) {
+		body.AddItem(primitives.NewLeftAlignedTextView(qrCode), 20, 0, true)
+		body.AddItem(primitives.NewLeftAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)
+	}
+
 	accountNumbers := make([]uint32, len(accounts))
 	accountNames := make([]string, len(accounts))
 	for index, account := range accounts {
@@ -56,8 +61,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			return nil
 		}
 
-		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 20, 0, true)
-		body.AddItem(primitives.NewLeftAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)
+		qrCode := fmt.Sprintf(qr.ToSmallString(false))
+		displayOutput(qrCode, address)
 	} else {
 		form.AddButton("Generate", func() {
 			form.RemoveButton(0)
@@ -68,8 +73,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 				return
 			}
 
-			body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 20, 0, true)
-			body.AddItem(primitives.NewLeftAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)				
+			qrCode := fmt.Sprintf(qr.ToSmallString(false))
+			displayOutput(qrCode, address)	
 		})
 	}
 
