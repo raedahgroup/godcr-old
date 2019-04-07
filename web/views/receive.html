@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 {{ template "html-head" }}
-<body>
+<body data-controller="receive">
     <div class="body">
         {{ template "header" .connectionInfo }}
         <div class="content">
             <div class="container">
 
-                <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
-                <div data-target="send.successMessage" class="alert alert-success d-none"></div>
+                <div data-target="receive.errorMessage" class="alert alert-danger d-none"></div>
+                <div data-target="receive.successMessage" class="alert alert-success d-none"></div>
 
                 <div class="card">
                    <div class="card-body">
