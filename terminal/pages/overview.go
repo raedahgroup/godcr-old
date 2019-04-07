@@ -26,8 +26,7 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	views = append(views, recentActivityViews...)
 	viewBoxes = append(viewBoxes, recentActivityViewBoxes...)
 
-	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. Scroll tables with ARROW KEYS. " +
-		"Return to navigation menu with Esc")
+	hintTextView.SetText("TIP: Scroll recent activity table with ARROW KEYS. Return to navigation menu with ESC")
 
 	tabAndEscInputCapture := func(viewIndex int) func(event *tcell.EventKey) *tcell.EventKey {
 		var nextView, previousView tview.Primitive
