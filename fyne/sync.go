@@ -41,7 +41,7 @@ func (app *fyneApp) showSyncWindow() {
 	app.resizeAndCenterMainWindow(syncWindowContent, fyne.NewSize(syncWindowWidth, syncWindowHeight))
 	app.mainWindow.Show()
 
-	err := app.walletMiddleware.SyncBlockChain(&godcrApp.BlockChainSyncListener{
+	err := app.walletMiddleware.SyncBlockChainOld(&godcrApp.BlockChainSyncListener{
 		SyncStarted: func() {
 			statusLabel.SetText("Sync started...")
 		},
