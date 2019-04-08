@@ -12,7 +12,10 @@ import (
 )
 
 func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+	pages := tview.NewPages()
+
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	pages.AddPage("main", body, true, true)
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Send"), 2, 0, false)
 
@@ -63,12 +66,8 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		spendUnconfirmed = checked
 	})
 
-	var passphrase string
-	form.AddPasswordField("Wallet Passphrase", "", 20, '*', func(text string) {
-		passphrase = text
-	})
-
 	form.AddButton("Send", func() {
+		// validate form fields
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {
 			displayErrorMessage("Error: Invalid amount")
@@ -86,24 +85,30 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 			requiredConfirmations = 0
 		}
 
-		txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
-		if err != nil {
-			displayErrorMessage(err.Error())
-			return
-		}
+		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
+			setFocus(form)
 
-		body.AddItem(primitives.WordWrappedTextView("Sent txid "+txHash), 2, 0, false)
+			txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
+			if err != nil {
+				displayErrorMessage(err.Error())
+				return
+			}
 
-		// reset form
-		form.ClearFields()
-		setFocus(form.GetFormItem(0))
+			body.AddItem(primitives.WordWrappedTextView("Sent txid "+txHash), 2, 0, false)
+
+			// reset form
+			form.ClearFields()
+			setFocus(form.GetFormItem(0))
+		}, func() {
+			setFocus(form)
+		})
 	})
 
 	form.SetCancelFunc(clearFocus)
 
 	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
 
-	setFocus(body)
+	setFocus(pages)
 
-	return body
+	return pages
 }
