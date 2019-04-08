@@ -8,6 +8,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
@@ -126,7 +127,7 @@ func displayMultipleAccountsSimpleBalance(accounts []*walletcore.Account, balanc
 }
 
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
-	overviewPage.AddItem(primitives.NewLeftAlignedTextView("Recent Activity"), 1, 0, false)
+	overviewPage.AddItem(primitives.NewLeftAlignedTextView("-Recent Activity-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 
 	txns, _, err := wallet.TransactionHistory(context.Background(), -1, 5)
 	if err != nil {
