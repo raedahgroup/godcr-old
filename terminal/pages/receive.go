@@ -37,8 +37,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	displayOutput := func (qrCode, address string) {
-		body.AddItem(primitives.NewLeftAlignedTextView(qrCode), 20, 0, true)
-		body.AddItem(primitives.NewLeftAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)
+		body.AddItem(primitives.NewCenterAlignedTextView(qrCode), 19, 0, true)
+		body.AddItem(primitives.NewCenterAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
