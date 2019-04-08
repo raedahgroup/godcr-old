@@ -20,13 +20,6 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func (c *WalletRPCClient) NetType() string {
-	if c.activeNet.Name == "mainnet" {
-		return "mainnet"
-	}
-	return "testnet"
-}
-
 func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
@@ -553,4 +546,11 @@ func (c *WalletRPCClient) BestBlock() (uint32, error) {
 		return 0, err
 	}
 	return req.Height, err
+}
+
+func (c *WalletRPCClient) NetType() string {
+	if c.activeNet.Name == "mainnet" {
+		return "mainnet"
+	}
+	return "testnet"
 }

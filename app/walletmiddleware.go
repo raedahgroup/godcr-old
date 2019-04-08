@@ -29,6 +29,9 @@ type WalletMiddleware interface {
 
 	IsWalletOpen() bool
 
+	// GetConnectedPeersCount returns the number of connected peers
+	GetConnectedPeersCount() int32
+
 	walletcore.Wallet
 }
 

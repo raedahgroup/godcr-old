@@ -2,10 +2,10 @@ package routes
 
 import (
 	"fmt"
-	"github.com/decred/dcrd/dcrutil"
 	"log"
 	"net/http"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/gorilla/websocket"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"

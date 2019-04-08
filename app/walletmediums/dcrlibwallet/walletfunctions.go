@@ -19,10 +19,6 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func (lib *DcrWalletLib) NetType() string {
-	return lib.activeNet.Params.Name
-}
-
 func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
@@ -373,4 +369,8 @@ func (lib *DcrWalletLib) ChangePrivatePassphrase(_ context.Context, oldPass, new
 
 func (lib *DcrWalletLib) BestBlock() (uint32, error) {
 	return uint32(lib.walletLib.GetBestBlock()), nil
+}
+
+func (lib *DcrWalletLib) NetType() string {
+	return lib.activeNet.Params.Name
 }
