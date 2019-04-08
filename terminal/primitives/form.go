@@ -349,7 +349,10 @@ func (f *Form) Draw(screen tcell.Screen) {
 			maxLabelWidth = labelWidth
 		}
 	}
-	maxLabelWidth++ // Add one space.
+
+	if maxLabelWidth > 0 {
+		maxLabelWidth++ // Add one space to separate label from field.
+	}
 
 	// Calculate positions of form items.
 	positions := make([]struct{ x, y, width, height int }, len(formItems)+len(formButtons))
