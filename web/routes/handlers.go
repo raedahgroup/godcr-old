@@ -502,7 +502,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	if spendUnconfirmedStr := req.FormValue("spendUnconfirmed"); spendUnconfirmedStr != "" {
+	if spendUnconfirmedStr := req.FormValue("spend-unconfirmed"); spendUnconfirmedStr != "" {
 		spendUnconfirmed, err := strconv.ParseBool(spendUnconfirmedStr)
 		if err != nil {
 			data["error"] = "Invalid value for spend unconfirmed funds setting"

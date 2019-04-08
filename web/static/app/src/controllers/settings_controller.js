@@ -74,7 +74,7 @@ export default class extends Controller {
 
   updateSpendUnconfirmed () {
     const _this = this
-    const postData = `spendUnconfirmed=${this.spendUnconfirmedFundsTarget.checked}`
+    const postData = `spend-unconfirmed=${this.spendUnconfirmedFundsTarget.checked}`
     axios.put('/settings', postData).then((response) => {
       let result = response.data
       if (result.success) {
