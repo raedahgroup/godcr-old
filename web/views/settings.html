@@ -22,6 +22,7 @@
                                 </div>
                                 <p class="mb-1">Required to send fund</p>
                             </a>
+
                             <input data-target="settings.spendUnconfirmedFunds" data-action="change->settings#updateSpendUnconfirmed"
                                    id="spendUnconfirmed" type="checkbox" {{ if .spendUnconfirmedFunds }} checked {{ end }}/>
                             <label for="spendUnconfirmed" class="list-group-item list-group-item-action flex-column align-items-start">
@@ -30,21 +31,25 @@
                                 </div>
                             </label>
 
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="checkbox" id="incomingTransactionNotification"/>
+                            <label for="incomingTransactionNotification" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Incoming Transaction Notification</h5>
                                 </div>
-                            </a>
+                            </label>
+
                             <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Currency Conversion</h5>
                                 </div>
                             </a>
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+
+                            <input id="newBlockNotification" type="checkbox"/>
+                            <label for="newBlockNotification" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">New Block Notification</h5>
                                 </div>
-                            </a>
+                            </label>
                         </div>
 
                         <h6 class="border-bottom border-gray pb-2 mb-0 mt-2">Debug</h6>
