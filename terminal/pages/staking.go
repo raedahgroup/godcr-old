@@ -43,7 +43,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
-	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, setFocus)
+	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, setFocus, clearFocus)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		displayMessage(errorText, true)
@@ -74,7 +74,7 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	return stakingFlex,nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), setFocus func(p tview.Primitive) *tview.Application) (*tview.Pages, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) (*tview.Pages, error) {
 	pages := tview.NewPages()
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
@@ -133,6 +133,8 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 			setFocus(form)
 		})
 	})
+
+	form.SetCancelFunc(clearFocus)
 
 	return pages, nil
 }
