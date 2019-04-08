@@ -17,7 +17,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	pages.AddPage("main", body, true, true)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Send"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Sending Decred"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
@@ -47,13 +47,8 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	// add form fields
 	var accountNum uint32
-	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
+	form.AddDropDown("From", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
-	})
-
-	var amount string
-	form.AddInputField("Amount", "", 20, nil, func(text string) {
-		amount = text
 	})
 
 	var destination string
@@ -61,6 +56,11 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		destination = text
 	})
 
+	var amount string
+	form.AddInputField("Amount", "", 20, nil, func(text string) {
+		amount = text
+	})
+	
 	var spendUnconfirmed bool
 	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
 		spendUnconfirmed = checked
