@@ -1,5 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
+import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -24,7 +25,7 @@ export default class extends Controller {
 
   initialize () {
     // hide next page button to use infinite scroll
-    this.hide(this.nextPageButtonTarget)
+    hide(this.nextPageButtonTarget)
     this.nextBlockHeight = this.nextPageButtonTarget.getAttribute('data-next-block-height')
     this.checkScrollPos()
   }
@@ -53,21 +54,21 @@ export default class extends Controller {
   makeTableHeaderSticky (scrollTop) {
     const historyTableOffset = this.historyTableTarget.parentElement.offsetTop
     if (this.stickyTableHeaderTarget.classList.contains('d-none') && scrollTop >= historyTableOffset) {
-      this.show(this.stickyTableHeaderTarget)
+      show(this.stickyTableHeaderTarget)
     } else if (scrollTop < historyTableOffset) {
-      this.hide(this.stickyTableHeaderTarget)
+      hide(this.stickyTableHeaderTarget)
     }
   }
 
   fetchMoreTxs () {
-    this.show(this.loadingIndicatorTarget)
+    show(this.loadingIndicatorTarget)
 
     const _this = this
     axios.get(`/next-history-page?start=${this.nextBlockHeight}`)
       .then(function (response) {
         let result = response.data
         if (result.success) {
-          _this.hide(_this.errorMessageTarget)
+          hide(_this.errorMessageTarget)
           _this.nextBlockHeight = result.nextBlockHeight
           _this.displayTxs(result.txs)
 
@@ -80,7 +81,7 @@ export default class extends Controller {
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
-        _this.hide(_this.loadingIndicatorTarget)
+        hide(_this.loadingIndicatorTarget)
       })
   }
 
@@ -114,14 +115,6 @@ export default class extends Controller {
 
   setErrorMessage (message) {
     this.errorMessageTarget.innerHTML = message
-    this.show(this.errorMessageTarget)
-  }
-
-  hide (el) {
-    el.classList.add('d-none')
-  }
-
-  show (el) {
-    el.classList.remove('d-none')
+    show(this.errorMessageTarget)
   }
 }

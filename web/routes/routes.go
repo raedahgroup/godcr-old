@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
@@ -18,23 +19,24 @@ type Routes struct {
 	templates        map[string]*template.Template
 	blockchain       *Blockchain
 	ctx              context.Context
+	settings         *config.Settings
 }
 
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
 // returns syncBlockchain function
-func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router) (func(), error) {
+func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func(), error) {
 	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
 		return nil, err
 	}
-
 	routes := &Routes{
 		walletMiddleware: walletMiddleware,
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
-		walletExists:     walletExists,
+		walletExists: 	  walletExists,
+		settings:         settings,
 	}
 
 	routes.loadTemplates()
@@ -60,6 +62,9 @@ func (routes *Routes) loadTemplates() {
 func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Get("/createwallet", routes.createWalletPage)
 	router.Post("/createwallet", routes.createWallet)
+	router.Get("/settings", routes.settingsPage)
+	router.Post("/change-password", routes.changeSpendingPassword)
+	router.Put("/settings", routes.updateSetting)
 
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)

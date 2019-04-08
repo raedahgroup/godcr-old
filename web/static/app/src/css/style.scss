@@ -194,6 +194,10 @@ select#source-account[disabled] {
   animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
 
+label.list-group-item div {
+  display: inline !important;
+}
+
 .lds-ellipsis div:nth-child(1) {
   left: 6px;
   animation: lds-ellipsis1 0.6s infinite;
@@ -257,4 +261,35 @@ select#source-account[disabled] {
   padding: 3px;
   background: none;
   border: none;
+}
+
+.list-group-item {
+  user-select: none;
+}
+
+.list-group input[type="checkbox"] {
+  display: none;
+}
+
+.list-group input[type="checkbox"] + .list-group-item {
+  cursor: pointer;
+}
+
+.list-group input[type="checkbox"] + .list-group-item::before {
+  content: "\2715";
+  font-weight: bold;
+  margin-right: 1em;
+}
+
+.list-group input[type="checkbox"]:checked + .list-group-item::before {
+  color: inherit;
+  content: "\2713";
+}
+
+.list-group-item h5 {
+  font-size: 1em !important;
+}
+
+label.list-group-item h5 {
+  display: inline !important;
 }

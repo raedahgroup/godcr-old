@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
 )
@@ -74,7 +75,8 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"accounts": accounts,
+		"accounts":              accounts,
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
 	routes.render("send.html", data, res)
 }
@@ -404,9 +406,10 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"stakeinfo":   stakeInfo,
-		"accounts":    accounts,
-		"ticketPrice": dcrutil.Amount(ticketPrice).ToCoin(),
+		"stakeinfo":             stakeInfo,
+		"accounts":              accounts,
+		"ticketPrice":           dcrutil.Amount(ticketPrice).ToCoin(),
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
 	routes.render("staking.html", data, res)
 }
@@ -462,4 +465,59 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 
 	data["success"] = true
 	data["message"] = ticketHashes
+}
+
+func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{
+		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
+	}
+	routes.render("settings.html", data, res)
+}
+
+func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	oldPassword := req.FormValue("oldPassword")
+	newPassword := req.FormValue("newPassword")
+	confirmPassword := req.FormValue("confirmPassword")
+
+	if oldPassword == "" || newPassword == "" {
+		data["error"] = "Password cannot be empty"
+		return
+	}
+
+	if newPassword != confirmPassword {
+		data["error"] = "Confirm password doesn't match"
+		return
+	}
+
+	err := routes.walletMiddleware.ChangePrivatePassphrase(routes.ctx, oldPassword, newPassword)
+	if err != nil {
+		data["error"] = err.Error()
+	}
+}
+
+func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	if spendUnconfirmedStr := req.FormValue("spend-unconfirmed"); spendUnconfirmedStr != "" {
+		spendUnconfirmed, err := strconv.ParseBool(spendUnconfirmedStr)
+		if err != nil {
+			data["error"] = "Invalid value for spend unconfirmed funds setting"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.SpendUnconfirmed = spendUnconfirmed
+		})
+		if err != nil {
+			data["error"] = fmt.Errorf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.SpendUnconfirmed = spendUnconfirmed
+	}
+
+	data["success"] = true
 }

@@ -21,6 +21,12 @@ type ConfFileOptions struct {
 	HTTPPort        string        `long:"httpport" description:"HTTP server port when running godcr in http mode."`
 	DebugLevel      string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
 	Wallets         []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
+
+	Settings `group:"Settings"`
+}
+
+type Settings struct {
+	SpendUnconfirmed bool `long:"spendunconfirmed" description:"Spend unconfirmed funds"`
 }
 
 func defaultFileOptions() ConfFileOptions {

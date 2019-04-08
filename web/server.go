@@ -14,11 +14,12 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/web/routes"
 	"github.com/raedahgroup/godcr/web/weblog"
 )
 
-func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, host, port string) error {
+func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, httpHost, httpPort string, settings *config.Settings) error {
 	router := chi.NewRouter()
 
 	// setup static file serving
@@ -28,14 +29,14 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, hos
 
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened
 	// returns error if wallet exists but could not be opened
-	syncBlockchain, err := routes.OpenWalletAndSetupRoutes(ctx, walletMiddleware, router)
+	syncBlockchain, err := routes.OpenWalletAndSetupRoutes(ctx, walletMiddleware, router, settings)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Starting web server")
 
-	serverAddress := net.JoinHostPort(host, port)
+	serverAddress := net.JoinHostPort(httpHost, httpPort)
 	err = startServer(ctx, serverAddress, router)
 	if err != nil {
 		return err

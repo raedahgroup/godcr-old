@@ -1,3 +1,5 @@
+import toastr from 'toastr'
+
 export const copyToClipboard = str => {
   const el = document.createElement('textarea')
   el.value = str
@@ -39,6 +41,14 @@ export const clearMessages = (controller) => {
     hide(controller.successMessageTarget)
     controller.successMessageTarget.innerHTML = ''
   }
+}
+
+export const showErrorNotification = (message) => {
+  toastr.error(message)
+}
+
+export const showSuccessNotification = (message) => {
+  toastr.success(message)
 }
 
 export const hide = (el) => {

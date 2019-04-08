@@ -1,5 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
+import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -32,7 +33,7 @@ export default class extends Controller {
     this.destinationsTarget.appendChild(destinationTemplate)
 
     if (this.destinationCount() > 1) {
-      this.show(this.removeDestinationButtonTarget)
+      show(this.removeDestinationButtonTarget)
     }
   }
 
@@ -69,7 +70,7 @@ export default class extends Controller {
       this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'))
     }
     if (this.destinationCount() <= 1) {
-      this.hide(this.removeDestinationButtonTarget)
+      hide(this.removeDestinationButtonTarget)
     }
   }
 
@@ -94,12 +95,12 @@ export default class extends Controller {
   }
 
   resetCustomInputsAndChangeOutputs () {
-    this.show(this.fetchingUtxosTarget)
+    show(this.fetchingUtxosTarget)
 
     $('#custom-inputs').slideUp()
     this.customInputsTableTarget.innerHTML = ''
 
-    this.hide(this.changeOutputsTarget)
+    hide(this.changeOutputsTarget)
     this.useRandomChangeOutputsTarget.checked = false
     this.numberOfChangeOutputsTarget.value = ''
     this.generatedChangeOutputsTarget.innerHTML = ''
@@ -126,8 +127,8 @@ export default class extends Controller {
       })
 
       _this.customInputsTableTarget.innerHTML = utxos.join('')
-      _this.hide(this.fetchingUtxosTarget)
-      _this.show(_this.changeOutputsTarget)
+      hide(this.fetchingUtxosTarget)
+      show(_this.changeOutputsTarget)
     }
 
     const accountNumber = this.sourceAccountTarget.value
@@ -252,7 +253,7 @@ export default class extends Controller {
         _this.generatedChangeOutputsTarget.appendChild(template)
       })
 
-      _this.show(_this.generatedChangeOutputsTarget)
+      show(_this.generatedChangeOutputsTarget)
     })
   }
 
@@ -436,19 +437,19 @@ export default class extends Controller {
 
   setErrorMessage (message) {
     this.errorMessageTarget.innerHTML = message
-    this.hide(this.successMessageTarget)
-    this.show(this.errorMessageTarget)
+    hide(this.successMessageTarget)
+    show(this.errorMessageTarget)
   }
 
   setSuccessMessage (message) {
     this.successMessageTarget.innerHTML = message
-    this.hide(this.errorMessageTarget)
-    this.show(this.successMessageTarget)
+    hide(this.errorMessageTarget)
+    show(this.successMessageTarget)
   }
 
   clearMessages () {
-    this.hide(this.errorMessageTarget)
-    this.hide(this.successMessageTarget)
+    hide(this.errorMessageTarget)
+    hide(this.successMessageTarget)
     this.errorsTarget.innerHTML = ''
   }
 

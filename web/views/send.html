@@ -26,7 +26,8 @@
                                             </select>	                                          
                                         </div>
                                         <div class="form-group form-check">
-                                            <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed">
+                                            <input data-action="click->send#toggleSpendUnconfirmed" data-target="send.spendUnconfirmed" type="checkbox" class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
+                                            {{ if .spendUnconfirmedFunds }} checked {{ end }}>
                                             <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
                                         </div>
                                     </div>
