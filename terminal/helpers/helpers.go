@@ -10,21 +10,26 @@ func RequestSpendingPassphrase(pages *tview.Pages, successFunc func(string), can
 	passphraseModal := primitives.NewFormModal("Enter Spending Passphrase").
 		AddFormItem(passphraseField)
 
+	closeModal := func() {
+		pages.RemovePage("passphrase")
+		passphraseField.SetText("") // clear sensitive info
+	}
+
+	// wrapper around passed in cancelFunc to closse modal before invoking provided cancelFunc
+	cancelFuncWrapper := func() {
+		closeModal()
+		cancelFunc()
+	}
+
 	passphraseModal.AddButton("Submit", func() {
-		pages.RemovePage("passphrase")
-		passphraseField.SetText("") // clear sensitive info
-		successFunc(passphraseField.GetText())
+		passphrase := passphraseField.GetText()
+		// close modal before calling success func so that the modal does not remain open if success func takes some time to execute
+		closeModal()
+		successFunc(passphrase)
 	})
-	passphraseModal.AddButton("Cancel", func() {
-		pages.RemovePage("passphrase")
-		passphraseField.SetText("") // clear sensitive info
-		cancelFunc()
-	})
-	passphraseModal.SetCancelFunc(func() {
-		pages.RemovePage("passphrase")
-		passphraseField.SetText("") // clear sensitive info
-		cancelFunc()
-	})
+
+	passphraseModal.AddButton("Cancel", cancelFuncWrapper)
+	passphraseModal.SetCancelFunc(cancelFuncWrapper)
 
 	pages.AddPage("passphrase", passphraseModal, true, true)
 }

@@ -15,6 +15,12 @@ type FormModal struct {
 	form *Form
 }
 
+const (
+	buttonPadding = 4
+	spaceBetweenButtons = 2
+	modalPadding = 5
+)
+
 func NewFormModal(modalTitle string) *FormModal {
 	m := &FormModal{
 		Box:       tview.NewBox(),
@@ -86,16 +92,25 @@ func (m *FormModal) Draw(screen tcell.Screen) {
 	// first get buttons width
 	for i := 0; i < m.form.GetButtonCount(); i++ {
 		buttonLabel := m.form.GetButton(i).GetLabel()
-		formWidth += tview.StringWidth(buttonLabel) + 4 + 2
+		formWidth += tview.StringWidth(buttonLabel) + buttonPadding + spaceBetweenButtons
 	}
-	formWidth -= 2
+	formWidth -= spaceBetweenButtons // there's no spacing after last button
 
-	// get longest form item width
+	// get longest form item width and calculate total form height
+	formHeight := 0
 	for i := 0; i < m.form.GetFormItemsCount(); i++ {
-		itemWidth := m.form.GetFormItem(i).GetFieldWidth()
+		item := m.form.GetFormItem(i)
+		itemWidth := item.GetFieldWidth()
 		if itemWidth > formWidth {
 			formWidth = itemWidth
 		}
+
+		if formItem, isFormItem := item.(FormItem); isFormItem {
+			formHeight += formItem.GetFieldHeight()
+		} else {
+			formHeight += 1 // default form item height
+		}
+		formHeight += 1 // spacing after each form item
 	}
 
 	screenWidth, screenHeight := screen.Size()
@@ -105,8 +120,8 @@ func (m *FormModal) Draw(screen tcell.Screen) {
 	}
 
 	// Set the modal's position and size.
-	height := (m.form.GetFormItemsCount() * 2) + 5
-	width += 5
+	height := formHeight + modalPadding
+	width += modalPadding
 	x := (screenWidth - width) / 2
 	y := (screenHeight - height) / 2
 	m.SetRect(x, y, width, height)
