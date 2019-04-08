@@ -16,14 +16,14 @@ type FormModal struct {
 }
 
 const (
-	buttonPadding = 4
+	buttonPadding       = 4
 	spaceBetweenButtons = 2
-	modalPadding = 5
+	modalPadding        = 5
 )
 
 func NewFormModal(modalTitle string) *FormModal {
 	m := &FormModal{
-		Box:       tview.NewBox(),
+		Box: tview.NewBox(),
 	}
 
 	m.form = NewForm()
@@ -46,7 +46,7 @@ func NewFormModal(modalTitle string) *FormModal {
 
 func (m *FormModal) AddFormItem(item tview.FormItem) *FormModal {
 	m.form.AddFormItem(item)
-	m.form.boxItems[len(m.form.boxItems) - 1].SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	m.form.boxItems[len(m.form.boxItems)-1].SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyDown:
 			return tcell.NewEventKey(tcell.KeyTab, 0, tcell.ModNone)

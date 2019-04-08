@@ -523,5 +523,3 @@ func (f *Form) Draw(screen tcell.Screen) {
 		button.Draw(screen)
 	}
 }
-
-
