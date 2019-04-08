@@ -47,22 +47,22 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	// add form fields
 	var accountNum uint32
-	form.AddDropDown("From", accountNames, 0, func(option string, optionIndex int) {
+	form.AddDropDown("From: ", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
 	})
 
 	var destination string
-	form.AddInputField("Destination Address", "", 37, nil, func(text string) {
+	form.AddInputField("Destination Address: ", "", 37, nil, func(text string) {
 		destination = text
 	})
 
 	var amount string
-	form.AddInputField("Amount", "", 20, nil, func(text string) {
+	form.AddInputField("Amount: ", "", 20, nil, func(text string) {
 		amount = text
 	})
 	
 	var spendUnconfirmed bool
-	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed: ", false, func(checked bool) {
 		spendUnconfirmed = checked
 	})
 
@@ -104,6 +104,10 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		})
 	})
 
+	form.AddButton("Clear", func() {
+		form.ClearFields()
+	})
+	
 	form.SetCancelFunc(clearFocus)
 
 	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")

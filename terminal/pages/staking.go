@@ -33,7 +33,6 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(messageTextView, 2, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("-Stake Info-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 	stakeInfo, err := stakeInfoFlex(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
@@ -67,9 +66,9 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	}
 
 	stakingFlex := tview.NewFlex()
-	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Live: %s\n", strconv.Itoa(int(stakeInfo.Live)))), 10, 0, false)
-	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Immature: %s\n", strconv.Itoa(int(stakeInfo.Immature)))), 15, 0, false)
-	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Mempool: %s\n", strconv.Itoa(int(stakeInfo.OwnMempoolTix)))),10, 0, false)
+	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Live: %s\n", strconv.Itoa(int(stakeInfo.Live)))), 9, 0, false)
+	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Immature: %s\n", strconv.Itoa(int(stakeInfo.Immature)))), 13, 0, false)
+	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Mempool: %s\n", strconv.Itoa(int(stakeInfo.OwnMempoolTix)))), 10, 0, false)
 	
 	return stakingFlex,nil
 }
@@ -94,17 +93,17 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 	pages.AddPage("form", form, true, true)
 
 	var accountNum uint32
-	form.AddDropDown("Source Account", accountOverviews, 0, func(option string, optionIndex int) {
+	form.AddDropDown("From: ", accountOverviews, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
 	})
 
 	var numTickets string
-	form.AddInputField("Number of tickets", "", 20, nil, func(text string) {
+	form.AddInputField("Number of tickets: ", "", 10, nil, func(text string) {
 		numTickets = text
 	})
 
 	var spendUnconfirmed bool
-	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed: ", false, func(checked bool) {
 		spendUnconfirmed = checked
 	})
 
@@ -132,6 +131,10 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		}, func() {
 			setFocus(form)
 		})
+	})
+
+	form.AddButton("Clear", func() {
+		form.ClearFields()
 	})
 
 	form.SetCancelFunc(clearFocus)
