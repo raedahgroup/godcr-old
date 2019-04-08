@@ -276,22 +276,14 @@ label.list-group-item div {
 }
 
 .list-group input[type="checkbox"] + .list-group-item::before {
-  content: "\2714";
+  content: "\2715";
   font-weight: bold;
   margin-right: 1em;
 }
 
-.list-group input[type="checkbox"]:checked {
-  content: "\2713";
-}
-
-.list-group input[type="checkbox"]:checked + .list-group-item {
-  background-color: #0275d8;
-  color: #fff;
-}
-
 .list-group input[type="checkbox"]:checked + .list-group-item::before {
   color: inherit;
+  content: "\2713";
 }
 
 label.list-group-item h5 {
