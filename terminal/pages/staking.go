@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
@@ -35,71 +34,22 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	body.AddItem(tview.NewTextView().SetText("-Stake Info-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
-	stakeInfo, err := stakeInfoTable(wallet)
+	stakeInfo, err := stakeInfoFlex(wallet)
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		displayMessage(errorText, true)
 	} else {
-		body.AddItem(stakeInfo, 2, 0, true)
+		body.AddItem(stakeInfo, 3, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
-	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage)
+	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, setFocus)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		displayMessage(errorText, true)
 	} else {
 		body.AddItem(purchaseTicket, 0, 1, true)
 	}
-
-	stakeInfo.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		if event.Key() == tcell.KeyTAB {
-			setFocus(purchaseTicket)
-			setFocus(purchaseTicket.GetFormItem(0))
-			return nil
-		}
-
-		return event
-	})
-
-	// listen to escape and left key press events on all form items and buttons
-	purchaseTicket.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		return event
-	})
-
-	// use different key press listener on first form item to watch for backtab press and restore focus to stake info
-	purchaseTicket.GetFormItemBox(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		if event.Key() == tcell.KeyBacktab {
-			setFocus(stakeInfo)
-			return nil
-		}
-		return event
-	})
-
-	// use different key press listener on form button to watch for tab press and restore focus to stake info
-	purchaseTicket.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		if event.Key() == tcell.KeyTAB {
-			setFocus(stakeInfo)
-			return nil
-		}
-		return event
-	})
 
 	setFocus(body)
 
@@ -108,7 +58,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	return body
 }
 
-func stakeInfoTable(wallet walletcore.Wallet) (*tview.Flex, error) {
+func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
 	if err != nil {
 		return nil, err
@@ -124,7 +74,9 @@ func stakeInfoTable(wallet walletcore.Wallet) (*tview.Flex, error) {
 	return stakingFlex,nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool)) (*primitives.Form, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), setFocus func(p tview.Primitive) *tview.Application) (*tview.Pages, error) {
+	pages := tview.NewPages()
+
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return nil, err
@@ -139,14 +91,15 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 	form := primitives.NewForm()
 	form.SetBorderPadding(0, 0, 0, 0)
+	pages.AddPage("form", form, true, true)
 
 	var accountNum uint32
-	form.AddDropDown("From", accountOverviews, 0, func(option string, optionIndex int) {
+	form.AddDropDown("Source Account", accountOverviews, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
 	})
 
 	var numTickets string
-	form.AddInputField("Number of tickets", "", 10, nil, func(text string) {
+	form.AddInputField("Number of tickets", "", 20, nil, func(text string) {
 		numTickets = text
 	})
 
@@ -155,33 +108,35 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		spendUnconfirmed = checked
 	})
 
-	var passphrase string
-	form.AddPasswordField("Spending Passphrase", "", 20, '*', func(text string) {
-		passphrase = text
-	})
-
-	form.AddButton("Purchase", func() {
+	form.AddButton("Submit", func() {
 		if len(numTickets) == 0 {
 			displayMessage("Error: please specify the number of tickets to purchase", true)
 			return
 		}
-		if len(passphrase) == 0 {
-			displayMessage("Error: please enter your spending passphrase", true)
-			return
-		}
 
-		ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
-		if err != nil {
-			displayMessage(err.Error(), true)
-			return
-		}
+		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
+			setFocus(form)
 
-		successMessage := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
-		displayMessage(successMessage, false)
+			ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
+			if err != nil {
+				displayMessage(err.Error(), true)
+				return
+			}
+
+			successMessage := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
+			displayMessage(successMessage, false)
+				
+			// reset form
+			form.ClearFields()
+			setFocus(form.GetFormItem(0))
+		}, func() {
+			setFocus(form)
+		})
 	})
 
-	return form, nil
+	return pages, nil
 }
+
 
 func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {
 	nTickets, err := strconv.ParseUint(string(numTickets), 10, 32)
