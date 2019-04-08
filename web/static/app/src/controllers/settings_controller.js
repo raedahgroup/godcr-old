@@ -1,11 +1,12 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { showErrorNotification, showSuccessNotification } from '../utils'
+import { hide, show, showErrorNotification, showSuccessNotification } from '../utils'
 
 export default class extends Controller {
   static get targets () {
     return [
-      'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword', 'confirmPasswordError',
+      'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword',
+      'confirmPasswordError', 'changePasswordErrorMessage',
       'spendUnconfirmedFunds'
     ]
   }
@@ -15,6 +16,9 @@ export default class extends Controller {
     if (!this.validateChangePasswordFields()) {
       return
     }
+
+    this.clearChangePasswordError()
+
     let submitBtn = e.currentTarget
     submitBtn.textContent = 'Changing Password...'
     submitBtn.setAttribute('disabled', true)
@@ -25,7 +29,7 @@ export default class extends Controller {
     axios.post('/change-password', postData).then((response) => {
       let result = response.data
       if (result.error) {
-        showErrorNotification(result.error)
+        _this.showChangePasswordError(result.error)
       } else {
         _this.oldPasswordTarget.value = ''
         _this.newPasswordTarget.value = ''
@@ -35,11 +39,21 @@ export default class extends Controller {
         $('#change-password-modal').modal('hide')
       }
     }).catch(() => {
-      showErrorNotification('A server error occurred')
+      _this.showChangePasswordError('A server error occurred')
     }).then(() => {
       submitBtn.innerHTML = 'Change Password'
       submitBtn.removeAttribute('disabled')
     })
+  }
+
+  showChangePasswordError (message) {
+    this.changePasswordErrorMessageTarget.textContent = message
+    show(this.changePasswordErrorMessageTarget)
+  }
+
+  clearChangePasswordError () {
+    this.changePasswordErrorMessageTarget.textContent = ''
+    hide(this.changePasswordErrorMessageTarget)
   }
 
   validateChangePasswordFields () {
@@ -70,6 +84,7 @@ export default class extends Controller {
     this.oldPasswordErrorTarget.textContent = ''
     this.newPasswordErrorTarget.textContent = ''
     this.confirmPasswordErrorTarget.textContent = ''
+    this.clearChangePasswordError()
   }
 
   updateSpendUnconfirmed () {

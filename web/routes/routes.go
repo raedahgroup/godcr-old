@@ -62,6 +62,9 @@ func (routes *Routes) loadTemplates() {
 func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Get("/createwallet", routes.createWalletPage)
 	router.Post("/createwallet", routes.createWallet)
+	router.Get("/settings", routes.settingsPage)
+	router.Post("/change-password", routes.changeSpendingPassword)
+	router.Put("/settings", routes.updateSetting)
 
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)
@@ -84,7 +87,4 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/transaction-details/{hash}", routes.transactionDetailsPage)
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
-	router.Get("/settings", routes.settingsPage)
-	router.Post("/change-password", routes.changeSpendingPassword)
-	router.Put("/settings", routes.updateSetting)
 }

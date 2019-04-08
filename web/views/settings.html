@@ -23,8 +23,7 @@
                                 <p class="mb-1">Required to send fund</p>
                             </a>
                             <input data-target="settings.spendUnconfirmedFunds" data-action="change->settings#updateSpendUnconfirmed"
-                                   id="spendUnconfirmed" type="checkbox"
-                            {{ if .spendUnconfirmedFunds }} checked {{ end }}/>
+                                   id="spendUnconfirmed" type="checkbox" {{ if .spendUnconfirmedFunds }} checked {{ end }}/>
                             <label for="spendUnconfirmed" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Spend Unconfirmed Fund</h5>
@@ -80,6 +79,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div data-target="settings.changePasswordErrorMessage" class="alert alert-danger d-none"></div>
+
                     <div class="form-group">
                         <label for="oldPassword">Old Password</label>
                         <input data-target="settings.oldPassword" name="oldPassword" type="password" class="form-control" />
