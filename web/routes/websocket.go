@@ -55,7 +55,7 @@ func waitToSendMessagesToClients() {
 }
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
-	info, err := walletcore.WalletConnectionInfo(routes.walletMiddleware)
+	info, err := routes.walletMiddleware.WalletConnectionInfo()
 	if err != nil {
 		weblog.LogError(err)
 	}
