@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { clearMessages, copyToClipboard, setErrorMessage } from '../utils'
+import { clearMessages, copyToClipboard, setErrorMessage, showSuccessNotification } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -11,11 +11,7 @@ export default class extends Controller {
 
   copyAddressToClipboard () {
     copyToClipboard(this.addressTarget.textContent)
-    this.copyButtonTextTarget.textContent = 'copied'
-    let _this = this
-    setTimeout(function () {
-      _this.copyButtonTextTarget.textContent = 'copy'
-    }, 1500)
+    showSuccessNotification('Copied to clipboard')
   }
 
   generateNewAddress () {
