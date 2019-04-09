@@ -524,6 +524,23 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 		routes.settings.SpendUnconfirmed = spendUnconfirmed
 	}
 
+	if showIncomingTransactionNotificationStr := req.FormValue("show-incoming-transaction-notification"); showIncomingTransactionNotificationStr != "" {
+		showIncomingTransactionNotification, err := strconv.ParseBool(showIncomingTransactionNotificationStr)
+		if err != nil {
+			data["error"] = "Invalid value for 'show incoming transaction notification' setting"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.ShowIncomingTransactionNotification = showIncomingTransactionNotification
+		})
+		if err != nil {
+			data["error"] = fmt.Errorf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.ShowIncomingTransactionNotification = showIncomingTransactionNotification
+	}
+
 	data["success"] = true
 }
 
