@@ -31,7 +31,8 @@
                                 </div>
                             </label>
 
-                            <input data-target="settings.showIncomingTransactionNotification" data-action="change->settings#updateShowIncomingTransactionNotification"
+                            <input data-target="settings.showIncomingTransactionNotification"
+                                   data-action="change->settings#updateShowIncomingTransactionNotification"
                                     type="checkbox" id="incomingTransactionNotification"
                                     {{ if .showIncomingTransactionNotification }} checked {{ end }}/>
                             <label for="incomingTransactionNotification" class="list-group-item list-group-item-action flex-column align-items-start">
@@ -46,7 +47,10 @@
                                 </div>
                             </a>
 
-                            <input id="newBlockNotification" type="checkbox"/>
+                            <input data-target="settings.showNewBlockNotification"
+                                   data-action="change->settings#updateShowNewBlockNotification"
+                                   id="newBlockNotification" type="checkbox"
+                                    {{ if .showNewBlockNotification }} checked {{ end }}/>
                             <label for="newBlockNotification" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">New Block Notification</h5>

@@ -7,7 +7,7 @@ export default class extends Controller {
     return [
       'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword',
       'confirmPasswordError', 'changePasswordErrorMessage',
-      'spendUnconfirmedFunds', 'showIncomingTransactionNotification'
+      'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification'
     ]
   }
 
@@ -117,6 +117,23 @@ export default class extends Controller {
       }
     }).catch(() => {
       _this.showIncomingTransactionNotificationTarget.checked = !_this.showIncomingTransactionNotificationTarget.checked
+      showErrorNotification('A server error occurred')
+    })
+  }
+
+  updateShowNewBlockNotification () {
+    const _this = this
+    const postData = `show-new-block-notification=${this.showNewBlockNotificationTarget.checked}`
+    axios.put('/settings', postData).then((response) => {
+      let result = response.data
+      if (result.success) {
+        showSuccessNotification('Changes saved successfully')
+      } else {
+        showErrorNotification(result.error ? result.error : 'Something went wrong, please try again later')
+        _this.showNewBlockNotificationTarget.checked = !_this.showNewBlockNotificationTarget.checked
+      }
+    }).catch(() => {
+      _this.showNewBlockNotificationTarget.checked = !_this.showNewBlockNotificationTarget.checked
       showErrorNotification('A server error occurred')
     })
   }
