@@ -475,6 +475,7 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
+		"showIncomingTransactionNotification" : routes.settings.ShowIncomingTransactionNotification,
 	}
 	routes.renderPage("settings.html", data, res)
 }
