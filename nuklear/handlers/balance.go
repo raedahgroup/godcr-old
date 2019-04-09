@@ -6,88 +6,42 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 )
 
-type BalanceHandler struct {
+type OverviewHandler struct {
 	err         error
 	isRendering bool
 	accounts    []*walletcore.Account
 	detailed    bool
 }
 
-func (handler *BalanceHandler) BeforeRender() {
+func (handler *OverviewHandler) BeforeRender() {
 	handler.err = nil
 	handler.accounts = nil
 	handler.isRendering = false
 	handler.detailed = false
 }
 
-func (handler *BalanceHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
+func (handler *OverviewHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	// draw page
-	if page := helpers.NewWindow("Balance Page", w, 0); page != nil {
-		page.DrawHeader("Balance")
+	if page := helpers.NewWindow("Overview Page", w, 0); page != nil {
+		page.DrawHeader("Overview")
 
-		// content window
-		if content := page.ContentWindow("Balance"); content != nil {
+		if contentWindow := page.ContentWindow("Balance"); contentWindow != nil {
+			contentWindow.DrawHeader("Current Total Balance")
+
 			if handler.err != nil {
-				content.SetErrorMessage(handler.err.Error())
+				contentWindow.SetErrorMessage(handler.err.Error())
 			} else {
-				detailsCheckboxText := "Show details"
-				if handler.detailed {
-					detailsCheckboxText = "Hide details"
-				}
-
-				content.Row(helpers.CheckboxHeight).Dynamic(helpers.TextEditorWidth)
-				if content.CheckboxText(detailsCheckboxText, &handler.detailed) {
-					content.Master().Changed()
-				}
-
-				if !handler.detailed && len(handler.accounts) == 1 {
-					handler.showSimpleView(content.Window)
-				} else {
-					handler.showTabularView(content.Window)
-				}
+				contentWindow.Row(25).Dynamic(1)
+				contentWindow.Label(walletcore.WalletBalance(handler.accounts), "LC")
 			}
-			content.End()
+
+			contentWindow.End()
 		}
 		page.End()
-	}
-}
-
-func (handler *BalanceHandler) showSimpleView(window *nucular.Window) {
-	helpers.SetFont(window, helpers.PageHeaderFont)
-	window.Row(25).Dynamic(1)
-	window.Label(walletcore.SimpleBalance(handler.accounts[0].Balance, false), "LC")
-}
-
-func (handler *BalanceHandler) showTabularView(window *nucular.Window) {
-	helpers.SetFont(window, helpers.NavFont)
-	window.Row(helpers.LabelHeight).Static(80, 60, 60, 75, 80, 80)
-	window.Label("Account Name", "LC")
-	window.Label("Balance", "LC")
-
-	if handler.detailed {
-		window.Label("Spendable", "LC")
-		window.Label("Locked", "LC")
-		window.Label("Voting Authority", "LC")
-		window.Label("Unconfirmed", "LC")
-	}
-
-	// rows
-	helpers.SetFont(window, helpers.PageContentFont)
-	for _, account := range handler.accounts {
-		window.Row(helpers.LabelHeight).Static(80, 60, 60, 75, 80, 80)
-		window.Label(account.Name, "LC")
-		window.Label(walletcore.SimpleBalance(account.Balance, handler.detailed), "LC")
-
-		if handler.detailed {
-			window.Label(account.Balance.Spendable.String(), "LC")
-			window.Label(account.Balance.LockedByTickets.String(), "LC")
-			window.Label(account.Balance.VotingAuthority.String(), "LC")
-			window.Label(account.Balance.Unconfirmed.String(), "LC")
-		}
 	}
 }

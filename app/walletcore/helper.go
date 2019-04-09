@@ -35,6 +35,20 @@ func NormalizeBalance(balance float64) string {
 	return fmt.Sprintf("%010.8f DCR", balance)
 }
 
+func WalletBalance(accounts []*Account) string {
+	var totalBalance, spendableBalance dcrutil.Amount
+	for _, account := range accounts {
+		totalBalance += account.Balance.Total
+		spendableBalance += account.Balance.Spendable
+	}
+
+	if totalBalance != spendableBalance {
+		return fmt.Sprintf("Total %s (Spendable %s)", totalBalance.String(), spendableBalance.String())
+	} else {
+		return totalBalance.String()
+	}
+}
+
 // GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
 func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {

@@ -31,9 +31,14 @@ type standalonePage struct {
 func getNavPages() []navPage {
 	return []navPage{
 		{
-			name:    "balance",
-			label:   "Balance",
-			handler: &handlers.BalanceHandler{},
+			name:    "overview",
+			label:   "Overview",
+			handler: &handlers.OverviewHandler{},
+		},
+		{
+			name:    "history",
+			label:   "History",
+			handler: &handlers.HistoryHandler{},
 		},
 		{
 			name:    "send",
@@ -44,11 +49,6 @@ func getNavPages() []navPage {
 			name:    "receive",
 			label:   "Receive",
 			handler: &handlers.ReceiveHandler{},
-		},
-		{
-			name:    "history",
-			label:   "History",
-			handler: &handlers.HistoryHandler{},
 		},
 		{
 			name:    "staking",
