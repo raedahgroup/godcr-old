@@ -546,18 +546,18 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	if showNewBlockNotificationStr := req.FormValue("show-new-block-notification"); showNewBlockNotificationStr != "" {
 		showNewBlockNotification, err := strconv.ParseBool(showNewBlockNotificationStr)
 		if err != nil {
-			data["error"] = "Invalid value for 'show incoming transaction notification' setting"
+			data["error"] = "Invalid value for 'show new block notification' setting"
 			return
 		}
 
 		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
-			cnfg.ShowIncomingTransactionNotification = showNewBlockNotification
+			cnfg.ShowNewBlockNotification = showNewBlockNotification
 		})
 		if err != nil {
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
-		routes.settings.ShowIncomingTransactionNotification = showNewBlockNotification
+		routes.settings.ShowNewBlockNotification = showNewBlockNotification
 	}
 
 	data["success"] = true
