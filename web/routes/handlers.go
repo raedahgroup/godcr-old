@@ -475,7 +475,7 @@ func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
-	routes.render("settings.html", data, res)
+	routes.renderPage("settings.html", data, res)
 }
 
 func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.Request) {

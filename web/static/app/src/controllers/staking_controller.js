@@ -1,7 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { hide, show } from '../utils'
-import { listenForBalanceUpdate } from '../utils'
+import { hide, show, listenForBalanceUpdate } from '../utils'
 
 export default class extends Controller {
   static get targets () {
