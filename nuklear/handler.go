@@ -7,25 +7,25 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/handlers"
 )
 
-type navPageHandler interface {
-	BeforeRender()
-	Render(*nucular.Window, walletcore.Wallet)
-}
-
-type standalonePageHandler interface {
-	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware, func(string))
-}
-
 type navPage struct {
 	name    string
 	label   string
 	handler navPageHandler
 }
 
+type navPageHandler interface {
+	BeforeRender()
+	Render(*nucular.Window, walletcore.Wallet)
+}
+
 type standalonePage struct {
 	name    string
 	handler standalonePageHandler
+}
+
+type standalonePageHandler interface {
+	BeforeRender()
+	Render(*nucular.Window, app.WalletMiddleware, func(string))
 }
 
 func getNavPages() []navPage {

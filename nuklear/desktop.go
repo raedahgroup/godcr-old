@@ -2,12 +2,14 @@ package nuklear
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
 )
 
 const (
@@ -74,13 +76,14 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	if handler, ok := desktop.standalonePages[desktop.currentPage]; ok {
+	if handler, isStandalonePage := desktop.standalonePages[desktop.currentPage]; isStandalonePage {
 		desktop.renderStandalonePage(window, handler)
-		return
+	} else if handler, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
+		desktop.renderNavPage(window, handler)
+	} else {
+		nuklog.LogError(errors.New("Page not properly set up: " + desktop.currentPage))
+		// todo show a message on the window
 	}
-
-	handler := desktop.navPages[desktop.currentPage]
-	desktop.renderNavPage(window, handler)
 }
 
 func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {

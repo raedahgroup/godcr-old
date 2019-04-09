@@ -34,7 +34,7 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 	// change page onSyncStatusSuccess
 	if s.status == walletcore.SyncStatusSuccess {
-		changePage("balance")
+		changePage("overview")
 		return
 	}
 

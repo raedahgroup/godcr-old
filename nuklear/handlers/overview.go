@@ -20,18 +20,18 @@ func (handler *OverviewHandler) BeforeRender() {
 	handler.detailed = false
 }
 
-func (handler *OverviewHandler) Render(w *nucular.Window, wallet walletcore.Wallet) {
+func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	// draw page
-	if page := helpers.NewWindow("Overview Page", w, 0); page != nil {
-		page.DrawHeader("Overview")
+	if pageWindow := helpers.NewWindow("Overview Page", window, nucular.WindowNoScrollbar); pageWindow != nil {
+		pageWindow.DrawHeader("Overview")
 
-		if contentWindow := page.ContentWindow("Balance"); contentWindow != nil {
-			contentWindow.DrawHeader("Current Total Balance")
+		if contentWindow := pageWindow.ContentWindow("Balance"); contentWindow != nil {
+			contentWindow.Row(25).Dynamic(1)
+			contentWindow.Label("Current Total Balance", "LC")
 
 			if handler.err != nil {
 				contentWindow.SetErrorMessage(handler.err.Error())
@@ -42,6 +42,6 @@ func (handler *OverviewHandler) Render(w *nucular.Window, wallet walletcore.Wall
 
 			contentWindow.End()
 		}
-		page.End()
+		pageWindow.End()
 	}
 }
