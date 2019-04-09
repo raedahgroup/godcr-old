@@ -4,9 +4,9 @@ import '../node_modules/toastr/build/toastr.css'
 import ws from './services/messagesocket_service'
 import './css/style.scss'
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
-import { faCog, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faCog, faCopy, faEllipsisV } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCog, faCopy)
+library.add(faCog, faCopy, faEllipsisV)
 dom.watch()
 
 function getSocketURI () {
