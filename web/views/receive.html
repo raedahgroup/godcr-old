@@ -16,10 +16,11 @@
                        <p class="lead-text">Each time you request payment, a new address is created to protect your privacy.</p>
                        <div class="row">
                            <div class="col-md-5 col-sm-12">
-                               <div class="form-group">
-                                   <label for="account">Account</label>
+                               <div class="form-group form-inline">
+                                   <label for="account">Account: </label>
                                {{ if gt (len .accounts) 1 }}
-                                   <select data-target="receive.account" data-action="change->receive#generate" class="form-control" name="account" id="account">
+                                   <select data-target="receive.account" data-action="change->receive#generate" class="form-control"
+                                           style="width: 80%; margin-left: 11px;" name="account" id="account">
                                    {{ range $account := .accounts }}
                                        <option value="{{ $account.Number }}">{{ accountString $account }}</option>
                                    {{ end }}
@@ -27,7 +28,7 @@
                                {{ else }}
                                {{ range $account := .accounts }}
                                        <input data-target="receive.account" value="{{ $account.Number }}" type="hidden" name="account">
-                                   <input class="form-control" readonly value="{{ accountString $account }}">
+                                   <input class="form-control" style="width: 80%; margin-left: 11px;" readonly value="{{ accountString $account }}">
                                {{ end }}
                                {{ end  }}
                                </div>
