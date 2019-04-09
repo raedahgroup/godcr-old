@@ -27,6 +27,7 @@ type ConfFileOptions struct {
 
 type Settings struct {
 	SpendUnconfirmed bool `long:"spendunconfirmed" description:"Spend unconfirmed funds"`
+	ShowIncomingTransactionNotification bool `long:"showIncomingtransactionnotification" description:"Show incoming transaction notification"`
 }
 
 func defaultFileOptions() ConfFileOptions {
