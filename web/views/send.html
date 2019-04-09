@@ -34,14 +34,15 @@
                                     {{ end }}
 
                                         </div>
-                                        <div class="form-group form-check">
+
+                                    <div class="form-group form-check">
                                             <input data-action="click->send#toggleSpendUnconfirmed"
                                                    data-target="send.spendUnconfirmed" type="checkbox"
                                                    class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
                                             {{ if .spendUnconfirmedFunds }} checked {{ end }}>
                                             <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
                                         </div>
-                                    </div>
+
                                 </div>
                             </div>
 
@@ -53,10 +54,18 @@
                                         <div class="col-md-7 col-sm-12">
                                             <div class="form-group">
                                                 <label>Destination Address</label>
-                                                <input data-target="send.address" type="text" class="form-control"
-                                                       name="destination-address"/>
+                                                <div class="input-group mb-3">
+                                                    <input data-target="send.address"
+                                                           type="text" class="form-control"
+                                                           name="destination-address">
+                                                    <div class="input-group-append">
+                                                        <button data-action="click->send#removeDestination"
+                                                                class="btn btn-outline-secondary removeDestinationBtn" style="border: 1px solid #ced4da !important;" type="button">X</button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+
                                         <div class="col-md-5 col-sm-12">
                                             <div class="form-group">
                                                 <label>Amount (DCR)</label>
@@ -66,14 +75,15 @@
                                                            type="text" class="form-control amount"
                                                            name="destination-amount">
                                                     <div class="input-group-append">
-                                                        <button data-target="send.maxSendAmountButton" data-action="click->send#setMaxAmountForDestination"
-                                                                class="btn btn-outline-secondary" type="button">Send Max
+                                                        <button data-target="send.maxSendAmountButton"
+                                                                data-action="click->send#setMaxAmountForDestination"
+                                                                class="btn btn-outline-secondary setMaxBtn" style="border: 1px solid #ced4da !important;" type="button">Send Max
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
+
                                     </div>
                                 </div>
                             </template>
@@ -81,10 +91,6 @@
                                 <button type="button" data-action="click->send#newDestination"
                                         class="btn btn-sm btn-outline-secondary btn-primary">
                                     Add another address
-                                </button> &nbsp;&nbsp;
-                                <button data-target="send.removeDestinationButton" data-action="click->send#removeDestination"
-                                        type="button" class="btn btn-sm btn-outline-secondary btn-primary d-none">
-                                    Remove Last address
                                 </button>
                             </div>
                         </div>

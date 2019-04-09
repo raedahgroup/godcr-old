@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'amount', 'removeDestinationButton', 'maxSendAmountButton',
+      'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountButton',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAmount',
@@ -26,6 +26,7 @@ export default class extends Controller {
 
   initialize () {
     this.destinationCount = 0
+    this.destinationIndex = 0
     this.newDestination()
   }
 
@@ -36,21 +37,22 @@ export default class extends Controller {
 
     const destinationTemplate = document.importNode(this.destinationTemplateTarget.content, true)
 
+    const destinationContainer = destinationTemplate.querySelector('div.destination')
     const addressInput = destinationTemplate.querySelector('input[name="destination-address"]')
     const amountInput = destinationTemplate.querySelector('input[name="destination-amount"]')
-    const sendMaxButton = destinationTemplate.querySelector('button[type="button"]')
+    const sendMaxButton = destinationTemplate.querySelector('button[type="button"].setMaxBtn')
+    const removeDestinationButton = destinationTemplate.querySelector('button[type="button"].removeDestinationBtn')
 
-    addressInput.setAttribute('data-index', this.destinationCount)
-    amountInput.setAttribute('data-index', this.destinationCount)
-    sendMaxButton.setAttribute('data-index', this.destinationCount)
+    destinationContainer.setAttribute('data-index', this.destinationIndex)
+    addressInput.setAttribute('data-index', this.destinationIndex)
+    amountInput.setAttribute('data-index', this.destinationIndex)
+    sendMaxButton.setAttribute('data-index', this.destinationIndex)
+    removeDestinationButton.setAttribute('data-index', this.destinationIndex)
 
     this.destinationsTarget.appendChild(destinationTemplate)
 
+    this.destinationIndex++
     this.destinationCount++
-
-    if (this.destinationCount > 1) {
-      this.show(this.removeDestinationButtonTarget)
-    }
   }
 
   setMaxAmountForDestination (event) {
@@ -149,15 +151,16 @@ export default class extends Controller {
     return fieldsAreValid
   }
 
-  removeDestination () {
-    if (this.destinationCount > 1) {
-      this.destinationsTarget.removeChild(this.destinationsTarget.querySelector('div.destination:last-child'))
-      this.destinationCount--
+  removeDestination (event) {
+    if (this.destinationCount === 1) {
+      return
     }
 
-    if (this.destinationCount <= 1) {
-      this.hide(this.removeDestinationButtonTarget)
-    }
+    const targetElement = event.currentTarget
+    const index = parseInt(targetElement.getAttribute('data-index'))
+
+    this.destinationsTarget.removeChild(this.destinationsTarget.querySelector(`div.destination[data-index="${index}"]`))
+    this.destinationCount--
   }
 
   toggleSpendUnconfirmed () {
