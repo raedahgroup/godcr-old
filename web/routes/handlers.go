@@ -476,6 +476,7 @@ func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds":               routes.settings.SpendUnconfirmed,
 		"showIncomingTransactionNotification": routes.settings.ShowIncomingTransactionNotification,
+		"showNewBlockNotification": routes.settings.ShowNewBlockNotification,
 	}
 	routes.renderPage("settings.html", data, res)
 }
@@ -536,10 +537,27 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			cnfg.ShowIncomingTransactionNotification = showIncomingTransactionNotification
 		})
 		if err != nil {
-			data["error"] = fmt.Errorf("Error updating settings. %s", err.Error())
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 		routes.settings.ShowIncomingTransactionNotification = showIncomingTransactionNotification
+	}
+
+	if showNewBlockNotificationStr := req.FormValue("show-new-block-notification"); showNewBlockNotificationStr != "" {
+		showNewBlockNotification, err := strconv.ParseBool(showNewBlockNotificationStr)
+		if err != nil {
+			data["error"] = "Invalid value for 'show incoming transaction notification' setting"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.ShowIncomingTransactionNotification = showNewBlockNotification
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.ShowIncomingTransactionNotification = showNewBlockNotification
 	}
 
 	data["success"] = true
