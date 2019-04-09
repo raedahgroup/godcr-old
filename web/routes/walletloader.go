@@ -77,13 +77,13 @@ func (routes *Routes) syncBlockchain() {
 			routes.sendWsConnectionInfoUpdate()
 		},
 		SyncEnded: func(err error) {
+			routes.sendWsConnectionInfoUpdate()
 			if err != nil {
 				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
-			} else {
-				routes.sendWsConnectionInfoUpdate()
-				// TODO: register a TransactionNotification listener with either dcrlibwallet or dcrwallet to update the best block when there's a new block
-				updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
+				return
 			}
+			// TODO: register a TransactionNotification listener with either dcrlibwallet or dcrwallet to update the best block when there's a new block
+			updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
 		},
 		OnHeadersFetched: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)

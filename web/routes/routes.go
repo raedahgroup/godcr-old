@@ -3,13 +3,13 @@ package routes
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/app/config"
 	"html/template"
 	"log"
 	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
@@ -35,7 +35,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
-		walletExists: 	  walletExists,
+		walletExists:     walletExists,
 		settings:         settings,
 	}
 

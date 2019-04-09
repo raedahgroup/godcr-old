@@ -11,7 +11,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -517,27 +516,11 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			cnfg.SpendUnconfirmed = spendUnconfirmed
 		})
 		if err != nil {
-			data["error"] = fmt.Errorf("Error updating settings. %s", err.Error())
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 		routes.settings.SpendUnconfirmed = spendUnconfirmed
 	}
 
 	data["success"] = true
-}
-
-func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request) {
-	var info, err = routes.walletMiddleware.WalletConnectionInfo()
-	if err != nil {
-
-	}
-
-	defer renderJSON(&info, res)
-
-	bestBlock, err := routes.walletMiddleware.BestBlock()
-	if err != nil {
-		weblog.LogError(err)
-	}
-
-	info.LatestBlock = bestBlock
 }

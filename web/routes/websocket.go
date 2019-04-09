@@ -22,8 +22,8 @@ var upgrader = websocket.Upgrader{
 type eventType string
 
 const (
-	UpdateConnectionInfo eventType = "updateConnInfo"
-	UpdateBalance        eventType = "updateBalance"
+	updateConnectionInfo eventType = "updateConnInfo"
+	updateBalance        eventType = "updateBalance"
 )
 
 type Packet struct {
@@ -61,7 +61,7 @@ func (routes *Routes) sendWsConnectionInfoUpdate() {
 	}
 
 	wsBroadcast <- Packet{
-		Event:   UpdateConnectionInfo,
+		Event:   updateConnectionInfo,
 		Message: info,
 	}
 }
@@ -74,7 +74,7 @@ func (routes *Routes) sendWsBalance() {
 	}
 	type accountInfo struct {
 		Number uint32 `json:"number"`
-		Info string `json:"info"`
+		Info   string `json:"info"`
 	}
 
 	var accountInfos []accountInfo
@@ -85,7 +85,7 @@ func (routes *Routes) sendWsBalance() {
 		accountInfos = append(accountInfos, accountInfo{Number: acc.Number, Info: acc.String()})
 	}
 	wsBroadcast <- Packet{
-		Event:   UpdateBalance,
+		Event:   updateBalance,
 		Message: map[string]interface{}{"accounts": accountInfos, "total": totalBalance.String()},
 	}
 }

@@ -5,12 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 func (routes *Routes) renderPage(tplName string, data map[string]interface{}, res http.ResponseWriter) {
-	connectionInfo, err := walletcore.WalletConnectionInfo(routes.walletMiddleware)
+	connectionInfo, err := routes.walletMiddleware.WalletConnectionInfo()
 	if err != nil {
 		weblog.LogError(err)
 	}
