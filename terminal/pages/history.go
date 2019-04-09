@@ -59,8 +59,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
 		body.RemoveItem(historyTable)
-		tableCol := historyTable.GetColumnCount()
-		txHash := historyTable.GetCell(row, tableCol - 1).Text
+		txHash := displayedTxHashes[row-1]
 
 		titleTextView.SetText("Transaction Details")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to navigation menu")
@@ -92,12 +91,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	// history table header
-	historyTable.SetCell(0, 0, tableHeaderCell("#"))
-	historyTable.SetCell(0, 1, tableHeaderCell("Date"))
+	historyTable.SetCell(0, 0, tableHeaderCell(""))
+	historyTable.SetCell(0, 1, tableHeaderCell("Date (UTC)"))
 	historyTable.SetCell(0, 3, tableHeaderCell("Direction"))
 	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
 	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
-	historyTable.SetCell(0, 5, tableHeaderCell("Hash"))
+	// historyTable.SetCell(0, 5, tableHeaderCell("Hash"))
 
 	displayHistoryTable()
 
@@ -109,6 +108,8 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	return body
 }
+
+var displayedTxHashes []string
 
 func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *tview.Table, displayError func(errorMessage string)) {
 	txns, endBlockHeight, err := wallet.TransactionHistory(context.Background(), startBlockHeight, walletcore.TransactionHistoryCountPerPage)
@@ -123,21 +124,22 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 
 	for _, tx := range txns {
 		row := historyTable.GetRowCount()
+		displayedTxHashes = append(displayedTxHashes, tx.Hash)
+
 		transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)
 		transactionDuration := currentDate.Sub(transactionDate)
 	   
 	   	dateOutput := strings.Split(tx.FormattedTime, " ")
 
 	    if transactionDuration > timeDifference {
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[0], dateOutput[2])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
 		}else{
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1], dateOutput[2])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
 		}		
 		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
 		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
 		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Hash).SetAlign(tview.AlignCenter))
 	}
 
 	if endBlockHeight > 0 {

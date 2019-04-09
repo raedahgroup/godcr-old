@@ -28,7 +28,21 @@ const (
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
 func NormalizeBalance(balance float64) string {
-	return fmt.Sprintf("%010.8f DCR", balance)
+	return fmt.Sprintf("%.3f DCR", balance)
+}
+
+func WalletBalance(accounts []*Account) string {
+	var totalBalance, spendableBalance dcrutil.Amount
+	for _, account := range accounts {
+	totalBalance += account.Balance.Total
+	spendableBalance += account.Balance.Spendable
+	}
+
+	if totalBalance != spendableBalance {
+	return fmt.Sprintf("Total %s (Spendable %s)", totalBalance.String(), spendableBalance.String())
+	} else {
+	return totalBalance.String()
+	}
 }
 
 func WalletBalance(accounts []*Account) string {

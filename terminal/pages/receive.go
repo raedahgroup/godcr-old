@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 
+ 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -13,19 +14,13 @@ import (
 func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Receive Decred"), 2, 1, false)
-	body.AddItem(primitives.NewLeftAlignedTextView("Each time you request a payment, a new address is created to protect your privacy.").SetTextColor(helpers.DecredLightBlueColor), 3, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Receiving Decred"), 2, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Each time you request a payment, a new address is created to protect your privacy.").SetTextColor(helpers.HintTextColor), 3, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
-
-	// receive form 
-	form := primitives.NewForm()
-	form.SetBorderPadding(0, 0, 0, 0)
-	form.SetHorizontal(true)
-	body.AddItem(form, 2, 0, true)
 
 	outputMessageTextView := primitives.WordWrappedTextView("")
 	outputMessageTextView.SetTextColor(helpers.DecredOrangeColor)
@@ -48,11 +43,6 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		accountNumbers[index] = account.Number
 	}
 
-	var accountNumber uint32
-	form.AddDropDown("Account: ", accountNames, 0, func(option string, optionIndex int) {
-		accountNumber = accountNumbers[optionIndex]
-	})
-
 	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
@@ -61,9 +51,25 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			return nil
 		}
 
+		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts[0].Name)).SetTextColor(helpers.DecredLightBlueColor).SetDoneFunc(func(key tcell.Key) {
+			if key == tcell.KeyEscape {
+				clearFocus()
+			}
+		}), 2, 1, true)
 		qrCode := fmt.Sprintf(qr.ToSmallString(false))
 		displayOutput(qrCode, address)
 	} else {
+		// receive form 
+		form := primitives.NewForm()
+		form.SetBorderPadding(0, 0, 0, 0)
+		form.SetHorizontal(true).
+		SetLabelColor(helpers.DecredLightBlueColor)
+		body.AddItem(form, 2, 0, true)
+
+		var accountNumber uint32
+		form.AddDropDown("Source Account: ", accountNames, 0, func(option string, optionIndex int) {
+			accountNumber = accountNumbers[optionIndex]
+		})
 		form.AddButton("Generate", func() {
 			form.RemoveButton(0)
 			address, qr, err := generateAddress(wallet, accountNumber)
@@ -76,9 +82,9 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			qrCode := fmt.Sprintf(qr.ToSmallString(false))
 			displayOutput(qrCode, address)	
 		})
-	}
 
-	form.SetCancelFunc(clearFocus)
+		form.SetCancelFunc(clearFocus)
+	}
 
 	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to navigation menu")
 

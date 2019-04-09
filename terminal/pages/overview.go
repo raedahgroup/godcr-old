@@ -79,51 +79,9 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 		return
 	}
 
-	balanceTable := primitives.NewTable()
-	balanceTable.SetBorders(false).SetFixed(1, 0)
-
-	tableHeight := len(accounts) + 1 // 1 row for each account, plus the table header
-	overviewPage.AddItem(balanceTable, tableHeight, 0, true)
-	views = append(views, balanceTable)
-	viewBoxes = append(viewBoxes, balanceTable.Box)
-
-	toggleBalanceDisplay := func() {
-		if len(accounts) == 1 {
-			displaySingleAccountSimpleBalance(accounts[0], balanceTable)
-		} else {
-			displayMultipleAccountsSimpleBalance(accounts, balanceTable)
-		}
-	}
-
-	toggleBalanceDisplay()
+	overviewPage.AddItem(primitives.NewLeftAlignedTextView(walletcore.WalletBalance(accounts)), 2, 0, false)
 
 	return
-}
-
-func displaySingleAccountSimpleBalance(account *walletcore.Account, balanceTable *primitives.Table) {
-	if account.Balance.Total == account.Balance.Spendable {
-		// show only total since it is equal to spendable
-		balanceTable.SetCellSimple(0, 0, walletcore.NormalizeBalance(account.Balance.Total.ToCoin()))
-	} else {
-		balanceTable.SetCellSimple(0, 0, "Total")
-		balanceTable.SetCellRightAlign(0, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin()))
-		balanceTable.SetCellSimple(1, 0, "Spendable")
-		balanceTable.SetCellRightAlign(1, 1, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()))
-	}
-}
-
-func displayMultipleAccountsSimpleBalance(accounts []*walletcore.Account, balanceTable *primitives.Table) {
-	// draw table header
-	balanceTable.SetHeaderCell(0, 0, "Account Name").
-		SetHeaderCell(0, 1, "Balance").
-		SetHeaderCell(0, 2, "Spendable")
-
-	for i, account := range accounts {
-		row := i + 1
-		balanceTable.SetCellCenterAlign(row, 0, account.Name).
-			SetCellRightAlign(row, 1, walletcore.NormalizeBalance(account.Balance.Total.ToCoin())).
-			SetCellRightAlign(row, 2, walletcore.NormalizeBalance(account.Balance.Spendable.ToCoin()))
-	}
 }
 
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
@@ -139,8 +97,8 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 	historyTable.SetBorders(false).SetFixed(1, 0)
 
 	// historyTable header
-	historyTable.SetHeaderCell(0, 0, "#")
-	historyTable.SetHeaderCell(0, 1, "Date")
+	historyTable.SetHeaderCell(0, 0, "")
+    historyTable.SetHeaderCell(0, 1, "Date (UTC)")
 	historyTable.SetHeaderCell(0, 3, "Direction")
 	historyTable.SetHeaderCell(0, 2, "Amount")
 	historyTable.SetHeaderCell(0, 4, "Status")
@@ -164,13 +122,14 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 		}
 		transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)
 		transactionDuration := currentDate.Sub(transactionDate)
-	   	date := strings.Split(tx.FormattedTime, " ")
+	   	dateOutput  := strings.Split(tx.FormattedTime, " ")
 
 	    if transactionDuration > timeDifference {
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(date[0], date[2])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
 		}else{
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(date[1], date[2])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
 		}
+
 		if txns.Confirmations > confirmations{
 			historyTable.SetCell(row, 4, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
 		}else{
