@@ -3,8 +3,11 @@ package dcrlibwallet
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/app"
 	"time"
+
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func (lib *DcrWalletLib) WalletExists() (bool, error) {
@@ -91,6 +94,37 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 
 	listener.SyncStarted()
 	return nil
+}
+
+func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
+	accounts, loadAccountErr := lib.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if loadAccountErr != nil {
+		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
+		info.TotalBalance = "0 DCR"
+	} else {
+		var totalBalance dcrutil.Amount
+		for _, acc := range accounts {
+			totalBalance += acc.Balance.Total
+		}
+		info.TotalBalance = totalBalance.String()
+	}
+
+	bestBlock, bestBlockErr := lib.BestBlock()
+	if bestBlockErr != nil && err != nil {
+		err = fmt.Errorf("%s, error in fetching best block %s", err.Error(), bestBlockErr.Error())
+	} else if bestBlockErr != nil {
+		err = bestBlockErr
+	}
+
+	info.LatestBlock = bestBlock
+	info.NetworkType = lib.NetType()
+	info.PeersConnected = lib.GetConnectedPeersCount()
+
+	return
+}
+
+func (lib *DcrWalletLib) BestBlock() (uint32, error) {
+	return uint32(lib.walletLib.GetBestBlock()), nil
 }
 
 func (lib *DcrWalletLib) GetConnectedPeersCount() int32 {

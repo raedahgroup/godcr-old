@@ -91,30 +91,3 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 	}
 	return
 }
-
-func WalletConnectionInfo(wallet Wallet) (info ConnectionInfo, err error) {
-	accounts, loadAccountErr := wallet.AccountsOverview(DefaultRequiredConfirmations)
-	if loadAccountErr != nil {
-		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
-		info.TotalBalance = "0 DCR"
-	} else {
-		var totalBalance dcrutil.Amount
-		for _, acc := range accounts {
-			totalBalance += acc.Balance.Total
-		}
-		info.TotalBalance = totalBalance.String()
-	}
-
-	bestBlock, bestBlockErr := wallet.BestBlock()
-	if bestBlockErr != nil && err != nil {
-		err = fmt.Errorf("%s, error in fetching best block %s", err.Error(), bestBlockErr.Error())
-	} else if bestBlockErr != nil {
-		err = bestBlockErr
-	}
-
-	info.LatestBlock = bestBlock
-	info.NetworkType = wallet.NetType()
-	info.PeersConnected = wallet.GetConnectedPeersCount()
-
-	return
-}

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -28,6 +29,14 @@ type WalletMiddleware interface {
 	CloseWallet()
 
 	IsWalletOpen() bool
+
+	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)
+
+	// BestBlock fetches the best block on the network
+	BestBlock() (uint32, error)
+
+	// GetConnectedPeersCount returns the number of connected peers
+	GetConnectedPeersCount() int32
 
 	walletcore.Wallet
 }

@@ -2,11 +2,14 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
 )
 
@@ -132,6 +135,41 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	// receive sync updates from stream and send to listener in separate goroutine
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
+}
+
+func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
+	accounts, loadAccountErr := c.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if loadAccountErr != nil {
+		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
+		info.TotalBalance = "0 DCR"
+	} else {
+		var totalBalance dcrutil.Amount
+		for _, acc := range accounts {
+			totalBalance += acc.Balance.Total
+		}
+		info.TotalBalance = totalBalance.String()
+	}
+
+	bestBlock, bestBlockErr := c.BestBlock()
+	if bestBlockErr != nil && err != nil {
+		err = fmt.Errorf("%s, error in fetching best block %s", err.Error(), bestBlockErr.Error())
+	} else if bestBlockErr != nil {
+		err = bestBlockErr
+	}
+
+	info.LatestBlock = bestBlock
+	info.NetworkType = c.NetType()
+	info.PeersConnected = c.GetConnectedPeersCount()
+
+	return
+}
+
+func (c *WalletRPCClient) BestBlock() (uint32, error) {
+	req, err := c.walletService.BestBlock(context.Background(), &walletrpc.BestBlockRequest{})
+	if err != nil {
+		return 0, err
+	}
+	return req.Height, err
 }
 
 func (lib *WalletRPCClient) GetConnectedPeersCount() int32 {

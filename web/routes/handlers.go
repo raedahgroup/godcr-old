@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/raedahgroup/godcr/web/weblog"
 	"net/http"
 	"strconv"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
 )
 

@@ -540,14 +540,6 @@ func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, 
 	return err
 }
 
-func (c *WalletRPCClient) BestBlock() (uint32, error) {
-	req, err := c.walletService.BestBlock(context.Background(), &walletrpc.BestBlockRequest{})
-	if err != nil {
-		return 0, err
-	}
-	return req.Height, err
-}
-
 func (c *WalletRPCClient) NetType() string {
 	if c.activeNet.Name == "mainnet" {
 		return "mainnet"
