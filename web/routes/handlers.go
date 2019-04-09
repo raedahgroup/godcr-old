@@ -527,9 +527,9 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 }
 
 func (routes *Routes) connectionInfo(res http.ResponseWriter, req *http.Request) {
-	var info = walletcore.ConnectionInfo{
-		NetworkType:    routes.walletMiddleware.NetType(),
-		PeersConnected: routes.walletMiddleware.GetConnectedPeersCount(),
+	var info, err = routes.walletMiddleware.WalletConnectionInfo()
+	if err != nil {
+
 	}
 
 	defer renderJSON(&info, res)

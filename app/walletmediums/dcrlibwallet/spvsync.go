@@ -20,16 +20,12 @@ type SpvSyncResponse struct {
 // following functions are used to implement dcrlibwallet.SpvSyncResponse interface
 func (response SpvSyncResponse) OnPeerConnected(peerCount int32) {
 	numberOfPeers = peerCount
-	if response.listener.OnPeerConnected != nil {
-		response.listener.OnPeerConnected(peerCount)
-	}
+	response.listener.OnPeerConnected(peerCount)
 }
 
 func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {
 	numberOfPeers = peerCount
-	if response.listener.OnPeerDisconnected != nil {
-		response.listener.OnPeerDisconnected(peerCount)
-	}
+	response.listener.OnPeerDisconnected(peerCount)
 }
 
 func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {

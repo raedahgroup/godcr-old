@@ -541,8 +541,5 @@ func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, 
 }
 
 func (c *WalletRPCClient) NetType() string {
-	if c.activeNet.Name == "mainnet" {
-		return "mainnet"
-	}
-	return "testnet"
+	return c.activeNet.Name
 }
