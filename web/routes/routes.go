@@ -35,7 +35,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		templates:        map[string]*template.Template{},
 		blockchain:       &Blockchain{},
 		ctx:              ctx,
-		walletExists: 	  walletExists,
+		walletExists:     walletExists,
 		settings:         settings,
 	}
 
@@ -65,6 +65,9 @@ func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Get("/settings", routes.settingsPage)
 	router.Post("/change-password", routes.changeSpendingPassword)
 	router.Put("/settings", routes.updateSetting)
+
+	router.Get("/ws", routes.wsHandler)
+	go waitToSendMessagesToClients()
 
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)

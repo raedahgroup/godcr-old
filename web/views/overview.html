@@ -2,21 +2,20 @@
 <html lang="en">
 {{ template "html-head" }}
 <body>
-<div class="body">
-{{ template "header" }}
-    <div class="content">
-        <div class="container">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        Balance
-                    {{ if .detailed }}
-                        <small><a href="/">(Hide details)</a></small>
-                    {{ else }}
-                        <small><a href="/?detailed=yes">(Show details)</a></small>
-                    {{end}}
-                    </h4>
-
+    <div class="body">
+    {{ template "header" .connectionInfo }}
+        <div class="content">
+            <div class="container">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Balance
+                            {{ if .detailed }}
+                            <small><a href="/">(Hide details)</a></small>
+                            {{ else }}
+                            <small><a href="/?detailed=yes">(Show details)</a></small>
+                            {{end}}
+                        </h5>
                     <!-- if just one account and not detailed, show simple balance -->
                 {{ if and (not .detailed) (eq (len .accounts) 1) }}
                 {{ $account := index .accounts 0 }}

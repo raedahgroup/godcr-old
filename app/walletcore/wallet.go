@@ -86,4 +86,7 @@ type Wallet interface {
 
 	// ChangePrivatePassphrase changes the private passphrase from the oldPass to the provided newPass
 	ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error
+
+	// NetType returns the network type of this wallet
+	NetType() string
 }

@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { hide, show } from '../utils'
+import { hide, show, listenForBalanceUpdate } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -18,6 +18,10 @@ export default class extends Controller {
       // from wallet passphrase modal (utils.html)
       'walletPassphrase', 'passwordError'
     ]
+  }
+
+  connect () {
+    listenForBalanceUpdate(this)
   }
 
   initialize () {

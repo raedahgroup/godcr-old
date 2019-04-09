@@ -19,6 +19,7 @@ require (
 	github.com/go-gl/glfw v0.0.0-20190217072633-93b30450e032 // indirect
 	github.com/goki/freetype v0.0.0-20181231101311-fa8a33aabaff // indirect
 	github.com/golang/freetype v0.0.0-20161208064710-d9be45aaf745
+	github.com/gorilla/websocket v1.2.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
 	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190331065313-48f453959cc3

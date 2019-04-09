@@ -366,3 +366,7 @@ func (lib *DcrWalletLib) ChangePrivatePassphrase(_ context.Context, oldPass, new
 	}
 	return lib.walletLib.ChangePrivatePassphrase([]byte(oldPass), []byte(newPass))
 }
+
+func (lib *DcrWalletLib) NetType() string {
+	return lib.activeNet.Params.Name
+}

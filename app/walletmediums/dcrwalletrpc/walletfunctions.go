@@ -534,8 +534,12 @@ func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, 
 	request := &walletrpc.ChangePassphraseRequest{
 		NewPassphrase: []byte(newPass),
 		OldPassphrase: []byte(oldPass),
-		Key: walletrpc.ChangePassphraseRequest_PRIVATE,
+		Key:           walletrpc.ChangePassphraseRequest_PRIVATE,
 	}
 	_, err := c.walletService.ChangePassphrase(ctx, request)
 	return err
+}
+
+func (c *WalletRPCClient) NetType() string {
+	return c.activeNet.Name
 }

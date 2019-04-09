@@ -4,7 +4,18 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/raedahgroup/godcr/web/weblog"
 )
+
+func (routes *Routes) renderPage(tplName string, data map[string]interface{}, res http.ResponseWriter) {
+	connectionInfo, err := routes.walletMiddleware.WalletConnectionInfo()
+	if err != nil {
+		weblog.LogError(err)
+	}
+	data["connectionInfo"] = connectionInfo
+	routes.render(tplName, data, res)
+}
 
 func (routes *Routes) render(tplName string, data interface{}, res http.ResponseWriter) {
 	if tpl, ok := routes.templates[tplName]; ok {
@@ -22,7 +33,7 @@ func (routes *Routes) renderError(errorMessage string, res http.ResponseWriter) 
 	data := map[string]interface{}{
 		"error": errorMessage,
 	}
-	routes.render("error.html", data, res)
+	routes.renderPage("error.html", data, res)
 }
 
 func (routes *Routes) renderNoWalletError(res http.ResponseWriter) {

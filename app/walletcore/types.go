@@ -80,3 +80,11 @@ type StakeInfo struct {
 	PoolSize      uint32 `json:"poolSize"`
 	TotalSubsidy  string `json:"totalSubsidy"`
 }
+
+// ConnectionInfo holds connection information for the wallet
+type ConnectionInfo struct {
+	NetworkType    string `json:"networkType"`
+	PeersConnected int32  `json:"peersConnected"`
+	TotalBalance   string `json:"totalBalance"`
+	LatestBlock    uint32 `json:"latestBlock"`
+}

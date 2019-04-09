@@ -3,7 +3,7 @@
 {{ template "html-head" }}
 <body>
     <div class="body" data-controller="send">
-        {{ template "header" }}
+        {{ template "header" .connectionInfo }}
         <div class="content">
             <div class="container">
                 <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>

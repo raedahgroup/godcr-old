@@ -4,7 +4,7 @@
 <body>
     <div class="body" data-controller="history" data-action="scroll@window->history#windowScrolled">
 
-        {{ template "header" }}
+        {{ template "header" .connectionInfo }}
         <div class="content">
             <div class="container">
                 <!-- sticky header -->

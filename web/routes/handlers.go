@@ -21,8 +21,8 @@ func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	data := struct{ Seed string }{seed}
-	routes.render("createwallet.html", data, res)
+	data := map[string]interface{}{"Seed": seed}
+	routes.renderPage("createwallet.html", data, res)
 }
 
 func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
@@ -64,7 +64,7 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	}
 	data["transactions"] = txns
 
-	routes.render("overview.html", data, res)
+	routes.renderPage("overview.html", data, res)
 }
 
 func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
@@ -78,7 +78,7 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		"accounts":              accounts,
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
-	routes.render("send.html", data, res)
+	routes.renderPage("send.html", data, res)
 }
 
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
@@ -159,6 +159,8 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	}
 
 	data["txHash"] = txHash
+
+	routes.sendWsBalance()
 }
 
 func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
@@ -177,7 +179,7 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		data["imageStr"] = fmt.Sprintf("<img data-target=\"receive.image\" src=\"%s\"/>", data["imageData"])
 	}
 
-	routes.render("receive.html", data, res)
+	routes.renderPage("receive.html", data, res)
 }
 
 func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.Request) {
@@ -340,8 +342,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	if endBlockHeight > 0 {
 		data["nextBlockHeight"] = endBlockHeight - 1
 	}
-
-	routes.render("history.html", data, res)
+	routes.renderPage("history.html", data, res)
 }
 
 func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Request) {
@@ -383,7 +384,7 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 	data := map[string]interface{}{
 		"tx": tx,
 	}
-	routes.render("transaction_details.html", data, res)
+	routes.renderPage("transaction_details.html", data, res)
 }
 
 func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
@@ -411,7 +412,7 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 		"ticketPrice":           dcrutil.Amount(ticketPrice).ToCoin(),
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
-	routes.render("staking.html", data, res)
+	routes.renderPage("staking.html", data, res)
 }
 
 func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *http.Request) {
@@ -465,13 +466,15 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 
 	data["success"] = true
 	data["message"] = ticketHashes
+
+	routes.sendWsBalance()
 }
 
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
-	routes.render("settings.html", data, res)
+	routes.renderPage("settings.html", data, res)
 }
 
 func (routes *Routes) changeSpendingPassword(res http.ResponseWriter, req *http.Request) {
@@ -513,7 +516,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			cnfg.SpendUnconfirmed = spendUnconfirmed
 		})
 		if err != nil {
-			data["error"] = fmt.Errorf("Error updating settings. %s", err.Error())
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 		routes.settings.SpendUnconfirmed = spendUnconfirmed

@@ -7,6 +7,8 @@ import (
 	"github.com/raedahgroup/godcr/app/walletmediums"
 )
 
+var numberOfPeers int32
+
 type spvSync struct {
 	client    walletrpc.WalletLoaderService_SpvSyncClient
 	bestBlock int64
@@ -66,9 +68,14 @@ func (s spvSync) streamBlockchainSyncUpdates(showLog bool) {
 
 		case walletrpc.SyncNotificationType_PEER_CONNECTED:
 			logUpdate("New peer %s. Connected to %d peers", update.PeerInformation.Address, update.PeerInformation.PeerCount)
+			// numberOfPeers needs to be updated before send OnPeerConnected
+			numberOfPeers = update.PeerInformation.PeerCount
+			s.listener.OnPeerConnected(update.PeerInformation.PeerCount)
 
 		case walletrpc.SyncNotificationType_PEER_DISCONNECTED:
 			logUpdate("Peer disconnected %s. Connected to %d peers", update.PeerInformation.Address, update.PeerInformation.PeerCount)
+			numberOfPeers = update.PeerInformation.PeerCount
+			s.listener.OnPeerDisconnected(update.PeerInformation.PeerCount)
 		}
 	}
 }

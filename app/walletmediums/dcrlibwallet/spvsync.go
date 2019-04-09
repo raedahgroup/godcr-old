@@ -9,6 +9,8 @@ import (
 	"github.com/raedahgroup/godcr/app/walletmediums"
 )
 
+var numberOfPeers int32
+
 type SpvSyncResponse struct {
 	activeNet *netparams.Params
 	walletLib *dcrlibwallet.LibWallet
@@ -16,8 +18,16 @@ type SpvSyncResponse struct {
 }
 
 // following functions are used to implement dcrlibwallet.SpvSyncResponse interface
-func (response SpvSyncResponse) OnPeerConnected(peerCount int32)    {}
-func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {}
+func (response SpvSyncResponse) OnPeerConnected(peerCount int32) {
+	numberOfPeers = peerCount
+	response.listener.OnPeerConnected(peerCount)
+}
+
+func (response SpvSyncResponse) OnPeerDisconnected(peerCount int32) {
+	numberOfPeers = peerCount
+	response.listener.OnPeerDisconnected(peerCount)
+}
+
 func (response SpvSyncResponse) OnFetchMissingCFilters(missingCFitlersStart, missingCFitlersEnd int32, state string) {
 }
 func (response SpvSyncResponse) OnFetchedHeaders(_ int32, lastHeaderTime int64, state string) {
