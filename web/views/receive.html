@@ -15,7 +15,7 @@
                        <h5 class="card-title">Receiving Decred</h5>
                        <p class="lead-text">Each time you request payment, a new address is created to protect your privacy.</p>
                        <div class="row">
-                           <div class="col-md-5 col-sm-12">
+                           <div class="col-md-6 col-sm-12">
                                <div class="form-group form-inline">
                                    <label for="account">Account: </label>
                                {{ if gt (len .accounts) 1 }}
@@ -38,9 +38,11 @@
                             <div id="result-text">
                                 Address:
                                 <span data-action="click->receive#copyAddressToClipboard" data-target="receive.address" id="address">{{ .address }}</span>
+                                <span style="font-size: 12px; color: gray;">(click to copy)</span>
                             </div>
-                            <div data-action="click->receive#copyAddressToClipboard" id="result-img">{{ rawHtml .imageStr }}</div>
-                            <a href="javascript:void(0)" data-target="receive.generateNewAddressButton" data-action="click->receive#generateNewAddress"
+                            <div data-action="click->receive#copyAddressToClipboard" style="margin-left: 20px;" id="result-img">{{ rawHtml .imageStr }}</div>
+                            <a href="javascript:void(0)" style="margin-left: 60px;"
+                               data-target="receive.generateNewAddressButton" data-action="click->receive#generateNewAddress"
                             >generate new address</a>
                         </div>
                    </div>
