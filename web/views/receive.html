@@ -22,13 +22,13 @@
                                    <select data-target="receive.account" data-action="change->receive#generate" class="form-control"
                                            style="width: 80%; margin-left: 11px;" name="account" id="account">
                                    {{ range $account := .accounts }}
-                                       <option value="{{ $account.Number }}">{{ accountString $account }}</option>
+                                       <option value="{{ $account.Number }}">{{ $account.Name }}</option>
                                    {{ end }}
                                    </select>
                                {{ else }}
                                {{ range $account := .accounts }}
                                        <input data-target="receive.account" value="{{ $account.Number }}" type="hidden" name="account">
-                                   <input class="form-control singleAccountTextView" disabled value="{{ accountString $account }}">
+                                   <input class="form-control singleAccountTextView" disabled value="{{ $account.Name }}">
                                {{ end }}
                                {{ end  }}
                                </div>
