@@ -98,7 +98,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var numTickets string
-	form.AddInputField("Number of tickets:", "", 10, nil, func(text string) {
+	form.AddInputField("Number of Tickets:", "", 10, nil, func(text string) {
 		numTickets = text
 	})
 
