@@ -79,6 +79,12 @@ func startSync(walletMiddleware app.WalletMiddleware, updateStatus func(string),
 		OnRescanningBlocks: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress))
 		},
+		OnPeerConnected: func(_ int32) {
+
+		},
+		OnPeerDisconnected: func(_ int32) {
+
+		},
 	}, false)
 
 	if err != nil {
