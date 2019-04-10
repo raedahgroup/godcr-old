@@ -12,4 +12,3 @@ func (window *Window) AddButton(buttonText string, buttonClickFunc func()) {
 		buttonClickFunc()
 	}
 }
-

@@ -9,8 +9,8 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type utxoSelection struct {
@@ -72,7 +72,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 	masterWindow := window.Master()
 
-	widgets.PageContentWindow("Send", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowWithTitle("Send", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
 			contentWindow.Row(styles.LabelHeight).Dynamic(1)
 			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)

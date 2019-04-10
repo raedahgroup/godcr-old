@@ -3,7 +3,6 @@ package styles
 import (
 	"io/ioutil"
 
-	"github.com/aarzilli/nucular"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -16,12 +15,9 @@ var (
 )
 
 const (
-	pageHeaderFontSize  = 13
-	pageHeaderFontDPI   = 72
-	pageContentFontSize = 8
-	pageContentFontDPI  = 70
-	navFontSize         = 11
-	navFontDPI          = 62
+	pageHeaderFontSize  = 18
+	pageContentFontSize = 14
+	navFontSize         = 14
 )
 
 func InitFonts() error {
@@ -35,17 +31,17 @@ func InitFonts() error {
 		return err
 	}
 
-	NavFont, err = getFont(navFontSize, navFontDPI, robotoMediumFontData)
+	NavFont, err = getFont(navFontSize, robotoMediumFontData)
 	if err != nil {
 		return err
 	}
 
-	PageHeaderFont, err = getFont(pageHeaderFontSize, pageHeaderFontDPI, robotoMediumFontData)
+	PageHeaderFont, err = getFont(pageHeaderFontSize, robotoMediumFontData)
 	if err != nil {
 		return err
 	}
 
-	PageContentFont, err = getFont(pageContentFontSize, pageContentFontDPI, robotoLightFontData)
+	PageContentFont, err = getFont(pageContentFontSize, robotoLightFontData)
 	if err != nil {
 		return err
 	}
@@ -53,24 +49,15 @@ func InitFonts() error {
 	return nil
 }
 
-func getFont(fontSize, DPI int, fontData []byte) (font.Face, error) {
+func getFont(fontSize int, fontData []byte) (font.Face, error) {
 	ttfont, err := freetype.ParseFont(fontData)
 	if err != nil {
 		return nil, err
 	}
 
-	size := int(float64(fontSize) * scaling)
 	options := &truetype.Options{
-		Size:    float64(size),
-		Hinting: font.HintingFull,
-		DPI:     float64(DPI),
+		Size: float64(fontSize),
 	}
 
 	return truetype.NewFace(ttfont, options), nil
-}
-
-func SetFont(window *nucular.Window, font font.Face) {
-	style := window.Master().Style()
-	style.Font = font
-	window.Master().SetStyle(style)
 }

@@ -7,8 +7,8 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -80,15 +80,13 @@ func (desktop *Desktop) render(window *nucular.Window) {
 }
 
 func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
-	window.Row(0).SpaceBeginRatio(1)
-	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
+	window.Row(0).Dynamic(1)
 
 	if desktop.pageChanged {
 		handler.BeforeRender()
 		desktop.pageChanged = false
 	}
 
-	styles.SetStandaloneWindowStyle(window.Master())
 	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 

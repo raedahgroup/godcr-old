@@ -8,8 +8,8 @@ import (
 	"github.com/aarzilli/nucular/label"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
-	qrcode "github.com/skip2/go-qrcode"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 type ReceiveHandler struct {
@@ -41,9 +41,9 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	widgets.PageContentWindow("Generate Receive Address", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowWithTitle("Generate Receive Address", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
-			contentWindow.SetErrorMessage(handler.err.Error())
+			contentWindow.DisplayErrorMessage(handler.err.Error())
 		} else {
 			accountNames := make([]string, len(handler.accounts))
 			for index, account := range handler.accounts {
@@ -69,7 +69,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 				// get address
 				handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.selectedAccountNumber)
 				if handler.err != nil {
-					contentWindow.SetErrorMessage(handler.err.Error())
+					contentWindow.DisplayErrorMessage(handler.err.Error())
 				} else {
 					window.Master().Changed()
 				}

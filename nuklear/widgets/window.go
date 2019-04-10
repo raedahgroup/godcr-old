@@ -5,19 +5,19 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/nuklear/styles"
+	"golang.org/x/image/font"
+	"github.com/aarzilli/nucular/rect"
 )
 
 type Window struct {
 	*nucular.Window
 }
 
-var pageContentPadding = image.Point{10, 10}
-
 func GroupWindow(uniqueWindowTitle string, parentWindow *nucular.Window, flags nucular.WindowFlags, windowReady func(*Window)) {
 	if nw := parentWindow.GroupBegin(uniqueWindowTitle, flags); nw != nil {
 		window := &Window{nw}
-		defer window.DoneAddingWidgets()
 		windowReady(window)
+		window.DoneAddingWidgets()
 	}
 }
 
@@ -25,51 +25,58 @@ func NoScrollGroupWindow(uniqueWindowTitle string, parentWindow *nucular.Window,
 	GroupWindow(uniqueWindowTitle, parentWindow, nucular.WindowNoScrollbar, windowReady)
 }
 
-func DefaultGroupWindow(uniqueWindowTitle string, parentWindow *nucular.Window, windowReady func(*Window)) {
+func ScrollableGroupWindow(uniqueWindowTitle string, parentWindow *nucular.Window, windowReady func(*Window)) {
 	GroupWindow(uniqueWindowTitle, parentWindow, 0, windowReady)
 }
 
-func PageContentWindow(pageTitle string, parentWindow *nucular.Window, windowReady func(contentWindow *Window)) {
-	NoScrollGroupWindow(pageTitle + "-page", parentWindow, func(pageWindow *Window) {
+func PageContentWindowWithTitle(pageTitle string, parentWindow *nucular.Window, windowReady func(contentWindow *Window)) {
+	PageContentWindowWithTitleAndPadding(pageTitle, parentWindow, 0, 0, windowReady)
+}
+
+func PageContentWindowWithTitleAndPadding(pageTitle string, parentWindow *nucular.Window, xPadding, yPadding int, windowReady func(contentWindow *Window)) {
+	NoScrollGroupWindow(pageTitle+"-page", parentWindow, func(pageWindow *Window) {
+		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
 		pageWindow.SetPageTitle(pageTitle)
-		pageWindow.ContentWindow(pageTitle + "-page-content", windowReady)
+		pageWindow.PageContentWindow(pageTitle+"-page-content", windowReady)
 	})
 }
 
-func (window *Window) ContentWindow(uniqueWindowTitle string, windowReady func(*Window)) {
-	// window should take available height and width
-	window.Row(0).Dynamic(1)
+func (window *Window) PageContentWindow(uniqueWindowTitle string, windowReady func(*Window)) {
+	// create a rect for this page content window to prevent styles from spilling into other windows
+	pageContentArea := window.Row(0).SpaceBegin(1)
+	window.LayoutSpacePushScaled(rect.Rect{
+		X: 0,
+		Y: 0,
+		W: pageContentArea.W,
+		H: pageContentArea.H,
+	})
 
-	// add padding and set font
-	style := window.Master().Style()
-	style.GroupWindow.Padding = pageContentPadding
-	style.Font = styles.PageContentFont
-	window.Master().SetStyle(style)
+	window.Master().Style().Font = styles.PageContentFont
 
 	// create group window
-	DefaultGroupWindow(uniqueWindowTitle, window.Window, windowReady)
+	ScrollableGroupWindow(uniqueWindowTitle, window.Window, windowReady)
 }
 
-func (window *Window) SetErrorMessage(message string) {
-	window.Row(300).Dynamic(1)
-	window.LabelWrap(message)
+func (window *Window) SetFont(font font.Face) {
+	window.Master().Style().Font = font
+}
+
+func (window *Window) UseFontAndResetToPrevious(font fontFace, fontReadyForUse func()) {
+	currentFont := window.Master().Style().Font
+	if currentFont != font {
+		window.SetFont(font)
+		defer window.SetFont(currentFont)
+	}
+
+	fontReadyForUse()
 }
 
 func (window *Window) SetPageTitle(title string) {
-	// change window font and draw page title label
-	masterWindow := window.Master()
-	currentStyle := masterWindow.Style()
-	currentFont := currentStyle.Font
-	currentStyle.Font = styles.PageHeaderFont
-	masterWindow.SetStyle(currentStyle)
+	window.AddLabelWithFont(title, LeftCenterAlign, styles.PageHeaderFont)
+}
 
-	// draw page title using label
-	window.Row(30).Dynamic(1)
-	window.Label(title, LeftCenterAlign)
-
-	// reset font
-	currentStyle.Font = currentFont
-	masterWindow.SetStyle(currentStyle)
+func (window *Window) DisplayErrorMessage(errorMessage string) {
+	window.AddWrappedLabelWithColor(errorMessage, styles.DecredOrangeColor)
 }
 
 func (window *Window) DoneAddingWidgets() {

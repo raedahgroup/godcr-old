@@ -38,7 +38,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
 	}
 
-	widgets.PageContentWindow("Create Wallet", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowWithTitle("Create Wallet", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
 			contentWindow.Row(styles.ErrorTextHeight).Dynamic(1)
 			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)
@@ -65,7 +65,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		}
 
 		contentWindow.Label("Wallet Seed", "LC")
-		contentWindow.AddLabel(handler.seed) // todo add border?
+		contentWindow.AddWrappedLabel(handler.seed)
 
 		contentWindow.Row(50).Dynamic(1)
 		contentWindow.LabelWrapColored(`IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`,

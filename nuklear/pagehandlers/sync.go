@@ -2,12 +2,13 @@ package pagehandlers
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"image"
 )
 
 type SyncHandler struct {
@@ -23,7 +24,7 @@ func (s *SyncHandler) BeforeRender() {
 	s.isRendering = false
 	s.report = ""
 	s.isShowingPercentageProgress = false
-	s.percentageProgress = 0
+	s.percentageProgress = 10
 }
 
 func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
@@ -32,25 +33,28 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 		s.syncBlockchain(window, wallet)
 	}
 
-	// change page onSyncStatusSuccess
+	//change page onSyncStatusSuccess
 	if s.status == walletcore.SyncStatusSuccess {
-		changePage(window, "overview")
-		return
+		//changePage(window, "overview")
+		//return
 	}
 
-	widgets.PageContentWindow("Synchronizing", window, func(contentWindow *widgets.Window) {
-		if s.err != nil {
-			contentWindow.Row(50).Dynamic(1)
-			contentWindow.LabelWrap(s.err.Error())
-		} else {
-			contentWindow.Row(40).Dynamic(1)
-			contentWindow.LabelColored(s.report, "LC", color.RGBA{9, 20, 64, 255})
+	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
+		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
+		pageWindow.AddLabelWithFont("Synchronizing", widgets.CenterAlign, styles.PageHeaderFont)
 
-			if s.isShowingPercentageProgress {
-				contentWindow.Row(30).Dynamic(1)
-				contentWindow.Progress(&s.percentageProgress, 100, false)
+		pageWindow.PageContentWindow("sync-page-content", func(contentWindow *widgets.Window) {
+			if s.err != nil {
+				contentWindow.DisplayErrorMessage(s.err.Error())
+			} else {
+				contentWindow.AddLabel(s.report, widgets.CenterAlign)
+				contentWindow.AddProgressBar(&s.percentageProgress, 100)
+
+				if s.isShowingPercentageProgress {
+
+				}
 			}
-		}
+		})
 	})
 }
 

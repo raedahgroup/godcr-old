@@ -9,8 +9,8 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type StakingHandler struct {
@@ -58,9 +58,9 @@ func (handler *StakingHandler) Render(window *nucular.Window, wallet walletcore.
 		handler.fetchAccounts(wallet)
 	}
 
-	widgets.PageContentWindow("Staking", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowWithTitle("Staking", window, func(contentWindow *widgets.Window) {
 		handler.displayStakeInfo(contentWindow)
-		handler.displayPurchaseTicketForm(contentWindow.Window, wallet)
+		handler.displayPurchaseTicketForm(contentWindow, wallet)
 	})
 }
 
@@ -85,77 +85,70 @@ func (handler *StakingHandler) fetchAccounts(wallet walletcore.Wallet) {
 
 func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 	// display section title with nav font
-	styles.SetFont(contentWindow.Window, styles.NavFont)
-	contentWindow.Row(styles.LabelHeight).Dynamic(1)
-	contentWindow.Label("Stake Info", "LC")
-
-	// reset page font
-	styles.SetFont(contentWindow.Window, styles.PageContentFont)
+	contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
+		contentWindow.AddLabel("Stake Info", widgets.LeftCenterAlign)
+	})
 
 	if handler.stakeInfoFetchError != nil {
-		contentWindow.SetErrorMessage(handler.stakeInfoFetchError.Error())
+		contentWindow.DisplayErrorMessage(handler.stakeInfoFetchError.Error())
 	} else {
-		styles.SetFont(contentWindow.Window, styles.NavFont)
-		contentWindow.Row(styles.LabelHeight).Static(43, 48, 35, 46, 46, 43, 80, 46, 43, 43, 67)
-		contentWindow.Label("Expired", "LC")
-		contentWindow.Label("Immature", "LC")
-		contentWindow.Label("Live", "LC")
-		contentWindow.Label("Revoked", "LC")
-		contentWindow.Label("Unmined", "LC")
-		contentWindow.Label("Unspent", "LC")
-		contentWindow.Label("AllmempoolTix", "LC")
-		contentWindow.Label("PoolSize", "LC")
-		contentWindow.Label("Missed", "LC")
-		contentWindow.Label("Voted", "LC")
-		contentWindow.Label("Total Subsidy", "LC")
+		contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
+			contentWindow.Row(styles.LabelHeight).Static(43, 48, 35, 46, 46, 43, 80, 46, 43, 43, 67)
+			contentWindow.Label("Expired", widgets.LeftCenterAlign)
+			contentWindow.Label("Immature", widgets.LeftCenterAlign)
+			contentWindow.Label("Live", widgets.LeftCenterAlign)
+			contentWindow.Label("Revoked", widgets.LeftCenterAlign)
+			contentWindow.Label("Unmined", widgets.LeftCenterAlign)
+			contentWindow.Label("Unspent", widgets.LeftCenterAlign)
+			contentWindow.Label("AllmempoolTix", widgets.LeftCenterAlign)
+			contentWindow.Label("PoolSize", widgets.LeftCenterAlign)
+			contentWindow.Label("Missed", widgets.LeftCenterAlign)
+			contentWindow.Label("Voted", widgets.LeftCenterAlign)
+			contentWindow.Label("Total Subsidy", widgets.LeftCenterAlign)
+		})
 
-		styles.SetFont(contentWindow.Window, styles.PageContentFont)
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Expired)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Immature)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Live)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Revoked)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.OwnMempoolTix)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Unspent)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.AllMempoolTix)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.PoolSize)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Missed)), "LC")
-		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Voted)), "LC")
-		contentWindow.Label(handler.stakeInfo.TotalSubsidy, "LC")
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Expired)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Immature)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Live)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Revoked)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.OwnMempoolTix)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Unspent)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.AllMempoolTix)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.PoolSize)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Missed)), widgets.LeftCenterAlign)
+		contentWindow.Label(strconv.Itoa(int(handler.stakeInfo.Voted)), widgets.LeftCenterAlign)
+		contentWindow.Label(handler.stakeInfo.TotalSubsidy, widgets.LeftCenterAlign)
 	}
 }
 
-func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.Window, wallet walletcore.Wallet) {
+func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.Window, wallet walletcore.Wallet) {
 	// display form title with nav font
-	styles.SetFont(contentWindow, styles.NavFont)
-	contentWindow.Row(styles.LabelHeight).Dynamic(1)
-	contentWindow.Label("Purchase Ticket", "LC")
-
-	// reset page font
-	styles.SetFont(contentWindow, styles.PageContentFont)
+	contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
+		contentWindow.AddLabel("Purchase Ticket", widgets.LeftCenterAlign)
+	})
 
 	// if error fetching accounts, no point displaying the form
 	if handler.fetchAccountsError != nil {
-		contentWindow.Row(styles.LabelHeight).Dynamic(1)
-		contentWindow.LabelColored(handler.fetchAccountsError.Error(), "LC", styles.DecredOrangeColor)
+		contentWindow.DisplayErrorMessage(handler.fetchAccountsError.Error())
 		return
 	}
 
 	// display purchase form proper
 	contentWindow.Row(styles.LabelHeight).Static(styles.TextEditorWidth)
-	contentWindow.Label("Source Account", "LC")
+	contentWindow.Label("Source Account", widgets.LeftCenterAlign)
 
 	contentWindow.Row(styles.TextEditorHeight).Static(styles.AccountSelectorWidth)
 	handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
 
 	contentWindow.Row(styles.LabelHeight).Static(styles.TextEditorWidth)
-	contentWindow.Label("Number of tickets", "LC")
+	contentWindow.Label("Number of tickets", widgets.LeftCenterAlign)
 
 	contentWindow.Row(styles.TextEditorHeight).Static(styles.TextEditorWidth)
-	handler.numTicketsInput.Edit(contentWindow)
+	handler.numTicketsInput.Edit(contentWindow.Window)
 
 	if handler.numTicketsInputErrStr != "" {
 		contentWindow.Row(styles.LabelHeight).Static(styles.TextEditorWidth)
-		contentWindow.LabelColored(handler.numTicketsInputErrStr, "LC", styles.DecredOrangeColor)
+		contentWindow.LabelColored(handler.numTicketsInputErrStr, widgets.LeftCenterAlign, styles.DecredOrangeColor)
 	}
 
 	contentWindow.Row(styles.CheckboxHeight).Static(styles.TextEditorWidth)
@@ -165,15 +158,15 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 	numTickets := len(handler.purchasedTicketsHashes)
 	if numTickets > 0 {
 		contentWindow.Row(styles.LabelHeight).Dynamic(1)
-		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), "LC", styles.DecredGreenColor)
+		contentWindow.LabelColored(fmt.Sprintf("You have purchased %d ticket(s)", numTickets), widgets.LeftCenterAlign, styles.DecredGreenColor)
 
 		for _, ticketHash := range handler.purchasedTicketsHashes {
 			contentWindow.Row(styles.LabelHeight).Dynamic(1)
-			contentWindow.LabelColored(ticketHash, "LC", styles.DecredGreenColor)
+			contentWindow.LabelColored(ticketHash, widgets.LeftCenterAlign, styles.DecredGreenColor)
 		}
 	} else if handler.purchaseTicketsError != nil {
 		contentWindow.Row(styles.LabelHeight).Dynamic(1)
-		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), "LC", styles.DecredOrangeColor)
+		contentWindow.LabelColored(handler.purchaseTicketsError.Error(), widgets.LeftCenterAlign, styles.DecredOrangeColor)
 	}
 
 	submitButtonText := "Purchase"
@@ -185,7 +178,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *nucular.
 
 	contentWindow.Row(styles.ButtonHeight).Static(styles.ButtonWidth)
 	if contentWindow.ButtonText(submitButtonText) {
-		handler.validateAndSubmit(contentWindow, wallet)
+		handler.validateAndSubmit(contentWindow.Window, wallet)
 	}
 }
 

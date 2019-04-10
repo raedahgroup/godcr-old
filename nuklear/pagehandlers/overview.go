@@ -26,12 +26,12 @@ func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	widgets.PageContentWindow("Overview", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowWithTitle("Overview", window, func(contentWindow *widgets.Window) {
 		contentWindow.Row(25).Dynamic(1)
 		contentWindow.Label("Current Total Balance", "LC")
 
 		if handler.err != nil {
-			contentWindow.SetErrorMessage(handler.err.Error())
+			contentWindow.DisplayErrorMessage(handler.err.Error())
 		} else {
 			contentWindow.Row(25).Dynamic(1)
 			contentWindow.Label(walletcore.WalletBalance(handler.accounts), "LC")
