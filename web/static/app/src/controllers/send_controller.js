@@ -28,6 +28,12 @@ export default class extends Controller {
     this.destinationCount = 0
     this.destinationIndex = 0
     this.newDestination()
+    let _this = this
+
+    // bootstrap4-toggle is not triggering stimulusjs change action directly
+    this.useCustomTarget.onchange = function () {
+      _this.toggleUseCustom()
+    }
   }
 
   newDestination () {

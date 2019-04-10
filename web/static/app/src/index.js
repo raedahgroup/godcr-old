@@ -1,6 +1,8 @@
 import { Application } from 'stimulus'
 import { definitionsFromContext } from 'stimulus/webpack-helpers'
 import '../node_modules/toastr/build/toastr.css'
+import '../node_modules/bootstrap4-toggle/css/bootstrap4-toggle.css'
+import '../node_modules/bootstrap4-toggle/js/bootstrap4-toggle.js'
 import ws from './services/messagesocket_service'
 import './css/style.scss'
 import { library, dom } from '@fortawesome/fontawesome-svg-core'

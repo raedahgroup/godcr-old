@@ -96,10 +96,10 @@
                     <!-- custom features -->
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-group mb-0">
-                                <input data-target="send.useCustom" data-action="change->send#toggleUseCustom"
-                                       type="checkbox" name="use-custom" id="use-custom" value="1"/>
-                                <label for="use-custom">Select custom inputs</label>
+                            <div class="form-group mb-2">
+                                <input data-target="send.useCustom"
+                                       name="use-custom" value="1"
+                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
                             </div>
 
                             <!-- custom input -->
@@ -228,11 +228,5 @@
     </div>
 </div>
 {{ template "footer" }}
-<style>
-    table {
-        height: 300px !important;
-        max-height: 300px !important;
-    }
-</style>
 </body>
 </html>
