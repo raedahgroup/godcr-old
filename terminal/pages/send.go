@@ -45,11 +45,18 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		accountNumbers[index] = account.Number
 	}
 
-	// add form fields
 	var accountNum uint32
-	form.AddDropDown("From: ", accountNames, 0, func(option string, optionIndex int) {
+	if len(accounts) == 1 {
+		accountNum = accounts[0].Number
+		accountName := accounts[0].String()
+
+		accountNameView := primitives.NewLeftAlignedTextView(fmt.Sprintf("From: %s", accountName))
+		form.AddFormItem(primitives.NewTextViewFormItem(accountNameView, 1, 1, true, 0))
+	}else{
+		form.AddDropDown("From: ", accountNames, 0, func(option string, optionIndex int) {
 		accountNum = accountNumbers[optionIndex]
-	})
+		})
+	}
 
 	var destination string
 	form.AddInputField("Destination Address: ", "", 37, nil, func(text string) {
@@ -66,7 +73,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		spendUnconfirmed = checked
 	})
 
-	form.AddButton("Send", func() {
+	form.AddButton("Purchase", func() {
 		// validate form fields
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {

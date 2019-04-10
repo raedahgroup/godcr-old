@@ -41,7 +41,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(stakeInfo, 3, 0, false)
 	}
 
-	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
+	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
 	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, setFocus, clearFocus)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
@@ -107,7 +107,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		spendUnconfirmed = checked
 	})
 
-	form.AddButton("Submit", func() {
+	form.AddButton("Purchase", func() {
 		if len(numTickets) == 0 {
 			displayMessage("Error: please specify the number of tickets to purchase", true)
 			return
