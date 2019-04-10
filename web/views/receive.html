@@ -35,9 +35,10 @@
                            </div>
                        </div>
                        <div class="row">
-                           <div class="col-md-5">
+                           <div class="col-md-6">
                                <div class="result-card">
-                                   <div data-action="click->receive#copyAddressToClipboard" style="margin-top: -20px;" id="result-img">{{ rawHtml .imageStr }}</div>
+                                   <div data-action="click->receive#copyAddressToClipboard" style="margin-top: -20px;"
+                                        class="address-qr-img">{{ rawHtml .imageStr }}</div>
                                    <div id="result-text" style="margin-top: -25px;">
                                        <span data-action="click->receive#copyAddressToClipboard" data-target="receive.address" id="address">{{ .address }}</span>
 
@@ -65,15 +66,5 @@
         </div>
     </div>
     {{ template "footer" }}
-    <style>
-        .btn-form-group {
-            padding-top: 26px;
-        }
-
-        .result-card {
-            font-size: 15px;
-            text-align: center;
-        }
-    </style>
 </body>
 </html>
