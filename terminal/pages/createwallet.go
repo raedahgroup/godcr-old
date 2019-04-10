@@ -58,15 +58,13 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	walletSeedTextView.SetBorder(true).
 		SetTitle("Wallet Seed").
 		SetTitleColor(helpers.DecredLightBlueColor)
-	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true,
-		0))
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true))
 
 	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
 	storeSeedWarningTextView.SetBorder(true).
 		SetTitle("IMPORTANT NOTICE").
 		SetTitleColor(helpers.DecredOrangeColor)
-	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true,
-		0))
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true))
 
 	storeSeedCheckbox := tview.NewCheckbox().SetLabel("I've stored the seed securely")
 	createWalletForm.AddFormItem(storeSeedCheckbox)
@@ -93,9 +91,7 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 		messageTextView := primitives.NewCenterAlignedTextView(message)
 		messageTextView.SetTextColor(messageColor)
 
-		_, _, widthForTextViewResize, _ := createWalletForm.GetFormItemBox(0).GetInnerRect()
-		messageTextViewAsFormItem := primitives.NewTextViewFormItem(messageTextView, 20, 1, true,
-			widthForTextViewResize)
+		messageTextViewAsFormItem := primitives.NewTextViewFormItem(messageTextView, 20, 1, true)
 		createWalletForm.AddFormItem(messageTextViewAsFormItem)
 
 		isShowingMessage = true

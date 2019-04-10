@@ -11,6 +11,9 @@ import (
 )
 
 func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
+	tviewApp.SetRoot(rootPage(tviewApp, walletMiddleware), true)
+	return
+
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and hint

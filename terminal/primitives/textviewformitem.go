@@ -15,37 +15,36 @@ type TextViewFormItem struct {
 	fieldWidth    int
 	fieldHeight   int
 	autosize      bool
-	autosizeWidth int
 }
 
-func NewTextViewFormItem(textView *TextView, fieldWidth, fieldHeight int, autosize bool, autosizeWidth int) *TextViewFormItem {
-	return &TextViewFormItem{
+func NewTextViewFormItem(textView *TextView, fieldWidth, fieldHeight int, autosize bool) *TextViewFormItem {
+	item := &TextViewFormItem{
 		TextView:      textView,
 		fieldWidth:    fieldWidth,
 		fieldHeight:   fieldHeight,
 		autosize:      autosize,
-		autosizeWidth: autosizeWidth,
+	}
+
+	return item
+}
+
+func (item *TextViewFormItem) CalculateFieldSize(maxWidth int) {
+	if item.autosize {
+		borderWidth, borderHeight := 0, 0
+		if item.HasBorder() {
+			borderWidth, borderHeight = 2, 2
+		}
+
+		textWidth := tview.StringWidth(item.GetText())
+		fieldHeight := math.Ceil(float64(textWidth) / float64(maxWidth - borderWidth))
+
+		item.fieldHeight = int(fieldHeight) + borderHeight
+		item.fieldWidth = maxWidth
 	}
 }
 
 // GetFieldHeight satisfies `primitives.FormItem` interface
 func (item *TextViewFormItem) GetFieldHeight() int {
-	if item.autosize {
-		availableWidth := item.autosizeWidth
-		if item.autosizeWidth <= 0 {
-			_, _, availableWidth, _ = item.GetTextView().GetInnerRect()
-		}
-
-		textWidth := tview.StringWidth(item.GetText())
-		fieldHeight := math.Ceil(float64(textWidth) / float64(availableWidth))
-
-		if item.HasBorder() {
-			fieldHeight += 2
-		}
-
-		return int(fieldHeight)
-	}
-
 	return item.fieldHeight
 }
 
@@ -83,6 +82,12 @@ func (item *TextViewFormItem) GetTextView() *TextView {
 }
 
 func(item *TextViewFormItem) Draw(screen tcell.Screen) {
+	// call textview.Draw() directly if there's no label to display
+	if item.label == "" {
+		item.TextView.Draw(screen)
+		return
+	}
+
 	// Prepare
 	x, y, width, height := item.GetInnerRect()
 	if height < 1 || width < 1 {
@@ -108,10 +113,11 @@ func(item *TextViewFormItem) Draw(screen tcell.Screen) {
 	if fieldWidth == 0 {
 		fieldWidth = math.MaxInt32
 	}
-	if rightLimit-x < fieldWidth {
+	if fieldWidth > rightLimit-x {
 		fieldWidth = rightLimit - x
 	}
 
+	//item.TextView.SetText(fmt.Sprintf("%d %d %d", x, fieldWidth, rightLimit))
 	item.TextView.SetRect(x, y, fieldWidth, height)
 	item.TextView.Draw(screen)
 }

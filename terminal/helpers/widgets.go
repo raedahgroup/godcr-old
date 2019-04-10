@@ -33,8 +33,10 @@ func AddAccountSelectionWidgetToForm(form *primitives.Form, data *AccountSelecti
 
 		accountName := accountText(account)
 		accountWidget := primitives.NewLeftAlignedTextView(accountName)
-		accountFormItem := primitives.NewTextViewFormItem(accountWidget, 1, 1, true, 0)
+
+		accountFormItem := primitives.NewTextViewFormItem(accountWidget, 20, 1, true)
 		accountFormItem.SetLabel(data.Label)
+
 		form.AddFormItem(accountFormItem)
 
 		return

@@ -39,27 +39,27 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	}
 
 	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
-		Label: "From: ",
+		Label: "From:",
 		Accounts: accounts,
 	}
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var destination string
-	form.AddInputField("Destination Address: ", "", 37, nil, func(text string) {
+	form.AddInputField("Destination Address:", "", 37, nil, func(text string) {
 		destination = text
 	})
 
 	var amount string
-	form.AddInputField("Amount: ", "", 20, nil, func(text string) {
+	form.AddInputField("Amount:", "", 20, nil, func(text string) {
 		amount = text
 	})
 	
 	var spendUnconfirmed bool
-	form.AddCheckbox("Spend Unconfirmed: ", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed:", false, func(checked bool) {
 		spendUnconfirmed = checked
 	})
 
-	form.AddButton("Purchase", func() {
+	form.AddButton("Send", func() {
 		// validate form fields
 		amount, err := strconv.ParseFloat(string(amount), 64)
 		if err != nil {

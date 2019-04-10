@@ -58,6 +58,10 @@ type Form struct {
 type FormItem interface {
 	tview.FormItem
 
+	// CalculateFieldSize is used to calculate and set the height and width needed to display the form item completely
+	// given the max width that the item can occupy
+	CalculateFieldSize(maxWidth int)
+
 	// GetFieldHeight returns the height to use in drawing the form item.
 	// Default height is 1.
 	GetFieldHeight() int
@@ -359,6 +363,16 @@ func (f *Form) Draw(screen tcell.Screen) {
 	var focusedPosition struct{ x, y, width, height int }
 	for index, item := range formItems {
 		// Calculate the space needed.
+		itemHeight := 1
+		if formItem, ok := item.(FormItem); ok {
+			formItem.CalculateFieldSize(width)
+
+			itemHeight = formItem.GetFieldHeight()
+			if itemHeight <= 0 {
+				itemHeight = 1
+			}
+		}
+
 		labelWidth := tview.StringWidth(item.GetLabel())
 		var itemWidth int
 		if f.horizontal {
@@ -391,14 +405,6 @@ func (f *Form) Draw(screen tcell.Screen) {
 			f.fieldTextColor,
 			f.fieldBackgroundColor,
 		)
-
-		itemHeight := 1
-		if formItem, ok := item.(FormItem); ok {
-			itemHeight = formItem.GetFieldHeight()
-			if itemHeight <= 0 {
-				itemHeight = 1
-			}
-		}
 
 		// Save position.
 		positions[index].x = x
