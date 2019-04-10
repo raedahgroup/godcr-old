@@ -38,25 +38,11 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		body.AddItem(errorTextView, 2, 0, false)
 	}
 
-	accountNames := make([]string, len(accounts))
-	accountNumbers := make([]uint32, len(accounts))
-	for index, account := range accounts {
-		accountNames[index] = account.String()
-		accountNumbers[index] = account.Number
+	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
+		Label: "From: ",
+		Accounts: accounts,
 	}
-
-	var accountNum uint32
-	if len(accounts) == 1 {
-		accountNum = accounts[0].Number
-		accountName := accounts[0].String()
-
-		accountNameView := primitives.NewLeftAlignedTextView(fmt.Sprintf("From: %s", accountName))
-		form.AddFormItem(primitives.NewTextViewFormItem(accountNameView, 1, 1, true, 0))
-	}else{
-		form.AddDropDown("From: ", accountNames, 0, func(option string, optionIndex int) {
-		accountNum = accountNumbers[optionIndex]
-		})
-	}
+	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var destination string
 	form.AddInputField("Destination Address: ", "", 37, nil, func(text string) {
@@ -95,7 +81,8 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
 			setFocus(form)
 
-			txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
+			accountNumber := accountSelectionWidgetData.SelectedAccountNumber
+			txHash, err := wallet.SendFromAccount(accountNumber, requiredConfirmations, sendDestination, passphrase)
 			if err != nil {
 				displayErrorMessage(err.Error())
 				return

@@ -9,6 +9,9 @@ import (
 
 type TextViewFormItem struct {
 	*TextView
+	label         string
+	labelWidth    int
+	labelColor    tcell.Color
 	fieldWidth    int
 	fieldHeight   int
 	autosize      bool
@@ -46,13 +49,20 @@ func (item *TextViewFormItem) GetFieldHeight() int {
 	return item.fieldHeight
 }
 
+func (item *TextViewFormItem) SetLabel(label string) *TextViewFormItem {
+	item.label = label
+	return item
+}
+
 // GetLabel satisfies `tview.FormItem` interface
 func (item *TextViewFormItem) GetLabel() string {
-	return ""
+	return item.label
 }
 
 // SetFormAttributes satisfies `tview.FormItem` interface
 func (item *TextViewFormItem) SetFormAttributes(labelWidth int, labelColor, bgColor, fieldTextColor, fieldBgColor tcell.Color) tview.FormItem {
+	item.labelWidth = labelWidth
+	item.labelColor = labelColor
 	return item
 }
 
@@ -70,4 +80,38 @@ func (item *TextViewFormItem) SetFinishedFunc(handler func(key tcell.Key)) tview
 
 func (item *TextViewFormItem) GetTextView() *TextView {
 	return item.TextView
+}
+
+func(item *TextViewFormItem) Draw(screen tcell.Screen) {
+	// Prepare
+	x, y, width, height := item.GetInnerRect()
+	if height < 1 || width < 1 {
+		return
+	}
+	rightLimit := x + width
+
+	// Draw label.
+	if item.labelWidth > 0 {
+		labelWidth := item.labelWidth
+		if labelWidth > width {
+			labelWidth = width
+		}
+		tview.Print(screen, item.label, x, y, labelWidth, tview.AlignLeft, item.labelColor)
+		x += labelWidth
+	} else {
+		_, drawnWidth := tview.Print(screen, item.label, x, y, rightLimit-x, tview.AlignLeft, item.labelColor)
+		x += drawnWidth
+	}
+
+	// Draw embedded textview using adjusted x pos and width.
+	fieldWidth := item.fieldWidth
+	if fieldWidth == 0 {
+		fieldWidth = math.MaxInt32
+	}
+	if rightLimit-x < fieldWidth {
+		fieldWidth = rightLimit - x
+	}
+
+	item.TextView.SetRect(x, y, fieldWidth, height)
+	item.TextView.Draw(screen)
 }
