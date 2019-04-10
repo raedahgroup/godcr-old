@@ -49,7 +49,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		accountNumbers[index] = account.Number
 	}
 
-	if len(accounts) != 1 {
+	if len(accounts) == 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
 			errorText := fmt.Sprintf("Error: %s", err.Error())
