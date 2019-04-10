@@ -73,8 +73,8 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Live: %s\n", strconv.Itoa(int(stakeInfo.Live)))), 9, 0, false)
 	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Immature: %s\n", strconv.Itoa(int(stakeInfo.Immature)))), 13, 0, false)
 	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Mempool: %s\n", strconv.Itoa(int(stakeInfo.OwnMempoolTix)))), 10, 0, false)
-	
-	return stakingFlex,nil
+
+	return stakingFlex, nil
 }
 
 func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), clearMessage func(),
@@ -92,13 +92,13 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 	pages.AddPage("form", form, true, true)
 
 	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
-		Label: "From:",
+		Label:    "From:",
 		Accounts: accounts,
 	}
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var numTickets string
-	form.AddInputField("Number of tickets:", "", 10, nil, func(text string) {
+	form.AddInputField("Number of Tickets:", "", 10, nil, func(text string) {
 		numTickets = text
 	})
 
@@ -125,7 +125,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 			successMessage := fmt.Sprintf("You have purchased %d ticket(s)\n%s", len(ticketHashes), strings.Join(ticketHashes, "\n"))
 			displayMessage(successMessage, false)
-				
+
 			// reset form
 			form.ClearFields()
 			setFocus(form.GetFormItem(0))
@@ -143,7 +143,6 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 	return pages, nil
 }
-
 
 func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {
 	nTickets, err := strconv.ParseUint(string(numTickets), 10, 32)
