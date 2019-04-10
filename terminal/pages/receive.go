@@ -31,9 +31,15 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(outputMessageTextView, 2, 0, false)
 	}
 
+	qrCodeTextView := primitives.NewCenterAlignedTextView("")
+	addressTextView := primitives.NewCenterAlignedTextView("")
+	addressTextView.SetTextColor(helpers.DecredLightBlueColor)
+
 	displayOutput := func (qrCode, address string) {
-		body.AddItem(primitives.NewCenterAlignedTextView(qrCode), 19, 0, true)
-		body.AddItem(primitives.NewCenterAlignedTextView(address).SetTextColor(helpers.DecredLightBlueColor), 0, 1, true)
+		body.RemoveItem(qrCodeTextView)
+		body.RemoveItem(addressTextView)
+		body.AddItem(qrCodeTextView.SetText(qrCode), 19, 0, true)
+		body.AddItem(addressTextView.SetText(address), 0, 1, true)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -43,7 +49,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		accountNumbers[index] = account.Number
 	}
 
-	if len(accounts) == 1 {
+	if len(accounts) != 1 {
 		address, qr, err := generateAddress(wallet, accounts[0].Number)
 		if err != nil {
 			errorText := fmt.Sprintf("Error: %s", err.Error())
@@ -66,12 +72,16 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		SetLabelColor(helpers.DecredLightBlueColor)
 		body.AddItem(form, 2, 0, true)
 
-		var accountNumber uint32
+		accountNumbers := make([]uint32, len(accounts))
+		accountNames := make([]string, len(accounts))
+		for index, account := range accounts {
+			accountNames[index] = account.Name
+			accountNumbers[index] = account.Number
+		}
+
 		form.AddDropDown("Source Account: ", accountNames, 0, func(option string, optionIndex int) {
-			accountNumber = accountNumbers[optionIndex]
-		})
-		form.AddButton("Generate", func() {
-			form.RemoveButton(0)
+			accountNumber := accountNumbers[optionIndex]
+
 			address, qr, err := generateAddress(wallet, accountNumber)
 			if err != nil {
 				errorText := fmt.Sprintf("Error: %s", err.Error())

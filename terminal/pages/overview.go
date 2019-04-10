@@ -144,7 +144,7 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, di
 			historyTable.SetCell(row, 3, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
 		}
 		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
+		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 	}
 
