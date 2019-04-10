@@ -9,20 +9,20 @@ import (
 
 type TextViewFormItem struct {
 	*TextView
-	label         string
-	labelWidth    int
-	labelColor    tcell.Color
-	fieldWidth    int
-	fieldHeight   int
-	autosize      bool
+	label       string
+	labelWidth  int
+	labelColor  tcell.Color
+	fieldWidth  int
+	fieldHeight int
+	autosize    bool
 }
 
 func NewTextViewFormItem(textView *TextView, fieldWidth, fieldHeight int, autosize bool) *TextViewFormItem {
 	item := &TextViewFormItem{
-		TextView:      textView,
-		fieldWidth:    fieldWidth,
-		fieldHeight:   fieldHeight,
-		autosize:      autosize,
+		TextView:    textView,
+		fieldWidth:  fieldWidth,
+		fieldHeight: fieldHeight,
+		autosize:    autosize,
 	}
 
 	return item
@@ -36,7 +36,7 @@ func (item *TextViewFormItem) CalculateFieldSize(maxWidth int) {
 		}
 
 		textWidth := tview.StringWidth(item.GetText())
-		fieldHeight := math.Ceil(float64(textWidth) / float64(maxWidth - borderWidth))
+		fieldHeight := math.Ceil(float64(textWidth) / float64(maxWidth-borderWidth))
 
 		item.fieldHeight = int(fieldHeight) + borderHeight
 		item.fieldWidth = maxWidth
@@ -81,7 +81,7 @@ func (item *TextViewFormItem) GetTextView() *TextView {
 	return item.TextView
 }
 
-func(item *TextViewFormItem) Draw(screen tcell.Screen) {
+func (item *TextViewFormItem) Draw(screen tcell.Screen) {
 	// call textview.Draw() directly if there's no label to display
 	if item.label == "" {
 		item.TextView.Draw(screen)

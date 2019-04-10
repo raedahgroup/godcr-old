@@ -25,8 +25,8 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	}
 
 	accounts = append(accounts, &walletcore.Account{
-		Name: "account 2",
-		Number: 2,
+		Name:    "account 2",
+		Number:  2,
 		Balance: accounts[0].Balance,
 	})
 
@@ -45,7 +45,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	}
 
 	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
-		Label: "From:",
+		Label:    "From:",
 		Accounts: accounts,
 	}
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
@@ -59,7 +59,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	form.AddInputField("Amount:", "", 20, nil, func(text string) {
 		amount = text
 	})
-	
+
 	var spendUnconfirmed bool
 	form.AddCheckbox("Spend Unconfirmed:", false, func(checked bool) {
 		spendUnconfirmed = checked
@@ -108,7 +108,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		form.ClearFields()
 		body.RemoveItem(errorTextView)
 	})
-	
+
 	form.SetCancelFunc(clearFocus)
 
 	if len(accounts) <= 1 {

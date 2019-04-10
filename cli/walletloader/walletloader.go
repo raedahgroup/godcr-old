@@ -53,8 +53,8 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 			OnHeadersFetched:    func(_ int64) {},
 			OnDiscoveredAddress: func(_ string) {},
 			OnRescanningBlocks:  func(_ int64) {},
-			OnPeerConnected: func(_ int32) {},
-			OnPeerDisconnected: func(_ int32) {},
+			OnPeerConnected:     func(_ int32) {},
+			OnPeerDisconnected:  func(_ int32) {},
 		}
 
 		err := walletMiddleware.SyncBlockChain(syncListener, true)

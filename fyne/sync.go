@@ -69,7 +69,7 @@ func (app *fyneApp) showSyncWindow() {
 			progressBar.Value = float64(percentageProgress)
 			progressBar.Show()
 		},
-		OnPeerConnected: func(_ int32) {},
+		OnPeerConnected:    func(_ int32) {},
 		OnPeerDisconnected: func(_ int32) {},
 	}, false)
 
