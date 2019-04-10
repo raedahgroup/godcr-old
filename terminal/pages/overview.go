@@ -106,12 +106,11 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, di
 	historyTable.SetBorders(false).SetFixed(1, 0)
 
 	// historyTable header
-	historyTable.SetHeaderCell(0, 0, "")
-    historyTable.SetHeaderCell(0, 1, "Date (UTC)")
-	historyTable.SetHeaderCell(0, 3, "Direction")
+    historyTable.SetHeaderCell(0, 0, "Date (UTC)")
+	historyTable.SetHeaderCell(0, 1, "Direction")
 	historyTable.SetHeaderCell(0, 2, "Amount")
-	historyTable.SetHeaderCell(0, 4, "Status")
-	historyTable.SetHeaderCell(0, 5, "Type")
+	historyTable.SetHeaderCell(0, 3, "Status")
+	historyTable.SetHeaderCell(0, 4, "Type")
 
 	loc, _ := time.LoadLocation("UTC")
 	currentDate := time.Now().In(loc).Add(1 * time.Hour)
@@ -134,20 +133,19 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, di
 	   	dateOutput  := strings.Split(tx.FormattedTime, " ")
 
 	    if transactionDuration > timeDifference {
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
 		}else{
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
 		}
 
 		if txns.Confirmations > confirmations{
-			historyTable.SetCell(row, 4, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
+			historyTable.SetCell(row, 3, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
 		}else{
-			historyTable.SetCell(row, 4, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
+			historyTable.SetCell(row, 3, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
 		}
-		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
-		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 	}
 
 	overviewPage.AddItem(historyTable, 0, 1, true)

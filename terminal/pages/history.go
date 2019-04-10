@@ -91,12 +91,11 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	// history table header
-	historyTable.SetCell(0, 0, tableHeaderCell(""))
-	historyTable.SetCell(0, 1, tableHeaderCell("Date (UTC)"))
-	historyTable.SetCell(0, 3, tableHeaderCell("Direction"))
+	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
+	historyTable.SetCell(0, 1, tableHeaderCell("Direction"))
 	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
-	historyTable.SetCell(0, 4, tableHeaderCell("Status"))
-	historyTable.SetCell(0, 5, tableHeaderCell("Type"))
+	historyTable.SetCell(0, 3, tableHeaderCell("Status"))
+	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
 
 	displayHistoryTable()
 
@@ -128,31 +127,31 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		row := historyTable.GetRowCount()
 		displayedTxHashes = append(displayedTxHashes, tx.Hash)
 
+		txns, err := wallet.GetTransaction(tx.Hash)
+		if err != nil {
+			displayError(err.Error())
+			return
+		}
+
 		transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)
 		transactionDuration := currentDate.Sub(transactionDate)
 	   
 	   	dateOutput := strings.Split(tx.FormattedTime, " ")
 
 	    if transactionDuration > timeDifference {
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
 		}else{
-	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
+	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
 		}		
 
-		txns, err := wallet.GetTransaction(tx.Hash)
-		if err != nil {
-			displayError(err.Error())
-			return
-		}
 		if txns.Confirmations > confirmations{
-			historyTable.SetCell(row, 4, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
+			historyTable.SetCell(row, 3, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
 		}else{
-			historyTable.SetCell(row, 4, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
+			historyTable.SetCell(row, 3, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
 		}
-		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
-		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 	}
 
 	if endBlockHeight > 0 {
