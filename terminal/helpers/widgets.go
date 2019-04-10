@@ -13,12 +13,6 @@ type AccountSelectionWidgetData struct {
 }
 
 func AddAccountSelectionWidgetToForm(form *primitives.Form, data *AccountSelectionWidgetData) {
-	//data.Accounts = append(data.Accounts, &walletcore.Account{
-	//	Name: "fake",
-	//	Number: 1,
-	//	Balance: data.Accounts[0].Balance,
-	//})
-
 	accountText := func(account *walletcore.Account) string {
 		if data.ShowOnlyAccountName {
 			return account.Name

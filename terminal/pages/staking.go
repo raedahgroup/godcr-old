@@ -81,21 +81,15 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		return nil, err
 	}
 
-	accountNumbers := make([]uint32, len(accounts))
-	accountOverviews := make([]string, len(accounts))
-	for index, account := range accounts {
-		accountOverviews[index] = account.String()
-		accountNumbers[index] = account.Number
-	}
-
 	form := primitives.NewForm()
 	form.SetBorderPadding(0, 0, 0, 0)
 	pages.AddPage("form", form, true, true)
 
-	var accountNum uint32
-	form.AddDropDown("From: ", accountOverviews, 0, func(option string, optionIndex int) {
-		accountNum = accountNumbers[optionIndex]
-	})
+	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
+		Label: "From:",
+		Accounts: accounts,
+	}
+	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var numTickets string
 	form.AddInputField("Number of tickets: ", "", 10, nil, func(text string) {
@@ -116,7 +110,8 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
 			setFocus(form)
 
-			ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNum, spendUnconfirmed, wallet)
+			accountNumber := accountSelectionWidgetData.SelectedAccountNumber
+			ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNumber, spendUnconfirmed, wallet)
 			if err != nil {
 				displayMessage(err.Error(), true)
 				return
