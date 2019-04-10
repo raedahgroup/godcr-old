@@ -19,13 +19,22 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	var views []tview.Primitive
 	var viewBoxes []*tview.Box
 
-	balanceViews, balanceViewBoxes := renderBalanceSection(overviewPage, wallet)
+	errorTextView := primitives.WordWrappedTextView("")
+	errorTextView.SetTextColor(helpers.DecredOrangeColor)
+
+	displayError := func(errorMessage string) {
+		overviewPage.RemoveItem(errorTextView)
+		errorTextView.SetText(errorMessage)
+		overviewPage.AddItem(errorTextView, 2, 0, false)
+	}
+
+	balanceViews, balanceViewBoxes := renderBalanceSection(overviewPage, wallet, displayError)
 	views = append(views, balanceViews...)
 	viewBoxes = append(viewBoxes, balanceViewBoxes...)
 
 	overviewPage.AddItem(nil, 1, 0, false) // em
 
-	recentActivityViews, recentActivityViewBoxes := renderRecentActivity(overviewPage, wallet)
+	recentActivityViews, recentActivityViewBoxes := renderRecentActivity(overviewPage, wallet, displayError)
 	views = append(views, recentActivityViews...)
 	viewBoxes = append(viewBoxes, recentActivityViewBoxes...)
 
@@ -69,13 +78,13 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	return overviewPage
 }
 
-func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
+func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet, displayError func(message string)) (views []tview.Primitive, viewBoxes []*tview.Box) {
 	balanceTitleTextView := primitives.NewLeftAlignedTextView("Balance")
 	overviewPage.AddItem(balanceTitleTextView, 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		overviewPage.AddItem(primitives.NewCenterAlignedTextView(err.Error()), 3, 0, false)
+		displayError(err.Error())
 		return
 	}
 
@@ -84,12 +93,12 @@ func renderBalanceSection(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 	return
 }
 
-func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (views []tview.Primitive, viewBoxes []*tview.Box) {
+func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, displayError func(message string)) (views []tview.Primitive, viewBoxes []*tview.Box) {
 	overviewPage.AddItem(primitives.NewLeftAlignedTextView("-Recent Activity-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 
 	txns, _, err := wallet.TransactionHistory(context.Background(), -1, 5)
 	if err != nil {
-		overviewPage.AddItem(primitives.NewCenterAlignedTextView(err.Error()), 3, 0, false)
+		displayError(err.Error())
 		return
 	}
 
@@ -117,7 +126,7 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet) (v
 		}
 		txns, err := wallet.GetTransaction(tx.Hash)
 		if err != nil {
-			fmt.Println(err.Error())
+			displayError(err.Error())
 			return
 		}
 		transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)

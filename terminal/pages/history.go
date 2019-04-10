@@ -22,7 +22,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	// page title and tip
 	titleTextView := primitives.NewLeftAlignedTextView("History")
-	body.AddItem(titleTextView, 1, 0, false)
+	body.AddItem(titleTextView, 2, 0, false)
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
@@ -95,8 +95,8 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	historyTable.SetCell(0, 1, tableHeaderCell("Date (UTC)"))
 	historyTable.SetCell(0, 3, tableHeaderCell("Direction"))
 	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
-	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
-	// historyTable.SetCell(0, 5, tableHeaderCell("Hash"))
+	historyTable.SetCell(0, 4, tableHeaderCell("Status"))
+	historyTable.SetCell(0, 5, tableHeaderCell("Type"))
 
 	displayHistoryTable()
 
@@ -122,6 +122,8 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 	currentDate := time.Now().In(loc).Add(1 * time.Hour)
 	timeDifference, _ := time.ParseDuration("24h")
 
+	var confirmations int32 
+	confirmations = walletcore.DefaultRequiredConfirmations
 	for _, tx := range txns {
 		row := historyTable.GetRowCount()
 		displayedTxHashes = append(displayedTxHashes, tx.Hash)
@@ -136,10 +138,21 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		}else{
 	    	historyTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
 		}		
+
+		txns, err := wallet.GetTransaction(tx.Hash)
+		if err != nil {
+			displayError(err.Error())
+			return
+		}
+		if txns.Confirmations > confirmations{
+			historyTable.SetCell(row, 4, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
+		}else{
+			historyTable.SetCell(row, 4, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
+		}
 		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
 		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 	}
 
 	if endBlockHeight > 0 {
