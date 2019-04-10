@@ -3,9 +3,10 @@ package commands
 import (
 	"context"
 	"fmt"
-	"math"
+	// "math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -22,34 +23,12 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	var startBlockHeight int32 = -1
 	var displayedTxHashes []string
 
-	// formatAmount returns the amount as a 17-character string padded with spaces to the left
-	formatAmount := func(amount string) string {
-		return fmt.Sprintf("%17s", amount)
-	}
-
-	// centerAlignAmountHeader returns the Amount or Fee header as a 17-character string
-	// padded with equal spaces to the left and right
-	centerAlignAmountHeader := func(header string) string {
-		nHeaderCharacters := len(header)
-		if nHeaderCharacters < 17 {
-			spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters)/2.0)
-			nLeftSpaces := int(spacesToPad)
-			nRightSpaces := int(17 - nHeaderCharacters - nLeftSpaces)
-
-			header = fmt.Sprintf("%*s", nLeftSpaces, header)   // pad with spaces to the left
-			header = fmt.Sprintf("%-*s", nRightSpaces, header) // pad with spaces to the right
-		}
-		return header
-	}
-
 	columns := []string{
-		"#",
-		"Date",
+		"Date (UTC)",
 		"Direction",
-		centerAlignAmountHeader("Amount"),
-		centerAlignAmountHeader("Fee"),
+		"Amount",
+		"Status",
 		"Type",
-		"Hash",
 	}
 
 	// show transactions in pages, using infinite loop
@@ -66,18 +45,47 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 		lastTxRowNumber := len(displayedTxHashes) + 1
 
+		loc, _ := time.LoadLocation("UTC")
+		currentDate := time.Now().In(loc).Add(1 * time.Hour)
+		timeDifference, _ := time.ParseDuration("24h")
+
+		var confirmations int32 
+		confirmations = walletcore.DefaultRequiredConfirmations
+
 		pageTxRows := make([][]interface{}, len(transactions))
 		for i, tx := range transactions {
 			displayedTxHashes = append(displayedTxHashes, tx.Hash)
 
+			transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)
+			transactionDuration := currentDate.Sub(transactionDate)
+
+			dateOutput := strings.Split(tx.FormattedTime, " ")
+
+			var txDate string
+			if transactionDuration > timeDifference {
+		  		txDate = dateOutput[0]
+			}else{
+		    	txDate = dateOutput[1]
+			}
+
+			txns, err := wallet.GetTransaction(tx.Hash)
+			if err != nil {
+				return fmt.Errorf("Error: %s",err.Error())
+			}
+
+			var txStatus string
+			if txns.Confirmations > confirmations{
+				txStatus = "Confirmed"
+			}else{
+				txStatus = "Unconfirmed"
+			}
+
 			pageTxRows[i] = []interface{}{
-				lastTxRowNumber + i,
-				tx.FormattedTime,
+				txDate,
 				tx.Direction,
-				formatAmount(tx.Amount),
-				formatAmount(tx.Fee),
+				tx.Amount,
+				txStatus,
 				tx.Type,
-				tx.Hash,
 			}
 		}
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
