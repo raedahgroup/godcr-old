@@ -106,6 +106,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	form.AddButton("Clear", func() {
 		form.ClearFields()
+		body.RemoveItem(errorTextView)
 	})
 	
 	form.SetCancelFunc(clearFocus)

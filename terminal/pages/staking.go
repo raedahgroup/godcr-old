@@ -22,8 +22,12 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 	messageTextView := primitives.WordWrappedTextView("")
 
-	displayMessage := func(message string, error bool) {
+	clearMessage := func() {
 		body.RemoveItem(messageTextView)
+	}
+
+	displayMessage := func(message string, error bool) {
+		clearMessage()
 		messageTextView.SetText(message)
 		if error {
 			messageTextView.SetTextColor(helpers.DecredOrangeColor)
@@ -42,7 +46,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
-	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, setFocus, clearFocus)
+	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, clearMessage, setFocus, clearFocus)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		displayMessage(errorText, true)
@@ -73,7 +77,9 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	return stakingFlex,nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) (*tview.Pages, error) {
+func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), clearMessage func(),
+	setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) (*tview.Pages, error) {
+
 	pages := tview.NewPages()
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
@@ -130,6 +136,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 	form.AddButton("Clear", func() {
 		form.ClearFields()
+		clearMessage()
 	})
 
 	form.SetCancelFunc(clearFocus)
