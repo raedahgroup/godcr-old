@@ -50,9 +50,11 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 				}
 				syncDone <- err
 			},
-			OnHeadersFetched:    func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on this update alert
-			OnDiscoveredAddress: func(state string) {},             // in cli mode, sync updates are logged to terminal, no need to act on update alert
-			OnRescanningBlocks:  func(percentageProgress int64) {}, // in cli mode, sync updates are logged to terminal, no need to act on update alert
+			OnHeadersFetched:    func(_ int64) {},
+			OnDiscoveredAddress: func(_ string) {},
+			OnRescanningBlocks:  func(_ int64) {},
+			OnPeerConnected: func(_ int32) {},
+			OnPeerDisconnected: func(_ int32) {},
 		}
 
 		err := walletMiddleware.SyncBlockChain(syncListener, true)

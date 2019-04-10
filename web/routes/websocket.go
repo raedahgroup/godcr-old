@@ -55,6 +55,11 @@ func waitToSendMessagesToClients() {
 }
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
+	if routes.ctx.Err() != nil {
+		// user must have hit ctrl+c to shutdown the web server
+		return
+	}
+
 	info, err := routes.walletMiddleware.WalletConnectionInfo()
 	if err != nil {
 		weblog.LogError(err)
@@ -67,6 +72,11 @@ func (routes *Routes) sendWsConnectionInfoUpdate() {
 }
 
 func (routes *Routes) sendWsBalance() {
+	if routes.ctx.Err() != nil {
+		// user must have hit ctrl+c to shutdown the web server
+		return
+	}
+
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
