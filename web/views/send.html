@@ -17,14 +17,13 @@
                             <div class="row">
                                 <div class="col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <label for="source-account">Source Account</label>
                                     {{ if eq (len .accounts) 1 }}
                                     {{ $account := index .accounts 0 }}
                                         <input data-target="send.sourceAccount" value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
-                                        <input type="text" readonly class="form-control"
-                                               value="{{ accountString $account }}">
+                                        <p>Source Account: {{ accountString $account }}</p>
                                     {{ else }}
+                                        <label for="source-account">Source Account</label>
                                         <select data-target="send.sourceAccount" class="form-control"
                                                 id="source-account" name="source-account">
                                         {{ range $account := .accounts }}
@@ -49,39 +48,37 @@
                             <!-- destinations -->
                             <div data-target="send.destinations" id="destinations" class="row"></div>
                             <template data-target="send.destinationTemplate">
-                                <div class="col-md-7 col-sm-12 destination">
+                                <div class="col-md-10 col-sm-12 destination">
                                     <div class="row">
-                                        <div class="col-md-7 col-sm-12">
+                                        <div class="col-md-5 col-sm-12">
                                             <div class="form-group">
                                                 <label>Destination Address</label>
-                                                <div class="input-group mb-3">
-                                                    <input data-target="send.address"
-                                                           type="text" class="form-control"
-                                                           name="destination-address">
-                                                    <div class="input-group-append">
-                                                        <button data-action="click->send#removeDestination"
-                                                                class="btn btn-outline-secondary removeDestinationBtn" style="border: 1px solid #ced4da !important;" type="button">X</button>
-                                                    </div>
-                                                </div>
+                                                <input data-target="send.address"
+                                                       type="text" class="form-control"
+                                                       name="destination-address">
                                             </div>
                                         </div>
 
-                                        <div class="col-md-5 col-sm-12">
+                                        <div class="col-md-3 col-sm-12">
                                             <div class="form-group">
                                                 <label>Amount (DCR)</label>
-                                                <div class="input-group mb-3">
-                                                    <input data-target="send.amount"
-                                                           data-action="keyup->send#calculateCustomInputsPercentage"
-                                                           type="text" class="form-control amount"
-                                                           name="destination-amount">
-                                                    <div class="input-group-append">
-                                                        <button data-target="send.maxSendAmountButton"
-                                                                data-action="click->send#setMaxAmountForDestination"
-                                                                class="btn btn-outline-secondary setMaxBtn" style="border: 1px solid #ced4da !important;" type="button">Send Max
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                                <input data-target="send.amount"
+                                                       data-action="keyup->send#calculateCustomInputsPercentage"
+                                                       type="text" class="form-control amount"
+                                                       name="destination-amount">
                                             </div>
+                                        </div>
+
+                                        <div class="col-md-4 mt-4 pt-1">
+                                            <button data-target="send.maxSendAmountButton"
+                                                    data-action="click->send#setMaxAmountForDestination"
+                                                    class="btn btn-outline-secondary setMaxBtn"
+                                                    style="border: 1px solid #ced4da !important;" type="button">Send Max
+                                            </button>
+
+                                            <button data-action="click->send#removeDestination"
+                                                    class="btn btn-outline-secondary removeDestinationBtn"
+                                                    style="border: 1px solid #ced4da !important;" type="button">X</button>
                                         </div>
 
                                     </div>
@@ -217,7 +214,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="errors mb-3" data-target="send.errors"></div>
-                            <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
+                            <button data-action="click->send#resetSendForm" class="btn" id="reset-btn"
                                     type="button">Reset
                             </button>
                             <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit"
