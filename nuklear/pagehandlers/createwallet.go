@@ -1,10 +1,11 @@
-package handlers
+package pagehandlers
 
 import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type CreateWalletHandler struct {
@@ -31,75 +32,61 @@ func (handler *CreateWalletHandler) BeforeRender() {
 	handler.confirmPasswordInput.PasswordChar = '*'
 }
 
-func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(string)) {
+func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
 	if !handler.isRendering {
 		handler.isRendering = true
 		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
 	}
 
-	if contentWindow := helpers.NewWindow("Create Wallet Window", window, nucular.WindowBorder); contentWindow != nil {
-		helpers.SetFont(window, helpers.PageContentFont)
-
+	widgets.PageContentWindow("Create Wallet", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
-			contentWindow.Row(helpers.ErrorTextHeight).Dynamic(1)
-			contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
+			contentWindow.Row(styles.ErrorTextHeight).Dynamic(1)
+			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)
 		}
 
-		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
-		contentWindow.Label("Create Wallet", "LC")
-
-		contentWindow.Row(helpers.LabelHeight).Dynamic(2)
+		contentWindow.Row(styles.LabelHeight).Dynamic(2)
 		contentWindow.Label("Wallet Password", "LC")
 		contentWindow.Label("Confirm Password", "LC")
 
-		contentWindow.Row(helpers.TextEditorWidth).Dynamic(2)
+		contentWindow.Row(styles.TextEditorHeight).Static(styles.TextEditorWidth, styles.TextEditorWidth)
 		handler.passwordInput.Edit(contentWindow.Window)
 		handler.confirmPasswordInput.Edit(contentWindow.Window)
 
 		passwordError, ok := handler.validationErrors["password"]
 		if ok {
-			contentWindow.LabelColored(passwordError, "LC", helpers.DangerColor)
+			contentWindow.LabelColored(passwordError, "LC", styles.DecredOrangeColor)
 		}
 
 		if confirmPasswordError, ok := handler.validationErrors["confirmpassword"]; ok {
 			if passwordError != "" {
 				contentWindow.Label("", "LC")
 			}
-			contentWindow.LabelColored(confirmPasswordError, "LC", helpers.DangerColor)
+			contentWindow.LabelColored(confirmPasswordError, "LC", styles.DecredOrangeColor)
 		}
 
-		contentWindow.Row(helpers.LabelHeight).Dynamic(1)
 		contentWindow.Label("Wallet Seed", "LC")
-
-		contentWindow.Row(110).Dynamic(1)
-		if seedWindow := helpers.NewWindow("Seed Window", contentWindow.Window, nucular.WindowBorder); seedWindow != nil {
-			seedWindow.Row(helpers.SeedTextHeight).Dynamic(1)
-			seedWindow.LabelWrap(handler.seed)
-			seedWindow.End()
-		}
+		contentWindow.AddLabel(handler.seed) // todo add border?
 
 		contentWindow.Row(50).Dynamic(1)
 		contentWindow.LabelWrapColored(`IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it. Please keep in mind that anyone who has access to the seed can also restore your wallet thereby giving them access to all your funds, so it is imperative that you keep it in a secure location.`,
-			helpers.DangerColor,
+			styles.DecredOrangeColor,
 		)
 
 		contentWindow.Row(30).Dynamic(2)
 		contentWindow.CheckboxText("I've stored the seed in a safe and secure location", &handler.hasStoredSeed)
 		if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
-			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", helpers.DangerColor)
+			contentWindow.LabelColored("("+hasStoredSeedError+")", "LC", styles.DecredOrangeColor)
 		}
 
-		contentWindow.Row(helpers.ButtonHeight).Static(200)
+		contentWindow.Row(styles.ButtonHeight).Static(200)
 		if contentWindow.Button(label.T("Create Wallet"), false) {
 			if !handler.hasErrors() {
 				handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
-				changePage("sync")
+				changePage(window, "sync")
 			}
 			contentWindow.Master().Changed()
 		}
-
-		contentWindow.End()
-	}
+	})
 }
 
 func (handler *CreateWalletHandler) hasErrors() bool {

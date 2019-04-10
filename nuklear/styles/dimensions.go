@@ -1,7 +1,6 @@
-package helpers
+package styles
 
 const (
-	NavPaneWidth         = 250
 	TextEditorWidth      = 230
 	AccountSelectorWidth = 275
 	ButtonWidth          = 120

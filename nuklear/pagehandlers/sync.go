@@ -1,4 +1,4 @@
-package handlers
+package pagehandlers
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type SyncHandler struct {
@@ -26,7 +26,7 @@ func (s *SyncHandler) BeforeRender() {
 	s.percentageProgress = 0
 }
 
-func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(string)) {
+func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
 	if !s.isRendering {
 		s.isRendering = true
 		s.syncBlockchain(window, wallet)
@@ -34,11 +34,11 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 	// change page onSyncStatusSuccess
 	if s.status == walletcore.SyncStatusSuccess {
-		changePage("overview")
+		changePage(window, "overview")
 		return
 	}
 
-	if contentWindow := helpers.NewWindow("Sync page", window, 0); contentWindow != nil {
+	widgets.PageContentWindow("Synchronizing", window, func(contentWindow *widgets.Window) {
 		if s.err != nil {
 			contentWindow.Row(50).Dynamic(1)
 			contentWindow.LabelWrap(s.err.Error())
@@ -50,9 +50,8 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 				contentWindow.Row(30).Dynamic(1)
 				contentWindow.Progress(&s.percentageProgress, 100, false)
 			}
-			contentWindow.End()
 		}
-	}
+	})
 }
 
 func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMiddleware) {

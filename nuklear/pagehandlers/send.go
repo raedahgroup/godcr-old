@@ -1,4 +1,4 @@
-package handlers
+package pagehandlers
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/handlers/widgets"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 )
 
 type utxoSelection struct {
@@ -72,118 +72,108 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 	masterWindow := window.Master()
 
-	// draw page
-	if pageWindow := helpers.NewWindow("Send Page", window, 0); pageWindow != nil {
-		pageWindow.DrawHeader("Send")
-
-		// content window
-		if contentWindow := pageWindow.ContentWindow("Send Form"); contentWindow != nil {
-			helpers.SetFont(window, helpers.PageContentFont)
-
-			if handler.err != nil {
-				contentWindow.Row(helpers.LabelHeight).Dynamic(1)
-				contentWindow.LabelColored(handler.err.Error(), "LC", helpers.DangerColor)
-			}
-
-			if handler.successHash != "" {
-				contentWindow.Row(helpers.LabelHeight).Dynamic(1)
-				contentWindow.LabelColored("The transaction was published successfully. Hash: "+handler.successHash, "LC", helpers.SuccessColor)
-			}
-
-			contentWindow.Row(helpers.LabelHeight).Static(helpers.AccountSelectorWidth)
-			contentWindow.Label("Source Account", "LC")
-
-			contentWindow.Row(helpers.TextEditorHeight).Static(helpers.AccountSelectorWidth)
-			handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
-
-			contentWindow.Row(helpers.CheckboxHeight).Static(helpers.TextEditorWidth)
-			if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
-				handler.fetchCustomInputsCheck(wallet, masterWindow)
-			}
-
-			contentWindow.Spacing(1)
-
-			for _, destInputPair := range handler.sendDetailInputPairs {
-				contentWindow.Row(helpers.LabelHeight).Static(helpers.TextEditorWidth, helpers.TextEditorWidth)
-				contentWindow.Label("Destination Address", "LC")
-				contentWindow.Label("Amount (DCR)", "LC")
-
-				contentWindow.Row(helpers.TextEditorHeight).Static(helpers.TextEditorWidth, helpers.TextEditorWidth)
-				destInputPair.destinationAddress.Edit(contentWindow.Window)
-				destInputPair.amount.Edit(contentWindow.Window)
-
-				if destInputPair.addressErr != "" || destInputPair.amountErr != "" {
-					contentWindow.Row(helpers.LabelHeight).Static(helpers.TextEditorWidth, helpers.TextEditorWidth)
-					contentWindow.LabelColored(destInputPair.addressErr, "LC", helpers.DangerColor)
-					contentWindow.LabelColored(destInputPair.amountErr, "LC", helpers.DangerColor)
-				}
-			}
-
-			contentWindow.Row(helpers.ButtonHeight).Static(helpers.ButtonWidth, helpers.ButtonWidth)
-			if contentWindow.ButtonText("Add another address") {
-				handler.addSendInputPair(window.Master(), true)
-			}
-
-			if len(handler.sendDetailInputPairs) > 1 && contentWindow.ButtonText("Remove last address") {
-				handler.removeLastSendInputPair(window.Master())
-			}
-
-			contentWindow.Spacing(1)
-
-			contentWindow.Row(helpers.CheckboxHeight).Static(helpers.TextEditorWidth)
-			if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
-				handler.fetchCustomInputsCheck(wallet, masterWindow)
-			}
-
-			if handler.isFetchingUTXOS {
-				widgets.ShowLoadingWidget(window)
-			} else if handler.fetchUTXOError != nil {
-				contentWindow.Row(helpers.LabelHeight).Dynamic(1)
-				contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", helpers.DangerColor)
-			} else if handler.utxos != nil {
-				contentWindow.Row(helpers.LabelHeight).Static(25, 180, 85, 100, 55)
-				contentWindow.Label("", "LC")
-				contentWindow.Label("Address", "LC")
-				contentWindow.Label("Amount", "LC")
-				contentWindow.Label("Time", "LC")
-				contentWindow.Label("Confirmations", "LC")
-
-				for _, utxo := range handler.utxos {
-					amountStr := utxo.utxo.Amount.String()
-					receiveTime := time.Unix(utxo.utxo.ReceiveTime, 0).Format(time.RFC1123)
-					confirmations := strconv.Itoa(int(utxo.utxo.Confirmations))
-
-					contentWindow.Row(helpers.LabelHeight).Static(25, 180, 85, 100, 55)
-					contentWindow.CheckboxText("", &utxo.selected)
-					contentWindow.Label(utxo.utxo.Address, "LC")
-					contentWindow.Label(amountStr, "LC")
-					contentWindow.Label(receiveTime, "LC")
-					contentWindow.Label(confirmations, "LC")
-				}
-			}
-
-			contentWindow.Spacing(1)
-
-			submitButtonText := "Submit"
-			if handler.isSubmitting {
-				submitButtonText = "Submitting"
-			}
-
-			if handler.utxoErr != "" {
-				contentWindow.Row(helpers.LabelHeight).Dynamic(1)
-				contentWindow.LabelColored(handler.utxoErr, "LC", helpers.DangerColor)
-			}
-
-			contentWindow.Row(helpers.ButtonHeight).Static(helpers.ButtonWidth)
-			if contentWindow.ButtonText(submitButtonText) {
-				if !handler.isSubmitting && handler.validate(window, wallet) {
-					handler.getPassphraseAndSubmit(window, wallet)
-				}
-			}
-			contentWindow.End()
+	widgets.PageContentWindow("Send", window, func(contentWindow *widgets.Window) {
+		if handler.err != nil {
+			contentWindow.Row(styles.LabelHeight).Dynamic(1)
+			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)
 		}
-		pageWindow.End()
-	}
+
+		if handler.successHash != "" {
+			contentWindow.Row(styles.LabelHeight).Dynamic(1)
+			contentWindow.LabelColored("The transaction was published successfully. Hash: "+handler.successHash, "LC", styles.DecredGreenColor)
+		}
+
+		contentWindow.Row(styles.LabelHeight).Static(styles.AccountSelectorWidth)
+		contentWindow.Label("Source Account", "LC")
+
+		contentWindow.Row(styles.TextEditorHeight).Static(styles.AccountSelectorWidth)
+		handler.selectedAccountIndex = contentWindow.ComboSimple(handler.accountOverviews, handler.selectedAccountIndex, 25)
+
+		contentWindow.Row(styles.CheckboxHeight).Static(styles.TextEditorWidth)
+		if contentWindow.CheckboxText("Spend Unconfirmed", &handler.spendUnconfirmed) {
+			handler.fetchCustomInputsCheck(wallet, masterWindow)
+		}
+
+		contentWindow.Spacing(1)
+
+		for _, destInputPair := range handler.sendDetailInputPairs {
+			contentWindow.Row(styles.LabelHeight).Static(styles.TextEditorWidth, styles.TextEditorWidth)
+			contentWindow.Label("Destination Address", "LC")
+			contentWindow.Label("Amount (DCR)", "LC")
+
+			contentWindow.Row(styles.TextEditorHeight).Static(styles.TextEditorWidth, styles.TextEditorWidth)
+			destInputPair.destinationAddress.Edit(contentWindow.Window)
+			destInputPair.amount.Edit(contentWindow.Window)
+
+			if destInputPair.addressErr != "" || destInputPair.amountErr != "" {
+				contentWindow.Row(styles.LabelHeight).Static(styles.TextEditorWidth, styles.TextEditorWidth)
+				contentWindow.LabelColored(destInputPair.addressErr, "LC", styles.DecredOrangeColor)
+				contentWindow.LabelColored(destInputPair.amountErr, "LC", styles.DecredOrangeColor)
+			}
+		}
+
+		contentWindow.Row(styles.ButtonHeight).Static(styles.ButtonWidth, styles.ButtonWidth)
+		if contentWindow.ButtonText("Add another address") {
+			handler.addSendInputPair(window.Master(), true)
+		}
+
+		if len(handler.sendDetailInputPairs) > 1 && contentWindow.ButtonText("Remove last address") {
+			handler.removeLastSendInputPair(window.Master())
+		}
+
+		contentWindow.Spacing(1)
+
+		contentWindow.Row(styles.CheckboxHeight).Static(styles.TextEditorWidth)
+		if contentWindow.CheckboxText("Select custom inputs", &handler.selectCustomInputs) {
+			handler.fetchCustomInputsCheck(wallet, masterWindow)
+		}
+
+		if handler.isFetchingUTXOS {
+			widgets.ShowLoadingWidget(window)
+		} else if handler.fetchUTXOError != nil {
+			contentWindow.Row(styles.LabelHeight).Dynamic(1)
+			contentWindow.LabelColored(handler.fetchUTXOError.Error(), "LC", styles.DecredOrangeColor)
+		} else if handler.utxos != nil {
+			contentWindow.Row(styles.LabelHeight).Static(25, 180, 85, 100, 55)
+			contentWindow.Label("", "LC")
+			contentWindow.Label("Address", "LC")
+			contentWindow.Label("Amount", "LC")
+			contentWindow.Label("Time", "LC")
+			contentWindow.Label("Confirmations", "LC")
+
+			for _, utxo := range handler.utxos {
+				amountStr := utxo.utxo.Amount.String()
+				receiveTime := time.Unix(utxo.utxo.ReceiveTime, 0).Format(time.RFC1123)
+				confirmations := strconv.Itoa(int(utxo.utxo.Confirmations))
+
+				contentWindow.Row(styles.LabelHeight).Static(25, 180, 85, 100, 55)
+				contentWindow.CheckboxText("", &utxo.selected)
+				contentWindow.Label(utxo.utxo.Address, "LC")
+				contentWindow.Label(amountStr, "LC")
+				contentWindow.Label(receiveTime, "LC")
+				contentWindow.Label(confirmations, "LC")
+			}
+		}
+
+		contentWindow.Spacing(1)
+
+		submitButtonText := "Submit"
+		if handler.isSubmitting {
+			submitButtonText = "Submitting"
+		}
+
+		if handler.utxoErr != "" {
+			contentWindow.Row(styles.LabelHeight).Dynamic(1)
+			contentWindow.LabelColored(handler.utxoErr, "LC", styles.DecredOrangeColor)
+		}
+
+		contentWindow.Row(styles.ButtonHeight).Static(styles.ButtonWidth)
+		if contentWindow.ButtonText(submitButtonText) {
+			if !handler.isSubmitting && handler.validate(window, wallet) {
+				handler.getPassphraseAndSubmit(window, wallet)
+			}
+		}
+	})
 }
 
 // fetch accounts to display in select source account dropdown

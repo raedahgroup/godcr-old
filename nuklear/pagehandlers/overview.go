@@ -1,9 +1,9 @@
-package handlers
+package pagehandlers
 
 import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type OverviewHandler struct {
@@ -26,22 +26,15 @@ func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	if pageWindow := helpers.NewWindow("Overview Page", window, nucular.WindowNoScrollbar); pageWindow != nil {
-		pageWindow.DrawHeader("Overview")
+	widgets.PageContentWindow("Overview", window, func(contentWindow *widgets.Window) {
+		contentWindow.Row(25).Dynamic(1)
+		contentWindow.Label("Current Total Balance", "LC")
 
-		if contentWindow := pageWindow.ContentWindow("Balance"); contentWindow != nil {
+		if handler.err != nil {
+			contentWindow.SetErrorMessage(handler.err.Error())
+		} else {
 			contentWindow.Row(25).Dynamic(1)
-			contentWindow.Label("Current Total Balance", "LC")
-
-			if handler.err != nil {
-				contentWindow.SetErrorMessage(handler.err.Error())
-			} else {
-				contentWindow.Row(25).Dynamic(1)
-				contentWindow.Label(walletcore.WalletBalance(handler.accounts), "LC")
-			}
-
-			contentWindow.End()
+			contentWindow.Label(walletcore.WalletBalance(handler.accounts), "LC")
 		}
-		pageWindow.End()
-	}
+	})
 }
