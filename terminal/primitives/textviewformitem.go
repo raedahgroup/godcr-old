@@ -117,7 +117,6 @@ func(item *TextViewFormItem) Draw(screen tcell.Screen) {
 		fieldWidth = rightLimit - x
 	}
 
-	//item.TextView.SetText(fmt.Sprintf("%d %d %d", x, fieldWidth, rightLimit))
 	item.TextView.SetRect(x, y, fieldWidth, height)
 	item.TextView.Draw(screen)
 }

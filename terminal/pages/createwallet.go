@@ -39,7 +39,7 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 		return createWalletPage
 	}
 
-	createWalletForm := primitives.NewForm()
+	createWalletForm := primitives.NewForm(false)
 	createWalletPage.AddItem(createWalletForm, 0, 1, true)
 
 	passphraseField := tview.NewInputField().

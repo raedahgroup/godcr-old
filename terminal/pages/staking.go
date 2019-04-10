@@ -81,7 +81,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		return nil, err
 	}
 
-	form := primitives.NewForm()
+	form := primitives.NewForm(true)
 	form.SetBorderPadding(0, 0, 0, 0)
 	pages.AddPage("form", form, true, true)
 
@@ -92,12 +92,12 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var numTickets string
-	form.AddInputField("Number of tickets: ", "", 10, nil, func(text string) {
+	form.AddInputField("Number of tickets:", "", 10, nil, func(text string) {
 		numTickets = text
 	})
 
 	var spendUnconfirmed bool
-	form.AddCheckbox("Spend Unconfirmed: ", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed:", false, func(checked bool) {
 		spendUnconfirmed = checked
 	})
 

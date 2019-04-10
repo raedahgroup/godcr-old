@@ -25,7 +25,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	}
 
 	// form for Sending
-	form := primitives.NewForm()
+	form := primitives.NewForm(true)
 	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 0, 1, true)
 
