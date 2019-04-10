@@ -39,8 +39,23 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 		return createWalletPage
 	}
 
-	createWalletForm := primitives.NewForm()
+	createWalletForm := primitives.NewForm(false)
 	createWalletPage.AddItem(createWalletForm, 0, 1, true)
+
+	walletSeedTextView := primitives.WordWrappedTextView(seed)
+	walletSeedTextView.SetBorder(true).
+		SetTitle("Wallet Seed").
+		SetTitleColor(helpers.DecredLightBlueColor)
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true))
+
+	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
+	storeSeedWarningTextView.SetBorder(true).
+		SetTitle("IMPORTANT NOTICE").
+		SetTitleColor(helpers.DecredOrangeColor)
+	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true))
+
+	storeSeedCheckbox := tview.NewCheckbox().SetLabel("I've stored the seed securely")
+	createWalletForm.AddFormItem(storeSeedCheckbox)
 
 	passphraseField := tview.NewInputField().
 		SetLabel("Wallet Passphrase:  ").
@@ -53,23 +68,6 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 		SetMaskCharacter('*').
 		SetFieldWidth(20)
 	createWalletForm.AddFormItem(confirmPassphraseField)
-
-	walletSeedTextView := primitives.WordWrappedTextView(seed)
-	walletSeedTextView.SetBorder(true).
-		SetTitle("Wallet Seed").
-		SetTitleColor(helpers.DecredLightBlueColor)
-	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(walletSeedTextView, 20, 1, true,
-		0))
-
-	storeSeedWarningTextView := primitives.WordWrappedTextView(walletcore.StoreSeedWarningText)
-	storeSeedWarningTextView.SetBorder(true).
-		SetTitle("IMPORTANT NOTICE").
-		SetTitleColor(helpers.DecredOrangeColor)
-	createWalletForm.AddFormItem(primitives.NewTextViewFormItem(storeSeedWarningTextView, 20, 1, true,
-		0))
-
-	storeSeedCheckbox := tview.NewCheckbox().SetLabel("I've stored the seed securely")
-	createWalletForm.AddFormItem(storeSeedCheckbox)
 
 	var isShowingMessage bool
 	clearMessages := func() {
@@ -93,9 +91,7 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 		messageTextView := primitives.NewCenterAlignedTextView(message)
 		messageTextView.SetTextColor(messageColor)
 
-		_, _, widthForTextViewResize, _ := createWalletForm.GetFormItemBox(0).GetInnerRect()
-		messageTextViewAsFormItem := primitives.NewTextViewFormItem(messageTextView, 20, 1, true,
-			widthForTextViewResize)
+		messageTextViewAsFormItem := primitives.NewTextViewFormItem(messageTextView, 20, 1, true)
 		createWalletForm.AddFormItem(messageTextViewAsFormItem)
 
 		isShowingMessage = true

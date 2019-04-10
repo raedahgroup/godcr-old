@@ -29,7 +29,7 @@ type Account struct {
 }
 
 func (account *Account) String() string {
-	return fmt.Sprintf("%s - %s", account.Name, account.Balance.String())
+	return fmt.Sprintf("%s [%s]", account.Name, account.Balance.Spendable.String())
 }
 
 type UnspentOutput struct {

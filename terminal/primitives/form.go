@@ -21,6 +21,9 @@ type Form struct {
 	// Shadows tview.Form private property.
 	horizontal bool
 
+	// Whether labels should be right aligned.
+	rightAlignLabels bool
+
 	// The alignment of the buttons.
 	// Shadows tview.Form private property.
 	buttonsAlign int
@@ -58,16 +61,21 @@ type Form struct {
 type FormItem interface {
 	tview.FormItem
 
+	// CalculateFieldSize is used to calculate and set the height and width needed to display the form item completely
+	// given the max width that the item can occupy
+	CalculateFieldSize(maxWidth int)
+
 	// GetFieldHeight returns the height to use in drawing the form item.
 	// Default height is 1.
 	GetFieldHeight() int
 }
 
 // NewForm returns a new form.
-func NewForm() *Form {
+func NewForm(rightAlignLabels bool) *Form {
 	return &Form{
 		Form:                  tview.NewForm(),
 		backgroundColor:       tview.Styles.PrimitiveBackgroundColor,
+		rightAlignLabels:      rightAlignLabels,
 		itemPadding:           1,
 		labelColor:            tview.Styles.SecondaryTextColor,
 		fieldBackgroundColor:  tview.Styles.ContrastBackgroundColor,
@@ -359,6 +367,16 @@ func (f *Form) Draw(screen tcell.Screen) {
 	var focusedPosition struct{ x, y, width, height int }
 	for index, item := range formItems {
 		// Calculate the space needed.
+		itemHeight := 1
+		if formItem, ok := item.(FormItem); ok {
+			formItem.CalculateFieldSize(width)
+
+			itemHeight = formItem.GetFieldHeight()
+			if itemHeight <= 0 {
+				itemHeight = 1
+			}
+		}
+
 		labelWidth := tview.StringWidth(item.GetLabel())
 		var itemWidth int
 		if f.horizontal {
@@ -369,8 +387,12 @@ func (f *Form) Draw(screen tcell.Screen) {
 			labelWidth++
 			itemWidth = labelWidth + fieldWidth
 		} else {
-			// We want all fields to align vertically.
-			labelWidth = maxLabelWidth
+			if !f.rightAlignLabels {
+				// We want all fields to align vertically on the left and have equal spacing to the right.
+				labelWidth = maxLabelWidth
+			} else if labelWidth > 0 {
+				labelWidth++ // this item has a label and so should have a single space between the label and the field
+			}
 			itemWidth = width
 		}
 
@@ -391,14 +413,6 @@ func (f *Form) Draw(screen tcell.Screen) {
 			f.fieldTextColor,
 			f.fieldBackgroundColor,
 		)
-
-		itemHeight := 1
-		if formItem, ok := item.(FormItem); ok {
-			itemHeight = formItem.GetFieldHeight()
-			if itemHeight <= 0 {
-				itemHeight = 1
-			}
-		}
 
 		// Save position.
 		positions[index].x = x
@@ -488,6 +502,15 @@ func (f *Form) Draw(screen tcell.Screen) {
 
 	// Draw items.
 	for index, item := range formItems {
+		// make the item start from somewhere closer to the right if labels are set to right align
+		// only makes sense if form items are arranged vertically
+		labelWidth := tview.StringWidth(item.GetLabel())
+		if !f.horizontal && f.rightAlignLabels && labelWidth < maxLabelWidth {
+			diff := maxLabelWidth - labelWidth
+			positions[index].x = positions[index].x + diff
+			positions[index].width = positions[index].width + diff
+		}
+
 		// Set position.
 		y := positions[index].y - offset
 		height := positions[index].height

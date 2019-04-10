@@ -17,15 +17,21 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 	pages.AddPage("main", body, true, true)
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Send"), 2, 0, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Sending Decred"), 2, 0, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
+	accounts = append(accounts, &walletcore.Account{
+		Name: "account 2",
+		Number: 2,
+		Balance: accounts[0].Balance,
+	})
+
 	// form for Sending
-	form := primitives.NewForm()
+	form := primitives.NewForm(true)
 	form.SetBorderPadding(0, 0, 0, 0)
 	body.AddItem(form, 0, 1, true)
 
@@ -38,31 +44,24 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		body.AddItem(errorTextView, 2, 0, false)
 	}
 
-	accountNames := make([]string, len(accounts))
-	accountNumbers := make([]uint32, len(accounts))
-	for index, account := range accounts {
-		accountNames[index] = account.String()
-		accountNumbers[index] = account.Number
+	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
+		Label: "From:",
+		Accounts: accounts,
 	}
-
-	// add form fields
-	var accountNum uint32
-	form.AddDropDown("Source Account", accountNames, 0, func(option string, optionIndex int) {
-		accountNum = accountNumbers[optionIndex]
-	})
-
-	var amount string
-	form.AddInputField("Amount", "", 20, nil, func(text string) {
-		amount = text
-	})
+	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
 	var destination string
-	form.AddInputField("Destination Address", "", 37, nil, func(text string) {
+	form.AddInputField("Destination Address:", "", 37, nil, func(text string) {
 		destination = text
 	})
 
+	var amount string
+	form.AddInputField("Amount:", "", 20, nil, func(text string) {
+		amount = text
+	})
+	
 	var spendUnconfirmed bool
-	form.AddCheckbox("Spend Unconfirmed", false, func(checked bool) {
+	form.AddCheckbox("Spend Unconfirmed:", false, func(checked bool) {
 		spendUnconfirmed = checked
 	})
 
@@ -88,7 +87,8 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
 			setFocus(form)
 
-			txHash, err := wallet.SendFromAccount(accountNum, requiredConfirmations, sendDestination, passphrase)
+			accountNumber := accountSelectionWidgetData.SelectedAccountNumber
+			txHash, err := wallet.SendFromAccount(accountNumber, requiredConfirmations, sendDestination, passphrase)
 			if err != nil {
 				displayErrorMessage(err.Error())
 				return
@@ -104,9 +104,18 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		})
 	})
 
+	form.AddButton("Clear", func() {
+		form.ClearFields()
+		body.RemoveItem(errorTextView)
+	})
+	
 	form.SetCancelFunc(clearFocus)
 
-	hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
+	if len(accounts) <= 1 {
+		hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
+	} else {
+		hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB. ESC to return to navigation menu")
+	}
 
 	setFocus(pages)
 

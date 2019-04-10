@@ -26,7 +26,7 @@ func NewFormModal(modalTitle string) *FormModal {
 		Box: tview.NewBox(),
 	}
 
-	m.form = NewForm()
+	m.form = NewForm(false)
 	m.form.SetBackgroundColor(tview.Styles.ContrastBackgroundColor).SetBorderPadding(0, 0, 0, 0)
 	m.form.SetButtonBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).

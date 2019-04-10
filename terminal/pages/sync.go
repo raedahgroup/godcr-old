@@ -11,6 +11,9 @@ import (
 )
 
 func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
+	tviewApp.SetRoot(rootPage(tviewApp, walletMiddleware), true)
+	return
+
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and hint
@@ -78,6 +81,12 @@ func startSync(walletMiddleware app.WalletMiddleware, updateStatus func(string),
 		},
 		OnRescanningBlocks: func(percentageProgress int64) {
 			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress))
+		},
+		OnPeerConnected: func(_ int32) {
+
+		},
+		OnPeerDisconnected: func(_ int32) {
+
 		},
 	}, false)
 
