@@ -42,18 +42,6 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 	createWalletForm := primitives.NewForm(false)
 	createWalletPage.AddItem(createWalletForm, 0, 1, true)
 
-	passphraseField := tview.NewInputField().
-		SetLabel("Wallet Passphrase:  ").
-		SetMaskCharacter('*').
-		SetFieldWidth(20)
-	createWalletForm.AddFormItem(passphraseField)
-
-	confirmPassphraseField := tview.NewInputField().
-		SetLabel("Confirm Passphrase: ").
-		SetMaskCharacter('*').
-		SetFieldWidth(20)
-	createWalletForm.AddFormItem(confirmPassphraseField)
-
 	walletSeedTextView := primitives.WordWrappedTextView(seed)
 	walletSeedTextView.SetBorder(true).
 		SetTitle("Wallet Seed").
@@ -68,6 +56,18 @@ func CreateWalletPage(tviewApp *tview.Application, walletMiddleware app.WalletMi
 
 	storeSeedCheckbox := tview.NewCheckbox().SetLabel("I've stored the seed securely")
 	createWalletForm.AddFormItem(storeSeedCheckbox)
+
+	passphraseField := tview.NewInputField().
+		SetLabel("Wallet Passphrase:  ").
+		SetMaskCharacter('*').
+		SetFieldWidth(20)
+	createWalletForm.AddFormItem(passphraseField)
+
+	confirmPassphraseField := tview.NewInputField().
+		SetLabel("Confirm Passphrase: ").
+		SetMaskCharacter('*').
+		SetFieldWidth(20)
+	createWalletForm.AddFormItem(confirmPassphraseField)
 
 	var isShowingMessage bool
 	clearMessages := func() {
