@@ -44,8 +44,45 @@
 
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- destinations -->
+                    <!-- custom features -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group mb-2">
+                                <input data-target="send.useCustom"
+                                       name="use-custom" value="1"
+                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                            </div>
+
+                            <!-- custom input -->
+                            <div class="collapse" id="custom-inputs">
+                                <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
+                                <div class="progress">
+                                    <div data-target="send.utxoSelectionProgressBar" class="progress-bar"
+                                         style="width: 0%"></div>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Address</th>
+                                        <th>Amount</th>
+                                        <th>Time</th>
+                                        <th>Confirmations</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody data-target="send.customInputsTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- destinations -->
+                    <div class="card">
+                        <div class="card-body no-btm-pad">
+
                             <div data-target="send.destinations" id="destinations" class="row"></div>
                             <template data-target="send.destinationTemplate">
                                 <div class="col-md-10 col-sm-12 destination">
@@ -93,38 +130,10 @@
                         </div>
                     </div>
 
-                    <!-- custom features -->
-                    <div class="card">
+                    <!-- change outputs -->
+                    <div class="card d-none" data-target="send.changeOutputs">
                         <div class="card-body">
-                            <div class="form-group mb-2">
-                                <input data-target="send.useCustom"
-                                       name="use-custom" value="1"
-                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
-                            </div>
-
-                            <!-- custom input -->
-                            <div class="collapse" id="custom-inputs">
-                                <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
-                                <div class="progress">
-                                    <div data-target="send.utxoSelectionProgressBar" class="progress-bar"
-                                         style="width: 0%"></div>
-                                </div>
-                                <table class="table">
-                                    <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Address</th>
-                                        <th>Amount</th>
-                                        <th>Time</th>
-                                        <th>Confirmations</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody data-target="send.customInputsTable"></tbody>
-                                </table>
-                            </div>
-
-                            <!-- change outputs -->
-                            <div class="d-none" data-target="send.changeOutputs" id="changeOutputs">
+                            <div id="changeOutputs">
                                 <div class="card-header" id="headingOne">
                                     <button type="button"
                                             class="btn btn-link mb-0"
