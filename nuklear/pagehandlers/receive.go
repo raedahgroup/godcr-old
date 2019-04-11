@@ -66,7 +66,7 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 		qrCodeAddressHolderWidth = generatedAddressWidth
 	}
 	qrCodeAddressHolderWidth += qrCodeAddressHolderHorizontalPadding
-	qrCodeAddressHolderHeight += window.SingleLineHeight()
+	qrCodeAddressHolderHeight += window.SingleLineLabelHeight()
 
 	// generate qrcode
 	qrCode, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
@@ -99,7 +99,7 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 			X: addressLabelLeftPadding,
 			Y: qrCodeImageSize,
 			W: generatedAddressWidth,
-			H: window.SingleLineHeight(),
+			H: window.SingleLineLabelHeight(),
 		})
 		var addressClicked bool
 		window.SelectableLabel(handler.generatedAddress, widgets.CenterAlign, &addressClicked)

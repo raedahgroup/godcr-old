@@ -1,9 +1,9 @@
 package widgets
 
 import (
-	"github.com/aarzilli/nucular"
-	"github.com/aarzilli/nucular/label"
 	"image/color"
+
+	"github.com/aarzilli/nucular/label"
 )
 
 type TableCell interface {
@@ -48,26 +48,6 @@ func (label *LabelTableCell) Render(window *Window) {
 
 func (label *LabelTableCell) MinWidth(window *Window) int {
 	return window.LabelWidth(label.text)
-}
-
-type EditTableCell struct {
-	nucular.TextEditor
-	width int
-}
-
-func NewEditTableCell(editor nucular.TextEditor, width int) *EditTableCell {
-	return &EditTableCell{
-		editor,
-		width,
-	}
-}
-
-func (edit *EditTableCell) Render(window *Window) {
-	edit.Edit(window.Window)
-}
-
-func (edit *EditTableCell) MinWidth(_ *Window) int {
-	return edit.width
 }
 
 type CheckboxTableCell struct {

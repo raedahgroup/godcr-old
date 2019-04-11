@@ -41,7 +41,7 @@ func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window
 	NoScrollGroupWindow(pageTitle+"-page", parentWindow, func(pageWindow *Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: 0, Y: 0}
 
-		pageTitleHeight := pageWindow.SingleLineHeight() + (defaultPageContentPadding * 2)
+		pageTitleHeight := pageWindow.SingleLineLabelHeight() + (defaultPageContentPadding * 2)
 		pageTitleArea := pageWindow.Row(pageTitleHeight).SpaceBegin(1)
 		pageWindow.LayoutSpacePushScaled(rect.Rect{
 			X: defaultPageContentPadding,

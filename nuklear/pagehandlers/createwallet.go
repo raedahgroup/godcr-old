@@ -11,9 +11,9 @@ import (
 type CreateWalletHandler struct {
 	err                  error
 	isRendering          bool
-	passwordInput        nucular.TextEditor
-	confirmPasswordInput nucular.TextEditor
-	seedBox              nucular.TextEditor
+	passwordInput        *nucular.TextEditor
+	confirmPasswordInput *nucular.TextEditor
+	seedBox              *nucular.TextEditor // todo why editor?
 	seed                 string
 	hasStoredSeed        bool
 	validationErrors     map[string]string
@@ -25,11 +25,15 @@ func (handler *CreateWalletHandler) BeforeRender() {
 
 	handler.seed = ""
 
+	handler.passwordInput = &nucular.TextEditor{}
 	handler.passwordInput.Flags = nucular.EditField
 	handler.passwordInput.PasswordChar = '*'
 
+	handler.confirmPasswordInput = &nucular.TextEditor{}
 	handler.confirmPasswordInput.Flags = nucular.EditField
 	handler.confirmPasswordInput.PasswordChar = '*'
+
+	handler.validationErrors = make(map[string]string)
 }
 
 func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
@@ -39,38 +43,37 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 	}
 
 	widgets.PageContentWindowDefaultPadding("Create Wallet", window, func(contentWindow *widgets.Window) {
-		if handler.err != nil {
-			contentWindow.DisplayErrorMessage("Error creating wallet", handler.err)
-		}
-
-		createWalletForm := widgets.NewTable()
-
-		createWalletForm.AddRow(
+		columnWidths := []int{220, 220} // use 220 to hold each column to accommodate error messages
+		contentWindow.AddLabelsWithWidths(columnWidths,
 			widgets.NewLabelTableCell("Wallet Password", widgets.LeftCenterAlign),
 			widgets.NewLabelTableCell("Confirm Password", widgets.LeftCenterAlign),
 		)
 
-		createWalletForm.AddRow(
-			widgets.NewEditTableCell(handler.passwordInput, 200),
-			widgets.NewEditTableCell(handler.confirmPasswordInput, 200),
-		)
+		contentWindow.AddEditorsWithWidths(columnWidths, handler.passwordInput, handler.confirmPasswordInput)
 
-		formValidationCells := make([]widgets.TableCell, 2)
-		if passwordError, hasPasswordError := handler.validationErrors["password"]; hasPasswordError {
-			formValidationCells[0] = widgets.NewColoredLabelTableCell(passwordError, widgets.LeftCenterAlign, styles.DecredOrangeColor)
+		passwordError, hasPasswordError := handler.validationErrors["password"]
+		confirmPasswordError, hasConfirmPasswordError := handler.validationErrors["confirmpassword"]
+		if hasPasswordError || hasConfirmPasswordError {
+			formValidationLabels := make([]*widgets.LabelTableCell, 2)
+			if hasPasswordError {
+				formValidationLabels[0] = widgets.NewColoredLabelTableCell(passwordError, widgets.LeftCenterAlign,
+					styles.DecredOrangeColor)
+			}
+			if hasConfirmPasswordError {
+				formValidationLabels[1] = widgets.NewColoredLabelTableCell(confirmPasswordError, widgets.LeftCenterAlign,
+					styles.DecredOrangeColor)
+			}
+			contentWindow.AddLabelsWithWidths(columnWidths, formValidationLabels...)
 		}
-		if confirmPasswordError, hasConfirmPasswordError := handler.validationErrors["confirmpassword"]; hasConfirmPasswordError {
-			formValidationCells[1] = widgets.NewColoredLabelTableCell(confirmPasswordError, widgets.LeftCenterAlign, styles.DecredOrangeColor)
-		}
-		createWalletForm.AddRow(formValidationCells...)
 
-		createWalletForm.Render(contentWindow)
-
-		contentWindow.AddLabel("Wallet Seed", widgets.LeftCenterAlign)
+		contentWindow.AddHorizontalSpace(20)
+		contentWindow.AddLabelWithFont("Wallet Seed", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 		contentWindow.AddWrappedLabel(handler.seed, widgets.LeftCenterAlign)
 
+		contentWindow.AddHorizontalSpace(10)
 		contentWindow.AddWrappedLabelWithColor(walletcore.StoreSeedWarningText, widgets.LeftCenterAlign, styles.DecredOrangeColor)
 
+		contentWindow.AddHorizontalSpace(10)
 		contentWindow.AddCheckbox("I've stored the seed in a safe and secure location", &handler.hasStoredSeed, func() {
 			if !handler.hasStoredSeed {
 				handler.validationErrors["hasstoredseed"] = "Please store seed and check this box"
@@ -83,6 +86,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 			contentWindow.AddColoredLabel(hasStoredSeedError, styles.DecredOrangeColor, widgets.LeftCenterAlign)
 		}
 
+		contentWindow.AddHorizontalSpace(20)
 		contentWindow.AddButton("Create Wallet", func() {
 			if !handler.hasErrors() {
 				handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
@@ -93,6 +97,10 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 				}
 			}
 		})
+
+		if handler.err != nil {
+			contentWindow.DisplayErrorMessage("Error creating wallet", handler.err)
+		}
 	})
 }
 
@@ -107,7 +115,7 @@ func (handler *CreateWalletHandler) hasErrors() bool {
 		handler.validationErrors["password"] = "Wallet password is required"
 	}
 
-	if password != "" && confirmPassword != "" && password != confirmPassword {
+	if password != "" && password != confirmPassword {
 		handler.validationErrors["confirmpassword"] = "Both passwords do not match"
 	}
 

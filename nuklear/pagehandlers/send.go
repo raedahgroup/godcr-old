@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	addressFieldWidth = 200
+	addressFieldWidth = 300
 	amountFieldWidth = 150
 	sectionSpacing = 20
 )
@@ -45,9 +45,9 @@ type utxoSelection struct {
 }
 
 type sendDestination struct {
-	address    nucular.TextEditor
+	address    *nucular.TextEditor
 	addressErr string
-	amount     nucular.TextEditor
+	amount     *nucular.TextEditor
 	amountErr  string
 }
 
@@ -76,14 +76,6 @@ func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, refreshWindow
 
 func (handler *SendHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("Send", window, func(contentWindow *widgets.Window) {
-		// show result of last send op if exists
-		if handler.sendErr != nil {
-			contentWindow.DisplayErrorMessage("Send tx error", handler.sendErr)
-		} else if handler.successHash != "" {
-			successMessage := "The transaction was published successfully. Hash: "+handler.successHash
-			contentWindow.AddWrappedLabelWithColor(successMessage, widgets.LeftCenterAlign, styles.DecredGreenColor)
-		}
-
 		handler.accountSelectorWidget.Render(contentWindow)
 		contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
 			// reload account balance and refresh display
@@ -139,22 +131,19 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 
 		/* SEND DESTINATIONS SECTION */
 		contentWindow.AddHorizontalSpace(sectionSpacing) // add space before drawing the send destinations section
-		sendDestinationsTable := widgets.NewTable()
-		// add table header using nav font
-		sendDestinationsTable.AddRowWithFont(styles.NavFont,
+		columnWidths := []int{addressFieldWidth, amountFieldWidth}
+		// add headers
+		contentWindow.AddLabelsWithWidths(columnWidths,
 			widgets.NewLabelTableCell("Destination Address", widgets.LeftCenterAlign),
 			widgets.NewLabelTableCell("Amount (DCR)", widgets.LeftCenterAlign),
 		)
+		// add destination fields
 		for _, destination := range handler.sendDestinations {
-			// add input fields
-			sendDestinationsTable.AddRow(
-				widgets.NewEditTableCell(destination.address, addressFieldWidth),
-				widgets.NewEditTableCell(destination.amount, amountFieldWidth),
-			)
+			contentWindow.AddEditorsWithWidths(columnWidths, destination.address, destination.amount)
 
 			// add errors if exist
 			if destination.addressErr != "" || destination.amountErr != "" {
-				errorLabels := make([]widgets.TableCell, 2)
+				errorLabels := make([]*widgets.LabelTableCell, 2)
 				if destination.addressErr != "" {
 					errorLabels[0] = widgets.NewColoredLabelTableCell(destination.addressErr, widgets.LeftCenterAlign,
 						styles.DecredOrangeColor)
@@ -163,10 +152,10 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 					errorLabels[1] = widgets.NewColoredLabelTableCell(destination.amountErr, widgets.LeftCenterAlign,
 						styles.DecredOrangeColor)
 				}
-				sendDestinationsTable.AddRow(errorLabels...)
+				contentWindow.AddLabelsWithWidths(columnWidths, errorLabels...)
 			}
 		}
-		sendDestinationsTable.Render(contentWindow)
+		// add/remove destination buttons
 		contentWindow.Row(widgets.ButtonHeight).Static(
 			contentWindow.ButtonWidth("Add another address"),
 			contentWindow.ButtonWidth("Remove last address"),
@@ -188,6 +177,14 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 				handler.getPassphraseAndSubmit(contentWindow)
 			}
 		})
+
+		// show result of last send op if exists
+		if handler.sendErr != nil {
+			contentWindow.DisplayErrorMessage("Send tx error", handler.sendErr)
+		} else if handler.successHash != "" {
+			successMessage := "The transaction was published successfully. Hash: "+handler.successHash
+			contentWindow.AddWrappedLabelWithColor(successMessage, widgets.LeftCenterAlign, styles.DecredGreenColor)
+		}
 	})
 }
 
@@ -199,10 +196,10 @@ func (handler *SendHandler) addSendDestination(refreshWindowDisplay bool) {
 		handler.sendDestinations = []*sendDestination{}
 	}
 
-	amountItemEditor := nucular.TextEditor{}
+	amountItemEditor := &nucular.TextEditor{}
 	amountItemEditor.Flags = nucular.EditClipboard | nucular.EditSimple
 
-	destinationAddressItemEditor := nucular.TextEditor{}
+	destinationAddressItemEditor := &nucular.TextEditor{}
 	destinationAddressItemEditor.Flags = nucular.EditClipboard | nucular.EditSimple
 
 	item := &sendDestination{

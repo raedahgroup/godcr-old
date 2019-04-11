@@ -77,7 +77,7 @@ func getNavPages() []navPage {
 		{
 			name:    "staking",
 			label:   "Staking",
-			handler: &notImplementedNavPageHandler{"Staking"},
+			handler: &pagehandlers.StakingHandler{},
 		},
 		{
 			name:    "accounts",

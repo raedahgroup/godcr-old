@@ -33,7 +33,6 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 		s.syncBlockchain(window, wallet)
 	}
 
-	//change page onSyncStatusSuccess
 	if s.status == walletcore.SyncStatusSuccess {
 		changePage(window, "overview")
 		return

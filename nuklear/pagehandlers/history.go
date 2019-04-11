@@ -22,7 +22,7 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 	// todo: caller should ideally pass a context parameter, propagated from main.go
 	handler.ctx = context.Background()
 
-	handler.isFetchingTransactions = false
+	handler.isFetchingTransactions = true
 	handler.err = nil
 	handler.transactions = nil
 
@@ -47,8 +47,6 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 }
 
 func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, refreshWindowDisplay func()) {
-	handler.isFetchingTransactions = true
-
 	if len(handler.transactions) == 0 {
 		// first page
 		handler.nextBlockHeight = -1
@@ -73,26 +71,30 @@ func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, refre
 }
 
 func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window) {
+	historyTable := widgets.NewTable()
+	
 	// render table header with nav font
-	contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
-		contentWindow.Row(20).Static(25, 80, 60, 70, 70, 80, 300)
-		contentWindow.Label("#", "LC")
-		contentWindow.Label("Date", "LC")
-		contentWindow.Label("Direction", "LC")
-		contentWindow.Label("Amount", "LC")
-		contentWindow.Label("Fee", "LC")
-		contentWindow.Label("Type", "LC")
-		contentWindow.Label("Hash", "LC")
-	})
+	historyTable.AddRowWithFont(styles.NavFont,
+		widgets.NewLabelTableCell("#", "LC"),
+		widgets.NewLabelTableCell("Date", "LC"),
+		widgets.NewLabelTableCell("Direction", "LC"),
+		widgets.NewLabelTableCell("Amount", "LC"),
+		widgets.NewLabelTableCell("Fee", "LC"),
+		widgets.NewLabelTableCell("Type", "LC"),
+		widgets.NewLabelTableCell("Hash", "LC"),
+	)
 
 	for i, tx := range handler.transactions {
-		contentWindow.Row(15).Static(25, 80, 60, 70, 70, 80, 300)
-		contentWindow.Label(fmt.Sprintf("%d", i+1), "LC")
-		contentWindow.Label(tx.FormattedTime, "LC")
-		contentWindow.Label(tx.Direction.String(), "LC")
-		contentWindow.Label(tx.Amount, "RC")
-		contentWindow.Label(tx.Fee, "RC")
-		contentWindow.Label(tx.Type, "LC")
-		contentWindow.Label(tx.Hash, "LC")
+		historyTable.AddRow(
+			widgets.NewLabelTableCell(fmt.Sprintf("%d", i+1), "LC"),
+			widgets.NewLabelTableCell(tx.FormattedTime, "LC"),
+			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
+			widgets.NewLabelTableCell(tx.Amount, "RC"),
+			widgets.NewLabelTableCell(tx.Fee, "RC"),
+			widgets.NewLabelTableCell(tx.Type, "LC"),
+			widgets.NewLabelTableCell(tx.Hash, "LC"),
+		)
 	}
+
+	historyTable.Render(contentWindow)
 }

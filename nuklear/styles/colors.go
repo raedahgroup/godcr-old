@@ -31,8 +31,8 @@ var masterWindowColorTable = style.ColorTable{
 
 	// toggles (checkboxes)
 	ColorToggle:       GrayColor,
-	ColorToggleHover:  DecredLightBlueColor,
-	ColorToggleCursor: DecredLightBlueColor,
+	ColorToggleHover:  DecredDarkBlueColor,
+	ColorToggleCursor: DecredDarkBlueColor,
 
 	// combo (dropdowns)
 	ColorCombo: WhiteColor,

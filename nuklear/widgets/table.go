@@ -15,9 +15,11 @@ type TableRow struct {
 func (row *TableRow) Render(window *Window) {
 	for _, cell := range row.cells {
 		if cell == nil {
-			continue
+			// need to fill this column with empty space so the next cell is added to the next column instead of this column
+			window.Spacing(1)
+		} else {
+			cell.Render(window)
 		}
-		cell.Render(window)
 	}
 }
 

@@ -33,7 +33,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
-		currentPage:      "send", // todo rename to sync
+		currentPage:      "sync",
 	}
 
 	// initialize master window and set style
@@ -91,7 +91,17 @@ func (desktop *Desktop) render(window *nucular.Window) {
 }
 
 func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
+	if desktop.currentPage != desktop.nextPage && desktop.nextPage != "" {
+		// page navigation changes may take some seconds to effect
+		// causing this method to receive the wrong handler
+		desktop.currentPage = desktop.nextPage
+		desktop.pageChanged = true
+		window.Master().Changed()
+		return
+	}
+
 	window.Row(0).Dynamic(1)
+	styles.SetPageStyle(window.Master())
 
 	if desktop.pageChanged {
 		handler.BeforeRender()
@@ -107,6 +117,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 		// causing this method to receive the wrong handler
 		desktop.currentPage = desktop.nextPage
 		desktop.pageChanged = true
+		window.Master().Changed()
 		return
 	}
 
