@@ -47,7 +47,7 @@ func (label *LabelTableCell) Render(window *Window) {
 }
 
 func (label *LabelTableCell) MinWidth(window *Window) int {
-	return nucular.FontWidth(window.Font(), label.text)
+	return window.LabelWidth(label.text)
 }
 
 type EditTableCell struct {
@@ -68,4 +68,28 @@ func (edit *EditTableCell) Render(window *Window) {
 
 func (edit *EditTableCell) MinWidth(_ *Window) int {
 	return edit.width
+}
+
+type CheckboxTableCell struct {
+	label string
+	checked *bool
+	checkChanged func()
+}
+
+func NewCheckboxTableCell(label string, checked *bool, checkChanged func()) *CheckboxTableCell {
+	return &CheckboxTableCell{
+		label: label,
+		checked:checked,
+		checkChanged:checkChanged,
+	}
+}
+
+func (checkbox *CheckboxTableCell) Render(window *Window) {
+	if window.CheckboxText(checkbox.label, checkbox.checked) && checkbox.checkChanged != nil {
+		checkbox.checkChanged()
+	}
+}
+
+func (checkbox *CheckboxTableCell) MinWidth(window *Window) int {
+	return window.LabelWidth(checkbox.label) + 16 // assumed width of check box
 }

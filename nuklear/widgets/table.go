@@ -2,12 +2,23 @@ package widgets
 
 const tableRowHeight = 25
 
-type TableRow struct {
-	cells []TableCell
-}
-
 type Table struct {
 	rows []*TableRow
+}
+
+type TableRow struct {
+	cells []TableCell
+	font fontFace
+	isFontSet bool
+}
+
+func (row *TableRow) Render(window *Window) {
+	for _, cell := range row.cells {
+		if cell == nil {
+			continue
+		}
+		cell.Render(window)
+	}
 }
 
 func NewTable() *Table {
@@ -17,6 +28,15 @@ func NewTable() *Table {
 func (table *Table) AddRow(cells ...TableCell) {
 	row := &TableRow{
 		cells: cells,
+	}
+	table.rows = append(table.rows, row)
+}
+
+func (table *Table) AddRowWithFont(font fontFace, cells ...TableCell) {
+	row := &TableRow{
+		cells: cells,
+		font: font,
+		isFontSet: true,
 	}
 	table.rows = append(table.rows, row)
 }
@@ -42,11 +62,12 @@ func (table *Table) Render(window *Window) {
 	// create row constructor for each row of items and call draw on the items
 	for _, row := range table.rows {
 		window.Row(tableRowHeight).Static(maxColumnWidths...)
-		for _, cell := range row.cells {
-			if cell == nil {
-				continue
-			}
-			cell.Render(window)
+		if row.isFontSet {
+			window.UseFontAndResetToPrevious(row.font, func() {
+				row.Render(window)
+			})
+		} else {
+			row.Render(window)
 		}
 	}
 }

@@ -40,7 +40,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 
 	widgets.PageContentWindowDefaultPadding("Create Wallet", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
-			contentWindow.DisplayErrorMessage(handler.err.Error())
+			contentWindow.DisplayErrorMessage("Error creating wallet", handler.err)
 		}
 
 		createWalletForm := widgets.NewTable()
@@ -71,8 +71,14 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 
 		contentWindow.AddWrappedLabelWithColor(walletcore.StoreSeedWarningText, widgets.LeftCenterAlign, styles.DecredOrangeColor)
 
-		contentWindow.Row(30).Dynamic(1) // todo need to add checkbox helper function
-		contentWindow.CheckboxText("I've stored the seed in a safe and secure location", &handler.hasStoredSeed)
+		contentWindow.AddCheckbox("I've stored the seed in a safe and secure location", &handler.hasStoredSeed, func() {
+			if !handler.hasStoredSeed {
+				handler.validationErrors["hasstoredseed"] = "Please store seed and check this box"
+			} else {
+				delete(handler.validationErrors, "hasstoredseed")
+			}
+			contentWindow.Master().Changed()
+		})
 		if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
 			contentWindow.AddColoredLabel(hasStoredSeedError, styles.DecredOrangeColor, widgets.LeftCenterAlign)
 		}

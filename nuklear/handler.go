@@ -67,7 +67,7 @@ func getNavPages() []navPage {
 		{
 			name:    "send",
 			label:   "Send",
-			handler: &notImplementedNavPageHandler{"Send"},
+			handler: &pagehandlers.SendHandler{},
 		},
 		{
 			name:    "receive",

@@ -34,7 +34,7 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 func (handler *HistoryHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
-			contentWindow.DisplayErrorMessage(handler.err.Error())
+			contentWindow.DisplayErrorMessage("Error fetching txs", handler.err)
 		} else if len(handler.transactions) > 0 {
 			handler.displayTransactions(contentWindow)
 		}

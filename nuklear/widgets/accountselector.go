@@ -18,12 +18,17 @@ const (
 	accountSelectorHeight       = 25
 )
 
-func AccountSelectorWidget(prompt string, showBalance bool, wallet walletcore.Wallet) (accountSelector *AccountSelector) {
+func AccountSelectorWidget(prompt string, spendUnconfirmed, showBalance bool, wallet walletcore.Wallet) (accountSelector *AccountSelector) {
 	accountSelector = &AccountSelector{
 		prompt: prompt,
 	}
 
-	accountSelector.accounts, accountSelector.accountsFetchError = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	var confirmations int32 = walletcore.DefaultRequiredConfirmations
+	if spendUnconfirmed {
+		confirmations = 0
+	}
+
+	accountSelector.accounts, accountSelector.accountsFetchError = wallet.AccountsOverview(confirmations)
 	if accountSelector.accountsFetchError != nil {
 		return
 	}
@@ -60,7 +65,7 @@ func (accountSelector *AccountSelector) Render(window *Window, addColumns ...int
 	window.Label(accountSelector.prompt, LeftCenterAlign)
 
 	if accountSelector.accountsFetchError != nil {
-		window.DisplayErrorMessage(accountSelector.accountsFetchError.Error())
+		window.DisplayErrorMessage("Fetch accounts error", accountSelector.accountsFetchError)
 	} else if len(accountSelector.accounts) == 1 {
 		accountSelector.selectedAccountIndex = 0
 		window.Label(accountSelector.accountNames[0], LeftCenterAlign)

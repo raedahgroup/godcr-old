@@ -36,6 +36,9 @@ func MasterWindowStyle() *style.Style {
 	// style progress bars
 	masterWindowStyle.Progress.Padding = noPadding
 
+	// style checkbox
+	masterWindowStyle.Checkbox.Padding = noPadding
+
 	return masterWindowStyle
 }
 

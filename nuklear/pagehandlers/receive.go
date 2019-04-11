@@ -11,6 +11,8 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/skip2/go-qrcode"
 	"github.com/aarzilli/nucular/rect"
+	"github.com/atotto/clipboard"
+	"fmt"
 )
 
 const (
@@ -19,17 +21,17 @@ const (
 )
 
 type ReceiveHandler struct {
+	wallet                walletcore.Wallet
 	accountSelectorWidget *widgets.AccountSelector
 	generateAddressError  error
 	generatedAddress      string
-	wallet                walletcore.Wallet
 }
 
 func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
+	handler.wallet = wallet
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet)
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
-	handler.wallet = wallet
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, wallet)
 	return true
 }
 
@@ -50,7 +52,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 
 		// display error if there was an error the last time address generation was attempted
 		if handler.generateAddressError != nil {
-			contentWindow.DisplayErrorMessage(handler.generateAddressError.Error())
+			contentWindow.DisplayErrorMessage("Address could not be generated", handler.generateAddressError)
 		} else if handler.generatedAddress != "" {
 			handler.RenderAddress(contentWindow)
 		}
@@ -71,7 +73,7 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 	if err != nil {
 		// todo logs need to accept message to accompany errors
 		nuklog.LogError(err)
-		window.DisplayErrorMessage("Error generating qr code: " + err.Error())
+		window.DisplayErrorMessage("Error generating qr code", err)
 		window.AddLabel(handler.generatedAddress, widgets.LeftCenterAlign)
 	} else {
 		sourceImage := qrCode.Image(qrCodeImageSize)
@@ -99,6 +101,12 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 			W: generatedAddressWidth,
 			H: window.SingleLineHeight(),
 		})
-		window.Label(handler.generatedAddress, widgets.CenterAlign)
+		var addressClicked bool
+		window.SelectableLabel(handler.generatedAddress, widgets.CenterAlign, &addressClicked)
+
+		if addressClicked {
+			clipboard.WriteAll(handler.generatedAddress)
+			fmt.Println(handler.generatedAddress)
+		}
 	}
 }

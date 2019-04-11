@@ -8,6 +8,7 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"golang.org/x/image/font"
 	"image/color"
+	"fmt"
 )
 
 const defaultPageContentPadding = 10
@@ -90,8 +91,8 @@ func (window *Window) UseFontAndResetToPrevious(font fontFace, fontReadyForUse f
 	fontReadyForUse()
 }
 
-func (window *Window) DisplayErrorMessage(errorMessage string) {
-	window.DisplayMessage(errorMessage, styles.DecredOrangeColor)
+func (window *Window) DisplayErrorMessage(message string, err error) {
+	window.DisplayMessage(fmt.Sprintf("%s: %s", message, err.Error()), styles.DecredOrangeColor)
 }
 
 func (window *Window) DisplayMessage(message string, color color.RGBA) {

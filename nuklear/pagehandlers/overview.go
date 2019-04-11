@@ -22,7 +22,7 @@ func (handler *OverviewHandler) Render(window *nucular.Window) {
 		contentWindow.AddLabelWithFont("Current Total Balance", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 
 		if handler.err != nil {
-			contentWindow.DisplayErrorMessage(handler.err.Error())
+			contentWindow.DisplayErrorMessage("Error fetching accounts balance", handler.err)
 		} else {
 			contentWindow.AddLabel(walletcore.WalletBalance(handler.accounts), widgets.LeftCenterAlign)
 		}

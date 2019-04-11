@@ -11,9 +11,14 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"image"
 )
 
-const navWidth = 200
+const (
+	navWidth = 200
+	defaultWindowWidth  = 800
+	defaultWindowHeight = 600
+)
 
 type Desktop struct {
 	walletMiddleware app.WalletMiddleware
@@ -28,11 +33,12 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
-		currentPage:      "overview", // todo rename to sync
+		currentPage:      "send", // todo rename to sync
 	}
 
 	// initialize master window and set style
-	masterWindow := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
+	windowSize := image.Point{defaultWindowWidth, defaultWindowHeight}
+	masterWindow := nucular.NewMasterWindowSize(nucular.WindowNoScrollbar, app.Name, windowSize, desktop.render)
 	masterWindow.SetStyle(styles.MasterWindowStyle())
 
 	// initialize fonts for later use
@@ -80,7 +86,7 @@ func (desktop *Desktop) render(window *nucular.Window) {
 		nuklog.LogError(errors.New(errorMessage))
 
 		w := &widgets.Window{window}
-		w.DisplayErrorMessage(errorMessage)
+		w.DisplayMessage(errorMessage, styles.DecredOrangeColor)
 	}
 }
 

@@ -24,7 +24,7 @@ func (s *SyncHandler) BeforeRender() {
 	s.isRendering = false
 	s.report = ""
 	s.isShowingPercentageProgress = false
-	s.percentageProgress = 10
+	s.percentageProgress = 0
 }
 
 func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
@@ -45,13 +45,11 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 		pageWindow.PageContentWindow("sync-page-content", 10, 10, func(contentWindow *widgets.Window) {
 			if s.err != nil {
-				contentWindow.DisplayErrorMessage(s.err.Error())
+				contentWindow.DisplayErrorMessage("Error", s.err)
 			} else {
 				contentWindow.AddLabel(s.report, widgets.CenterAlign)
-				contentWindow.AddProgressBar(&s.percentageProgress, 100)
-
 				if s.isShowingPercentageProgress {
-
+					contentWindow.AddProgressBar(&s.percentageProgress, 100)
 				}
 			}
 		})

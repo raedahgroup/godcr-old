@@ -67,9 +67,9 @@ package pagehandlers
 //
 //// fetch accounts to display source account dropdown in purchase ticket section
 //func (handler *StakingHandler) fetchAccounts(wallet walletcore.Wallet) {
-//	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-//	if err != nil {
-//		handler.fetchAccountsError = err
+//	accounts, sendErr := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+//	if sendErr != nil {
+//		handler.fetchAccountsError = sendErr
 //		return
 //	}
 //
@@ -217,9 +217,9 @@ package pagehandlers
 //		window.Master().Changed()
 //	}()
 //
-//	numTickets, err := strconv.ParseUint(string(handler.numTicketsInput.Buffer), 10, 32)
-//	if err != nil {
-//		handler.purchaseTicketsError = err
+//	numTickets, sendErr := strconv.ParseUint(string(handler.numTicketsInput.Buffer), 10, 32)
+//	if sendErr != nil {
+//		handler.purchaseTicketsError = sendErr
 //		return
 //	}
 //
@@ -237,9 +237,9 @@ package pagehandlers
 //		Account:               uint32(sourceAccount),
 //	}
 //
-//	ticketHashes, err := wallet.PurchaseTicket(context.Background(), request)
-//	if err != nil {
-//		handler.purchaseTicketsError = err
+//	ticketHashes, sendErr := wallet.PurchaseTicket(context.Background(), request)
+//	if sendErr != nil {
+//		handler.purchaseTicketsError = sendErr
 //		return
 //	}
 //

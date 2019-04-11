@@ -5,13 +5,13 @@ import (
 	"github.com/aarzilli/nucular/label"
 )
 
-const buttonHeight = 30
+const ButtonHeight = 30
 const bigButtonHeight = 40
 
 // AddButton adds a button to the window that uses just the width required to display the button text and a standard height
 func (window *Window) AddButton(buttonText string, buttonClickFunc func()) {
 	buttonWidth := window.ButtonWidth(buttonText)
-	window.Row(buttonHeight).Static(buttonWidth)
+	window.Row(ButtonHeight).Static(buttonWidth)
 
 	buttonLabel := label.TA(buttonText, CenterAlign)
 	if window.Button(buttonLabel, false) {
