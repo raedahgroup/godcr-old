@@ -472,6 +472,16 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	routes.sendWsBalance()
 }
 
+func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	routes.renderPage("accounts.html", data, res)
+}
+
+func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	routes.renderPage("security.html", data, res)
+}
+
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds":               routes.settings.SpendUnconfirmed,
@@ -575,12 +585,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	data["success"] = true
 }
 
-func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-	routes.renderPage("accounts.html", data, res)
-}
-
-func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-	routes.renderPage("security.html", data, res)
+func (routes *Routes) rescanBlockchain(res http.ResponseWriter, req *http.Request) {
+	routes.syncBlockchain()
+	renderJSON(map[string]interface{}{"success": true}, res)
 }

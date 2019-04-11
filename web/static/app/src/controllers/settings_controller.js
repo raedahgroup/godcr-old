@@ -1,6 +1,7 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 import { hide, show, showErrorNotification, showSuccessNotification } from '../utils'
+import ws from '../services/messagesocket_service'
 
 export default class extends Controller {
   static get targets () {
@@ -8,7 +9,8 @@ export default class extends Controller {
       'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword',
       'confirmPasswordError', 'changePasswordErrorMessage',
       'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification',
-      'changeCurrencyConverterErrorMessage', 'currencyConverterNone', 'currencyConverterBitrex', 'updateCurrencyConverterButton'
+      'changeCurrencyConverterErrorMessage', 'currencyConverterNone', 'currencyConverterBitrex', 'updateCurrencyConverterButton',
+      'syncNotifications'
     ]
   }
 
@@ -153,5 +155,18 @@ export default class extends Controller {
     }).catch(() => {
       _this.changeCurrencyConverterErrorMessageTarget.textContent = 'A server error occurred'
     })
+  }
+
+  rescanBlockchian () {
+    const _this = this
+    this.syncNotificationsTarget.innerHTML = '<p>Sending request...</p>'
+    ws.registerEvtHandler('updateSyncStatus', function (data) {
+      _this.syncNotificationsTarget.innerHTML += `<p>${data}.</p>`
+    })
+    axios.get('/rescan-blockchain')
+  }
+
+  sendSyncToTheBackground () {
+    ws.deregisterEvtHandlers('updateSyncStatus')
   }
 }
