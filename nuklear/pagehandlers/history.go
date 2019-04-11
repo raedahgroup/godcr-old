@@ -6,8 +6,8 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type HistoryHandler struct {
@@ -18,7 +18,7 @@ type HistoryHandler struct {
 	nextBlockHeight        int32
 }
 
-func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) {
+func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
 	// todo: caller should ideally pass a context parameter, propagated from main.go
 	handler.ctx = context.Background()
 
@@ -27,6 +27,8 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 	handler.transactions = nil
 
 	go handler.fetchTransactions(wallet, refreshWindowDisplay)
+
+	return true
 }
 
 func (handler *HistoryHandler) Render(window *nucular.Window) {

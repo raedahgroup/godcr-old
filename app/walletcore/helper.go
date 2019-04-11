@@ -18,17 +18,13 @@ const (
 	SyncStatusInProgress
 )
 
-const StoreSeedWarningText = "Keep the seed in a safe place as you will NOT be able to restore your wallet without it. " +
-	"Please keep in mind that anyone who has access to the seed can also restore your wallet " +
-	"thereby giving them access to all your funds, so it is imperative that you keep it in a secure location."
+const (
+	StoreSeedWarningText = "Keep the seed in a safe place as you will NOT be able to restore your wallet without it. " +
+		"Please keep in mind that anyone who has access to the seed can also restore your wallet " +
+		"thereby giving them access to all your funds, so it is imperative that you keep it in a secure location."
 
-func SimpleBalance(balance *Balance, detailed bool) string {
-	if detailed {
-		return balance.Total.String()
-	} else {
-		return balance.String()
-	}
-}
+	ReceivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
+)
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
 func NormalizeBalance(balance float64) string {

@@ -7,6 +7,7 @@ import (
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"golang.org/x/image/font"
+	"image/color"
 )
 
 const defaultPageContentPadding = 10
@@ -37,11 +38,18 @@ func PageContentWindowDefaultPadding(pageTitle string, parentWindow *nucular.Win
 
 func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window, xPadding, yPadding int, windowReady func(contentWindow *Window)) {
 	NoScrollGroupWindow(pageTitle+"-page", parentWindow, func(pageWindow *Window) {
-		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
+		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: 0, Y: 0}
 
-		pageWindow.AddSpacing(0, defaultPageContentPadding)
-		pageWindow.SetPageTitle(pageTitle)
-		pageWindow.AddSpacing(0, defaultPageContentPadding)
+		pageTitleHeight := pageWindow.SingleLineHeight() + (defaultPageContentPadding * 2)
+		pageTitleArea := pageWindow.Row(pageTitleHeight).SpaceBegin(1)
+		pageWindow.LayoutSpacePushScaled(rect.Rect{
+			X: defaultPageContentPadding,
+			Y: 0,
+			W: pageTitleArea.W,
+			H: pageTitleHeight,
+		})
+		pageWindow.SetFont(styles.PageHeaderFont)
+		pageWindow.Label(pageTitle, LeftCenterAlign)
 
 		pageWindow.PageContentWindow(pageTitle+"-page-content", xPadding, yPadding, windowReady)
 	})
@@ -82,12 +90,12 @@ func (window *Window) UseFontAndResetToPrevious(font fontFace, fontReadyForUse f
 	fontReadyForUse()
 }
 
-func (window *Window) SetPageTitle(title string) {
-	window.AddLabelWithFont(title, LeftCenterAlign, styles.PageHeaderFont)
+func (window *Window) DisplayErrorMessage(errorMessage string) {
+	window.DisplayMessage(errorMessage, styles.DecredOrangeColor)
 }
 
-func (window *Window) DisplayErrorMessage(errorMessage string) {
-	window.AddWrappedLabelWithColor("Error: "+errorMessage, styles.DecredOrangeColor)
+func (window *Window) DisplayMessage(message string, color color.RGBA) {
+	window.AddWrappedLabelWithColor(message, LeftCenterAlign, color)
 }
 
 func (window *Window) DisplayIsLoadingMessage() {

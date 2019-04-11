@@ -5,96 +5,100 @@ import (
 	"image/draw"
 
 	"github.com/aarzilli/nucular"
-	"github.com/aarzilli/nucular/label"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	qrcode "github.com/skip2/go-qrcode"
-	"github.com/decred/dcrwallet/wallet"
+	"github.com/skip2/go-qrcode"
+	"github.com/aarzilli/nucular/rect"
+)
+
+const (
+	qrCodeImageSize = 300
+	qrCodeAddressHolderHorizontalPadding = 40
 )
 
 type ReceiveHandler struct {
-	err         error
-	accounts    []*walletcore.Account
-
-	// form selector index
-	selectedAccountIndex  int
-	selectedAccountNumber uint32
-
-	// generatedAddress
-	generatedAddress string
+	accountSelectorWidget *widgets.AccountSelector
+	generateAddressError  error
+	generatedAddress      string
+	wallet                walletcore.Wallet
 }
 
-func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) {
-	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	handler.err = nil
-	handler.accounts = nil
-
-	// form selector index
-	handler.selectedAccountIndex = 0
-	handler.selectedAccountNumber = uint32(0)
+func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
+	handler.generateAddressError = nil
+	handler.generatedAddress = ""
+	handler.wallet = wallet
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, wallet)
+	return true
 }
 
 func (handler *ReceiveHandler) Render(window *nucular.Window) {
-	if !handler.isRendering {
-		handler.isRendering = true
-	}
+	widgets.PageContentWindowDefaultPadding("Receiving Decred", window, func(contentWindow *widgets.Window) {
+		contentWindow.AddWrappedLabelWithColor(walletcore.ReceivingDecredHint, widgets.LeftCenterAlign, styles.GrayColor)
 
-	widgets.PageContentWindowDefaultPadding("Generate Receive Address", window, func(contentWindow *widgets.Window) {
-		if handler.err != nil {
-			contentWindow.DisplayErrorMessage(handler.err.Error())
-		} else {
-			accountNames := make([]string, len(handler.accounts))
-			for index, account := range handler.accounts {
-				accountNames[index] = account.Name
-			}
+		contentWindow.AddHorizontalSpace(10)
 
-			// draw select account combo
-			contentWindow.Row(styles.TextEditorHeight).Static(styles.AccountSelectorWidth)
-			handler.selectedAccountIndex = contentWindow.ComboSimple(accountNames, handler.selectedAccountIndex, 25)
+		// draw account selection widget before rendering previously generated address
+		handler.accountSelectorWidget.Render(contentWindow)
 
-			// draw submit button
-			contentWindow.Row(styles.ButtonHeight).Static(styles.ButtonWidth)
-			if contentWindow.Button(label.T("Generate"), false) {
-				// get selected account by index
-				accountName := accountNames[handler.selectedAccountIndex]
-				for _, account := range handler.accounts {
-					if account.Name == accountName {
-						handler.selectedAccountNumber = account.Number
-						break
-					}
-				}
+		contentWindow.AddButton("Generate Address", func() {
+			accountNumber := handler.accountSelectorWidget.GetSelectedAccountNumber()
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(accountNumber)
+			window.Master().Changed()
+		})
 
-				// get address
-				handler.generatedAddress, handler.err = wallet.ReceiveAddress(handler.selectedAccountNumber)
-				if handler.err != nil {
-					contentWindow.DisplayErrorMessage(handler.err.Error())
-				} else {
-					window.Master().Changed()
-				}
-			}
-
-			if handler.generatedAddress != "" {
-				handler.RenderAddress(contentWindow)
-			}
+		// display error if there was an error the last time address generation was attempted
+		if handler.generateAddressError != nil {
+			contentWindow.DisplayErrorMessage(handler.generateAddressError.Error())
+		} else if handler.generatedAddress != "" {
+			handler.RenderAddress(contentWindow)
 		}
 	})
 }
 
 func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
-	window.Row(styles.LabelHeight).Dynamic(1)
-	window.LabelWrap("Address: " + handler.generatedAddress)
+	generatedAddressWidth := window.LabelWidth(handler.generatedAddress)
+	qrCodeAddressHolderWidth, qrCodeAddressHolderHeight := qrCodeImageSize, qrCodeImageSize
+	if generatedAddressWidth >= qrCodeImageSize {
+		qrCodeAddressHolderWidth = generatedAddressWidth
+	}
+	qrCodeAddressHolderWidth += qrCodeAddressHolderHorizontalPadding
+	qrCodeAddressHolderHeight += window.SingleLineHeight()
 
 	// generate qrcode
-	png, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
+	qrCode, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
 	if err != nil {
-		window.Row(styles.ErrorTextHeight).Dynamic(1)
-		window.LabelWrap(err.Error())
+		// todo logs need to accept message to accompany errors
+		nuklog.LogError(err)
+		window.DisplayErrorMessage("Error generating qr code: " + err.Error())
+		window.AddLabel(handler.generatedAddress, widgets.LeftCenterAlign)
 	} else {
-		window.Row(200).Dynamic(1)
-		img := png.Image(300)
-		imgRGBA := image.NewRGBA(img.Bounds())
-		draw.Draw(imgRGBA, img.Bounds(), img, image.Point{}, draw.Src)
-		window.Image(imgRGBA)
+		sourceImage := qrCode.Image(qrCodeImageSize)
+		qrCodeImage := image.NewRGBA(sourceImage.Bounds())
+		draw.Draw(qrCodeImage, sourceImage.Bounds(), sourceImage, image.Point{}, 0)
+
+		// holder for code and address
+		window.Row(qrCodeAddressHolderHeight).SpaceBegin(2)
+
+		// calculate left padding space to use before displaying image to place in horizontal center
+		qrCodeImageLeftPadding := (qrCodeAddressHolderWidth - qrCodeImageSize) / 2
+		window.LayoutSpacePushScaled(rect.Rect{
+			X: qrCodeImageLeftPadding,
+			Y: 0,
+			W: qrCodeImageSize,
+			H: qrCodeImageSize,
+		})
+		window.Image(qrCodeImage)
+
+		// calculate left padding space to use before displaying address label to place in horizontal center
+		addressLabelLeftPadding := (qrCodeAddressHolderWidth - generatedAddressWidth) / 2
+		window.LayoutSpacePushScaled(rect.Rect{
+			X: addressLabelLeftPadding,
+			Y: qrCodeImageSize,
+			W: generatedAddressWidth,
+			H: window.SingleLineHeight(),
+		})
+		window.Label(handler.generatedAddress, widgets.CenterAlign)
 	}
 }

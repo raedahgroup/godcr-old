@@ -1,12 +1,12 @@
 package widgets
 
 import (
-	"math"
+	"image/color"
+	"strings"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/label"
 	f "golang.org/x/image/font"
-	"image/color"
 )
 
 const (
@@ -18,68 +18,108 @@ type fontFace f.Face
 
 // AddLabel adds a single line label to the window. The label added does not wrap.
 func (window *Window) AddLabel(text string, align label.Align) {
-	window.AddLabelWithFont(text, align, window.Font())
+	window.Row(window.SingleLineHeight()).Dynamic(1)
+	window.Label(text, align)
+}
+
+// AddLabel adds a single line label to the window. The label added does not wrap.
+func (window *Window) AddLabelFixedWidth(text string, align label.Align, width int) {
+	window.Row(window.SingleLineHeight()).Static(width)
+	window.Label(text, align)
 }
 
 // AddLabelWithFont adds a single line label to the window. The label added does not wrap.
 func (window *Window) AddLabelWithFont(text string, align label.Align, font fontFace) {
-	singleLineHeight := nucular.FontHeight(font) + 1
-	window.DrawLabel(text, singleLineHeight, align, font)
-}
-
-func (window *Window) DrawLabel(text string, height int, align label.Align, font fontFace) {
-	if height < 20 {
-		height = 20 // seems labels will not be drawn if row height is less than 20
-	}
-
 	window.UseFontAndResetToPrevious(font, func() {
-		window.Row(height).Dynamic(1)
+		window.Row(window.SingleLineHeight()).Dynamic(1)
 		window.Label(text, align)
 	})
 }
 
 func (window *Window) AddColoredLabel(text string, color color.RGBA, align label.Align) {
-	singleLineHeight := nucular.FontHeight(window.Font()) + 1
-	if singleLineHeight < 20 {
-		singleLineHeight = 20 // seems labels will not be drawn if row height is less than 20
-	}
-
-	window.Row(singleLineHeight).Dynamic(1)
+	window.Row(window.SingleLineHeight()).Dynamic(1)
 	window.LabelColored(text, align, color)
 }
 
 // AddWrappedLabel adds a label to the window.
 // The label added wraps it's text and assumes the height required to display all it's text.
-func (window *Window) AddWrappedLabel(text string) {
-	window.AddWrappedLabelWithFont(text, window.Font())
+func (window *Window) AddWrappedLabel(text string, align label.Align) {
+	singleLineHeight := window.SingleLineHeight()
+	lines := window.WrappLabelText(text, window.Font())
+
+	for _, line := range lines {
+		window.Row(singleLineHeight).Dynamic(1)
+		window.Label(line, align)
+	}
 }
 
 // AddWrappedLabel adds a label to the window.
 // The label added wraps it's text and assumes the height required to display all it's text.
-func (window *Window) AddWrappedLabelWithColor(text string, color color.RGBA) {
-	textHeight := window.WrappedLabelTextHeight(text, window.Font())
-	window.Row(textHeight).Dynamic(1)
-	window.LabelWrapColored(text, color)
+func (window *Window) AddWrappedLabelWithColor(text string, align label.Align, color color.RGBA) {
+	singleLineHeight := window.SingleLineHeight()
+	lines := window.WrappLabelText(text, window.Font())
+
+	for _, line := range lines {
+		window.Row(singleLineHeight).Dynamic(1)
+		window.LabelColored(line, align, color)
+	}
 }
 
-func (window *Window) AddWrappedLabelWithFont(text string, font fontFace) {
-	textHeight := window.WrappedLabelTextHeight(text, font)
-	window.DrawWrappedLabel(text, textHeight, font)
-}
+func (window *Window) AddWrappedLabelWithFont(text string, align label.Align, font fontFace) {
+	singleLineHeight := window.SingleLineHeight()
+	lines := window.WrappLabelText(text, window.Font())
 
-func (window *Window) WrappedLabelTextHeight(text string, font fontFace) int {
-	textWidth := nucular.FontWidth(font, text)
-
-	nLines := math.Ceil(float64(textWidth) / float64(window.LayoutAvailableWidth()))
-	singleLineHeight := nucular.FontHeight(font) + 1
-
-	return int(nLines)*singleLineHeight + 20 // seems labels will not be drawn if row height is not way higher than necessary
-}
-
-func (window *Window) DrawWrappedLabel(text string, height int, font fontFace) {
-	height += 20
 	window.UseFontAndResetToPrevious(font, func() {
-		window.Row(height + 20).Dynamic(1)
-		window.LabelWrap(text)
+		for _, line := range lines {
+			window.Row(singleLineHeight).Dynamic(1)
+			window.Label(line, align)
+		}
 	})
+}
+
+func (window *Window) WrappLabelText(text string, font fontFace) (wrappedLines []string) {
+	textWidth := nucular.FontWidth(font, text)
+	maxWidth := window.Bounds.W - window.Master().Style().GroupWindow.Padding.X
+
+	words := strings.Split(text, " ")
+	wordsCountPerLine := maxWidth * len(words) / textWidth
+	if textWidth < maxWidth {
+		wordsCountPerLine = len(words)
+	}
+
+	wordCountForCurrentLine := wordsCountPerLine
+	for {
+		currentLine := strings.Join(words[:wordCountForCurrentLine], " ")
+		if nucular.FontWidth(font, currentLine) > maxWidth {
+			wordCountForCurrentLine--
+			continue // skip remainder of code and come back to calculating current line width using adjusted word count
+		}
+
+		wrappedLines = append(wrappedLines, currentLine)
+		words = words[wordCountForCurrentLine:]
+
+		if len(words) < wordsCountPerLine {
+			wordCountForCurrentLine = len(words)
+		} else {
+			wordCountForCurrentLine = wordsCountPerLine
+		}
+
+		if len(words) == 0 {
+			break
+		}
+	}
+
+	return
+}
+
+func (window *Window) LabelWidth(text string) int {
+	return nucular.FontWidth(window.Font(), text) + 8 // add 8 to text width to avoid text being cut off in label
+}
+
+func (window *Window) SingleLineHeight() int {
+	singleLineHeight := nucular.FontHeight(window.Font()) + 1
+	if singleLineHeight < 20 {
+		singleLineHeight = 20 // seems labels will not be drawn if row height is less than 20
+	}
+	return singleLineHeight
 }

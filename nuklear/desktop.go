@@ -17,11 +17,11 @@ const navWidth = 200
 
 type Desktop struct {
 	walletMiddleware app.WalletMiddleware
-	currentPage      string
-	pageChanged      bool
 	navPages         map[string]navPageHandler
 	standalonePages  map[string]standalonePageHandler
-	quitApp          func()
+	currentPage      string
+	nextPage         string
+	pageChanged      bool
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -65,8 +65,6 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.currentPage = "createwallet"
 	}
 
-	desktop.quitApp = masterWindow.Close
-
 	// draw master window
 	masterWindow.Main()
 	return nil
@@ -98,6 +96,14 @@ func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler sta
 }
 
 func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {
+	if desktop.currentPage != desktop.nextPage && desktop.nextPage != "" {
+		// page navigation changes may take some seconds to effect
+		// causing this method to receive the wrong handler
+		desktop.currentPage = desktop.nextPage
+		desktop.pageChanged = true
+		return
+	}
+
 	// this creates the space on the window that will hold 2 widgets
 	// the navigation section on the window and the main page content
 	entireWindow := window.Row(0).SpaceBegin(2)
@@ -105,14 +111,12 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 	desktop.renderNavSection(window, entireWindow.H)
 	renderPageContentSection(window, entireWindow.W, entireWindow.H)
 
-	// ensure that the handler's BeforeRender function is called only once per page call
-	// as it initializes page variables
-	if desktop.pageChanged {
-		handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed)
+	// Only call handler.Render if the page is not being switched to for the first time (i.e !desktop.pageChanged).
+	// If it is (i.e. desktop.pageChanged == true), then only call handler.Render after handler.BeforeRender returns.
+	if !desktop.pageChanged || handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed) {
 		desktop.pageChanged = false
+		handler.Render(window)
 	}
-
-	handler.Render(window)
 }
 
 func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) {
@@ -129,10 +133,10 @@ func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) 
 
 	// then create a group window and draw the nav buttons
 	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
-		navGroupWindow.AddSpacing(0, 10)
+		navGroupWindow.AddHorizontalSpace(10)
 		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", app.DisplayName, desktop.walletMiddleware.NetType()),
 			styles.DecredLightBlueColor, widgets.CenterAlign)
-		navGroupWindow.AddSpacing(0, 10)
+		navGroupWindow.AddHorizontalSpace(10)
 
 		for _, page := range getNavPages() {
 			navGroupWindow.AddBigButton(page.label, func() {
@@ -142,7 +146,7 @@ func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) 
 
 		// add exit button
 		navGroupWindow.AddBigButton("Exit", func() {
-			go desktop.quitApp()
+			go navGroupWindow.Master().Close()
 		})
 	})
 }
@@ -160,7 +164,6 @@ func renderPageContentSection(window *nucular.Window, maxWidth, maxHeight int) {
 }
 
 func (desktop *Desktop) changePage(window *nucular.Window, newPage string) {
-	desktop.currentPage = newPage
-	desktop.pageChanged = true
+	desktop.nextPage = newPage
 	window.Master().Changed()
 }

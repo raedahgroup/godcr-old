@@ -6,6 +6,7 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 )
 
 type navPage struct {
@@ -19,7 +20,8 @@ type navPageHandler interface {
 	// It is expected that this method will only be called once i.e. when the page is switched to from a different page.
 	// It might be necessary to load some wallet data in background thread
 	// after which the app can be notified to repaint the page using `refreshWindowDisplay()`
-	BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func())
+	// Returns true when done.
+	BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool
 
 	// Render draws widgets on the provided window.
 	// It is usually called several times not only when the page is navigated to.
@@ -27,12 +29,17 @@ type navPageHandler interface {
 	Render(window *nucular.Window)
 }
 
-type notImplementedNavPageHandler struct{}
+type notImplementedNavPageHandler struct{
+	pageTitle string
+}
 
-func (_ *notImplementedNavPageHandler) BeforeRender() {}
-func (_ *notImplementedNavPageHandler) Render(window *nucular.Window, _ walletcore.Wallet) {
-	w := widgets.Window{window}
-	w.DisplayErrorMessage("Page not yet implemented")
+func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func()) bool {
+	return true
+}
+func (p *notImplementedNavPageHandler) Render(window *nucular.Window) {
+	widgets.PageContentWindowDefaultPadding(p.pageTitle, window, func(contentWindow *widgets.Window) {
+		contentWindow.DisplayMessage("Page not yet implemented", styles.GrayColor)
+	})
 }
 
 type standalonePage struct {
@@ -60,7 +67,7 @@ func getNavPages() []navPage {
 		{
 			name:    "send",
 			label:   "Send",
-			handler: &pagehandlers.SendHandler{},
+			handler: &notImplementedNavPageHandler{"Send"},
 		},
 		{
 			name:    "receive",
@@ -70,22 +77,22 @@ func getNavPages() []navPage {
 		{
 			name:    "staking",
 			label:   "Staking",
-			handler: &pagehandlers.StakingHandler{},
+			handler: &notImplementedNavPageHandler{"Staking"},
 		},
 		{
 			name:    "accounts",
 			label:   "Accounts",
-			handler: &notImplementedNavPageHandler{},
+			handler: &notImplementedNavPageHandler{"Accounts"},
 		},
 		{
 			name:    "security",
 			label:   "Security",
-			handler: &notImplementedNavPageHandler{},
+			handler: &notImplementedNavPageHandler{"Security"},
 		},
 		{
 			name:    "settings",
 			label:   "Settings",
-			handler: &notImplementedNavPageHandler{},
+			handler: &notImplementedNavPageHandler{"Settings"},
 		},
 	}
 }

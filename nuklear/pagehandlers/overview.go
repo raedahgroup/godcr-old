@@ -8,12 +8,13 @@ import (
 )
 
 type OverviewHandler struct {
-	err         error
-	accounts    []*walletcore.Account
+	err      error
+	accounts []*walletcore.Account
 }
 
-func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, _ func()) {
+func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, _ func()) bool {
 	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	return true
 }
 
 func (handler *OverviewHandler) Render(window *nucular.Window) {
