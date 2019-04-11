@@ -7,7 +7,8 @@ export default class extends Controller {
     return [
       'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword',
       'confirmPasswordError', 'changePasswordErrorMessage',
-      'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification'
+      'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification',
+      'changeCurrencyConverterErrorMessage', 'currencyConverterNone', 'currencyConverterBitrex', 'updateCurrencyConverterButton'
     ]
   }
 
@@ -135,6 +136,22 @@ export default class extends Controller {
     }).catch(() => {
       _this.showNewBlockNotificationTarget.checked = !_this.showNewBlockNotificationTarget.checked
       showErrorNotification('A server error occurred')
+    })
+  }
+
+  updateCurrencyConverter () {
+    const _this = this
+    const postData = `currency-converter=${(this.currencyConverterBitrexTarget.checked ? 'bitrex' : 'none')}`
+    axios.put('/settings', postData).then((response) => {
+      let result = response.data
+      if (result.error) {
+        _this.changeCurrencyConverterErrorMessageTarget.textContent = result.error ? result.error : 'Something went wrong, please try again later'
+        return
+      }
+      showSuccessNotification('Changes saved successfully')
+      $('#currency-converter-modal').modal('hide')
+    }).catch(() => {
+      _this.changeCurrencyConverterErrorMessageTarget.textContent = 'A server error occurred'
     })
   }
 }

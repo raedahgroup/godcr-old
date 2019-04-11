@@ -41,7 +41,7 @@
                                 </div>
                             </label>
 
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-toggle="modal" data-target="#currency-converter-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Currency Conversion</h5>
                                 </div>
@@ -111,6 +111,45 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                     <button data-action="click->settings#changePassword" type="button" class="btn btn-success">Change Password</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="currency-converter-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <form>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Currency Converter</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div data-target="settings.changeCurrencyConverterErrorMessage" class="alert alert-danger d-none"></div>
+
+                    <div class="form-check form-check-inline">
+                        <input data-target="settings.currencyConverterNone" class="form-check-input form-check-inline" type="radio"
+                                {{ if (eq "none" .currencyConverter) }} checked {{ end }}
+                               name="currencyConverter" id="currencyConverterNone" value="None">
+                        <label class="form-check-label" for="currencyConverterNone">
+                            None
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input data-target="settings.currencyConverterBitrex" class="form-check-input form-check-inline" type="radio"
+                                {{ if (eq "bitrex" .currencyConverter) }} checked {{ end }}
+                               name="currencyConverter" id="currencyConverterBitrex" value="Bitrex">
+                        <label class="form-check-label" for="currencyConverterBitrex">
+                            Bitrex
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button data-target="settings.updateCurrencyConverterButton" data-action="click->settings#updateCurrencyConverter" type="button" class="btn btn-primary">Update</button>
                 </div>
             </div>
         </form>

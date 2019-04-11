@@ -476,7 +476,8 @@ func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"spendUnconfirmedFunds":               routes.settings.SpendUnconfirmed,
 		"showIncomingTransactionNotification": routes.settings.ShowIncomingTransactionNotification,
-		"showNewBlockNotification": routes.settings.ShowNewBlockNotification,
+		"showNewBlockNotification":            routes.settings.ShowNewBlockNotification,
+		"currencyConverter":                   routes.settings.CurrencyConverter,
 	}
 	routes.renderPage("settings.html", data, res)
 }
@@ -558,6 +559,17 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 		routes.settings.ShowNewBlockNotification = showNewBlockNotification
+	}
+
+	if currencyConverter := req.FormValue("currency-converter"); currencyConverter != "" {
+		err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.CurrencyConverter = currencyConverter
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.CurrencyConverter = currencyConverter
 	}
 
 	data["success"] = true
