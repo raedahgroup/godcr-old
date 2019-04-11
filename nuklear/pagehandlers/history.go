@@ -3,10 +3,10 @@ package pagehandlers
 import (
 	"context"
 
+	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"github.com/aarzilli/nucular"
 )
 
 type HistoryHandler struct {

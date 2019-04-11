@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"fmt"
 )
 
 const navWidth = 200
@@ -129,6 +129,11 @@ func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) 
 
 	// then create a group window and draw the nav buttons
 	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
+		navGroupWindow.AddSpacing(0, 10)
+		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", app.DisplayName, desktop.walletMiddleware.NetType()),
+			styles.DecredLightBlueColor, widgets.CenterAlign)
+		navGroupWindow.AddSpacing(0, 10)
+
 		for _, page := range getNavPages() {
 			navGroupWindow.AddBigButton(page.label, func() {
 				desktop.changePage(window, page.name)

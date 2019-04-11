@@ -5,6 +5,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type navPage struct {
@@ -16,6 +17,14 @@ type navPage struct {
 type navPageHandler interface {
 	BeforeRender()
 	Render(*nucular.Window, walletcore.Wallet)
+}
+
+type notImplementedNavPageHandler struct{}
+
+func (_ *notImplementedNavPageHandler) BeforeRender() {}
+func (_ *notImplementedNavPageHandler) Render(window *nucular.Window, _ walletcore.Wallet) {
+	w := widgets.Window{window}
+	w.DisplayErrorMessage("Page not yet implemented")
 }
 
 type standalonePage struct {
@@ -54,6 +63,21 @@ func getNavPages() []navPage {
 			name:    "staking",
 			label:   "Staking",
 			handler: &pagehandlers.StakingHandler{},
+		},
+		{
+			name:    "accounts",
+			label:   "Accounts",
+			handler: &notImplementedNavPageHandler{},
+		},
+		{
+			name:    "security",
+			label:   "Security",
+			handler: &notImplementedNavPageHandler{},
+		},
+		{
+			name:    "settings",
+			label:   "Settings",
+			handler: &notImplementedNavPageHandler{},
 		},
 	}
 }

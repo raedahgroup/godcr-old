@@ -35,15 +35,15 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 	//change page onSyncStatusSuccess
 	if s.status == walletcore.SyncStatusSuccess {
-		//changePage(window, "overview")
-		//return
+		changePage(window, "overview")
+		return
 	}
 
 	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
 		pageWindow.AddLabelWithFont("Synchronizing", widgets.CenterAlign, styles.PageHeaderFont)
 
-		pageWindow.PageContentWindow("sync-page-content", func(contentWindow *widgets.Window) {
+		pageWindow.PageContentWindow("sync-page-content", 10, 10, func(contentWindow *widgets.Window) {
 			if s.err != nil {
 				contentWindow.DisplayErrorMessage(s.err.Error())
 			} else {

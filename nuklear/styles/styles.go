@@ -42,6 +42,7 @@ func MasterWindowStyle() *style.Style {
 func SetNavStyle(masterWindow nucular.MasterWindow) {
 	currentStyle := masterWindow.Style()
 	currentStyle.Font = NavFont
+	currentStyle.GroupWindow.Padding = image.Point{0, 0}
 	currentStyle.GroupWindow.FixedBackground.Data.Color = DecredDarkBlueColor
 	currentStyle.Button.Normal.Data.Color = DecredDarkBlueColor
 	currentStyle.Button.Hover.Data.Color = DecredLightBlueColor

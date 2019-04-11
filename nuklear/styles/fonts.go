@@ -9,39 +9,50 @@ import (
 )
 
 var (
-	NavFont         font.Face
-	PageHeaderFont  font.Face
-	PageContentFont font.Face
+	NavFont             font.Face
+	PageHeaderFont      font.Face
+	PageContentFont     font.Face
+	BoldPageContentFont font.Face
 )
 
 const (
 	pageHeaderFontSize  = 18
-	pageContentFontSize = 14
+	pageContentFontSize = 16
 	navFontSize         = 16
 )
 
 func InitFonts() error {
-	robotoMediumFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Medium.ttf")
+	boldItalicsFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-SemiboldIt.ttf")
 	if err != nil {
 		return err
 	}
 
-	robotoLightFontData, err := ioutil.ReadFile("nuklear/assets/font/Roboto-Light.ttf")
+	semiBoldFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-Semibold.ttf")
 	if err != nil {
 		return err
 	}
 
-	NavFont, err = getFont(navFontSize, robotoMediumFontData)
+	regularFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-Regular.ttf")
 	if err != nil {
 		return err
 	}
 
-	PageHeaderFont, err = getFont(pageHeaderFontSize, robotoMediumFontData)
+	NavFont, err = getFont(navFontSize, regularFontBytes)
 	if err != nil {
 		return err
 	}
 
-	PageContentFont, err = getFont(pageContentFontSize, robotoLightFontData)
+	PageHeaderFont, err = getFont(pageHeaderFontSize, boldItalicsFontBytes)
+	if err != nil {
+		return err
+	}
+
+	PageContentFont, err = getFont(pageContentFontSize, regularFontBytes)
+	if err != nil {
+		return err
+	}
+
+	BoldPageContentFont, err = getFont(pageContentFontSize, semiBoldFontBytes)
 	if err != nil {
 		return err
 	}
@@ -49,8 +60,8 @@ func InitFonts() error {
 	return nil
 }
 
-func getFont(fontSize int, fontData []byte) (font.Face, error) {
-	ttfont, err := freetype.ParseFont(fontData)
+func getFont(fontSize int, fontBytes []byte) (font.Face, error) {
+	ttfont, err := freetype.ParseFont(fontBytes)
 	if err != nil {
 		return nil, err
 	}

@@ -4,9 +4,9 @@ import (
 	"image"
 
 	"github.com/aarzilli/nucular"
+	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"golang.org/x/image/font"
-	"github.com/aarzilli/nucular/rect"
 )
 
 const defaultPageContentPadding = 10
@@ -32,19 +32,22 @@ func ScrollableGroupWindow(uniqueWindowTitle string, parentWindow *nucular.Windo
 }
 
 func PageContentWindowDefaultPadding(pageTitle string, parentWindow *nucular.Window, windowReady func(contentWindow *Window)) {
-	PageContentWindowWithPadding(pageTitle, parentWindow, defaultPageContentPadding, defaultPageContentPadding, windowReady)
+	PageContentWindowWithPadding(pageTitle, parentWindow, defaultPageContentPadding, 0, windowReady)
 }
 
 func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window, xPadding, yPadding int, windowReady func(contentWindow *Window)) {
 	NoScrollGroupWindow(pageTitle+"-page", parentWindow, func(pageWindow *Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
+
+		pageWindow.AddSpacing(0, defaultPageContentPadding)
 		pageWindow.SetPageTitle(pageTitle)
 		pageWindow.AddSpacing(0, defaultPageContentPadding)
-		pageWindow.PageContentWindow(pageTitle+"-page-content", windowReady)
+
+		pageWindow.PageContentWindow(pageTitle+"-page-content", xPadding, yPadding, windowReady)
 	})
 }
 
-func (window *Window) PageContentWindow(uniqueWindowTitle string, windowReady func(*Window)) {
+func (window *Window) PageContentWindow(uniqueWindowTitle string, xPadding, yPadding int, windowReady func(*Window)) {
 	// create a rect for this page content window to prevent styles from spilling into other windows
 	pageContentArea := window.Row(0).SpaceBegin(1)
 	window.LayoutSpacePushScaled(rect.Rect{
@@ -55,6 +58,7 @@ func (window *Window) PageContentWindow(uniqueWindowTitle string, windowReady fu
 	})
 
 	window.Master().Style().Font = styles.PageContentFont
+	window.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
 
 	// create group window
 	ScrollableGroupWindow(uniqueWindowTitle, window.Window, windowReady)
@@ -83,7 +87,7 @@ func (window *Window) SetPageTitle(title string) {
 }
 
 func (window *Window) DisplayErrorMessage(errorMessage string) {
-	window.AddWrappedLabelWithColor("Error: " + errorMessage, styles.DecredOrangeColor)
+	window.AddWrappedLabelWithColor("Error: "+errorMessage, styles.DecredOrangeColor)
 }
 
 func (window *Window) DoneAddingWidgets() {

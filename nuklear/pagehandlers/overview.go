@@ -3,6 +3,7 @@ package pagehandlers
 import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -27,14 +28,12 @@ func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore
 	}
 
 	widgets.PageContentWindowDefaultPadding("Overview", window, func(contentWindow *widgets.Window) {
-		contentWindow.Row(25).Dynamic(1)
-		contentWindow.Label("Current Total Balance", "LC")
+		contentWindow.AddLabelWithFont("Current Total Balance", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 
 		if handler.err != nil {
 			contentWindow.DisplayErrorMessage(handler.err.Error())
 		} else {
-			contentWindow.Row(25).Dynamic(1)
-			contentWindow.Label(walletcore.WalletBalance(handler.accounts), "LC")
+			contentWindow.AddLabel(walletcore.WalletBalance(handler.accounts), widgets.LeftCenterAlign)
 		}
 	})
 }

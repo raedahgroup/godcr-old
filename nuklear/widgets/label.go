@@ -38,12 +38,13 @@ func (window *Window) DrawLabel(text string, height int, align label.Align, font
 	})
 }
 
-func (window *Window) DrawColoredLabel(text string, height int, color color.RGBA, align label.Align) {
-	if height < 20 {
-		height = 20 // seems labels will not be drawn if row height is less than 20
+func (window *Window) AddColoredLabel(text string, color color.RGBA, align label.Align) {
+	singleLineHeight := nucular.FontHeight(window.Font()) + 1
+	if singleLineHeight < 20 {
+		singleLineHeight = 20 // seems labels will not be drawn if row height is less than 20
 	}
 
-	window.Row(height).Dynamic(1)
+	window.Row(singleLineHeight).Dynamic(1)
 	window.LabelColored(text, align, color)
 }
 
@@ -72,7 +73,7 @@ func (window *Window) WrappedLabelTextHeight(text string, font fontFace) int {
 	nLines := math.Ceil(float64(textWidth) / float64(window.LayoutAvailableWidth()))
 	singleLineHeight := nucular.FontHeight(font) + 1
 
-	return int(nLines) * singleLineHeight + 20 // seems labels will not be drawn if row height is not way higher than necessary
+	return int(nLines)*singleLineHeight + 20 // seems labels will not be drawn if row height is not way higher than necessary
 }
 
 func (window *Window) DrawWrappedLabel(text string, height int, font fontFace) {
