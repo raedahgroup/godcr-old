@@ -9,6 +9,8 @@ import (
 	"github.com/aarzilli/nucular/rect"
 )
 
+const defaultPageContentPadding = 10
+
 type Window struct {
 	*nucular.Window
 }
@@ -29,14 +31,15 @@ func ScrollableGroupWindow(uniqueWindowTitle string, parentWindow *nucular.Windo
 	GroupWindow(uniqueWindowTitle, parentWindow, 0, windowReady)
 }
 
-func PageContentWindowWithTitle(pageTitle string, parentWindow *nucular.Window, windowReady func(contentWindow *Window)) {
-	PageContentWindowWithTitleAndPadding(pageTitle, parentWindow, 0, 0, windowReady)
+func PageContentWindowDefaultPadding(pageTitle string, parentWindow *nucular.Window, windowReady func(contentWindow *Window)) {
+	PageContentWindowWithPadding(pageTitle, parentWindow, defaultPageContentPadding, defaultPageContentPadding, windowReady)
 }
 
-func PageContentWindowWithTitleAndPadding(pageTitle string, parentWindow *nucular.Window, xPadding, yPadding int, windowReady func(contentWindow *Window)) {
+func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window, xPadding, yPadding int, windowReady func(contentWindow *Window)) {
 	NoScrollGroupWindow(pageTitle+"-page", parentWindow, func(pageWindow *Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
 		pageWindow.SetPageTitle(pageTitle)
+		pageWindow.AddSpacing(0, defaultPageContentPadding)
 		pageWindow.PageContentWindow(pageTitle+"-page-content", windowReady)
 	})
 }
@@ -55,6 +58,10 @@ func (window *Window) PageContentWindow(uniqueWindowTitle string, windowReady fu
 
 	// create group window
 	ScrollableGroupWindow(uniqueWindowTitle, window.Window, windowReady)
+}
+
+func (window *Window) Font() font.Face {
+	return window.Master().Style().Font
 }
 
 func (window *Window) SetFont(font font.Face) {
@@ -76,7 +83,7 @@ func (window *Window) SetPageTitle(title string) {
 }
 
 func (window *Window) DisplayErrorMessage(errorMessage string) {
-	window.AddWrappedLabelWithColor(errorMessage, styles.DecredOrangeColor)
+	window.AddWrappedLabelWithColor("Error: " + errorMessage, styles.DecredOrangeColor)
 }
 
 func (window *Window) DoneAddingWidgets() {

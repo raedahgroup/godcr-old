@@ -17,7 +17,7 @@ var (
 const (
 	pageHeaderFontSize  = 18
 	pageContentFontSize = 14
-	navFontSize         = 14
+	navFontSize         = 16
 )
 
 func InitFonts() error {

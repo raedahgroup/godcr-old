@@ -36,7 +36,7 @@ func (handler *HistoryHandler) Render(window *nucular.Window, wallet walletcore.
 		go handler.fetchHistory(wallet, window)
 	}
 
-	widgets.PageContentWindowWithTitle("History", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
 		if handler.hasFetchedTransactions {
 			if handler.err != nil {
 				contentWindow.DisplayErrorMessage(handler.err.Error())

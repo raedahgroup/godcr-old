@@ -41,11 +41,17 @@ func MasterWindowStyle() *style.Style {
 
 func SetNavStyle(masterWindow nucular.MasterWindow) {
 	currentStyle := masterWindow.Style()
-	currentStyle.GroupWindow.FixedBackground.Data.Color = DecredDarkBlueColor
 	currentStyle.Font = NavFont
+	currentStyle.GroupWindow.FixedBackground.Data.Color = DecredDarkBlueColor
+	currentStyle.Button.Normal.Data.Color = DecredDarkBlueColor
+	currentStyle.Button.Hover.Data.Color = DecredLightBlueColor
+	currentStyle.Button.Active.Data.Color = DecredLightBlueColor
 }
 
 func SetPageStyle(masterWindow nucular.MasterWindow) {
 	currentStyle := masterWindow.Style()
 	currentStyle.GroupWindow.FixedBackground.Data.Color = WhiteColor
+	currentStyle.Button.Normal.Data.Color = DecredLightBlueColor
+	currentStyle.Button.Hover.Data.Color = DecredDarkBlueColor
+	currentStyle.Button.Active.Data.Color = DecredDarkBlueColor
 }

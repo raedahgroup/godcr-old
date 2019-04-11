@@ -10,9 +10,10 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"fmt"
 )
 
-const navWidth = 250
+const navWidth = 200
 
 type Desktop struct {
 	walletMiddleware app.WalletMiddleware
@@ -20,13 +21,14 @@ type Desktop struct {
 	pageChanged      bool
 	navPages         map[string]navPageHandler
 	standalonePages  map[string]standalonePageHandler
+	quitApp          func()
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
-		currentPage:      "sync",
+		currentPage:      "overview", // todo rename to sync
 	}
 
 	// initialize master window and set style
@@ -63,6 +65,8 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.currentPage = "createwallet"
 	}
 
+	desktop.quitApp = masterWindow.Close
+
 	// draw master window
 	masterWindow.Main()
 	return nil
@@ -74,8 +78,11 @@ func (desktop *Desktop) render(window *nucular.Window) {
 	} else if handler, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
 		desktop.renderNavPage(window, handler)
 	} else {
-		nuklog.LogError(errors.New("Page not properly set up: " + desktop.currentPage))
-		// todo show a message on the window
+		errorMessage := fmt.Sprintf("Page not properly set up: %s", desktop.currentPage)
+		nuklog.LogError(errors.New(errorMessage))
+
+		w := &widgets.Window{window}
+		w.DisplayErrorMessage(errorMessage)
 	}
 }
 
@@ -95,7 +102,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 	// the navigation section on the window and the main page content
 	entireWindow := window.Row(0).SpaceBegin(2)
 
-	renderNavSection(window, entireWindow.H, desktop.changePage)
+	desktop.renderNavSection(window, entireWindow.H)
 	renderPageContentSection(window, entireWindow.W, entireWindow.H)
 
 	// ensure that the handler's BeforeRender function is called only once per page call
@@ -108,7 +115,7 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 	handler.Render(window, desktop.walletMiddleware)
 }
 
-func renderNavSection(window *nucular.Window, maxHeight int, changePage func(*nucular.Window, string)) {
+func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) {
 	navSection := rect.Rect{
 		X: 0,
 		Y: 0,
@@ -123,10 +130,15 @@ func renderNavSection(window *nucular.Window, maxHeight int, changePage func(*nu
 	// then create a group window and draw the nav buttons
 	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
 		for _, page := range getNavPages() {
-			navGroupWindow.AddButton(page.label, func() {
-				changePage(window, page.name)
+			navGroupWindow.AddBigButton(page.label, func() {
+				desktop.changePage(window, page.name)
 			})
 		}
+
+		// add exit button
+		navGroupWindow.AddBigButton("Exit", func() {
+			go desktop.quitApp()
+		})
 	})
 }
 

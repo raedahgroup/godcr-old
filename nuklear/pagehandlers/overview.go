@@ -26,7 +26,7 @@ func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	widgets.PageContentWindowWithTitle("Overview", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("Overview", window, func(contentWindow *widgets.Window) {
 		contentWindow.Row(25).Dynamic(1)
 		contentWindow.Label("Current Total Balance", "LC")
 

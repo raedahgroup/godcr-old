@@ -72,7 +72,7 @@ func (handler *SendHandler) Render(window *nucular.Window, wallet walletcore.Wal
 
 	masterWindow := window.Master()
 
-	widgets.PageContentWindowWithTitle("Send", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("Send", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
 			contentWindow.Row(styles.LabelHeight).Dynamic(1)
 			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)

@@ -38,7 +38,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
 	}
 
-	widgets.PageContentWindowWithTitle("Create Wallet", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("Create Wallet", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
 			contentWindow.Row(styles.ErrorTextHeight).Dynamic(1)
 			contentWindow.LabelColored(handler.err.Error(), "LC", styles.DecredOrangeColor)

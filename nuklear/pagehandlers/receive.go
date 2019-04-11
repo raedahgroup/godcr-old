@@ -41,7 +41,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.
 		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
-	widgets.PageContentWindowWithTitle("Generate Receive Address", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("Generate Receive Address", window, func(contentWindow *widgets.Window) {
 		if handler.err != nil {
 			contentWindow.DisplayErrorMessage(handler.err.Error())
 		} else {

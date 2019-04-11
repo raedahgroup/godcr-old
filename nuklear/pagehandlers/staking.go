@@ -58,7 +58,7 @@ func (handler *StakingHandler) Render(window *nucular.Window, wallet walletcore.
 		handler.fetchAccounts(wallet)
 	}
 
-	widgets.PageContentWindowWithTitle("Staking", window, func(contentWindow *widgets.Window) {
+	widgets.PageContentWindowDefaultPadding("Staking", window, func(contentWindow *widgets.Window) {
 		handler.displayStakeInfo(contentWindow)
 		handler.displayPurchaseTicketForm(contentWindow, wallet)
 	})
