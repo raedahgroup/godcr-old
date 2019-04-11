@@ -10,11 +10,11 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 	qrcode "github.com/skip2/go-qrcode"
+	"github.com/decred/dcrwallet/wallet"
 )
 
 type ReceiveHandler struct {
 	err         error
-	isRendering bool
 	accounts    []*walletcore.Account
 
 	// form selector index
@@ -25,20 +25,19 @@ type ReceiveHandler struct {
 	generatedAddress string
 }
 
-func (handler *ReceiveHandler) BeforeRender() {
+func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) {
+	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	handler.err = nil
 	handler.accounts = nil
-	handler.isRendering = false
 
 	// form selector index
 	handler.selectedAccountIndex = 0
 	handler.selectedAccountNumber = uint32(0)
 }
 
-func (handler *ReceiveHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
+func (handler *ReceiveHandler) Render(window *nucular.Window) {
 	if !handler.isRendering {
 		handler.isRendering = true
-		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	}
 
 	widgets.PageContentWindowDefaultPadding("Generate Receive Address", window, func(contentWindow *widgets.Window) {

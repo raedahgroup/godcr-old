@@ -108,11 +108,11 @@ func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHan
 	// ensure that the handler's BeforeRender function is called only once per page call
 	// as it initializes page variables
 	if desktop.pageChanged {
-		handler.BeforeRender()
+		handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed)
 		desktop.pageChanged = false
 	}
 
-	handler.Render(window, desktop.walletMiddleware)
+	handler.Render(window)
 }
 
 func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) {

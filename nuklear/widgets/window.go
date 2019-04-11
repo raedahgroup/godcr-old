@@ -90,6 +90,10 @@ func (window *Window) DisplayErrorMessage(errorMessage string) {
 	window.AddWrappedLabelWithColor("Error: "+errorMessage, styles.DecredOrangeColor)
 }
 
+func (window *Window) DisplayIsLoadingMessage() {
+	window.AddColoredLabel("Fetching data...", styles.DecredOrangeColor, LeftCenterAlign)
+}
+
 func (window *Window) DoneAddingWidgets() {
 	window.GroupEnd()
 }

@@ -2,72 +2,95 @@ package pagehandlers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 )
 
 type HistoryHandler struct {
 	err                    error
-	isRendering            bool
+	ctx                    context.Context
 	transactions           []*walletcore.Transaction
-	hasFetchedTransactions bool
-
-	// pagination params
-	startBlockHeight int32
-	endBlockHeight   int32
+	isFetchingTransactions bool
+	nextBlockHeight        int32
 }
 
-func (handler *HistoryHandler) BeforeRender() {
+func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) {
+	// todo: caller should ideally pass a context parameter, propagated from main.go
+	handler.ctx = context.Background()
+
+	handler.isFetchingTransactions = false
 	handler.err = nil
 	handler.transactions = nil
-	handler.isRendering = false
-	handler.hasFetchedTransactions = false
 
-	handler.startBlockHeight = -1
-	handler.endBlockHeight = 0
+	go handler.fetchTransactions(wallet, refreshWindowDisplay)
 }
 
-func (handler *HistoryHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
-	if !handler.isRendering {
-		handler.isRendering = true
-		go handler.fetchHistory(wallet, window)
-	}
-
+func (handler *HistoryHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		if handler.hasFetchedTransactions {
-			if handler.err != nil {
-				contentWindow.DisplayErrorMessage(handler.err.Error())
-			} else {
-				contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
-					contentWindow.Row(styles.LabelHeight).Static(100, 60, 70, 70, 40, 200)
-					contentWindow.Label("Date", "LC")
-					contentWindow.Label("Direction", "LC")
-					contentWindow.Label("Amount", "LC")
-					contentWindow.Label("Fee", "LC")
-					contentWindow.Label("Type", "LC")
-					contentWindow.Label("Hash", "LC")
-				})
+		if handler.err != nil {
+			contentWindow.DisplayErrorMessage(handler.err.Error())
+		} else if len(handler.transactions) > 0 {
+			handler.displayTransactions(contentWindow)
+		}
 
-				for _, tx := range handler.transactions {
-					contentWindow.Label(tx.FormattedTime, "LC")
-					contentWindow.Label(tx.Direction.String(), "LC")
-					contentWindow.Label(tx.Amount, "LC")
-					contentWindow.Label(tx.Fee, "LC")
-					contentWindow.Label(tx.Type, "LC")
-					contentWindow.Label(tx.Hash, "LC")
-				}
-			}
-		} else {
-			widgets.ShowLoadingWidget(contentWindow.Window)
+		// show loading indicator if tx is being fetched
+		if handler.isFetchingTransactions {
+			contentWindow.DisplayIsLoadingMessage()
 		}
 	})
 }
 
-func (handler *HistoryHandler) fetchHistory(wallet walletcore.Wallet, window *nucular.Window) {
-	handler.transactions, handler.endBlockHeight, handler.err = wallet.TransactionHistory(context.Background(), handler.startBlockHeight, walletcore.TransactionHistoryCountPerPage)
-	handler.hasFetchedTransactions = true
-	window.Master().Changed()
+func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, refreshWindowDisplay func()) {
+	handler.isFetchingTransactions = true
+
+	if len(handler.transactions) == 0 {
+		// first page
+		handler.nextBlockHeight = -1
+	}
+
+	transactions, endBlockHeight, err := wallet.TransactionHistory(handler.ctx, handler.nextBlockHeight,
+		walletcore.TransactionHistoryCountPerPage)
+
+	// next start block should be the block immediately preceding the current end block
+	handler.err = err
+	handler.transactions = append(handler.transactions, transactions...)
+	handler.nextBlockHeight = endBlockHeight - 1
+
+	refreshWindowDisplay()
+
+	// load more if possible
+	if handler.nextBlockHeight >= 0 {
+		handler.fetchTransactions(wallet, refreshWindowDisplay)
+	} else {
+		handler.isFetchingTransactions = false
+	}
+}
+
+func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window) {
+	// render table header with nav font
+	contentWindow.UseFontAndResetToPrevious(styles.NavFont, func() {
+		contentWindow.Row(20).Static(25, 80, 60, 70, 70, 80, 300)
+		contentWindow.Label("#", "LC")
+		contentWindow.Label("Date", "LC")
+		contentWindow.Label("Direction", "LC")
+		contentWindow.Label("Amount", "LC")
+		contentWindow.Label("Fee", "LC")
+		contentWindow.Label("Type", "LC")
+		contentWindow.Label("Hash", "LC")
+	})
+
+	for i, tx := range handler.transactions {
+		contentWindow.Row(15).Static(25, 80, 60, 70, 70, 80, 300)
+		contentWindow.Label(fmt.Sprintf("%d", i+1), "LC")
+		contentWindow.Label(tx.FormattedTime, "LC")
+		contentWindow.Label(tx.Direction.String(), "LC")
+		contentWindow.Label(tx.Amount, "RC")
+		contentWindow.Label(tx.Fee, "RC")
+		contentWindow.Label(tx.Type, "LC")
+		contentWindow.Label(tx.Hash, "LC")
+	}
 }

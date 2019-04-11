@@ -9,24 +9,14 @@ import (
 
 type OverviewHandler struct {
 	err         error
-	isRendering bool
 	accounts    []*walletcore.Account
-	detailed    bool
 }
 
-func (handler *OverviewHandler) BeforeRender() {
-	handler.err = nil
-	handler.accounts = nil
-	handler.isRendering = false
-	handler.detailed = false
+func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, _ func()) {
+	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 }
 
-func (handler *OverviewHandler) Render(window *nucular.Window, wallet walletcore.Wallet) {
-	if !handler.isRendering {
-		handler.isRendering = true
-		handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	}
-
+func (handler *OverviewHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("Overview", window, func(contentWindow *widgets.Window) {
 		contentWindow.AddLabelWithFont("Current Total Balance", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 
