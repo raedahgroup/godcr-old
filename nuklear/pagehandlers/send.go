@@ -15,18 +15,18 @@ import (
 
 const (
 	addressFieldWidth = 300
-	amountFieldWidth = 150
-	sectionSpacing = 20
+	amountFieldWidth  = 150
+	sectionSpacing    = 20
 )
 
 type SendHandler struct {
-	wallet                walletcore.Wallet
+	wallet               walletcore.Wallet
 	refreshWindowDisplay func()
 
-	spendUnconfirmed   bool
+	spendUnconfirmed      bool
 	accountSelectorWidget *widgets.AccountSelector
 
-	selectCustomInputs bool
+	selectCustomInputs  bool
 	isFetchingUTXOS     bool
 	utxosFetchError     error
 	utxos               []*utxoSelection
@@ -35,8 +35,8 @@ type SendHandler struct {
 	sendDestinations []*sendDestination
 
 	isSubmitting bool
-	sendErr        error
-	successHash string
+	sendErr      error
+	successHash  string
 }
 
 type utxoSelection struct {
@@ -182,7 +182,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 		if handler.sendErr != nil {
 			contentWindow.DisplayErrorMessage("Send tx error", handler.sendErr)
 		} else if handler.successHash != "" {
-			successMessage := "The transaction was published successfully. Hash: "+handler.successHash
+			successMessage := "The transaction was published successfully. Hash: " + handler.successHash
 			contentWindow.AddWrappedLabelWithColor(successMessage, widgets.LeftCenterAlign, styles.DecredGreenColor)
 		}
 	})

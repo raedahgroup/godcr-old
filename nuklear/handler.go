@@ -5,8 +5,8 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
-	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type navPage struct {
@@ -29,7 +29,7 @@ type navPageHandler interface {
 	Render(window *nucular.Window)
 }
 
-type notImplementedNavPageHandler struct{
+type notImplementedNavPageHandler struct {
 	pageTitle string
 }
 

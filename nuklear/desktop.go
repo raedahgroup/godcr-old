@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	navWidth = 200
+	navWidth            = 200
 	defaultWindowWidth  = 800
 	defaultWindowHeight = 600
 )

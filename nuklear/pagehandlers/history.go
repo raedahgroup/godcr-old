@@ -72,7 +72,7 @@ func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, refre
 
 func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window) {
 	historyTable := widgets.NewTable()
-	
+
 	// render table header with nav font
 	historyTable.AddRowWithFont(styles.NavFont,
 		widgets.NewLabelTableCell("#", "LC"),

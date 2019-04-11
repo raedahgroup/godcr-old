@@ -3,12 +3,12 @@ package widgets
 import (
 	"image"
 
+	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"golang.org/x/image/font"
 	"image/color"
-	"fmt"
 )
 
 const defaultPageContentPadding = 10

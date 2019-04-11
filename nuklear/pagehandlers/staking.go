@@ -22,13 +22,13 @@ type StakingHandler struct {
 	stakeInfo           *walletcore.StakeInfo
 
 	spendUnconfirmed      bool
-	accountSelector     *widgets.AccountSelector
+	accountSelector       *widgets.AccountSelector
 	numTicketsInput       *nucular.TextEditor
 	numTicketsInputErrStr string
 
 	isPurchasingTickets    bool
 	purchasedTicketsHashes []string
-	purchaseTicketsError error
+	purchaseTicketsError   error
 }
 
 func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
@@ -36,7 +36,7 @@ func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 
 	handler.stakeInfoFetchError = nil
 	handler.stakeInfo = nil
-	
+
 	// fetch stake info data in background as it could take long for wallets with much txs
 	go func() {
 		handler.stakeInfo, handler.stakeInfoFetchError = wallet.StakeInfo(context.Background())
@@ -101,7 +101,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Voted)), widgets.LeftCenterAlign),
 			widgets.NewLabelTableCell(handler.stakeInfo.TotalSubsidy, widgets.LeftCenterAlign),
 		)
-		
+
 		stakingTable.Render(contentWindow)
 	}
 }
@@ -220,7 +220,7 @@ func (handler *StakingHandler) submit(passphrase string, window *nucular.Window)
 
 func (handler *StakingHandler) resetPurchaseTicketsForm() {
 	handler.accountSelector.Reset()
-	
+
 	handler.numTicketsInput.Buffer = []rune{'1'}
 	handler.numTicketsInputErrStr = ""
 

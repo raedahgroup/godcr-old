@@ -4,19 +4,19 @@ import (
 	"image"
 	"image/draw"
 
+	"fmt"
 	"github.com/aarzilli/nucular"
+	"github.com/aarzilli/nucular/rect"
+	"github.com/atotto/clipboard"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/skip2/go-qrcode"
-	"github.com/aarzilli/nucular/rect"
-	"github.com/atotto/clipboard"
-	"fmt"
 )
 
 const (
-	qrCodeImageSize = 300
+	qrCodeImageSize                      = 300
 	qrCodeAddressHolderHorizontalPadding = 40
 )
 

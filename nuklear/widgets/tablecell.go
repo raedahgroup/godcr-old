@@ -51,16 +51,16 @@ func (label *LabelTableCell) MinWidth(window *Window) int {
 }
 
 type CheckboxTableCell struct {
-	label string
-	checked *bool
+	label        string
+	checked      *bool
 	checkChanged func()
 }
 
 func NewCheckboxTableCell(label string, checked *bool, checkChanged func()) *CheckboxTableCell {
 	return &CheckboxTableCell{
-		label: label,
-		checked:checked,
-		checkChanged:checkChanged,
+		label:        label,
+		checked:      checked,
+		checkChanged: checkChanged,
 	}
 }
 

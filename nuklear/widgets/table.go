@@ -7,8 +7,8 @@ type Table struct {
 }
 
 type TableRow struct {
-	cells []TableCell
-	font fontFace
+	cells     []TableCell
+	font      fontFace
 	isFontSet bool
 }
 
@@ -36,8 +36,8 @@ func (table *Table) AddRow(cells ...TableCell) {
 
 func (table *Table) AddRowWithFont(font fontFace, cells ...TableCell) {
 	row := &TableRow{
-		cells: cells,
-		font: font,
+		cells:     cells,
+		font:      font,
 		isFontSet: true,
 	}
 	table.rows = append(table.rows, row)
