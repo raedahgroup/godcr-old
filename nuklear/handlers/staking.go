@@ -1,4 +1,4 @@
-package pagehandlers
+package handlers
 
 import (
 	"context"

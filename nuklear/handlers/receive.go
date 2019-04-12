@@ -1,10 +1,9 @@
-package pagehandlers
+package handlers
 
 import (
 	"image"
 	"image/draw"
 
-	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/atotto/clipboard"
@@ -106,7 +105,6 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 
 		if addressClicked {
 			clipboard.WriteAll(handler.generatedAddress)
-			fmt.Println(handler.generatedAddress)
 		}
 	}
 }

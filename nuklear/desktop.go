@@ -3,15 +3,15 @@ package nuklear
 import (
 	"context"
 	"errors"
-
 	"fmt"
+	"image"
+
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"image"
 )
 
 const (
