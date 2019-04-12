@@ -4,7 +4,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/handlers"
+	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
 	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -57,27 +57,27 @@ func getNavPages() []navPage {
 		{
 			name:    "overview",
 			label:   "Overview",
-			handler: &handlers.OverviewHandler{},
+			handler: &pagehandlers.OverviewHandler{},
 		},
 		{
 			name:    "history",
 			label:   "History",
-			handler: &handlers.HistoryHandler{},
+			handler: &pagehandlers.HistoryHandler{},
 		},
 		{
 			name:    "send",
 			label:   "Send",
-			handler: &handlers.SendHandler{},
+			handler: &pagehandlers.SendHandler{},
 		},
 		{
 			name:    "receive",
 			label:   "Receive",
-			handler: &handlers.ReceiveHandler{},
+			handler: &pagehandlers.ReceiveHandler{},
 		},
 		{
 			name:    "staking",
 			label:   "Staking",
-			handler: &handlers.StakingHandler{},
+			handler: &pagehandlers.StakingHandler{},
 		},
 		{
 			name:    "accounts",
@@ -101,11 +101,11 @@ func getStandalonePages() []standalonePage {
 	return []standalonePage{
 		{
 			name:    "sync",
-			handler: &handlers.SyncHandler{},
+			handler: &pagehandlers.SyncHandler{},
 		},
 		{
 			name:    "createwallet",
-			handler: &handlers.CreateWalletHandler{},
+			handler: &pagehandlers.CreateWalletHandler{},
 		},
 	}
 }

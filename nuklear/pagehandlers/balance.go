@@ -1,4 +1,4 @@
-package handlers
+package pagehandlers
 
 import (
 	"github.com/aarzilli/nucular"
