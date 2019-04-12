@@ -6,7 +6,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -74,7 +74,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 	historyTable := widgets.NewTable()
 
 	// render table header with nav font
-	historyTable.AddRowWithFont(helpers.NavFont,
+	historyTable.AddRowWithFont(styles.NavFont,
 		widgets.NewLabelTableCell("#", "LC"),
 		widgets.NewLabelTableCell("Date", "LC"),
 		widgets.NewLabelTableCell("Direction", "LC"),

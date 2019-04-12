@@ -1,4 +1,4 @@
-package helpers
+package styles
 
 import (
 	"image"
@@ -13,7 +13,7 @@ var (
 )
 
 func MasterWindowStyle() *style.Style {
-	// load colors from color table then set other helpers
+	// load colors from color table then set other styles
 	masterWindowStyle := style.FromTable(masterWindowColorTable, 1.0)
 
 	// style windows

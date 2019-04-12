@@ -4,7 +4,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -57,21 +57,21 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 			formValidationLabels := make([]*widgets.LabelTableCell, 2)
 			if hasPasswordError {
 				formValidationLabels[0] = widgets.NewColoredLabelTableCell(passwordError, widgets.LeftCenterAlign,
-					helpers.DecredOrangeColor)
+					styles.DecredOrangeColor)
 			}
 			if hasConfirmPasswordError {
 				formValidationLabels[1] = widgets.NewColoredLabelTableCell(confirmPasswordError, widgets.LeftCenterAlign,
-					helpers.DecredOrangeColor)
+					styles.DecredOrangeColor)
 			}
 			contentWindow.AddLabelsWithWidths(columnWidths, formValidationLabels...)
 		}
 
 		contentWindow.AddHorizontalSpace(20)
-		contentWindow.AddLabelWithFont("Wallet Seed", widgets.LeftCenterAlign, helpers.BoldPageContentFont)
+		contentWindow.AddLabelWithFont("Wallet Seed", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 		contentWindow.AddWrappedLabel(handler.seed, widgets.LeftCenterAlign)
 
 		contentWindow.AddHorizontalSpace(10)
-		contentWindow.AddWrappedLabelWithColor(walletcore.StoreSeedWarningText, widgets.LeftCenterAlign, helpers.DecredOrangeColor)
+		contentWindow.AddWrappedLabelWithColor(walletcore.StoreSeedWarningText, widgets.LeftCenterAlign, styles.DecredOrangeColor)
 
 		contentWindow.AddHorizontalSpace(10)
 		contentWindow.AddCheckbox("I've stored the seed in a safe and secure location", &handler.hasStoredSeed, func() {
@@ -83,7 +83,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 			contentWindow.Master().Changed()
 		})
 		if hasStoredSeedError, ok := handler.validationErrors["hasstoredseed"]; ok {
-			contentWindow.AddColoredLabel(hasStoredSeedError, helpers.DecredOrangeColor, widgets.LeftCenterAlign)
+			contentWindow.AddColoredLabel(hasStoredSeedError, styles.DecredOrangeColor, widgets.LeftCenterAlign)
 		}
 
 		contentWindow.AddHorizontalSpace(20)

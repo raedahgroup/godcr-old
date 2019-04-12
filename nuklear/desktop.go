@@ -10,7 +10,7 @@ import (
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -39,10 +39,10 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	// initialize master window and set style
 	windowSize := image.Point{defaultWindowWidth, defaultWindowHeight}
 	masterWindow := nucular.NewMasterWindowSize(nucular.WindowNoScrollbar, app.Name, windowSize, desktop.render)
-	masterWindow.SetStyle(helpers.MasterWindowStyle())
+	masterWindow.SetStyle(styles.MasterWindowStyle())
 
 	// initialize fonts for later use
-	err := helpers.InitFonts()
+	err := styles.InitFonts()
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (desktop *Desktop) render(window *nucular.Window) {
 		nuklog.LogError(errors.New(errorMessage))
 
 		w := &widgets.Window{window}
-		w.DisplayMessage(errorMessage, helpers.DecredOrangeColor)
+		w.DisplayMessage(errorMessage, styles.DecredOrangeColor)
 	}
 }
 
@@ -101,7 +101,7 @@ func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler sta
 	}
 
 	window.Row(0).Dynamic(1)
-	helpers.SetPageStyle(window.Master())
+	styles.SetPageStyle(window.Master())
 
 	if desktop.pageChanged {
 		handler.BeforeRender()
@@ -145,14 +145,14 @@ func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) 
 	}
 	window.LayoutSpacePushScaled(navSection)
 
-	// set the window to use the background, font color and other helpers for drawing the nav items/buttons
-	helpers.SetNavStyle(window.Master())
+	// set the window to use the background, font color and other styles for drawing the nav items/buttons
+	styles.SetNavStyle(window.Master())
 
 	// then create a group window and draw the nav buttons
 	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
 		navGroupWindow.AddHorizontalSpace(10)
 		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", app.DisplayName, desktop.walletMiddleware.NetType()),
-			helpers.DecredLightBlueColor, widgets.CenterAlign)
+			styles.DecredLightBlueColor, widgets.CenterAlign)
 		navGroupWindow.AddHorizontalSpace(10)
 
 		for _, page := range getNavPages() {
@@ -177,7 +177,7 @@ func renderPageContentSection(window *nucular.Window, maxWidth, maxHeight int) {
 	}
 	window.LayoutSpacePushScaled(pageSection)
 
-	helpers.SetPageStyle(window.Master())
+	styles.SetPageStyle(window.Master())
 }
 
 func (desktop *Desktop) changePage(window *nucular.Window, newPage string) {

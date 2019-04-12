@@ -6,7 +6,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"image"
 )
@@ -40,7 +40,7 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
-		pageWindow.AddLabelWithFont("Synchronizing", widgets.CenterAlign, helpers.PageHeaderFont)
+		pageWindow.AddLabelWithFont("Synchronizing", widgets.CenterAlign, styles.PageHeaderFont)
 
 		pageWindow.PageContentWindow("sync-page-content", 10, 10, func(contentWindow *widgets.Window) {
 			if s.err != nil {

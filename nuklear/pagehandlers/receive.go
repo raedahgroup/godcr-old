@@ -9,7 +9,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 	"github.com/skip2/go-qrcode"
 )
@@ -36,7 +36,7 @@ func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 
 func (handler *ReceiveHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("Receiving Decred", window, func(contentWindow *widgets.Window) {
-		contentWindow.AddWrappedLabelWithColor(walletcore.ReceivingDecredHint, widgets.LeftCenterAlign, helpers.GrayColor)
+		contentWindow.AddWrappedLabelWithColor(walletcore.ReceivingDecredHint, widgets.LeftCenterAlign, styles.GrayColor)
 
 		contentWindow.AddHorizontalSpace(10)
 
