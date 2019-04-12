@@ -55,7 +55,7 @@ func WalletBalance(accounts []*Account) string {
 	}
 }
 
-// GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change address the user want
+// GetChangeDestinationsWithRandomAmounts generates change destination(s) based on the number of change addresses the user wants.
 func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, amountInAtom int64, sourceAccount uint32,
 	nUtxoSelection int, sendDestinations []txhelper.TransactionDestination) (changeOutputDestinations []txhelper.TransactionDestination, err error) {
 
@@ -97,20 +97,36 @@ func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, a
 	return
 }
 
-func BuildTxDestinations(destinationAddresses []string, destinationAmounts []string) (destinations []txhelper.TransactionDestination, err error) {
+func BuildTxDestinations(destinationAddresses, destinationAmounts, sendMaxAmountValues []string) (
+	destinations []txhelper.TransactionDestination, totalAmount dcrutil.Amount, err error) {
+
 	for i := range destinationAddresses {
-		var destination []txhelper.TransactionDestination
-		amount, err := strconv.ParseFloat(destinationAmounts[i], 64)
-		if err != nil {
-			return destinations, err
-		}
-		if amount == 0 {
-			continue
-		}
-		destinations = append(destination, txhelper.TransactionDestination{
+		destination := txhelper.TransactionDestination{
 			Address: destinationAddresses[i],
-			Amount:  amount,
-		})
+			// only set SendMax to true if `sendMaxAmountValues` is not nil and this particular sendMaxAmountValue is "true"
+			SendMax: sendMaxAmountValues != nil && sendMaxAmountValues[i] == "true",
+		}
+
+		if !destination.SendMax {
+			var dcrSendAmount dcrutil.Amount
+			destination.Amount, err = strconv.ParseFloat(destinationAmounts[i], 64)
+			if err == nil {
+				dcrSendAmount, err = dcrutil.NewAmount(destination.Amount)
+			}
+
+			if err != nil {
+				err = fmt.Errorf("invalid destination amount: %s", destinationAmounts[i])
+				return
+			}
+			totalAmount += dcrSendAmount
+		}
+
+		if destination.Amount == 0 && !destination.SendMax {
+			err = fmt.Errorf("invalid request, cannot send 0 amount to %s", destination.Address)
+			return
+		}
+
+		destinations = append(destinations, destination)
 	}
 	return
 }
@@ -127,8 +143,8 @@ func TxStatus(txBlockHeight, bestBlockHeight int32) (int32, string) {
 	}
 }
 
-func GetAllUtxos(walletMiddleware Wallet, accountNumber uint32, requiredConfirmations int32) (utxos []string, total int64, err error) {
-	allUtxos, err := walletMiddleware.UnspentOutputs(accountNumber, 0, requiredConfirmations)
+func SumUtxosInAccount(wallet Wallet, accountNumber uint32, requiredConfirmations int32) (utxos []string, total dcrutil.Amount, err error) {
+	allUtxos, err := wallet.UnspentOutputs(accountNumber, 0, requiredConfirmations)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -139,11 +155,6 @@ func GetAllUtxos(walletMiddleware Wallet, accountNumber uint32, requiredConfirma
 		totalInputAmountDcr += utxo.Amount.ToCoin()
 	}
 
-	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
-	if err != nil {
-		return
-	}
-
-	total = int64(totalInputAmount)
+	total, err = dcrutil.NewAmount(totalInputAmountDcr)
 	return
 }

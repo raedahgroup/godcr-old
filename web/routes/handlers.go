@@ -92,34 +92,32 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	// if no input is selected, then use all inputs.
-	// This is so as to make set max amount possible for situations where custom inputs are not sent
+	// If no input is selected, use all inputs in the account to determine
+	// the max amount that can be sent after subtracting total amount to send to other recipients.
+	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
 	if len(payload.utxos) == 0 {
-		payload.utxos, payload.totalInputAmount, err = walletcore.GetAllUtxos(routes.walletMiddleware, payload.sourceAccount, payload.requiredConfirmations)
+		payload.utxos, payload.totalInputAmount, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
+			payload.sourceAccount, payload.requiredConfirmations)
+
 		if err != nil {
-			data["error"] = fmt.Sprintf("Cannot get max amount, error fetching unspent outputs for new tx: %s", err.Error())
+			data["error"] = fmt.Sprintf("Cannot get max amount, trying to get unspent outputs in account failed: %s", err.Error())
 			return
 		}
 	}
-
-	selectedAddress := req.FormValue("selected-address")
-
-	// add selected address to destination so the fee for the address will be consider in the estimated change
-	payload.sendDestinations = append(payload.sendDestinations, txhelper.TransactionDestination{Address: selectedAddress})
 
 	if payload.totalSendAmount >= payload.totalInputAmount {
 		data["error"] = "Total send amount is already at maximum"
 		return
 	}
 
-	changeAmount, err := txhelper.EstimateChange(len(payload.utxos), payload.totalInputAmount, payload.sendDestinations, []string{selectedAddress})
-
+	changeAmount, err := txhelper.EstimateMaxSendAmount(len(payload.utxos), int64(payload.totalInputAmount), payload.sendDestinations)
 	if err != nil {
-		data["error"] = fmt.Sprintf("Error in getting max send amount: %s", err.Error())
-		return
+		data["error"] = fmt.Sprintf("Error in estimating max send amount: %s", err.Error())
+	} else {
+		data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
 	}
-	data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
 }
+
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
@@ -132,16 +130,11 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 
 	var txHash string
 	if payload.useCustom {
-		if len(payload.changeDestinations) < 1 {
-			payload.changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, payload.totalInputAmount,
-				payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
-			if err != nil {
-				return
-			}
-		}
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(payload.sourceAccount, payload.requiredConfirmations, payload.utxos, payload.sendDestinations, payload.changeDestinations, payload.passphrase)
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(payload.sourceAccount, payload.requiredConfirmations, payload.utxos,
+			payload.sendDestinations, payload.changeDestinations, payload.passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(payload.sourceAccount, payload.requiredConfirmations, payload.sendDestinations, payload.passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(payload.sourceAccount, payload.requiredConfirmations,
+			payload.sendDestinations, payload.passphrase)
 	}
 	if err != nil {
 		data["error"] = err.Error()
@@ -268,7 +261,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	}
 
 	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware,
-		int(nChangeOutputs), payload.totalInputAmount, payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
+		int(nChangeOutputs), int64(payload.totalInputAmount), payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = err.Error()
 		return

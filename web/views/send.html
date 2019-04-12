@@ -13,17 +13,22 @@
                 <div class="collapsible">
                     <div class="card">
                         <div class="card-body no-btm-pad">
-                            <!-- from account -->
+                            <h5 class="card-title">Sending Decred</h5>
+                        </div>
+                    </div>
+                    <!-- from account and spend unconfirmed checkbox -->
+                    <div class="card">
+                        <div class="card-body no-btm-pad">
                             <div class="row">
                                 <div class="col-sm-12 col-md-6">
-                                    <div class="form-group">
+                                    <div class="form-group mb-1">
                                     {{ if eq (len .accounts) 1 }}
                                     {{ $account := index .accounts 0 }}
                                         <input data-target="send.sourceAccount" value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
-                                        <p>Source Account: {{ accountString $account }}</p>
+                                        <b>From:</b> {{ accountString $account }}
                                     {{ else }}
-                                        <label for="source-account">Source Account</label>
+                                        <label for="source-account"><b>From</b></label>
                                         <select data-target="send.sourceAccount" class="form-control"
                                                 id="source-account" name="source-account">
                                         {{ range $account := .accounts }}
@@ -31,8 +36,7 @@
                                         {{ end }}
                                         </select>
                                     {{ end }}
-
-                                        </div>
+                                    </div>
 
                                     <div class="form-group form-check">
                                             <input data-action="click->send#toggleSpendUnconfirmed"
@@ -47,7 +51,7 @@
                         </div>
                     </div>
 
-                    <!-- custom features -->
+                    <!-- custom inputs -->
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group mb-2">
@@ -56,7 +60,6 @@
                                        type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
                             </div>
 
-                            <!-- custom input -->
                             <div class="collapse" id="custom-inputs">
                                 <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
                                 <div class="progress">
@@ -82,42 +85,42 @@
                     <!-- destinations -->
                     <div class="card">
                         <div class="card-body no-btm-pad">
-
+                            <label><b>To</b></label>
                             <div data-target="send.destinations" id="destinations" class="row"></div>
                             <template data-target="send.destinationTemplate">
                                 <div class="col-md-10 col-sm-12 destination">
-                                    <div class="row">
-                                        <div class="col-md-5 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Destination Address</label>
-                                                <input data-target="send.address"
-                                                       type="text" class="form-control"
-                                                       name="destination-address">
-                                            </div>
+                                    <div class="form-row align-items-center mb-2">
+                                        <div class="form-group col-md-5 col-sm-12">
+                                            <input data-target="send.address" placeholder="Address"
+                                                   type="text" class="form-control"
+                                                   name="destination-address">
                                         </div>
 
-                                        <div class="col-md-3 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Amount (DCR)</label>
-                                                <input data-target="send.amount"
-                                                       data-action="keyup->send#calculateCustomInputsPercentage"
-                                                       type="text" class="form-control amount"
-                                                       name="destination-amount">
-                                            </div>
+                                        <div class="form-group col-md-3 col-sm-12">
+                                            <input data-target="send.amount"
+                                                   data-action="keyup->send#destinationAmountEdited"
+                                                   type="text" class="form-control amount"
+                                                   placeholder="Amount (DCR)"
+                                                   name="destination-amount">
                                         </div>
 
-                                        <div class="col-md-4 mt-4 pt-1">
-                                            <button data-target="send.maxSendAmountButton"
-                                                    data-action="click->send#setMaxAmountForDestination"
-                                                    class="btn btn-outline-secondary setMaxBtn"
-                                                    style="border: 1px solid #ced4da !important;" type="button">Send Max
-                                            </button>
-
+                                        <div class="col-md-4 col-sm-12">
+                                            <div class="form-group form-check d-inline-flex align-items-center">
+                                                <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
+                                                <input type="hidden" value="false" name="send-max-amount">
+                                                <input data-target="send.maxSendAmountCheck"
+                                                       data-action="click->send#maxSendAmountCheckboxToggle"
+                                                       type="checkbox" class="form-check-input mt-0"
+                                                       name="send-max-amount" value="true">
+                                                <label class="form-check-label" for="send-max-amount">Send max</label>
+                                            </div>
+                                            &nbsp;
                                             <button data-action="click->send#removeDestination"
                                                     class="btn btn-outline-secondary removeDestinationBtn"
                                                     style="border: 1px solid #ced4da !important;" type="button">X</button>
                                         </div>
 
+                                        <div class="col-sm-12 invalid-feedback d-none"></div>
                                     </div>
                                 </div>
                             </template>

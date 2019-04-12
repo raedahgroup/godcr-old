@@ -58,6 +58,20 @@ table td {
   border-radius: 0;
 }
 
+.form-group.form-check.disabled {
+  opacity: 0.65;
+}
+
+.destination {
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .invalid-feedback {
+    display: block;
+  }
+}
+
 .error {
   color: brown;
 }
