@@ -226,30 +226,43 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, req
 }
 
 func (c *WalletRPCClient) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
-	// construct non-change outputs for all recipients
-	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
-	for i, destination := range destinations {
-		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
-		if err != nil {
-			return "", err
-		}
+	outputs, _, maxAmountRecipientAddress, err := txhelper.TxOutputsExtractMaxDestinationAddress(destinations)
+	if err != nil {
+		return "", err
+	}
 
-		outputs[i] = &walletrpc.ConstructTransactionRequest_Output{
+	// construct non-change outputs for all recipients, excluding destination for send max
+	walletrpcOutputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(outputs))
+	for i, output := range outputs {
+		walletrpcOutputs[i] = &walletrpc.ConstructTransactionRequest_Output{
 			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Address: destination.Address,
+				Script: output.PkScript,
+				ScriptVersion: uint32(output.Version),
 			},
-			Amount: amountInAtom,
+			Amount: output.Value,
 		}
 	}
 
 	// construct transaction
-	constructRequest := &walletrpc.ConstructTransactionRequest{
+	constructTxRequest := &walletrpc.ConstructTransactionRequest{
 		SourceAccount:         sourceAccount,
-		NonChangeOutputs:      outputs,
+		NonChangeOutputs:      walletrpcOutputs,
 		RequiredConfirmations: requiredConfirmations,
 	}
 
-	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
+	// if no max amount recipient, use default utxo selection algorithm and nil change source
+	// so that a change source to the sending account is automatically created
+	// otherwise, create a change source for the max amount recipient so that the remaining change from the tx is sent to the max amount recipient
+	if maxAmountRecipientAddress != "" {
+		constructTxRequest.OutputSelectionAlgorithm = walletrpc.ConstructTransactionRequest_ALL
+		constructTxRequest.ChangeDestination = &walletrpc.ConstructTransactionRequest_OutputDestination{
+			Address: maxAmountRecipientAddress,
+		}
+	} else {
+		constructTxRequest.OutputSelectionAlgorithm = walletrpc.ConstructTransactionRequest_UNSPECIFIED
+	}
+
+	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructTxRequest)
 	if err != nil {
 		return "", fmt.Errorf("error constructing transaction: %s", err.Error())
 	}
@@ -303,7 +316,7 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 		}
 	}
 
-	outputs, maxChangeDestinations, err := txhelper.PrepareTxOutputs(len(inputs), totalInputAmount, txDestinations)
+	outputs, maxChangeDestinations, err := txhelper.TxOutputsExtractMaxChangeDestination(len(inputs), totalInputAmount, txDestinations)
 	if err != nil {
 		return "", err
 	}
