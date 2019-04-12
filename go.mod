@@ -2,6 +2,7 @@ module github.com/raedahgroup/godcr
 
 require (
 	fyne.io/fyne v0.0.0-20190403065949-3025af8b515c
+	github.com/DataDog/zstd v1.3.8 // indirect
 	github.com/aarzilli/nucular v0.0.0-20181227101716-d1a942545d6d
 	github.com/atotto/clipboard v0.1.2
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
@@ -29,6 +30,7 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20181219215540-696f7edb7a7e // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
+	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20180928223349-c7e5094acea1 // indirect
 	google.golang.org/grpc v1.14.0
 )

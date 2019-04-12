@@ -10,11 +10,11 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/decred/dcrwallet/wallet"
 )
 
 func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
