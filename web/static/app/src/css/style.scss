@@ -258,7 +258,7 @@ label.list-group-item div {
 
 .btnCopy {
   font-size: 14px;
-  padding: 10px;
+  padding: 0 10px;
   background: none;
   border: none;
 }
@@ -294,19 +294,21 @@ label.list-group-item h5 {
   display: inline !important;
 }
 
-.singleAccountTextView {
-  width: 80% !important;
-  margin-left: 11px !important;
-  border: none;
-  background: inherit !important;
-  padding: 0;
-}
-
-.result-card {
-  font-size: 15px;
-  text-align: center;
-}
-
+/* this is to take care of the padding embedded in the qr image */
 .address-qr-img img {
   margin-left: -60px;
 }
+
+@media screen and (max-width: 600px) {
+  .address-qr-img img {
+    margin-left: -40px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .address-qr-img img {
+    margin-left: -4px;
+  }
+}
+
+/* end padding embedded in the qr image workaround */

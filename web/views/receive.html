@@ -11,7 +11,7 @@
                 <div data-target="receive.successMessage" class="alert alert-success d-none"></div>
 
                 <div class="card">
-                   <div class="card-body">
+                   <div class="card-body" style="font-size: 15px;">
                        <h5 class="card-title">Receiving Decred</h5>
                        <p class="lead-text">Each time you request payment, a new address is created to protect your privacy.</p>
                        <div class="row">
@@ -28,8 +28,7 @@
                                {{ else }}
                                {{ range $account := .accounts }}
                                        <input data-target="receive.account" value="{{ $account.Number }}" type="hidden" name="account">
-                                   {{/*<input class="form-control singleAccountTextView" disabled value="{{ $account.Name }}">*/}}
-                                   <p class="mb-0" style="font-size: 15px;">Account: {{ $account.Name }}</p>
+                                   <p class="mb-0">Account: {{ $account.Name }}</p>
                                {{ end }}
                                {{ end  }}
                                </div>
@@ -37,10 +36,12 @@
                        </div>
                        <div class="row">
                            <div class="col-md-6">
-                               <div class="result-card">
+                               <div class="text-center">
+                                   {{/* the nagative margin this is to take care of the padding embedded in the qr image*/}}
                                    <div data-action="click->receive#copyAddressToClipboard" style="margin-top: -20px;"
                                         class="address-qr-img">{{ rawHtml .imageStr }}</div>
-                                   <div id="result-text" style="margin-top: -25px;">
+                                   {{/* the nagative margin this is to take care of the padding embedded in the qr image*/}}
+                                   <div style="margin-top: -25px;">
                                        <span data-action="click->receive#copyAddressToClipboard" data-target="receive.address" id="address">{{ .address }}</span>
 
                                        <div class="btn-group">
