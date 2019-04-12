@@ -9,7 +9,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -66,7 +66,7 @@ func (handler *StakingHandler) Render(window *nucular.Window) {
 }
 
 func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
-	contentWindow.AddLabelWithFont("Stake Info", widgets.LeftCenterAlign, styles.BoldPageContentFont)
+	contentWindow.AddLabelWithFont("Stake Info", widgets.LeftCenterAlign, helpers.BoldPageContentFont)
 
 	if handler.stakeInfoFetchError != nil {
 		contentWindow.DisplayErrorMessage("Error fetching stake info", handler.stakeInfoFetchError)
@@ -74,7 +74,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 		stakingTable := widgets.NewTable()
 
 		// add table header using nav font
-		stakingTable.AddRowWithFont(styles.NavFont,
+		stakingTable.AddRowWithFont(helpers.NavFont,
 			widgets.NewLabelTableCell("Expired", widgets.LeftCenterAlign),
 			widgets.NewLabelTableCell("Immature", widgets.LeftCenterAlign),
 			widgets.NewLabelTableCell("Live", widgets.LeftCenterAlign),
@@ -107,7 +107,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 }
 
 func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.Window) {
-	contentWindow.AddLabelWithFont("Purchase Ticket", widgets.LeftCenterAlign, styles.BoldPageContentFont)
+	contentWindow.AddLabelWithFont("Purchase Ticket", widgets.LeftCenterAlign, helpers.BoldPageContentFont)
 
 	handler.accountSelector.Render(contentWindow)
 	contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
@@ -123,7 +123,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.
 	contentWindow.AddLabelsToCurrentRow(widgets.NewLabelTableCell("Number of Tickets", widgets.LeftCenterAlign))
 	contentWindow.AddEditorToCurrentRow(handler.numTicketsInput)
 	if handler.numTicketsInputErrStr != "" {
-		contentWindow.DisplayMessage(handler.numTicketsInputErrStr, styles.DecredOrangeColor)
+		contentWindow.DisplayMessage(handler.numTicketsInputErrStr, helpers.DecredOrangeColor)
 	}
 
 	submitButtonText := "Purchase"
@@ -140,9 +140,9 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.
 	numTickets := len(handler.purchasedTicketsHashes)
 	if numTickets > 0 {
 		successMessage := fmt.Sprintf("You have purchased %d ticket(s)", numTickets)
-		contentWindow.AddColoredLabel(successMessage, styles.DecredGreenColor, widgets.LeftCenterAlign)
+		contentWindow.AddColoredLabel(successMessage, helpers.DecredGreenColor, widgets.LeftCenterAlign)
 		for _, ticketHash := range handler.purchasedTicketsHashes {
-			contentWindow.AddColoredLabel(ticketHash, styles.DecredGreenColor, widgets.LeftCenterAlign)
+			contentWindow.AddColoredLabel(ticketHash, helpers.DecredGreenColor, widgets.LeftCenterAlign)
 		}
 	} else if handler.purchaseTicketsError != nil {
 		contentWindow.DisplayErrorMessage("Error purchasing ticket", handler.purchaseTicketsError)

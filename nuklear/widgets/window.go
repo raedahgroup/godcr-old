@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
-	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"golang.org/x/image/font"
 	"image/color"
 )
@@ -49,7 +49,7 @@ func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window
 			W: pageTitleArea.W,
 			H: pageTitleHeight,
 		})
-		pageWindow.SetFont(styles.PageHeaderFont)
+		pageWindow.SetFont(helpers.PageHeaderFont)
 		pageWindow.Label(pageTitle, LeftCenterAlign)
 
 		pageWindow.PageContentWindow(pageTitle+"-page-content", xPadding, yPadding, windowReady)
@@ -57,7 +57,7 @@ func PageContentWindowWithPadding(pageTitle string, parentWindow *nucular.Window
 }
 
 func (window *Window) PageContentWindow(uniqueWindowTitle string, xPadding, yPadding int, windowReady func(*Window)) {
-	// create a rect for this page content window to prevent styles from spilling into other windows
+	// create a rect for this page content window to prevent helpers from spilling into other windows
 	pageContentArea := window.Row(0).SpaceBegin(1)
 	window.LayoutSpacePushScaled(rect.Rect{
 		X: 0,
@@ -66,7 +66,7 @@ func (window *Window) PageContentWindow(uniqueWindowTitle string, xPadding, yPad
 		H: pageContentArea.H,
 	})
 
-	window.Master().Style().Font = styles.PageContentFont
+	window.Master().Style().Font = helpers.PageContentFont
 	window.Master().Style().GroupWindow.Padding = image.Point{X: xPadding, Y: yPadding}
 
 	// create group window
@@ -92,7 +92,7 @@ func (window *Window) UseFontAndResetToPrevious(font fontFace, fontReadyForUse f
 }
 
 func (window *Window) DisplayErrorMessage(message string, err error) {
-	window.DisplayMessage(fmt.Sprintf("%s: %s", message, err.Error()), styles.DecredOrangeColor)
+	window.DisplayMessage(fmt.Sprintf("%s: %s", message, err.Error()), helpers.DecredOrangeColor)
 }
 
 func (window *Window) DisplayMessage(message string, color color.RGBA) {
@@ -100,7 +100,7 @@ func (window *Window) DisplayMessage(message string, color color.RGBA) {
 }
 
 func (window *Window) DisplayIsLoadingMessage() {
-	window.AddColoredLabel("Fetching data...", styles.DecredOrangeColor, LeftCenterAlign)
+	window.AddColoredLabel("Fetching data...", helpers.DecredOrangeColor, LeftCenterAlign)
 }
 
 func (window *Window) DoneAddingWidgets() {

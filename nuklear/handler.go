@@ -5,7 +5,7 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/handlers"
-	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -38,7 +38,7 @@ func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func(
 }
 func (p *notImplementedNavPageHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding(p.pageTitle, window, func(contentWindow *widgets.Window) {
-		contentWindow.DisplayMessage("Page not yet implemented", styles.GrayColor)
+		contentWindow.DisplayMessage("Page not yet implemented", helpers.GrayColor)
 	})
 }
 

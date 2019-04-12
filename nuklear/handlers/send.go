@@ -9,7 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/helpers"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
@@ -101,7 +101,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 			utxosTable := widgets.NewTable()
 
 			// add table header using nav font
-			utxosTable.AddRowWithFont(styles.NavFont,
+			utxosTable.AddRowWithFont(helpers.NavFont,
 				widgets.NewLabelTableCell("", widgets.LeftCenterAlign),
 				widgets.NewLabelTableCell("Address", widgets.LeftCenterAlign),
 				widgets.NewLabelTableCell("Amount", widgets.LeftCenterAlign),
@@ -125,7 +125,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 
 			// error selecting utxo?
 			if handler.utxosSelectionError != "" {
-				contentWindow.DisplayMessage(handler.utxosSelectionError, styles.DecredOrangeColor)
+				contentWindow.DisplayMessage(handler.utxosSelectionError, helpers.DecredOrangeColor)
 			}
 		}
 
@@ -146,11 +146,11 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 				errorLabels := make([]*widgets.LabelTableCell, 2)
 				if destination.addressErr != "" {
 					errorLabels[0] = widgets.NewColoredLabelTableCell(destination.addressErr, widgets.LeftCenterAlign,
-						styles.DecredOrangeColor)
+						helpers.DecredOrangeColor)
 				}
 				if destination.amountErr != "" {
 					errorLabels[1] = widgets.NewColoredLabelTableCell(destination.amountErr, widgets.LeftCenterAlign,
-						styles.DecredOrangeColor)
+						helpers.DecredOrangeColor)
 				}
 				contentWindow.AddLabelsWithWidths(columnWidths, errorLabels...)
 			}
@@ -183,7 +183,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 			contentWindow.DisplayErrorMessage("Send tx error", handler.sendErr)
 		} else if handler.successHash != "" {
 			successMessage := "The transaction was published successfully. Hash: " + handler.successHash
-			contentWindow.AddWrappedLabelWithColor(successMessage, widgets.LeftCenterAlign, styles.DecredGreenColor)
+			contentWindow.AddWrappedLabelWithColor(successMessage, widgets.LeftCenterAlign, helpers.DecredGreenColor)
 		}
 	})
 }

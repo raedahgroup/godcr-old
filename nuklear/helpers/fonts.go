@@ -1,4 +1,4 @@
-package styles
+package helpers
 
 import (
 	"io/ioutil"
