@@ -87,7 +87,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	}
 
 	payload.sendDestinations, payload.totalSendAmount, err = walletcore.BuildTxDestinations(destinationAddresses,
-		destinationAmounts, sendMaxAmountChecks)
+		destinationAmounts, actualSendMaxAmountValues)
 	if err != nil {
 		return nil, fmt.Errorf("error in parsing send destinations: %s", err.Error())
 	}
