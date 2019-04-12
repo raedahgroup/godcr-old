@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -15,7 +17,7 @@ func (lib *DcrWalletLib) WalletExists() (bool, error) {
 }
 
 func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
-	return lib.walletLib.GenerateSeed()
+	return utils.GenerateSeed()
 }
 
 func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
@@ -68,12 +70,12 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 
 func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
 	if showLog {
-		lib.walletLib.SetLogLevel("info")
+		dcrlibwallet.SetLogLevel("info")
 
 		// create wrapper around sync ended listener to deactivate logging after syncing ends
 		originalSyncEndedListener := listener.SyncEnded
 		syncEndedListener := func(err error) {
-			lib.walletLib.SetLogLevel("off")
+			dcrlibwallet.SetLogLevel("off")
 			originalSyncEndedListener(err)
 		}
 		listener.SyncEnded = syncEndedListener
@@ -84,11 +86,11 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 		listener:  listener,
 		activeNet: lib.activeNet,
 	}
-	lib.walletLib.AddSyncResponse(syncResponse)
+	lib.walletLib.AddSyncProgressListener(syncResponse)
 
 	err := lib.walletLib.SpvSync("")
 	if err != nil {
-		lib.walletLib.SetLogLevel("off")
+		dcrlibwallet.SetLogLevel("off")
 		return err
 	}
 

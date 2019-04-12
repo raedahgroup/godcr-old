@@ -10,7 +10,7 @@ import (
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrlibwallet/util"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -143,7 +143,7 @@ func getNetParam(walletService walletrpc.WalletServiceClient) (param *netparams.
 		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
 	}
 
-	param = util.NetParams(wire.CurrencyNet(res.ActiveNetwork).String())
+	param = utils.NetParams(wire.CurrencyNet(res.ActiveNetwork).String())
 	if param == nil {
 		err = errors.New("unknown network type")
 	}

@@ -172,6 +172,6 @@ func (c *WalletRPCClient) BestBlock() (uint32, error) {
 	return req.Height, err
 }
 
-func (lib *WalletRPCClient) GetConnectedPeersCount() int32 {
+func (c *WalletRPCClient) GetConnectedPeersCount() int32 {
 	return numberOfPeers
 }

@@ -1,7 +1,6 @@
 package dcrlibwallet
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
@@ -149,64 +147,11 @@ func (lib *DcrWalletLib) SendFromAccount(sourceAccount uint32, requiredConfirmat
 	return transactionHash.String(), nil
 }
 
-func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
-	// fetch all utxos in account to extract details for the utxos selected by user
-	// use targetAmount = 0 to fetch ALL utxos in account
-	unspentOutputs, err := lib.UnspentOutputs(sourceAccount, 0, requiredConfirmations)
-	if err != nil {
-		return "", err
-	}
+func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string,
+	txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error) {
 
-	// loop through unspentOutputs to find user selected utxos
-	inputs := make([]*wire.TxIn, 0, len(utxoKeys))
-	for _, utxo := range unspentOutputs {
-		useUtxo := false
-		for _, key := range utxoKeys {
-			if utxo.OutputKey == key {
-				useUtxo = true
-			}
-		}
-		if !useUtxo {
-			continue
-		}
-
-		// this is a reverse conversion and should not throw an error
-		// this string hash was originally chainhash.Hash and was converted to string in `lib.UnspentOutputs`
-		txHash, _ := chainhash.NewHashFromStr(utxo.TransactionHash)
-
-		outpoint := wire.NewOutPoint(txHash, utxo.OutputIndex, int8(utxo.Tree))
-		input := wire.NewTxIn(outpoint, int64(utxo.Amount), nil)
-		inputs = append(inputs, input)
-
-		if len(inputs) == len(utxoKeys) {
-			break
-		}
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations)
-	if err != nil {
-		return "", err
-	}
-
-	// serialize unsigned tx
-	var txBuf bytes.Buffer
-	txBuf.Grow(unsignedTx.SerializeSize())
-	err = unsignedTx.Serialize(&txBuf)
-	if err != nil {
-		return "", fmt.Errorf("error serializing transaction: %s", err.Error())
-	}
-
-	txHash, err := lib.walletLib.SignAndPublishTransaction(txBuf.Bytes(), []byte(passphrase))
-	if err != nil {
-		return "", err
-	}
-
-	transactionHash, err := chainhash.NewHash(txHash)
-	if err != nil {
-		return "", fmt.Errorf("error parsing successful transaction hash: %s", err.Error())
-	}
-
-	return transactionHash.String(), nil
+	return lib.walletLib.SendFromCustomInputs(sourceAccount, requiredConfirmations, utxoKeys, txDestinations,
+		changeDestinations, []byte(passphrase))
 }
 
 func (lib *DcrWalletLib) TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (
@@ -278,7 +223,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Transaction, lib.activeNet.Params, lib.walletLib.AddressInfo)
+	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Hex, lib.activeNet.Params, lib.walletLib.AddressInfo)
 	if err != nil {
 		return nil, err
 	}

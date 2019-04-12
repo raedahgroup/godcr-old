@@ -226,30 +226,43 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, req
 }
 
 func (c *WalletRPCClient) SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error) {
-	// construct non-change outputs for all recipients
-	outputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(destinations))
-	for i, destination := range destinations {
-		amountInAtom, err := txhelper.AmountToAtom(destination.Amount)
-		if err != nil {
-			return "", err
-		}
+	outputs, _, maxAmountRecipientAddress, err := txhelper.TxOutputsExtractMaxDestinationAddress(destinations)
+	if err != nil {
+		return "", err
+	}
 
-		outputs[i] = &walletrpc.ConstructTransactionRequest_Output{
+	// construct non-change outputs for all recipients, excluding destination for send max
+	walletrpcOutputs := make([]*walletrpc.ConstructTransactionRequest_Output, len(outputs))
+	for i, output := range outputs {
+		walletrpcOutputs[i] = &walletrpc.ConstructTransactionRequest_Output{
 			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Address: destination.Address,
+				Script: output.PkScript,
+				ScriptVersion: uint32(output.Version),
 			},
-			Amount: amountInAtom,
+			Amount: output.Value,
 		}
 	}
 
 	// construct transaction
-	constructRequest := &walletrpc.ConstructTransactionRequest{
+	constructTxRequest := &walletrpc.ConstructTransactionRequest{
 		SourceAccount:         sourceAccount,
-		NonChangeOutputs:      outputs,
+		NonChangeOutputs:      walletrpcOutputs,
 		RequiredConfirmations: requiredConfirmations,
 	}
 
-	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructRequest)
+	// if no max amount recipient, use default utxo selection algorithm and nil change source
+	// so that a change source to the sending account is automatically created
+	// otherwise, create a change source for the max amount recipient so that the remaining change from the tx is sent to the max amount recipient
+	if maxAmountRecipientAddress != "" {
+		constructTxRequest.OutputSelectionAlgorithm = walletrpc.ConstructTransactionRequest_ALL
+		constructTxRequest.ChangeDestination = &walletrpc.ConstructTransactionRequest_OutputDestination{
+			Address: maxAmountRecipientAddress,
+		}
+	} else {
+		constructTxRequest.OutputSelectionAlgorithm = walletrpc.ConstructTransactionRequest_UNSPECIFIED
+	}
+
+	constructResponse, err := c.walletService.ConstructTransaction(context.Background(), constructTxRequest)
 	if err != nil {
 		return "", fmt.Errorf("error constructing transaction: %s", err.Error())
 	}
@@ -267,6 +280,7 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 
 	// loop through utxo stream to find user selected utxos
 	inputs := make([]*wire.TxIn, 0, len(utxoKeys))
+	var totalInputAmount int64
 	for {
 		utxo, err := utxoStream.Recv()
 		if err == io.EOF {
@@ -295,13 +309,23 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 		outpoint := wire.NewOutPoint(transactionHash, utxo.OutputIndex, int8(utxo.Tree))
 		input := wire.NewTxIn(outpoint, utxo.Amount, nil)
 		inputs = append(inputs, input)
+		totalInputAmount += input.ValueIn
 
 		if len(inputs) == len(utxoKeys) {
 			break
 		}
 	}
 
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations)
+	outputs, maxChangeDestinations, err := txhelper.TxOutputsExtractMaxChangeDestination(len(inputs), totalInputAmount, txDestinations)
+	if err != nil {
+		return "", err
+	}
+	// if a max change destination is returned, use it as the only change destination
+	if len(maxChangeDestinations) == 1 {
+		changeDestinations = maxChangeDestinations
+	}
+
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, outputs, changeDestinations)
 	if err != nil {
 		return "", err
 	}
@@ -423,7 +447,8 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, getTxResponse.GetTransaction().GetTransaction(), c.activeNet.Params, c.AddressInfo)
+	txHex := fmt.Sprintf("%x", getTxResponse.GetTransaction().GetTransaction())
+	decodedTx, err := txhelper.DecodeTransaction(hash, txHex, c.activeNet.Params, c.AddressInfo)
 	if err != nil {
 		return nil, err
 	}

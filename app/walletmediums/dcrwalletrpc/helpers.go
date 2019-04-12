@@ -75,7 +75,8 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 		return nil, err
 	}
 
-	_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(txDetail.Transaction)
+	txHex := fmt.Sprintf("%x", txDetail.Transaction)
+	_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(txHex)
 	if err != nil {
 		return nil, err
 	}
