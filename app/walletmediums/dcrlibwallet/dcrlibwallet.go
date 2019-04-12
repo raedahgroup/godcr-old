@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/util"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 )
 
@@ -18,14 +18,16 @@ type DcrWalletLib struct {
 
 // New connects to dcrlibwallet and returns an instance of DcrWalletLib
 func New(appDataDir string, wallet *config.WalletInfo) (*DcrWalletLib, error) {
-	activeNet := util.NetParams(wallet.Network)
+	activeNet := utils.NetParams(wallet.Network)
 	if activeNet == nil {
 		return nil, fmt.Errorf("unsupported wallet: %s", wallet.Network)
 	}
 
-	lw := dcrlibwallet.LibWalletFromDb(appDataDir, wallet.DbDir, activeNet)
-	lw.SetLogLevel("off")
-	lw.InitLoaderWithoutShutdownListener()
+	dcrlibwallet.SetLogLevel("off")
+	lw, err := dcrlibwallet.NewLibWalletWithDbPath(wallet.DbDir, activeNet)
+	if err != nil {
+		return nil, err
+	}
 
 	return &DcrWalletLib{
 		walletLib: lw,

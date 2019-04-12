@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/decred/dcrwallet/netparams"
-	"github.com/raedahgroup/dcrlibwallet/util"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -78,7 +78,7 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*config.W
 	detectNetParams := func(path string) *netparams.Params {
 		walletDbDir := filepath.Dir(path)
 		netType := filepath.Base(walletDbDir)
-		return util.NetParams(netType)
+		return utils.NetParams(netType)
 	}
 
 	err = filepath.Walk(walletDir, func(path string, file os.FileInfo, err error) error {

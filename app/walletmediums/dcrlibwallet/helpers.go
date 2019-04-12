@@ -13,7 +13,7 @@ func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedT
 	[]*walletcore.Transaction, error) {
 
 	for _, tx := range rawTxs {
-		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Transaction)
+		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Hex)
 		if err != nil {
 			return nil, err
 		}

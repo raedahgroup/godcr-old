@@ -45,6 +45,7 @@ func (response SpvSyncResponse) OnRescan(rescannedThrough int32, state string) {
 		response.listener.OnRescanningBlocks(scannedPercentage)
 	}
 }
+func (response SpvSyncResponse) OnIndexTransactions(totalIndex int32) {}
 func (response SpvSyncResponse) OnSynced(synced bool) {
 	var err error
 	if !synced {
