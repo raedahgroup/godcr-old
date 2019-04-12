@@ -4,7 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
@@ -588,4 +590,18 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 func (routes *Routes) rescanBlockchain(res http.ResponseWriter, req *http.Request) {
 	routes.syncBlockchain()
 	renderJSON(map[string]interface{}{"success": true}, res)
+}
+
+func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	routes.walletMiddleware.CloseWallet()
+	time.Sleep(500)
+	err := os.RemoveAll(config.CurrentAppDataDir)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
+		return
+	}
+	data["success"] = true
 }

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/help"
@@ -189,6 +189,7 @@ func connectToWallet(ctx context.Context, cfg *config.Config) (app.WalletMiddlew
 		}
 	}
 
+	config.CurrentAppDataDir = walletInfo.DbDir
 	return dcrlibwallet.New(cfg.AppDataDir, walletInfo)
 }
 

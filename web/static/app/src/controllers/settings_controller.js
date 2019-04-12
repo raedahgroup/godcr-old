@@ -169,4 +169,20 @@ export default class extends Controller {
   sendSyncToTheBackground () {
     ws.deregisterEvtHandlers('updateSyncStatus')
   }
+
+  deleteWallet () {
+    axios.delete('/delete-wallet').then((response) => {
+      let result = response.data
+      if (!result.success) {
+        showErrorNotification(result.error)
+        return
+      }
+      showSuccessNotification('Wallet deleted')
+      setTimeout(function () {
+        window.location.reload()
+      }, 2000)
+    }).catch(() => {
+      showErrorNotification('A server error occurred')
+    })
+  }
 }
