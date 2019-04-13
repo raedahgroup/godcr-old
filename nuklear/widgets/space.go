@@ -1,8 +1,6 @@
 package widgets
 
-import (
-	"github.com/aarzilli/nucular/rect"
-)
+import "github.com/aarzilli/nucular/rect"
 
 // AddHorizontalSpace uses `SpaceBegin` and `LayoutSpacePushScaled`
 // to create a rectangle of the max available width and specified `height` on the window.

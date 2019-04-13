@@ -329,7 +329,7 @@ func (handler *SendHandler) validateForm() bool {
 		}
 
 		if totalSendAmount > totalSelectedUtxoAmount {
-			handler.utxosSelectionError = fmt.Sprintf("Total send amount (%s) is higher than the total input amount (%s)",
+			handler.utxosSelectionError = fmt.Sprintf("Total send amount (%f DCR) is higher than the total input amount (%f DCR)",
 				totalSendAmount, totalSelectedUtxoAmount)
 			isClean = false
 		}

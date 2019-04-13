@@ -2,13 +2,13 @@ package pagehandlers
 
 import (
 	"fmt"
+	"image"
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"image"
 )
 
 type SyncHandler struct {

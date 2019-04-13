@@ -88,19 +88,23 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 			widgets.NewLabelTableCell("Total Subsidy", widgets.LeftCenterAlign),
 		)
 
-		stakingTable.AddRow(
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Expired)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Immature)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Live)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Revoked)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.OwnMempoolTix)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Unspent)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.AllMempoolTix)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.PoolSize)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Missed)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Voted)), widgets.LeftCenterAlign),
-			widgets.NewLabelTableCell(handler.stakeInfo.TotalSubsidy, widgets.LeftCenterAlign),
-		)
+		// stake info was loaded in background in BeforeRender
+		// the data may not have been loaded at this time
+		if handler.stakeInfo != nil {
+			stakingTable.AddRow(
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Expired)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Immature)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Live)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Revoked)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.OwnMempoolTix)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Unspent)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.AllMempoolTix)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.PoolSize)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Missed)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Voted)), widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(handler.stakeInfo.TotalSubsidy, widgets.LeftCenterAlign),
+			)
+		}
 
 		stakingTable.Render(contentWindow)
 	}

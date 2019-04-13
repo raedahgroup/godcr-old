@@ -36,6 +36,7 @@ type notImplementedNavPageHandler struct {
 func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func()) bool {
 	return true
 }
+
 func (p *notImplementedNavPageHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding(p.pageTitle, window, func(contentWindow *widgets.Window) {
 		contentWindow.DisplayMessage("Page not yet implemented", styles.GrayColor)
