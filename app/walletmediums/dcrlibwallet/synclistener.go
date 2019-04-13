@@ -229,6 +229,8 @@ func (listener *syncListener) OnRescan(rescannedThrough int32, state string) {
 	listener.syncInfoUpdated(listener.privateSyncInfo)
 }
 
+func (listener *syncListener) OnIndexTransactions(totalIndex int32) {}
+
 func (listener *syncListener) OnSynced(synced bool) {
 	if !listener.syncing {
 		// ignore subsequent updates

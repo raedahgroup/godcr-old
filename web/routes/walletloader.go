@@ -69,18 +69,14 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockchain() {
-<<<<<<< HEAD
-	err := routes.walletMiddleware.SyncBlockChain(false, func(syncInfo *app.SyncInfoPrivate) {
-		currentInfo := routes.syncInfo.Read()
-		newInfo := routes.syncInfo.Read()
+	err := routes.walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
+		currentInfo := routes.syncPrivateInfo.Read()
+		newInfo := routes.syncPrivateInfo.Read()
 		if currentInfo.ConnectedPeers != newInfo.ConnectedPeers || !currentInfo.Done && newInfo.Done {
 			routes.sendWsConnectionInfoUpdate()
 		}
-		routes.syncInfo = syncInfo
-=======
-	err := routes.walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
+
 		routes.syncPrivateInfo = syncPrivateInfo
->>>>>>> refactor
 	})
 
 	// update sync status
