@@ -128,7 +128,7 @@
                             </template>
                             <div class="form-group">
                                 <button type="button" data-action="click->send#newDestination"
-                                        class="btn btn-sm btn-outline-secondary btn-primary">
+                                        class="btn btn-sm btn-outline-secondary">
                                     Add another address
                                 </button>
                             </div>
@@ -228,11 +228,11 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="errors mb-3" data-target="send.errors"></div>
-                            <button data-action="click->send#resetSendForm" class="btn" id="reset-btn"
+                            <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
                                     type="button">Reset
                             </button>
                             <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit"
-                                    class="btn btn-default" id="submit-btn" type="button">Next
+                                    class="btn btn-primary" id="submit-btn" type="button">Next
                             </button>
                         </div>
                     </div>
