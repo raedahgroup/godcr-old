@@ -2,28 +2,31 @@ package nuklear
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"image"
 
 	"github.com/aarzilli/nucular"
-	"github.com/aarzilli/nucular/label"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/nuklear/helpers"
+	"github.com/raedahgroup/godcr/nuklear/nuklog"
+	"github.com/raedahgroup/godcr/nuklear/styles"
+	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 const (
-	navWidth = 260
-
-	contentPaneXOffset      = 45
-	contentPaneWidthPadding = 55
+	navWidth            = 200
+	defaultWindowWidth  = 800
+	defaultWindowHeight = 600
 )
 
 type Desktop struct {
-	masterWindow     nucular.MasterWindow
 	walletMiddleware app.WalletMiddleware
-	currentPage      string
-	pageChanged      bool
 	navPages         map[string]navPageHandler
 	standalonePages  map[string]standalonePageHandler
+	currentPage      string
+	nextPage         string
+	pageChanged      bool
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
@@ -34,12 +37,12 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	// initialize master window and set style
-	window := nucular.NewMasterWindow(nucular.WindowNoScrollbar, app.Name, desktop.render)
-	window.SetStyle(helpers.GetStyle())
-	desktop.masterWindow = window
+	windowSize := image.Point{defaultWindowWidth, defaultWindowHeight}
+	masterWindow := nucular.NewMasterWindowSize(nucular.WindowNoScrollbar, app.Name, windowSize, desktop.render)
+	masterWindow.SetStyle(styles.MasterWindowStyle())
 
 	// initialize fonts for later use
-	err := helpers.InitFonts()
+	err := styles.InitFonts()
 	if err != nil {
 		return err
 	}
@@ -68,85 +71,116 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.currentPage = "createwallet"
 	}
 
-	// draw window
-	desktop.masterWindow.Main()
+	// draw master window
+	masterWindow.Main()
 	return nil
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	if handler, ok := desktop.standalonePages[desktop.currentPage]; ok {
+	if handler, isStandalonePage := desktop.standalonePages[desktop.currentPage]; isStandalonePage {
 		desktop.renderStandalonePage(window, handler)
-		return
-	}
+	} else if handler, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
+		desktop.renderNavPage(window, handler)
+	} else {
+		errorMessage := fmt.Sprintf("Page not properly set up: %s", desktop.currentPage)
+		nuklog.LogError(errors.New(errorMessage))
 
-	handler := desktop.navPages[desktop.currentPage]
-	desktop.renderNavPage(window, handler)
+		w := &widgets.Window{window}
+		w.DisplayMessage(errorMessage, styles.DecredOrangeColor)
+	}
 }
 
 func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
-	window.Row(0).SpaceBeginRatio(1)
-	window.LayoutSpacePushRatio(0.1, 0.05, 0.9, 0.8)
+	if desktop.currentPage != desktop.nextPage && desktop.nextPage != "" {
+		// page navigation changes may take some seconds to effect
+		// causing this method to receive the wrong handler
+		desktop.currentPage = desktop.nextPage
+		desktop.pageChanged = true
+		window.Master().Changed()
+		return
+	}
+
+	window.Row(0).Dynamic(1)
+	styles.SetPageStyle(window.Master())
 
 	if desktop.pageChanged {
 		handler.BeforeRender()
 		desktop.pageChanged = false
 	}
 
-	helpers.SetStandaloneWindowStyle(window.Master())
 	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
 }
 
 func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {
-	area := window.Row(0).SpaceBegin(2)
+	if desktop.currentPage != desktop.nextPage && desktop.nextPage != "" {
+		// page navigation changes may take some seconds to effect
+		// causing this method to receive the wrong handler
+		desktop.currentPage = desktop.nextPage
+		desktop.pageChanged = true
+		window.Master().Changed()
+		return
+	}
 
-	// create nav pane
-	navRect := rect.Rect{
+	// this creates the space on the window that will hold 2 widgets
+	// the navigation section on the window and the main page content
+	entireWindow := window.Row(0).SpaceBegin(2)
+
+	desktop.renderNavSection(window, entireWindow.H)
+	renderPageContentSection(window, entireWindow.W, entireWindow.H)
+
+	// Only call handler.Render if the page is not being switched to for the first time (i.e !desktop.pageChanged).
+	// If it is (i.e. desktop.pageChanged == true), then only call handler.Render after handler.BeforeRender returns.
+	if !desktop.pageChanged || handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed) {
+		desktop.pageChanged = false
+		handler.Render(window)
+	}
+}
+
+func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) {
+	navSection := rect.Rect{
 		X: 0,
 		Y: 0,
 		W: navWidth,
-		H: area.H,
+		H: maxHeight,
 	}
-	window.LayoutSpacePushScaled(navRect)
+	window.LayoutSpacePushScaled(navSection)
 
-	// render nav
-	helpers.SetNavStyle(desktop.masterWindow)
-	if navWindow := helpers.NewWindow("Navigation Group", window, 0); navWindow != nil {
-		navWindow.Row(40).Dynamic(1)
+	// set the window to use the background, font color and other styles for drawing the nav items/buttons
+	styles.SetNavStyle(window.Master())
+
+	// then create a group window and draw the nav buttons
+	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
+		navGroupWindow.AddHorizontalSpace(10)
+		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", app.DisplayName, desktop.walletMiddleware.NetType()),
+			styles.DecredLightBlueColor, widgets.CenterAlign)
+		navGroupWindow.AddHorizontalSpace(10)
+
 		for _, page := range getNavPages() {
-			if navWindow.Button(label.TA(page.label, "LC"), false) {
-				desktop.changePage(page.name)
-			}
+			navGroupWindow.AddBigButton(page.label, func() {
+				desktop.changePage(window, page.name)
+			})
 		}
-		navWindow.End()
-	}
 
-	// create content pane
-	contentRect := rect.Rect{
-		X: navWidth - contentPaneXOffset,
-		Y: 0,
-		W: (area.W + contentPaneWidthPadding) - navWidth,
-		H: area.H,
-	}
-
-	helpers.SetContentArea(contentRect)
-
-	// style content area
-	helpers.SetPageStyle(desktop.masterWindow)
-
-	window.LayoutSpacePushScaled(contentRect)
-
-	// ensure that the handler's BeforeRender function is called only once per page call
-	// as it initializes page variables
-	if desktop.pageChanged {
-		handler.BeforeRender()
-		desktop.pageChanged = false
-	}
-
-	handler.Render(window, desktop.walletMiddleware)
+		// add exit button
+		navGroupWindow.AddBigButton("Exit", func() {
+			go navGroupWindow.Master().Close()
+		})
+	})
 }
 
-func (desktop *Desktop) changePage(page string) {
-	desktop.currentPage = page
-	desktop.pageChanged = true
-	desktop.masterWindow.Changed()
+func renderPageContentSection(window *nucular.Window, maxWidth, maxHeight int) {
+	pageSection := rect.Rect{
+		X: navWidth,
+		Y: 0,
+		W: maxWidth - navWidth,
+		H: maxHeight,
+	}
+	window.LayoutSpacePushScaled(pageSection)
+
+	styles.SetPageStyle(window.Master())
+}
+
+func (desktop *Desktop) changePage(window *nucular.Window, newPage string) {
+	desktop.nextPage = newPage
+	window.Master().Changed()
 }
