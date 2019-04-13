@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 {{ template "html-head" }}
-<body>
-<div class="body" data-controller="send">
+<body data-controller="send">
+<div class="body">
 {{ template "header" .connectionInfo }}
     <div class="content">
         <div class="container">
             <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
             <div data-target="send.successMessage" class="alert alert-success d-none"></div>
             <form method="POST" action="/send" id="send-form" data-target="send.form" novalidate>
-            {{ template "passphrase-modal" "send" }}
                 <div class="collapsible">
                     <div class="card">
                         <div class="card-body no-btm-pad">
@@ -177,7 +176,7 @@
                                                 <button data-target="send.generateOutputsButton"
                                                         data-action="send#generateChangeOutputs"
                                                         id="generate-outputs-btn" type="button"
-                                                        class="btn btn-sm btn-primary btn-outline-secondary mt-0">
+                                                        class="btn btn-sm btn-outline-secondary mt-0">
                                                     Generate Change Outputs
                                                 </button>
                                             </div>
@@ -189,7 +188,7 @@
                                                     <div class="col-md-6 col-sm-12">
                                                         <div class="form-group">
                                                             <label for="change-output-address">Change Address</label>
-                                                            <input type="text" class="form-control" readonly
+                                                            <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly
                                                                    name="change-output-address"/>
                                                         </div>
                                                     </div>
@@ -242,5 +241,32 @@
     </div>
 </div>
 {{ template "footer" }}
+
+<div class="modal" id="passphrase-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Transaction</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div data-target="send.transactionDetails"></div>
+                <p>Enter your passphrase to continue</p>
+                <div class="form-group">
+                    <label for="passhprase">Passphrase</label>
+                    <input data-target="send.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                    <div data-target="send.passwordError" class="errors"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button data-action="click->send#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

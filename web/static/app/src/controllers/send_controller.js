@@ -10,13 +10,13 @@ export default class extends Controller {
       'sourceAccount',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck',
-      'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable',
+      'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
-      'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAmount',
+      'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
       'errors',
       'nextButton',
       // from wallet passphrase modal (utils.html)
-      'walletPassphrase', 'passwordError'
+      'walletPassphrase', 'passwordError', 'transactionDetails'
     ]
   }
 
@@ -272,7 +272,8 @@ export default class extends Controller {
         let dcrAmount = utxo.amount / 100000000
         return `<tr>
                   <td width='5%'>
-                    <input data-action='click->send#calculateCustomInputsPercentage' type='checkbox' class='custom-input' name='utxo' value='${utxo.key}' data-amount='${dcrAmount}' />
+                    <input data-target='send.utxoCheckbox' data-action='click->send#calculateCustomInputsPercentage' type='checkbox' class='custom-input' 
+                    name='utxo' value='${utxo.key}' data-amount='${dcrAmount}' data-address='${utxo.address}' />
                   </td>
                   <td width='40%'>${utxo.address}</td>
                   <td width='15%'>${dcrAmount} DCR</td>
@@ -477,10 +478,56 @@ export default class extends Controller {
   }
 
   getWalletPassphraseAndSubmit () {
+    const _this = this
     this.clearMessages()
     if (!this.validateSendForm() || !this.validateChangeOutputAmount()) {
       return
     }
+    let summaryHTML
+    if (this.useCustomTarget.checked) {
+      summaryHTML = '<p>You are about to spend the input(s)</p>'
+      let inputs = ''
+      this.utxoCheckboxTargets.forEach(utxoCheckbox => {
+        if (!utxoCheckbox.checked) {
+          return
+        }
+        inputs += `<li>${utxoCheckbox.getAttribute('data-amount')} from ${utxoCheckbox.getAttribute('data-address')}`
+      })
+      summaryHTML += `<ul>${inputs}</ul> <p>and send</p>`
+    } else {
+      summaryHTML = '<p>You about to send</p>'
+    }
+    let destinations = ''
+    this.addressTargets.forEach(addressTarget => {
+      const index = addressTarget.getAttribute('data-index')
+      let currentAmountTarget
+      _this.amountTargets.forEach(function (target) {
+        if (target.getAttribute('data-index') === index) {
+          currentAmountTarget = target
+        }
+      })
+      if (!currentAmountTarget) {
+        return
+      }
+      destinations += `<li>${currentAmountTarget.value} to ${addressTarget.value}</li>`
+    })
+
+    this.changeOutputAddressTargets.forEach(changeOutputAddressTarget => {
+      const index = changeOutputAddressTarget.getAttribute('data-index')
+      let currentAmountTarget
+      _this.changeOutputAmountTargets.forEach(function (target) {
+        if (target.getAttribute('data-index') === index) {
+          currentAmountTarget = target
+        }
+      })
+      if (!currentAmountTarget) {
+        return
+      }
+      destinations += `<li>${currentAmountTarget.value} to ${changeOutputAddressTarget.value} (change)</li>`
+    })
+
+    summaryHTML += `<ul>${destinations}</ul>`
+    this.transactionDetailsTarget.innerHTML = summaryHTML
     $('#passphrase-modal').modal()
   }
 
