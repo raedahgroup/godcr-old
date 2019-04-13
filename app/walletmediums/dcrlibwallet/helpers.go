@@ -1,21 +1,31 @@
 package dcrlibwallet
 
 import (
-	"time"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedTxs []*walletcore.Transaction) (
+func (lib *DcrWalletLib) processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedTxs []*walletcore.Transaction) (
 	[]*walletcore.Transaction, error) {
 
 	for _, tx := range rawTxs {
 		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Hex)
 		if err != nil {
 			return nil, err
+		}
+
+		// todo this is not very performant, fetching tx details for each tx in history simply to get tx status...
+		var status string
+		txDetails, err := lib.GetTransaction(tx.Hash)
+		if err != nil {
+			status = "Unknown"
+		} else if txDetails.Confirmations >= walletcore.DefaultRequiredConfirmations {
+			status = "Confirmed"
+		} else {
+			status = "Unconfirmed"
 		}
 
 		processedTxs = append(processedTxs, &walletcore.Transaction{
@@ -26,8 +36,9 @@ func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedT
 			Size:          txSize,
 			Type:          tx.Type,
 			Direction:     tx.Direction,
+			Status:        status,
 			Timestamp:     tx.Timestamp,
-			FormattedTime: time.Unix(tx.Timestamp, 0).Format("2006-01-02 15:04:05 UTC"),
+			FormattedTime: utils.ExtractDateOrTime(tx.Timestamp),
 		})
 	}
 

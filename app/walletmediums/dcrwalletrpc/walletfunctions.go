@@ -280,7 +280,6 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 
 	// loop through utxo stream to find user selected utxos
 	inputs := make([]*wire.TxIn, 0, len(utxoKeys))
-	var totalInputAmount int64
 	for {
 		utxo, err := utxoStream.Recv()
 		if err == io.EOF {
@@ -309,23 +308,15 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 		outpoint := wire.NewOutPoint(transactionHash, utxo.OutputIndex, int8(utxo.Tree))
 		input := wire.NewTxIn(outpoint, utxo.Amount, nil)
 		inputs = append(inputs, input)
-		totalInputAmount += input.ValueIn
 
 		if len(inputs) == len(utxoKeys) {
 			break
 		}
 	}
 
-	outputs, maxChangeDestinations, err := txhelper.TxOutputsExtractMaxChangeDestination(len(inputs), totalInputAmount, txDestinations)
-	if err != nil {
-		return "", err
-	}
-	// if a max change destination is returned, use it as the only change destination
-	if len(maxChangeDestinations) == 1 {
-		changeDestinations = maxChangeDestinations
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, outputs, changeDestinations)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations, func() (address string, err error) {
+		return c.GenerateNewAddress(sourceAccount)
+	})
 	if err != nil {
 		return "", err
 	}
@@ -390,7 +381,7 @@ func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeig
 				transactionDetails = append(transactionDetails, in.UnminedTransactions...)
 			}
 
-			txs, err := processTransactions(transactionDetails)
+			txs, err := c.processTransactions(transactionDetails)
 			if err != nil {
 				return err
 			}
@@ -453,7 +444,14 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	transaction, err := processTransaction(getTxResponse.GetTransaction())
+	var status string
+	if getTxResponse.GetConfirmations() >= walletcore.DefaultRequiredConfirmations {
+		status = "Confirmed"
+	} else {
+		status = "Unconfirmed"
+	}
+
+	transaction, err := processTransaction(getTxResponse.GetTransaction(), status)
 	if err != nil {
 		return nil, err
 	}

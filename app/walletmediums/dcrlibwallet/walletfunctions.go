@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
@@ -14,6 +13,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -181,7 +181,7 @@ func (lib *DcrWalletLib) TransactionHistory(ctx context.Context, startBlockHeigh
 			return
 		}
 
-		transactions, err = processAndAppendTransactions(rawTxs, transactions)
+		transactions, err = lib.processAndAppendTransactions(rawTxs, transactions)
 		if err != nil {
 			return
 		}
@@ -228,15 +228,23 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
+	var status string
+	if txInfo.Confirmations >= walletcore.DefaultRequiredConfirmations {
+		status = "Confirmed"
+	} else {
+		status = "Unconfirmed"
+	}
+
 	tx := &walletcore.Transaction{
 		Hash:          txInfo.Hash,
 		Amount:        walletcore.NormalizeBalance(dcrutil.Amount(txInfo.Amount).ToCoin()),
-		FormattedTime: time.Unix(txInfo.Timestamp, 0).Format("Mon Jan 2, 2006 3:04PM UTC"),
+		FormattedTime: utils.ExtractDateOrTime(txInfo.Timestamp),
 		Timestamp:     txInfo.Timestamp,
 		Fee:           walletcore.NormalizeBalance(dcrutil.Amount(decodedTx.Fee).ToCoin()),
 		Direction:     txInfo.Direction,
 		Type:          txInfo.Type,
 		FeeRate:       dcrutil.Amount(decodedTx.FeeRate),
+		Status:        status,
 		Size:          decodedTx.Size,
 	}
 

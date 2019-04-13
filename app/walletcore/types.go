@@ -52,6 +52,7 @@ type Transaction struct {
 	Direction     txhelper.TransactionDirection `json:"direction"`
 	Timestamp     int64                         `json:"timestamp"`
 	FormattedTime string                        `json:"formatted_time"`
+	Status        string                        `json:"status"`
 	Size          int                           `json:"size"`
 }
 

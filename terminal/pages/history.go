@@ -6,7 +6,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
@@ -17,8 +16,6 @@ import (
 )
 
 var displayedTxHashes []string
-
-// var _24hours, _ = time.ParseDuration("24h")
 
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
@@ -121,40 +118,15 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		return
 	}
 
-	loc, _ := time.LoadLocation("UTC")
-	currentDate := time.Now().In(loc)
-
-	// var confirmations int32
-	// confirmations := walletcore.DefaultRequiredConfirmations
 	for _, tx := range txns {
 		row := historyTable.GetRowCount()
-		displayedTxHashes = append(displayedTxHashes, tx.Hash)
-
-		txns, err := wallet.GetTransaction(tx.Hash)
-		if err != nil {
-			displayError(err.Error())
-			return
-		}
-
-		transactionDate := time.Unix(tx.Timestamp, 0).In(loc)
-		transactionAge := currentDate.Sub(transactionDate)
-
-		txDateTime := strings.Split(tx.FormattedTime, " ")
-
-		if transactionAge > _24hours {
-			historyTable.SetCell(row, 0, tview.NewTableCell(txDateTime[0]).SetAlign(tview.AlignCenter))
-		} else {
-			historyTable.SetCell(row, 0, tview.NewTableCell(txDateTime[1]).SetAlign(tview.AlignCenter))
-		}
-
-		if txns.Confirmations >= walletcore.DefaultRequiredConfirmations {
-			historyTable.SetCell(row, 3, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
-		} else {
-			historyTable.SetCell(row, 3, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
-		}
+		historyTable.SetCell(row, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
 		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+
+		displayedTxHashes = append(displayedTxHashes, tx.Hash)
 	}
 
 	if endBlockHeight > 0 {
