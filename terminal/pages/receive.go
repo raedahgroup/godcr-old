@@ -3,7 +3,7 @@ package pages
 import (
 	"fmt"
 
- 	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -35,7 +35,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	addressTextView := primitives.NewCenterAlignedTextView("")
 	addressTextView.SetTextColor(helpers.DecredLightBlueColor)
 
-	displayOutput := func (qrCode, address string) {
+	displayOutput := func(qrCode, address string) {
 		body.RemoveItem(qrCodeTextView)
 		body.RemoveItem(addressTextView)
 		body.AddItem(qrCodeTextView.SetText(qrCode), 19, 0, true)
@@ -62,14 +62,15 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 				clearFocus()
 			}
 		}), 2, 1, true)
-		qrCode := fmt.Sprintf(qr.ToSmallString(false))
-		displayOutput(qrCode, address)
+
+		displayOutput(qr.ToSmallString(false), address)
+		hintTextView.SetText("TIP: ESC to return to navigation menu")
 	} else {
-		// receive form 
-		form := primitives.NewForm()
+		// receive form
+		form := primitives.NewForm(false)
 		form.SetBorderPadding(0, 0, 0, 0)
 		form.SetHorizontal(true).
-		SetLabelColor(helpers.DecredLightBlueColor)
+			SetLabelColor(helpers.DecredLightBlueColor)
 		body.AddItem(form, 2, 0, true)
 
 		accountNumbers := make([]uint32, len(accounts))
@@ -89,14 +90,12 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 				return
 			}
 
-			qrCode := fmt.Sprintf(qr.ToSmallString(false))
-			displayOutput(qrCode, address)	
+			displayOutput(qr.ToSmallString(false), address)
+			hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address. ESC to return to navigation menu")
 		})
 
 		form.SetCancelFunc(clearFocus)
 	}
-
-	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to navigation menu")
 
 	setFocus(body)
 	return body

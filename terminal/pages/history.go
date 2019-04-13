@@ -16,6 +16,10 @@ import (
 	"github.com/rivo/tview"
 )
 
+var displayedTxHashes []string
+
+// var _24hours, _ = time.ParseDuration("24h")
+
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
@@ -55,6 +59,8 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			clearFocus()
 		}
 	})
+
+	displayedTxHashes = []string{}
 
 	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
@@ -108,8 +114,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	return body
 }
 
-var displayedTxHashes []string
-
 func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *tview.Table, displayError func(errorMessage string)) {
 	txns, endBlockHeight, err := wallet.TransactionHistory(context.Background(), startBlockHeight, walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
@@ -118,11 +122,10 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 	}
 
 	loc, _ := time.LoadLocation("UTC")
-	currentDate := time.Now().In(loc).Add(1 * time.Hour)
-	timeDifference, _ := time.ParseDuration("24h")
+	currentDate := time.Now().In(loc)
 
-	var confirmations int32 
-	confirmations = walletcore.DefaultRequiredConfirmations
+	// var confirmations int32
+	// confirmations := walletcore.DefaultRequiredConfirmations
 	for _, tx := range txns {
 		row := historyTable.GetRowCount()
 		displayedTxHashes = append(displayedTxHashes, tx.Hash)
@@ -133,20 +136,20 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 			return
 		}
 
-		transactionDate := time.Unix(tx.Timestamp, 0).In(loc).Add(1 * time.Hour)
-		transactionDuration := currentDate.Sub(transactionDate)
-	   
-	   	dateOutput := strings.Split(tx.FormattedTime, " ")
+		transactionDate := time.Unix(tx.Timestamp, 0).In(loc)
+		transactionAge := currentDate.Sub(transactionDate)
 
-	    if transactionDuration > timeDifference {
-	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[0])).SetAlign(tview.AlignCenter))
-		}else{
-	    	historyTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintln(dateOutput[1])).SetAlign(tview.AlignCenter))
-		}		
+		txDateTime := strings.Split(tx.FormattedTime, " ")
 
-		if txns.Confirmations > confirmations{
+		if transactionAge > _24hours {
+			historyTable.SetCell(row, 0, tview.NewTableCell(txDateTime[0]).SetAlign(tview.AlignCenter))
+		} else {
+			historyTable.SetCell(row, 0, tview.NewTableCell(txDateTime[1]).SetAlign(tview.AlignCenter))
+		}
+
+		if txns.Confirmations >= walletcore.DefaultRequiredConfirmations {
 			historyTable.SetCell(row, 3, tview.NewTableCell("Confirmed").SetAlign(tview.AlignCenter))
-		}else{
+		} else {
 			historyTable.SetCell(row, 3, tview.NewTableCell("Unconfirmed").SetAlign(tview.AlignCenter))
 		}
 		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))

@@ -70,9 +70,9 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*tview.Flex, error) {
 	}
 
 	stakingFlex := tview.NewFlex()
-	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Live: %s\n", strconv.Itoa(int(stakeInfo.Live)))), 9, 0, false)
+	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Mempool: %s\n", strconv.Itoa(int(stakeInfo.OwnMempoolTix)))), 12, 0, false)
 	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Immature: %s\n", strconv.Itoa(int(stakeInfo.Immature)))), 13, 0, false)
-	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Mempool: %s\n", strconv.Itoa(int(stakeInfo.OwnMempoolTix)))), 10, 0, false)
+	stakingFlex.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Live: %s\n", strconv.Itoa(int(stakeInfo.Live)))), 9, 0, false)
 
 	return stakingFlex, nil
 }
