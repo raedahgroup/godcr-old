@@ -491,7 +491,7 @@ export default class extends Controller {
         if (!utxoCheckbox.checked) {
           return
         }
-        inputs += `<li>${utxoCheckbox.getAttribute('data-amount')} from ${utxoCheckbox.getAttribute('data-address')}`
+        inputs += `<li>${parseFloat(utxoCheckbox.getAttribute('data-amount')).toFixed(8)} from ${utxoCheckbox.getAttribute('data-address')}`
       })
       summaryHTML += `<ul>${inputs}</ul> <p>and send</p>`
     } else {
@@ -509,7 +509,7 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      destinations += `<li>${currentAmountTarget.value} to ${addressTarget.value}</li>`
+      destinations += `<li>${parseFloat(currentAmountTarget.value).toFixed(8)} DCR to ${addressTarget.value}</li>`
     })
 
     this.changeOutputAddressTargets.forEach(changeOutputAddressTarget => {
@@ -523,7 +523,7 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      destinations += `<li>${currentAmountTarget.value} to ${changeOutputAddressTarget.value} (change)</li>`
+      destinations += `<li>${parseFloat(currentAmountTarget.value).toFixed(8)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
     })
 
     summaryHTML += `<ul>${destinations}</ul>`
