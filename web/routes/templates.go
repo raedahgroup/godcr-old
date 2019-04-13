@@ -49,6 +49,14 @@ func templateFuncMap() template.FuncMap {
 		"accountString": func(account *walletcore.Account) string {
 			return account.String()
 		},
+		"haveUnconfirmedBalance": func(accounts []*walletcore.Account) bool {
+			for _, account := range accounts {
+				if account.Balance.Total != account.Balance.Spendable {
+					return true
+				}
+			}
+			return false
+		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
 		},
