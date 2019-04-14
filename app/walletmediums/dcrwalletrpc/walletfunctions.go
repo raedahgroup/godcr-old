@@ -236,7 +236,7 @@ func (c *WalletRPCClient) SendFromAccount(sourceAccount uint32, requiredConfirma
 	for i, output := range outputs {
 		walletrpcOutputs[i] = &walletrpc.ConstructTransactionRequest_Output{
 			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Script: output.PkScript,
+				Script:        output.PkScript,
 				ScriptVersion: uint32(output.Version),
 			},
 			Amount: output.Value,

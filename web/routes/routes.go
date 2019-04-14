@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/go-chi/chi"
@@ -24,7 +25,7 @@ type Routes struct {
 
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
 // returns syncBlockchain function
-func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func(), error) {
+func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func() func(http.Handler) http.Handler, error) {
 	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
@@ -42,7 +43,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 	routes.loadTemplates()
 	routes.loadRoutes(router)
 
-	return routes.syncBlockchain, nil
+	return routes.walletLoaderMiddleware, nil
 }
 
 func (routes *Routes) loadTemplates() {
@@ -90,4 +91,7 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/transaction-details/{hash}", routes.transactionDetailsPage)
 	router.Get("/staking", routes.stakingPage)
 	router.Post("/purchase-tickets", routes.submitPurchaseTicketsForm)
+	router.Get("/security", routes.securityPage)
+	router.Get("/accounts", routes.accountsPage)
+
 }
