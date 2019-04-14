@@ -24,12 +24,6 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
-	accounts = append(accounts, &walletcore.Account{
-		Name:    "account 2",
-		Number:  2,
-		Balance: accounts[0].Balance,
-	})
-
 	// form for Sending
 	form := primitives.NewForm(true)
 	form.SetBorderPadding(0, 0, 0, 0)
