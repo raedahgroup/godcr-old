@@ -170,6 +170,7 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	accounts = append(accounts, accounts...)
 	data := map[string]interface{}{
 		"accounts": accounts,
 	}
