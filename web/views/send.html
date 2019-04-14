@@ -17,7 +17,7 @@
                     </div>
                     <!-- from account and spend unconfirmed checkbox -->
                     <div class="card">
-                        <div class="card-body no-btm-pad">
+                        <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12 col-md-6">
                                     <div class="form-group mb-1">
@@ -38,7 +38,7 @@
                                     </div>
 
                                     {{ if haveUnconfirmedBalance .accounts }}
-                                    <div class="form-group form-check">
+                                    <div class="form-group form-check mb-0">
                                             <input data-action="click->send#toggleSpendUnconfirmed"
                                                    data-target="send.spendUnconfirmed" type="checkbox"
                                                    class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
