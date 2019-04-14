@@ -11,22 +11,15 @@ import (
 func (lib *DcrWalletLib) processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedTxs []*walletcore.Transaction) (
 	[]*walletcore.Transaction, error) {
 
+	bestBlockHeight := lib.walletLib.GetBestBlock()
+
 	for _, tx := range rawTxs {
 		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Hex)
 		if err != nil {
 			return nil, err
 		}
 
-		// todo this is not very performant, fetching tx details for each tx in history simply to get tx status...
-		var status string
-		txDetails, err := lib.GetTransaction(tx.Hash)
-		if err != nil {
-			status = "Unknown"
-		} else if txDetails.Confirmations >= walletcore.DefaultRequiredConfirmations {
-			status = "Confirmed"
-		} else {
-			status = "Unconfirmed"
-		}
+		_, status := walletcore.TxStatus(tx.BlockHeight, bestBlockHeight)
 
 		processedTxs = append(processedTxs, &walletcore.Transaction{
 			Hash:          tx.Hash,

@@ -228,12 +228,8 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 		return nil, err
 	}
 
-	var status string
-	if txInfo.Confirmations >= walletcore.DefaultRequiredConfirmations {
-		status = "Confirmed"
-	} else {
-		status = "Unconfirmed"
-	}
+	bestBlockHeight := lib.walletLib.GetBestBlock()
+	confirmations, status := walletcore.TxStatus(bestBlockHeight, txInfo.BlockHeight)
 
 	tx := &walletcore.Transaction{
 		Hash:          txInfo.Hash,
@@ -251,7 +247,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 
 	return &walletcore.TransactionDetails{
 		BlockHeight:   txInfo.BlockHeight,
-		Confirmations: txInfo.Confirmations,
+		Confirmations: confirmations,
 		Transaction:   tx,
 		Inputs:        decodedTx.Inputs,
 		Outputs:       decodedTx.Outputs,

@@ -55,32 +55,6 @@ func (c *WalletRPCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
-func (c *WalletRPCClient) processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*walletcore.Transaction, error) {
-	transactions := make([]*walletcore.Transaction, 0, len(transactionDetails))
-
-	for _, txDetail := range transactionDetails {
-		// todo this is not very performant, fetching tx details for each tx in history simply to get tx status...
-		var status string
-		getTxRequest := &walletrpc.GetTransactionRequest{TransactionHash: txDetail.Hash[:]}
-		getTxResponse, err := c.walletService.GetTransaction(context.Background(), getTxRequest)
-		if err != nil {
-			status = "Unknown"
-		} else if getTxResponse.Confirmations >= walletcore.DefaultRequiredConfirmations {
-			status = "Confirmed"
-		} else {
-			status = "Unconfirmed"
-		}
-
-		tx, err := processTransaction(txDetail, status)
-		if err != nil {
-			return nil, err
-		}
-		transactions = append(transactions, tx)
-	}
-
-	return transactions, nil
-}
-
 func processTransaction(txDetail *walletrpc.TransactionDetails, status string) (*walletcore.Transaction, error) {
 	hash, err := chainhash.NewHash(txDetail.Hash)
 	if err != nil {

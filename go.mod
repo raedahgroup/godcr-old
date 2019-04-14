@@ -23,7 +23,7 @@ require (
 	github.com/gorilla/websocket v1.2.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
-	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190413182542-e5e92392d97f
+	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190414053543-fd0ab839403f
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190103005219-bcdd5e378222
 	github.com/srwiley/oksvg v0.0.0-20190105194046-ccbc7673cdf3 // indirect

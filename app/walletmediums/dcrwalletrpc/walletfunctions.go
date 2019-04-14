@@ -373,20 +373,34 @@ func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeig
 				return err
 			}
 
-			var transactionDetails []*walletrpc.TransactionDetails
 			if in.MinedTransactions != nil {
-				transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
+				// process mined txs and add to history
+				var blockTxStatus string
+				bestBlockHeight, bestBlockErr := c.BestBlock()
+				if bestBlockErr != nil {
+					blockTxStatus = "Error"
+				} else {
+					_, blockTxStatus = walletcore.TxStatus(in.MinedTransactions.Height, int32(bestBlockHeight))
+				}
+
+				for _, txDetail := range in.MinedTransactions.Transactions {
+					tx, err := processTransaction(txDetail, blockTxStatus)
+					if err != nil {
+						return err
+					}
+					transactions = append(transactions, tx)
+				}
 			}
+
 			if in.UnminedTransactions != nil {
-				transactionDetails = append(transactionDetails, in.UnminedTransactions...)
+				for _, txDetail := range in.UnminedTransactions {
+					tx, err := processTransaction(txDetail, walletcore.UnconfirmedStatus)
+					if err != nil {
+						return err
+					}
+					transactions = append(transactions, tx)
+				}
 			}
-
-			txs, err := c.processTransactions(transactionDetails)
-			if err != nil {
-				return err
-			}
-
-			transactions = append(transactions, txs...)
 		}
 
 		return nil
@@ -446,9 +460,9 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 
 	var status string
 	if getTxResponse.GetConfirmations() >= walletcore.DefaultRequiredConfirmations {
-		status = "Confirmed"
+		status = walletcore.ConfirmedStatus
 	} else {
-		status = "Unconfirmed"
+		status = walletcore.UnconfirmedStatus
 	}
 
 	transaction, err := processTransaction(getTxResponse.GetTransaction(), status)

@@ -7,15 +7,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
-const (
-	// standard decred min confirmations is 2, this should be used as default for wallet operations
-	// provision should me made in individual interface for user to override this default value
-	DefaultRequiredConfirmations = 2
-
-	// minimum number of transactions to return per call to Wallet.TransactionHistory()
-	TransactionHistoryCountPerPage = 20
-)
-
 // Wallet defines key functions for performing operations on a decred wallet
 // These functions are implemented by the different mediums that provide access to a decred wallet
 type Wallet interface {
