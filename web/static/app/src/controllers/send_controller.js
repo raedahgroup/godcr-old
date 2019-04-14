@@ -533,6 +533,7 @@ export default class extends Controller {
 
   validateSendForm () {
     this.errorsTarget.innerHTML = ''
+    hide(this.errorsTarget)
     let valid = this.destinationFieldsValid()
 
     if (this.sourceAccountTarget.value === '') {
@@ -625,7 +626,7 @@ export default class extends Controller {
       ele.value = ''
     })
     this.spendUnconfirmedTarget.checked = false
-    this.useCustomTarget.checked = false
+    $(this.useCustomTarget).bootstrapToggle('off')
 
     this.clearMessages()
   }
@@ -646,6 +647,7 @@ export default class extends Controller {
     hide(this.errorMessageTarget)
     hide(this.successMessageTarget)
     this.errorsTarget.innerHTML = ''
+    hide(this.errorsTarget)
   }
 
   hide (el) {
@@ -658,5 +660,6 @@ export default class extends Controller {
 
   showError (error) {
     this.errorsTarget.innerHTML += `<div class="error">${error}</div>`
+    show(this.errorsTarget)
   }
 }

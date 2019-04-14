@@ -52,19 +52,19 @@
                     <!-- custom inputs -->
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-group mb-2">
+                            <div class="form-group mb-0">
                                 <input data-target="send.useCustom"
                                        name="use-custom" value="1"
                                        type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
                             </div>
 
-                            <div class="collapse" id="custom-inputs">
+                            <div class="collapse mt-2" id="custom-inputs">
                                 <div data-target="send.fetchingUtxos">Fetching Unspent Outputs</div>
                                 <div class="progress">
                                     <div data-target="send.utxoSelectionProgressBar" class="progress-bar"
                                          style="width: 0%"></div>
                                 </div>
-                                <table class="table">
+                                <table class="table mb-0">
                                     <thead>
                                     <tr>
                                         <th></th>
@@ -82,7 +82,7 @@
 
                     <!-- destinations -->
                     <div class="card">
-                        <div class="card-body no-btm-pad">
+                        <div class="card-body">
                             <label><b>To</b></label>
                             <div data-target="send.destinations" id="destinations" class="row"></div>
                             <template data-target="send.destinationTemplate">
@@ -122,7 +122,7 @@
                                     </div>
                                 </div>
                             </template>
-                            <div class="form-group">
+                            <div class="form-group mb-0">
                                 <button type="button" data-action="click->send#newDestination"
                                         class="btn btn-sm btn-outline-secondary">
                                     Add another address
@@ -155,12 +155,12 @@
                                                     Outputs</label>
                                                 <input data-action="blur->send#generateChangeOutputs"
                                                        data-target="send.numberOfChangeOutputs"
-                                                       class="form-control mb-2 mr-sm-2"
+                                                       class="form-control mb-0 mr-sm-2"
                                                        type="number" id="numberOfChangeOutput"
                                                        name="numberOfChangeOutput"
                                                        placeholder="Number Of Change Outputs">
 
-                                                <div class="form-check mb-2 mr-sm-2">
+                                                <div class="form-check mb-0 mr-sm-2">
                                                     <input data-action="click->send#generateChangeOutputs"
                                                            data-target="send.useRandomChangeOutputs"
                                                            class="form-check-input"
@@ -223,7 +223,7 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <div class="errors mb-3" data-target="send.errors"></div>
+                            <div class="errors mb-3 d-none" data-target="send.errors"></div>
                             <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
                                     type="button">Reset
                             </button>
@@ -251,9 +251,9 @@
             <div class="modal-body">
                 <div data-target="send.transactionDetails"></div>
                 <p>Enter your passphrase to continue</p>
-                <div class="form-group">
+                <div class="form-group form-inline">
                     <label for="passhprase">Passphrase</label>
-                    <input data-target="send.walletPassphrase" type="password" class="form-control" name="wallet-passphrase" id="wallet-passphrase" />
+                    <input data-target="send.walletPassphrase" type="password" class="form-control ml-3" name="wallet-passphrase" id="wallet-passphrase" />
                     <div data-target="send.passwordError" class="errors"></div>
                 </div>
             </div>
