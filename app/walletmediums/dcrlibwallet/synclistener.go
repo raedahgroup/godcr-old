@@ -252,7 +252,7 @@ func (listener *syncListener) OnSynced(synced bool) {
 	listener.syncInfoUpdated(listener.privateSyncInfo)
 }
 
-// todo sync hasn't ended
+// todo sync may not have ended
 func (listener *syncListener) OnSyncError(code int, err error) {
 	if !listener.syncing {
 		// ignore subsequent updates

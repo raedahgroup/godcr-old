@@ -14,14 +14,6 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func (c *WalletRPCClient) WalletExists() (bool, error) {
-	res, err := c.walletLoader.WalletExists(context.Background(), &walletrpc.WalletExistsRequest{})
-	if err != nil {
-		return false, err
-	}
-	return res.Exists, nil
-}
-
 func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
 	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
 	if err != nil {
@@ -29,6 +21,14 @@ func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
 	}
 
 	return walletseed.EncodeMnemonic(seed), nil
+}
+
+func (c *WalletRPCClient) WalletExists() (bool, error) {
+	res, err := c.walletLoader.WalletExists(context.Background(), &walletrpc.WalletExistsRequest{})
+	if err != nil {
+		return false, err
+	}
+	return res.Exists, nil
 }
 
 func (c *WalletRPCClient) CreateWallet(passphrase, seed string) error {
@@ -84,17 +84,6 @@ func (c *WalletRPCClient) OpenWalletIfExist(ctx context.Context) (walletExists b
 	}
 }
 
-func (c *WalletRPCClient) CloseWallet() {
-	// don't actually close wallet loaded by dcrwallet
-	// - if wallet wasn't opened by godcr, closing it could cause troubles for user
-	// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user
-	// when they next launch godcr
-}
-
-func (c *WalletRPCClient) DeleteWallet() error {
-	return errors.New("wallet cannot be deleted when connecting via dcrwallet rpc")
-}
-
 func (c *WalletRPCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
 	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
@@ -130,7 +119,7 @@ func (c *WalletRPCClient) SyncBlockChainOld(listener *app.BlockChainSyncListener
 		originalSyncEndedListener(err)
 	}
 
-	s := &spvSync{
+	s := &syncListener{
 		listener:  listener,
 		netType:   c.NetType(),
 		client:    syncStream,
@@ -138,7 +127,15 @@ func (c *WalletRPCClient) SyncBlockChainOld(listener *app.BlockChainSyncListener
 	}
 
 	// receive sync updates from stream and send to listener in separate goroutine
-	go s.streamBlockchainSyncUpdates(showLog)
+	go s.streamBlockChainSyncUpdates(showLog)
+	return nil
+}
+
+// todo update this method's implementation
+func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
+	privateSyncData := sync.NewPrivateInfo()
+	privateSyncData.Write(privateSyncData.Read(), sync.StatusSuccess)
+	syncInfoUpdated(privateSyncData)
 	return nil
 }
 
@@ -168,7 +165,7 @@ func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo
 
 	info.LatestBlock = bestBlock
 	info.NetworkType = c.NetType()
-	info.PeersConnected = c.GetConnectedPeersCount()
+	info.PeersConnected = numberOfPeers
 
 	return
 }
@@ -181,14 +178,13 @@ func (c *WalletRPCClient) BestBlock() (uint32, error) {
 	return req.Height, err
 }
 
-func (c *WalletRPCClient) GetConnectedPeersCount() int32 {
-	return numberOfPeers
+func (c *WalletRPCClient) CloseWallet() {
+	// don't actually close wallet loaded by dcrwallet
+	// - if wallet wasn't opened by godcr, closing it could cause troubles for user
+	// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user
+	// when they next launch godcr
 }
 
-// todo update this method's implementation
-func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
-	privateSyncData := sync.NewPrivateInfo()
-	privateSyncData.Write(privateSyncData.Read(), sync.StatusSuccess)
-	syncInfoUpdated(privateSyncData)
-	return nil
+func (c *WalletRPCClient) DeleteWallet() error {
+	return errors.New("wallet cannot be deleted when connecting via dcrwallet rpc")
 }

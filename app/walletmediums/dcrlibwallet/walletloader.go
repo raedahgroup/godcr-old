@@ -13,12 +13,12 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func (lib *DcrWalletLib) WalletExists() (bool, error) {
-	return lib.walletLib.WalletExists()
-}
-
 func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
 	return utils.GenerateSeed()
+}
+
+func (lib *DcrWalletLib) WalletExists() (bool, error) {
+	return lib.walletLib.WalletExists()
 }
 
 func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
@@ -59,15 +59,6 @@ func (lib *DcrWalletLib) OpenWalletIfExist(ctx context.Context) (walletExists bo
 	case <-ctx.Done():
 		return false, ctx.Err()
 	}
-}
-
-func (lib *DcrWalletLib) CloseWallet() {
-	lib.walletLib.Shutdown(false)
-}
-
-func (lib *DcrWalletLib) DeleteWallet() error {
-	lib.CloseWallet()
-	return os.RemoveAll(lib.walletDbDir)
 }
 
 func (lib *DcrWalletLib) IsWalletOpen() bool {
@@ -119,7 +110,7 @@ func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo,
 
 	info.LatestBlock = bestBlock
 	info.NetworkType = lib.NetType()
-	info.PeersConnected = lib.GetConnectedPeersCount()
+	info.PeersConnected = numberOfPeers
 
 	return
 }
@@ -128,6 +119,11 @@ func (lib *DcrWalletLib) BestBlock() (uint32, error) {
 	return uint32(lib.walletLib.GetBestBlock()), nil
 }
 
-func (lib *DcrWalletLib) GetConnectedPeersCount() int32 {
-	return numberOfPeers
+func (lib *DcrWalletLib) CloseWallet() {
+	lib.walletLib.Shutdown(false)
+}
+
+func (lib *DcrWalletLib) DeleteWallet() error {
+	lib.CloseWallet()
+	return os.RemoveAll(lib.walletDbDir)
 }
