@@ -20,7 +20,6 @@ const (
 
 const (
 	// standard decred min confirmations is 2, this should be used as default for wallet operations
-	// provision should me made in individual interface for user to override this default value
 	DefaultRequiredConfirmations = 2
 
 	// minimum number of transactions to return per call to Wallet.TransactionHistory()
