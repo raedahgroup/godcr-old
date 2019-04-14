@@ -75,9 +75,9 @@ func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refres
 
 		// show peer count last
 		if syncInfo.ConnectedPeers == 1 {
-			s.report = append(s.report, fmt.Sprintf("Syncing with %d peer on %s", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peer on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
 		} else {
-			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
 		}
 
 		refreshWindowDisplay()
