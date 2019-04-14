@@ -42,19 +42,19 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		}
 
 		// if wallet exists, then it must be open, check if blockchain is synced
-		// currentSyncStatus := routes.blockchain.status()
-		// switch currentSyncStatus {
-		// case walletcore.SyncStatusSuccess:
-		next.ServeHTTP(res, req)
-		// case walletcore.SyncStatusNotStarted:
-		// 	errMsg = "Cannot display page. Blockchain hasn't been synced"
-		// case walletcore.SyncStatusInProgress:
-		// 	errMsg = fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
-		// case walletcore.SyncStatusError:
-		// 	errMsg = fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
-		// default:
-		// 	errMsg = "Cannot display page. Blockchain sync status cannot be determined"
-		// }
+		currentSyncStatus := routes.blockchain.status()
+		switch currentSyncStatus {
+		case walletcore.SyncStatusSuccess:
+			next.ServeHTTP(res, req)
+		case walletcore.SyncStatusNotStarted:
+			errMsg = "Cannot display page. Blockchain hasn't been synced"
+		case walletcore.SyncStatusInProgress:
+			errMsg = fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
+		case walletcore.SyncStatusError:
+			errMsg = fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
+		default:
+			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
+		}
 	})
 }
 
