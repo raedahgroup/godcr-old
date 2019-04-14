@@ -104,11 +104,11 @@ func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler sta
 	styles.SetPageStyle(window.Master())
 
 	if desktop.pageChanged {
-		handler.BeforeRender()
+		handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed)
 		desktop.pageChanged = false
 	}
 
-	handler.Render(window, desktop.walletMiddleware, desktop.changePage)
+	handler.Render(window, desktop.changePage)
 }
 
 func (desktop *Desktop) renderNavPage(window *nucular.Window, handler navPageHandler) {

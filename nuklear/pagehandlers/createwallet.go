@@ -10,7 +10,7 @@ import (
 
 type CreateWalletHandler struct {
 	err                  error
-	isRendering          bool
+	walletMiddleware     app.WalletMiddleware
 	passwordInput        *nucular.TextEditor
 	confirmPasswordInput *nucular.TextEditor
 	seedBox              *nucular.TextEditor // todo why editor?
@@ -19,11 +19,10 @@ type CreateWalletHandler struct {
 	validationErrors     map[string]string
 }
 
-func (handler *CreateWalletHandler) BeforeRender() {
-	handler.err = nil
-	handler.isRendering = false
+func (handler *CreateWalletHandler) BeforeRender(walletMiddleware app.WalletMiddleware, _ func()) {
+	handler.walletMiddleware = walletMiddleware
 
-	handler.seed = ""
+	handler.seed, handler.err = walletMiddleware.GenerateNewWalletSeed()
 
 	handler.passwordInput = &nucular.TextEditor{}
 	handler.passwordInput.Flags = nucular.EditField
@@ -36,12 +35,7 @@ func (handler *CreateWalletHandler) BeforeRender() {
 	handler.validationErrors = make(map[string]string)
 }
 
-func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
-	if !handler.isRendering {
-		handler.isRendering = true
-		handler.seed, handler.err = wallet.GenerateNewWalletSeed()
-	}
-
+func (handler *CreateWalletHandler) Render(window *nucular.Window, changePage func(*nucular.Window, string)) {
 	widgets.PageContentWindowDefaultPadding("Create Wallet", window, func(contentWindow *widgets.Window) {
 		columnWidths := []int{220, 220} // use 220 to hold each column to accommodate error messages
 		contentWindow.AddLabelsWithWidths(columnWidths,
@@ -89,7 +83,7 @@ func (handler *CreateWalletHandler) Render(window *nucular.Window, wallet app.Wa
 		contentWindow.AddHorizontalSpace(20)
 		contentWindow.AddButton("Create Wallet", func() {
 			if !handler.hasErrors() {
-				handler.err = wallet.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
+				handler.err = handler.walletMiddleware.CreateWallet(string(handler.passwordInput.Buffer), handler.seed)
 				if handler.err != nil {
 					changePage(window, "sync")
 				} else {

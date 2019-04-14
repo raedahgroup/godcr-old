@@ -9,6 +9,16 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
+type standalonePage struct {
+	name    string
+	handler standalonePageHandler
+}
+
+type standalonePageHandler interface {
+	BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func())
+	Render(*nucular.Window, func(*nucular.Window, string))
+}
+
 type navPage struct {
 	name    string
 	label   string
@@ -29,28 +39,17 @@ type navPageHandler interface {
 	Render(window *nucular.Window)
 }
 
-type notImplementedNavPageHandler struct {
-	pageTitle string
-}
-
-func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func()) bool {
-	return true
-}
-
-func (p *notImplementedNavPageHandler) Render(window *nucular.Window) {
-	widgets.PageContentWindowDefaultPadding(p.pageTitle, window, func(contentWindow *widgets.Window) {
-		contentWindow.DisplayMessage("Page not yet implemented", styles.GrayColor)
-	})
-}
-
-type standalonePage struct {
-	name    string
-	handler standalonePageHandler
-}
-
-type standalonePageHandler interface {
-	BeforeRender()
-	Render(*nucular.Window, app.WalletMiddleware, func(*nucular.Window, string))
+func getStandalonePages() []standalonePage {
+	return []standalonePage{
+		{
+			name:    "sync",
+			handler: &pagehandlers.SyncHandler{},
+		},
+		{
+			name:    "createwallet",
+			handler: &pagehandlers.CreateWalletHandler{},
+		},
+	}
 }
 
 func getNavPages() []navPage {
@@ -98,15 +97,16 @@ func getNavPages() []navPage {
 	}
 }
 
-func getStandalonePages() []standalonePage {
-	return []standalonePage{
-		{
-			name:    "sync",
-			handler: &pagehandlers.SyncHandler{},
-		},
-		{
-			name:    "createwallet",
-			handler: &pagehandlers.CreateWalletHandler{},
-		},
-	}
+type notImplementedNavPageHandler struct {
+	pageTitle string
+}
+
+func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func()) bool {
+	return true
+}
+
+func (p *notImplementedNavPageHandler) Render(window *nucular.Window) {
+	widgets.PageContentWindowDefaultPadding(p.pageTitle, window, func(contentWindow *widgets.Window) {
+		contentWindow.DisplayMessage("Page not yet implemented", styles.GrayColor)
+	})
 }

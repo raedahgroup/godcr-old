@@ -13,26 +13,72 @@ import (
 
 type SyncHandler struct {
 	err                         error
-	isRendering                 bool
-	isShowingPercentageProgress bool
 	percentageProgress          int
-	report                      string
+	report                      []string
+	showDetails          bool
 	status                      sync.Status
 }
 
-func (s *SyncHandler) BeforeRender() {
-	s.isRendering = false
-	s.report = ""
-	s.isShowingPercentageProgress = false
+func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func()) {
+	s.status = sync.StatusNotStarted
 	s.percentageProgress = 0
+	s.report = []string{
+		"Starting...",
+	}
+	s.showDetails = false
+
+	// begin block chain sync now so that when `Render` is called shortly after this, there'd be a report to display
+	s.err = walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
+		syncInfo := syncPrivateInfo.Read()
+		s.status = syncInfo.Status
+		s.percentageProgress = int(syncInfo.TotalSyncProgress)
+
+		if syncInfo.TotalTimeRemaining == "" {
+			s.report = []string{
+				fmt.Sprintf("%d%% completed.", syncInfo.TotalSyncProgress),
+			}
+		} else {
+			s.report = []string{
+				fmt.Sprintf("%d%% completed, %s remaining.", syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining),
+			}
+		}
+
+		switch syncInfo.CurrentStep {
+		case 1:
+			s.report = append(s.report, fmt.Sprintf("Fetched %d of %d block headers.",
+				syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch))
+			s.report = append(s.report, fmt.Sprintf("%d%% through step 1 of 3.", syncInfo.HeadersFetchProgress))
+
+			if syncInfo.DaysBehind != "" {
+				s.report = append(s.report, fmt.Sprintf("Your wallet is %s behind.", syncInfo.DaysBehind))
+			}
+
+		case 2:
+			s.report = append(s.report, "Discovering used addresses.")
+			if syncInfo.AddressDiscoveryProgress > 100 {
+				s.report = append(s.report, fmt.Sprintf("%d%% (over) through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+			} else {
+				s.report = append(s.report, fmt.Sprintf("%d%% through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+			}
+
+		case 3:
+			s.report = append(s.report, fmt.Sprintf("Scanning %d of %d block headers.",
+				syncInfo.CurrentRescanHeight, syncInfo.TotalHeadersToFetch))
+			s.report = append(s.report, fmt.Sprintf("%d%% through step 3 of 3.", syncInfo.HeadersFetchProgress))
+		}
+
+		// show peer count last
+		if syncInfo.ConnectedPeers == 1 {
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peer on %s", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+		} else {
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+		}
+
+		refreshWindowDisplay()
+	})
 }
 
-func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware, changePage func(*nucular.Window, string)) {
-	if !s.isRendering {
-		s.isRendering = true
-		s.syncBlockchain(window, wallet)
-	}
-
+func (s *SyncHandler) Render(window *nucular.Window, changePage func(*nucular.Window, string)) {
 	// change page onSyncStatusSuccess
 	if s.status == sync.StatusSuccess {
 		changePage(window, "overview")
@@ -41,67 +87,28 @@ func (s *SyncHandler) Render(window *nucular.Window, wallet app.WalletMiddleware
 
 	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
+		pageWindow.AddHorizontalSpace(20)
 		pageWindow.AddLabelWithFont("Synchronizing", widgets.CenterAlign, styles.PageHeaderFont)
 
 		pageWindow.PageContentWindow("sync-page-content", 10, 10, func(contentWindow *widgets.Window) {
 			if s.err != nil {
-				contentWindow.DisplayErrorMessage("Error", s.err)
+				contentWindow.DisplayErrorMessage("Sync failed to start", s.err)
 			} else {
-				contentWindow.AddLabel(s.report, widgets.CenterAlign)
-				if s.isShowingPercentageProgress {
-					contentWindow.AddProgressBar(&s.percentageProgress, 100)
+				contentWindow.AddProgressBar(&s.percentageProgress, 100)
+
+				if s.showDetails {
+					for _, report := range s.report {
+						contentWindow.AddLabel(report, widgets.CenterAlign)
+					}
+					return
 				}
+
+				contentWindow.AddLabel(s.report[0], widgets.CenterAlign)
+				contentWindow.AddHorizontalSpace(20)
+				contentWindow.UseFontAndResetToPrevious(styles.PageHeaderFont, func() {
+					contentWindow.SelectableLabel("Tap to view information", widgets.CenterAlign, &s.showDetails)
+				})
 			}
 		})
 	})
-}
-
-func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMiddleware) {
-	masterWindow := window.Master()
-
-	err := wallet.SyncBlockChainOld(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			s.updateStatus("Blockchain sync started...", sync.StatusInProgress)
-			window.Master().Changed()
-		},
-		SyncEnded: func(err error) {
-			if err != nil {
-				s.updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), sync.StatusError)
-			} else {
-				s.updateStatus("Blockchain sync completed successfully", sync.StatusSuccess)
-			}
-			masterWindow.Changed()
-		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Fetching headers (1/3)", sync.StatusInProgress, percentageProgress)
-			masterWindow.Changed()
-		},
-		OnDiscoveredAddress: func(_ string) {
-			s.updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", sync.StatusInProgress)
-			masterWindow.Changed()
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", sync.StatusInProgress, percentageProgress)
-			masterWindow.Changed()
-		},
-		OnPeersUpdated:    func(_ int32) {},
-	}, false)
-
-	if err != nil {
-		s.err = err
-		masterWindow.Changed()
-	}
-}
-
-func (s *SyncHandler) updateStatusWithPercentageProgress(report string, status sync.Status, percentageProgress int64) {
-	s.isShowingPercentageProgress = true
-	s.report = report
-	s.status = status
-	s.percentageProgress = int(percentageProgress)
-}
-
-func (s *SyncHandler) updateStatus(report string, status sync.Status) {
-	s.isShowingPercentageProgress = false
-	s.report = report
-	s.status = status
 }

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/web/weblog"
 )
 
@@ -35,13 +34,6 @@ func (routes *Routes) render(tplName string, data interface{}, res http.Response
 func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.ResponseWriter) {
 	syncInfo["networkType"] = routes.walletMiddleware.NetType()
 
-	connectedPeers := syncInfo["ConnectedPeers"].(json.Number)
-	if connectedPeers == "1" {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peer", connectedPeers)
-	} else {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peers", connectedPeers)
-	}
-
 	if syncInfo["CurrentStep"].(json.Number) == "2" {
 		// check account discovery progress percentage
 		addressDiscoveryProgressString := syncInfo["AddressDiscoveryProgress"].(json.Number)
@@ -53,10 +45,11 @@ func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.R
 		}
 	}
 
-	totalDiscoveryTimeString := syncInfo["TotalDiscoveryTime"].(json.Number)
-	if totalDiscoveryTimeString != "-1" {
-		totalDiscoveryTime, _ := strconv.ParseFloat(string(totalDiscoveryTimeString), 64)
-		syncInfo["TotalDiscoveryTime"] = sync.CalculateTotalTimeRemaining(totalDiscoveryTime)
+	connectedPeers := syncInfo["ConnectedPeers"].(json.Number)
+	if connectedPeers == "1" {
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peer", connectedPeers)
+	} else {
+		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peers", connectedPeers)
 	}
 
 	routes.render("sync.html", syncInfo, res)
