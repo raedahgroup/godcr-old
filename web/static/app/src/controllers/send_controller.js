@@ -259,6 +259,7 @@ export default class extends Controller {
     this.useRandomChangeOutputsTarget.checked = false
     this.numberOfChangeOutputsTarget.value = ''
     this.generatedChangeOutputsTarget.innerHTML = ''
+    hide(this.generatedChangeOutputsTarget)
   }
 
   openCustomInputsAndChangeOutputsPanel () {
@@ -359,6 +360,7 @@ export default class extends Controller {
 
   resetChangeOutput () {
     this.generatedChangeOutputsTarget.innerHTML = ''
+    hide(this.generatedChangeOutputsTarget)
     this.numberOfChangeOutputsTarget.value = ''
   }
 
@@ -420,6 +422,7 @@ export default class extends Controller {
   getRandomChangeOutputs (numberOfOutputs, successCallback, errorCallback) {
     this.generatingChangeOutputs = true
     this.generatedChangeOutputsTarget.innerHTML = ''
+    hide(this.generatedChangeOutputsTarget)
     this.generateOutputsButtonTarget.setAttribute('disabled', 'disabled')
     this.generateOutputsButtonTarget.innerHTML = 'Loading...'
     this.numberOfChangeOutputsTarget.setAttribute('disabled', 'disabled')
