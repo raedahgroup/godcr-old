@@ -84,6 +84,7 @@ func (s *SyncHandler) syncBlockchain(window *nucular.Window, wallet app.WalletMi
 			s.updateStatusWithPercentageProgress("Blockchain sync in progress. Rescanning blocks (3/3)", sync.StatusInProgress, percentageProgress)
 			masterWindow.Changed()
 		},
+		OnPeersUpdated:    func(_ int32) {},
 	}, false)
 
 	if err != nil {
