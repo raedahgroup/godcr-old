@@ -229,7 +229,7 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 	}
 
 	bestBlockHeight := lib.walletLib.GetBestBlock()
-	confirmations, status := walletcore.TxStatus(bestBlockHeight, txInfo.BlockHeight)
+	confirmations, status := walletcore.TxStatus(txInfo.BlockHeight, bestBlockHeight)
 
 	tx := &walletcore.Transaction{
 		Hash:          txInfo.Hash,

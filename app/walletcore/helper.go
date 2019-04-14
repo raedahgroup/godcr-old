@@ -118,7 +118,7 @@ func TxStatus(txBlockHeight, bestBlockHeight int32) (int32, string) {
 	if txBlockHeight >= 0 {
 		confirmations = bestBlockHeight - txBlockHeight + 1
 	}
-	if confirmations > DefaultRequiredConfirmations {
+	if confirmations >= DefaultRequiredConfirmations {
 		return confirmations, ConfirmedStatus
 	} else {
 		return confirmations, UnconfirmedStatus
