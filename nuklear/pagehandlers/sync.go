@@ -17,11 +17,13 @@ type SyncHandler struct {
 	report                      []string
 	showDetails          bool
 	status                      sync.Status
+	syncError      error
 }
 
 func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func()) {
 	s.status = sync.StatusNotStarted
 	s.percentageProgress = 0
+	s.syncError = nil
 	s.report = []string{
 		"Starting...",
 	}
@@ -32,6 +34,10 @@ func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refres
 		syncInfo := syncPrivateInfo.Read()
 		s.status = syncInfo.Status
 		s.percentageProgress = int(syncInfo.TotalSyncProgress)
+
+		if syncInfo.Status == sync.StatusError {
+			s.syncError = fmt.Errorf(syncInfo.Error)
+		}
 
 		if syncInfo.TotalTimeRemaining == "" {
 			s.report = []string{
@@ -108,6 +114,11 @@ func (s *SyncHandler) Render(window *nucular.Window, changePage func(*nucular.Wi
 				contentWindow.UseFontAndResetToPrevious(styles.PageHeaderFont, func() {
 					contentWindow.SelectableLabel("Tap to view information", widgets.CenterAlign, &s.showDetails)
 				})
+			}
+
+			if s.syncError != nil {
+				contentWindow.AddHorizontalSpace(20)
+				contentWindow.DisplayErrorMessage("Sync error", s.syncError)
 			}
 		})
 	})
