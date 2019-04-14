@@ -7,7 +7,7 @@
     }
 </style>
 <body>
-<div class="body">
+<div class="body" data-controller="sync">
     <div class="content">
         <div class="container text-center" style="max-width: 500px;">
             <h3>Synchronizing</h3>
@@ -26,25 +26,29 @@
             {{ end }}
             </p>
 
-        {{ if eq .CurrentStep "1" }}
-            <p>Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
-            <p>{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
-        {{ if ne .DaysBehind "" }}
-            <p>Your wallet is {{ .DaysBehind }} behind.</p>
-        {{ end }}
-        {{ end }}
+            <button class="btn btn-sm btn-link" data-action="click->sync#showDetails">Tap to view information</button>
 
-        {{ if eq .CurrentStep "2" }}
-            <p>Discovering used addresses.</p>
-            <p>{{ .AddressDiscoveryProgress }} through step 2 of 3.</p>
-        {{ end }}
+            <div data-target="sync.syncDetails" class="d-none">
+            {{ if eq .CurrentStep "1" }}
+                <p>Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
+                <p>{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
+            {{ if ne .DaysBehind "" }}
+                <p>Your wallet is {{ .DaysBehind }} behind.</p>
+            {{ end }}
+            {{ end }}
 
-        {{ if eq .CurrentStep "3" }}
-            <p>Scanning {{ .CurrentRescanHeight }} of {{ .TotalHeadersToFetch }} block headers.</p>
-            <p>{{ .RescanProgress }}% through step 3 of 3.</p>
-        {{ end }}
+            {{ if eq .CurrentStep "2" }}
+                <p>Discovering used addresses.</p>
+                <p>{{ .AddressDiscoveryProgress }} through step 2 of 3.</p>
+            {{ end }}
 
-            <p>Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
+            {{ if eq .CurrentStep "3" }}
+                <p>Scanning {{ .CurrentRescanHeight }} of {{ .TotalHeadersToFetch }} block headers.</p>
+                <p>{{ .RescanProgress }}% through step 3 of 3.</p>
+            {{ end }}
+
+                <p>Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
+            </div>
         </div>
     </div>
 </div>
