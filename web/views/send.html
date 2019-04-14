@@ -37,16 +37,13 @@
                                     {{ end }}
                                     </div>
 
-                                    {{ if haveUnconfirmedBalance .accounts }}
-                                    <div class="form-group form-check mb-0">
-                                            <input data-action="click->send#toggleSpendUnconfirmed"
-                                                   data-target="send.spendUnconfirmed" type="checkbox"
-                                                   class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
-                                            {{ if .spendUnconfirmedFunds }} checked {{ end }}>
-                                            <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
-                                        </div>
-                                    {{ end }}
-
+                                    <div class="form-group form-check mb-0 {{ if haveUnconfirmedBalance .accounts }} d-none {{ end }}">
+                                        <input data-action="click->send#toggleSpendUnconfirmed"
+                                               data-target="send.spendUnconfirmed" type="checkbox"
+                                               class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
+                                                {{ if .spendUnconfirmedFunds }} checked {{ end }}>
+                                        <label class="form-check-label" for="spend-unconfirmed">Spend unconfirmed</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
