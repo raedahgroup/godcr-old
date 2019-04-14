@@ -237,10 +237,11 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 
 	tx := &walletcore.Transaction{
 		Hash:          txInfo.Hash,
-		Amount:        walletcore.NormalizeBalance(dcrutil.Amount(txInfo.Amount).ToCoin()),
+		Amount:        dcrutil.Amount(txInfo.Amount).String(),
+		RawAmount:     txInfo.Amount,
+		Fee:           dcrutil.Amount(decodedTx.Fee).String(),
 		FormattedTime: utils.ExtractDateOrTime(txInfo.Timestamp),
 		Timestamp:     txInfo.Timestamp,
-		Fee:           walletcore.NormalizeBalance(dcrutil.Amount(decodedTx.Fee).ToCoin()),
 		Direction:     txInfo.Direction,
 		Type:          txInfo.Type,
 		FeeRate:       dcrutil.Amount(decodedTx.FeeRate),

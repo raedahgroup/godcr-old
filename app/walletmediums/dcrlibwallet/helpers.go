@@ -31,6 +31,7 @@ func (lib *DcrWalletLib) processAndAppendTransactions(rawTxs []*dcrlibwallet.Tra
 		processedTxs = append(processedTxs, &walletcore.Transaction{
 			Hash:          tx.Hash,
 			Amount:        dcrutil.Amount(tx.Amount).String(),
+			RawAmount:     tx.Amount,
 			Fee:           txFee.String(),
 			FeeRate:       txFeeRate,
 			Size:          txSize,
