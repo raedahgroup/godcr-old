@@ -2,14 +2,14 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
-	"github.com/raedahgroup/godcr/app/sync"
-	"time"
 )
 
 func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
@@ -73,7 +73,7 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 				cancelTriggered = true
 				// remove cancel trigger after 1 second if user does not press escape again within that time
 				go func() {
-					<- time.After(1 * time.Second)
+					<-time.After(1 * time.Second)
 					cancelTriggered = false
 				}()
 			}
@@ -88,9 +88,9 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 }
 
 func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string), handleError func(string), afterSyncing func()) {
-	err := walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
-		syncInfo := syncPrivateInfo.Read()
-		if syncInfo.Status == sync.StatusSuccess {
+	err := walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
+		syncInfo := privateSyncInfo.Read()
+		if syncInfo.Status == blockchainsync.StatusSuccess {
 			afterSyncing()
 			return
 		}
@@ -139,8 +139,8 @@ func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string
 
 		updateStatus(report)
 
-		if syncInfo.Status == sync.StatusError {
-			handleError("Sync error: "+syncInfo.Error)
+		if syncInfo.Status == blockchainsync.StatusError {
+			handleError("Sync error: " + syncInfo.Error)
 		}
 	})
 

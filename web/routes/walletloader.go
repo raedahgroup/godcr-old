@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/raedahgroup/godcr/app/sync"
 	"net/http"
+
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 )
 
 func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
@@ -40,14 +41,14 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		}
 
 		// wallet is open, check if blockchain is synced
-		syncInfo := routes.syncPrivateInfo.Read()
+		syncInfo := routes.privateSyncInfo.Read()
 
 		switch syncInfo.Status {
-		case sync.StatusSuccess:
+		case blockchainsync.StatusSuccess:
 			next.ServeHTTP(res, req)
-		case sync.StatusNotStarted:
+		case blockchainsync.StatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case sync.StatusInProgress:
+		case blockchainsync.StatusInProgress:
 			var syncInfoMap map[string]interface{}
 			syncInfoBytes, _ := json.Marshal(syncInfo)
 
@@ -60,7 +61,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			} else {
 				routes.renderSyncPage(syncInfoMap, res)
 			}
-		case sync.StatusError:
+		case blockchainsync.StatusError:
 			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncInfo.Error)
 		default:
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
@@ -68,25 +69,25 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 	})
 }
 
-func (routes *Routes) syncBlockchain() {
-	err := routes.walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
-		currentInfo := routes.syncPrivateInfo.Read()
-		newInfo := routes.syncPrivateInfo.Read()
+func (routes *Routes) syncBlockChain() {
+	err := routes.walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
+		currentInfo := routes.privateSyncInfo.Read()
+		newInfo := routes.privateSyncInfo.Read()
 		if currentInfo.ConnectedPeers != newInfo.ConnectedPeers || !currentInfo.Done && newInfo.Done {
 			routes.sendWsConnectionInfoUpdate()
 		}
 
-		routes.syncPrivateInfo = syncPrivateInfo
+		routes.privateSyncInfo = privateSyncInfo
 	})
 
 	// update sync status
-	syncInfo := routes.syncPrivateInfo.Read()
+	syncInfo := routes.privateSyncInfo.Read()
 
 	if err != nil {
 		syncInfo.Error = err.Error()
 		syncInfo.Done = true
-		routes.syncPrivateInfo.Write(syncInfo, sync.StatusError)
+		routes.privateSyncInfo.Write(syncInfo, blockchainsync.StatusError)
 	} else {
-		routes.syncPrivateInfo.Write(syncInfo, sync.StatusInProgress)
+		routes.privateSyncInfo.Write(syncInfo, blockchainsync.StatusInProgress)
 	}
 }

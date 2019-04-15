@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -47,11 +47,11 @@ func (app *fyneApp) showSyncWindow() {
 	app.resizeAndCenterMainWindow(syncWindowContent)
 	app.mainWindow.Show()
 
-	err := app.walletMiddleware.SyncBlockChain(false, func(syncPrivateInfo *sync.PrivateInfo) {
-		syncInfo := syncPrivateInfo.Read()
+	err := app.walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
+		syncInfo := privateSyncInfo.Read()
 		progressBar.SetValue(float64(syncInfo.TotalSyncProgress))
 
-		if syncInfo.Status == sync.StatusSuccess {
+		if syncInfo.Status == blockchainsync.StatusSuccess {
 			app.loadMainWindowContent()
 			return
 		}
@@ -103,7 +103,7 @@ func (app *fyneApp) showSyncWindow() {
 			reportLabel.SetText(fullSyncReport)
 		}
 	})
-	
+
 	if err != nil {
 		errorMessage := fmt.Sprintf("Sync failed to start: %s", err.Error())
 		errorLabel.SetText(errorMessage)

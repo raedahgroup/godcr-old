@@ -3,11 +3,11 @@ package walletloader
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/app/sync"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -133,12 +133,12 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	syncError := make(chan error)
 	var syncDone bool
 
-	processSyncUpdates := func(syncPrivateInfo *sync.PrivateInfo) {
+	processSyncUpdates := func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
 		if syncDone {
 			return
 		}
 
-		syncInfo := syncPrivateInfo.Read()
+		syncInfo := privateSyncInfo.Read()
 		if syncInfo.Done {
 			syncDone = true
 			if syncInfo.Error == "" {

@@ -2,7 +2,8 @@ package app
 
 import (
 	"context"
-	"github.com/raedahgroup/godcr/app/sync"
+
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -26,9 +27,7 @@ type WalletMiddleware interface {
 
 	IsWalletOpen() bool
 
-	SyncBlockChainOld(listener *BlockChainSyncListener, showLog bool) error
-
-	SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error
+	SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string)) error
 
 	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)
 
@@ -42,14 +41,4 @@ type WalletMiddleware interface {
 	DeleteWallet() error
 
 	walletcore.Wallet
-}
-
-// BlockChainSyncListener holds functions that are called during a blockchain sync operation to provide update on the sync operation
-type BlockChainSyncListener struct {
-	SyncStarted         func()
-	SyncEnded           func(err error)
-	OnHeadersFetched    func(percentageProgress int64)
-	OnDiscoveredAddress func(state string)
-	OnRescanningBlocks  func(percentageProgress int64)
-	OnPeersUpdated      func(peerCount int32)
 }

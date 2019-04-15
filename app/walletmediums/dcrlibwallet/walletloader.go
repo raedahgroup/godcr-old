@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/sync"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
+
+var numberOfPeers int32
 
 func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
 	return utils.GenerateSeed()
@@ -65,17 +66,21 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *DcrWalletLib) SyncBlockChainOld(listener *app.BlockChainSyncListener, showLog bool) error {
-	return lib.SyncBlockChain(showLog, func(privateSyncData *sync.PrivateInfo) {
-		syncData := privateSyncData.Read()
-		if syncData.Done {
-			if syncData.Error != "" {
-				listener.SyncEnded(fmt.Errorf(syncData.Error))
-			} else {
-				listener.SyncEnded(nil)
-			}
+func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string)) error {
+	// create wrapper around syncInfoUpdated to store updated peer count before calling main syncInfoUpdated fn
+	syncInfoUpdatedWrapper := func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
+		if updatedSection == blockchainsync.PeersCountUpdate {
+			numberOfPeers = privateSyncInfo.Read().ConnectedPeers
 		}
-	})
+		syncInfoUpdated(privateSyncInfo, updatedSection)
+	}
+
+	// defaultSyncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
+	defaultSyncListener := blockchainsync.DefaultSyncProgressListener(lib.activeNet, showLog, lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp,
+		syncInfoUpdatedWrapper)
+	lib.walletLib.AddSyncProgressListener(defaultSyncListener)
+
+	return lib.walletLib.SpvSync("")
 }
 
 func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {
