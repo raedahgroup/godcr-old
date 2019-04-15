@@ -170,12 +170,11 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	accounts = append(accounts, accounts...)
 	data := map[string]interface{}{
 		"accounts": accounts,
 	}
 
-	data = routes.fillAddressData(data, accounts[0].Number)
+	data = routes.fillAddressData(data, accounts[0].Number, true)
 	if _, has := data["imageData"]; has {
 		data["imageStr"] = fmt.Sprintf("<img data-target=\"receive.image\" src=\"%s\"/>", data["imageData"])
 	}
@@ -194,11 +193,19 @@ func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.
 		data["message"] = err.Error()
 		return
 	}
-	data = routes.fillAddressData(data, uint32(accountNumber))
+
+	newAddress := req.URL.Query().Get("new")
+	data = routes.fillAddressData(data, uint32(accountNumber), newAddress == "1")
 }
 
-func (routes *Routes) fillAddressData(data map[string]interface{}, accountNumber uint32) map[string]interface{} {
-	address, err := routes.walletMiddleware.GenerateNewAddress(accountNumber)
+func (routes *Routes) fillAddressData(data map[string]interface{}, accountNumber uint32, newAddress bool) map[string]interface{} {
+	var address string
+	var err error
+	if newAddress {
+		address, err = routes.walletMiddleware.GenerateNewAddress(accountNumber)
+	} else {
+		address, err = routes.walletMiddleware.ReceiveAddress(accountNumber)
+	}
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

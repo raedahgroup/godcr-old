@@ -5,9 +5,15 @@ import { clearMessages, copyToClipboard, hide, setErrorMessage, show, showSucces
 export default class extends Controller {
   static get targets () {
     return [
-      'errorMessage', 'successMessage',
-      'account', 'addressContainer', 'address', 'image', 'copyButtonText', 'generateNewAddressButton'
+      'errorMessage',
+      'account',
+      'addressContainer', 'address', 'image', 'copyButtonText',
+      'generateNewAddressButton'
     ]
+  }
+
+  getReceiveAddress() {
+    this.generateAddress(false)
   }
 
   copyAddressToClipboard () {
@@ -16,13 +22,17 @@ export default class extends Controller {
   }
 
   generateNewAddress () {
+    this.generateAddress(true)
+  }
+
+  generateAddress (newAddress) {
     hide(this.addressContainerTarget)
-    this.generateNewAddressButtonTarget.textContent = 'Generating...'
+    this.generateNewAddressButtonTarget.textContent = 'generating...'
     this.generateNewAddressButtonTarget.setAttribute('disabled', 'disabled')
 
     const _this = this
     clearMessages(this)
-    axios.get('/generate-address/' + this.accountTarget.value)
+    axios.get('/generate-address/' + this.accountTarget.value + (newAddress? 'new=1': ''))
       .then((response) => {
         let result = response.data
         if (result.success) {
@@ -37,7 +47,7 @@ export default class extends Controller {
         setErrorMessage(_this, 'Unable to generate address. Something went wrong.')
       })
       .then(function () {
-        _this.generateNewAddressButtonTarget.textContent = 'Generate New Address'
+        _this.generateNewAddressButtonTarget.textContent = 'generate new address'
         _this.generateNewAddressButtonTarget.removeAttribute('disabled')
       })
   }
