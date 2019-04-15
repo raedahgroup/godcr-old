@@ -52,7 +52,7 @@ func (routes *Routes) waitToSendMessagesToClients() {
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {
-				log.Printf("error: %s", err.Error())
+				weblog.LogError(fmt.Errorf("ws update error: %s", err.Error()))
 				client.Close()
 				delete(clients, client)
 			}
@@ -61,6 +61,11 @@ func (routes *Routes) waitToSendMessagesToClients() {
 }
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
+	if routes.ctx.Err() != nil {
+		// user must have hit ctrl+c to shutdown the web server, will get error if attempt to get wallet connection info
+		return
+	}
+
 	info, err := routes.walletMiddleware.WalletConnectionInfo()
 	if err != nil {
 		weblog.LogError(err)
@@ -73,6 +78,11 @@ func (routes *Routes) sendWsConnectionInfoUpdate() {
 }
 
 func (routes *Routes) sendWsBalance() {
+	if routes.ctx.Err() != nil {
+		// user must have hit ctrl+c to shutdown the web server, will get error if attempt to get wallet balance
+		return
+	}
+
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))

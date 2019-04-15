@@ -65,13 +65,9 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 
 func (routes *Routes) syncBlockChain() {
 	err := routes.walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		currentInfo := routes.privateSyncInfo.Read()
-		newInfo := routes.privateSyncInfo.Read()
-		if currentInfo.ConnectedPeers != newInfo.ConnectedPeers || !currentInfo.Done && newInfo.Done {
-			routes.sendWsConnectionInfoUpdate()
-		}
-
 		routes.privateSyncInfo = privateSyncInfo
+		routes.sendWsSyncProgress()
+		routes.sendWsConnectionInfoUpdate()
 	})
 
 	// update sync status
@@ -111,9 +107,9 @@ func (routes *Routes) prepareSyncInfoMap() (map[string]interface{}, error) {
 	}
 
 	if syncInfo.ConnectedPeers == 1 {
-		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%s peer", syncInfo.ConnectedPeers)
+		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%d peer", syncInfo.ConnectedPeers)
 	} else {
-		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%s peers", syncInfo.ConnectedPeers)
+		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%d peers", syncInfo.ConnectedPeers)
 	}
 
 	return syncInfoMap, nil

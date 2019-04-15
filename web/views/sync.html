@@ -11,22 +11,21 @@
     <div class="content">
         <div class="container text-center" style="max-width: 500px;">
             <h3>Synchronizing</h3>
-            <i>(Refresh to update)</i>
             <div class="progress my-3" style="height: 10px;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     data-target="sync.progressbar"
                      style="width: {{ .TotalSyncProgress }}%"
                      role="progressbar" aria-valuenow="{{ .TotalSyncProgress }}" aria-valuemin="0"
                      aria-valuemax="100"></div>
             </div>
 
-            <p>
-                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed
-                <span data-target="sync.totalTimeRemaining" {{ if eq .TotalTimeRemaining "" }}class="d-none"{{end}}>
-                    , {{ .TotalTimeRemaining }} remaining
-                </span>.
+            <p data-target="sync.totalSyncProgress">
+            {{ .TotalSyncProgress }}% completed{{ if ne .TotalTimeRemaining "" }}, {{ .TotalTimeRemaining }} remaining{{ end }}.
             </p>
 
-            <button class="btn btn-sm btn-link" data-action="click->sync#showDetails">Tap to view information</button>
+            <button class="btn btn-sm btn-link" data-target="sync.showDetailsButton" data-action="click->sync#showDetails">
+                Tap to view information
+            </button>
 
             <div data-target="sync.syncDetails" class="d-none">
                 <div data-target="sync.step1" {{ if ne .CurrentStep "1" }}class="d-none"{{end}}>
@@ -43,13 +42,13 @@
                     </p>
                 </div>
 
-                <div data-target="step2" {{ if ne .CurrentStep "2" }}class="d-none"{{end}}>
+                <div data-target="sync.step2" {{ if ne .CurrentStep "2" }}class="d-none"{{end}}>
                     <p>Discovering used addresses.</p>
                     <p><span data-target="sync.addressDiscoveryProgress">{{ .AddressDiscoveryProgress }}</span> through
                         step 2 of 3.</p>
                 </div>
 
-                <div data-target="step3" {{ if ne .CurrentStep "3" }}class="d-none"{{end}}>
+                <div data-target="sync.step3" {{ if ne .CurrentStep "3" }}class="d-none"{{end}}>
                     <p>Scanning
                         <span data-target="sync.currentRescanHeight">{{ .CurrentRescanHeight }}</span>
                         of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.

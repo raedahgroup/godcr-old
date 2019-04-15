@@ -5,26 +5,27 @@ import ws from '../services/messagesocket_service'
 export default class extends Controller {
   static get targets () {
     return [
-      'syncDetails',
-      'totalSyncProgress', 'totalTimeRemaining',
+      'progressbar', 'totalSyncProgress', 'totalTimeRemaining',
+      'showDetailsButton', 'syncDetails',
       'step1', 'fetchedHeadersCount', 'totalHeadersToFetch', 'headersFetchProgress', 'daysBehind',
       'step2', 'addressDiscoveryProgress',
-      'step3', 'currentRescanHeight', 'rescanProgress'
+      'step3', 'currentRescanHeight', 'rescanProgress',
+      'connectedPeers', 'networkType'
     ]
   }
 
   connect () {
     ws.registerEvtHandler('updateSyncProgress', syncInfo => {
-      this.totalSyncProgressTarget.textContent = syncInfo.TotalSyncProgress
+      this.progressbarTarget.style.width = `${syncInfo.TotalSyncProgress}%`
+
+      this.totalSyncProgressTarget.textContent = `${syncInfo.TotalSyncProgress}% completed`
       if (syncInfo.TotalTimeRemaining !== '') {
-        this.totalTimeRemainingTarget.textContent = `, ${syncInfo.TotalTimeRemaining} remaining`
-        show(this.totalTimeRemainingTarget)
-      } else {
-        hide(this.totalTimeRemainingTarget)
+        this.totalSyncProgressTarget.textContent += `, ${syncInfo.TotalTimeRemaining} remaining`
       }
+      this.totalSyncProgressTarget.textContent += '.'
 
       switch (syncInfo.CurrentStep) {
-        case '1':
+        case 1:
           this.fetchedHeadersCountTarget.textContent = syncInfo.FetchedHeadersCount
           this.totalHeadersToFetchTargets.forEach(totalHeadersToFetchTarget => {
             totalHeadersToFetchTarget.textContent = syncInfo.TotalHeadersToFetch
@@ -43,7 +44,7 @@ export default class extends Controller {
           hide(this.step3Target)
           break
 
-        case '2':
+        case 2:
           this.addressDiscoveryProgressTarget.textContent = syncInfo.AddressDiscoveryProgress
 
           hide(this.step1Target)
@@ -51,7 +52,7 @@ export default class extends Controller {
           hide(this.step3Target)
           break
 
-        case '3':
+        case 3:
           this.currentRescanHeightTarget.textContent = syncInfo.CurrentRescanHeight
           this.totalHeadersToFetchTargets.forEach(totalHeadersToFetchTarget => {
             totalHeadersToFetchTarget.textContent = syncInfo.TotalHeadersToFetch
@@ -70,11 +71,15 @@ export default class extends Controller {
 
       this.connectedPeersTarget.textContent = syncInfo.ConnectedPeers
       this.networkTypeTarget.textContent = syncInfo.NetworkType
+
+      if (syncInfo.Done) {
+        window.location.reload(true)
+      }
     })
   }
 
-  showDetails (e) {
-    hide(e.target)
+  showDetails () {
+    hide(this.showDetailsButtonTarget)
     show(this.syncDetailsTarget)
   }
 }
