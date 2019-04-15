@@ -236,7 +236,7 @@ func (c *WalletRPCClient) SendFromAccount(sourceAccount uint32, requiredConfirma
 	for i, output := range outputs {
 		walletrpcOutputs[i] = &walletrpc.ConstructTransactionRequest_Output{
 			Destination: &walletrpc.ConstructTransactionRequest_OutputDestination{
-				Script: output.PkScript,
+				Script:        output.PkScript,
 				ScriptVersion: uint32(output.Version),
 			},
 			Amount: output.Value,
@@ -280,7 +280,6 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 
 	// loop through utxo stream to find user selected utxos
 	inputs := make([]*wire.TxIn, 0, len(utxoKeys))
-	var totalInputAmount int64
 	for {
 		utxo, err := utxoStream.Recv()
 		if err == io.EOF {
@@ -309,23 +308,15 @@ func (c *WalletRPCClient) SendFromUTXOs(sourceAccount uint32, requiredConfirmati
 		outpoint := wire.NewOutPoint(transactionHash, utxo.OutputIndex, int8(utxo.Tree))
 		input := wire.NewTxIn(outpoint, utxo.Amount, nil)
 		inputs = append(inputs, input)
-		totalInputAmount += input.ValueIn
 
 		if len(inputs) == len(utxoKeys) {
 			break
 		}
 	}
 
-	outputs, maxChangeDestinations, err := txhelper.TxOutputsExtractMaxChangeDestination(len(inputs), totalInputAmount, txDestinations)
-	if err != nil {
-		return "", err
-	}
-	// if a max change destination is returned, use it as the only change destination
-	if len(maxChangeDestinations) == 1 {
-		changeDestinations = maxChangeDestinations
-	}
-
-	unsignedTx, err := txhelper.NewUnsignedTx(inputs, outputs, changeDestinations)
+	unsignedTx, err := txhelper.NewUnsignedTx(inputs, txDestinations, changeDestinations, func() (address string, err error) {
+		return c.GenerateNewAddress(sourceAccount)
+	})
 	if err != nil {
 		return "", err
 	}
@@ -382,20 +373,34 @@ func (c *WalletRPCClient) TransactionHistory(ctx context.Context, startBlockHeig
 				return err
 			}
 
-			var transactionDetails []*walletrpc.TransactionDetails
 			if in.MinedTransactions != nil {
-				transactionDetails = append(transactionDetails, in.MinedTransactions.Transactions...)
+				// process mined txs and add to history
+				var blockTxStatus string
+				bestBlockHeight, bestBlockErr := c.BestBlock()
+				if bestBlockErr != nil {
+					blockTxStatus = "Error"
+				} else {
+					_, blockTxStatus = walletcore.TxStatus(in.MinedTransactions.Height, int32(bestBlockHeight))
+				}
+
+				for _, txDetail := range in.MinedTransactions.Transactions {
+					tx, err := processTransaction(txDetail, blockTxStatus)
+					if err != nil {
+						return err
+					}
+					transactions = append(transactions, tx)
+				}
 			}
+
 			if in.UnminedTransactions != nil {
-				transactionDetails = append(transactionDetails, in.UnminedTransactions...)
+				for _, txDetail := range in.UnminedTransactions {
+					tx, err := processTransaction(txDetail, walletcore.UnconfirmedStatus)
+					if err != nil {
+						return err
+					}
+					transactions = append(transactions, tx)
+				}
 			}
-
-			txs, err := processTransactions(transactionDetails)
-			if err != nil {
-				return err
-			}
-
-			transactions = append(transactions, txs...)
 		}
 
 		return nil
@@ -453,7 +458,14 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	transaction, err := processTransaction(getTxResponse.GetTransaction())
+	var status string
+	if getTxResponse.GetConfirmations() >= walletcore.DefaultRequiredConfirmations {
+		status = walletcore.ConfirmedStatus
+	} else {
+		status = walletcore.UnconfirmedStatus
+	}
+
+	transaction, err := processTransaction(getTxResponse.GetTransaction(), status)
 	if err != nil {
 		return nil, err
 	}

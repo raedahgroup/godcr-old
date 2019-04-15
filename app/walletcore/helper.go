@@ -19,6 +19,16 @@ const (
 )
 
 const (
+	// standard decred min confirmations is 2, this should be used as default for wallet operations
+	DefaultRequiredConfirmations = 2
+
+	// minimum number of transactions to return per call to Wallet.TransactionHistory()
+	TransactionHistoryCountPerPage = 20
+
+	ConfirmedStatus = "Confirmed"
+
+	UnconfirmedStatus = "Pending"
+
 	StoreSeedWarningText = "Keep the seed in a safe place as you will NOT be able to restore your wallet without it. " +
 		"Please keep in mind that anyone who has access to the seed can also restore your wallet " +
 		"thereby giving them access to all your funds, so it is imperative that you keep it in a secure location."
@@ -100,4 +110,16 @@ func BuildTxDestinations(destinationAddresses []string, destinationAmounts []str
 		}
 	}
 	return
+}
+
+func TxStatus(txBlockHeight, bestBlockHeight int32) (int32, string) {
+	var confirmations int32 = -1
+	if txBlockHeight >= 0 {
+		confirmations = bestBlockHeight - txBlockHeight + 1
+	}
+	if confirmations >= DefaultRequiredConfirmations {
+		return confirmations, ConfirmedStatus
+	} else {
+		return confirmations, UnconfirmedStatus
+	}
 }

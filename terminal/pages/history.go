@@ -3,9 +3,7 @@ package pages
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
@@ -15,13 +13,15 @@ import (
 	"github.com/rivo/tview"
 )
 
-func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+var displayedTxHashes []string
+
+func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and tip
 	titleTextView := primitives.NewLeftAlignedTextView("History")
-	body.AddItem(titleTextView, 1, 0, false)
+	body.AddItem(titleTextView, 2, 0, false)
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
@@ -37,16 +37,21 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to navigation menu")
 
 		body.AddItem(historyTable, 0, 1, true)
-		setFocus(historyTable)
+		tviewApp.SetFocus(historyTable)
 	}
 
 	errorTextView := primitives.WordWrappedTextView("")
 	errorTextView.SetTextColor(helpers.DecredOrangeColor)
 
-	displayError := func(errorMessage string) {
-		body.RemoveItem(errorTextView)
-		errorTextView.SetText(errorMessage)
-		body.AddItem(errorTextView, 2, 0, false)
+	displayMessage := func(message string) {
+		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
+		tviewApp.QueueUpdateDraw(func() {
+			body.RemoveItem(errorTextView)
+			if message != "" {
+				errorTextView.SetText(message)
+				body.AddItem(errorTextView, 2, 0, false)
+			}
+		})
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
@@ -55,10 +60,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		}
 	})
 
+	displayedTxHashes = []string{}
+
 	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
 		body.RemoveItem(historyTable)
-		txHash := historyTable.GetCell(row, 6).Text
+		txHash := displayedTxHashes[row-1]
 
 		titleTextView.SetText("Transaction Details")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to navigation menu")
@@ -66,9 +73,9 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		transactionDetailsTable.Clear()
 		body.AddItem(transactionDetailsTable, 0, 1, true)
 
-		setFocus(transactionDetailsTable)
+		tviewApp.SetFocus(transactionDetailsTable)
 
-		fetchTransactionDetail(txHash, wallet, displayError, transactionDetailsTable)
+		fetchTransactionDetail(txHash, wallet, displayMessage, transactionDetailsTable)
 	})
 
 	// handler for returning back to history table
@@ -90,49 +97,72 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	// history table header
-	historyTable.SetCell(0, 0, tableHeaderCell("#"))
-	historyTable.SetCell(0, 1, tableHeaderCell("Date"))
-	historyTable.SetCell(0, 4, tableHeaderCell("Direction"))
+	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
+	historyTable.SetCell(0, 1, tableHeaderCell("Direction"))
 	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
-	historyTable.SetCell(0, 3, tableHeaderCell("Fee"))
-	historyTable.SetCell(0, 5, tableHeaderCell("Type"))
-	historyTable.SetCell(0, 6, tableHeaderCell("Hash"))
+	historyTable.SetCell(0, 3, tableHeaderCell("Status"))
+	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
 
 	displayHistoryTable()
 
-	fetchAndDisplayTransactions(-1, wallet, historyTable, displayError)
+	// fetch tx to display in subroutine so the UI isn't blocked
+	go fetchAndDisplayTransactions(-1, wallet, historyTable, tviewApp, displayMessage)
 
 	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to navigation menu")
 
-	setFocus(body)
+	tviewApp.SetFocus(body)
 
 	return body
 }
 
-func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *tview.Table, displayError func(errorMessage string)) {
+func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application,
+	displayMessage func(string)) {
+
+	// show a loading text at the bottom of the table so user knows an op is in progress
+	displayMessage("Fetching data...")
+
 	txns, endBlockHeight, err := wallet.TransactionHistory(context.Background(), startBlockHeight, walletcore.TransactionHistoryCountPerPage)
 	if err != nil {
-		displayError(err.Error())
+		displayMessage(err.Error())
 		return
 	}
 
-	for _, tx := range txns {
-		row := historyTable.GetRowCount()
-		historyTable.SetCellSimple(row, 0, fmt.Sprintf("%d.", row))
-		historyTable.SetCell(row, 1, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 2, tview.NewTableCell(tx.Amount).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Fee).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 5, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 6, tview.NewTableCell(tx.Hash).SetAlign(tview.AlignCenter))
+	// calculate max number of digits after decimal point for all tx amounts
+	inputsAndOutputsAmount := make([]int64, len(txns))
+	for i, tx := range txns {
+		inputsAndOutputsAmount[i] = tx.RawAmount
 	}
+	maxDecimalPlacesForTxAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+
+	// now format amount having determined the max number of decimal places
+	formatAmount := func(amount int64) string {
+		return formatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
+	}
+
+	// updating the history table from a goroutine, use tviewApp.QueueUpdateDraw
+	tviewApp.QueueUpdateDraw(func() {
+		for _, tx := range txns {
+			nextRowIndex := historyTable.GetRowCount()
+
+			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
+			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+
+			displayedTxHashes = append(displayedTxHashes, tx.Hash)
+		}
+
+		// clear loading message text
+		displayMessage("")
+	})
 
 	if endBlockHeight > 0 {
 		// set or reset selection changed listener to load more data when the table is almost scrolled to the end
 		historyTable.SetSelectionChangedFunc(func(row, column int) {
 			if row >= historyTable.GetRowCount()-10 {
 				historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
-				go fetchAndDisplayTransactions(endBlockHeight-1, wallet, historyTable, displayError)
+				fetchAndDisplayTransactions(endBlockHeight-1, wallet, historyTable, tviewApp, displayMessage)
 			}
 		})
 	}
@@ -167,41 +197,19 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(7, 1, tx.Fee)
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", tx.FeeRate))
 
-	decimalPlaces := func(n float64) string {
-		decimalPlaces := fmt.Sprintf("%f", n-math.Floor(n))
-		decimalPlaces = strings.Replace(decimalPlaces, "0", "", -1)
-		decimalPlaces = strings.Replace(decimalPlaces, ".", "", -1)
-		return decimalPlaces
-	}
-
 	// calculate max number of digits after decimal point for inputs and outputs
-	maxDecimalPlaces := 0
+	inputsAndOutputsAmount := make([]int64, 0, len(tx.Inputs) + len(tx.Outputs))
 	for _, txIn := range tx.Inputs {
-		decimalPlaces := decimalPlaces(dcrutil.Amount(txIn.AmountIn).ToCoin())
-		nDecimalPlaces := len(decimalPlaces)
-		if nDecimalPlaces > maxDecimalPlaces {
-			maxDecimalPlaces = nDecimalPlaces
-		}
+		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txIn.AmountIn)
 	}
 	for _, txOut := range tx.Outputs {
-		decimalPlaces := decimalPlaces(dcrutil.Amount(txOut.Value).ToCoin())
-		nDecimalPlaces := len(decimalPlaces)
-		if nDecimalPlaces > maxDecimalPlaces {
-			maxDecimalPlaces = nDecimalPlaces
-		}
+		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Value)
 	}
+	maxDecimalPlacesForInputsAndOutputsAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
 
+	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		dcrAmount := dcrutil.Amount(amount).ToCoin()
-		wholeNumber := int(math.Floor(dcrAmount))
-		decimalPlaces := decimalPlaces(dcrAmount)
-
-		if len(decimalPlaces) == 0 {
-			//decimalPlaces = "0"
-			return fmt.Sprintf("%d%-*s DCR", wholeNumber, maxDecimalPlaces+1, decimalPlaces)
-		}
-
-		return fmt.Sprintf("%d.%-*s DCR", wholeNumber, maxDecimalPlaces, decimalPlaces)
+		return formatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")

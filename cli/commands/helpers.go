@@ -161,7 +161,7 @@ func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount floa
 		return nil, fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
-	amountInAtom, err := txhelper.AmountToAtom(totalInputAmount)
+	amountInAtom, err := dcrutil.NewAmount(totalInputAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -171,10 +171,10 @@ func getChangeOutputDestinations(wallet walletcore.Wallet, totalInputAmount floa
 		if err != nil {
 			return nil, err
 		}
-		return walletcore.GetChangeDestinationsWithRandomAmounts(wallet, nChangeOutputs, amountInAtom, sourceAccount,
+		return walletcore.GetChangeDestinationsWithRandomAmounts(wallet, nChangeOutputs, int64(amountInAtom), sourceAccount,
 			nUtxoSelection, sendDestinations)
 	} else {
-		return getChangeDestinationsFromUser(wallet, amountInAtom, sourceAccount,
+		return getChangeDestinationsFromUser(wallet, int64(amountInAtom), sourceAccount,
 			nUtxoSelection, sendDestinations)
 	}
 }
@@ -221,11 +221,11 @@ func getChangeDestinationsFromUser(wallet walletcore.Wallet, amountInAtom int64,
 			break
 		}
 
-		changeAmountInAtom, err := txhelper.AmountToAtom(changeAmount)
+		changeAmountInAtom, err := dcrutil.NewAmount(changeAmount)
 		if err != nil {
 			return nil, err
 		}
-		amountAssigned += changeAmountInAtom
+		amountAssigned += int64(changeAmountInAtom)
 		index++
 	}
 	return changeOutputDestinations, nil

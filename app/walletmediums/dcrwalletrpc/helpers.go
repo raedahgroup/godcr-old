@@ -3,12 +3,12 @@ package dcrwalletrpc
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -55,21 +55,7 @@ func (c *WalletRPCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
-func processTransactions(transactionDetails []*walletrpc.TransactionDetails) ([]*walletcore.Transaction, error) {
-	transactions := make([]*walletcore.Transaction, 0, len(transactionDetails))
-
-	for _, txDetail := range transactionDetails {
-		tx, err := processTransaction(txDetail)
-		if err != nil {
-			return nil, err
-		}
-		transactions = append(transactions, tx)
-	}
-
-	return transactions, nil
-}
-
-func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Transaction, error) {
+func processTransaction(txDetail *walletrpc.TransactionDetails, status string) (*walletcore.Transaction, error) {
 	hash, err := chainhash.NewHash(txDetail.Hash)
 	if err != nil {
 		return nil, err
@@ -85,13 +71,15 @@ func processTransaction(txDetail *walletrpc.TransactionDetails) (*walletcore.Tra
 
 	tx := &walletcore.Transaction{
 		Hash:          hash.String(),
-		Amount:        walletcore.NormalizeBalance(dcrutil.Amount(amount).ToCoin()),
-		Fee:           walletcore.NormalizeBalance(txFee.ToCoin()),
+		Amount:        dcrutil.Amount(amount).String(),
+		RawAmount:     amount,
+		Fee:           txFee.String(),
 		FeeRate:       txFeeRate,
 		Type:          txhelper.RPCTransactionType(txDetail.TransactionType),
 		Direction:     direction,
+		Status:        status,
 		Timestamp:     txDetail.Timestamp,
-		FormattedTime: time.Unix(txDetail.Timestamp, 0).Format("2006-01-02 15:04:05 UTC"),
+		FormattedTime: utils.ExtractDateOrTime(txDetail.Timestamp),
 		Size:          txSize,
 	}
 	return tx, nil

@@ -13,71 +13,98 @@ import (
 
 func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
-	form := tview.NewForm()
 
-	body.AddItem(primitives.NewLeftAlignedTextView("Generate Receive Address"), 2, 1, false)
+	body.AddItem(primitives.NewLeftAlignedTextView("Receiving Decred"), 1, 1, false)
+	receivingDecredHintTextView := primitives.NewLeftAlignedTextView(walletcore.ReceivingDecredHint).
+		SetTextColor(helpers.HintTextColor)
+	body.AddItem(receivingDecredHintTextView, 3, 1, false)
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
 
-	outputMessageTextView := primitives.WordWrappedTextView("")
-	outputMessageTextView.SetTextColor(helpers.DecredOrangeColor)
+	errorMessageTextView := primitives.WordWrappedTextView("").
+		SetTextColor(helpers.DecredOrangeColor)
 
 	displayErrorMessage := func(message string) {
-		body.RemoveItem(outputMessageTextView)
-		outputMessageTextView.SetText(message)
-		body.AddItem(outputMessageTextView, 2, 0, false)
+		body.RemoveItem(errorMessageTextView)
+		errorMessageTextView.SetText(message)
+		body.AddItem(errorMessageTextView, 2, 0, false)
 	}
 
-	if len(accounts) == 1 {
-		address, qr, err := generateAddress(wallet, accounts[0].Number)
+	qrCodeTextView := primitives.NewCenterAlignedTextView("")
+	addressTextView := primitives.NewCenterAlignedTextView("").
+		SetTextColor(helpers.DecredLightBlueColor)
+
+	generateAndDisplayAddress := func(accountNumber uint32) {
+		// clear previously generated address or displayed error before generating new one
+		body.RemoveItem(qrCodeTextView)
+		body.RemoveItem(addressTextView)
+		body.RemoveItem(errorMessageTextView)
+
+		address, qr, err := generateAddressAndQrCode(wallet, accountNumber)
 		if err != nil {
 			errorText := fmt.Sprintf("Error: %s", err.Error())
 			displayErrorMessage(errorText)
+			return
 		}
-		body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)).SetDoneFunc(func(key tcell.Key) {
+
+		qrCodeTextView.SetText(qr.ToSmallString(false))
+		addressTextView.SetText(address)
+
+		body.AddItem(qrCodeTextView, 19, 0, true)
+		body.AddItem(addressTextView, 0, 1, true)
+	}
+
+	accountNumbers := make([]uint32, len(accounts))
+	accountNames := make([]string, len(accounts))
+	for index, account := range accounts {
+		accountNames[index] = account.Name
+		accountNumbers[index] = account.Number
+	}
+
+	if len(accounts) == 1 {
+		singleAccountTextView := primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts[0].Name))
+		singleAccountTextView.SetTextColor(helpers.DecredLightBlueColor)
+		singleAccountTextView.SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
 				clearFocus()
 			}
-		}), 2, 1, true).
-			AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))).SetDoneFunc(func(key tcell.Key) {
-				if key == tcell.KeyEscape {
-					clearFocus()
-				}
-			}), 0, 1, true)
+		})
+
+		body.AddItem(singleAccountTextView, 2, 1, true)
+		hintTextView.SetText("TIP: ESC to return to navigation menu")
 	} else {
-		var accountNum uint32
-		accountN := make([]uint32, len(accounts))
+		accountNumbers := make([]uint32, len(accounts))
 		accountNames := make([]string, len(accounts))
 		for index, account := range accounts {
 			accountNames[index] = account.Name
-			body.AddItem(form.AddDropDown("Account", []string{accountNames[index]}, 0, func(option string, optionIndex int) {
-				accountNum = accountN[optionIndex]
-			}).
-				AddButton("Generate", func() {
-					address, qr, err := generateAddress(wallet, accountNum)
-					if err != nil {
-						errorText := fmt.Sprintf("Error: %s", err.Error())
-						displayErrorMessage(errorText)
-						return
-					}
-					body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Address: %s", address)), 2, 1, false).
-						AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf(qr.ToSmallString(false))), 0, 1, false)
-				}).SetItemPadding(17).SetHorizontal(true).SetCancelFunc(func() {
-				clearFocus()
-			}), 4, 1, true)
+			accountNumbers[index] = account.Number
 		}
+
+		form := primitives.NewForm(false)
+		form.SetBorderPadding(0, 0, 0, 0)
+		form.SetLabelColor(helpers.DecredLightBlueColor)
+		form.AddDropDown("Source Account: ", accountNames, 0, func(option string, optionIndex int) {
+			accountNumber := accountNumbers[optionIndex]
+			generateAndDisplayAddress(accountNumber)
+		})
+
+		form.SetCancelFunc(clearFocus)
+
+		body.AddItem(form, 2, 0, true)
+		hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address. ESC to return to navigation menu")
 	}
 
-	hintTextView.SetText("TIP: Navigate with TAB and SHIFT+TAB, hit ENTER to generate Address. ESC to return to navigation menu")
+	// always generate and display address for the first account, even if there are multiple accounts
+	generateAndDisplayAddress(accounts[0].Number)
 
 	setFocus(body)
 	return body
 }
 
-func generateAddress(wallet walletcore.Wallet, accountNumber uint32) (string, *qrcode.QRCode, error) {
+func generateAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (string, *qrcode.QRCode, error) {
 	generatedAddress, err := wallet.ReceiveAddress(accountNumber)
 	if err != nil {
 		return "", nil, err

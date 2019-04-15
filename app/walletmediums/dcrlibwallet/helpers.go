@@ -1,16 +1,17 @@
 package dcrlibwallet
 
 import (
-	"time"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedTxs []*walletcore.Transaction) (
+func (lib *DcrWalletLib) processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedTxs []*walletcore.Transaction) (
 	[]*walletcore.Transaction, error) {
+
+	bestBlockHeight := lib.walletLib.GetBestBlock()
 
 	for _, tx := range rawTxs {
 		_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(tx.Hex)
@@ -18,16 +19,20 @@ func processAndAppendTransactions(rawTxs []*dcrlibwallet.Transaction, processedT
 			return nil, err
 		}
 
+		_, status := walletcore.TxStatus(tx.BlockHeight, bestBlockHeight)
+
 		processedTxs = append(processedTxs, &walletcore.Transaction{
 			Hash:          tx.Hash,
-			Amount:        walletcore.NormalizeBalance(dcrutil.Amount(tx.Amount).ToCoin()),
-			Fee:           walletcore.NormalizeBalance(txFee.ToCoin()),
+			Amount:        dcrutil.Amount(tx.Amount).String(),
+			RawAmount:     tx.Amount,
+			Fee:           txFee.String(),
 			FeeRate:       txFeeRate,
 			Size:          txSize,
 			Type:          tx.Type,
 			Direction:     tx.Direction,
+			Status:        status,
 			Timestamp:     tx.Timestamp,
-			FormattedTime: time.Unix(tx.Timestamp, 0).Format("2006-01-02 15:04:05 UTC"),
+			FormattedTime: utils.ExtractDateOrTime(tx.Timestamp),
 		})
 	}
 
