@@ -75,7 +75,7 @@ func (routes *Routes) syncBlockChain() {
 	})
 
 	// update sync status
-	syncInfo := routes.privateSyncInfo.Read()
+	syncInfo := routes.privateSyncInfo.Read()	
 
 	if err != nil {
 		syncInfo.Error = err.Error()

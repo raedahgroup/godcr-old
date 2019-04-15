@@ -18,42 +18,44 @@
                      role="progressbar" aria-valuenow="{{ .TotalSyncProgress }}" aria-valuemin="0"
                      aria-valuemax="100"></div>
             </div>
+
             <p>
-            {{ if ne .TotalTimeRemaining "" }}
-                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed,
-                <span data-target="sync.totalTimeRemaining">{{ .TotalTimeRemaining }}</span> remaining.
-            {{ else }}
-                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed.
-            {{ end }}
+                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed
+                <span data-target="sync.totalTimeRemaining" {{ if eq .TotalTimeRemaining "" }}class="d-none"{{end}}>
+                    , {{ .TotalTimeRemaining }} remaining
+                </span>.
             </p>
 
             <button class="btn btn-sm btn-link" data-action="click->sync#showDetails">Tap to view information</button>
 
             <div data-target="sync.syncDetails" class="d-none">
-            {{ if eq .CurrentStep "1" }}
-                <p>
-                    Fetched
-                    <span data-target="sync.fetchedHeadersCount">{{ .FetchedHeadersCount }}</span>
-                    of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
-                </p>
-                <p><span data-target="sync.headersFetchProgress">{{ .HeadersFetchProgress }}</span>% through step 1 of 3.</p>
-            {{ if ne .DaysBehind "" }}
-                <p>Your wallet is <span data-target="sync.daysBehind">{{ .DaysBehind }}</span> behind.</p>
-            {{ end }}
-            {{ end }}
+                <div data-target="sync.step1" {{ if ne .CurrentStep "1" }}class="d-none"{{end}}>
+                    <p>
+                        Fetched
+                        <span data-target="sync.fetchedHeadersCount">{{ .FetchedHeadersCount }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                    </p>
+                    <p><span data-target="sync.headersFetchProgress">{{ .HeadersFetchProgress }}</span>% through step 1
+                        of 3.</p>
 
-            {{ if eq .CurrentStep "2" }}
-                <p>Discovering used addresses.</p>
-                <p><span data-target="sync.addressDiscoveryProgress">{{ .AddressDiscoveryProgress }}</span> through step 2 of 3.</p>
-            {{ end }}
+                    <p data-target="sync.daysBehind" {{ if eq .DaysBehind "" }}class="d-none"{{end}}>
+                        Your wallet is {{ .DaysBehind }} behind.
+                    </p>
+                </div>
 
-            {{ if eq .CurrentStep "3" }}
-                <p>Scanning
-                    <span data-target="sync.currentRescanHeight">{{ .CurrentRescanHeight }}</span>
-                    of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
-                </p>
-                <p><span data-target="sync.rescanProgress">{{ .RescanProgress }}</span>% through step 3 of 3.</p>
-            {{ end }}
+                <div data-target="step2" {{ if ne .CurrentStep "2" }}class="d-none"{{end}}>
+                    <p>Discovering used addresses.</p>
+                    <p><span data-target="sync.addressDiscoveryProgress">{{ .AddressDiscoveryProgress }}</span> through
+                        step 2 of 3.</p>
+                </div>
+
+                <div data-target="step3" {{ if ne .CurrentStep "3" }}class="d-none"{{end}}>
+                    <p>Scanning
+                        <span data-target="sync.currentRescanHeight">{{ .CurrentRescanHeight }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                    </p>
+                    <p><span data-target="sync.rescanProgress">{{ .RescanProgress }}</span>% through step 3 of 3.</p>
+                </div>
 
                 <p>
                     Syncing with
