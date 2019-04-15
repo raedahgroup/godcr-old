@@ -87,16 +87,16 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 	}
 
 	for _, tx := range txns {
-		row := historyTable.GetRowCount()
-		if row > 5 {
+		nextRowIndex := historyTable.GetRowCount()
+		if nextRowIndex > 5 {
 			break
 		}
 
-		historyTable.SetCell(row, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
-		historyTable.SetCell(row, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(row, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
+		historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
