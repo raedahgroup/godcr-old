@@ -12,7 +12,7 @@ export default class extends Controller {
     ]
   }
 
-  getReceiveAddress() {
+  getReceiveAddress () {
     this.generateAddress(false)
   }
 
@@ -32,7 +32,11 @@ export default class extends Controller {
 
     const _this = this
     clearMessages(this)
-    axios.get('/generate-address/' + this.accountTarget.value + (newAddress? 'new=1': ''))
+    let url = '/generate-address/' + this.accountTarget.value
+    if (newAddress) {
+      url += '?new=1'
+    }
+    axios.get(url)
       .then((response) => {
         let result = response.data
         if (result.success) {
