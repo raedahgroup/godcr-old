@@ -525,12 +525,12 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	data["success"] = true
 }
 
-func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-	routes.renderPage("security.html", data, res)
-}
-
 func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	routes.renderPage("accounts.html", data, res)
+}
+
+func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	routes.renderPage("security.html", data, res)
 }
