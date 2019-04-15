@@ -3,6 +3,7 @@ package dcrlibwallet
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -62,6 +63,12 @@ func (lib *DcrWalletLib) OpenWalletIfExist(ctx context.Context) (walletExists bo
 
 func (lib *DcrWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
+}
+
+func (lib *DcrWalletLib) DeleteWallet() error {
+	lib.CloseWallet()
+	err := os.RemoveAll(lib.walletDbDir)
+	return err
 }
 
 func (lib *DcrWalletLib) IsWalletOpen() bool {

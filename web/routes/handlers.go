@@ -3,18 +3,15 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
-	"net/http"
-	"os"
-	"strconv"
-	"sync"
-	"time"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
@@ -597,18 +594,10 @@ func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		routes.walletMiddleware.CloseWallet()
-		time.Sleep(500)
-		err := os.RemoveAll(config.CurrentAppDataDir)
-		if err != nil {
-			data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
-			return
-		}
-		data["success"] = true
-	}()
-	wg.Wait()
+	err := routes.walletMiddleware.DeleteWallet()
+	if err != nil {
+		data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
+		return
+	}
+	data["success"] = true
 }

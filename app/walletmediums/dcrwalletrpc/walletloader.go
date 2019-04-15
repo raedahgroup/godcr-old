@@ -2,8 +2,8 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -88,6 +88,10 @@ func (c *WalletRPCClient) CloseWallet() {
 	// - if wallet wasn't opened by godcr, closing it could cause troubles for user
 	// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user
 	// when they next launch godcr
+}
+
+func (l *WalletRPCClient) DeleteWallet() error {
+	return errors.New("wallet cannot be deleted when connecting via dcrwallet rpc")
 }
 
 func (c *WalletRPCClient) IsWalletOpen() bool {

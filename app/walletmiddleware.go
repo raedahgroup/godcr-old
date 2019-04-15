@@ -28,6 +28,8 @@ type WalletMiddleware interface {
 	// Usually such termination attempts are halted to allow this function perform shutdown and cleanup operations
 	CloseWallet()
 
+	DeleteWallet() error
+
 	IsWalletOpen() bool
 
 	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)

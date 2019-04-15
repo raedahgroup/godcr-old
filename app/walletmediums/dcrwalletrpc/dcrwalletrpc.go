@@ -45,6 +45,7 @@ func New(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRP
 	if originalConnectionError == nil {
 		return walletRPCClient, originalConnectionError
 	}
+
 	dcrwalletConfAddresses, dcrwalletConfNoTLS, dcrwalletConfCert, err := connectionParamsFromDcrwalletConfig()
 	if err != nil {
 		return nil, fmt.Errorf("Cannot connect to %s. Trying to check dcrwallet config for different address failed. %s", rpcAddress, err.Error())
