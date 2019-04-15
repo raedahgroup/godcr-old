@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -596,12 +597,18 @@ func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	routes.walletMiddleware.CloseWallet()
-	time.Sleep(500)
-	err := os.RemoveAll(config.CurrentAppDataDir)
-	if err != nil {
-		data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
-		return
-	}
-	data["success"] = true
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		routes.walletMiddleware.CloseWallet()
+		time.Sleep(500)
+		err := os.RemoveAll(config.CurrentAppDataDir)
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
+			return
+		}
+		data["success"] = true
+	}()
+	wg.Wait()
 }

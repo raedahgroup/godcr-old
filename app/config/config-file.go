@@ -27,8 +27,8 @@ type ConfFileOptions struct {
 
 type Settings struct {
 	SpendUnconfirmed                    bool   `long:"spendunconfirmed" description:"Spend unconfirmed funds"`
-	ShowIncomingTransactionNotification bool   `long:"showIncomingtransactionnotification" description:"Show incoming transaction notification"`
-	ShowNewBlockNotification            bool   `long:"shownewblocknotification" description:"Show new block notification"`
+	ShowIncomingTransactionNotification bool   `long:"incomingtxnotification" description:"Show incoming transaction notification"`
+	ShowNewBlockNotification            bool   `long:"newblocknotification" description:"Show new block notification"`
 	CurrencyConverter                   string `long:"currencyconverter" description:"Currency Converter {none, bitrex}" choice:"none" choice:"bitrex" default:"none"`
 }
 
