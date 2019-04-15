@@ -24,7 +24,7 @@ type eventType string
 const (
 	updateConnectionInfo eventType = "updateConnInfo"
 	updateBalance        eventType = "updateBalance"
-	updateSyncStatus     eventType = "updateSyncStatus"
+	updateSyncProgress   eventType = "updateSyncProgress"
 )
 
 type Packet struct {
@@ -41,7 +41,12 @@ func (routes *Routes) wsHandler(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 }
 
-func waitToSendMessagesToClients() {
+func (routes *Routes) waitToSendMessagesToClients() {
+	if routes.ctx.Err() != nil {
+		// user must have hit ctrl+c to shutdown the web server
+		return
+	}
+
 	for {
 		msg := <-wsBroadcast
 		for client := range clients {
@@ -56,11 +61,6 @@ func waitToSendMessagesToClients() {
 }
 
 func (routes *Routes) sendWsConnectionInfoUpdate() {
-	if routes.ctx.Err() != nil {
-		// user must have hit ctrl+c to shutdown the web server
-		return
-	}
-
 	info, err := routes.walletMiddleware.WalletConnectionInfo()
 	if err != nil {
 		weblog.LogError(err)
@@ -73,11 +73,6 @@ func (routes *Routes) sendWsConnectionInfoUpdate() {
 }
 
 func (routes *Routes) sendWsBalance() {
-	if routes.ctx.Err() != nil {
-		// user must have hit ctrl+c to shutdown the web server
-		return
-	}
-
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		weblog.LogError(fmt.Errorf("Error fetching account balance: %s", err.Error()))
@@ -101,9 +96,15 @@ func (routes *Routes) sendWsBalance() {
 	}
 }
 
-func (routes *Routes) sendWsSyncStatus() {
+func (routes *Routes) sendWsSyncProgress() {
+	syncInfo, err := routes.prepareSyncInfoMap()
+	if err != nil {
+		weblog.LogError(fmt.Errorf("error updating sync info via ws: %s", err.Error()))
+		return
+	}
+
 	wsBroadcast <- Packet{
-		Event:   updateSyncStatus,
-		Message: routes.blockchain.report(),
+		Event:   updateSyncProgress,
+		Message: syncInfo,
 	}
 }

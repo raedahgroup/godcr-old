@@ -2,10 +2,8 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/raedahgroup/godcr/web/weblog"
 )
@@ -32,26 +30,6 @@ func (routes *Routes) render(tplName string, data interface{}, res http.Response
 }
 
 func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.ResponseWriter) {
-	syncInfo["networkType"] = routes.walletMiddleware.NetType()
-
-	if syncInfo["CurrentStep"].(json.Number) == "2" {
-		// check account discovery progress percentage
-		addressDiscoveryProgressString := syncInfo["AddressDiscoveryProgress"].(json.Number)
-		addressDiscoveryProgress, _ := strconv.ParseInt(string(addressDiscoveryProgressString), 10, 32)
-		if addressDiscoveryProgress > 100 {
-			syncInfo["AddressDiscoveryProgress"] = fmt.Sprintf("%d%% (over)", addressDiscoveryProgress)
-		} else {
-			syncInfo["AddressDiscoveryProgress"] = fmt.Sprintf("%d%%", addressDiscoveryProgress)
-		}
-	}
-
-	connectedPeers := syncInfo["ConnectedPeers"].(json.Number)
-	if connectedPeers == "1" {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peer", connectedPeers)
-	} else {
-		syncInfo["ConnectedPeers"] = fmt.Sprintf("%s peers", connectedPeers)
-	}
-
 	routes.render("sync.html", syncInfo, res)
 }
 

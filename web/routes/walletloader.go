@@ -49,15 +49,9 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		case blockchainsync.StatusNotStarted:
 			errMsg = "Cannot display page. Blockchain hasn't been synced"
 		case blockchainsync.StatusInProgress:
-			var syncInfoMap map[string]interface{}
-			syncInfoBytes, _ := json.Marshal(syncInfo)
-
-			jsonDecoder := json.NewDecoder(bytes.NewReader(syncInfoBytes))
-			jsonDecoder.UseNumber()
-
-			err := jsonDecoder.Decode(&syncInfoMap)
+			syncInfoMap, err := routes.prepareSyncInfoMap()
 			if err != nil {
-				errMsg = err.Error()
+				errMsg = fmt.Sprintf("Cannot load sync progress page: %s", err.Error())
 			} else {
 				routes.renderSyncPage(syncInfoMap, res)
 			}
@@ -90,4 +84,37 @@ func (routes *Routes) syncBlockChain() {
 	} else {
 		routes.privateSyncInfo.Write(syncInfo, blockchainsync.StatusInProgress)
 	}
+}
+
+func (routes *Routes) prepareSyncInfoMap() (map[string]interface{}, error) {
+	syncInfo := routes.privateSyncInfo.Read()
+	var syncInfoMap map[string]interface{}
+
+	syncInfoBytes, _ := json.Marshal(syncInfo)
+	jsonDecoder := json.NewDecoder(bytes.NewReader(syncInfoBytes))
+	jsonDecoder.UseNumber()
+
+	err := jsonDecoder.Decode(&syncInfoMap)
+	if err != nil {
+		return nil, err
+	}
+
+	syncInfoMap["NetworkType"] = routes.walletMiddleware.NetType()
+
+	if syncInfo.CurrentStep == 2 {
+		// check account discovery progress percentage
+		if syncInfo.AddressDiscoveryProgress > 100 {
+			syncInfoMap["AddressDiscoveryProgress"] = fmt.Sprintf("%d%% (over)", syncInfo.AddressDiscoveryProgress)
+		} else {
+			syncInfoMap["AddressDiscoveryProgress"] = fmt.Sprintf("%d%%", syncInfo.AddressDiscoveryProgress)
+		}
+	}
+
+	if syncInfo.ConnectedPeers == 1 {
+		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%s peer", syncInfo.ConnectedPeers)
+	} else {
+		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%s peers", syncInfo.ConnectedPeers)
+	}
+
+	return syncInfoMap, nil
 }

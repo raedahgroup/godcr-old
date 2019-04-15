@@ -20,9 +20,10 @@
             </div>
             <p>
             {{ if ne .TotalTimeRemaining "" }}
-            {{ .TotalSyncProgress }}% completed, {{ .TotalTimeRemaining }} remaining.
+                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed,
+                <span data-target="sync.totalTimeRemaining">{{ .TotalTimeRemaining }}</span> remaining.
             {{ else }}
-            {{ .TotalSyncProgress }}% completed.
+                <span data-target="sync.totalSyncProgress">{{ .TotalSyncProgress }}</span>% completed.
             {{ end }}
             </p>
 
@@ -30,24 +31,35 @@
 
             <div data-target="sync.syncDetails" class="d-none">
             {{ if eq .CurrentStep "1" }}
-                <p>Fetched {{ .FetchedHeadersCount }} of {{ .TotalHeadersToFetch }} block headers.</p>
-                <p>{{ .HeadersFetchProgress }}% through step 1 of 3.</p>
+                <p>
+                    Fetched
+                    <span data-target="sync.fetchedHeadersCount">{{ .FetchedHeadersCount }}</span>
+                    of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                </p>
+                <p><span data-target="sync.headersFetchProgress">{{ .HeadersFetchProgress }}</span>% through step 1 of 3.</p>
             {{ if ne .DaysBehind "" }}
-                <p>Your wallet is {{ .DaysBehind }} behind.</p>
+                <p>Your wallet is <span data-target="sync.daysBehind">{{ .DaysBehind }}</span> behind.</p>
             {{ end }}
             {{ end }}
 
             {{ if eq .CurrentStep "2" }}
                 <p>Discovering used addresses.</p>
-                <p>{{ .AddressDiscoveryProgress }} through step 2 of 3.</p>
+                <p><span data-target="sync.addressDiscoveryProgress">{{ .AddressDiscoveryProgress }}</span> through step 2 of 3.</p>
             {{ end }}
 
             {{ if eq .CurrentStep "3" }}
-                <p>Scanning {{ .CurrentRescanHeight }} of {{ .TotalHeadersToFetch }} block headers.</p>
-                <p>{{ .RescanProgress }}% through step 3 of 3.</p>
+                <p>Scanning
+                    <span data-target="sync.currentRescanHeight">{{ .CurrentRescanHeight }}</span>
+                    of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                </p>
+                <p><span data-target="sync.rescanProgress">{{ .RescanProgress }}</span>% through step 3 of 3.</p>
             {{ end }}
 
-                <p>Syncing with {{ .ConnectedPeers }} on {{ .networkType }}.</p>
+                <p>
+                    Syncing with
+                    <span data-target="sync.connectedPeers">{{ .ConnectedPeers }}</span>
+                    on <span data-target="sync.networkType">{{ .NetworkType }}</span>.
+                </p>
             </div>
         </div>
     </div>

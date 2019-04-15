@@ -3,7 +3,10 @@ import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {
-    return ['syncDetails']
+    return [
+        'syncDetails'
+
+    ]
   }
 
   showDetails (e) {

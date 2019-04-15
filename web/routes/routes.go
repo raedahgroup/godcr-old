@@ -70,7 +70,7 @@ func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Delete("/delete-wallet", routes.deleteWallet)
 
 	router.Get("/ws", routes.wsHandler)
-	go waitToSendMessagesToClients()
+	go routes.waitToSendMessagesToClients()
 
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)
