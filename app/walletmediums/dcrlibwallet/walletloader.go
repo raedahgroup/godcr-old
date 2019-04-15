@@ -67,8 +67,7 @@ func (lib *DcrWalletLib) CloseWallet() {
 
 func (lib *DcrWalletLib) DeleteWallet() error {
 	lib.CloseWallet()
-	err := os.RemoveAll(lib.walletDbDir)
-	return err
+	return os.RemoveAll(lib.walletDbDir)
 }
 
 func (lib *DcrWalletLib) IsWalletOpen() bool {

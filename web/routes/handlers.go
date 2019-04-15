@@ -3,15 +3,15 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {

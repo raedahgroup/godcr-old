@@ -163,7 +163,7 @@ export default class extends Controller {
     ws.registerEvtHandler('updateSyncStatus', function (data) {
       _this.syncNotificationsTarget.innerHTML += `<p>${data}.</p>`
     })
-    axios.get('/rescan-blockchain')
+    axios.post('/rescan-blockchain')
   }
 
   sendSyncToTheBackground () {

@@ -24,7 +24,7 @@ type eventType string
 const (
 	updateConnectionInfo eventType = "updateConnInfo"
 	updateBalance        eventType = "updateBalance"
-	updateSyncStatus	 eventType = "updateSyncStatus"
+	updateSyncStatus     eventType = "updateSyncStatus"
 )
 
 type Packet struct {
@@ -103,7 +103,7 @@ func (routes *Routes) sendWsBalance() {
 
 func (routes *Routes) sendWsSyncStatus() {
 	wsBroadcast <- Packet{
-		Event: updateSyncStatus,
+		Event:   updateSyncStatus,
 		Message: routes.blockchain.report(),
 	}
 }

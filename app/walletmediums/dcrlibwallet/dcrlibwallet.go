@@ -13,8 +13,8 @@ import (
 // Other wallet-related functions are defined in `walletloader.go`
 type DcrWalletLib struct {
 	walletDbDir string
-	walletLib 	*dcrlibwallet.LibWallet
-	activeNet 	*netparams.Params
+	walletLib   *dcrlibwallet.LibWallet
+	activeNet   *netparams.Params
 }
 
 // New connects to dcrlibwallet and returns an instance of DcrWalletLib
@@ -31,8 +31,8 @@ func New(appDataDir string, wallet *config.WalletInfo) (*DcrWalletLib, error) {
 	}
 
 	return &DcrWalletLib{
-		walletDbDir:	wallet.DbDir,
-		walletLib: 		lw,
-		activeNet: 		activeNet,
+		walletDbDir: wallet.DbDir,
+		walletLib:   lw,
+		activeNet:   activeNet,
 	}, nil
 }
