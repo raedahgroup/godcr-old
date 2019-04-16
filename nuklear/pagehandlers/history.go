@@ -151,7 +151,7 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
-	contentWindow.Window.Row(0).Static(670, 700)
+	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(670, 700)
 	widgets.NoScrollGroupWindow("Transaction details column one", contentWindow.Window, func(window *widgets.Window) {
 		table := widgets.NewTable()
 		table.AddRow(
@@ -176,7 +176,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		table.Render(window)
 
-		window.AddHorizontalSpace(50)
+		window.AddHorizontalSpace(30)
 
 		window.AddLabelWithFont("Inputs", "LC", styles.BoldPageContentFont)
 
@@ -219,7 +219,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		table.Render(window)
 
-		window.AddHorizontalSpace(50)
+		window.AddHorizontalSpace(30)
 
 		window.AddLabelWithFont("Outputs", "LC", styles.BoldPageContentFont)
 
@@ -248,4 +248,19 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		}
 		table.Render(window)
 	})
+}
+
+func (handler *HistoryHandler) calculateTxDetailsPageHeight() int {
+	firstSectionHeight := 240
+	outputsLen := len(handler.transactionDetails.Outputs)
+	inputsLen := len(handler.transactionDetails.Inputs)
+
+	var secondSectionLines int
+	if outputsLen > inputsLen {
+		secondSectionLines = outputsLen
+	} else {
+		secondSectionLines = inputsLen
+	}
+
+	return firstSectionHeight + (secondSectionLines * 27)
 }
