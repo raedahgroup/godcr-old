@@ -159,7 +159,7 @@ export default class extends Controller {
 
   rescanBlockchain () {
     const _this = this
-    this.syncNotificationsTarget.innerHTML = '<p>Sending request...</p>'
+    this.syncNotificationsTarget.innerHTML = '<p>Starting block headers rescan. Please wait...</p>'
     ws.registerEvtHandler('updateSyncStatus', function (data) {
       _this.syncNotificationsTarget.innerHTML = `<p>${data}.</p>`
     })

@@ -198,7 +198,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", tx.FeeRate))
 
 	// calculate max number of digits after decimal point for inputs and outputs
-	inputsAndOutputsAmount := make([]int64, 0, len(tx.Inputs) + len(tx.Outputs))
+	inputsAndOutputsAmount := make([]int64, 0, len(tx.Inputs)+len(tx.Outputs))
 	for _, txIn := range tx.Inputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txIn.AmountIn)
 	}
