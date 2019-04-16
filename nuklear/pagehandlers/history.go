@@ -143,6 +143,10 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 	}
 
 	widgets.PageContentWindowDefaultPadding("Transaction Details", window, func(contentWindow *widgets.Window) {
+		contentWindow.AddButton("Back", func() {
+			handler.goBackToHistory(contentWindow)
+		})
+
 		if handler.fetchTxDetailsError != nil {
 			contentWindow.DisplayErrorMessage("Error fetching transaction details", handler.fetchTxDetailsError)
 		} else if handler.selectedTxDetails != nil {
@@ -151,6 +155,11 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 			contentWindow.DisplayIsLoadingMessage()
 		}
 	})
+}
+
+func (handler *HistoryHandler) goBackToHistory(contentWindow *widgets.Window) {
+	handler.clearTxDetails()
+	contentWindow.Master().Changed()
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
