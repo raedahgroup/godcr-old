@@ -29,7 +29,10 @@ type sendPagePayload struct {
 func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err error) {
 	payload = new(sendPagePayload)
 
-	req.ParseForm()
+	err = req.ParseForm()
+	if err != nil {
+		return nil, fmt.Errorf("error in parsing request: %s", err.Error())
+	}
 
 	selectedAccount := req.FormValue("source-account")
 	account, err := strconv.ParseUint(selectedAccount, 10, 32)

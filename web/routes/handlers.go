@@ -105,11 +105,6 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	if payload.totalSendAmount >= payload.totalInputAmount {
-		data["error"] = "Total send amount is already at maximum"
-		return
-	}
-
 	changeAmount, err := txhelper.EstimateMaxSendAmount(len(payload.utxos), int64(payload.totalInputAmount), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Error in estimating max send amount: %s", err.Error())
@@ -246,8 +241,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		return
 	}
 
-	req.ParseForm()
-
+	// retrieveSendPagePayload already called req.ParseForm()
 	nChangeOutputsStr := req.FormValue("nChangeOutput")
 	nChangeOutputs, err := strconv.ParseInt(nChangeOutputsStr, 10, 32)
 	if err != nil {

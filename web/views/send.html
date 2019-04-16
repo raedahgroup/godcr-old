@@ -6,8 +6,6 @@
 {{ template "header" .connectionInfo }}
     <div class="content">
         <div class="container">
-            <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
-            <div data-target="send.successMessage" class="alert alert-success d-none"></div>
             <form method="POST" action="/send" id="send-form" data-target="send.form" novalidate>
                 <div class="collapsible">
                     <div class="card">
@@ -20,7 +18,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12 col-md-6">
-                                    <div class="form-group mb-1">
+                                    <div class="form-group mb-0">
                                     {{ if eq (len .accounts) 1 }}
                                     {{ $account := index .accounts 0 }}
                                         <input data-target="send.sourceAccount" value="{{ $account.Number }}"
@@ -37,7 +35,7 @@
                                     {{ end }}
                                     </div>
 
-                                    <div class="form-group form-check mb-0 {{ if haveUnconfirmedBalance .accounts }} d-none {{ end }}">
+                                    <div class="form-group form-check mb-0 mt-1 {{ if noUnconfirmedBalance .accounts }}d-none{{ end }}">
                                         <input data-action="click->send#toggleSpendUnconfirmed"
                                                data-target="send.spendUnconfirmed" type="checkbox"
                                                class="form-check-input" name="spend-unconfirmed" id="spend-unconfirmed"
@@ -221,6 +219,8 @@
 
                     <div class="card">
                         <div class="card-body">
+                            <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
+                            <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                             <div class="errors mb-3 d-none" data-target="send.errors"></div>
                             <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
                                     type="button">Reset

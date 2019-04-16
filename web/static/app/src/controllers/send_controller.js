@@ -36,6 +36,36 @@ export default class extends Controller {
     }
   }
 
+  toggleSpendUnconfirmed () {
+    if (this.useCustomTarget.checked) {
+      this.openCustomInputsAndChangeOutputsPanel()
+    }
+  }
+
+  toggleUseCustom () {
+    if (!this.useCustomTarget.checked) {
+      this.resetCustomInputsAndChangeOutputs()
+      return
+    }
+
+    this.openCustomInputsAndChangeOutputsPanel()
+  }
+
+  maxSendAmountCheckboxToggle (event) {
+    this.setMaxAmountForDestination(event.currentTarget)
+  }
+
+  utxoSelectedOrDeselected () {
+    this.calculateCustomInputsPercentage()
+    this.updateMaxAmountFieldIfSet()
+  }
+
+  toggleCustomChangeOutputsVisibility () {
+    this.clearMessages()
+    this.useCustomChangeOutput = !this.useCustomChangeOutput
+    this.resetChangeOutput()
+  }
+
   newDestination () {
     if (!this.destinationFieldsValid()) {
       return
@@ -81,10 +111,6 @@ export default class extends Controller {
     this.calculateCustomInputsPercentage()
   }
 
-  maxSendAmountCheckboxToggle (event) {
-    this.setMaxAmountForDestination(event.currentTarget)
-  }
-
   updateMaxAmountFieldIfSet () {
     if (this.maxSendDestinationIndex >= 0) {
       const activeSendMaxCheckbox = document.getElementById(`send-max-amount-${this.maxSendDestinationIndex}`)
@@ -96,6 +122,10 @@ export default class extends Controller {
     if (sendMaxCheckbox.hasAttribute('readonly')) {
       sendMaxCheckbox.checked = false
       return
+    }
+
+    if (!sendMaxCheckbox.checked) {
+      show(this.changeOutputsTarget)
     }
 
     const index = parseInt(sendMaxCheckbox.getAttribute('data-index'))
@@ -234,32 +264,14 @@ export default class extends Controller {
     this.destinationCount--
   }
 
-  toggleSpendUnconfirmed () {
-    if (this.useCustomTarget.checked) {
-      this.openCustomInputsAndChangeOutputsPanel()
-    }
-  }
-
-  toggleUseCustom () {
-    if (!this.useCustomTarget.checked) {
-      this.resetCustomInputsAndChangeOutputs()
-      return
-    }
-
-    this.openCustomInputsAndChangeOutputsPanel()
-  }
-
   resetCustomInputsAndChangeOutputs () {
     show(this.fetchingUtxosTarget)
 
     $('#custom-inputs').slideUp()
     this.customInputsTableTarget.innerHTML = ''
 
-    hide(this.changeOutputsTarget)
-    this.useRandomChangeOutputsTarget.checked = false
-    this.numberOfChangeOutputsTarget.value = ''
-    this.generatedChangeOutputsTarget.innerHTML = ''
-    hide(this.generatedChangeOutputsTarget)
+    this.resetChangeOutput()
+    this.hideChangeOutputPanel()
   }
 
   openCustomInputsAndChangeOutputsPanel () {
@@ -273,7 +285,7 @@ export default class extends Controller {
         let dcrAmount = utxo.amount / 100000000
         return `<tr>
                   <td width='5%'>
-                    <input data-target='send.utxoCheckbox' data-action='click->send#calculateCustomInputsPercentage' type='checkbox' class='custom-input' 
+                    <input data-target='send.utxoCheckbox' data-action='click->send#utxoSelectedOrDeselected' type='checkbox' class='custom-input' 
                     name='utxo' value='${utxo.key}' data-amount='${dcrAmount}' data-address='${utxo.address}' />
                   </td>
                   <td width='40%'>${utxo.address}</td>
@@ -285,7 +297,9 @@ export default class extends Controller {
 
       _this.customInputsTableTarget.innerHTML = utxos.join('')
       hide(this.fetchingUtxosTarget)
-      show(_this.changeOutputsTarget)
+      if (this.maxSendDestinationIndex < 0) {
+        show(_this.changeOutputsTarget)
+      }
     }
 
     const accountNumber = this.sourceAccountTarget.value
@@ -352,16 +366,15 @@ export default class extends Controller {
     return sum
   }
 
-  toggleCustomChangeOutputsVisibility () {
-    this.clearMessages()
-    this.useCustomChangeOutput = !this.useCustomChangeOutput
-    this.resetChangeOutput()
+  hideChangeOutputPanel () {
+    hide(this.changeOutputsTarget)
+    hide(this.generatedChangeOutputsTarget)
   }
 
   resetChangeOutput () {
-    this.generatedChangeOutputsTarget.innerHTML = ''
-    hide(this.generatedChangeOutputsTarget)
+    this.useRandomChangeOutputsTarget.checked = false
     this.numberOfChangeOutputsTarget.value = ''
+    this.generatedChangeOutputsTarget.innerHTML = ''
   }
 
   generateChangeOutputs () {
@@ -555,6 +568,11 @@ export default class extends Controller {
   validateChangeOutputAmount () {
     this.clearMessages()
 
+    // if the user is using random change output, the server will get accurate values
+    if (this.useRandomChangeOutputsTarget.checked) {
+      return true
+    }
+
     let totalPercentageAllotted = 0
     this.changeOutputPercentageTargets.forEach(percentageTarget => {
       const thisPercent = parseFloat(percentageTarget.value)
@@ -651,14 +669,6 @@ export default class extends Controller {
     hide(this.successMessageTarget)
     this.errorsTarget.innerHTML = ''
     hide(this.errorsTarget)
-  }
-
-  hide (el) {
-    el.classList.add('d-none')
-  }
-
-  show (el) {
-    el.classList.remove('d-none')
   }
 
   showError (error) {

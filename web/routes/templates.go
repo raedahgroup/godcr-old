@@ -52,13 +52,13 @@ func templateFuncMap() template.FuncMap {
 			return fmt.Sprintf("%s %s (unconfirmed %s)", account.Name,
 				walletcore.NormalizeBalance(account.Balance.Total.ToCoin()), walletcore.NormalizeBalance(unconfirmedBalance.ToCoin()))
 		},
-		"haveUnconfirmedBalance": func(accounts []*walletcore.Account) bool {
+		"noUnconfirmedBalance": func(accounts []*walletcore.Account) bool {
 			for _, account := range accounts {
-				if account.Balance.Total != account.Balance.Spendable {
-					return true
+				if account.Balance.Unconfirmed > 0 {
+					return false
 				}
 			}
-			return false
+			return true
 		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()
