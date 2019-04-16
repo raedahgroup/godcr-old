@@ -297,6 +297,7 @@ label.list-group-item h5 {
 /* this is to take care of the padding embedded in the qr image */
 .address-qr-img img {
   margin-left: -60px;
+  margin-top: -20px;
 }
 
 @media screen and (max-width: 600px) {

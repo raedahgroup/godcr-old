@@ -174,11 +174,8 @@ func (routes *Routes) receivePage(res http.ResponseWriter, req *http.Request) {
 		"accounts": accounts,
 	}
 
-	data = routes.fillAddressData(data, accounts[0].Number, true)
-	if _, has := data["imageData"]; has {
-		data["imageStr"] = fmt.Sprintf("<img data-target=\"receive.image\" src=\"%s\"/>", data["imageData"])
-	}
-
+	// don't generate new address by default, return previous unused address if it exists
+	data = routes.generateAddress(data, accounts[0].Number, false)
 	routes.renderPage("receive.html", data, res)
 }
 
@@ -190,42 +187,39 @@ func (routes *Routes) generateReceiveAddress(res http.ResponseWriter, req *http.
 	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 32)
 	if err != nil {
 		data["success"] = false
-		data["message"] = err.Error()
+		data["errorMessage"] = fmt.Sprintf("Invalid account selected: %s", accountNumberStr)
 		return
 	}
 
-	newAddress := req.URL.Query().Get("new")
-	data = routes.fillAddressData(data, uint32(accountNumber), newAddress == "1")
+	generateNewAddress := req.URL.Query().Get("new") == "yes"
+	data = routes.generateAddress(data, uint32(accountNumber), generateNewAddress)
 }
 
-func (routes *Routes) fillAddressData(data map[string]interface{}, accountNumber uint32, newAddress bool) map[string]interface{} {
+func (routes *Routes) generateAddress(data map[string]interface{}, accountNumber uint32, generateNewAddress bool) map[string]interface{} {
 	var address string
 	var err error
-	if newAddress {
+	if generateNewAddress {
 		address, err = routes.walletMiddleware.GenerateNewAddress(accountNumber)
 	} else {
 		address, err = routes.walletMiddleware.ReceiveAddress(accountNumber)
 	}
 	if err != nil {
 		data["success"] = false
-		data["message"] = err.Error()
+		data["errorMessage"] = err.Error()
 		return data
 	}
 
 	png, err := qrcode.Encode(address, qrcode.Medium, 256)
 	if err != nil {
 		data["success"] = false
-		data["message"] = err.Error()
+		data["errorMessage"] = err.Error()
 		return data
 	}
 
-	// encode to base64
-	encodedStr := base64.StdEncoding.EncodeToString(png)
-	imgStr := fmt.Sprintf("data:image/png;base64,%s", encodedStr)
-
 	data["success"] = true
-	data["address"] = address
-	data["imageData"] = imgStr
+	data["generatedAddress"] = address
+	data["qrCodeBase64Image"] = base64.StdEncoding.EncodeToString(png)
+
 	return data
 }
 

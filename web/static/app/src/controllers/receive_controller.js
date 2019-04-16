@@ -7,17 +7,17 @@ export default class extends Controller {
     return [
       'errorMessage',
       'account',
-      'addressContainer', 'address', 'image', 'copyButtonText',
+      'generatedAddressContainer', 'generatedAddress', 'qrCodeImage',
       'generateNewAddressButton'
     ]
   }
 
-  getReceiveAddress () {
+  getCurrentAddress () {
     this.generateAddress(false)
   }
 
   copyAddressToClipboard () {
-    copyToClipboard(this.addressTarget.textContent)
+    copyToClipboard(this.generatedAddressTarget.textContent)
     showSuccessNotification('Copied to clipboard')
   }
 
@@ -26,25 +26,27 @@ export default class extends Controller {
   }
 
   generateAddress (newAddress) {
-    hide(this.addressContainerTarget)
+    hide(this.generatedAddressContainerTarget)
+
     this.generateNewAddressButtonTarget.textContent = 'generating...'
     this.generateNewAddressButtonTarget.setAttribute('disabled', 'disabled')
-
-    const _this = this
     clearMessages(this)
+
     let url = '/generate-address/' + this.accountTarget.value
     if (newAddress) {
-      url += '?new=1'
+      url += '?new=yes'
     }
+
+    const _this = this
     axios.get(url)
       .then((response) => {
         let result = response.data
         if (result.success) {
-          _this.addressTarget.textContent = result.address
-          _this.imageTarget.setAttribute('src', result.imageData)
-          show(_this.addressContainerTarget)
+          _this.generatedAddressTarget.textContent = result.generatedAddress
+          _this.qrCodeImageTarget.setAttribute('src', `data:image/png;base64,${result.qrCodeBase64Image}`)
+          show(_this.generatedAddressContainerTarget)
         } else {
-          setErrorMessage(_this, result.message)
+          setErrorMessage(_this, result.errorMessage)
         }
       })
       .catch(() => {
