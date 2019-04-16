@@ -189,7 +189,7 @@ func connectToWallet(ctx context.Context, cfg *config.Config) (app.WalletMiddlew
 		}
 	}
 
-	return dcrlibwallet.New(walletInfo.DbDir, walletInfo)
+	return dcrlibwallet.New(walletInfo)
 }
 
 func detectOrCreateWallet(ctx context.Context) (*config.WalletInfo, error) {

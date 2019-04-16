@@ -161,7 +161,7 @@ export default class extends Controller {
     const _this = this
     this.syncNotificationsTarget.innerHTML = '<p>Sending request...</p>'
     ws.registerEvtHandler('updateSyncStatus', function (data) {
-      _this.syncNotificationsTarget.innerHTML += `<p>${data}.</p>`
+      _this.syncNotificationsTarget.innerHTML = `<p>${data}.</p>`
     })
     axios.post('/rescan-blockchain')
   }
