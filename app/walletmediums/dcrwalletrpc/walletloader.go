@@ -90,7 +90,7 @@ func (c *WalletRPCClient) CloseWallet() {
 	// when they next launch godcr
 }
 
-func (l *WalletRPCClient) DeleteWallet() error {
+func (c *WalletRPCClient) DeleteWallet() error {
 	return errors.New("wallet cannot be deleted when connecting via dcrwallet rpc")
 }
 
@@ -139,6 +139,10 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	// receive sync updates from stream and send to listener in separate goroutine
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
+}
+
+func (c *WalletRPCClient) RescanBlockChain() error {
+	return nil // todo implement
 }
 
 func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {

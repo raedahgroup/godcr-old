@@ -17,6 +17,8 @@ type WalletMiddleware interface {
 
 	SyncBlockChain(listener *BlockChainSyncListener, showLog bool) error
 
+	RescanBlockChain() error
+
 	// OpenWalletIfExist checks if the wallet the user is trying to access exists and opens the wallet
 	// This method may stall if the wallet database is in use by some other process,
 	// hence the need for ctx, so user can cancel the operation if it's taking too long

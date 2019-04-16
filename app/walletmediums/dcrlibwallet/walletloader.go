@@ -104,6 +104,10 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 	return nil
 }
 
+func (lib *DcrWalletLib) RescanBlockChain() error {
+	return lib.walletLib.RescanBlocks()
+}
+
 func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
 	accounts, loadAccountErr := lib.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if loadAccountErr != nil {

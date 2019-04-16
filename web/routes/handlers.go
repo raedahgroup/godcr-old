@@ -586,8 +586,12 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 }
 
 func (routes *Routes) rescanBlockchain(res http.ResponseWriter, req *http.Request) {
-	routes.syncBlockchain()
-	renderJSON(map[string]interface{}{"success": true}, res)
+	err := routes.walletMiddleware.RescanBlockChain()
+	if err != nil {
+		renderJSON(map[string]interface{}{"error": err.Error()}, res)
+	} else {
+		renderJSON(map[string]interface{}{"success": true}, res)
+	}
 }
 
 func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {

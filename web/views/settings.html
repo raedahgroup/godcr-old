@@ -61,7 +61,7 @@
                         <h6 class="border-bottom border-gray pb-2 mb-0 mt-2">Debug</h6>
 
                         <div class="list-group">
-                            <a data-action="click->settings#rescanBlockchian" data-toggle="modal" data-target="#rescan-blockchain-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-action="click->settings#rescanBlockchain" data-toggle="modal" data-target="#rescan-blockchain-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Rescan Blockchain</h5>
                                 </div>
@@ -162,7 +162,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Rescan Blockchain</h5>
-                    <button data-action="click->settings#sendSyncToTheBackground" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button data-action="click->settings#stopListeningForSyncUpdates" type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -170,7 +170,7 @@
                     <div data-target="settings.syncNotifications"></div>
                 </div>
                 <div class="modal-footer">
-                    <button data-action="click->settings#sendSyncToTheBackground" data-dismiss="modal"
+                    <button data-action="click->settings#stopListeningForSyncUpdates" data-dismiss="modal"
                             type="button" class="btn btn-danger">Close</button>
                 </div>
             </div>

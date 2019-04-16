@@ -157,16 +157,26 @@ export default class extends Controller {
     })
   }
 
-  rescanBlockchian () {
+  rescanBlockchain () {
     const _this = this
     this.syncNotificationsTarget.innerHTML = '<p>Sending request...</p>'
     ws.registerEvtHandler('updateSyncStatus', function (data) {
       _this.syncNotificationsTarget.innerHTML = `<p>${data}.</p>`
     })
-    axios.post('/rescan-blockchain')
+
+    axios.post('/rescan-blockchain').then((response) => {
+      let result = response.data
+      if (result.error) {
+        _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>${result.error}.</p>`
+        _this.stopListeningForSyncUpdates()
+      }
+    }).catch(() => {
+      _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>A server error occurred.</p>`
+      _this.stopListeningForSyncUpdates()
+    })
   }
 
-  sendSyncToTheBackground () {
+  stopListeningForSyncUpdates () {
     ws.deregisterEvtHandlers('updateSyncStatus')
   }
 
