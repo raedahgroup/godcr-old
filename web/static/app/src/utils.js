@@ -40,13 +40,17 @@ export const copyToClipboard = str => {
 
 export const setErrorMessage = (controller, message) => {
   controller.errorMessageTarget.innerHTML = message
-  hide(controller.successMessageTarget)
+  if (controller.successMessageTarget) {
+    hide(controller.successMessageTarget)
+  }
   show(controller.errorMessageTarget)
 }
 
 export const setSuccessMessage = (controller, message) => {
   controller.successMessageTarget.innerHTML = message
-  hide(controller.errorMessageTarget)
+  if (controller.errorMessageTarget) {
+    hide(controller.errorMessageTarget)
+  }
   show(controller.successMessageTarget)
 }
 

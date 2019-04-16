@@ -258,7 +258,7 @@ label.list-group-item div {
 
 .btnCopy {
   font-size: 14px;
-  padding: 3px;
+  padding: 0 10px;
   background: none;
   border: none;
 }
@@ -293,3 +293,23 @@ label.list-group-item div {
 label.list-group-item h5 {
   display: inline !important;
 }
+
+/* this is to take care of the padding embedded in the qr image */
+.address-qr-img img {
+  margin-left: -60px;
+  margin-top: -20px;
+}
+
+@media screen and (max-width: 600px) {
+  .address-qr-img img {
+    margin-left: -40px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .address-qr-img img {
+    margin-left: -4px;
+  }
+}
+
+/* end padding embedded in the qr image workaround */
