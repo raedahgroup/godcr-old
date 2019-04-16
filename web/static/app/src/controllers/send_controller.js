@@ -109,6 +109,9 @@ export default class extends Controller {
     }
 
     this.calculateCustomInputsPercentage()
+    if (this.useRandomChangeOutputsTarget.checked) {
+      this.generateChangeOutputs()
+    }
   }
 
   updateMaxAmountFieldIfSet () {
@@ -171,7 +174,7 @@ export default class extends Controller {
       amountField.value = amount
       sendMaxCheckbox.removeAttribute('readonly')
       sendMaxCheckbox.parentElement.classList.remove('disabled')
-      _this.resetChangeOutput()
+      _this.hideChangeOutputPanel()
       _this.calculateCustomInputsPercentage()
     }, (errMsg) => {
       uncheckCurrentMaxCheckbox()
@@ -270,7 +273,6 @@ export default class extends Controller {
     $('#custom-inputs').slideUp()
     this.customInputsTableTarget.innerHTML = ''
 
-    this.resetChangeOutput()
     this.hideChangeOutputPanel()
   }
 
@@ -297,7 +299,7 @@ export default class extends Controller {
 
       _this.customInputsTableTarget.innerHTML = utxos.join('')
       hide(this.fetchingUtxosTarget)
-      if (this.maxSendDestinationIndex < 0) {
+      if (!(this.maxSendDestinationIndex >= 0)) {
         show(_this.changeOutputsTarget)
       }
     }
@@ -367,6 +369,7 @@ export default class extends Controller {
   }
 
   hideChangeOutputPanel () {
+    this.resetChangeOutput()
     hide(this.changeOutputsTarget)
     hide(this.generatedChangeOutputsTarget)
   }
