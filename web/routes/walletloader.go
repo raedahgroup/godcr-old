@@ -59,7 +59,10 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockchain() {
-	updateStatus := routes.blockchain.updateStatus
+	updateStatus := func(report string, status walletcore.SyncStatus) {
+		routes.blockchain.updateStatus(report, status)
+		routes.sendWsSyncStatus()
+	}
 
 	if !routes.walletExists {
 		updateStatus("Wallet is not open. Cannot sync", walletcore.SyncStatusError)

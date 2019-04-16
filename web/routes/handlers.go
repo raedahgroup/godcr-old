@@ -472,9 +472,22 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 	routes.sendWsBalance()
 }
 
+func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	routes.renderPage("accounts.html", data, res)
+}
+
+func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	routes.renderPage("security.html", data, res)
+}
+
 func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
-		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
+		"spendUnconfirmedFunds":               routes.settings.SpendUnconfirmed,
+		"showIncomingTransactionNotification": routes.settings.ShowIncomingTransactionNotification,
+		"showNewBlockNotification":            routes.settings.ShowNewBlockNotification,
+		"currencyConverter":                   routes.settings.CurrencyConverter,
 	}
 	routes.renderPage("settings.html", data, res)
 }
@@ -524,15 +537,71 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 		routes.settings.SpendUnconfirmed = spendUnconfirmed
 	}
 
+	if showIncomingTransactionNotificationStr := req.FormValue("show-incoming-transaction-notification"); showIncomingTransactionNotificationStr != "" {
+		showIncomingTransactionNotification, err := strconv.ParseBool(showIncomingTransactionNotificationStr)
+		if err != nil {
+			data["error"] = "Invalid value for 'show incoming transaction notification' setting"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.ShowIncomingTransactionNotification = showIncomingTransactionNotification
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.ShowIncomingTransactionNotification = showIncomingTransactionNotification
+	}
+
+	if showNewBlockNotificationStr := req.FormValue("show-new-block-notification"); showNewBlockNotificationStr != "" {
+		showNewBlockNotification, err := strconv.ParseBool(showNewBlockNotificationStr)
+		if err != nil {
+			data["error"] = "Invalid value for 'show new block notification' setting"
+			return
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.ShowNewBlockNotification = showNewBlockNotification
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.ShowNewBlockNotification = showNewBlockNotification
+	}
+
+	if currencyConverter := req.FormValue("currency-converter"); currencyConverter != "" {
+		err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.CurrencyConverter = currencyConverter
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.CurrencyConverter = currencyConverter
+	}
+
 	data["success"] = true
 }
 
-func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-	routes.renderPage("accounts.html", data, res)
+func (routes *Routes) rescanBlockchain(res http.ResponseWriter, req *http.Request) {
+	err := routes.walletMiddleware.RescanBlockChain()
+	if err != nil {
+		renderJSON(map[string]interface{}{"error": err.Error()}, res)
+	} else {
+		renderJSON(map[string]interface{}{"success": true}, res)
+	}
 }
 
-func (routes *Routes) securityPage(res http.ResponseWriter, req *http.Request) {
+func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
-	routes.renderPage("security.html", data, res)
+	defer renderJSON(data, res)
+
+	err := routes.walletMiddleware.DeleteWallet()
+	if err != nil {
+		data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
+		return
+	}
+	data["success"] = true
 }

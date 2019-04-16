@@ -3,6 +3,7 @@ package dcrlibwallet
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -64,6 +65,11 @@ func (lib *DcrWalletLib) CloseWallet() {
 	lib.walletLib.Shutdown(false)
 }
 
+func (lib *DcrWalletLib) DeleteWallet() error {
+	lib.CloseWallet()
+	return os.RemoveAll(lib.walletDbDir)
+}
+
 func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
@@ -96,6 +102,10 @@ func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, sh
 
 	listener.SyncStarted()
 	return nil
+}
+
+func (lib *DcrWalletLib) RescanBlockChain() error {
+	return lib.walletLib.RescanBlocks()
 }
 
 func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {

@@ -17,6 +17,8 @@ type WalletMiddleware interface {
 
 	SyncBlockChain(listener *BlockChainSyncListener, showLog bool) error
 
+	RescanBlockChain() error
+
 	// OpenWalletIfExist checks if the wallet the user is trying to access exists and opens the wallet
 	// This method may stall if the wallet database is in use by some other process,
 	// hence the need for ctx, so user can cancel the operation if it's taking too long
@@ -27,6 +29,8 @@ type WalletMiddleware interface {
 	// CloseWallet is triggered whenever the godcr program is about to be terminated
 	// Usually such termination attempts are halted to allow this function perform shutdown and cleanup operations
 	CloseWallet()
+
+	DeleteWallet() error
 
 	IsWalletOpen() bool
 

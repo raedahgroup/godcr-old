@@ -1,13 +1,16 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
 import { hide, show, showErrorNotification, showSuccessNotification } from '../utils'
+import ws from '../services/messagesocket_service'
 
 export default class extends Controller {
   static get targets () {
     return [
       'oldPassword', 'oldPasswordError', 'newPassword', 'newPasswordError', 'confirmPassword',
       'confirmPasswordError', 'changePasswordErrorMessage',
-      'spendUnconfirmedFunds'
+      'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification',
+      'changeCurrencyConverterErrorMessage', 'currencyConverterNone', 'currencyConverterBitrex', 'updateCurrencyConverterButton',
+      'syncNotifications'
     ]
   }
 
@@ -100,6 +103,95 @@ export default class extends Controller {
       }
     }).catch(() => {
       _this.spendUnconfirmedFundsTarget.checked = !_this.spendUnconfirmedFundsTarget.checked
+      showErrorNotification('A server error occurred')
+    })
+  }
+
+  updateShowIncomingTransactionNotification () {
+    const _this = this
+    const postData = `show-incoming-transaction-notification=${this.showIncomingTransactionNotificationTarget.checked}`
+    axios.put('/settings', postData).then((response) => {
+      let result = response.data
+      if (result.success) {
+        showSuccessNotification('Changes saved successfully')
+      } else {
+        showErrorNotification(result.error ? result.error : 'Something went wrong, please try again later')
+        _this.showIncomingTransactionNotificationTarget.checked = !_this.showIncomingTransactionNotificationTarget.checked
+      }
+    }).catch(() => {
+      _this.showIncomingTransactionNotificationTarget.checked = !_this.showIncomingTransactionNotificationTarget.checked
+      showErrorNotification('A server error occurred')
+    })
+  }
+
+  updateShowNewBlockNotification () {
+    const _this = this
+    const postData = `show-new-block-notification=${this.showNewBlockNotificationTarget.checked}`
+    axios.put('/settings', postData).then((response) => {
+      let result = response.data
+      if (result.success) {
+        showSuccessNotification('Changes saved successfully')
+      } else {
+        showErrorNotification(result.error ? result.error : 'Something went wrong, please try again later')
+        _this.showNewBlockNotificationTarget.checked = !_this.showNewBlockNotificationTarget.checked
+      }
+    }).catch(() => {
+      _this.showNewBlockNotificationTarget.checked = !_this.showNewBlockNotificationTarget.checked
+      showErrorNotification('A server error occurred')
+    })
+  }
+
+  updateCurrencyConverter () {
+    const _this = this
+    const postData = `currency-converter=${(this.currencyConverterBitrexTarget.checked ? 'bitrex' : 'none')}`
+    axios.put('/settings', postData).then((response) => {
+      let result = response.data
+      if (result.error) {
+        _this.changeCurrencyConverterErrorMessageTarget.textContent = result.error ? result.error : 'Something went wrong, please try again later'
+        return
+      }
+      showSuccessNotification('Changes saved successfully')
+      $('#currency-converter-modal').modal('hide')
+    }).catch(() => {
+      _this.changeCurrencyConverterErrorMessageTarget.textContent = 'A server error occurred'
+    })
+  }
+
+  rescanBlockchain () {
+    const _this = this
+    this.syncNotificationsTarget.innerHTML = '<p>Starting block headers rescan. Please wait...</p>'
+    ws.registerEvtHandler('updateSyncStatus', function (data) {
+      _this.syncNotificationsTarget.innerHTML = `<p>${data}.</p>`
+    })
+
+    axios.post('/rescan-blockchain').then((response) => {
+      let result = response.data
+      if (result.error) {
+        _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>${result.error}.</p>`
+        _this.stopListeningForSyncUpdates()
+      }
+    }).catch(() => {
+      _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>A server error occurred.</p>`
+      _this.stopListeningForSyncUpdates()
+    })
+  }
+
+  stopListeningForSyncUpdates () {
+    ws.deregisterEvtHandlers('updateSyncStatus')
+  }
+
+  deleteWallet () {
+    axios.delete('/delete-wallet').then((response) => {
+      let result = response.data
+      if (!result.success) {
+        showErrorNotification(result.error)
+        return
+      }
+      showSuccessNotification('Wallet deleted')
+      setTimeout(function () {
+        window.location.reload()
+      }, 2000)
+    }).catch(() => {
       showErrorNotification('A server error occurred')
     })
   }

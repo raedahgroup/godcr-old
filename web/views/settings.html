@@ -31,20 +31,26 @@
                                 </div>
                             </label>
 
-                            <input type="checkbox" id="incomingTransactionNotification"/>
+                            <input data-target="settings.showIncomingTransactionNotification"
+                                   data-action="change->settings#updateShowIncomingTransactionNotification"
+                                    type="checkbox" id="incomingTransactionNotification"
+                                    {{ if .showIncomingTransactionNotification }} checked {{ end }}/>
                             <label for="incomingTransactionNotification" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Incoming Transaction Notification</h5>
                                 </div>
                             </label>
 
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-toggle="modal" data-target="#currency-converter-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Currency Conversion</h5>
                                 </div>
                             </a>
 
-                            <input id="newBlockNotification" type="checkbox"/>
+                            <input data-target="settings.showNewBlockNotification"
+                                   data-action="change->settings#updateShowNewBlockNotification"
+                                   id="newBlockNotification" type="checkbox"
+                                    {{ if .showNewBlockNotification }} checked {{ end }}/>
                             <label for="newBlockNotification" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">New Block Notification</h5>
@@ -55,12 +61,12 @@
                         <h6 class="border-bottom border-gray pb-2 mb-0 mt-2">Debug</h6>
 
                         <div class="list-group">
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-action="click->settings#rescanBlockchain" data-toggle="modal" data-target="#rescan-blockchain-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Rescan Blockchain</h5>
                                 </div>
                             </a>
-                            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-action="click->settings#deleteWallet" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">Delete Wallet</h5>
                                 </div>
@@ -105,6 +111,67 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                     <button data-action="click->settings#changePassword" type="button" class="btn btn-success">Change Password</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="currency-converter-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <form>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Currency Converter</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div data-target="settings.changeCurrencyConverterErrorMessage" class="alert alert-danger d-none"></div>
+
+                    <div class="form-check form-check-inline">
+                        <input data-target="settings.currencyConverterNone" class="form-check-input form-check-inline" type="radio"
+                                {{ if (eq "none" .currencyConverter) }} checked {{ end }}
+                               name="currencyConverter" id="currencyConverterNone" value="None">
+                        <label class="form-check-label" for="currencyConverterNone">
+                            None
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input data-target="settings.currencyConverterBitrex" class="form-check-input form-check-inline" type="radio"
+                                {{ if (eq "bitrex" .currencyConverter) }} checked {{ end }}
+                               name="currencyConverter" id="currencyConverterBitrex" value="Bitrex">
+                        <label class="form-check-label" for="currencyConverterBitrex">
+                            Bitrex
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button data-target="settings.updateCurrencyConverterButton" data-action="click->settings#updateCurrencyConverter" type="button" class="btn btn-primary">Update</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="rescan-blockchain-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <form>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rescan Blockchain</h5>
+                    <button data-action="click->settings#stopListeningForSyncUpdates" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div data-target="settings.syncNotifications"></div>
+                </div>
+                <div class="modal-footer">
+                    <button data-action="click->settings#stopListeningForSyncUpdates" data-dismiss="modal"
+                            type="button" class="btn btn-danger">Close</button>
                 </div>
             </div>
         </form>

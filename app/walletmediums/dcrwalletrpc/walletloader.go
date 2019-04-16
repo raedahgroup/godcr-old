@@ -2,8 +2,8 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
@@ -90,6 +90,10 @@ func (c *WalletRPCClient) CloseWallet() {
 	// when they next launch godcr
 }
 
+func (c *WalletRPCClient) DeleteWallet() error {
+	return errors.New("wallet cannot be deleted when connecting via dcrwallet rpc")
+}
+
 func (c *WalletRPCClient) IsWalletOpen() bool {
 	// for now, assume that the wallet's already open since we're connecting through dcrwallet daemon
 	// ideally, we'd have to use dcrwallet's WalletLoaderService to do this
@@ -135,6 +139,10 @@ func (c *WalletRPCClient) SyncBlockChain(listener *app.BlockChainSyncListener, s
 	// receive sync updates from stream and send to listener in separate goroutine
 	go s.streamBlockchainSyncUpdates(showLog)
 	return nil
+}
+
+func (c *WalletRPCClient) RescanBlockChain() error {
+	return nil // todo implement
 }
 
 func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {

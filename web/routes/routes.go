@@ -65,6 +65,8 @@ func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Get("/settings", routes.settingsPage)
 	router.Post("/change-password", routes.changeSpendingPassword)
 	router.Put("/settings", routes.updateSetting)
+	router.Post("/rescan-blockchain", routes.rescanBlockchain)
+	router.Delete("/delete-wallet", routes.deleteWallet)
 
 	router.Get("/ws", routes.wsHandler)
 	go waitToSendMessagesToClients()
