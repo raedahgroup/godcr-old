@@ -73,3 +73,36 @@ func (checkbox *CheckboxTableCell) Render(window *Window) {
 func (checkbox *CheckboxTableCell) MinWidth(window *Window) int {
 	return window.LabelWidth(checkbox.label) + 16 // assumed width of check box
 }
+
+type LinkTableCell struct {
+	text        string
+	tooltipText string
+	value       *bool
+	clickFunc   func(text string, window *Window)
+}
+
+func NewLinkTableCell(text, tooltipText string, clickFunc func(text string, window *Window)) *LinkTableCell {
+	val := false
+
+	return &LinkTableCell{
+		text:        text,
+		tooltipText: tooltipText,
+		value:       &val,
+		clickFunc:   clickFunc,
+	}
+}
+
+func (link *LinkTableCell) Render(window *Window) {
+	if window.SelectableLabel(link.text, "LC", link.value) {
+		link.clickFunc(link.text, window)
+	}
+	if link.tooltipText != "" {
+		if window.Input().Mouse.HoveringRect(window.LastWidgetBounds) {
+			window.Tooltip(link.tooltipText)
+		}
+	}
+}
+
+func (link *LinkTableCell) MinWidth(window *Window) int {
+	return window.LabelWidth(link.text)
+}
