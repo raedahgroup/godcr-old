@@ -39,7 +39,7 @@ func MasterWindowStyle() *style.Style {
 	// style checkbox
 	masterWindowStyle.Checkbox.Padding = noPadding
 
-	// style link selectable
+	// style selectable labels (links)
 	masterWindowStyle.Selectable.Padding = noPadding
 	masterWindowStyle.Selectable.TextNormal = DecredDarkBlueColor
 	masterWindowStyle.Selectable.TextHover = DecredLightBlueColor

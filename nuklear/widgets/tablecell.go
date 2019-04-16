@@ -77,23 +77,23 @@ func (checkbox *CheckboxTableCell) MinWidth(window *Window) int {
 type LinkTableCell struct {
 	text        string
 	tooltipText string
-	value       *bool
+	selected    *bool
 	clickFunc   func(text string, window *Window)
 }
 
 func NewLinkTableCell(text, tooltipText string, clickFunc func(text string, window *Window)) *LinkTableCell {
-	val := false
+	selected := false
 
 	return &LinkTableCell{
 		text:        text,
 		tooltipText: tooltipText,
-		value:       &val,
+		selected:    &selected,
 		clickFunc:   clickFunc,
 	}
 }
 
 func (link *LinkTableCell) Render(window *Window) {
-	if window.SelectableLabel(link.text, "LC", link.value) {
+	if window.SelectableLabel(link.text, "LC", link.selected) {
 		link.clickFunc(link.text, window)
 	}
 	if link.tooltipText != "" {
