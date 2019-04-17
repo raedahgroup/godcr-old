@@ -633,7 +633,7 @@ export default class extends Controller {
         let txHash = `The transaction was published successfully. Hash: <strong>${result.txHash}</strong>`
         _this.setSuccessMessage(txHash)
       }
-    }).catch(() => {
+    }).catch((e) => {
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
       _this.nextButtonTarget.innerHTML = 'Next'
@@ -652,9 +652,12 @@ export default class extends Controller {
 
   resetSendForm () {
     this.resetCustomInputsAndChangeOutputs()
-    while (this.destinationCount > 1) {
-      this.removeDestination()
-    }
+
+    this.destinationsTarget.innerHTML = ''
+    this.destinationIndex = 0
+    this.destinationCount = 0
+    this.newDestination()
+
     this.addressTargets.forEach(ele => {
       ele.value = ''
     })
