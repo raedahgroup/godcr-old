@@ -277,6 +277,13 @@ export default class extends Controller {
     if (this.destinationCount === 1) {
       hide(this.removeDestinationBtnTarget)
     }
+
+    if (this.maxSendDestinationIndex === index) {
+      this.maxSendAmountCheckTargets.forEach(checkbox => {
+        checkbox.removeAttribute('readonly')
+        checkbox.parentElement.classList.remove('disabled')
+      })
+    }
   }
 
   resetCustomInputsAndChangeOutputs () {
