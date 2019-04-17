@@ -13,7 +13,9 @@ export function listenForBalanceUpdate (_this) {
         }
       })
     } else {
-      _this.sourceAccountTarget.textContent = data.accounts[0].balance
+      if (_this.sourceAccountSpanTarget) {
+        _this.sourceAccountSpanTarget.textContent = data.total
+      }
     }
   })
 }

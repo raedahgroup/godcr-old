@@ -2,13 +2,13 @@
 *.exe
 .DS_Store
 .idea/
+*.log
+*.bat
 vendor/
 godcr
 godcr.conf
 godcr.exe
 web/static/app/node_modules
-*.log
-*.bat
 web/static/dist/js/app.bundle.js
 web/static/dist/js/app.bundle.js.map
 web/static/dist/js/vendors~app.bundle.js

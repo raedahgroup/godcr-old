@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "bootstrap4-toggle": "^3.4.0",
     "stimulus": "^1.1.0",
     "toastr": "^2.1.4"
   },

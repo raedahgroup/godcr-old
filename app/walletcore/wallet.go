@@ -45,14 +45,15 @@ type Wallet interface {
 	// If `targetAmount` is 0, all unspent outputs in account are returned
 	UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*UnspentOutput, error)
 
-	// SendFromAccount sends funds to 1 or more destination addresses, each with a specified amount
-	// The inputs to the transaction are automatically selected from all unspent outputs in the account
-	// Returns the transaction hash as string if successful
+	// SendFromAccount sends funds to 1 or more destination addresses, each with a specified amount.
+	// The inputs to the transaction are automatically selected from any combination of unspent outputs in the account.
+	// Returns the transaction hash as string if successful.
 	SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
-	// SendFromUTXOs sends funds to 1 or more destination addresses, each with a specified amount
-	// SendFromUTXOs also sends any change amount that arises from the transaction to the provided changeDestinations
-	// The inputs to the transaction are unspent outputs in the account, matching the keys sent in []utxoKeys
+	// SendFromUTXOs sends funds to 1 or more destination addresses, each with a specified amount.
+	// The inputs to the transaction are unspent outputs in the account, matching the keys sent in []utxoKeys.
+	// Also supports specifying how and where to send any change amount that arises from the transaction.
+	// If no change destinations are provided, one is automatically created using an address generated from the account.
 	// Returns the transaction hash as string if successful
 	SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error)
 

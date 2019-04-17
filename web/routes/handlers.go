@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
@@ -81,78 +82,55 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 	routes.renderPage("send.html", data, res)
 }
 
+func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	payload, err := retrieveSendPagePayload(req)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get max amount: %s", err.Error())
+		return
+	}
+
+	// If no input is selected, use all inputs in the account to determine
+	// the max amount that can be sent after subtracting total amount to send to other recipients.
+	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
+	if len(payload.utxos) == 0 {
+		payload.utxos, payload.totalInputAmount, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
+			payload.sourceAccount, payload.requiredConfirmations)
+
+		if err != nil {
+			data["error"] = fmt.Sprintf("Cannot get max amount, trying to get unspent outputs in account failed: %s", err.Error())
+			return
+		}
+	}
+
+	changeAmount, err := txhelper.EstimateMaxSendAmount(len(payload.utxos), int64(payload.totalInputAmount), payload.sendDestinations)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Error in estimating max send amount: %s", err.Error())
+	} else {
+		data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
+	}
+}
+
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	req.ParseForm()
-	utxos := req.Form["utxo"]
-	selectedAccount := req.FormValue("source-account")
-	passphrase := req.FormValue("wallet-passphrase")
-	spendUnconfirmed := req.FormValue("spend-unconfirmed")
-	useCustom := req.FormValue("use-custom")
-
-	destinationAddresses := req.Form["destination-address"]
-	destinationAmounts := req.Form["destination-amount"]
-
-	sendDestinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
+	payload, err := retrieveSendPagePayload(req)
 	if err != nil {
 		data["error"] = err.Error()
 		return
-	}
-
-	account, err := strconv.ParseUint(selectedAccount, 10, 32)
-	if err != nil {
-		data["error"] = err.Error()
-		return
-	}
-	sourceAccount := uint32(account)
-
-	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
-	if spendUnconfirmed != "" {
-		requiredConfirmations = 0
 	}
 
 	var txHash string
-	if useCustom != "" {
-		changeOutputAddreses := req.Form["change-output-address"]
-		changeOutputAmounts := req.Form["change-output-amount"]
-
-		changeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddreses, changeOutputAmounts)
-		if err != nil {
-			data["error"] = err.Error()
-			return
-		}
-
-		if len(changeDestinations) < 1 {
-			// add at-least one change output
-			totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
-
-			totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
-			if err != nil {
-				data["error"] = err.Error()
-				return
-			}
-
-			totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
-			if err != nil {
-				data["error"] = err.Error()
-				return
-			}
-
-			changeDestinations, err = walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, 1, int64(totalInputAmount),
-				sourceAccount, len(utxos), sendDestinations)
-			if err != nil {
-				data["error"] = err.Error()
-				return
-			}
-		}
-
-		txHash, err = routes.walletMiddleware.SendFromUTXOs(sourceAccount, requiredConfirmations, utxos, sendDestinations, changeDestinations, passphrase)
+	if payload.useCustom {
+		txHash, err = routes.walletMiddleware.SendFromUTXOs(payload.sourceAccount, payload.requiredConfirmations, payload.utxos,
+			payload.sendDestinations, payload.changeDestinations, payload.passphrase)
 	} else {
-		txHash, err = routes.walletMiddleware.SendFromAccount(sourceAccount, requiredConfirmations, sendDestinations, passphrase)
+		txHash, err = routes.walletMiddleware.SendFromAccount(payload.sourceAccount, payload.requiredConfirmations,
+			payload.sendDestinations, payload.passphrase)
 	}
-
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -237,8 +215,8 @@ func (routes *Routes) getUnspentOutputs(res http.ResponseWriter, req *http.Reque
 
 	requiredConfirmations := walletcore.DefaultRequiredConfirmations
 
-	getUnconfirmed := req.URL.Query().Get("getUnconfirmed")
-	if getUnconfirmed == "true" {
+	spendUnconfirmed := req.URL.Query().Get("spend-unconfirmed")
+	if spendUnconfirmed == "true" {
 		requiredConfirmations = 0
 	}
 
@@ -257,58 +235,27 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	req.ParseForm()
-	utxos := req.Form["utxo"]
-	totalSelectedInputAmountDcr := req.FormValue("totalSelectedInputAmountDcr")
-	selectedAccount := req.FormValue("source-account")
-	nChangeOutputsStr := req.FormValue("nChangeOutput")
-
-	account, err := strconv.ParseUint(selectedAccount, 10, 32)
+	payload, err := retrieveSendPagePayload(req)
 	if err != nil {
 		data["error"] = err.Error()
 		return
 	}
-	sourceAccount := uint32(account)
 
+	// retrieveSendPagePayload already called req.ParseForm()
+	nChangeOutputsStr := req.FormValue("nChangeOutput")
 	nChangeOutputs, err := strconv.ParseInt(nChangeOutputsStr, 10, 32)
 	if err != nil {
 		data["error"] = err.Error()
 		return
 	}
 
-	destinationAddresses := req.Form["destination-address"]
-	destinationAmounts := req.Form["destination-amount"]
-
-	destinations, err := walletcore.BuildTxDestinations(destinationAddresses, destinationAmounts)
-	if err != nil {
-		data["error"] = err.Error()
+	if payload.totalSendAmount >= payload.totalInputAmount {
+		data["error"] = "Error in getting change amount: total input amount cannot cover total send amount and transaction fee"
 		return
 	}
 
-	changeOutputAddreses := req.Form["change-output-address"]
-	changeOutputAmounts := req.Form["change-output-amount"]
-
-	existingChangeDestinations, err := walletcore.BuildTxDestinations(changeOutputAddreses, changeOutputAmounts)
-	if err != nil {
-		data["error"] = err.Error()
-		return
-	}
-
-	destinations = append(destinations, existingChangeDestinations...)
-
-	totalInputAmountDcr, err := strconv.ParseFloat(totalSelectedInputAmountDcr, 64)
-	if err != nil {
-		data["error"] = err.Error()
-		return
-	}
-
-	totalInputAmount, err := dcrutil.NewAmount(totalInputAmountDcr)
-	if err != nil {
-		data["error"] = err.Error()
-		return
-	}
-
-	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware, int(nChangeOutputs), int64(totalInputAmount), sourceAccount, len(utxos), destinations)
+	changeOutputDestinations, err := walletcore.GetChangeDestinationsWithRandomAmounts(routes.walletMiddleware,
+		int(nChangeOutputs), int64(payload.totalInputAmount), payload.sourceAccount, len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = err.Error()
 		return

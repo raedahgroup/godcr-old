@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"html/template"
 	"time"
 
@@ -47,7 +48,19 @@ func templateFuncMap() template.FuncMap {
 			return
 		},
 		"accountString": func(account *walletcore.Account) string {
-			return account.String()
+			if account.Balance.Unconfirmed > 0 {
+				return fmt.Sprintf("%s %s (unconfirmed %s)", account.Name,
+					walletcore.NormalizeBalance(account.Balance.Total.ToCoin()), walletcore.NormalizeBalance(account.Balance.Unconfirmed.ToCoin()))
+			}
+			return fmt.Sprintf("%s %s", account.Name, walletcore.NormalizeBalance(account.Balance.Total.ToCoin()))
+		},
+		"noUnconfirmedBalance": func(accounts []*walletcore.Account) bool {
+			for _, account := range accounts {
+				if account.Balance.Unconfirmed > 0 {
+					return false
+				}
+			}
+			return true
 		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()

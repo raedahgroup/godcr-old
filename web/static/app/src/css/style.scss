@@ -58,6 +58,20 @@ table td {
   border-radius: 0;
 }
 
+.form-group.form-check.disabled {
+  opacity: 0.65;
+}
+
+.destination {
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .invalid-feedback {
+    display: block;
+  }
+}
+
 .error {
   color: brown;
 }
@@ -71,6 +85,18 @@ table td {
 
 .btn i {
   font-size: 12px;
+}
+
+.btn-primary {
+  background-color: #3d76df;
+}
+
+.btn-success {
+  background-color: #78ceb5;
+}
+
+.btn-danger {
+  background-color: #12153e;
 }
 
 .modal-content {
