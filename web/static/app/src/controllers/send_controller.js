@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck',
+      'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
@@ -99,6 +99,14 @@ export default class extends Controller {
 
     this.destinationIndex++
     this.destinationCount++
+
+    if (this.destinationCount === 1) {
+      hide(removeDestinationButton)
+    } else {
+      this.removeDestinationBtnTargets.forEach(btn => {
+        show(btn)
+      })
+    }
   }
 
   destinationAmountEdited (event) {
@@ -265,6 +273,10 @@ export default class extends Controller {
 
     this.destinationsTarget.removeChild(this.destinationsTarget.querySelector(`div.destination[data-index="${index}"]`))
     this.destinationCount--
+
+    if (this.destinationCount === 1) {
+      hide(this.removeDestinationBtnTarget)
+    }
   }
 
   resetCustomInputsAndChangeOutputs () {

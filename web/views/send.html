@@ -111,7 +111,7 @@
                                                 <label class="form-check-label" for="send-max-amount">Send max</label>
                                             </div>
                                             &nbsp;
-                                            <button data-action="click->send#removeDestination"
+                                            <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
                                                     class="btn btn-outline-secondary removeDestinationBtn"
                                                     style="border: 1px solid #ced4da !important;" type="button">X</button>
                                         </div>
@@ -231,37 +231,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="modal" id="passphrase-modal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Transaction</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div data-target="send.transactionDetails"></div>
+                                <p>Enter your passphrase to continue</p>
+                                <div class="form-group form-inline">
+                                    <label for="passhprase">Passphrase</label>
+                                    <input data-target="send.walletPassphrase" type="password" class="form-control ml-3" name="wallet-passphrase" id="wallet-passphrase" />
+                                    <div data-target="send.passwordError" class="errors"></div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                <button data-action="click->send#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 </div>
 {{ template "footer" }}
-
-<div class="modal" id="passphrase-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Transaction</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div data-target="send.transactionDetails"></div>
-                <p>Enter your passphrase to continue</p>
-                <div class="form-group form-inline">
-                    <label for="passhprase">Passphrase</label>
-                    <input data-target="send.walletPassphrase" type="password" class="form-control ml-3" name="wallet-passphrase" id="wallet-passphrase" />
-                    <div data-target="send.passwordError" class="errors"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                <button data-action="click->send#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>
