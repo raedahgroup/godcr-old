@@ -7,7 +7,7 @@ export default class extends Controller {
     return [
       'errorMessage', 'successMessage',
       'form',
-      'sourceAccount',
+      'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',

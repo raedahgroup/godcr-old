@@ -23,7 +23,7 @@
                                     {{ $account := index .accounts 0 }}
                                         <input data-target="send.sourceAccount" value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
-                                        <b>From:</b> {{ accountString $account }}
+                                        <b>From:</b> <span data-target="send.sourceAccountSpan">{{ accountString $account }}</span>
                                     {{ else }}
                                         <label for="source-account"><b>From</b></label>
                                         <select data-target="send.sourceAccount" class="form-control"
