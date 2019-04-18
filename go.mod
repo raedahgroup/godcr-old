@@ -30,3 +30,5 @@ require (
 	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/grpc v1.19.0
 )
+
+replace github.com/raedahgroup/dcrlibwallet => ../dcrlibwallet

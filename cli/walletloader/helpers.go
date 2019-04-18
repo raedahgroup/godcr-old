@@ -41,7 +41,7 @@ func choseNetworkAndCreateMiddleware() (app.WalletMiddleware, error) {
 		Source:  "godcr",
 		DbDir:   filepath.Join(cfg.AppDataDir, network),
 	}
-	return dcrlibwallet.New(walletInfo)
+	return dcrlibwallet.Connect(walletInfo)
 }
 
 // displayWalletSeed prints the generated seed for a new wallet

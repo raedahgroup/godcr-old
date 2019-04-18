@@ -5,6 +5,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app/config"
+	"context"
 )
 
 type ExplicitString struct {
@@ -28,17 +29,31 @@ var (
 	walletConfigFilePath = filepath.Join(config.DefaultDcrwalletAppDataDir, defaultWalletConfigFilename)
 )
 
-func connectionParamsFromDcrwalletConfig() (addresses []string, notls bool, certpath string, err error) {
+func parseDcrWalletConfigAndConnect(ctx context.Context, useRpcCert string, disableTls bool) *WalletRPCClient {
 	wConfig := walletConfig{}
 
 	parser := flags.NewParser(&wConfig, flags.IgnoreUnknown)
-	err = flags.NewIniParser(parser).ParseFile(walletConfigFilePath)
+	err := flags.NewIniParser(parser).ParseFile(walletConfigFilePath)
 	if err != nil {
-		return
+		return nil
 	}
+
 	var rpcCert string
-	if wConfig.RPCCert != nil {
+	if useRpcCert != "" {
+		rpcCert = useRpcCert
+	} else if wConfig.RPCCert != nil {
 		rpcCert = wConfig.RPCCert.Value
 	}
-	return wConfig.GRPCListeners, wConfig.DisableServerTLS, rpcCert, nil
+
+	for _, address := range wConfig.GRPCListeners {
+		walletRPCClient, _ := createConnection(ctx, address, rpcCert, disableTls)
+		if walletRPCClient != nil {
+			config.UpdateConfigFile(func(config *config.ConfFileOptions) {
+				config.WalletRPCServer = address
+			})
+			return walletRPCClient
+		}
+	}
+
+	return nil
 }

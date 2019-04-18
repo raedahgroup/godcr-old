@@ -17,8 +17,8 @@ type DcrWalletLib struct {
 	activeNet   *netparams.Params
 }
 
-// New connects to dcrlibwallet and returns an instance of DcrWalletLib
-func New(wallet *config.WalletInfo) (*DcrWalletLib, error) {
+// Connect opens connection to the wallet database via dcrlibwallet and returns an instance of DcrWalletLib
+func Connect(wallet *config.WalletInfo) (*DcrWalletLib, error) {
 	activeNet := utils.NetParams(wallet.Network)
 	if activeNet == nil {
 		return nil, fmt.Errorf("unsupported wallet: %s", wallet.Network)
