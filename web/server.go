@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"fmt"
-	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"net"
 	"net/http"
 	"os"
@@ -16,6 +15,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"github.com/raedahgroup/godcr/web/routes"
 	"github.com/raedahgroup/godcr/web/weblog"
 )
@@ -105,7 +105,7 @@ func startServer(ctx context.Context, address string, router chi.Router) error {
 	case <-t.C:
 		fmt.Printf("Web server running on %s\n", address)
 
-		launchBrowserConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to launch web browser?", "")
+		launchBrowserConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to launch the web browser?", "")
 		if err != nil {
 			weblog.Log.Error("Failed to read input", err.Error())
 			fmt.Fprintf(os.Stderr, "Error reading your response: %s\n", err.Error())
