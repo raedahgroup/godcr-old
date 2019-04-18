@@ -63,6 +63,11 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		data["loadTransactionErr"] = fmt.Sprintf("Error fetching recent activity: %s", err.Error())
 	}
+
+	// make sure the transactions are not more than 5
+	if len(txns) > 5 {
+		txns = txns[0:5]
+	}
 	data["transactions"] = txns
 
 	routes.renderPage("overview.html", data, res)
