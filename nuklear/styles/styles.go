@@ -39,23 +39,33 @@ func MasterWindowStyle() *style.Style {
 	// style checkbox
 	masterWindowStyle.Checkbox.Padding = noPadding
 
-	// style selectable labels (links)
-	masterWindowStyle.Selectable.Padding = noPadding
-	masterWindowStyle.Selectable.TextNormal = DecredDarkBlueColor
-	masterWindowStyle.Selectable.TextHover = DecredLightBlueColor
-	masterWindowStyle.Selectable.TextPressed = DecredLightBlueColor
-
 	return masterWindowStyle
 }
 
 func SetNavStyle(masterWindow nucular.MasterWindow) {
 	currentStyle := masterWindow.Style()
 	currentStyle.Font = NavFont
+
+	// nav window style
 	currentStyle.GroupWindow.Padding = image.Point{0, 0}
 	currentStyle.GroupWindow.FixedBackground.Data.Color = DecredDarkBlueColor
+
+	// nav buttons style
 	currentStyle.Button.Normal.Data.Color = DecredDarkBlueColor
 	currentStyle.Button.Hover.Data.Color = DecredLightBlueColor
 	currentStyle.Button.Active.Data.Color = DecredLightBlueColor
+
+	// nav selectable label style (selected nav item)
+	currentStyle.Selectable.Normal.Data.Color = DecredDarkBlueColor
+	currentStyle.Selectable.Hover.Data.Color = DecredLightBlueColor
+	currentStyle.Selectable.HoverActive.Data.Color = DecredLightBlueColor
+	currentStyle.Selectable.NormalActive.Data.Color = DecredLightBlueColor
+	currentStyle.Selectable.TextNormal = WhiteColor
+	currentStyle.Selectable.TextNormalActive = WhiteColor
+	currentStyle.Selectable.TextHover = WhiteColor
+	currentStyle.Selectable.TextHoverActive = WhiteColor
+	currentStyle.Selectable.TextPressed = WhiteColor
+	currentStyle.Selectable.TextPressedActive = WhiteColor
 }
 
 func SetPageStyle(masterWindow nucular.MasterWindow) {
@@ -64,4 +74,14 @@ func SetPageStyle(masterWindow nucular.MasterWindow) {
 	currentStyle.Button.Normal.Data.Color = DecredLightBlueColor
 	currentStyle.Button.Hover.Data.Color = DecredDarkBlueColor
 	currentStyle.Button.Active.Data.Color = DecredDarkBlueColor
+
+	// style selectable labels (links)
+	currentStyle.Selectable.Padding = noPadding
+	currentStyle.Selectable.TextNormal = DecredDarkBlueColor
+	currentStyle.Selectable.TextHover = DecredLightBlueColor
+	currentStyle.Selectable.TextPressed = DecredLightBlueColor
+	currentStyle.Selectable.Normal.Data.Color = WhiteColor
+	currentStyle.Selectable.Hover.Data.Color = WhiteColor
+	currentStyle.Selectable.Pressed.Data.Color = WhiteColor
+	currentStyle.Selectable.TextBackground = WhiteColor
 }
