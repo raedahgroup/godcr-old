@@ -43,18 +43,20 @@ func templateFuncMap() template.FuncMap {
 		"spendableBalance": func(balance *walletcore.Balance) string {
 			return walletcore.NormalizeBalance(balance.Spendable.ToCoin())
 		},
-		"splitBalanceIntoParts": func(accounts []*walletcore.Account) []string {
+		"splitBalanceIntoParts": func(accounts []*walletcore.Account) (balanceParts []string) {
 			var totalBalance walletcore.Balance
 			for _, account := range accounts {
 				totalBalance.Total += account.Balance.Total
 			}
-			balanceStr := fmt.Sprintf("%010.8f", totalBalance.Total.ToCoin())
-			splitBalance := strings.Split(balanceStr, ".")
-			return []string{
-				splitBalance[0],
-				splitBalance[1][0:2],
-				splitBalance[1][2:],
+			splitBalance := strings.Split(totalBalance.Total.String(), ".")
+			balanceParts = append(balanceParts, splitBalance[0])
+			if len(splitBalance) > 1 {
+				balanceParts = append(balanceParts, splitBalance[1][0:2])
 			}
+			if len(splitBalance[1]) > 2 {
+				balanceParts = append(balanceParts, splitBalance[1][2:])
+			}
+			return
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
