@@ -13,30 +13,9 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
-// OpenOrCreateWallet is called whenever an action to be executed requires wallet to be loaded
-// notifies the program to exit if wallet doesn't exist or some other error occurs by returning a non-nil error
-//
-// this method may stall until previous godcr instances are closed (especially in cases of multiple dcrlibwallet instances)
-// hence the need for ctx, so user can cancel the operation if it's taking too long
-func OpenOrCreateWallet(ctx context.Context, walletMiddleware app.WalletMiddleware) (walletExists bool, err error) {
-	walletExists, err = walletMiddleware.OpenWalletIfExist(ctx)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
-		return
-	}
-
-	if !walletExists {
-		createdWalletInfo, err := AttemptToCreateWallet(ctx)
-		walletExists = createdWalletInfo != nil
-		return walletExists, err
-	}
-
-	return
-}
-
 // CreateWallet creates a new wallet if one doesn't already exist using the WalletMiddleware provided
 func CreateWallet(ctx context.Context) (*config.WalletInfo, error) {
-	walletMiddleware, err := choseNetworkAndCreateMiddleware()
+	walletMiddleware, err := choseNetworkAndCreateMiddleware(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -22,10 +22,9 @@ func CommandRequiresWallet(command flags.Commander) bool {
 	return false
 }
 
-// prepareWallet gets a wallet ready for use by opening the wallet using the provided walletMiddleware
-// and performing sync operations if requested
+// prepareWallet ensures a wallet exists that be used and performs sync operations if requested
 func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) (walletExists bool, err error) {
-	walletExists, err = walletloader.OpenOrCreateWallet(ctx, middleware)
+	walletExists, err = middleware.WalletExists()
 	if err != nil || !walletExists {
 		return
 	}

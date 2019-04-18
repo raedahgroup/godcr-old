@@ -13,7 +13,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
-func choseNetworkAndCreateMiddleware() (app.WalletMiddleware, error) {
+func choseNetworkAndCreateMiddleware(ctx context.Context) (app.WalletMiddleware, error) {
 	// prompt for new wallet network type and initialize
 	network, err := terminalprompt.RequestInput("Which net? (mainnet, testnet)", func(input string) error {
 		if strings.EqualFold(input, "mainnet") || strings.EqualFold(input, "testnet") {
@@ -41,7 +41,7 @@ func choseNetworkAndCreateMiddleware() (app.WalletMiddleware, error) {
 		Source:  "godcr",
 		DbDir:   filepath.Join(cfg.AppDataDir, network),
 	}
-	return dcrlibwallet.Connect(walletInfo)
+	return dcrlibwallet.Connect(ctx, walletInfo)
 }
 
 // displayWalletSeed prints the generated seed for a new wallet

@@ -11,7 +11,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"google.golang.org/grpc/codes"
 )
 
 var numberOfPeers int32
@@ -51,45 +50,6 @@ func (c *WalletRPCClient) CreateWallet(passphrase, seed string) error {
 	}
 
 	return err
-}
-
-func (c *WalletRPCClient) OpenWalletIfExist(ctx context.Context) (walletExists bool, err error) {
-	c.walletOpen = false
-	loadWalletDone := make(chan bool)
-
-	go func() {
-		defer func() {
-			loadWalletDone <- true
-		}()
-
-		walletExists, err = c.WalletExists()
-		if err != nil || !walletExists {
-			return
-		}
-
-		_, err = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
-
-		// ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
-		// or godcr opened the wallet without closing it
-		if isRpcErrorCode(err, codes.AlreadyExists) {
-			err = nil
-		}
-
-		if err == nil {
-			// wallet is open, best time to detect network type for dcrwallet rpc connection
-			c.activeNet, _ = getNetParam(c.walletService)
-		}
-	}()
-
-	select {
-	case <-loadWalletDone:
-		// if err is nil, then wallet was opened
-		c.walletOpen = err == nil
-		return
-
-	case <-ctx.Done():
-		return false, ctx.Err()
-	}
 }
 
 func (c *WalletRPCClient) IsWalletOpen() bool {

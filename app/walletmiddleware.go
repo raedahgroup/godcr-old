@@ -1,8 +1,6 @@
 package app
 
 import (
-	"context"
-
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -15,13 +13,6 @@ type WalletMiddleware interface {
 	WalletExists() (bool, error)
 
 	CreateWallet(passphrase, seed string) error
-
-	// OpenWalletIfExist checks if the wallet the user is trying to access exists and opens the wallet
-	// This method may stall if the wallet database is in use by some other process,
-	// hence the need for ctx, so user can cancel the operation if it's taking too long
-	// todo: some wallets may not use default public passphrase,
-	// todo: in such cases request public passphrase from user to use
-	OpenWalletIfExist(ctx context.Context) (walletExists bool, err error)
 
 	IsWalletOpen() bool
 

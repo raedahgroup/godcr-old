@@ -96,7 +96,7 @@ func main() {
 	// open connection to wallet and add wallet close function to shutdownOps
 	walletMiddleware, err := connectToWallet(ctx, appConfig)
 	if err != nil {
-		fmt.Println("Error connecting to wallet:", err.Error())
+		fmt.Printf("Failed to connect to wallet: %s. Exiting.\n", err.Error())
 		os.Exit(1)
 	}
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
@@ -172,21 +172,8 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 // default is connecting directly to a wallet database file via dcrlibwallet
 // alternative is connecting to wallet database via dcrwallet rpc (if rpc server address is provided)
 func connectToWallet(ctx context.Context, cfg *config.Config) (walletMiddleware app.WalletMiddleware, err error) {
-	getWalletReadyForUse := func() error {
-		// open wallet before launching interfaces
-		_, err = walletMiddleware.OpenWalletIfExist(ctx)
-		if err != nil {
-			return fmt.Errorf("error opening wallet: %s", err.Error())
-		}
-		return nil
-	}
-
 	if cfg.WalletRPCServer != "" {
-		walletMiddleware, err = dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
-		if err == nil {
-			err = getWalletReadyForUse()
-		}
-		return
+		return dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	}
 
 	walletInfo := config.DefaultWallet(cfg.Wallets)
@@ -201,11 +188,7 @@ func connectToWallet(ctx context.Context, cfg *config.Config) (walletMiddleware 
 		}
 	}
 
-	walletMiddleware, err = dcrlibwallet.Connect(walletInfo)
-	if err == nil {
-		err = getWalletReadyForUse()
-	}
-	return
+	return dcrlibwallet.Connect(ctx, walletInfo)
 }
 
 func detectOrCreateWallet(ctx context.Context) (*config.WalletInfo, error) {

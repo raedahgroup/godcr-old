@@ -2,10 +2,8 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"html/template"
 	"log"
-	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
@@ -26,9 +24,8 @@ type Routes struct {
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
 // returns syncBlockChain function
 func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func(), error) {
-	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
+	walletExists, err := walletMiddleware.WalletExists()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to open %s wallet: %s\n", walletMiddleware.NetType(), err.Error())
 		return nil, err
 	}
 	routes := &Routes{

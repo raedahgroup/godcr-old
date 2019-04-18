@@ -5,9 +5,13 @@ import (
 	"errors"
 	"net"
 
+	"fmt"
+	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
+	"google.golang.org/grpc/codes"
 )
 
 // WalletRPCClient implements `WalletMiddleware` using `mobilewallet.LibWallet` as medium for connecting to a decred wallet
@@ -24,23 +28,26 @@ type WalletRPCClient struct {
 // create a WalletServiceClient using the established connection. If the specified address did not connect,
 // the RPC address is retreived from dcrwallet config file and if this fail, the default address is used.
 // returns an instance of `dcrwalletrpc.Client`
-func Connect(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
-	walletRPCClient, originalConnectionError := createConnection(ctx, rpcAddress, rpcCert, noTLS)
-	if originalConnectionError == nil {
-		return walletRPCClient, nil
+func Connect(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (walletRPCClient *WalletRPCClient, err error) {
+	defer func() {
+		if walletRPCClient != nil {
+			// wallet library is setup, prepare it for use by opening
+			err = openWalletIfExist(ctx, walletRPCClient)
+		}
+	}()
+
+	walletRPCClient, err = createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	if err == nil {
+		return
 	}
 
 	walletRPCClient = parseDcrWalletConfigAndConnect(ctx, rpcCert, noTLS)
 	if walletRPCClient != nil {
-		return walletRPCClient, nil
+		return
 	}
 
 	walletRPCClient = connectToDefaultAddresses(ctx, rpcCert, noTLS)
-	if walletRPCClient != nil {
-		return walletRPCClient, nil
-	}
-
-	return nil, originalConnectionError
+	return
 }
 
 func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (*WalletRPCClient, error) {
@@ -86,6 +93,61 @@ func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) 
 			config.WalletRPCServer = mainnetAddress
 		})
 		return
+	}
+	return
+}
+
+func openWalletIfExist(ctx context.Context, c *WalletRPCClient) error {
+	c.walletOpen = false
+	loadWalletDone := make(chan error)
+
+	go func() {
+		var openWalletError error
+		defer func() {
+			loadWalletDone <- openWalletError
+		}()
+
+		walletExists, openWalletError := c.WalletExists()
+		if openWalletError != nil || !walletExists {
+			return
+		}
+
+		_, openWalletError = c.walletLoader.OpenWallet(context.Background(), &walletrpc.OpenWalletRequest{})
+
+		// ignore wallet already open errors, it could be that dcrwallet loaded the wallet when it was launched by the user
+		// or godcr opened the wallet without closing it
+		if isRpcErrorCode(openWalletError, codes.AlreadyExists) {
+			openWalletError = nil
+		}
+	}()
+
+	select {
+	case err := <-loadWalletDone:
+		// if err is nil, then wallet was opened
+		if err == nil {
+			c.walletOpen = true
+			// wallet is open, best time to detect network type for dcrwallet rpc connection
+			c.activeNet, _ = getNetParam(c.walletService)
+		} else {
+			c.walletOpen = false
+		}
+		return err
+
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func getNetParam(walletService walletrpc.WalletServiceClient) (param *netparams.Params, err error) {
+	req := &walletrpc.NetworkRequest{}
+	res, err := walletService.Network(context.Background(), req)
+	if err != nil {
+		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
+	}
+
+	param = utils.NetParams(wire.CurrencyNet(res.ActiveNetwork).String())
+	if param == nil {
+		err = fmt.Errorf("unknown network type")
 	}
 	return
 }

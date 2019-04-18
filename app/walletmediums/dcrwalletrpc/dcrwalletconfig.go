@@ -3,9 +3,9 @@ package dcrwalletrpc
 import (
 	"path/filepath"
 
+	"context"
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app/config"
-	"context"
 )
 
 type ExplicitString struct {
