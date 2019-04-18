@@ -8,17 +8,19 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-func (lib *DcrWalletLib) WalletExists() (bool, error) {
-	return lib.walletLib.WalletExists()
-}
+var numberOfPeers int32
 
 func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
 	return utils.GenerateSeed()
+}
+
+func (lib *DcrWalletLib) WalletExists() (bool, error) {
+	return lib.walletLib.WalletExists()
 }
 
 func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
@@ -61,47 +63,28 @@ func (lib *DcrWalletLib) OpenWalletIfExist(ctx context.Context) (walletExists bo
 	}
 }
 
-func (lib *DcrWalletLib) CloseWallet() {
-	lib.walletLib.Shutdown(false)
-}
-
-func (lib *DcrWalletLib) DeleteWallet() error {
-	lib.CloseWallet()
-	return os.RemoveAll(lib.walletDbDir)
-}
-
 func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *DcrWalletLib) SyncBlockChain(listener *app.BlockChainSyncListener, showLog bool) error {
-	if showLog {
-		dcrlibwallet.SetLogLevel("info")
-
-		// create wrapper around sync ended listener to deactivate logging after syncing ends
-		originalSyncEndedListener := listener.SyncEnded
-		syncEndedListener := func(err error) {
-			dcrlibwallet.SetLogLevel("off")
-			originalSyncEndedListener(err)
+func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+	// create wrapper around syncProgressUpdated to store updated peer count before calling main syncInfoUpdated fn
+	syncInfoUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, op defaultsynclistener.SyncOp) {
+		if op == defaultsynclistener.PeersCountUpdate {
+			numberOfPeers = progressReport.Read().ConnectedPeers
 		}
-		listener.SyncEnded = syncEndedListener
+		syncProgressUpdated(progressReport)
 	}
 
-	syncResponse := SpvSyncResponse{
-		walletLib: lib.walletLib,
-		listener:  listener,
-		activeNet: lib.activeNet,
-	}
-	lib.walletLib.AddSyncProgressListener(syncResponse)
+	// syncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
+	syncListener := defaultsynclistener.DefaultSyncProgressListener(lib.NetType(), showLog,
+		lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp, syncInfoUpdatedWrapper)
+	lib.walletLib.AddSyncProgressListener(syncListener)
 
 	err := lib.walletLib.SpvSync("")
 	if err != nil {
-		dcrlibwallet.SetLogLevel("off")
-		return err
+		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
 	}
-
-	listener.SyncStarted()
-	return nil
 }
 
 func (lib *DcrWalletLib) RescanBlockChain() error {
@@ -130,7 +113,7 @@ func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo,
 
 	info.LatestBlock = bestBlock
 	info.NetworkType = lib.NetType()
-	info.PeersConnected = lib.GetConnectedPeersCount()
+	info.PeersConnected = numberOfPeers
 
 	return
 }
@@ -139,6 +122,11 @@ func (lib *DcrWalletLib) BestBlock() (uint32, error) {
 	return uint32(lib.walletLib.GetBestBlock()), nil
 }
 
-func (lib *DcrWalletLib) GetConnectedPeersCount() int32 {
-	return numberOfPeers
+func (lib *DcrWalletLib) CloseWallet() {
+	lib.walletLib.Shutdown(false)
+}
+
+func (lib *DcrWalletLib) DeleteWallet() error {
+	lib.CloseWallet()
+	return os.RemoveAll(lib.walletDbDir)
 }

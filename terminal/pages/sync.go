@@ -2,8 +2,10 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -11,39 +13,45 @@ import (
 )
 
 func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
-	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	syncPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// page title and hint
-	body.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 2, 0, false)
-	hintText := primitives.WordWrappedTextView("(Press Enter or Esc to cancel sync and exit the app)")
-	hintText.SetTextColor(helpers.HintTextColor)
-	body.AddItem(hintText, 3, 0, false)
+	syncPage.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 1, 0, false)
+	hintText := primitives.WordWrappedTextView("(Press ESC twice to cancel sync and exit the app)").SetTextColor(helpers.HintTextColor)
+	syncPage.AddItem(hintText, 3, 0, false)
 
-	// text view to show sync progress updates
-	syncStatusTextView := primitives.NewCenterAlignedTextView("")
-	body.AddItem(syncStatusTextView, 3, 0, false)
+	errorTextView := primitives.WordWrappedTextView("")
+	errorTextView.SetTextColor(helpers.DecredOrangeColor)
 
-	cancelButton := tview.NewButton("Cancel and Exit")
-	body.AddItem(cancelButton, 1, 0, true)
-
-	cancelAndExit := func() {
-		tviewApp.Stop()
+	// function to display sync errors
+	handleError := func(errorMessage string) {
+		tviewApp.QueueUpdateDraw(func() {
+			syncPage.RemoveItem(errorTextView)
+			errorTextView.SetText(errorMessage)
+			syncPage.AddItem(errorTextView, 3, 0, false)
+		})
 	}
-	cancelButton.SetSelectedFunc(cancelAndExit)
-	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEsc {
-			cancelAndExit()
-			return nil
-		}
-		return event
-	})
-
-	tviewApp.SetRoot(body, true)
 
 	// function to update the sync page with status report from the sync operation
-	updateStatus := func(status string) {
+	var previousUpdateViews []*primitives.TextView
+	updateStatus := func(report []string) {
 		tviewApp.QueueUpdateDraw(func() {
-			syncStatusTextView.SetText(status)
+			// remove previous update views and error view
+			for _, view := range previousUpdateViews {
+				syncPage.RemoveItem(view)
+			}
+			syncPage.RemoveItem(errorTextView)
+			previousUpdateViews = make([]*primitives.TextView, len(report))
+
+			for i, info := range report {
+				previousUpdateViews[i] = primitives.NewCenterAlignedTextView(info)
+				syncPage.AddItem(previousUpdateViews[i], 1, 0, false)
+			}
+
+			// re-display error view?
+			if errorTextView.GetText() != "" {
+				syncPage.AddItem(errorTextView, 3, 0, false)
+			}
 		})
 	}
 
@@ -54,36 +62,86 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		})
 	}
 
-	startSync(walletMiddleware, updateStatus, afterSyncing)
+	startSync(walletMiddleware, updateStatus, handleError, afterSyncing)
+
+	var cancelTriggered bool
+	syncPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEsc {
+			if cancelTriggered {
+				tviewApp.Stop()
+			} else {
+				cancelTriggered = true
+				// remove cancel trigger after 1 second if user does not press escape again within that time
+				go func() {
+					<-time.After(1 * time.Second)
+					cancelTriggered = false
+				}()
+			}
+			return nil
+		}
+		return event
+	})
+
+	syncPage.SetBorderPadding(3, 3, 3, 3)
+	syncPage.SetBackgroundColor(tcell.ColorBlack)
+	tviewApp.SetRoot(syncPage, true)
 }
 
-func startSync(walletMiddleware app.WalletMiddleware, updateStatus func(string), afterSyncing func()) {
-	err := walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			updateStatus("Blockchain sync started...")
-		},
-		SyncEnded: func(err error) {
-			if err != nil {
-				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()))
-			} else {
-				updateStatus("Blockchain sync completed successfully")
-				afterSyncing()
-			}
-		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress))
-		},
-		OnDiscoveredAddress: func(_ string) {
-			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)")
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress))
-		},
-		OnPeerConnected:    func(_ int32) {},
-		OnPeerDisconnected: func(_ int32) {},
-	}, false)
+func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string), handleError func(string), afterSyncing func()) {
+	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		progressReport := report.Read()
 
-	if err != nil {
-		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()))
-	}
+		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
+			afterSyncing()
+			return
+		}
+
+		var stringReport []string
+		if progressReport.TotalTimeRemaining == "" {
+			stringReport = []string{
+				fmt.Sprintf("%d%% completed.", progressReport.TotalSyncProgress),
+			}
+		} else {
+			stringReport = []string{
+				fmt.Sprintf("%d%% completed, %s remaining.", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining),
+			}
+		}
+
+		switch progressReport.CurrentStep {
+		case defaultsynclistener.FetchingBlockHeaders:
+			stringReport = append(stringReport, fmt.Sprintf("Fetched %d of %d block headers.",
+				progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
+			stringReport = append(stringReport, fmt.Sprintf("%d%% through step 1 of 3.", progressReport.HeadersFetchProgress))
+
+			if progressReport.DaysBehind != "" {
+				stringReport = append(stringReport, fmt.Sprintf("Your wallet is %s behind.", progressReport.DaysBehind))
+			}
+
+		case defaultsynclistener.DiscoveringUsedAddresses:
+			stringReport = append(stringReport, "Discovering used addresses.")
+			if progressReport.AddressDiscoveryProgress > 100 {
+				stringReport = append(stringReport, fmt.Sprintf("%d%% (over) through step 2 of 3.", progressReport.AddressDiscoveryProgress))
+			} else {
+				stringReport = append(stringReport, fmt.Sprintf("%d%% through step 2 of 3.", progressReport.AddressDiscoveryProgress))
+			}
+
+		case defaultsynclistener.ScanningBlockHeaders:
+			stringReport = append(stringReport, fmt.Sprintf("Scanning %d of %d block headers.",
+				progressReport.CurrentRescanHeight, progressReport.TotalHeadersToFetch))
+			stringReport = append(stringReport, fmt.Sprintf("%d%% through step 3 of 3.", progressReport.HeadersFetchProgress))
+		}
+
+		// show peer count last
+		if progressReport.ConnectedPeers == 1 {
+			stringReport = append(stringReport, fmt.Sprintf("Syncing with %d peer on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
+		} else {
+			stringReport = append(stringReport, fmt.Sprintf("Syncing with %d peers on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
+		}
+
+		updateStatus(stringReport)
+
+		if progressReport.Status == defaultsynclistener.SyncStatusError {
+			handleError("Sync error: " + progressReport.Error)
+		}
+	})
 }

@@ -25,11 +25,13 @@
             <div class="container">
                 <div class="text-center">
                     <h3>GoDCR <small data-target="connection-info.networkType">{{ .NetworkType }}</small></h3>
-                    <p>
+                    <p class="mb-0">
                         Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
                         | Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
                         | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
                     </p>
+                    <!-- block rescan progress display, ideally entire blockchain sync progress should persist on all pages like this -->
+                    <p id="blocks-rescan-progress" class="mb-0 d-none" data-target="connection-info.blockScanProgress"></p>
                 </div>
             </div>
         </div>

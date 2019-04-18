@@ -6,11 +6,27 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
+
+func getNetParam(walletService walletrpc.WalletServiceClient) (param *netparams.Params, err error) {
+	req := &walletrpc.NetworkRequest{}
+	res, err := walletService.Network(context.Background(), req)
+	if err != nil {
+		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
+	}
+
+	param = utils.NetParams(wire.CurrencyNet(res.ActiveNetwork).String())
+	if param == nil {
+		err = fmt.Errorf("unknown network type")
+	}
+	return
+}
 
 func (c *WalletRPCClient) unspentOutputStream(account uint32, targetAmount int64, requiredConfirmations int32) (walletrpc.WalletService_UnspentOutputsClient, error) {
 	req := &walletrpc.UnspentOutputsRequest{

@@ -8,22 +8,23 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
-	walletMiddleware app.WalletMiddleware
-	walletExists     bool
-	templates        map[string]*template.Template
-	blockchain       *Blockchain
-	ctx              context.Context
-	settings         *config.Settings
+	walletMiddleware   app.WalletMiddleware
+	walletExists       bool
+	templates          map[string]*template.Template
+	syncProgressReport *defaultsynclistener.ProgressReport
+	ctx                context.Context
+	settings           *config.Settings
 }
 
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
-// returns syncBlockchain function
+// returns syncBlockChain function
 func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func(), error) {
 	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
 	if err != nil {
@@ -31,18 +32,18 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		return nil, err
 	}
 	routes := &Routes{
-		walletMiddleware: walletMiddleware,
-		templates:        map[string]*template.Template{},
-		blockchain:       &Blockchain{},
-		ctx:              ctx,
-		walletExists:     walletExists,
-		settings:         settings,
+		walletMiddleware:   walletMiddleware,
+		templates:          map[string]*template.Template{},
+		syncProgressReport: defaultsynclistener.InitProgressReport(),
+		ctx:                ctx,
+		walletExists:       walletExists,
+		settings:           settings,
 	}
 
 	routes.loadTemplates()
 	routes.loadRoutes(router)
 
-	return routes.syncBlockchain, nil
+	return routes.syncBlockChain, nil
 }
 
 func (routes *Routes) loadTemplates() {
@@ -69,7 +70,7 @@ func (routes *Routes) loadRoutes(router chi.Router) {
 	router.Delete("/delete-wallet", routes.deleteWallet)
 
 	router.Get("/ws", routes.wsHandler)
-	go waitToSendMessagesToClients()
+	go routes.waitToSendMessagesToClients()
 
 	// use router group for routes that require wallet to be loaded before being accessed
 	router.Group(routes.registerRoutesRequiringWallet)

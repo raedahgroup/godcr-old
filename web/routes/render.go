@@ -29,6 +29,10 @@ func (routes *Routes) render(tplName string, data interface{}, res http.Response
 	log.Fatalf("template %s is not registered", tplName)
 }
 
+func (routes *Routes) renderSyncPage(syncInfo map[string]interface{}, res http.ResponseWriter) {
+	routes.render("sync.html", syncInfo, res)
+}
+
 func (routes *Routes) renderError(errorMessage string, res http.ResponseWriter) {
 	data := map[string]interface{}{
 		"error": errorMessage,

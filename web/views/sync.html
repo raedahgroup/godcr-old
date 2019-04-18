@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "html-head" }}
+<style>
+    p {
+        margin-bottom: 0 !important;
+    }
+</style>
+<body>
+<div class="body" data-controller="sync">
+    <div class="content">
+        <div class="container text-center" style="max-width: 500px;">
+            <h3>Synchronizing</h3>
+            <div class="progress my-3" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     data-target="sync.progressbar"
+                     style="width: {{ .totalSyncProgress }}%"
+                     role="progressbar" aria-valuenow="{{ .totalSyncProgress }}" aria-valuemin="0"
+                     aria-valuemax="100"></div>
+            </div>
+
+            <p data-target="sync.totalSyncProgress">
+            {{ .totalSyncProgress }}% completed{{ if ne .totalTimeRemaining "" }}, {{ .totalTimeRemaining }} remaining{{ end }}.
+            </p>
+
+            <button class="btn btn-sm btn-link" data-target="sync.showDetailsButton" data-action="click->sync#showDetails">
+                Tap to view information
+            </button>
+
+            <div data-target="sync.syncDetails" class="d-none">
+                <div data-target="sync.step1" {{ if ne .currentStep "0" }}class="d-none"{{end}}>
+                    <p>
+                        Fetched
+                        <span data-target="sync.fetchedHeadersCount">{{ .fetchedHeadersCount }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .totalHeadersToFetch }}</span> block headers.
+                    </p>
+                    <p><span data-target="sync.headersFetchProgress">{{ .headersFetchProgress }}</span>% through step 1
+                        of 3.</p>
+
+                    <p data-target="sync.daysBehind" {{ if eq .daysBehind "" }}class="d-none"{{end}}>
+                        Your wallet is {{ .daysBehind }} behind.
+                    </p>
+                </div>
+
+                <div data-target="sync.step2" {{ if ne .currentStep "1" }}class="d-none"{{end}}>
+                    <p>Discovering used addresses.</p>
+                    <p><span data-target="sync.addressDiscoveryProgress">{{ .addressDiscoveryProgress }}</span> through
+                        step 2 of 3.</p>
+                </div>
+
+                <div data-target="sync.step3" {{ if ne .currentStep "2" }}class="d-none"{{end}}>
+                    <p>Scanning
+                        <span data-target="sync.currentRescanHeight">{{ .currentRescanHeight }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .totalHeadersToFetch }}</span> block headers.
+                    </p>
+                    <p><span data-target="sync.rescanProgress">{{ .rescanProgress }}</span>% through step 3 of 3.</p>
+                </div>
+
+                <p>
+                    Syncing with
+                    <span data-target="sync.connectedPeers">{{ .connectedPeers }}</span>
+                    on <span data-target="sync.networkType">{{ .networkType }}</span>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

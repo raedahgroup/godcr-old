@@ -11,8 +11,10 @@
 {{ else }}
     {{ template "header" .connectionInfo }}
     <div class="content">
-        <div class="container">
+        <div class="container text-center">
+            <h3 class="text-danger mb-3">Oops</h3>
             <div class="alert alert-danger">{{ .error }}</div>
+            <p>Refresh or <a href="/">Go Home</a></p>
         </div>
     </div>
 {{ end }}

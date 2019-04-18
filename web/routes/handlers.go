@@ -39,7 +39,7 @@ func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
 
 	// wallet created successfully, wallet is now open, perform first sync
 	routes.walletExists = true
-	routes.syncBlockchain()
+	routes.syncBlockChain()
 
 	http.Redirect(res, req, "/", 303)
 }

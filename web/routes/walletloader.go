@@ -1,19 +1,13 @@
 package routes
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 
-	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 )
-
-type Blockchain struct {
-	sync.RWMutex
-	_status walletcore.SyncStatus
-	_report string
-}
 
 func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -41,84 +35,75 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			return
 		}
 
-		// if wallet exists, then it must be open, check if blockchain is synced
-		currentSyncStatus := routes.blockchain.status()
-		switch currentSyncStatus {
-		case walletcore.SyncStatusSuccess:
+		if !routes.walletMiddleware.IsWalletOpen() {
+			errMsg = "Wallet is not open. Restart the server"
+			return
+		}
+
+		// wallet is open, check if blockchain is synced
+		syncProgressReport := routes.syncProgressReport.Read()
+
+		if syncProgressReport.Done {
+			// ignore any other reported sync progress
 			next.ServeHTTP(res, req)
-		case walletcore.SyncStatusNotStarted:
-			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case walletcore.SyncStatusInProgress:
-			errMsg = fmt.Sprintf("%s. Refresh after a while to access this page", routes.blockchain.report())
-		case walletcore.SyncStatusError:
-			errMsg = fmt.Sprintf("Cannot display page. %s", routes.blockchain.report())
+			return
+		}
+
+		switch syncProgressReport.Status {
+		case defaultsynclistener.SyncStatusSuccess:
+			next.ServeHTTP(res, req)
+		case defaultsynclistener.SyncStatusInProgress:
+			syncInfoMap, err := routes.prepareSyncInfoMap()
+			if err != nil {
+				errMsg = fmt.Sprintf("Cannot load sync progress page: %s", err.Error())
+			} else {
+				routes.renderSyncPage(syncInfoMap, res)
+			}
+		case defaultsynclistener.SyncStatusError:
+			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncProgressReport.Error)
 		default:
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
 		}
 	})
 }
 
-func (routes *Routes) syncBlockchain() {
-	updateStatus := func(report string, status walletcore.SyncStatus) {
-		routes.blockchain.updateStatus(report, status)
-		routes.sendWsSyncStatus()
-	}
+func (routes *Routes) syncBlockChain() {
+	routes.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		routes.syncProgressReport = report
+		routes.sendWsSyncProgress()
+		routes.sendWsConnectionInfoUpdate()
+	})
+}
 
-	if !routes.walletExists {
-		updateStatus("Wallet is not open. Cannot sync", walletcore.SyncStatusError)
-		return
-	}
+func (routes *Routes) prepareSyncInfoMap() (map[string]interface{}, error) {
+	syncInfo := routes.syncProgressReport.Read()
+	var syncInfoMap map[string]interface{}
 
-	err := routes.walletMiddleware.SyncBlockChain(&app.BlockChainSyncListener{
-		SyncStarted: func() {
-			updateStatus("Blockchain sync started...", walletcore.SyncStatusInProgress)
-		},
-		OnPeerConnected: func(_ int32) {
-			routes.sendWsConnectionInfoUpdate()
-		},
-		OnPeerDisconnected: func(_ int32) {
-			routes.sendWsConnectionInfoUpdate()
-		},
-		SyncEnded: func(err error) {
-			routes.sendWsConnectionInfoUpdate()
-			if err != nil {
-				updateStatus(fmt.Sprintf("Blockchain sync completed with error: %s", err.Error()), walletcore.SyncStatusError)
-				return
-			}
-			// TODO: register a TransactionNotification listener with either dcrlibwallet or dcrwallet to update the best block when there's a new block
-			updateStatus("Blockchain sync completed successfully", walletcore.SyncStatusSuccess)
-		},
-		OnHeadersFetched: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Fetching headers (1/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
-		},
-		OnDiscoveredAddress: func(_ string) {
-			updateStatus("Blockchain sync in progress. Discovering addresses (2/3)", walletcore.SyncStatusInProgress)
-		},
-		OnRescanningBlocks: func(percentageProgress int64) {
-			updateStatus(fmt.Sprintf("Blockchain sync in progress. Rescanning blocks (3/3): %d%%", percentageProgress), walletcore.SyncStatusInProgress)
-		},
-	}, false)
+	syncInfoBytes, _ := json.Marshal(syncInfo)
+	jsonDecoder := json.NewDecoder(bytes.NewReader(syncInfoBytes))
+	jsonDecoder.UseNumber()
 
+	err := jsonDecoder.Decode(&syncInfoMap)
 	if err != nil {
-		updateStatus(fmt.Sprintf("Blockchain sync failed to start. %s", err.Error()), walletcore.SyncStatusError)
+		return nil, err
 	}
-}
 
-func (b *Blockchain) updateStatus(report string, status walletcore.SyncStatus) {
-	b.Lock()
-	b._status = status
-	b._report = report
-	b.Unlock()
-}
+	syncInfoMap["networkType"] = routes.walletMiddleware.NetType()
 
-func (b *Blockchain) status() walletcore.SyncStatus {
-	b.RLock()
-	defer b.RUnlock()
-	return b._status
-}
+	if syncInfo.CurrentStep == defaultsynclistener.DiscoveringUsedAddresses {
+		// check account discovery progress percentage
+		if syncInfo.AddressDiscoveryProgress > 100 {
+			syncInfoMap["addressDiscoveryProgress"] = fmt.Sprintf("%d%% (over)", syncInfo.AddressDiscoveryProgress)
+		} else {
+			syncInfoMap["addressDiscoveryProgress"] = fmt.Sprintf("%d%%", syncInfo.AddressDiscoveryProgress)
+		}
+	}
 
-func (b *Blockchain) report() string {
-	b.RLock()
-	defer b.RUnlock()
-	return b._report
+	if syncInfo.ConnectedPeers == 1 {
+		syncInfoMap["connectedPeers"] = fmt.Sprintf("%d peer", syncInfo.ConnectedPeers)
+	} else {
+		syncInfoMap["connectedPeers"] = fmt.Sprintf("%d peers", syncInfo.ConnectedPeers)
+	}
+
+	return syncInfoMap, nil
 }
