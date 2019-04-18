@@ -11,13 +11,14 @@
                     <div class="row">
                         <div class="col-md-3 col-sm-6">
                             <p style="font-size: 15px">
-                                <b>{{ totalBalance .accounts }}</b><br/>
+                                <b>{{ totalBalanceWholePart .accounts }}.{{ totalBalance1st2Decimal .accounts }}<span
+                                            style="font-size:13px;">{{ totalBalanceLast6Decimal .accounts }}</span> DCR</b><br/>
                                 Current Total Balance
                             </p>
                         </div>
                     </div>
 
-                    <h4 class="mt-3">Recent Activities</h4>
+                    <h4 class="mt-3">Recent Activity</h4>
                     {{ if .loadTransactionErr }}
                     <div class="alert-danger"><p>{{.loadTransactionErr}}</p></div>
                     {{ else if eq (len .transactions) 0 }}

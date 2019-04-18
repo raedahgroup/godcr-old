@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -42,12 +43,31 @@ func templateFuncMap() template.FuncMap {
 		"spendableBalance": func(balance *walletcore.Balance) string {
 			return walletcore.NormalizeBalance(balance.Spendable.ToCoin())
 		},
-		"totalBalance": func(accounts []*walletcore.Account) string {
+		"totalBalanceWholePart": func(accounts []*walletcore.Account) string {
 			var totalBalance walletcore.Balance
 			for _, account := range accounts {
 				totalBalance.Total += account.Balance.Total
 			}
-			return walletcore.NormalizeBalance(totalBalance.Total.ToCoin())
+			balanceStr := fmt.Sprintf("%010.8f", totalBalance.Total.ToCoin())
+			return strings.Split(balanceStr, ".")[0]
+		},
+		"totalBalance1st2Decimal": func(accounts []*walletcore.Account) string {
+			var totalBalance walletcore.Balance
+			for _, account := range accounts {
+				totalBalance.Total += account.Balance.Total
+			}
+			balanceStr := fmt.Sprintf("%010.8f", totalBalance.Total.ToCoin())
+			decimalPart := strings.Split(balanceStr, ".")[1]
+			return decimalPart[0:2]
+		},
+		"totalBalanceLast6Decimal": func(accounts []*walletcore.Account) string {
+			var totalBalance walletcore.Balance
+			for _, account := range accounts {
+				totalBalance.Total += account.Balance.Total
+			}
+			balanceStr := fmt.Sprintf("%010.8f", totalBalance.Total.ToCoin())
+			decimalPart := strings.Split(balanceStr, ".")[1]
+			return decimalPart[2:]
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
