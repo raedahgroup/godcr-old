@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/dcrlibwallet"
 )
 
 var numberOfPeers int32

@@ -8,10 +8,10 @@ import (
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
-	"github.com/raedahgroup/dcrlibwallet"
 )
 
 var numberOfPeers int32
