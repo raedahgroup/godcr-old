@@ -67,22 +67,22 @@ func getTextInput(prompt string) (string, error) {
 
 // getPasswordInput - Prompt for password.
 func getPasswordInput(prompt string) (string, error) {
-	psw, err := getPasswd(prompt, true, os.Stdin, os.Stdout)
+	psw, err := getPassword(prompt, true, os.Stdin, os.Stdout)
 	if err != nil {
 		return "", err
 	}
 	return string(psw), nil
 }
 
-// getPasswd returns the input read from terminal.
+// getPassword returns the input read from terminal.
 // If prompt is not empty, it will be output as a prompt to the user
 // If masked is true, typing will be matched by asterisks on the screen.
 // Otherwise, typing will echo nothing.
-func getPasswd(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, error) {
+func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, error) {
 	var err error
-	var pass, bs, mask []byte
+	var pass, backspace, mask []byte
 	if masked {
-		bs = []byte("\b \b")
+		backspace = []byte("\b \b")
 		mask = []byte("*")
 	}
 
@@ -112,7 +112,7 @@ func getPasswd(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, err
 		} else if v == 127 || v == 8 {
 			if l := len(pass); l > 0 {
 				pass = pass[:l-1]
-				fmt.Fprint(w, string(bs))
+				fmt.Fprint(w, string(backspace))
 			}
 		} else if v == 13 || v == 10 {
 			break
