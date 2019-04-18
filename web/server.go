@@ -117,15 +117,17 @@ func askToLaunchBrowser(address string) {
 		return
 	}
 
-	if launchBrowserConfirmed {
-		fmt.Print("Launching browser... ") // use print so next text can be added to same line
+	if !launchBrowserConfirmed {
+		return
+	}
 
-		if launchError := launchBrowser("http://" + address); launchError != nil {
-			weblog.Log.Error("Failed to launch browser", launchError.Error())
-			fmt.Println("Browser failed to launch.")
-		} else {
-			fmt.Println("Done.")
-		}
+	fmt.Print("Launching browser... ") // use print so next text can be added to same line
+
+	if launchError := launchBrowser("http://" + address); launchError != nil {
+		weblog.Log.Error("Failed to launch browser", launchError.Error())
+		fmt.Println("Browser failed to launch.")
+	} else {
+		fmt.Println("Done.")
 	}
 }
 
