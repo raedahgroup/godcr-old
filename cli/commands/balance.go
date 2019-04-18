@@ -20,7 +20,7 @@ func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.
 	}
 
 	var columns []string
-	var Account, Total, Spendable, Locked, Voting, Unconfirmed bool
+	var Account, Total, Spendable, Locked, Unconfirmed bool
 
 	checkAndAddColumn := func() {
 		if Account {
@@ -33,10 +33,7 @@ func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.
 			columns = append(columns, "Spendable")
 		}
 		if Locked {
-			columns = append(columns, "Locked By Tickets")
-		}
-		if Voting {
-			columns = append(columns, "Voting Authority")
+			columns = append(columns, "Locked")
 		}
 		if Unconfirmed {
 			columns = append(columns, "Unconfirmed")
@@ -58,10 +55,6 @@ func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.
 		if accounts[0].Balance.LockedByTickets != 0 {
 			Locked = true
 			rows[0] = append(rows[0], accounts[0].Balance.LockedByTickets)
-		}
-		if accounts[0].Balance.VotingAuthority != 0 {
-			Voting = true
-			rows[0] = append(rows[0], accounts[0].Balance.VotingAuthority)
 		}
 		if accounts[0].Balance.Unconfirmed != 0 {
 			Unconfirmed = true
@@ -91,10 +84,6 @@ func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.
 			if account.Balance.LockedByTickets != 0 {
 				Locked = true
 				rows[i] = append(rows[i], account.Balance.LockedByTickets)
-			}
-			if account.Balance.VotingAuthority != 0 {
-				Voting = true
-				rows[i] = append(rows[i], account.Balance.VotingAuthority)
 			}
 			if account.Balance.Unconfirmed != 0 {
 				Unconfirmed = true
