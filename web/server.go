@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"net"
 	"net/http"
 	"os"
@@ -103,6 +104,17 @@ func startServer(ctx context.Context, address string, router chi.Router) error {
 		return ctx.Err()
 	case <-t.C:
 		fmt.Printf("Web server running on %s\n", address)
+
+		launchBrowserConfirmed, err := terminalprompt.RequestYesNoConfirmation("Do you want to launch web browser?", "")
+		if err != nil {
+			weblog.Log.Error("Failed to read input", err.Error())
+			fmt.Fprintf(os.Stderr, "Error reading your response: %s\n", err.Error())
+			return nil
+		}
+		if !launchBrowserConfirmed {
+			fmt.Println("Ready")
+			return nil
+		}
 		fmt.Print("Launching browser... ") // use print so next text can be added to same line
 		if launchError := launchBrowser("http://" + address); launchError != nil {
 			weblog.Log.Error("Failed to launch browser", launchError.Error())
