@@ -36,6 +36,11 @@ func PrintTabularResult(w *tabwriter.Writer, columnsHeaders []string, rows [][]i
 			rowStr += "%v \t "
 		}
 
+		// append empty values in columns without data to maintain tabbed formatting
+		for i := len(row); i < columnLength; i++ {
+			rowStr += " \t "
+		}
+
 		rowStr = strings.TrimSuffix(rowStr, "\t ")
 		fmt.Fprintln(w, fmt.Sprintf(rowStr, row...))
 	}

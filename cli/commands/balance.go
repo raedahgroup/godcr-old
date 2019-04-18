@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -11,7 +10,6 @@ import (
 // Balance displays the user's account balance.
 type BalanceCommand struct {
 	commanderStub
-	Detailed bool `short:"d" long:"detailed" description:"Display detailed account balance report"`
 }
 
 // Run runs the `balance` command, displaying the user's account balance.
@@ -21,47 +19,71 @@ func (balanceCommand BalanceCommand) Run(ctx context.Context, wallet walletcore.
 		return err
 	}
 
-	if balanceCommand.Detailed {
-		showDetailedBalance(accounts)
+	var showAccount, showTotal, showSpendable, showLocked, showUnconfirmed bool
+
+	rows := make([][]interface{}, len(accounts))
+
+	if len(accounts) == 1 {
+		rows[0] = []interface{}{}
+
+		if accounts[0].Balance.Total == accounts[0].Balance.Spendable {
+			showTotal = true
+			rows[0] = append(rows[0], accounts[0].Balance.Total)
+		} else {
+			showTotal, showSpendable = true, true
+			rows[0] = append(rows[0], accounts[0].Balance.Total, accounts[0].Balance.Spendable)
+		}
+		if accounts[0].Balance.LockedByTickets != 0 {
+			showLocked = true
+			rows[0] = append(rows[0], accounts[0].Balance.LockedByTickets)
+		}
+		if accounts[0].Balance.Unconfirmed != 0 {
+			showUnconfirmed = true
+			rows[0] = append(rows[0], accounts[0].Balance.Unconfirmed)
+		}
+
 	} else {
-		showBalanceSummary(accounts)
+		for i, account := range accounts {
+			rows[i] = []interface{}{}
+
+			showAccount = true
+			rows[i] = append(rows[i], account.Name)
+			if account.Balance.Total == account.Balance.Spendable {
+				showTotal = true
+				rows[i] = append(rows[i], account.Balance.Total)
+			} else {
+				showTotal, showSpendable = true, true
+				rows[i] = append(rows[i], accounts[i].Balance.Total, accounts[i].Balance.Spendable)
+			}
+			if account.Balance.LockedByTickets != 0 {
+				showLocked = true
+				rows[i] = append(rows[i], account.Balance.LockedByTickets)
+			}
+			if account.Balance.Unconfirmed != 0 {
+				showUnconfirmed = true
+				rows[i] = append(rows[i], account.Balance.Unconfirmed)
+			}
+		}
 	}
+
+	var columns []string
+	if showAccount {
+		columns = append(columns, "Account")
+	}
+	if showTotal {
+		columns = append(columns, "Total")
+	}
+	if showSpendable {
+		columns = append(columns, "Spendable")
+	}
+	if showLocked {
+		columns = append(columns, "Locked")
+	}
+	if showUnconfirmed {
+		columns = append(columns, "Unconfirmed")
+	}
+
+	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
 
 	return nil
-}
-
-func showDetailedBalance(accountBalances []*walletcore.Account) {
-	columns := []string{
-		"Account",
-		"Total",
-		"Spendable",
-		"Locked By Tickets",
-		"Voting Authority",
-		"Unconfirmed",
-	}
-	rows := make([][]interface{}, len(accountBalances))
-	for i, account := range accountBalances {
-		rows[i] = []interface{}{
-			account.Name,
-			account.Balance.Total,
-			account.Balance.Spendable,
-			account.Balance.LockedByTickets,
-			account.Balance.VotingAuthority,
-			account.Balance.Unconfirmed,
-		}
-	}
-	termio.PrintTabularResult(termio.StdoutWriter, columns, rows)
-}
-
-func showBalanceSummary(accounts []*walletcore.Account) {
-	if len(accounts) == 1 {
-		commandOutput := accounts[0].String()
-		termio.PrintStringResult(commandOutput)
-	} else {
-		commandOutput := make([]string, len(accounts))
-		for i, account := range accounts {
-			commandOutput[i] = fmt.Sprintf("%s \t %s", account.Name, account.String())
-		}
-		termio.PrintStringResult(commandOutput...)
-	}
 }
