@@ -15,6 +15,7 @@ import (
 )
 
 var numberOfPeers int32
+var syncListener *defaultsynclistener.DefaultSyncListener
 
 func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
 	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
@@ -112,12 +113,14 @@ func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(
 	}
 
 	// syncListener listens for reported sync updates, calculates progress and updates the caller via syncProgressUpdated
-	// use syncProgressUpdatedWrapper to suppress op parameter that's not needed by callers
-	syncProgressUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, _ defaultsynclistener.SyncOp) {
-		syncProgressUpdated(progressReport)
+	if syncListener == nil {
+		// use syncProgressUpdatedWrapper to suppress op parameter that's not needed by callers
+		syncProgressUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, _ defaultsynclistener.SyncOp) {
+			syncProgressUpdated(progressReport)
+		}
+		syncListener = defaultsynclistener.DefaultSyncProgressListener(c.NetType(), showLog, getBestBlock, getBestBlockTimestamp,
+			syncProgressUpdatedWrapper)
 	}
-	syncListener := defaultsynclistener.DefaultSyncProgressListener(c.NetType(), showLog, getBestBlock, getBestBlockTimestamp,
-		syncProgressUpdatedWrapper)
 
 	syncStream, err := c.walletLoader.SpvSync(ctx, &walletrpc.SpvSyncRequest{})
 	if err != nil {
@@ -178,7 +181,39 @@ func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(
 }
 
 func (c *WalletRPCClient) RescanBlockChain() error {
-	return nil // todo implement
+	if syncListener == nil {
+		return fmt.Errorf("blockchain has not been synced previously")
+	}
+
+	rescanStream, err := c.walletService.Rescan(context.Background(), &walletrpc.RescanRequest{BeginHeight: 0})
+	if err != nil {
+		return err
+	}
+
+	// notify rescan start
+	syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
+
+	// read sync updates from rescanStream in goroutine and trigger syncListener methods to calculate progress and update caller
+	go func() {
+		for {
+			rescanResponse, err := rescanStream.Recv()
+			if err != nil {
+				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
+				return
+			}
+
+			// notify rescan progress
+			syncListener.OnRescan(rescanResponse.RescannedThrough, dcrlibwallet.SyncStateProgress)
+
+			bestBlock, err := c.BestBlock()
+			if err == nil && rescanResponse.RescannedThrough >= int32(bestBlock) {
+				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
+				return
+			}
+		}
+	}()
+
+	return nil
 }
 
 func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {

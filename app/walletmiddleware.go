@@ -16,8 +16,6 @@ type WalletMiddleware interface {
 
 	CreateWallet(passphrase, seed string) error
 
-	RescanBlockChain() error
-
 	// OpenWalletIfExist checks if the wallet the user is trying to access exists and opens the wallet
 	// This method may stall if the wallet database is in use by some other process,
 	// hence the need for ctx, so user can cancel the operation if it's taking too long
@@ -28,6 +26,8 @@ type WalletMiddleware interface {
 	IsWalletOpen() bool
 
 	SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport))
+
+	RescanBlockChain() error
 
 	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)
 
