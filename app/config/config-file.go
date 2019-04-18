@@ -39,6 +39,9 @@ func defaultFileOptions() ConfFileOptions {
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,
 		DebugLevel:    defaultLogLevel,
+		Settings: Settings{
+			CurrencyConverter: defaultCurrencyConverter,
+		},
 	}
 }
 
