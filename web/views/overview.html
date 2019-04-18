@@ -11,8 +11,9 @@
                     <div class="row">
                         <div class="col-md-3 col-sm-6">
                             <p style="font-size: 15px">
-                                <b>{{ totalBalanceWholePart .accounts }}.{{ totalBalance1st2Decimal .accounts }}<span
-                                            style="font-size:13px;">{{ totalBalanceLast6Decimal .accounts }}</span> DCR</b><br/>
+                                {{ $balanceParts := splitBalanceIntoParts .accounts }}
+                                <b>{{ index $balanceParts 0 }}.{{ index $balanceParts 1 }}<span
+                                            style="font-size:13px;">{{ index $balanceParts 2 }}</span> DCR</b><br/>
                                 Current Total Balance
                             </p>
                         </div>
