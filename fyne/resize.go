@@ -46,6 +46,11 @@ func (app *fyneApp) listenForWindowResizeEvents() {
 // The idea is, if the content size is bigger than the maximum space available,
 // scroll bars become visible and more of the content can be seen by scrolling.
 func (app *fyneApp) resizeScrollableContainer() {
+	if app.pageContent == nil {
+		// only resize if page content has been prepared
+		return
+	}
+
 	// calculate the maximum available width and height to use for scroll container
 	windowSize := app.mainWindow.Content().Size()
 	scrollAreaWidth := windowSize.Width - menuSectionWidth - menuSectionPageSectionSeparation
