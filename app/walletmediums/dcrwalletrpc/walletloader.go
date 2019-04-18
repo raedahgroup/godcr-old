@@ -8,9 +8,10 @@ import (
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/decred/dcrwallet/walletseed"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"google.golang.org/grpc/codes"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 var numberOfPeers int32
@@ -91,7 +92,7 @@ func (c *WalletRPCClient) IsWalletOpen() bool {
 	return c.walletOpen
 }
 
-func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string)) error {
+func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
 	ctx := context.Background()
 
 	getBestBlock := func() int32 {
@@ -110,63 +111,70 @@ func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncInfoUpdated func(priv
 		return bestBlockInfo.Timestamp
 	}
 
-	// defaultSyncListener listens for reported sync updates, calculates progress and updates the caller via syncInfoUpdated
-	defaultSyncListener := blockchainsync.DefaultSyncProgressListener(c.activeNet, showLog, getBestBlock, getBestBlockTimestamp, syncInfoUpdated)
+	// syncListener listens for reported sync updates, calculates progress and updates the caller via syncProgressUpdated
+	// use syncProgressUpdatedWrapper to suppress op parameter that's not needed by callers
+	syncProgressUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, _ defaultsynclistener.SyncOp) {
+		syncProgressUpdated(progressReport)
+	}
+	syncListener := defaultsynclistener.DefaultSyncProgressListener(c.NetType(), showLog, getBestBlock, getBestBlockTimestamp,
+		syncProgressUpdatedWrapper)
 
 	syncStream, err := c.walletLoader.SpvSync(ctx, &walletrpc.SpvSyncRequest{})
 	if err != nil {
-		return err
+		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+		return
 	}
 
-	// read sync updates from syncStream in go routine and trigger defaultSyncListener methods to calculate progress and update caller
+	// read sync updates from syncStream in go routine and trigger syncListener methods to calculate progress and update caller
 	go func() {
 		for {
 			syncUpdate, err := syncStream.Recv()
 			if err != nil {
-				defaultSyncListener.OnSyncError(blockchainsync.UnexpectedError, err)
-				defaultSyncListener.OnSynced(false)
+				syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+				syncListener.OnSynced(false)
+				return
 			}
 			if syncUpdate.Synced {
-				defaultSyncListener.OnSynced(true)
+				syncListener.OnSynced(true)
+				return
 			}
 
 			switch syncUpdate.NotificationType {
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_STARTED:
-				defaultSyncListener.OnFetchedHeaders(0, 0, blockchainsync.START)
+				syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_PROGRESS:
-				defaultSyncListener.OnFetchedHeaders(syncUpdate.FetchHeaders.FetchedHeadersCount, syncUpdate.FetchHeaders.LastHeaderTime, blockchainsync.PROGRESS)
+				syncListener.OnFetchedHeaders(syncUpdate.FetchHeaders.FetchedHeadersCount, syncUpdate.FetchHeaders.LastHeaderTime,
+					dcrlibwallet.SyncStateProgress)
 
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_FINISHED:
-				defaultSyncListener.OnFetchedHeaders(0, 0, blockchainsync.FINISH)
+				syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_DISCOVER_ADDRESSES_STARTED:
-				defaultSyncListener.OnDiscoveredAddresses(blockchainsync.START)
+				syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_DISCOVER_ADDRESSES_FINISHED:
-				defaultSyncListener.OnDiscoveredAddresses(blockchainsync.FINISH)
+				syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_RESCAN_STARTED:
-				defaultSyncListener.OnRescan(0, blockchainsync.START)
+				syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_RESCAN_PROGRESS:
-				defaultSyncListener.OnRescan(syncUpdate.RescanProgress.RescannedThrough, blockchainsync.PROGRESS)
+				syncListener.OnRescan(syncUpdate.RescanProgress.RescannedThrough, dcrlibwallet.SyncStateProgress)
 
 			case walletrpc.SyncNotificationType_RESCAN_FINISHED:
-				defaultSyncListener.OnRescan(0, blockchainsync.FINISH)
+				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_PEER_CONNECTED:
 				numberOfPeers = syncUpdate.PeerInformation.PeerCount
-				defaultSyncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
+				syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
 
 			case walletrpc.SyncNotificationType_PEER_DISCONNECTED:
 				numberOfPeers = syncUpdate.PeerInformation.PeerCount
-				defaultSyncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
+				syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
 			}
 		}
 	}()
-
-	return nil
 }
 
 func (c *WalletRPCClient) RescanBlockChain() error {

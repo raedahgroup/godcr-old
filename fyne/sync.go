@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -47,70 +47,63 @@ func (app *fyneApp) showSyncWindow() {
 	app.resizeAndCenterMainWindow(syncWindowContent)
 	app.mainWindow.Show()
 
-	err := app.walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		syncInfo := privateSyncInfo.Read()
-		progressBar.SetValue(float64(syncInfo.TotalSyncProgress))
+	app.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		progressReport := report.Read()
 
-		if syncInfo.Status == blockchainsync.StatusSuccess {
+		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
+
+		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
 			app.loadMainWindowContent()
 			return
 		}
 
-		report := strings.Builder{}
-		if syncInfo.TotalTimeRemaining == "" {
-			report.WriteString(fmt.Sprintf("%d%% completed.\n", syncInfo.TotalSyncProgress))
+		stringReport := strings.Builder{}
+		if progressReport.TotalTimeRemaining == "" {
+			stringReport.WriteString(fmt.Sprintf("%d%% completed.\n", progressReport.TotalSyncProgress))
 		} else {
-			report.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining))
+			stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
 		}
 
 		if !showDetails {
-			reportLabel.SetText(strings.TrimSpace(report.String()))
+			reportLabel.SetText(strings.TrimSpace(stringReport.String()))
 		}
 
-		switch syncInfo.CurrentStep {
-		case 1:
-			report.WriteString(fmt.Sprintf("Fetched %d of %d block headers.\n", syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch))
-			report.WriteString(fmt.Sprintf("%d%% through step 1 of 3.\n", syncInfo.HeadersFetchProgress))
+		switch progressReport.CurrentStep {
+		case defaultsynclistener.FetchingBlockHeaders:
+			stringReport.WriteString(fmt.Sprintf("Fetched %d of %d block headers.\n", progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
+			stringReport.WriteString(fmt.Sprintf("%d%% through step 1 of 3.\n", progressReport.HeadersFetchProgress))
 
-			if syncInfo.DaysBehind != "" {
-				report.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", syncInfo.DaysBehind))
+			if progressReport.DaysBehind != "" {
+				stringReport.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", progressReport.DaysBehind))
 			}
 
-		case 2:
-			report.WriteString("Discovering used addresses.\n")
-			if syncInfo.AddressDiscoveryProgress > 100 {
-				report.WriteString(fmt.Sprintf("%d%% (over) through step 2 of 3.\n", syncInfo.AddressDiscoveryProgress))
+		case defaultsynclistener.DiscoveringUsedAddresses:
+			stringReport.WriteString("Discovering used addresses.\n")
+			if progressReport.AddressDiscoveryProgress > 100 {
+				stringReport.WriteString(fmt.Sprintf("%d%% (over) through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
 			} else {
-				report.WriteString(fmt.Sprintf("%d%% through step 2 of 3.\n", syncInfo.AddressDiscoveryProgress))
+				stringReport.WriteString(fmt.Sprintf("%d%% through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
 			}
 
-		case 3:
-			report.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", syncInfo.CurrentRescanHeight,
-				syncInfo.TotalHeadersToFetch))
-			report.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", syncInfo.HeadersFetchProgress))
+		case defaultsynclistener.ScanningBlockHeaders:
+			stringReport.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", progressReport.CurrentRescanHeight,
+				progressReport.TotalHeadersToFetch))
+			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
 		}
 
 		// show peer count last
 		netType := app.walletMiddleware.NetType()
-		if syncInfo.ConnectedPeers == 1 {
-			report.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", syncInfo.ConnectedPeers, netType))
+		if progressReport.ConnectedPeers == 1 {
+			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
 		} else {
-			report.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", syncInfo.ConnectedPeers, netType))
+			stringReport.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", progressReport.ConnectedPeers, netType))
 		}
 
-		fullSyncReport = report.String()
+		fullSyncReport = stringReport.String()
 		if showDetails {
 			reportLabel.SetText(fullSyncReport)
 		}
 	})
-
-	if err != nil {
-		errorMessage := fmt.Sprintf("Sync failed to start: %s", err.Error())
-		errorLabel.SetText(errorMessage)
-	} else {
-		fullSyncReport = "Starting..."
-		reportLabel.SetText("Starting...")
-	}
 }
 
 func (app *fyneApp) loadMainWindowContent() {

@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 var numberOfPeers int32
@@ -66,21 +67,24 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string)) error {
-	// create wrapper around syncInfoUpdated to store updated peer count before calling main syncInfoUpdated fn
-	syncInfoUpdatedWrapper := func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		if updatedSection == blockchainsync.PeersCountUpdate {
-			numberOfPeers = privateSyncInfo.Read().ConnectedPeers
+func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+	// create wrapper around syncProgressUpdated to store updated peer count before calling main syncInfoUpdated fn
+	syncInfoUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, op defaultsynclistener.SyncOp) {
+		if op == defaultsynclistener.PeersCountUpdate {
+			numberOfPeers = progressReport.Read().ConnectedPeers
 		}
-		syncInfoUpdated(privateSyncInfo, updatedSection)
+		syncProgressUpdated(progressReport)
 	}
 
-	// defaultSyncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
-	defaultSyncListener := blockchainsync.DefaultSyncProgressListener(lib.activeNet, showLog, lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp,
-		syncInfoUpdatedWrapper)
-	lib.walletLib.AddSyncProgressListener(defaultSyncListener)
+	// syncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
+	syncListener := defaultsynclistener.DefaultSyncProgressListener(lib.NetType(), showLog,
+		lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp, syncInfoUpdatedWrapper)
+	lib.walletLib.AddSyncProgressListener(syncListener)
 
-	return lib.walletLib.SpvSync("")
+	err := lib.walletLib.SpvSync("")
+	if err != nil {
+		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+	}
 }
 
 func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncData *sync.PrivateInfo)) error {

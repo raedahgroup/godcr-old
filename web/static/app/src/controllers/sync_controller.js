@@ -16,24 +16,24 @@ export default class extends Controller {
 
   connect () {
     ws.registerEvtHandler('updateSyncProgress', syncInfo => {
-      this.progressbarTarget.style.width = `${syncInfo.TotalSyncProgress}%`
+      this.progressbarTarget.style.width = `${syncInfo.totalSyncProgress}%`
 
-      this.totalSyncProgressTarget.textContent = `${syncInfo.TotalSyncProgress}% completed`
-      if (syncInfo.TotalTimeRemaining !== '') {
-        this.totalSyncProgressTarget.textContent += `, ${syncInfo.TotalTimeRemaining} remaining`
+      this.totalSyncProgressTarget.textContent = `${syncInfo.totalSyncProgress}% completed`
+      if (syncInfo.totalTimeRemaining !== '') {
+        this.totalSyncProgressTarget.textContent += `, ${syncInfo.totalTimeRemaining} remaining`
       }
       this.totalSyncProgressTarget.textContent += '.'
 
-      switch (syncInfo.CurrentStep) {
-        case 1:
-          this.fetchedHeadersCountTarget.textContent = syncInfo.FetchedHeadersCount
+      switch (syncInfo.currentStep) {
+        case 0: // fetching headers
+          this.fetchedHeadersCountTarget.textContent = syncInfo.fetchedHeadersCount
           this.totalHeadersToFetchTargets.forEach(totalHeadersToFetchTarget => {
-            totalHeadersToFetchTarget.textContent = syncInfo.TotalHeadersToFetch
+            totalHeadersToFetchTarget.textContent = syncInfo.totalHeadersToFetch
           })
-          this.headersFetchProgressTarget.textContent = syncInfo.HeadersFetchProgress
+          this.headersFetchProgressTarget.textContent = syncInfo.headersFetchProgress
 
           if (syncInfo.DaysBehind !== '') {
-            this.daysBehindTarget.textContent = `Your wallet is ${syncInfo.DaysBehind} behind.`
+            this.daysBehindTarget.textContent = `Your wallet is ${syncInfo.daysBehind} behind.`
             show(this.daysBehindTarget)
           } else {
             hide(this.daysBehindTarget)
@@ -44,20 +44,20 @@ export default class extends Controller {
           hide(this.step3Target)
           break
 
-        case 2:
-          this.addressDiscoveryProgressTarget.textContent = syncInfo.AddressDiscoveryProgress
+        case 1: // discoverign used addresses
+          this.addressDiscoveryProgressTarget.textContent = syncInfo.addressDiscoveryProgress
 
           hide(this.step1Target)
           show(this.step2Target)
           hide(this.step3Target)
           break
 
-        case 3:
-          this.currentRescanHeightTarget.textContent = syncInfo.CurrentRescanHeight
+        case 2: // scanning block headers
+          this.currentRescanHeightTarget.textContent = syncInfo.currentRescanHeight
           this.totalHeadersToFetchTargets.forEach(totalHeadersToFetchTarget => {
-            totalHeadersToFetchTarget.textContent = syncInfo.TotalHeadersToFetch
+            totalHeadersToFetchTarget.textContent = syncInfo.totalHeadersToFetch
           })
-          this.rescanProgressTarget.textContent = syncInfo.RescanProgress
+          this.rescanProgressTarget.textContent = syncInfo.rescanProgress
           hide(this.step1Target)
           hide(this.step2Target)
           show(this.step3Target)
@@ -69,10 +69,10 @@ export default class extends Controller {
           hide(this.step3Target)
       }
 
-      this.connectedPeersTarget.textContent = syncInfo.ConnectedPeers
-      this.networkTypeTarget.textContent = syncInfo.NetworkType
+      this.connectedPeersTarget.textContent = syncInfo.connectedPeers
+      this.networkTypeTarget.textContent = syncInfo.networkType
 
-      if (syncInfo.Done) {
+      if (syncInfo.done) {
         window.location.reload(true)
       }
     })

@@ -5,7 +5,7 @@ import (
 	"image"
 
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -16,12 +16,11 @@ type SyncHandler struct {
 	percentageProgress int
 	report             []string
 	showDetails        bool
-	status             blockchainsync.Status
+	status             defaultsynclistener.SyncStatus
 	syncError          error
 }
 
 func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func()) {
-	s.status = blockchainsync.StatusNotStarted
 	s.percentageProgress = 0
 	s.syncError = nil
 	s.report = []string{
@@ -30,54 +29,55 @@ func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refres
 	s.showDetails = false
 
 	// begin block chain sync now so that when `Render` is called shortly after this, there'd be a report to display
-	s.err = walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		syncInfo := privateSyncInfo.Read()
-		s.status = syncInfo.Status
-		s.percentageProgress = int(syncInfo.TotalSyncProgress)
+	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		progressReport := report.Read()
 
-		if syncInfo.Status == blockchainsync.StatusError {
-			s.syncError = fmt.Errorf(syncInfo.Error)
+		s.status = progressReport.Status
+		s.percentageProgress = int(progressReport.TotalSyncProgress)
+
+		if progressReport.Status == defaultsynclistener.SyncStatusError {
+			s.syncError = fmt.Errorf(progressReport.Error)
 		}
 
-		if syncInfo.TotalTimeRemaining == "" {
+		if progressReport.TotalTimeRemaining == "" {
 			s.report = []string{
-				fmt.Sprintf("%d%% completed.", syncInfo.TotalSyncProgress),
+				fmt.Sprintf("%d%% completed.", progressReport.TotalSyncProgress),
 			}
 		} else {
 			s.report = []string{
-				fmt.Sprintf("%d%% completed, %s remaining.", syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining),
+				fmt.Sprintf("%d%% completed, %s remaining.", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining),
 			}
 		}
 
-		switch syncInfo.CurrentStep {
-		case 1:
+		switch progressReport.CurrentStep {
+		case defaultsynclistener.FetchingBlockHeaders:
 			s.report = append(s.report, fmt.Sprintf("Fetched %d of %d block headers.",
-				syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch))
-			s.report = append(s.report, fmt.Sprintf("%d%% through step 1 of 3.", syncInfo.HeadersFetchProgress))
+				progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
+			s.report = append(s.report, fmt.Sprintf("%d%% through step 1 of 3.", progressReport.HeadersFetchProgress))
 
-			if syncInfo.DaysBehind != "" {
-				s.report = append(s.report, fmt.Sprintf("Your wallet is %s behind.", syncInfo.DaysBehind))
+			if progressReport.DaysBehind != "" {
+				s.report = append(s.report, fmt.Sprintf("Your wallet is %s behind.", progressReport.DaysBehind))
 			}
 
-		case 2:
+		case defaultsynclistener.DiscoveringUsedAddresses:
 			s.report = append(s.report, "Discovering used addresses.")
-			if syncInfo.AddressDiscoveryProgress > 100 {
-				s.report = append(s.report, fmt.Sprintf("%d%% (over) through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+			if progressReport.AddressDiscoveryProgress > 100 {
+				s.report = append(s.report, fmt.Sprintf("%d%% (over) through step 2 of 3.", progressReport.AddressDiscoveryProgress))
 			} else {
-				s.report = append(s.report, fmt.Sprintf("%d%% through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+				s.report = append(s.report, fmt.Sprintf("%d%% through step 2 of 3.", progressReport.AddressDiscoveryProgress))
 			}
 
-		case 3:
+		case defaultsynclistener.ScanningBlockHeaders:
 			s.report = append(s.report, fmt.Sprintf("Scanning %d of %d block headers.",
-				syncInfo.CurrentRescanHeight, syncInfo.TotalHeadersToFetch))
-			s.report = append(s.report, fmt.Sprintf("%d%% through step 3 of 3.", syncInfo.HeadersFetchProgress))
+				progressReport.CurrentRescanHeight, progressReport.TotalHeadersToFetch))
+			s.report = append(s.report, fmt.Sprintf("%d%% through step 3 of 3.", progressReport.HeadersFetchProgress))
 		}
 
 		// show peer count last
-		if syncInfo.ConnectedPeers == 1 {
-			s.report = append(s.report, fmt.Sprintf("Syncing with %d peer on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+		if progressReport.ConnectedPeers == 1 {
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peer on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
 		} else {
-			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
 		}
 
 		refreshWindowDisplay()
@@ -86,7 +86,7 @@ func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refres
 
 func (s *SyncHandler) Render(window *nucular.Window, changePage func(*nucular.Window, string)) {
 	// change page onSyncStatusSuccess
-	if s.status == blockchainsync.StatusSuccess {
+	if s.status == defaultsynclistener.SyncStatusSuccess {
 		changePage(window, "overview")
 		return
 	}

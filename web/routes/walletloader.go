@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 )
 
 func (routes *Routes) walletLoaderMiddleware() func(http.Handler) http.Handler {
@@ -41,22 +41,20 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 		}
 
 		// wallet is open, check if blockchain is synced
-		syncInfo := routes.privateSyncInfo.Read()
+		syncProgressReport := routes.syncProgressReport.Read()
 
-		switch syncInfo.Status {
-		case blockchainsync.StatusSuccess:
+		switch syncProgressReport.Status {
+		case defaultsynclistener.SyncStatusSuccess:
 			next.ServeHTTP(res, req)
-		case blockchainsync.StatusNotStarted:
-			errMsg = "Cannot display page. Blockchain hasn't been synced"
-		case blockchainsync.StatusInProgress:
+		case defaultsynclistener.SyncStatusInProgress:
 			syncInfoMap, err := routes.prepareSyncInfoMap()
 			if err != nil {
 				errMsg = fmt.Sprintf("Cannot load sync progress page: %s", err.Error())
 			} else {
 				routes.renderSyncPage(syncInfoMap, res)
 			}
-		case blockchainsync.StatusError:
-			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncInfo.Error)
+		case defaultsynclistener.SyncStatusError:
+			errMsg = fmt.Sprintf("Cannot display page. Following error occured during sync: %s", syncProgressReport.Error)
 		default:
 			errMsg = "Cannot display page. Blockchain sync status cannot be determined"
 		}
@@ -64,26 +62,15 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockChain() {
-	err := routes.walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		routes.privateSyncInfo = privateSyncInfo
+	routes.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		routes.syncProgressReport = report
 		routes.sendWsSyncProgress()
 		routes.sendWsConnectionInfoUpdate()
 	})
-
-	// update sync status
-	syncInfo := routes.privateSyncInfo.Read()	
-
-	if err != nil {
-		syncInfo.Error = err.Error()
-		syncInfo.Done = true
-		routes.privateSyncInfo.Write(syncInfo, blockchainsync.StatusError)
-	} else {
-		routes.privateSyncInfo.Write(syncInfo, blockchainsync.StatusInProgress)
-	}
 }
 
 func (routes *Routes) prepareSyncInfoMap() (map[string]interface{}, error) {
-	syncInfo := routes.privateSyncInfo.Read()
+	syncInfo := routes.syncProgressReport.Read()
 	var syncInfoMap map[string]interface{}
 
 	syncInfoBytes, _ := json.Marshal(syncInfo)
@@ -95,21 +82,21 @@ func (routes *Routes) prepareSyncInfoMap() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	syncInfoMap["NetworkType"] = routes.walletMiddleware.NetType()
+	syncInfoMap["networkType"] = routes.walletMiddleware.NetType()
 
-	if syncInfo.CurrentStep == 2 {
+	if syncInfo.CurrentStep == defaultsynclistener.DiscoveringUsedAddresses {
 		// check account discovery progress percentage
 		if syncInfo.AddressDiscoveryProgress > 100 {
-			syncInfoMap["AddressDiscoveryProgress"] = fmt.Sprintf("%d%% (over)", syncInfo.AddressDiscoveryProgress)
+			syncInfoMap["addressDiscoveryProgress"] = fmt.Sprintf("%d%% (over)", syncInfo.AddressDiscoveryProgress)
 		} else {
-			syncInfoMap["AddressDiscoveryProgress"] = fmt.Sprintf("%d%%", syncInfo.AddressDiscoveryProgress)
+			syncInfoMap["addressDiscoveryProgress"] = fmt.Sprintf("%d%%", syncInfo.AddressDiscoveryProgress)
 		}
 	}
 
 	if syncInfo.ConnectedPeers == 1 {
-		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%d peer", syncInfo.ConnectedPeers)
+		syncInfoMap["connectedPeers"] = fmt.Sprintf("%d peer", syncInfo.ConnectedPeers)
 	} else {
-		syncInfoMap["ConnectedPeers"] = fmt.Sprintf("%d peers", syncInfo.ConnectedPeers)
+		syncInfoMap["connectedPeers"] = fmt.Sprintf("%d peers", syncInfo.ConnectedPeers)
 	}
 
 	return syncInfoMap, nil

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -133,31 +133,28 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	syncError := make(chan error)
 	var syncDone bool
 
-	processSyncUpdates := func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
+	processSyncUpdates := func(report *defaultsynclistener.ProgressReport) {
 		if syncDone {
 			return
 		}
 
-		syncInfo := privateSyncInfo.Read()
-		if syncInfo.Done {
+		progressReport := report.Read()
+
+		if progressReport.Done {
 			syncDone = true
-			if syncInfo.Error == "" {
+			if progressReport.Error == "" {
 				fmt.Println("Synced successfully.")
 				syncError <- nil
 			} else {
-				fmt.Fprintf(os.Stderr, "Sync completed with error: %s.\n", syncInfo.Error)
-				syncError <- fmt.Errorf(syncInfo.Error)
+				fmt.Fprintf(os.Stderr, "Sync completed with error: %s.\n", progressReport.Error)
+				syncError <- fmt.Errorf(progressReport.Error)
 			}
 			return
 		}
 	}
 
-	if err := walletMiddleware.SyncBlockChain(true, processSyncUpdates); err != nil {
-		fmt.Fprintf(os.Stderr, "Sync failed to start. %s.\n", err.Error())
-		return err
-	}
-
 	fmt.Println("Sync started.")
+	walletMiddleware.SyncBlockChain(true, processSyncUpdates)
 
 	// wait for context cancel or sync done trigger before exiting function
 	select {

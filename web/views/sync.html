@@ -14,13 +14,13 @@
             <div class="progress my-3" style="height: 10px;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated"
                      data-target="sync.progressbar"
-                     style="width: {{ .TotalSyncProgress }}%"
-                     role="progressbar" aria-valuenow="{{ .TotalSyncProgress }}" aria-valuemin="0"
+                     style="width: {{ .totalSyncProgress }}%"
+                     role="progressbar" aria-valuenow="{{ .totalSyncProgress }}" aria-valuemin="0"
                      aria-valuemax="100"></div>
             </div>
 
             <p data-target="sync.totalSyncProgress">
-            {{ .TotalSyncProgress }}% completed{{ if ne .TotalTimeRemaining "" }}, {{ .TotalTimeRemaining }} remaining{{ end }}.
+            {{ .totalSyncProgress }}% completed{{ if ne .totalTimeRemaining "" }}, {{ .totalTimeRemaining }} remaining{{ end }}.
             </p>
 
             <button class="btn btn-sm btn-link" data-target="sync.showDetailsButton" data-action="click->sync#showDetails">
@@ -28,38 +28,38 @@
             </button>
 
             <div data-target="sync.syncDetails" class="d-none">
-                <div data-target="sync.step1" {{ if ne .CurrentStep "1" }}class="d-none"{{end}}>
+                <div data-target="sync.step1" {{ if ne .currentStep "0" }}class="d-none"{{end}}>
                     <p>
                         Fetched
-                        <span data-target="sync.fetchedHeadersCount">{{ .FetchedHeadersCount }}</span>
-                        of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                        <span data-target="sync.fetchedHeadersCount">{{ .fetchedHeadersCount }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .totalHeadersToFetch }}</span> block headers.
                     </p>
-                    <p><span data-target="sync.headersFetchProgress">{{ .HeadersFetchProgress }}</span>% through step 1
+                    <p><span data-target="sync.headersFetchProgress">{{ .headersFetchProgress }}</span>% through step 1
                         of 3.</p>
 
-                    <p data-target="sync.daysBehind" {{ if eq .DaysBehind "" }}class="d-none"{{end}}>
-                        Your wallet is {{ .DaysBehind }} behind.
+                    <p data-target="sync.daysBehind" {{ if eq .daysBehind "" }}class="d-none"{{end}}>
+                        Your wallet is {{ .daysBehind }} behind.
                     </p>
                 </div>
 
-                <div data-target="sync.step2" {{ if ne .CurrentStep "2" }}class="d-none"{{end}}>
+                <div data-target="sync.step2" {{ if ne .currentStep "1" }}class="d-none"{{end}}>
                     <p>Discovering used addresses.</p>
-                    <p><span data-target="sync.addressDiscoveryProgress">{{ .AddressDiscoveryProgress }}</span> through
+                    <p><span data-target="sync.addressDiscoveryProgress">{{ .addressDiscoveryProgress }}</span> through
                         step 2 of 3.</p>
                 </div>
 
-                <div data-target="sync.step3" {{ if ne .CurrentStep "3" }}class="d-none"{{end}}>
+                <div data-target="sync.step3" {{ if ne .currentStep "2" }}class="d-none"{{end}}>
                     <p>Scanning
-                        <span data-target="sync.currentRescanHeight">{{ .CurrentRescanHeight }}</span>
-                        of <span data-target="sync.totalHeadersToFetch">{{ .TotalHeadersToFetch }}</span> block headers.
+                        <span data-target="sync.currentRescanHeight">{{ .currentRescanHeight }}</span>
+                        of <span data-target="sync.totalHeadersToFetch">{{ .totalHeadersToFetch }}</span> block headers.
                     </p>
-                    <p><span data-target="sync.rescanProgress">{{ .RescanProgress }}</span>% through step 3 of 3.</p>
+                    <p><span data-target="sync.rescanProgress">{{ .rescanProgress }}</span>% through step 3 of 3.</p>
                 </div>
 
                 <p>
                     Syncing with
-                    <span data-target="sync.connectedPeers">{{ .ConnectedPeers }}</span>
-                    on <span data-target="sync.networkType">{{ .NetworkType }}</span>.
+                    <span data-target="sync.connectedPeers">{{ .connectedPeers }}</span>
+                    on <span data-target="sync.networkType">{{ .networkType }}</span>.
                 </p>
             </div>
         </div>

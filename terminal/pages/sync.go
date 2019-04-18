@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -88,65 +88,60 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 }
 
 func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string), handleError func(string), afterSyncing func()) {
-	err := walletMiddleware.SyncBlockChain(false, func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string) {
-		syncInfo := privateSyncInfo.Read()
-		if syncInfo.Status == blockchainsync.StatusSuccess {
+	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		progressReport := report.Read()
+
+		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
 			afterSyncing()
 			return
 		}
 
-		var report []string
-		if syncInfo.TotalTimeRemaining == "" {
-			report = []string{
-				fmt.Sprintf("%d%% completed.", syncInfo.TotalSyncProgress),
+		var stringReport []string
+		if progressReport.TotalTimeRemaining == "" {
+			stringReport = []string{
+				fmt.Sprintf("%d%% completed.", progressReport.TotalSyncProgress),
 			}
 		} else {
-			report = []string{
-				fmt.Sprintf("%d%% completed, %s remaining.", syncInfo.TotalSyncProgress, syncInfo.TotalTimeRemaining),
+			stringReport = []string{
+				fmt.Sprintf("%d%% completed, %s remaining.", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining),
 			}
 		}
 
-		switch syncInfo.CurrentStep {
-		case 1:
-			report = append(report, fmt.Sprintf("Fetched %d of %d block headers.",
-				syncInfo.FetchedHeadersCount, syncInfo.TotalHeadersToFetch))
-			report = append(report, fmt.Sprintf("%d%% through step 1 of 3.", syncInfo.HeadersFetchProgress))
+		switch progressReport.CurrentStep {
+		case defaultsynclistener.FetchingBlockHeaders:
+			stringReport = append(stringReport, fmt.Sprintf("Fetched %d of %d block headers.",
+				progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
+			stringReport = append(stringReport, fmt.Sprintf("%d%% through step 1 of 3.", progressReport.HeadersFetchProgress))
 
-			if syncInfo.DaysBehind != "" {
-				report = append(report, fmt.Sprintf("Your wallet is %s behind.", syncInfo.DaysBehind))
+			if progressReport.DaysBehind != "" {
+				stringReport = append(stringReport, fmt.Sprintf("Your wallet is %s behind.", progressReport.DaysBehind))
 			}
 
-		case 2:
-			report = append(report, "Discovering used addresses.")
-			if syncInfo.AddressDiscoveryProgress > 100 {
-				report = append(report, fmt.Sprintf("%d%% (over) through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+		case defaultsynclistener.DiscoveringUsedAddresses:
+			stringReport = append(stringReport, "Discovering used addresses.")
+			if progressReport.AddressDiscoveryProgress > 100 {
+				stringReport = append(stringReport, fmt.Sprintf("%d%% (over) through step 2 of 3.", progressReport.AddressDiscoveryProgress))
 			} else {
-				report = append(report, fmt.Sprintf("%d%% through step 2 of 3.", syncInfo.AddressDiscoveryProgress))
+				stringReport = append(stringReport, fmt.Sprintf("%d%% through step 2 of 3.", progressReport.AddressDiscoveryProgress))
 			}
 
-		case 3:
-			report = append(report, fmt.Sprintf("Scanning %d of %d block headers.",
-				syncInfo.CurrentRescanHeight, syncInfo.TotalHeadersToFetch))
-			report = append(report, fmt.Sprintf("%d%% through step 3 of 3.", syncInfo.HeadersFetchProgress))
+		case defaultsynclistener.ScanningBlockHeaders:
+			stringReport = append(stringReport, fmt.Sprintf("Scanning %d of %d block headers.",
+				progressReport.CurrentRescanHeight, progressReport.TotalHeadersToFetch))
+			stringReport = append(stringReport, fmt.Sprintf("%d%% through step 3 of 3.", progressReport.HeadersFetchProgress))
 		}
 
 		// show peer count last
-		if syncInfo.ConnectedPeers == 1 {
-			report = append(report, fmt.Sprintf("Syncing with %d peer on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+		if progressReport.ConnectedPeers == 1 {
+			stringReport = append(stringReport, fmt.Sprintf("Syncing with %d peer on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
 		} else {
-			report = append(report, fmt.Sprintf("Syncing with %d peers on %s.", syncInfo.ConnectedPeers, walletMiddleware.NetType()))
+			stringReport = append(stringReport, fmt.Sprintf("Syncing with %d peers on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
 		}
 
-		updateStatus(report)
+		updateStatus(stringReport)
 
-		if syncInfo.Status == blockchainsync.StatusError {
-			handleError("Sync error: " + syncInfo.Error)
+		if progressReport.Status == defaultsynclistener.SyncStatusError {
+			handleError("Sync error: " + progressReport.Error)
 		}
 	})
-
-	if err != nil {
-		handleError(fmt.Sprintf("Sync failed to start: %s", err.Error()))
-	} else {
-		updateStatus([]string{"Starting..."})
-	}
 }

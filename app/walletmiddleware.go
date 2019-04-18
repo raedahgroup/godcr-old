@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -27,7 +27,7 @@ type WalletMiddleware interface {
 
 	IsWalletOpen() bool
 
-	SyncBlockChain(showLog bool, syncInfoUpdated func(privateSyncInfo *blockchainsync.PrivateSyncInfo, updatedSection string)) error
+	SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport))
 
 	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)
 

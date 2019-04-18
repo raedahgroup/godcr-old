@@ -8,19 +8,19 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
-	"github.com/raedahgroup/dcrlibwallet/blockchainsync"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 )
 
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
-	walletMiddleware app.WalletMiddleware
-	walletExists     bool
-	templates        map[string]*template.Template
-	privateSyncInfo  *blockchainsync.PrivateSyncInfo
-	ctx              context.Context
-	settings         *config.Settings
+	walletMiddleware   app.WalletMiddleware
+	walletExists       bool
+	templates          map[string]*template.Template
+	syncProgressReport *defaultsynclistener.ProgressReport
+	ctx                context.Context
+	settings           *config.Settings
 }
 
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
@@ -32,12 +32,12 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		return nil, err
 	}
 	routes := &Routes{
-		walletMiddleware: walletMiddleware,
-		templates:        map[string]*template.Template{},
-		privateSyncInfo:  blockchainsync.NewPrivateInfo(),
-		ctx:              ctx,
-		walletExists:     walletExists,
-		settings:         settings,
+		walletMiddleware:   walletMiddleware,
+		templates:          map[string]*template.Template{},
+		syncProgressReport: defaultsynclistener.InitProgressReport(),
+		ctx:                ctx,
+		walletExists:       walletExists,
+		settings:           settings,
 	}
 
 	routes.loadTemplates()
