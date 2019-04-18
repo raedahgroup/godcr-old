@@ -3,9 +3,9 @@ package dcrwalletrpc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 
-	"fmt"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
