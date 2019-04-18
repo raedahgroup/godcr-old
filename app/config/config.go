@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	defaultHTTPHost = "127.0.0.1"
-	defaultHTTPPort = "7778"
-	defaultLogLevel = "info"
+	defaultHTTPHost          = "127.0.0.1"
+	defaultHTTPPort          = "7778"
+	defaultLogLevel          = "info"
+	defaultCurrencyConverter = "none"
 )
 
 var (

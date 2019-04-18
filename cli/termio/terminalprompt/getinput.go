@@ -39,8 +39,6 @@ var (
 	ErrMaxLengthExceeded = fmt.Errorf("maximum byte limit (%v) exceeded", maxLength)
 )
 
-
-
 type terminalState struct {
 	state *terminal.State
 }
