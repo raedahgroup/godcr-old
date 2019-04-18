@@ -167,6 +167,10 @@ export default class extends Controller {
     axios.post('/rescan-blockchain').then((response) => {
       let result = response.data
       if (result.error) {
+        if (!localStorage.getItem('blocks-rescan-progress')) {
+          localStorage.setItem('blocks-rescan-progress', 'Block headers rescan in progress')
+          document.getElementById('blocks-rescan-progress').innerText = localStorage.getItem('blocks-rescan-progress')
+        }
         showErrorNotification(`Block headers rescan failed. ${result.error}`)
         _this.rescanBlockChainButtonTarget.textContent = 'Rescan Blockchain'
       } else {

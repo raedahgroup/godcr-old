@@ -74,6 +74,11 @@ func (c *WalletRPCClient) OpenWalletIfExist(ctx context.Context) (walletExists b
 		if isRpcErrorCode(err, codes.AlreadyExists) {
 			err = nil
 		}
+
+		if err == nil {
+			// wallet is open, best time to detect network type for dcrwallet rpc connection
+			c.activeNet, _ = getNetParam(c.walletService)
+		}
 	}()
 
 	select {

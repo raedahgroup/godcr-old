@@ -7,10 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
-	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -122,33 +120,13 @@ func createConnection(ctx context.Context, rpcAddress, rpcCert string, noTLS boo
 
 		walletService := walletrpc.NewWalletServiceClient(connectionResult.conn)
 
-		activeNet, err := getNetParam(walletService)
-		if err != nil {
-			return nil, err
-		}
-
 		client := &WalletRPCClient{
 			walletLoader:  walletrpc.NewWalletLoaderServiceClient(connectionResult.conn),
 			walletService: walletService,
-			activeNet:     activeNet,
 		}
 
 		return client, nil
 	}
-}
-
-func getNetParam(walletService walletrpc.WalletServiceClient) (param *netparams.Params, err error) {
-	req := &walletrpc.NetworkRequest{}
-	res, err := walletService.Network(context.Background(), req)
-	if err != nil {
-		return nil, fmt.Errorf("error checking wallet rpc network type: %s", err.Error())
-	}
-
-	param = utils.NetParams(wire.CurrencyNet(res.ActiveNetwork).String())
-	if param == nil {
-		err = errors.New("unknown network type")
-	}
-	return
 }
 
 func connectToRPC(rpcAddress, rpcCert string, noTLS bool) {
