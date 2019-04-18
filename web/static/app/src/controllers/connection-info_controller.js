@@ -9,16 +9,11 @@ export default class extends Controller {
       'peersConnected',
       'latestBlock',
       'networkType',
-      'blockScanProgress',
+      'blockScanProgress'
     ]
   }
 
   connect () {
-    const blocksRescanProgress = localStorage.getItem('blocks-rescan-progress')
-    if (blocksRescanProgress) {
-      this.blockScanProgressTarget.textContent = blocksRescanProgress
-    }
-
     ws.registerEvtHandler('updateConnInfo', data => {
       this.peersConnectedTarget.textContent = data.peersConnected
       this.totalBalanceTarget.textContent = data.totalBalance
@@ -35,15 +30,12 @@ export default class extends Controller {
       // or if block headers rescan has not started or has completed (i.e. syncInfo.rescanProgress <= 0 || syncInfo.rescanProgress >= 100)
       if (!syncInfo.done || syncInfo.rescanProgress <= 0 || syncInfo.rescanProgress >= 100) {
         hide(this.blockScanProgressTarget)
-        localStorage.removeItem('blocks-rescan-progress')
         return
       }
 
       this.blockScanProgressTarget.textContent = `Rescanning block headers ${syncInfo.rescanProgress}%. `
       this.blockScanProgressTarget.textContent += `Scanning ${syncInfo.currentRescanHeight} of ${syncInfo.totalHeadersToFetch} block headers.`
       show(this.blockScanProgressTarget)
-
-      localStorage.setItem('blocks-rescan-progress', this.blockScanProgressTarget.textContent)
     })
   }
 }
