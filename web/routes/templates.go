@@ -49,11 +49,11 @@ func templateFuncMap() template.FuncMap {
 				totalBalance.Total += account.Balance.Total
 			}
 			balanceStr := fmt.Sprintf("%010.8f", totalBalance.Total.ToCoin())
-			spitedParts := strings.Split(balanceStr, ".")
+			splitBalance := strings.Split(balanceStr, ".")
 			return []string{
-				spitedParts[0],
-				spitedParts[1][0:2],
-				spitedParts[1][2:],
+				splitBalance[0],
+				splitBalance[1][0:2],
+				splitBalance[1][2:],
 			}
 		},
 		"intSum": func(numbers ...int) (sum int) {
