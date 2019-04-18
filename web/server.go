@@ -122,12 +122,11 @@ func askToLaunchBrowser(address string) {
 
 		if launchError := launchBrowser("http://" + address); launchError != nil {
 			weblog.Log.Error("Failed to launch browser", launchError.Error())
-			fmt.Println("Browser failed to launch")
-			return
+			fmt.Println("Browser failed to launch.")
+		} else {
+			fmt.Println("Done.")
 		}
 	}
-
-	fmt.Println("Ready")
 }
 
 func launchBrowser(url string) error {
