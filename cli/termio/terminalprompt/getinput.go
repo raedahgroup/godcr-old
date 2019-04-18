@@ -80,7 +80,7 @@ func getPasswordInput(prompt string) (string, error) {
 // Otherwise, typing will echo nothing.
 func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, error) {
 	var err error
-	var pass, backspace, mask []byte
+	var password, backspace, mask []byte
 	if masked {
 		backspace = []byte("\b \b")
 		mask = []byte("*")
@@ -88,7 +88,7 @@ func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, e
 
 	if isTerminal(r.Fd()) {
 		if oldState, err := makeRaw(r.Fd()); err != nil {
-			return pass, err
+			return password, err
 		} else {
 			defer func() {
 				restore(r.Fd(), oldState)
@@ -110,8 +110,8 @@ func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, e
 			err = e
 			break
 		} else if v == 127 || v == 8 {
-			if l := len(pass); l > 0 {
-				pass = pass[:l-1]
+			if l := len(password); l > 0 {
+				password = password[:l-1]
 				fmt.Fprint(w, string(backspace))
 			}
 		} else if v == 13 || v == 10 {
@@ -120,7 +120,7 @@ func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, e
 			err = ErrInterrupted
 			break
 		} else if v != 0 {
-			pass = append(pass, v)
+			password = append(password, v)
 			fmt.Fprint(w, string(mask))
 		}
 	}
@@ -129,7 +129,7 @@ func getPassword(prompt string, masked bool, r FdReader, w io.Writer) ([]byte, e
 		err = ErrMaxLengthExceeded
 	}
 
-	return pass, err
+	return password, err
 }
 
 func restore(fd uintptr, oldState *terminalState) error {
