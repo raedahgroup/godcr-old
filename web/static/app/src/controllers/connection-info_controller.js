@@ -1,4 +1,5 @@
 import { Controller } from 'stimulus'
+import { hide, show } from '../utils'
 import ws from '../services/messagesocket_service'
 
 export default class extends Controller {
@@ -7,7 +8,8 @@ export default class extends Controller {
       'totalBalance',
       'peersConnected',
       'latestBlock',
-      'networkType'
+      'networkType',
+      'blockScanProgress',
     ]
   }
 
@@ -24,13 +26,18 @@ export default class extends Controller {
     ws.registerEvtHandler('updateBalance', function (data) {
       _this.totalBalanceTarget.textContent = data.total
     })
-  }
 
-  hide (el) {
-    el.classList.add('d-none')
-  }
+    ws.registerEvtHandler('updateSyncProgress', syncInfo => {
+      // hide the persistent blocks rescan progress section if this is the initial sync on server start (i.e. !syncInfo.done)
+      // or if block headers rescan has not started or has completed (i.e. syncInfo.rescanProgress <= 0 || syncInfo.rescanProgress >= 100)
+      if (!syncInfo.done || syncInfo.rescanProgress <= 0 || syncInfo.rescanProgress >= 100) {
+        hide(this.blockScanProgressTarget)
+        return
+      }
 
-  show (el) {
-    el.classList.remove('d-none')
+      this.blockScanProgressTarget.textContent = `Rescanning block headers ${syncInfo.rescanProgress}%. `
+      this.blockScanProgressTarget.textContent += `Scanning ${syncInfo.currentRescanHeight} of ${syncInfo.totalHeadersToFetch} block headers.`
+      show(this.blockScanProgressTarget)
+    })
   }
 }

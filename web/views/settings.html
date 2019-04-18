@@ -61,9 +61,9 @@
                         <h6 class="border-bottom border-gray pb-2 mb-0 mt-2">Debug</h6>
 
                         <div class="list-group">
-                            <a data-action="click->settings#rescanBlockchain" data-toggle="modal" data-target="#rescan-blockchain-modal" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <a data-action="click->settings#rescanBlockchain" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">Rescan Blockchain</h5>
+                                    <h5 class="mb-1" data-target="settings.rescanBlockChainButton">Rescan Blockchain</h5>
                                 </div>
                             </a>
                             <a data-action="click->settings#deleteWallet" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
@@ -150,28 +150,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                     <button data-target="settings.updateCurrencyConverterButton" data-action="click->settings#updateCurrencyConverter" type="button" class="btn btn-primary">Update</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="modal" id="rescan-blockchain-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-sm" role="document">
-        <form>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Rescan Blockchain</h5>
-                    <button data-action="click->settings#stopListeningForSyncUpdates" type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div data-target="settings.syncNotifications"></div>
-                </div>
-                <div class="modal-footer">
-                    <button data-action="click->settings#stopListeningForSyncUpdates" data-dismiss="modal"
-                            type="button" class="btn btn-danger">Close</button>
                 </div>
             </div>
         </form>

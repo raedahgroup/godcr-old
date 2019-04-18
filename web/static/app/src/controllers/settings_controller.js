@@ -10,7 +10,7 @@ export default class extends Controller {
       'confirmPasswordError', 'changePasswordErrorMessage',
       'spendUnconfirmedFunds', 'showIncomingTransactionNotification', 'showNewBlockNotification',
       'changeCurrencyConverterErrorMessage', 'currencyConverterNone', 'currencyConverterBitrex', 'updateCurrencyConverterButton',
-      'syncNotifications'
+      'rescanBlockChainButton',
     ]
   }
 
@@ -158,26 +158,25 @@ export default class extends Controller {
   }
 
   rescanBlockchain () {
-    const _this = this
-    this.syncNotificationsTarget.innerHTML = '<p>Starting block headers rescan. Please wait...</p>'
-    ws.registerEvtHandler('updateSyncStatus', function (data) {
-      _this.syncNotificationsTarget.innerHTML = `<p>${data}.</p>`
-    })
+    if (this.rescanBlockChainButtonTarget.textContent !== 'Rescan Blockchain') {
+      return
+    }
+    this.rescanBlockChainButtonTarget.textContent = 'Starting...'
 
+    const _this = this
     axios.post('/rescan-blockchain').then((response) => {
       let result = response.data
       if (result.error) {
-        _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>${result.error}.</p>`
-        _this.stopListeningForSyncUpdates()
+        showErrorNotification(`Block headers rescan failed. ${result.error}`)
+        _this.rescanBlockChainButtonTarget.textContent = 'Rescan Blockchain'
+      } else {
+        showSuccessNotification('Block headers rescan started')
+        _this.rescanBlockChainButtonTarget.textContent = 'Block headers rescan in progress'
       }
     }).catch(() => {
-      _this.syncNotificationsTarget.innerHTML = `<p>Rescan failed.<br>A server error occurred.</p>`
-      _this.stopListeningForSyncUpdates()
+      showErrorNotification('Block headers rescan failed. A server error occurred')
+      _this.rescanBlockChainButtonTarget.textContent = 'Rescan Blockchain'
     })
-  }
-
-  stopListeningForSyncUpdates () {
-    ws.deregisterEvtHandlers('updateSyncStatus')
   }
 
   deleteWallet () {
