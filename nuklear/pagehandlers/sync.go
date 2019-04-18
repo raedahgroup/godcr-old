@@ -91,9 +91,6 @@ func (s *SyncHandler) Render(window *nucular.Window, changePage func(*nucular.Wi
 		return
 	}
 
-	changePage(window, "overview")
-	return
-
 	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
 		pageWindow.AddHorizontalSpace(20)
