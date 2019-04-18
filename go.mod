@@ -25,6 +25,7 @@ require (
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/srwiley/oksvg v0.0.0-20190414003808-c520f0a6c5cc // indirect
+	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
 	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/grpc v1.14.0
