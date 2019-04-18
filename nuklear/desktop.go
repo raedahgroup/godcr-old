@@ -156,9 +156,15 @@ func (desktop *Desktop) renderNavSection(window *nucular.Window, maxHeight int) 
 		navGroupWindow.AddHorizontalSpace(10)
 
 		for _, page := range getNavPages() {
-			navGroupWindow.AddBigButton(page.label, func() {
-				desktop.changePage(window, page.name)
-			})
+			if desktop.currentPage == page.name {
+				navGroupWindow.AddCurrentNavButton(page.label, func() {
+					desktop.changePage(window, page.name)
+				})
+			} else {
+				navGroupWindow.AddBigButton(page.label, func() {
+					desktop.changePage(window, page.name)
+				})
+			}
 		}
 
 		// add exit button
