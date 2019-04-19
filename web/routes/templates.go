@@ -48,13 +48,23 @@ func templateFuncMap() template.FuncMap {
 			for _, account := range accounts {
 				totalBalance.Total += account.Balance.Total
 			}
-			splitBalance := strings.Split(totalBalance.Total.String(), ".")
-			balanceParts = append(balanceParts, splitBalance[0])
-			if len(splitBalance) > 1 {
-				balanceParts = append(balanceParts, splitBalance[1][0:2])
+
+			balanceParts = make([]string, 3)
+
+			totalBalanceStr := totalBalance.Total.String()
+			if !strings.Contains(totalBalanceStr, ".") {
+				splitBalance := strings.Split(totalBalanceStr, " ")
+				balanceParts[0] = splitBalance[0]
+				balanceParts[1] = ""
+				balanceParts[2] = splitBalance[1]
+				return
 			}
+			splitBalance := strings.Split(totalBalanceStr, ".")
+			balanceParts[0] = splitBalance[0]
+			balanceParts[1] = "." + splitBalance[1][0:2]
+
 			if len(splitBalance[1]) > 2 {
-				balanceParts = append(balanceParts, splitBalance[1][2:])
+				balanceParts[2] = splitBalance[1][2:]
 			}
 			return
 		},

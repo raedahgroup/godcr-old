@@ -12,9 +12,8 @@
                         <div class="col-md-3 col-sm-6">
                             <p style="font-size: 15px">
                                 {{ $balanceParts := splitBalanceIntoParts .accounts }}
-                                <b>{{ index $balanceParts 0 }}{{ if (ge (len $balanceParts) 1)}}.{{ index $balanceParts 1 }}{{ end }}<span
-                                            style="font-size:13px;">{{ if (ge (len $balanceParts) 1)}}{{ index $balanceParts 2 }}{{ end }}
-                                    </span></b><br/>
+                                <b>{{ index $balanceParts 0 }}{{ index $balanceParts 1 }}<span
+                                            style="font-size:13px;">{{ index $balanceParts 2 }}</span></b><br/>
                                 Current Total Balance
                             </p>
                         </div>
