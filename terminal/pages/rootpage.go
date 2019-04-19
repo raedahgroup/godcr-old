@@ -71,7 +71,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	menuColumn.AddItem("Exit", "", 0, func() {
-		tviewApp.Stop()
+		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
 	})
 
 	netType := walletMiddleware.NetType()
@@ -86,6 +86,10 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	gridLayout.AddItem(hintTextView, 4, 2, 1, 1, 0, 0, false)
 
 	menuColumn.SetCurrentItem(0)
+
+	menuColumn.SetDoneFunc(func() {
+		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
+	})
 
 	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 

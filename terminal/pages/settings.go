@@ -2,9 +2,9 @@ package pages
 
 import (
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
-		"github.com/raedahgroup/godcr/terminal/helpers"
 )
 
 func settingsPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
@@ -13,7 +13,7 @@ func settingsPage(setFocus func(p tview.Primitive) *tview.Application, clearFocu
 	body.AddItem(primitives.NewLeftAlignedTextView("Settings"), 2, 1, false)
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Settings page coming soon").SetTextColor(helpers.DecredGreenColor), 0, 1, false)
-	
+
 	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			clearFocus()
