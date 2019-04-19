@@ -8,14 +8,15 @@ import (
 	"github.com/rivo/tview"
 )
 
-func StartTerminalApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+// todo the ctx variable should be stored somewhere for as long as this terminal app is open
+// it will be necessary for use in some wallet operations
+func StartTerminalApp(_ context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 
-	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
+	walletExists, err := walletMiddleware.WalletExists()
 	if err != nil {
 		return err
 	}
-
 	if walletExists {
 		pages.LaunchSyncPage(tviewApp, walletMiddleware)
 	} else {

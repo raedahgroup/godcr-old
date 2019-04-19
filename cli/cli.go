@@ -44,7 +44,12 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 
 	// if no command is passed but --sync flag was passed, perform sync operation and return
 	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
-		return syncBlockChain(ctx, walletMiddleware)
+		// first check if wallet exists before attempting to sync
+		walletExists, err := walletMiddleware.WalletExists()
+		if err != nil || !walletExists {
+			return err
+		}
+		return walletloader.SyncBlockChain(ctx, walletMiddleware)
 	} else if noCommandPassed {
 		listCommands()
 	} else if err != nil {
@@ -52,15 +57,6 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 	}
 
 	return err
-}
-
-func syncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
-	walletExists, err := walletloader.OpenOrCreateWallet(ctx, walletMiddleware)
-	if err != nil || !walletExists {
-		return err
-	}
-
-	return walletloader.SyncBlockChain(ctx, walletMiddleware)
 }
 
 // listCommands prints a simple list of available commands when godcr is run without any command

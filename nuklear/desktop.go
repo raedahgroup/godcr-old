@@ -61,12 +61,10 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.standalonePages[page.name] = page.handler
 	}
 
-	// open wallet and start blockchain syncing in background
-	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
+	walletExists, err := walletMiddleware.WalletExists()
 	if err != nil {
 		return err
 	}
-
 	if !walletExists {
 		desktop.currentPage = "createwallet"
 	}

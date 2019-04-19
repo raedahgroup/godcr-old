@@ -37,12 +37,6 @@ type fyneApp struct {
 }
 
 func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) error {
-	// open wallet before loading app window in case there's an error while trying to load wallet
-	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
-	if err != nil {
-		return err
-	}
-
 	this := &fyneApp{
 		App:              app.New(),
 		ctx:              ctx,
@@ -62,11 +56,15 @@ func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) 
 
 	this.mainWindow = this.NewWindow(godcrApp.DisplayName)
 
-	// main window content will be displayed after sync completes
-	// if there's no wallet, the create wallet window will trigger the sync operation after a wallet is created
+	// if there's no wallet, show create wallet window and trigger the sync operation after a wallet is created
+	walletExists, err := walletMiddleware.WalletExists()
+	if err != nil {
+		return err
+	}
 	if !walletExists {
 		this.showCreateWalletWindow()
 	} else {
+		// begin sync, main window content will be displayed after sync completes
 		this.showSyncWindow()
 	}
 
