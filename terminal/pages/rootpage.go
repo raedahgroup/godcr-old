@@ -38,33 +38,39 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		tviewApp.SetFocus(menuColumn)
 	}
 
-	menuColumn.AddItem("Overview", "", 'o', func() {
+	menuColumn.AddItem("Overview", "", 0, func() {
 		displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 	})
 
-	menuColumn.AddItem("History", "", 'h', func() {
+	menuColumn.AddItem("History", "", 0, func() {
 		displayPage(historyPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 	})
 
-	menuColumn.AddItem("Send", "", 's', func() {
+	menuColumn.AddItem("Send", "", 0, func() {
 		displayPage(sendPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Receive", "", 'r', func() {
+	menuColumn.AddItem("Receive", "", 0, func() {
 		displayPage(receivePage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Staking", "", 'k', func() {
+	menuColumn.AddItem("Staking", "", 0, func() {
 		displayPage(stakingPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Accounts", "", 'a', nil)
+	menuColumn.AddItem("Accounts", "", 0, func() {
+		displayPage(accountsPage(tviewApp.SetFocus, clearFocus))
+	})
 
-	menuColumn.AddItem("Security", "", 'c', nil)
+	menuColumn.AddItem("Security", "", 0, func() {
+		displayPage(securityPage(tviewApp.SetFocus, clearFocus))
+	})
 
-	menuColumn.AddItem("Settings", "", 't', nil)
+	menuColumn.AddItem("Settings", "", 0, func() {
+		displayPage(settingsPage(tviewApp.SetFocus, clearFocus))
+	})
 
-	menuColumn.AddItem("Exit", "", 'q', func() {
+	menuColumn.AddItem("Exit", "", 0, func() {
 		tviewApp.Stop()
 	})
 
