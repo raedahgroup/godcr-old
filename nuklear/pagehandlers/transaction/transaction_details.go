@@ -1,130 +1,19 @@
-package pagehandlers
+package transaction
 
 import (
-	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
-
-type HistoryHandler struct {
-	fetchHistoryError      error
-	ctx                    context.Context
-	transactions           []*walletcore.Transaction
-	isFetchingTransactions bool
-	nextBlockHeight        int32
-
-	selectedTxHash      string
-	selectedTxDetails   *walletcore.TransactionDetails
-	isFetchingTxDetails bool
-	fetchTxDetailsError error
-
-	wallet walletcore.Wallet
-}
-
-func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
-	// todo: caller should ideally pass a context parameter, propagated from main.go
-	handler.ctx = context.Background()
-
-	handler.isFetchingTransactions = true
-	handler.fetchHistoryError = nil
-	handler.transactions = nil
-
-	handler.wallet = wallet
-
-	go handler.fetchTransactions(wallet, refreshWindowDisplay)
-
-	handler.clearTxDetails()
-
-	return true
-}
-
-func (handler *HistoryHandler) fetchTransactions(wallet walletcore.Wallet, refreshWindowDisplay func()) {
-	if len(handler.transactions) == 0 {
-		// first page
-		handler.nextBlockHeight = -1
-	}
-
-	transactions, endBlockHeight, err := wallet.TransactionHistory(handler.ctx, handler.nextBlockHeight,
-		walletcore.TransactionHistoryCountPerPage)
-
-	// next start block should be the block immediately preceding the current end block
-	handler.fetchHistoryError = err
-	handler.transactions = append(handler.transactions, transactions...)
-	handler.nextBlockHeight = endBlockHeight - 1
-
-	refreshWindowDisplay()
-
-	// load more if possible
-	if handler.nextBlockHeight >= 0 {
-		handler.fetchTransactions(wallet, refreshWindowDisplay)
-	} else {
-		handler.isFetchingTransactions = false
-	}
-}
 
 func (handler *HistoryHandler) clearTxDetails() {
 	handler.selectedTxHash = ""
 	handler.selectedTxDetails = nil
 	handler.isFetchingTxDetails = false
 	handler.fetchTxDetailsError = nil
-}
-
-func (handler *HistoryHandler) Render(window *nucular.Window) {
-	if handler.selectedTxHash == "" {
-		handler.renderHistoryPage(window)
-		return
-	}
-	handler.renderTransactionDetailsPage(window)
-}
-
-func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
-	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		if handler.fetchHistoryError != nil {
-			contentWindow.DisplayErrorMessage("Error fetching txs", handler.fetchHistoryError)
-		} else if len(handler.transactions) > 0 {
-			handler.displayTransactions(contentWindow)
-		}
-
-		// show loading indicator if tx is being fetched
-		if handler.isFetchingTransactions {
-			contentWindow.DisplayIsLoadingMessage()
-		}
-	})
-}
-
-func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window) {
-	historyTable := widgets.NewTable()
-
-	// render table header with nav font
-	historyTable.AddRowWithFont(styles.NavFont,
-		widgets.NewLabelTableCell("#", "LC"),
-		widgets.NewLabelTableCell("Date", "LC"),
-		widgets.NewLabelTableCell("Direction", "LC"),
-		widgets.NewLabelTableCell("Amount", "LC"),
-		widgets.NewLabelTableCell("Fee", "LC"),
-		widgets.NewLabelTableCell("Type", "LC"),
-		widgets.NewLabelTableCell("Hash", "LC"),
-	)
-
-	for i, tx := range handler.transactions {
-		historyTable.AddRow(
-			widgets.NewLabelTableCell(fmt.Sprintf("%d", i+1), "LC"),
-			widgets.NewLabelTableCell(tx.FormattedTime, "LC"),
-			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
-			widgets.NewLabelTableCell(tx.Amount, "RC"),
-			widgets.NewLabelTableCell(tx.Fee, "RC"),
-			widgets.NewLabelTableCell(tx.Type, "LC"),
-			widgets.NewLinkTableCell(tx.Hash, "Click to see transaction details", handler.gotoTransactionDetails),
-		)
-	}
-
-	historyTable.Render(contentWindow)
 }
 
 func (handler *HistoryHandler) gotoTransactionDetails(txHash string, window *widgets.Window) {
