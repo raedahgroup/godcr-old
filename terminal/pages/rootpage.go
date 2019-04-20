@@ -17,7 +17,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		SetBordersColor(helpers.DecredLightBlueColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-	
+
 	menuColumn := primitives.NewList()
 
 	var activePage tview.Primitive
@@ -93,7 +93,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn.SetDoneFunc(func() {
 		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
 	})
-	
+
 	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 
 	return gridLayout

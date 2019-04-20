@@ -72,7 +72,7 @@ func NewList() *List {
 	return &List{
 		Box:                     tview.NewBox(),
 		showSecondaryText:       true,
-		showShortcut:       true,
+		showShortcut:            true,
 		mainTextColor:           tview.Styles.PrimaryTextColor,
 		secondaryTextColor:      tview.Styles.TertiaryTextColor,
 		shortcutColor:           tview.Styles.SecondaryTextColor,
@@ -382,7 +382,7 @@ func (l *List) Draw(screen tcell.Screen) {
 	// Do we show any shortcuts?
 	var showShortcuts bool
 	for _, item := range l.items {
-		if item.Shortcut != 0 {
+		if item.Shortcut != 0 && l.showShortcut != false {
 			showShortcuts = true
 			x += 4
 			width -= 4
@@ -414,7 +414,7 @@ func (l *List) Draw(screen tcell.Screen) {
 		}
 
 		// Shortcuts.
-		if showShortcuts && item.Shortcut != 0 && l.showShortcut!= false{
+		if showShortcuts && item.Shortcut != 0 {
 			tview.Print(screen, fmt.Sprintf("(%s)", string(item.Shortcut)), x-5, y, 4, tview.AlignRight, l.shortcutColor)
 		}
 
