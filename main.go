@@ -172,12 +172,29 @@ func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
 // default is connecting directly to a wallet database file via dcrlibwallet
 // alternative is connecting to wallet database via dcrwallet rpc (if rpc server address is provided)
 func connectToWallet(ctx context.Context, cfg *config.Config) (walletMiddleware app.WalletMiddleware, err error) {
-	if cfg.WalletRPCServer != "" {
-		return dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
+	if cfg.WalletRPCServer == "" {
+		// use drlibwallet
+		// scan PC for wallet databases and prompt user to select wallet to connect to or create new one
+		return walletloader.DetectWallets(ctx)
 	}
 
-	// using drlibwallet, scan PC for wallet databases and prompt user to select wallet to connect to
-	return walletloader.DetectWallets(ctx)
+	// attempt rpc connection at `cfg.WalletRPCServer`
+	rpcWalletMiddleware, rpcConnectionError := dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert,
+		cfg.NoWalletRPCTLS)
+	if rpcConnectionError != nil {
+		return nil, rpcConnectionError
+	}
+
+	// confirm that this rpc connection has a wallet created for it
+	walletExists, walletCheckError := rpcWalletMiddleware.WalletExists()
+	if walletCheckError != nil {
+		return nil, fmt.Errorf("\nError checking if wallet has been created with dcrwallet previously.")
+	}
+	if !walletExists {
+		return nil, fmt.Errorf("\nWallet has not been created with dcrwallet daemon.")
+	}
+
+	return rpcWalletMiddleware, nil
 }
 
 func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
