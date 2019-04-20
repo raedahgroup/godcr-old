@@ -9,15 +9,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
-type SyncStatus uint8
-
-const (
-	SyncStatusNotStarted SyncStatus = iota
-	SyncStatusSuccess
-	SyncStatusError
-	SyncStatusInProgress
-)
-
 const (
 	// standard decred min confirmations is 2, this should be used as default for wallet operations
 	DefaultRequiredConfirmations = 2
