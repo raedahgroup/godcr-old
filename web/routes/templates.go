@@ -3,9 +3,12 @@ package routes
 import (
 	"fmt"
 	"html/template"
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -41,6 +44,28 @@ func templateFuncMap() template.FuncMap {
 		},
 		"spendableBalance": func(balance *walletcore.Balance) string {
 			return walletcore.NormalizeBalance(balance.Spendable.ToCoin())
+		},
+		"splitBalanceIntoParts": func(accounts []*walletcore.Account) []string {
+			var totalBalance float64
+			for _, account := range accounts {
+				totalBalance += account.Balance.Total.ToCoin()
+			}
+
+			balanceParts := make([]string, 3)
+			wholeNumber := int(math.Floor(totalBalance))
+			balanceParts[0] = strconv.Itoa(wholeNumber)
+
+			decimalPortion := utils.DecimalPortion(totalBalance)
+			if len(decimalPortion) == 0 {
+				balanceParts[0] += " DCR"
+			} else if len(decimalPortion) <= 2 {
+				balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
+			} else {
+				balanceParts[1] = fmt.Sprintf(".%s", decimalPortion[0:2])
+				balanceParts[2] = fmt.Sprintf("%s DCR", decimalPortion[2:])
+			}
+
+			return balanceParts
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {

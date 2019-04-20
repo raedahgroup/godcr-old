@@ -52,16 +52,19 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	req.ParseForm()
-	showDetails := req.FormValue("detailed") != ""
 
 	data := map[string]interface{}{
 		"accounts": accounts,
-		"detailed": showDetails,
 	}
 
 	txns, _, err := routes.walletMiddleware.TransactionHistory(routes.ctx, -1, 5)
 	if err != nil {
 		data["loadTransactionErr"] = fmt.Sprintf("Error fetching recent activity: %s", err.Error())
+	}
+
+	// make sure the transactions are not more than 5
+	if len(txns) > 5 {
+		txns = txns[0:5]
 	}
 	data["transactions"] = txns
 
