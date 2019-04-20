@@ -17,12 +17,15 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		SetBordersColor(helpers.DecredLightBlueColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
+	
+	menuColumn := primitives.NewList()
 
 	var activePage tview.Primitive
 
 	// displayPage sets the currently active page to be displayed on the second column of the grid layout
 	displayPage := func(page tview.Primitive) {
 		gridLayout.RemoveItem(activePage)
+		menuColumn.ShowShortcut(false)
 		activePage = page
 		gridLayout.AddItem(activePage, 2, 2, 1, 1, 0, 0, true)
 	}
@@ -30,47 +33,47 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	hintTextView := primitives.WordWrappedTextView("")
 	hintTextView.SetTextColor(helpers.HintTextColor)
 
-	menuColumn := tview.NewList()
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
 		hintTextView.SetText("")
 		tviewApp.Draw()
+		menuColumn.ShowShortcut(true)
 		tviewApp.SetFocus(menuColumn)
 	}
 
-	menuColumn.AddItem("Overview", "", 0, func() {
+	menuColumn.AddItem("Overview", "", 'o', func() {
 		displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 	})
 
-	menuColumn.AddItem("History", "", 0, func() {
+	menuColumn.AddItem("History", "", 'h', func() {
 		displayPage(historyPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 	})
 
-	menuColumn.AddItem("Send", "", 0, func() {
+	menuColumn.AddItem("Send", "", 's', func() {
 		displayPage(sendPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Receive", "", 0, func() {
+	menuColumn.AddItem("Receive", "", 'r', func() {
 		displayPage(receivePage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Staking", "", 0, func() {
+	menuColumn.AddItem("Staking", "", 'k', func() {
 		displayPage(stakingPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Accounts", "", 0, func() {
+	menuColumn.AddItem("Accounts", "", 'a', func() {
 		displayPage(accountsPage(tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Security", "", 0, func() {
+	menuColumn.AddItem("Security", "", 'u', func() {
 		displayPage(securityPage(tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Settings", "", 0, func() {
+	menuColumn.AddItem("Settings", "", 't', func() {
 		displayPage(settingsPage(tviewApp.SetFocus, clearFocus))
 	})
 
-	menuColumn.AddItem("Exit", "", 0, func() {
+	menuColumn.AddItem("Exit", "", 'e', func() {
 		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
 	})
 
@@ -90,7 +93,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn.SetDoneFunc(func() {
 		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
 	})
-
+	
 	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 
 	return gridLayout

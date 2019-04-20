@@ -1,8 +1,6 @@
 package pages
 
-import (
-	"github.com/rivo/tview"
-)
+import "github.com/rivo/tview"
 
 func exitPage(tviewApp *tview.Application, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	body := tview.NewModal().
