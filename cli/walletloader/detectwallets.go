@@ -36,13 +36,13 @@ func DetectWallets(ctx context.Context, cfg *config.Config) (*dcrlibwallet.DcrWa
 	var selectedWallet *config.WalletInfo
 	validateWalletSelection := func(selection string) error {
 		selectedIndex, err := strconv.Atoi(selection)
-		if err != nil || selectedIndex < 1 || selectedIndex > len(allDetectedWallets) + 1 {
+		if err != nil || selectedIndex < 1 || selectedIndex > len(allDetectedWallets)+1 {
 			return fmt.Errorf("invalid selection, select a number between 1 and %d",
-				len(allDetectedWallets) + 1)
+				len(allDetectedWallets)+1)
 		}
 
 		if selectedIndex <= len(allDetectedWallets) {
-			selectedWallet = allDetectedWallets[selectedIndex - 1]
+			selectedWallet = allDetectedWallets[selectedIndex-1]
 		}
 
 		return nil

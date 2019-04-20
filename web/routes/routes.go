@@ -13,7 +13,7 @@ import (
 
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
-	walletMiddleware   app.WalletMiddleware
+	walletMiddleware app.WalletMiddleware
 	//walletExists       bool
 	templates          map[string]*template.Template
 	syncProgressReport *defaultsynclistener.ProgressReport
@@ -35,7 +35,7 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 		syncProgressReport: defaultsynclistener.InitProgressReport(),
 		ctx:                ctx,
 		//walletExists:       walletExists,
-		settings:           settings,
+		settings: settings,
 	}
 
 	routes.loadTemplates()

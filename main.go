@@ -17,11 +17,11 @@ import (
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 	"github.com/raedahgroup/godcr/fyne"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal"
 	"github.com/raedahgroup/godcr/web"
-	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
 // triggered after program execution is complete or if interrupt signal is received
