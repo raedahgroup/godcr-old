@@ -15,34 +15,35 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
-	seed, err := routes.walletMiddleware.GenerateNewWalletSeed()
-	if err != nil {
-		routes.renderError(fmt.Sprintf("Error generating seed for new wallet: %s", err.Error()), res)
-		return
-	}
-
-	data := map[string]interface{}{"Seed": seed}
-	routes.renderPage("createwallet.html", data, res)
-}
-
-func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
-	req.ParseForm()
-	seed := req.FormValue("seed")
-	passhprase := req.FormValue("password")
-
-	err := routes.walletMiddleware.CreateWallet(passhprase, seed)
-	if err != nil {
-		routes.renderError(fmt.Sprintf("Error creating wallet: %s", err.Error()), res)
-		return
-	}
-
-	// wallet created successfully, wallet is now open, perform first sync
-	routes.walletExists = true
-	routes.syncBlockChain()
-
-	http.Redirect(res, req, "/", 303)
-}
+// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this code
+//func (routes *Routes) createWalletPage(res http.ResponseWriter, req *http.Request) {
+//	seed, err := routes.walletMiddleware.GenerateNewWalletSeed()
+//	if err != nil {
+//		routes.renderError(fmt.Sprintf("Error generating seed for new wallet: %s", err.Error()), res)
+//		return
+//	}
+//
+//	data := map[string]interface{}{"Seed": seed}
+//	routes.renderPage("createwallet.html", data, res)
+//}
+//
+//func (routes *Routes) createWallet(res http.ResponseWriter, req *http.Request) {
+//	req.ParseForm()
+//	seed := req.FormValue("seed")
+//	passhprase := req.FormValue("password")
+//
+//	err := routes.walletMiddleware.CreateWallet(passhprase, seed)
+//	if err != nil {
+//		routes.renderError(fmt.Sprintf("Error creating wallet: %s", err.Error()), res)
+//		return
+//	}
+//
+//	// wallet created successfully, wallet is now open, perform first sync
+//	routes.walletExists = true
+//	routes.syncBlockChain()
+//
+//	http.Redirect(res, req, "/", 303)
+//}
 
 func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)

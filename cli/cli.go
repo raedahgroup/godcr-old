@@ -44,11 +44,12 @@ func Run(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *
 
 	// if no command is passed but --sync flag was passed, perform sync operation and return
 	if noCommandPassed && configWithCommands.CliOptions.SyncBlockchain {
+		// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
 		// first check if wallet exists before attempting to sync
-		walletExists, err := walletMiddleware.WalletExists()
-		if err != nil || !walletExists {
-			return err
-		}
+		//walletExists, err := walletMiddleware.WalletExists()
+		//if err != nil || !walletExists {
+		//	return err
+		//}
 		return walletloader.SyncBlockChain(ctx, walletMiddleware)
 	} else if noCommandPassed {
 		listCommands()

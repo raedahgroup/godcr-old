@@ -13,16 +13,15 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/help"
-	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
 	"github.com/raedahgroup/godcr/cli"
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
-	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 	"github.com/raedahgroup/godcr/fyne"
 	"github.com/raedahgroup/godcr/nuklear"
 	"github.com/raedahgroup/godcr/terminal"
 	"github.com/raedahgroup/godcr/web"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
 // triggered after program execution is complete or if interrupt signal is received
@@ -96,7 +95,8 @@ func main() {
 	// open connection to wallet and add wallet close function to shutdownOps
 	walletMiddleware, err := connectToWallet(ctx, appConfig)
 	if err != nil {
-		fmt.Printf("Failed to connect to wallet: %s. Exiting.\n", err.Error())
+		fmt.Fprintln(os.Stderr, "Failed to connect to wallet.", err.Error())
+		fmt.Println("Exiting.")
 		os.Exit(1)
 	}
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
@@ -176,38 +176,8 @@ func connectToWallet(ctx context.Context, cfg *config.Config) (walletMiddleware 
 		return dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	}
 
-	walletInfo := config.DefaultWallet(cfg.Wallets)
-	if walletInfo == nil {
-		// no default wallet, ask if to trigger detect command to discover existing wallets or to create new wallet
-		walletInfo, err = detectOrCreateWallet(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if walletInfo == nil {
-			os.Exit(1)
-		}
-	}
-
-	return dcrlibwallet.Connect(ctx, walletInfo)
-}
-
-func detectOrCreateWallet(ctx context.Context) (*config.WalletInfo, error) {
-	promptToDetect := "No wallet to connect to. Do you want to detect and connect to existing wallets?"
-	detectWallet, err := terminalprompt.RequestYesNoConfirmation(promptToDetect, "y")
-	if err != nil {
-		return nil, fmt.Errorf("error reading your input: %s", err.Error())
-	}
-
-	if detectWallet {
-		wallets, err := commands.DetectWallets(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		return config.DefaultWallet(wallets), nil
-	}
-
-	return nil, nil
+	// using drlibwallet, scan PC for wallet databases and prompt user to select wallet to connect to
+	return walletloader.DetectWallets(ctx)
 }
 
 func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {

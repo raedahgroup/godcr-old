@@ -61,13 +61,14 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.standalonePages[page.name] = page.handler
 	}
 
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		return err
-	}
-	if !walletExists {
-		desktop.currentPage = "createwallet"
-	}
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
+	//walletExists, err := walletMiddleware.WalletExists()
+	//if err != nil {
+	//	return err
+	//}
+	//if !walletExists {
+	//	desktop.currentPage = "createwallet"
+	//}
 
 	// draw master window
 	masterWindow.Main()

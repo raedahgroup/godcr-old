@@ -24,10 +24,11 @@ func CommandRequiresWallet(command flags.Commander) bool {
 
 // prepareWallet ensures a wallet exists that be used and performs sync operations if requested
 func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options config.CliOptions) (walletExists bool, err error) {
-	walletExists, err = middleware.WalletExists()
-	if err != nil || !walletExists {
-		return
-	}
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
+	//walletExists, err = middleware.WalletExists()
+	//if err != nil || !walletExists {
+	//	return
+	//}
 
 	if options.SyncBlockchain {
 		err = walletloader.SyncBlockChain(ctx, middleware)

@@ -30,10 +30,11 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			}
 		}()
 
-		if !routes.walletExists {
-			routes.renderNoWalletError(res)
-			return
-		}
+		// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
+		//if !routes.walletExists {
+		//	routes.renderNoWalletError(res)
+		//	return
+		//}
 
 		if !routes.walletMiddleware.IsWalletOpen() {
 			errMsg = "Wallet is not open. Restart the server"

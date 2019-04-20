@@ -56,17 +56,21 @@ func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) 
 
 	this.mainWindow = this.NewWindow(godcrApp.DisplayName)
 
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
 	// if there's no wallet, show create wallet window and trigger the sync operation after a wallet is created
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		return err
-	}
-	if !walletExists {
-		this.showCreateWalletWindow()
-	} else {
-		// begin sync, main window content will be displayed after sync completes
-		this.showSyncWindow()
-	}
+	//walletExists, err := walletMiddleware.WalletExists()
+	//if err != nil {
+	//	return err
+	//}
+	//if !walletExists {
+	//	this.showCreateWalletWindow()
+	//} else {
+	//	// begin sync, main window content will be displayed after sync completes
+	//	this.showSyncWindow()
+	//}
+
+	// begin sync, main window content will be displayed after sync completes
+	this.showSyncWindow()
 
 	this.listenForWindowResizeEvents()
 
