@@ -16,7 +16,7 @@ import (
 // User is prompted to select the network type for the wallet to be created.
 // If no wallet for that type already exist, user is asked to provide a private passphrase for the wallet.
 // After which, a new wallet seed is generated and shown to the user and user is asked to save the wallet seed.
-func createWallet(ctx context.Context) (dcrlibwalletMiddleware *dcrlibwallet.DcrWalletLib, err error) {
+func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddleware *dcrlibwallet.DcrWalletLib, err error) {
 	newWalletNetwork, err := requestNetworkTypeForNewWallet()
 	if err != nil {
 		return
@@ -46,11 +46,20 @@ func createWallet(ctx context.Context) (dcrlibwalletMiddleware *dcrlibwallet.Dcr
 	}
 	fmt.Printf("Decred %s wallet created successfully.\n", dcrlibwalletMiddleware.NetType())
 
-	// sync blockchain?
-	syncBlockchainPrompt := "Would you like to sync the blockchain now?"
-	syncBlockchain, err := terminalprompt.RequestYesNoConfirmation(syncBlockchainPrompt, "Y")
-	if err != nil {
-		return dcrlibwalletMiddleware, fmt.Errorf("\nError reading your response: %s.", err.Error())
+	var syncBlockchain bool
+
+	if cfg.InterfaceMode != "cli" {
+		// do not attempt to sync on cli if the user requested a different interface to be launched
+		syncBlockchain = false
+	} else if cfg.SyncBlockchain {
+		// no need to ask user if to sync since `--sync` was already specified
+		syncBlockchain = true
+	} else {
+		syncBlockchainPrompt := "Would you like to sync the blockchain now?"
+		syncBlockchain, err = terminalprompt.RequestYesNoConfirmation(syncBlockchainPrompt, "Y")
+		if err != nil {
+			return dcrlibwalletMiddleware, fmt.Errorf("\nError reading your response: %s.", err.Error())
+		}
 	}
 
 	if !syncBlockchain {

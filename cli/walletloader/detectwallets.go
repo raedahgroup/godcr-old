@@ -15,7 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
-func DetectWallets(ctx context.Context) (*dcrlibwallet.DcrWalletLib, error) {
+func DetectWallets(ctx context.Context, cfg *config.Config) (*dcrlibwallet.DcrWalletLib, error) {
 	var allDetectedWallets []*config.WalletInfo
 	for _, walletDir := range app.DecredWalletDbDirectories() {
 		detectedWallets, err := findWalletsInDirectory(walletDir.Path, walletDir.Source)
@@ -60,7 +60,7 @@ func DetectWallets(ctx context.Context) (*dcrlibwallet.DcrWalletLib, error) {
 	}
 
 	// user chose to create new wallet
-	return createWallet(ctx)
+	return createWallet(ctx, cfg)
 }
 
 func findWalletsInDirectory(walletDir, walletSource string) (wallets []*config.WalletInfo, err error) {

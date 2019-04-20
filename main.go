@@ -175,7 +175,7 @@ func connectToWallet(ctx context.Context, cfg *config.Config) (walletMiddleware 
 	if cfg.WalletRPCServer == "" {
 		// use drlibwallet
 		// scan PC for wallet databases and prompt user to select wallet to connect to or create new one
-		return walletloader.DetectWallets(ctx)
+		return walletloader.DetectWallets(ctx, cfg)
 	}
 
 	// attempt rpc connection at `cfg.WalletRPCServer`
