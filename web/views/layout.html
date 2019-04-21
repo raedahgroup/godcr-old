@@ -26,23 +26,21 @@
         <div class="inner">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-4">
-                        <img src="/static/images/logo.png" class="img img-fluid">
-                        <span data-target="connection-info.networkType">{{ .NetworkType }}</span>
+                    <div class="col-md-2">
+                        <img src="/static/images/logo.png" class="img img-fluid" style="height: 32px;">
+                        <span data-target="connection-info.networkType" style="font-size:22px">{{ .NetworkType }}</span>
                     </div>
-                    <div class="col-md-3 mt-lg-4">
+                    <div class="col-md-8 mt-lg-6">
                         <div class="text-center">
                             <h3>GoDCR</h3>
+                            <p class="mb-0">
+                                <span class="d-none">Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
+                                | </span>Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
+                                | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
+                            </p>
                             <!-- block rescan progress display, ideally entire blockchain sync progress should persist on all pages like this -->
                             <p id="blocks-rescan-progress" class="mb-0 d-none" data-target="connection-info.blockScanProgress"></p>
                         </div>
-                    </div>
-                    <div class="col-md-5 mt-lg-4 pt-1">
-                        <p class="mb-0 text-right">
-                            Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
-                            | Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
-                            | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
-                        </p>
                     </div>
                 </div>
             </div>
