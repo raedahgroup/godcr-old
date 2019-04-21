@@ -17,7 +17,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		SetBordersColor(helpers.DecredLightBlueColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-
+	
 	menuColumn := primitives.NewList()
 
 	var activePage tview.Primitive
@@ -26,6 +26,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	displayPage := func(page tview.Primitive) {
 		gridLayout.RemoveItem(activePage)
 		menuColumn.ShowShortcut(false)
+		menuColumn.SetMainTextColor(helpers.HintTextColor)
 		activePage = page
 		gridLayout.AddItem(activePage, 2, 2, 1, 1, 0, 0, true)
 	}
@@ -35,6 +36,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 
 	clearFocus := func() {
 		gridLayout.RemoveItem(activePage)
+		menuColumn.SetMainTextColor(tcell.ColorWhite)
 		hintTextView.SetText("")
 		tviewApp.Draw()
 		menuColumn.ShowShortcut(true)
