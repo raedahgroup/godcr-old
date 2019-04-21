@@ -137,17 +137,17 @@ export default class extends Controller {
         if (!result.valid) {
           addressErrorTarget.textContent = result.error ? result.error : 'Invalid address'
           amountTarget.parentElement.style.marginBottom = '20px'
-          sendMaxTarget.parentElement.style.marginBottom = '20px'
+          sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
           return
         }
         addressErrorTarget.textContent = ''
         amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.style.marginBottom = ''
+        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
       })
       .catch(() => {
         addressErrorTarget.textContent = 'Cannot validate address. You can continue if you are sure'
         amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.style.marginBottom = ''
+        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
       })
   }
 
