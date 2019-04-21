@@ -25,24 +25,24 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th>Date</th>
+                            <th>Type</th>
                             <th>Direction</th>
                             <th>Amount</th>
                             <th>Fee</th>
-                            <th>Type</th>
+                            <th>Status</th>
                             <th>Hash</th>
                         </tr>
                     </thead>
                     <tbody data-target="history.historyTable">
                         {{ range $index, $txn := .txs }}
                         <tr>
-                            <td>{{ intSum $.startTxCount $index 1 }}</td>
-                            <td>{{ $txn.FormattedTime }}</td>
-                            <td>{{ $txn.Direction }}</td>
-                            <td style="text-align: right">{{ $txn.Amount }}</td>
-                            <td style="text-align: right">{{ $txn.Fee }}</td>
+                            <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
+                            <td>{{ $txn.Direction }}</td>
+                            <td style="text-align: right">{{ amountDcr $txn.Amount }}</td>
+                            <td style="text-align: right">{{ amountDcr $txn.Fee }}</td>
+                            <td>{{ $txn.Status }}</td>
                             <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ $txn.Hash }}</a></td>
                         </tr>
                         {{ end }}
@@ -63,13 +63,20 @@
 
                 <div data-target="history.errorMessage" class="alert alert-danger d-none"></div>
 
-                {{ if .nextBlockHeight }}
-                    <a href="/history?start={{ .nextBlockHeight }}&last-count={{ .lastTxCount }}" class="btn btn-primary"
-                       data-target="history.nextPageButton" data-next-block-height="{{ .nextBlockHeight }}">
-                        Next Page
-                    </a>
-                    {{ template "loading-indicator" "history" }}
-                {{ end }}
+            {{ template "loading-indicator" "history" }}
+
+                <a href="/history?page={{ .previousPage }}" data-target="history.previousPageButton"
+                   class="mr-2 {{ if lt .previousPage 1 }}d-none{{ end }}">
+                    &lt; Previous
+                </a>
+
+                <span data-target="history.pageReport" class="text-muted">Page {{ .currentPage }} of {{ .totalPages }}</span>
+
+                <a href="/history?page={{ .nextPage }}" data-target="history.nextPageButton"
+                    data-next-page="{{ .nextPage }}" class="ml-2 {{ if not .nextPage }}d-none{{ end }}">
+                    Next &gt;
+                </a>
+
             </div>
         </div>
     </div>

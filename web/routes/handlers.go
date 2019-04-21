@@ -13,6 +13,7 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
+	"math"
 )
 
 // todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this code
@@ -58,14 +59,9 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 		"accounts": accounts,
 	}
 
-	txns, _, err := routes.walletMiddleware.TransactionHistory(routes.ctx, -1, 5)
+	txns, err := routes.walletMiddleware.TransactionHistory(0, 5, nil)
 	if err != nil {
 		data["loadTransactionErr"] = fmt.Sprintf("Error fetching recent activity: %s", err.Error())
-	}
-
-	// make sure the transactions are not more than 5
-	if len(txns) > 5 {
-		txns = txns[0:5]
 	}
 	data["transactions"] = txns
 
@@ -268,33 +264,41 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	req.ParseForm()
-	start := req.FormValue("start")
-
-	startBlockHeight, err := strconv.ParseInt(start, 10, 32)
-	if err != nil || startBlockHeight < 0 {
-		startBlockHeight = -1
+	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	if txCountErr != nil {
+		routes.renderError(fmt.Sprintf("Cannot load history page. "+
+			"Error getting total transaction count: %s", txCountErr.Error()), res)
+		return
 	}
 
-	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight),
-		walletcore.TransactionHistoryCountPerPage)
+	req.ParseForm()
+	page := req.FormValue("page")
+
+	pageToLoad, err := strconv.ParseInt(page, 10, 32)
+	if err != nil || pageToLoad < 0 {
+		pageToLoad = 1
+	}
+
+	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
+	offset := (int32(pageToLoad) - 1) * txPerPage
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
 	if err != nil {
 		routes.renderError(fmt.Sprintf("Error fetching history: %s", err.Error()), res)
 		return
 	}
 
-	lastCount := req.FormValue("last-count")
-	lastTxCount, _ := strconv.ParseInt(lastCount, 10, 32)
-
 	data := map[string]interface{}{
 		"txs":          txns,
-		"startTxCount": int(lastTxCount),
-		"lastTxCount":  int(lastTxCount) + len(txns),
+		"currentPage":  int(pageToLoad),
+		"previousPage": int(pageToLoad - 1),
+		"totalPages":   int(math.Ceil(float64(txCount) / float64(txPerPage))),
 	}
 
-	if endBlockHeight > 0 {
-		data["nextBlockHeight"] = endBlockHeight - 1
+	totalTxLoaded := int(offset) + len(txns)
+	if totalTxLoaded < txCount {
+		data["nextPage"] = int(pageToLoad + 1)
 	}
+
 	routes.renderPage("history.html", data, res)
 }
 
@@ -302,25 +306,41 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	req.ParseForm()
-	start := req.FormValue("start")
-	startBlockHeight, err := strconv.ParseInt(start, 10, 32)
-	if err != nil {
+	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	if txCountErr != nil {
 		data["success"] = false
-		data["message"] = "Invalid start block parameter"
+		data["message"] = fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s",
+			txCountErr.Error())
 		return
 	}
 
-	txns, endBlockHeight, err := routes.walletMiddleware.TransactionHistory(routes.ctx, int32(startBlockHeight),
-		walletcore.TransactionHistoryCountPerPage)
+	req.ParseForm()
+	page := req.FormValue("page")
+
+	pageToLoad, err := strconv.ParseInt(page, 10, 32)
+	if err != nil || pageToLoad < 0 {
+		data["success"] = false
+		data["message"] = "Invalid page parameter"
+		return
+	}
+
+	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
+	offset := (int32(pageToLoad) - 1) * txPerPage
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
+
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
 	} else {
 		data["success"] = true
 		data["txs"] = txns
-		if endBlockHeight > 0 {
-			data["nextBlockHeight"] = endBlockHeight - 1
+		data["currentPage"] = int(pageToLoad)
+		data["previousPage"] = int(pageToLoad - 1)
+		data["totalPages"] = int(math.Ceil(float64(txCount) / float64(txPerPage)))
+
+		totalTxLoaded := int(offset) + len(txns)
+		if totalTxLoaded < txCount {
+			data["nextPage"] = int(pageToLoad + 1)
 		}
 	}
 }
@@ -334,8 +354,20 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 		return
 	}
 
+	// parse tx outputs accounts
+	outputsAccountNames := make([]string, len(tx.Outputs))
+	for i, txOut := range tx.Outputs {
+		accountForOutputAddress, err := routes.walletMiddleware.AddressInfo(txOut.Address)
+		if err != nil || !accountForOutputAddress.IsMine {
+			outputsAccountNames[i] = "external"
+		} else {
+			outputsAccountNames[i] = accountForOutputAddress.AccountName
+		}
+	}
+
 	data := map[string]interface{}{
-		"tx": tx,
+		"tx":                  tx,
+		"outputsAccountNames": outputsAccountNames,
 	}
 	routes.renderPage("transaction_details.html", data, res)
 }

@@ -5,11 +5,8 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
-	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func (c *WalletRPCClient) unspentOutputStream(account uint32, targetAmount int64, requiredConfirmations int32) (walletrpc.WalletService_UnspentOutputsClient, error) {
@@ -55,46 +52,54 @@ func (c *WalletRPCClient) signAndPublishTransaction(serializedTx []byte, passphr
 	return transactionHash.String(), nil
 }
 
-func processTransaction(txDetail *walletrpc.TransactionDetails, status string) (*walletcore.Transaction, error) {
-	hash, err := chainhash.NewHash(txDetail.Hash)
-	if err != nil {
-		return nil, err
+func (c *WalletRPCClient) decodeTransactionWithTxSummary(ctx context.Context, txSummary *walletrpc.TransactionDetails,
+	blockHash []byte) (*txhelper.Transaction, error) {
+
+	var blockHeight int32 = -1
+	if blockHash != nil {
+		blockInfo, err := c.walletService.BlockInfo(ctx, &walletrpc.BlockInfoRequest{BlockHash: blockHash})
+		if err == nil {
+			blockHeight = blockInfo.BlockHeight
+		}
 	}
 
-	txHex := fmt.Sprintf("%x", txDetail.Transaction)
-	_, txFee, txSize, txFeeRate, err := txhelper.MsgTxFeeSizeRate(txHex)
-	if err != nil {
-		return nil, err
+	accountName := func(accountNumber uint32) string {
+		accountName, _ := c.AccountName(accountNumber)
+		return accountName
 	}
 
-	amount, direction := transactionAmountAndDirection(txDetail)
-
-	tx := &walletcore.Transaction{
-		Hash:          hash.String(),
-		Amount:        dcrutil.Amount(amount).String(),
-		RawAmount:     amount,
-		Fee:           txFee.String(),
-		FeeRate:       txFeeRate,
-		Type:          txhelper.RPCTransactionType(txDetail.TransactionType),
-		Direction:     direction,
-		Status:        status,
-		Timestamp:     txDetail.Timestamp,
-		FormattedTime: utils.ExtractDateOrTime(txDetail.Timestamp),
-		Size:          txSize,
-	}
-	return tx, nil
-}
-
-func transactionAmountAndDirection(txDetail *walletrpc.TransactionDetails) (int64, txhelper.TransactionDirection) {
-	var outputTotal int64
-	for _, credit := range txDetail.Credits {
-		outputTotal += int64(credit.Amount)
+	walletInputs := make([]*txhelper.WalletInput, len(txSummary.Debits))
+	for i, input := range txSummary.Debits {
+		walletInputs[i] = &txhelper.WalletInput{
+			Index:    int32(input.Index),
+			AmountIn: int64(input.PreviousAmount),
+			WalletAccount: &txhelper.WalletAccount{
+				AccountNumber: int32(input.PreviousAccount),
+				AccountName:   accountName(input.PreviousAccount),
+			},
+		}
 	}
 
-	var inputTotal int64
-	for _, debit := range txDetail.Debits {
-		inputTotal += int64(debit.PreviousAmount)
+	walletOutputs := make([]*txhelper.WalletOutput, len(txSummary.Credits))
+	for i, output := range txSummary.Credits {
+		walletOutputs[i] = &txhelper.WalletOutput{
+			Index:     int32(output.Index),
+			AmountOut: int64(output.Amount),
+			Address:   output.Address,
+			WalletAccount: &txhelper.WalletAccount{
+				AccountNumber: int32(output.Account),
+				AccountName:   accountName(output.Account),
+			},
+		}
 	}
 
-	return txhelper.TransactionAmountAndDirection(inputTotal, outputTotal, int64(txDetail.Fee))
+	walletTx := &txhelper.TxInfoFromWallet{
+		BlockHeight: blockHeight,
+		Timestamp:   txSummary.Timestamp,
+		Hex:         fmt.Sprintf("%x", txSummary.Transaction),
+		Inputs:      walletInputs,
+		Outputs:     walletOutputs,
+	}
+
+	return txhelper.DecodeTransaction(walletTx, c.activeNet.Params)
 }

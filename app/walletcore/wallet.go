@@ -5,6 +5,7 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 )
 
 // Wallet defines key functions for performing operations on a decred wallet
@@ -28,7 +29,7 @@ type Wallet interface {
 	AccountName(accountNumber uint32) (string, error)
 
 	// AddressInfo checks if an address belongs to the wallet to retrieve it's account name
-	AddressInfo(address string) (*txhelper.AddressInfo, error)
+	AddressInfo(address string) (*dcrlibwallet.AddressInfo, error)
 
 	// ValidateAddress checks if an address is valid or not
 	ValidateAddress(address string) (bool, error)
@@ -57,15 +58,28 @@ type Wallet interface {
 	// Returns the transaction hash as string if successful
 	SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error)
 
-	// TransactionHistory returns a limited number of wallet transactions
-	// starting with the provided height and fetching transactions for successive blocks
-	// until total number of transactions fetched is greater than or equal to `minReturnTxs`
-	// or all transactions have been fetched
-	TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (transactions []*Transaction, endBlockHeight int32, err error)
+	// TransactionCount returns the number of transactions in the tx index database.
+	// If `filter` is set to `nil`, all transactions are counted.
+	// Otherwise, only transactions matching the provided filter are counted.
+	// A `filter` can be created using `txIndex.Filter()`.
+	// Fields to filter can be specified using `filter.WithTxTypes(...tx types to return)`
+	// and `filter.ForDirections(...tx directions to return)`.
+	// Can combine both filters using `filter.WithTxTypes(...tx types to return).ForDirections(...tx directions to return)`.
+	TransactionCount(filter *txindex.ReadFilter) (int, error)
+
+	// TransactionHistory fetches the specified count of transactions from a tx index database,
+	// beginning at the specified offset.
+	// If `filter` is set to `nil`, all transactions are returned.
+	// Otherwise, only transactions matching the provided filter are returned.
+	// A `filter` can be created using `txIndex.Filter()`.
+	// Fields to filter can be specified using `filter.WithTxTypes(...tx types to return)`
+	// and `filter.ForDirections(...tx directions to return)`.
+	// Can combine both filters using `filter.WithTxTypes(...tx types to return).ForDirections(...tx directions to return)`.
+	TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*Transaction, error)
 
 	// GetTransaction returns information about the transaction with the given hash.
 	// An error is returned if the no transaction with the given hash is found.
-	GetTransaction(transactionHash string) (*TransactionDetails, error)
+	GetTransaction(transactionHash string) (*Transaction, error)
 
 	// StakeInfo returns information about wallet stakes, tickets and their statuses.
 	StakeInfo(ctx context.Context) (*StakeInfo, error)

@@ -30,9 +30,9 @@
                             <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Direction</th>
                                 <th>Amount</th>
                                 <th>Fee</th>
-                                <th>Direction</th>
                                 <th>Type</th>
                                 <th>Hash</th>
                             </tr>
@@ -40,10 +40,10 @@
                             <tbody>
                             {{ range $txn := .transactions }}
                             <tr>
-                                <td>{{ .FormattedTime }}</td>
-                                <td>{{ .Amount }}</td>
-                                <td>{{ .Fee }}</td>
+                                <td>{{ .ShortTime }}</td>
                                 <td>{{ .Direction }}</td>
+                                <td>{{ amountDcr .Amount }}</td>
+                                <td>{{ amountDcr .Fee }}</td>
                                 <td>{{ .Type }}</td>
                                 <td><a href="/transaction-details/{{ .Hash }}" >{{ .Hash }}</a></td>
                             </tr>

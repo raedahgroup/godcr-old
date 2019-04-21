@@ -8,6 +8,7 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"github.com/decred/dcrwallet/wallet"
 )
 
 type paginationData struct {
@@ -18,26 +19,32 @@ type paginationData struct {
 }
 
 type HistoryHandler struct {
-	fetchHistoryError      error
 	ctx                    context.Context
+	totalTxCount           int
+	txHistoryOffset        int
+	fetchHistoryError      error
 	transactions           []*walletcore.Transaction
 	isFetchingTransactions bool
-	isRendering            bool
-	paginationData         paginationData
 
 	selectedTxHash      string
-	selectedTxDetails   *walletcore.TransactionDetails
+	selectedTxDetails   *walletcore.Transaction
 	isFetchingTxDetails bool
 	fetchTxDetailsError error
 
 	wallet walletcore.Wallet
+
+	isRendering            bool
+	paginationData         paginationData
 }
 
 func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
 	// todo: caller should ideally pass a context parameter, propagated from main.go
 	handler.ctx = context.Background()
 
-	handler.wallet = wallet
+	handler.isFetchingTransactions = true
+	handler.fetchHistoryError = nil
+	handler.transactions = nil
+	handler.isRendering = false
 
 	handler.paginationData = paginationData{
 		currentPage:     0,
@@ -48,9 +55,13 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, refreshWin
 
 	handler.clearTxDetails()
 
-	handler.fetchHistoryError = nil
-	handler.transactions = nil
-	handler.isRendering = false
+	handler.wallet = wallet
+
+	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	if handler.fetchHistoryError == nil {
+		// only fetch txs if there was no error getting tx count.
+		go handler.fetchTransactions(wallet, refreshWindowDisplay)
+	}
 
 	return true
 }
@@ -68,22 +79,39 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 }
 
 func (handler *HistoryHandler) fetchTransactions(window *nucular.Window) {
-	handler.isFetchingTransactions = true
-	window.Master().Changed()
+	//handler.isFetchingTransactions = true
+	//window.Master().Changed()
+	//
+	//transactions, endBlockHeight, err := handler.wallet.TransactionHistory(handler.ctx, handler.paginationData.nextBlockHeight,
+	//	handler.paginationData.itemsPerPage)
+	//
+	//handler.fetchHistoryError = err
+	//handler.transactions = append(handler.transactions, transactions...)
+	//
+	//handler.paginationData.endBlockHeight = endBlockHeight
+	//handler.paginationData.nextBlockHeight = endBlockHeight - 1
+	//handler.paginationData.currentPage += 1
+	//
+	//window.Master().Changed()
+	//
+	//handler.isFetchingTransactions = false
 
-	transactions, endBlockHeight, err := handler.wallet.TransactionHistory(handler.ctx, handler.paginationData.nextBlockHeight,
-		handler.paginationData.itemsPerPage)
+	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
+	transactions, err := wallet.TransactionHistory(int32(handler.txHistoryOffset), txPerPage, nil)
 
+	// next start block should be the block immediately preceding the current end block
 	handler.fetchHistoryError = err
 	handler.transactions = append(handler.transactions, transactions...)
+	handler.txHistoryOffset += len(transactions)
 
-	handler.paginationData.endBlockHeight = endBlockHeight
-	handler.paginationData.nextBlockHeight = endBlockHeight - 1
-	handler.paginationData.currentPage += 1
+	refreshWindowDisplay()
 
-	window.Master().Changed()
-
-	handler.isFetchingTransactions = false
+	// load more if possible
+	if handler.txHistoryOffset < handler.totalTxCount {
+		handler.fetchTransactions(wallet, refreshWindowDisplay)
+	} else {
+		handler.isFetchingTransactions = false
+	}
 }
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
