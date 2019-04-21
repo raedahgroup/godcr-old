@@ -26,20 +26,23 @@
         <div class="inner">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <img src="/static/images/logo.png" class="img img-fluid">
+                        <span data-target="connection-info.networkType">{{ .NetworkType }}</span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3 mt-lg-4">
                         <div class="text-center">
-                            <h3>GoDCR <small data-target="connection-info.networkType">{{ .NetworkType }}</small></h3>
-                            <p class="mb-0">
-                                Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
-                                | Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
-                                | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
-                            </p>
+                            <h3>GoDCR</h3>
                             <!-- block rescan progress display, ideally entire blockchain sync progress should persist on all pages like this -->
                             <p id="blocks-rescan-progress" class="mb-0 d-none" data-target="connection-info.blockScanProgress"></p>
                         </div>
+                    </div>
+                    <div class="col-md-5 mt-lg-4 pt-1">
+                        <p class="mb-0 text-right">
+                            Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
+                            | Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
+                            | Latest Block: <b data-target="connection-info.latestBlock">{{ .LatestBlock }}</b>
+                        </p>
                     </div>
                 </div>
             </div>
