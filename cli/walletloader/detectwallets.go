@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet/utils"
@@ -13,7 +14,6 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"strings"
 )
 
 type WalletInfo struct {

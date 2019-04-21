@@ -13,9 +13,9 @@ var AppConfigFilePath = filepath.Join(DefaultAppDataDir, "godcr.conf")
 
 // ConfFileOptions holds the top-level options/flags that should be set in config file rather than in command-line
 type ConfFileOptions struct {
-	AppDataDir      string        `long:"appdata" description:"Path to application data directory."`
+	AppDataDir       string `long:"appdata" description:"Path to application data directory."`
 	DefaultWalletDir string `long:"wallet" description:"Directory of wallet to connect to by default."`
-	WalletRPCServer string        `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
+	WalletRPCServer  string `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
 	WalletRPCCert    string `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if walletrpcserver is set."`
 	NoWalletRPCTLS   bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
 	HTTPHost         string `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`

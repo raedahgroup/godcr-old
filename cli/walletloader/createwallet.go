@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/decred/dcrd/hdkeychain"
+	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"github.com/decred/dcrd/hdkeychain"
-	"github.com/decred/dcrwallet/walletseed"
 )
 
 // createWallet creates a new wallet using the dcrlibwallet WalletMiddleware.
