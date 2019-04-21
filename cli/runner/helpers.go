@@ -29,6 +29,7 @@ func prepareWallet(ctx context.Context, middleware app.WalletMiddleware, options
 	//if err != nil || !walletExists {
 	//	return
 	//}
+	walletExists = true
 
 	if options.SyncBlockchain {
 		err = walletloader.SyncBlockChain(ctx, middleware)

@@ -6,16 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"github.com/decred/dcrd/hdkeychain"
+	"github.com/decred/dcrwallet/walletseed"
 )
 
 // createWallet creates a new wallet using the dcrlibwallet WalletMiddleware.
 // User is prompted to select the network type for the wallet to be created.
 // If no wallet for that type already exist, user is asked to provide a private passphrase for the wallet.
-// After which, a new wallet seed is generated and shown to the user and user is asked to save the wallet seed.
+// After which, a new wallet seed is generated and shown to the user.
 func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddleware *dcrlibwallet.DcrWalletLib, err error) {
 	newWalletNetwork, err := requestNetworkTypeForNewWallet()
 	if err != nil {
@@ -34,7 +35,7 @@ func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlewa
 	}
 
 	// get and display new wallet seed
-	seed, err := generateNewWalletSeedAndAskUserToBackup()
+	seed, err := generateNewWalletSeedAndDisplay()
 	if err != nil {
 		return
 	}
@@ -44,26 +45,12 @@ func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlewa
 	if err != nil {
 		return nil, fmt.Errorf("\nError creating wallet: %s.", err.Error())
 	}
-	fmt.Printf("Decred %s wallet created successfully.\n", dcrlibwalletMiddleware.NetType())
+	fmt.Printf("Decred %s wallet created successfully at %s\n", dcrlibwalletMiddleware.NetType(),
+		dcrlibwalletMiddleware.WalletDbDir)
 
-	var syncBlockchain bool
-
-	if cfg.InterfaceMode != "cli" {
-		// do not attempt to sync on cli if the user requested a different interface to be launched
-		syncBlockchain = false
-	} else if cfg.SyncBlockchain {
-		// no need to ask user if to sync since `--sync` was already specified
-		syncBlockchain = true
-	} else {
-		syncBlockchainPrompt := "Would you like to sync the blockchain now?"
-		syncBlockchain, err = terminalprompt.RequestYesNoConfirmation(syncBlockchainPrompt, "Y")
-		if err != nil {
-			return dcrlibwalletMiddleware, fmt.Errorf("\nError reading your response: %s.", err.Error())
-		}
-	}
-
-	if !syncBlockchain {
-		return dcrlibwalletMiddleware, nil
+	sync, err := runInitialSync(cfg)
+	if err != nil || !sync {
+		return dcrlibwalletMiddleware, err
 	}
 
 	return dcrlibwalletMiddleware, SyncBlockChain(ctx, dcrlibwalletMiddleware)
@@ -72,22 +59,29 @@ func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlewa
 func requestNetworkTypeForNewWallet() (string, error) {
 	// this function will be called when a user responds to the prompt to specify network type for new wallet
 	checkNetworkTypeSelection := func(input string) error {
-		if strings.EqualFold(input, "mainnet") || strings.EqualFold(input, "testnet") {
+		if input == "" || // use default
+			strings.EqualFold(input, "mainnet") || strings.EqualFold(input, "m") ||
+			strings.EqualFold(input, "testnet") || strings.EqualFold(input, "t") ||
+			strings.EqualFold(input, "simnet") || strings.EqualFold(input, "s") {
 			return nil
 		}
-		return fmt.Errorf("invalid choice, please enter 'mainnet' or 'testnet'")
+		return fmt.Errorf("invalid choice, please enter 'M' or 't' or 's'")
 	}
 
 	// prompt user to select network type for new wallet
-	newWalletNetwork, err := terminalprompt.RequestInput("Which net? (mainnet, testnet)", checkNetworkTypeSelection)
+	prompt := "Which net? (M)ainnet, (t)estnet, or (s)imnet?"
+	userResponse, err := terminalprompt.RequestInput(prompt, checkNetworkTypeSelection)
 	if err != nil {
 		return "", fmt.Errorf("\nError getting network type for new wallet: %s.", err.Error())
 	}
-	if strings.EqualFold(newWalletNetwork, "testnet") {
-		newWalletNetwork = "testnet3"
+
+	if strings.EqualFold(userResponse, "testnet") || strings.EqualFold(userResponse, "t") {
+		return "testnet3", nil
+	} else if strings.EqualFold(userResponse, "simnet") || strings.EqualFold(userResponse, "s") {
+		return "simnet", nil
 	}
 
-	return newWalletNetwork, nil
+	return "mainnet", nil
 }
 
 // prepareMiddlewareToCreateNewWallet reads appdata dir from godcr.conf to use as wallet db dir.
@@ -111,7 +105,7 @@ func prepareMiddlewareToCreateNewWallet(ctx context.Context, newWalletNetwork st
 	}
 	if walletExists {
 		netType := strings.Title(walletMiddleware.NetType())
-		return nil, fmt.Errorf("\n%s wallet already exist at %s.", netType, walletDbDir)
+		return nil, fmt.Errorf("\n%s wallet already exist at %s", netType, walletDbDir)
 	}
 
 	return walletMiddleware, nil
@@ -139,9 +133,9 @@ func requestNewWalletPassphrase() (string, error) {
 	}
 }
 
-func generateNewWalletSeedAndAskUserToBackup() (string, error) {
+func generateNewWalletSeedAndDisplay() (string, error) {
 	// generate seed
-	seed, err := utils.GenerateSeed()
+	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
 	if err != nil {
 		return "", fmt.Errorf("\nError generating seed for new wallet: %s.", err)
 	}
@@ -149,36 +143,32 @@ func generateNewWalletSeedAndAskUserToBackup() (string, error) {
 	// display seed
 	fmt.Println("Your wallet generation seed is:")
 	fmt.Println("-------------------------------")
-	seedWords := strings.Split(seed, " ")
+	seedWords := strings.Split(walletseed.EncodeMnemonic(seed), " ")
 	for i, word := range seedWords {
-		fmt.Printf("%s ", word)
+		fmt.Printf("(%d)%s ", i+1, word)
+	}
+	fmt.Printf("\nHex: %x\n", seed)
+	fmt.Println("-------------------------------")
 
-		if (i+1)%6 == 0 {
-			fmt.Printf("\n")
+	return walletseed.EncodeMnemonic(seed), nil
+}
+
+func runInitialSync(cfg *config.Config) (bool, error) {
+	if cfg.InterfaceMode != "cli" {
+		// do not attempt to sync on cli if the user requested a different interface to be launched
+		// all other interfaces perform sync on launch
+		return false, nil
+	}
+
+	if cfg.SyncBlockchain {
+		// no need to ask user if to sync since `--sync` was already specified
+		return true, nil
+	} else {
+		syncBlockchainPrompt := "Would you like to sync the blockchain now?"
+		syncBlockchain, err := terminalprompt.RequestYesNoConfirmation(syncBlockchainPrompt, "Y")
+		if err != nil {
+			return false, fmt.Errorf("\nError reading your response: %s.", err.Error())
 		}
+		return syncBlockchain, nil
 	}
-	fmt.Println("\n-------------------------------")
-	fmt.Println("IMPORTANT: Keep the seed in a safe place as you will NOT be able to restore your wallet without it.")
-	fmt.Println("Please keep in mind that anyone who has access to the seed can also restore your wallet thereby " +
-		"giving them access to all your funds, so it is imperative that you keep it in a secure location.")
-
-	// ask user to back seed up
-	// this function should only return after user backs up,
-	// or if there's an error reading user's response to the "have you backed up?" question
-	backupPrompt := `Enter "OK" to continue. This assumes you have stored the seed in a safe and secure location`
-	backupValidator := func(userResponse string) error {
-		userResponse = strings.TrimSpace(userResponse)
-		userResponse = strings.Trim(userResponse, `"`)
-		if strings.EqualFold("OK", userResponse) {
-			return nil
-		} else {
-			return fmt.Errorf("invalid response, try again")
-		}
-	}
-	_, err = terminalprompt.RequestInput(backupPrompt, backupValidator)
-	if err != nil {
-		return "", fmt.Errorf("\nError reading your response: %s.", err.Error())
-	}
-
-	return seed, nil
 }
