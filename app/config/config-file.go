@@ -9,7 +9,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 )
 
-var AppConfigFilePath = filepath.Join(DefaultAppDataDir, "godcr.conf")
+var AppConfigFilePath = filepath.Join(defaultAppDataDir, "godcr.conf")
 
 // ConfFileOptions holds the top-level options/flags that should be set in config file rather than in command-line
 type ConfFileOptions struct {
@@ -34,7 +34,7 @@ type Settings struct {
 
 func defaultFileOptions() ConfFileOptions {
 	return ConfFileOptions{
-		AppDataDir:    DefaultAppDataDir,
+		AppDataDir:    defaultAppDataDir,
 		WalletRPCCert: defaultRPCCertFile,
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,
@@ -53,7 +53,7 @@ func createConfigFile() (successful bool) {
 			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
 			return
 		}
-		err = os.Mkdir(DefaultAppDataDir, os.ModePerm)
+		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
 			return

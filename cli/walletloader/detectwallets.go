@@ -49,8 +49,18 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 	// returns nil if the directory used does not correspond to a known/supported network type
 	detectNetParams := func(path string) *netparams.Params {
 		walletDbDir := filepath.Dir(path)
-		netType := filepath.Base(walletDbDir)
-		return utils.NetParams(netType)
+		dirName := filepath.Base(walletDbDir)
+
+		// check if folder name starts with any of the supported nettypes
+		if strings.Index(dirName, "mainnet") == 0 {
+			return utils.NetParams("mainnet")
+		} else if strings.Index(dirName, "testnet3") == 0 {
+			return utils.NetParams("testnet3")
+		} else if strings.Index(dirName, "simnet") == 0 {
+			return utils.NetParams("simnet")
+		}
+
+		return nil
 	}
 
 	err = filepath.Walk(walletDir, func(path string, file os.FileInfo, err error) error {

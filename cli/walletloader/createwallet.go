@@ -10,7 +10,10 @@ import (
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"math"
+	"os"
 )
 
 // createWallet creates a new wallet using the dcrlibwallet WalletMiddleware.
@@ -45,8 +48,8 @@ func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlewa
 	if err != nil {
 		return nil, fmt.Errorf("\nError creating wallet: %s.", err.Error())
 	}
-	fmt.Printf("Decred %s wallet created successfully at %s\n", dcrlibwalletMiddleware.NetType(),
-		dcrlibwalletMiddleware.WalletDbDir)
+	fmt.Printf("Decred %s wallet created successfully at\n", dcrlibwalletMiddleware.NetType())
+	fmt.Println(dcrlibwalletMiddleware.WalletDbDir)
 
 	sync, err := runInitialSync(cfg)
 	if err != nil || !sync {
@@ -69,7 +72,7 @@ func requestNetworkTypeForNewWallet() (string, error) {
 	}
 
 	// prompt user to select network type for new wallet
-	prompt := "Which net? (M)ainnet, (t)estnet, or (s)imnet?"
+	prompt := "Which net? (M)ainnet, (t)estnet, or (s)imnet? [M]"
 	userResponse, err := terminalprompt.RequestInput(prompt, checkNetworkTypeSelection)
 	if err != nil {
 		return "", fmt.Errorf("\nError getting network type for new wallet: %s.", err.Error())
@@ -86,29 +89,30 @@ func requestNetworkTypeForNewWallet() (string, error) {
 
 // prepareMiddlewareToCreateNewWallet reads appdata dir from godcr.conf to use as wallet db dir.
 // Also ensures that a wallet of the specified type does not already exist in the appdata dir.
+// If it exists, a new directory is created to hold the new wallet.
 func prepareMiddlewareToCreateNewWallet(ctx context.Context, newWalletNetwork string) (*dcrlibwallet.DcrWalletLib, error) {
 	// get appdata dir from config to place new wallet into
 	cfg, err := config.ReadConfigFile()
 	if err != nil {
 		return nil, fmt.Errorf("\nError reading config file to determine directory to place new wallet: %s.", err.Error())
 	}
-	walletDbDir := filepath.Join(cfg.AppDataDir, newWalletNetwork)
-	walletMiddleware, err := dcrlibwallet.Connect(ctx, walletDbDir, newWalletNetwork)
-	if err != nil {
-		return nil, err
+
+	// find a suitable, unused dir to place new wallet
+	var walletDbDir string
+	networkDir := newWalletNetwork
+	networkDirSuffix := 0
+	for {
+		walletDbDir = filepath.Join(cfg.AppDataDir, networkDir)
+		_, err := os.Stat(walletDbDir)
+		if err != nil && os.IsNotExist(err) {
+			break
+		}
+
+		networkDirSuffix++
+		networkDir = fmt.Sprintf("%s-%d", newWalletNetwork, networkDirSuffix)
 	}
 
-	// check if wallet already exists for selected network type
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		return nil, fmt.Errorf("\nError checking if %s wallet already exist: %s.", walletMiddleware.NetType(), err.Error())
-	}
-	if walletExists {
-		netType := strings.Title(walletMiddleware.NetType())
-		return nil, fmt.Errorf("\n%s wallet already exist at %s", netType, walletDbDir)
-	}
-
-	return walletMiddleware, nil
+	return dcrlibwallet.Connect(ctx, walletDbDir, newWalletNetwork)
 }
 
 // requestNewWalletPassphrase asks user to enter private passphrase for new wallet twice.
@@ -139,18 +143,34 @@ func generateNewWalletSeedAndDisplay() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("\nError generating seed for new wallet: %s.", err)
 	}
+	seedWords := walletseed.EncodeMnemonic(seed)
 
 	// display seed
 	fmt.Println("Your wallet generation seed is:")
 	fmt.Println("-------------------------------")
-	seedWords := strings.Split(walletseed.EncodeMnemonic(seed), " ")
-	for i, word := range seedWords {
-		fmt.Printf("(%d)%s ", i+1, word)
+
+	allWords := strings.Split(seedWords, " ")
+	maxWordCountPerColumn := int(math.Ceil(float64(len(allWords)) / 3.0))
+	col1Words := allWords[:maxWordCountPerColumn]
+	col2Words := allWords[maxWordCountPerColumn : maxWordCountPerColumn*2]
+	col3Words := allWords[maxWordCountPerColumn*2:]
+
+	stdOutUsingTabs := termio.TabWriter(os.Stdout)
+	for i := range col1Words {
+		word1 := fmt.Sprintf("(%d)%s", i+1, col1Words[i])
+		word2 := fmt.Sprintf("(%d)%s", i+maxWordCountPerColumn+1, col2Words[i])
+		var word3 string
+		if i < len(col3Words) {
+			word3 = fmt.Sprintf("(%d)%s", i+(maxWordCountPerColumn*2)+1, col3Words[i])
+		}
+		fmt.Fprintf(stdOutUsingTabs, "%s\t%s\t%s\n", word1, word2, word3)
 	}
-	fmt.Printf("\nHex: %x\n", seed)
+	stdOutUsingTabs.Flush()
+
+	fmt.Printf("Hex: %x\n", seed)
 	fmt.Println("-------------------------------")
 
-	return walletseed.EncodeMnemonic(seed), nil
+	return seedWords, nil
 }
 
 func runInitialSync(cfg *config.Config) (bool, error) {
