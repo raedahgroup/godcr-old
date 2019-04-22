@@ -15,8 +15,6 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		SetRows(3, 1, 0, 1, 3).
 		SetColumns(20, 2, 0, 2)
 
-		// SetBordersColor(helpers.DecredLightBlueColor)
-
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
 
 	menuColumn := primitives.NewList()
@@ -43,7 +41,6 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 
 	clearFocus := func() {
 		hintTextView.SetText("")
-		// gridLayout.RemoveItem(activePage)
 		gridLayout.SetColumns(25, 2, 0, 2)
 		displayPageFlex.RemoveItem(activePage)
 		displayPageFlex.SetBorder(false)
@@ -88,7 +85,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	menuColumn.AddItem("Exit", "", 'e', func() {
-		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
+		displayPage(exitPage(walletMiddleware, tviewApp, tviewApp.SetFocus, clearFocus))
 	})
 
 	netType := walletMiddleware.NetType()
@@ -104,7 +101,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	menuColumn.SetCurrentItem(0)
 
 	menuColumn.SetDoneFunc(func() {
-		displayPage(exitPage(tviewApp, tviewApp.SetFocus, clearFocus))
+		displayPage(exitPage(walletMiddleware, tviewApp, tviewApp.SetFocus, clearFocus))
 	})
 
 	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
