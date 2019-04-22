@@ -80,11 +80,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	// handler for returning back to history table
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		if event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			displayHistoryTable()
 			return nil
 		}
