@@ -92,7 +92,7 @@ export default class extends Controller {
     if (this.busy || !this.validateSendForm(true)) {
       this.nextButtonTarget.disabled = true
       this.nextButtonTarget.classList.add('disabledBtn')
-    }else {
+    } else {
       this.nextButtonTarget.disabled = false
       this.nextButtonTarget.classList.remove('disabledBtn')
     }
