@@ -10,7 +10,7 @@ export default class extends Controller {
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
-      'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
+      'useCustom', 'toggleCustomInputPnl', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
       'errors',
@@ -33,6 +33,16 @@ export default class extends Controller {
     // bootstrap4-toggle is not triggering stimulusjs change action directly
     this.useCustomTarget.onchange = function () {
       _this.toggleUseCustom()
+    }
+
+    this.customInputPnlOpnen = false
+    this.toggleCustomInputPnlTarget.onchange = function () {
+      if (!this.customInputPnlOpnen) {
+        $('#custom-inputs').slideDown()
+      } else {
+        $('#custom-inputs').slideUp()
+      }
+      this.customInputPnlOpnen = !this.customInputPnlOpnen
     }
   }
 
@@ -418,7 +428,9 @@ export default class extends Controller {
 
   openCustomInputsAndChangeOutputsPanel () {
     this.resetCustomInputsAndChangeOutputs()
-    $('#custom-inputs').slideDown()
+    if (!this.customInputPnlOpnen) {
+      $('#custom-inputs').slideDown()
+    }
 
     const _this = this
     const fetchUtxoSuccess = unspentOutputs => {
