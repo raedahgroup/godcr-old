@@ -12,7 +12,7 @@ import (
 
 func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
-		SetRows(3, 1, 0, 1, 3).
+		SetRows(3, 1, 0, 1, 2).
 		SetColumns(25, 2, 0, 2).
 		SetBordersColor(helpers.DecredLightBlueColor)
 

@@ -96,8 +96,8 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
 	historyTable.SetCell(0, 1, tableHeaderCell(fmt.Sprintf("%10s", "Direction")))
 	historyTable.SetCell(0, 2, tableHeaderCell(fmt.Sprintf("%8s", "Amount")))
-	historyTable.SetCell(0, 3, tableHeaderCell("Status"))
-	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
+	historyTable.SetCell(0, 3, tableHeaderCell(fmt.Sprintf("%5s", "Status")))
+	historyTable.SetCell(0, 4, tableHeaderCell(fmt.Sprintf("%-5s", "Type")))
 
 	displayHistoryTable()
 
@@ -140,11 +140,11 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		for _, tx := range txns {
 			nextRowIndex := historyTable.GetRowCount()
 
-			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", tx.FormattedTime)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
 			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
 			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%7s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 
 			displayedTxHashes = append(displayedTxHashes, tx.Hash)
 		}
