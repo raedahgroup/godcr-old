@@ -90,9 +90,11 @@ export default class extends Controller {
 
   updateSendButtonState () {
     if (this.busy || !this.validateSendForm(true)) {
-      this.nextButtonTarget.setAttribute('disabled', true)
-    } else {
-      this.nextButtonTarget.removeAttribute('disabled')
+      this.nextButtonTarget.disabled = true
+      this.nextButtonTarget.classList.add('disabledBtn')
+    }else {
+      this.nextButtonTarget.disabled = false
+      this.nextButtonTarget.classList.remove('disabledBtn')
     }
   }
 
@@ -261,6 +263,8 @@ export default class extends Controller {
   destinationAddressEdited (event) {
     const editedAddress = event.currentTarget
     const _this = this
+
+    this.updateSendButtonState()
 
     axios.post('/validate-address?address=' + editedAddress.value)
       .then((response) => {
