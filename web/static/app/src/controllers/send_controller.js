@@ -91,8 +91,10 @@ export default class extends Controller {
   updateSendButtonState () {
     if (this.busy || !this.validateSendForm(true)) {
       this.nextButtonTarget.setAttribute('disabled', true)
+      this.nextButtonTarget.classList.add('disabledBtn')
     } else {
       this.nextButtonTarget.removeAttribute('disabled')
+      this.nextButtonTarget.classList.remove('disabledBtn')
     }
   }
 
@@ -241,6 +243,8 @@ export default class extends Controller {
   destinationAddressEdited (event) {
     const editedAddress = event.currentTarget
     const _this = this
+
+    this.updateSendButtonState()
 
     axios.post('/validate-address?address=' + editedAddress.value)
       .then((response) => {
@@ -500,6 +504,9 @@ export default class extends Controller {
         fieldsAreValid = false
       } else if (amountTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
+        if (noErrorOutput) {
+          amountTarget.classList.remove('is-invalid')
+        }
       }
     }
 
@@ -541,6 +548,10 @@ export default class extends Controller {
     hide(errorElement)
     element.classList.remove('is-invalid')
 
+    if (!this.validateSendForm(true)) {
+      this.nextButtonTarget.disabled = false
+      this.nextButtonTarget.classList.remove('disabledBtn')
+    }
     this.updateSendButtonState()
 
     this.alignDestinationField(element)
