@@ -8,27 +8,26 @@ import (
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app/config"
 )
 
 // DcrWalletLib implements `WalletMiddleware` using `dcrlibwallet.LibWallet` as medium for connecting to a decred wallet
 // Functions relating to operations that can be performed on a wallet are defined in `walletfunctions.go`
 // Other wallet-related functions are defined in `walletloader.go`
 type DcrWalletLib struct {
-	walletDbDir string
+	WalletDbDir string
 	walletLib   *dcrlibwallet.LibWallet
 	activeNet   *netparams.Params
 }
 
 // Connect opens connection to the wallet database via dcrlibwallet and returns an instance of DcrWalletLib
-func Connect(ctx context.Context, wallet *config.WalletInfo) (*DcrWalletLib, error) {
-	activeNet := utils.NetParams(wallet.Network)
+func Connect(ctx context.Context, walletDbDir, networkType string) (*DcrWalletLib, error) {
+	activeNet := utils.NetParams(networkType)
 	if activeNet == nil {
-		return nil, fmt.Errorf("unsupported wallet: %s", wallet.Network)
+		return nil, fmt.Errorf("unsupported wallet: %s", networkType)
 	}
 
 	dcrlibwallet.SetLogLevel("off")
-	lw, err := dcrlibwallet.NewLibWalletWithDbPath(wallet.DbDir, activeNet)
+	lw, err := dcrlibwallet.NewLibWalletWithDbPath(walletDbDir, activeNet)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func Connect(ctx context.Context, wallet *config.WalletInfo) (*DcrWalletLib, err
 	}
 
 	return &DcrWalletLib{
-		walletDbDir: wallet.DbDir,
+		WalletDbDir: walletDbDir,
 		walletLib:   lw,
 		activeNet:   activeNet,
 	}, nil
@@ -54,7 +53,7 @@ func openWalletIfExist(ctx context.Context, walletLib *dcrlibwallet.LibWallet) e
 	// waiting for the other process to release the file.
 	// bold db doc advise setting a 1 second timeout to prevent this stalling.
 	// see https://github.com/boltdb/bolt#opening-a-database
-	walletOpenDelay := time.NewTicker(2 * time.Second)
+	walletOpenDelay := time.NewTicker(5 * time.Second)
 
 	loadWalletDone := make(chan error)
 	go func() {
@@ -75,7 +74,7 @@ func openWalletIfExist(ctx context.Context, walletLib *dcrlibwallet.LibWallet) e
 
 	select {
 	case <-walletOpenDelay.C:
-		return fmt.Errorf("wallet database is in use by another process")
+		return fmt.Errorf("\nWallet database is in use by another process.")
 
 	case err := <-loadWalletDone:
 		return err

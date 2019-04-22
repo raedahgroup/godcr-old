@@ -13,8 +13,8 @@ import (
 
 // Routes holds data required to process web server routes and display appropriate content on a page
 type Routes struct {
-	walletMiddleware   app.WalletMiddleware
-	walletExists       bool
+	walletMiddleware app.WalletMiddleware
+	//walletExists       bool
 	templates          map[string]*template.Template
 	syncProgressReport *defaultsynclistener.ProgressReport
 	ctx                context.Context
@@ -24,17 +24,18 @@ type Routes struct {
 // OpenWalletAndSetupRoutes attempts to open the wallet, prepares page templates and creates route handlers
 // returns syncBlockChain function
 func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMiddleware, router chi.Router, settings *config.Settings) (func(), error) {
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		return nil, err
-	}
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
+	//walletExists, err := walletMiddleware.WalletExists()
+	//if err != nil {
+	//	return nil, err
+	//}
 	routes := &Routes{
 		walletMiddleware:   walletMiddleware,
 		templates:          map[string]*template.Template{},
 		syncProgressReport: defaultsynclistener.InitProgressReport(),
 		ctx:                ctx,
-		walletExists:       walletExists,
-		settings:           settings,
+		//walletExists:       walletExists,
+		settings: settings,
 	}
 
 	routes.loadTemplates()
@@ -58,8 +59,9 @@ func (routes *Routes) loadTemplates() {
 }
 
 func (routes *Routes) loadRoutes(router chi.Router) {
-	router.Get("/createwallet", routes.createWalletPage)
-	router.Post("/createwallet", routes.createWallet)
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this code
+	//router.Get("/createwallet", routes.createWalletPage)
+	//router.Post("/createwallet", routes.createWallet)
 	router.Get("/settings", routes.settingsPage)
 	router.Post("/change-password", routes.changeSpendingPassword)
 	router.Put("/settings", routes.updateSetting)

@@ -13,15 +13,18 @@ import (
 func StartTerminalApp(_ context.Context, walletMiddleware app.WalletMiddleware) error {
 	tviewApp := tview.NewApplication()
 
-	walletExists, err := walletMiddleware.WalletExists()
-	if err != nil {
-		return err
-	}
-	if walletExists {
-		pages.LaunchSyncPage(tviewApp, walletMiddleware)
-	} else {
-		tviewApp.SetRoot(pages.CreateWalletPage(tviewApp, walletMiddleware), true)
-	}
+	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
+	//walletExists, err := walletMiddleware.WalletExists()
+	//if err != nil {
+	//	return err
+	//}
+	//if walletExists {
+	//	pages.LaunchSyncPage(tviewApp, walletMiddleware)
+	//} else {
+	//	tviewApp.SetRoot(pages.CreateWalletPage(tviewApp, walletMiddleware), true)
+	//}
+
+	pages.LaunchSyncPage(tviewApp, walletMiddleware)
 
 	// `Run` blocks until app.Stop() is called before returning
 	return tviewApp.Run()

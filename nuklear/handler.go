@@ -45,10 +45,10 @@ func getStandalonePages() []standalonePage {
 			name:    "sync",
 			handler: &pagehandlers.SyncHandler{},
 		},
-		{
-			name:    "createwallet",
-			handler: &pagehandlers.CreateWalletHandler{},
-		},
+		//{
+		//	name:    "createwallet",
+		//	handler: &pagehandlers.CreateWalletHandler{},
+		//},
 	}
 }
 

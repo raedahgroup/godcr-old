@@ -9,18 +9,18 @@ import (
 	flags "github.com/jessevdk/go-flags"
 )
 
-var AppConfigFilePath = filepath.Join(DefaultAppDataDir, "godcr.conf")
+var AppConfigFilePath = filepath.Join(defaultAppDataDir, "godcr.conf")
 
 // ConfFileOptions holds the top-level options/flags that should be set in config file rather than in command-line
 type ConfFileOptions struct {
-	AppDataDir      string        `long:"appdata" description:"Path to application data directory."`
-	WalletRPCServer string        `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
-	WalletRPCCert   string        `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if walletrpcserver is set."`
-	NoWalletRPCTLS  bool          `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
-	HTTPHost        string        `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
-	HTTPPort        string        `long:"httpport" description:"HTTP server port when running godcr in http mode."`
-	DebugLevel      string        `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
-	Wallets         []*WalletInfo `long:"wallets" description:"Auto detected wallets information"`
+	AppDataDir       string `long:"appdata" description:"Path to application data directory."`
+	DefaultWalletDir string `long:"wallet" description:"Directory of wallet to connect to by default."`
+	WalletRPCServer  string `long:"walletrpcserver" description:"RPC server address of running dcrwallet daemon. Required to connect to wallet via dcrwallet."`
+	WalletRPCCert    string `long:"walletrpccert" description:"Path to dcrwallet certificate file. Required if walletrpcserver is set."`
+	NoWalletRPCTLS   bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
+	HTTPHost         string `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
+	HTTPPort         string `long:"httpport" description:"HTTP server port when running godcr in http mode."`
+	DebugLevel       string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
 
 	Settings `group:"Settings"`
 }
@@ -34,7 +34,7 @@ type Settings struct {
 
 func defaultFileOptions() ConfFileOptions {
 	return ConfFileOptions{
-		AppDataDir:    DefaultAppDataDir,
+		AppDataDir:    defaultAppDataDir,
 		WalletRPCCert: defaultRPCCertFile,
 		HTTPHost:      defaultHTTPHost,
 		HTTPPort:      defaultHTTPPort,
@@ -53,7 +53,7 @@ func createConfigFile() (successful bool) {
 			fmt.Fprintf(os.Stderr, "error in creating config file: %s\n", err.Error())
 			return
 		}
-		err = os.Mkdir(DefaultAppDataDir, os.ModePerm)
+		err = os.Mkdir(defaultAppDataDir, os.ModePerm)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error in creating config file directory: %s\n", err.Error())
 			return

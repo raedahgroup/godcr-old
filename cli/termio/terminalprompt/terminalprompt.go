@@ -39,7 +39,7 @@ func RequestInput(message string, validate ValidatorFunction) (string, error) {
 
 		value = strings.TrimSpace(value)
 		if err = validate(value); err != nil {
-			fmt.Println(err.Error())
+			fmt.Println(strings.TrimSpace(err.Error()))
 			continue
 		}
 		return value, nil
