@@ -18,8 +18,8 @@ type paginationData struct {
 }
 
 type transactionsData struct {
-	numberingStartsAt int
-	transactions      []*walletcore.Transaction
+	firstNumberInSequence int
+	transactions          []*walletcore.Transaction
 }
 
 type HistoryHandler struct {
@@ -79,15 +79,15 @@ func (handler *HistoryHandler) fetchTransactions(window *nucular.Window) {
 	transactions, endBlockHeight, err := handler.wallet.TransactionHistory(handler.ctx, handler.paginationData.nextBlockHeight,
 		handler.paginationData.itemsPerPage)
 
-	numberingStartsAt := 1
+	firstNumberInSequence := 1
 	if len(handler.transactions) > 0 {
-		lastSavedTransaction := handler.transactions[len(handler.transactions)-1]
-		numberingStartsAt = lastSavedTransaction.numberingStartsAt + len(lastSavedTransaction.transactions)
+		lastLoadedTransactionData := handler.transactions[len(handler.transactions)-1]
+		firstNumberInSequence = lastLoadedTransactionData.firstNumberInSequence + len(lastLoadedTransactionData.transactions)
 	}
 
 	transactionsData := &transactionsData{
-		numberingStartsAt: numberingStartsAt,
-		transactions:      transactions,
+		firstNumberInSequence: firstNumberInSequence,
+		transactions:          transactions,
 	}
 
 	handler.fetchHistoryError = err
@@ -133,7 +133,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 
 	// get current page transactions
 	transactions := handler.transactions[handler.paginationData.currentPage-1]
-	currentNumber := transactions.numberingStartsAt
+	currentNumber := transactions.firstNumberInSequence
 
 	for _, tx := range transactions.transactions {
 		historyTable.AddRow(
@@ -147,11 +147,11 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		)
 		currentNumber++
 	}
-
 	historyTable.Render(contentWindow)
 
 	if !handler.isFetchingTransactions {
-		contentWindow.Row(40).Static(130, 130)
+		contentWindow.Row(40).Static(110, 110)
+
 		// show previous button only if current page is greater than 1
 		if handler.paginationData.currentPage > 1 {
 			contentWindow.AddButtonToCurrentRow("Previous", func() {
@@ -160,27 +160,28 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		}
 
 		contentWindow.AddButtonToCurrentRow("Next Page", func() {
-			handler.loadNextPage(window)
+			handler.loadNextPage(contentWindow)
 		})
 	}
 }
 
+func (handler *HistoryHandler) loadPreviousPage(window *widgets.Window) {
+	// only load previous page if we are not on first page
+	if handler.paginationData.currentPage > 1 {
+		handler.paginationData.currentPage--
+	}
+
+	window.Master().Changed()
+}
+
 func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
-	// check if transactions for the page we are navigating to is already loaded
+	// check we have already fetched transactions for the page we are navigating to
 	if len(handler.transactions) >= handler.paginationData.currentPage+1 {
 		handler.paginationData.currentPage++
 		window.Master().Changed()
 		return
 	}
+
+	// we've not fetched transactions for this page. fetch now
 	go handler.fetchTransactions(window.Window)
-}
-
-func (handler *HistoryHandler) loadPreviousPage(window *widgets.Window) {
-	defer window.Master().Changed()
-
-	// perform this check even if it's unlikely to occur
-	if handler.paginationData.currentPage == 1 {
-		return
-	}
-	handler.paginationData.currentPage -= 1
 }
