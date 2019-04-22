@@ -13,32 +13,44 @@ import (
 func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 1, 0, 1, 3).
-		SetColumns(25, 2, 0, 2).
-		SetBordersColor(helpers.DecredLightBlueColor)
+		SetColumns(20, 2, 0, 2)
+
+		// SetBordersColor(helpers.DecredLightBlueColor)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-	
+
 	menuColumn := primitives.NewList()
 
+	displayPageFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+	displayPageFlex.SetBorderPadding(0, 0, 1, 1)
 	var activePage tview.Primitive
 
 	// displayPage sets the currently active page to be displayed on the second column of the grid layout
 	displayPage := func(page tview.Primitive) {
 		gridLayout.RemoveItem(activePage)
+		gridLayout.SetColumns(20, 2, 0, 2)
 		menuColumn.ShowShortcut(false)
 		menuColumn.SetMainTextColor(helpers.HintTextColor)
+		menuColumn.SetBorder(false)
+		menuColumn.SetBorderPadding(1, 0, 1, 0)
+		displayPageFlex.SetBorder(true).SetBorderColor(helpers.DecredLightBlueColor)
 		activePage = page
-		gridLayout.AddItem(activePage, 2, 2, 1, 1, 0, 0, true)
+		gridLayout.AddItem(displayPageFlex.AddItem(activePage, 0, 1, true), 1, 1, 2, 3, 0, 0, true)
 	}
 
 	hintTextView := primitives.WordWrappedTextView("")
 	hintTextView.SetTextColor(helpers.HintTextColor)
 
 	clearFocus := func() {
-		gridLayout.RemoveItem(activePage)
-		menuColumn.SetMainTextColor(tcell.ColorWhite)
 		hintTextView.SetText("")
+		// gridLayout.RemoveItem(activePage)
+		gridLayout.SetColumns(25, 2, 0, 2)
+		displayPageFlex.RemoveItem(activePage)
+		displayPageFlex.SetBorder(false)
 		tviewApp.Draw()
+		menuColumn.SetMainTextColor(tcell.ColorWhite)
+		menuColumn.SetBorderPadding(0, 0, 1, 0)
+		menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightBlueColor)
 		menuColumn.ShowShortcut(true)
 		tviewApp.SetFocus(menuColumn)
 	}
@@ -85,10 +97,9 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	gridLayout.AddItem(header, 0, 0, 1, 4, 0, 0, false)
 
 	menuColumn.SetShortcutColor(helpers.DecredLightBlueColor)
-	menuColumn.SetBorder(true).SetBorderColor(helpers.DecredLightBlueColor)
 	gridLayout.AddItem(menuColumn, 1, 0, 4, 1, 0, 0, true)
 
-	gridLayout.AddItem(hintTextView, 4, 2, 1, 1, 0, 0, false)
+	gridLayout.AddItem(hintTextView, 4, 1, 1, 3, 0, 0, false)
 
 	menuColumn.SetCurrentItem(0)
 
