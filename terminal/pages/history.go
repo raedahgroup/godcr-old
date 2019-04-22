@@ -80,11 +80,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	// handler for returning back to history table
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			clearFocus()
-			return nil
-		}
-		if event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			displayHistoryTable()
 			return nil
 		}
@@ -93,13 +89,13 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	tableHeaderCell := func(text string) *tview.TableCell {
-		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false)
+		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false).SetMaxWidth(1).SetExpansion(1)
 	}
 
 	// history table header
 	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
-	historyTable.SetCell(0, 1, tableHeaderCell("Direction"))
-	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
+	historyTable.SetCell(0, 1, tableHeaderCell(fmt.Sprintf("%10s", "Direction")))
+	historyTable.SetCell(0, 2, tableHeaderCell(fmt.Sprintf("%8s", "Amount")))
 	historyTable.SetCell(0, 3, tableHeaderCell("Status"))
 	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
 
@@ -144,11 +140,11 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		for _, tx := range txns {
 			nextRowIndex := historyTable.GetRowCount()
 
-			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
-			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%7s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 
 			displayedTxHashes = append(displayedTxHashes, tx.Hash)
 		}
@@ -182,7 +178,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(2, 0, "Included in block")
 	transactionDetailsTable.SetCellSimple(3, 0, "Type")
 	transactionDetailsTable.SetCellSimple(4, 0, "Amount received")
-	transactionDetailsTable.SetCellSimple(5, 0, "Date")
+	transactionDetailsTable.SetCellSimple(5, 0,  "Date")
 	transactionDetailsTable.SetCellSimple(6, 0, "Direction")
 	transactionDetailsTable.SetCellSimple(7, 0, "Fee")
 	transactionDetailsTable.SetCellSimple(8, 0, "Fee Rate")

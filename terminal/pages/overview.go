@@ -2,6 +2,7 @@ package pages
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -65,8 +66,8 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 
 	// historyTable header
 	historyTable.SetHeaderCell(0, 0, "Date (UTC)")
-	historyTable.SetHeaderCell(0, 1, "Direction")
-	historyTable.SetHeaderCell(0, 2, "Amount")
+	historyTable.SetHeaderCell(0, 1, (fmt.Sprintf("%10s", "Direction")))
+	historyTable.SetHeaderCell(0, 2, (fmt.Sprintf("%6s", "Amount")))
 	historyTable.SetHeaderCell(0, 3, "Status")
 	historyTable.SetHeaderCell(0, 4, "Type")
 
@@ -93,10 +94,10 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 		}
 
 		historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
-		historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+		historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%13s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%7s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
