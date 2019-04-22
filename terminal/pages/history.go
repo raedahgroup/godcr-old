@@ -178,7 +178,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(2, 0, "Included in block")
 	transactionDetailsTable.SetCellSimple(3, 0, "Type")
 	transactionDetailsTable.SetCellSimple(4, 0, "Amount received")
-	transactionDetailsTable.SetCellSimple(5, 0,  "Date")
+	transactionDetailsTable.SetCellSimple(5, 0, "Date")
 	transactionDetailsTable.SetCellSimple(6, 0, "Direction")
 	transactionDetailsTable.SetCellSimple(7, 0, "Fee")
 	transactionDetailsTable.SetCellSimple(8, 0, "Fee Rate")
