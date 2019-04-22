@@ -12,11 +12,10 @@ import (
 
 func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
-		SetRows(3, 1, 0, 1, 3).
+		SetRows(3, 1, 0, 1, 2).
 		SetColumns(20, 2, 0, 2)
 
 	gridLayout.SetBackgroundColor(tcell.ColorBlack)
-
 	menuColumn := primitives.NewList()
 
 	displayPageFlex := tview.NewFlex().SetDirection(tview.FlexRow)
@@ -33,7 +32,7 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		menuColumn.SetBorderPadding(1, 0, 1, 0)
 		displayPageFlex.SetBorder(true).SetBorderColor(helpers.DecredLightBlueColor)
 		activePage = page
-		gridLayout.AddItem(displayPageFlex.AddItem(activePage, 0, 1, true), 1, 1, 2, 3, 0, 0, true)
+		gridLayout.AddItem(displayPageFlex.AddItem(activePage, 0, 1, true), 1, 1, 3, 3, 0, 0, true)
 	}
 
 	hintTextView := primitives.WordWrappedTextView("")

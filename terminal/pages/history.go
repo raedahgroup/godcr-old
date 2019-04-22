@@ -34,7 +34,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		body.RemoveItem(transactionDetailsTable)
 
 		titleTextView.SetText("History")
-		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to navigation menu")
+		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn,\nENTER to view details, ESC to return to navigation menu")
 
 		body.AddItem(historyTable, 0, 1, true)
 		tviewApp.SetFocus(historyTable)
@@ -68,7 +68,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		txHash := displayedTxHashes[row-1]
 
 		titleTextView.SetText("Transaction Details")
-		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, BACKSPACE to view History page, ESC to return to navigation menu")
+		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to view History page, ESC to return to navigation menu")
 
 		transactionDetailsTable.Clear()
 		body.AddItem(transactionDetailsTable, 0, 1, true)
@@ -89,22 +89,22 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	tableHeaderCell := func(text string) *tview.TableCell {
-		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false)
+		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false).SetMaxWidth(1).SetExpansion(1)
 	}
 
 	// history table header
 	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
-	historyTable.SetCell(0, 1, tableHeaderCell("Direction"))
-	historyTable.SetCell(0, 2, tableHeaderCell("Amount"))
-	historyTable.SetCell(0, 3, tableHeaderCell("Status"))
-	historyTable.SetCell(0, 4, tableHeaderCell("Type"))
+	historyTable.SetCell(0, 1, tableHeaderCell(fmt.Sprintf("%10s", "Direction")))
+	historyTable.SetCell(0, 2, tableHeaderCell(fmt.Sprintf("%8s", "Amount")))
+	historyTable.SetCell(0, 3, tableHeaderCell(fmt.Sprintf("%5s", "Status")))
+	historyTable.SetCell(0, 4, tableHeaderCell(fmt.Sprintf("%-5s", "Type")))
 
 	displayHistoryTable()
 
 	// fetch tx to display in subroutine so the UI isn't blocked
 	go fetchAndDisplayTransactions(-1, wallet, historyTable, tviewApp, displayMessage)
 
-	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, ENTER to view details, ESC to return to navigation menu")
+	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \nENTER to view details, ESC to return to navigation menu")
 
 	tviewApp.SetFocus(body)
 
@@ -140,11 +140,11 @@ func fetchAndDisplayTransactions(startBlockHeight int32, wallet walletcore.Walle
 		for _, tx := range txns {
 			nextRowIndex := historyTable.GetRowCount()
 
-			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
-			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
-			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", tx.FormattedTime)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 
 			displayedTxHashes = append(displayedTxHashes, tx.Hash)
 		}
