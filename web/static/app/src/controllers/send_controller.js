@@ -49,6 +49,7 @@ export default class extends Controller {
     }
 
     this.openCustomInputsAndChangeOutputsPanel()
+    this.updateSendButtonState()
   }
 
   maxSendAmountCheckboxToggle (event) {
@@ -58,6 +59,17 @@ export default class extends Controller {
   utxoSelectedOrDeselected () {
     this.calculateCustomInputsPercentage()
     this.updateMaxAmountFieldIfSet()
+    this.updateSendButtonState()
+  }
+
+  updateSendButtonState () {
+    if (!this.validateSendForm(true)) {
+      this.nextButtonTarget.disabled = true
+      this.nextButtonTarget.classList.add('disabledBtn')
+    }else {
+      this.nextButtonTarget.disabled = false
+      this.nextButtonTarget.classList.remove('disabledBtn')
+    }
   }
 
   toggleCustomChangeOutputsVisibility () {
@@ -109,11 +121,15 @@ export default class extends Controller {
         show(btn)
       })
     }
+
+    this.updateSendButtonState()
   }
 
   destinationAddressEdited (event) {
     const editedAddress = event.currentTarget
     const _this = this
+
+    this.updateSendButtonState()
 
     axios.post('/validate-address?address=' + editedAddress.value)
       .then((response) => {
@@ -131,6 +147,8 @@ export default class extends Controller {
   }
 
   destinationAmountEdited (event) {
+    this.updateSendButtonState()
+
     const amountTarget = event.currentTarget
     const amount = parseFloat(amountTarget.value)
     if (isNaN(amount) || amount <= 0) {
@@ -253,26 +271,34 @@ export default class extends Controller {
       })
   }
 
-  destinationFieldsValid () {
+  destinationFieldsValid (noErrorOutput) {
     this.clearMessages()
     let fieldsAreValid = true
 
     for (const addressTarget of this.addressTargets) {
       if (addressTarget.value === '') {
-        this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
+        if (!noErrorOutput) {
+          this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
+        }
         fieldsAreValid = false
       } else {
-        this.clearDestinationFieldError(addressTarget)
+        if (!noErrorOutput) {
+          this.clearDestinationFieldError(addressTarget)
+        }
       }
     }
 
     for (const amountTarget of this.amountTargets) {
       const amount = parseFloat(amountTarget.value)
       if (isNaN(amount) || amount <= 0) {
-        this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
+        if (!noErrorOutput) {
+          this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
+        }
         fieldsAreValid = false
       } else {
-        amountTarget.classList.remove('is-invalid')
+        if (!noErrorOutput) {
+          amountTarget.classList.remove('is-invalid')
+        }
       }
     }
 
@@ -290,6 +316,9 @@ export default class extends Controller {
     show(errorElement)
     element.select()
     element.focus()
+
+    this.updateSendButtonState()
+
     this.alignDestinationField(element)
   }
 
@@ -298,6 +327,12 @@ export default class extends Controller {
     errorElement.innerText = ''
     hide(errorElement)
     element.classList.remove('is-invalid')
+
+    if (!this.validateSendForm(true)) {
+      this.nextButtonTarget.disabled = false
+      this.nextButtonTarget.classList.remove('disabledBtn')
+    }
+    this.updateSendButtonState()
 
     this.alignDestinationField(element)
   }
@@ -368,6 +403,8 @@ export default class extends Controller {
         checkbox.parentElement.classList.remove('disabled')
       })
     }
+
+    this.updateSendButtonState()
   }
 
   resetCustomInputsAndChangeOutputs () {
@@ -664,18 +701,24 @@ export default class extends Controller {
     $('#passphrase-modal').modal()
   }
 
-  validateSendForm () {
-    this.errorsTarget.innerHTML = ''
-    hide(this.errorsTarget)
-    let valid = this.destinationFieldsValid()
+  validateSendForm (noErrorOutput) {
+    if (!noErrorOutput) {
+      this.errorsTarget.innerHTML = ''
+      hide(this.errorsTarget)
+    }
+    let valid = this.destinationFieldsValid(noErrorOutput)
 
     if (this.sourceAccountTarget.value === '') {
-      this.showError('The source account is required')
+      if (!noErrorOutput) {
+        this.showError('The source account is required')
+      }
       valid = false
     }
 
     if (this.useCustomTarget.checked && this.getSelectedInputsSum() < this.getTotalSendAmount()) {
-      this.showError('The sum of selected inputs is less than send amount')
+      if (!noErrorOutput) {
+        this.showError('The sum of selected inputs is less than send amount')
+      }
       valid = false
     }
 
