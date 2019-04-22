@@ -21,7 +21,10 @@
                                     <div class="form-group mb-0">
                                     {{ if eq (len .accounts) 1 }}
                                     {{ $account := index .accounts 0 }}
-                                        <input data-target="send.sourceAccount" value="{{ $account.Number }}"
+                                        <input data-target="send.sourceAccount"
+                                               data-unconfirmed-balance="{{$account.Balance.Unconfirmed.ToCoin}}"
+                                               data-spendable-balance="{{$account.Balance.Spendable.ToCoin}}"
+                                               value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
                                         <b>From:</b> <span data-target="send.sourceAccountSpan">{{ accountString $account }}</span>
                                     {{ else }}
@@ -29,7 +32,9 @@
                                         <select data-target="send.sourceAccount" class="form-control"
                                                 id="source-account" name="source-account">
                                         {{ range $account := .accounts }}
-                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
+                                            <option data-unconfirmed-balance="{{$account.Balance.Unconfirmed.ToCoin}}"
+                                                    data-spendable-balance="{{$account.Balance.Spendable.ToCoin}}"
+                                                    value="{{ $account.Number }}">{{ accountString $account }}</option>
                                         {{ end }}
                                         </select>
                                     {{ end }}
