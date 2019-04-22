@@ -259,42 +259,21 @@ export default class extends Controller {
   }
 
   destinationAddressEdited (event) {
+    const editedAddress = event.currentTarget
     const _this = this
-    const index = event.currentTarget.getAttribute('data-index')
-    let addressErrorTarget, amountTarget, sendMaxTarget
-    this.addressErrorTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        addressErrorTarget = el
-      }
-    })
-    this.amountTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        amountTarget = el
-      }
-    })
-    this.maxSendAmountCheckTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        sendMaxTarget = el
-      }
-    })
 
-    axios.post('/validate-address?address=' + event.currentTarget.value)
+    axios.post('/validate-address?address=' + editedAddress.value)
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          addressErrorTarget.textContent = result.error ? result.error : 'Invalid address'
-          amountTarget.parentElement.style.marginBottom = '20px'
-          sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
+          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
           return
         }
-        addressErrorTarget.textContent = ''
-        amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
+        _this.clearDestinationFieldError(editedAddress)
       })
       .catch(() => {
-        addressErrorTarget.textContent = 'Cannot validate address. You can continue if you are sure'
-        amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
+        console.log(editedAddress)
+        _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
       })
   }
 
