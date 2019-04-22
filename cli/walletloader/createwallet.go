@@ -3,6 +3,8 @@ package walletloader
 import (
 	"context"
 	"fmt"
+	"math"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -12,8 +14,6 @@ import (
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
-	"math"
-	"os"
 )
 
 // createWallet creates a new wallet using the dcrlibwallet WalletMiddleware.

@@ -17,7 +17,10 @@ type WalletDbDir struct {
 // WalletDbFileName is the name used by dcrwallet, decredition and dcrlibwallet when creating wallets
 const WalletDbFileName = "wallet.db"
 
-// DecredWalletDbDirectories maintains a slice of directories where decred wallet databases may be found
+// DecredWalletDbDirectories maintains a slice of directories where decred wallet databases may be found.
+// Uses filepath.Glob to search for directories with names similar to known wallet directories.
+// The only possible error that `filepath.Glob` returns is invalid pattern error.
+// Since the wildcard pattern is not invalid, no error will be returned from `filepath.Glob`.
 func DecredWalletDbDirectories() (directories []WalletDbDir) {
 	// scan for all potential dcrwallet directories and return
 	dcrWalletWildCardDir := dcrutil.AppDataDir("dcrwallet*", false)
