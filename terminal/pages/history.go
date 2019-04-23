@@ -207,7 +207,7 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	transactionDetailsTable.SetCellSimple(2, 1, strconv.Itoa(int(tx.BlockHeight)))
 	transactionDetailsTable.SetCellSimple(3, 1, tx.Type)
 	transactionDetailsTable.SetCellSimple(4, 1, dcrutil.Amount(tx.Amount).String())
-	transactionDetailsTable.SetCellSimple(5, 1, fmt.Sprintf("%s (UTC)", tx.LongTime))
+	transactionDetailsTable.SetCellSimple(5, 1, fmt.Sprintf("%s UTC", tx.LongTime))
 	transactionDetailsTable.SetCellSimple(6, 1, tx.Direction.String())
 	transactionDetailsTable.SetCellSimple(7, 1, dcrutil.Amount(tx.Fee).String())
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", dcrutil.Amount(tx.FeeRate)))

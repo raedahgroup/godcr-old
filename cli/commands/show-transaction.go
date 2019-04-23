@@ -45,7 +45,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		transaction.BlockHeight,
 		transaction.Type,
 		txDirection, dcrutil.Amount(transaction.Amount).String(),
-		fmt.Sprintf("%s (UTC)", transaction.LongTime),
+		fmt.Sprintf("%s UTC", transaction.LongTime),
 		txSize,
 		dcrutil.Amount(transaction.Fee).String(),
 		dcrutil.Amount(transaction.FeeRate).String(),

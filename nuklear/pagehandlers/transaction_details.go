@@ -117,7 +117,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Time", "LC"),
-			widgets.NewLabelTableCell(fmt.Sprintf("%s (UTC)", handler.selectedTxDetails.LongTime), "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", handler.selectedTxDetails.LongTime), "LC"),
 		)
 		txDetailsTable2.Render(window)
 
