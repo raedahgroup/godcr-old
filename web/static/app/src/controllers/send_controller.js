@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
+      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountUsd', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
       'destinationAccounts', 'destinationAccountTemplate', 'destinationAccount',
       'useCustom', 'toggleCustomInputPnl', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
@@ -35,20 +35,22 @@ export default class extends Controller {
       _this.toggleUseCustom()
     }
 
-    this.customInputPnlOpnen = false
-    this.toggleCustomInputPnlTarget.onchange = function () {
-      if (!this.customInputPnlOpnen) {
-        $('#custom-inputs').slideDown()
-      } else {
-        $('#custom-inputs').slideUp()
-      }
-      this.customInputPnlOpnen = !this.customInputPnlOpnen
-    }
-
     this.exchangeRate = parseFloat(this.sourceAccountTarget.getAttribute('data-echange-rate'))
     if (this.exchangeRate === 0) {
       this.exchangeRateTarget.textContent = 'N/A'
+      this.amountUsdTargets.forEach(target => {
+        hide(target.parentElement)
+      })
     }
+  }
+
+  toggleCustomInputPnlClicked () {
+    if (this.toggleCustomInputPnlTarget.checked) {
+      $('#custom-inputs').slideDown()
+    } else {
+      $('#custom-inputs').slideUp()
+    }
+    this.customInputPnlOpnen = !this.customInputPnlOpnen
   }
 
   toggleSpendUnconfirmed () {
@@ -59,11 +61,13 @@ export default class extends Controller {
 
   toggleUseCustom () {
     if (!this.useCustomTarget.checked) {
+      hide(this.toggleCustomInputPnlTarget.parentElement)
       this.resetCustomInputsAndChangeOutputs()
       return
     }
 
     this.openCustomInputsAndChangeOutputsPanel()
+    show(this.toggleCustomInputPnlTarget.parentElement)
     this.updateSendButtonState()
   }
 
@@ -143,7 +147,8 @@ export default class extends Controller {
     const destinationNode = destinationTemplate.firstElementChild
     const addressInput = destinationNode.querySelector('input[name="destination-address"]')
     const addressErrorDiv = destinationNode.querySelector('div.address-error')
-    const amountInput = destinationNode.querySelector('input[name="destination-amount"]')
+    const amountInput = destinationNode.querySelector('input.amount')
+    const amountUsdInput = destinationNode.querySelector('input.amount-usd')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
     const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
 
@@ -161,6 +166,7 @@ export default class extends Controller {
     addressInput.setAttribute('data-index', this.destinationIndex)
     addressErrorDiv.setAttribute('data-index', this.destinationIndex)
     amountInput.setAttribute('data-index', this.destinationIndex)
+    amountUsdInput.setAttribute('data-index', this.destinationIndex)
     sendMaxCheckbox.setAttribute('data-index', this.destinationIndex)
     removeDestinationButton.setAttribute('data-index', this.destinationIndex)
 
@@ -190,6 +196,7 @@ export default class extends Controller {
     const destinationNode = destinationTemplate.firstElementChild
     const accountInput = destinationNode.querySelector('select[name="destination-account"]')
     const amountInput = destinationNode.querySelector('input.amount')
+    const amountUsdInput = destinationNode.querySelector('input.amount-usd')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
     const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
 
@@ -206,6 +213,7 @@ export default class extends Controller {
     destinationNode.setAttribute('data-index', this.destinationIndex)
     accountInput.setAttribute('data-index', this.destinationIndex)
     amountInput.setAttribute('data-index', this.destinationIndex)
+    amountUsdInput.setAttribute('data-index', this.destinationIndex)
     sendMaxCheckbox.setAttribute('data-index', this.destinationIndex)
     removeDestinationButton.setAttribute('data-index', this.destinationIndex)
 
@@ -266,6 +274,15 @@ export default class extends Controller {
     const editedAmountFieldIndex = event.target.getAttribute('data-index')
     if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
       this.updateMaxAmountFieldIfSet()
+    }
+
+    if (this.exchangeRate > 0) {
+      let usdAmount = parseFloat(amountTarget.value) * this.exchangeRate
+      this.amountUsdTargets.forEach(target => {
+        if (target.getAttribute('data-index') === editedAmountFieldIndex) {
+          target.value = usdAmount
+        }
+      })
     }
 
     this.calculateCustomInputsPercentage()
@@ -439,7 +456,7 @@ export default class extends Controller {
 
   alignDestinationField (element) {
     const index = element.getAttribute('data-index')
-    let addressTarget, amountTarget, sendMaxTarget, accountTarget
+    let addressTarget, amountTarget, amountUsdTarget, sendMaxTarget, accountTarget
     this.addressTargets.forEach(el => {
       if (el.getAttribute('data-index') === index) {
         addressTarget = el
@@ -450,18 +467,24 @@ export default class extends Controller {
         amountTarget = el
       }
     })
+    this.amountUsdTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        amountUsdTarget = el
+      }
+    })
     this.maxSendAmountCheckTargets.forEach(el => {
       if (el.getAttribute('data-index') === index) {
         sendMaxTarget = el
       }
     })
     this.destinationAccountTargets.forEach(el => {
-      if(el.getAttribute('data-index') === index) {
+      if (el.getAttribute('data-index') === index) {
         accountTarget = el
       }
     })
 
     const amountErr = amountTarget.parentElement.lastElementChild.innerHTML
+    const amountUsdErr = amountUsdTarget.parentElement.lastElementChild.innerHTML
     let addressErr = ''
     if (this.sendingToAddress) {
       addressErr = addressTarget.parentElement.lastElementChild.innerHTML
@@ -469,25 +492,35 @@ export default class extends Controller {
 
     sendMaxTarget.parentElement.parentElement.style.marginBottom = '0px'
     amountTarget.parentElement.style.marginBottom = '0px'
+    amountUsdTarget.parentElement.style.marginBottom = '0px'
     if (this.sendingToAddress) {
       addressTarget.parentElement.style.marginBottom = '0px'
     } else {
       accountTarget.parentElement.style.marginBottom = '0px'
     }
 
-    if (amountErr === '' && addressErr === '') {
+    if (amountErr === '' && amountUsdErr === '' && addressErr === '') {
       return
     }
 
     // this is the number of char that is shown per line in the error div associated with the element
-    const addressErrCharPerLine = 60, amountErrCharPerLine = 30
+    const addressErrCharPerLine = 60
+    const amountErrCharPerLine = 30
 
     let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
     numberOfAddressErrLines = Math.round(numberOfAddressErrLines) < numberOfAddressErrLines ? Math.round(numberOfAddressErrLines) + 1 : Math.round(numberOfAddressErrLines)
     let numberOfAmountErrLines = amountErr.length / amountErrCharPerLine
     numberOfAmountErrLines = Math.round(numberOfAmountErrLines) < numberOfAmountErrLines ? Math.round(numberOfAmountErrLines) + 1 : Math.round(numberOfAmountErrLines)
+
+    let numberOfAmountUsdErrLines = amountUsdErr.length / amountErrCharPerLine
+    numberOfAmountUsdErrLines = Math.round(numberOfAmountUsdErrLines) < numberOfAmountUsdErrLines ? Math.round(numberOfAmountUsdErrLines) + 1 : Math.round(numberOfAmountUsdErrLines)
+
     let maxLines = numberOfAmountErrLines
-    if (numberOfAddressErrLines > numberOfAmountErrLines) {
+    if (numberOfAddressErrLines > maxLines) {
+      maxLines = numberOfAddressErrLines
+    }
+
+    if (numberOfAddressErrLines > maxLines) {
       maxLines = numberOfAddressErrLines
     }
 
@@ -499,6 +532,7 @@ export default class extends Controller {
       accountTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAddressErrLines)}px`
     }
     amountTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAmountErrLines)}px`
+    amountUsdTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAmountUsdErrLines)}px`
   }
 
   removeDestination (event) {
@@ -797,8 +831,11 @@ export default class extends Controller {
         }
         let utxo = `${utxoCheckbox.value.substring(0, 15)}...${utxoCheckbox.value.substring(utxoCheckbox.value.length - 6)}`
         const amount = parseFloat(utxoCheckbox.getAttribute('data-amount'))
-        let usdAmount = amount * _this.exchangeRate
-        inputs += `<li>${amount} DCR from ${utxo} ($${usdAmount.toFixed(2)})`
+        let usdAmountStr = ''
+        if (_this.exchangeRate > 0) {
+          usdAmountStr = `($${(amount * _this.exchangeRate).toFixed(2)}) `
+        }
+        inputs += `<li>${amount} DCR ${usdAmountStr}from ${utxo}`
       })
       summaryHTML += `<ul>${inputs}</ul> <p>Sending them to:</p>`
     } else {
@@ -817,7 +854,13 @@ export default class extends Controller {
         if (!currentAmountTarget) {
           return
         }
-        destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${addressTarget.value}</li>`
+        let amount = parseFloat(currentAmountTarget.value)
+        let usdAmountStr = ''
+        if (_this.exchangeRate > 0) {
+          usdAmountStr = `($${(amount * _this.exchangeRate).toFixed(2)}) `
+        }
+
+        destinations += `<li>${amount} DCR ${usdAmountStr}to ${addressTarget.value}</li>`
       })
     } else {
       this.destinationAccountTargets.forEach(accountTarget => {
@@ -848,7 +891,12 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      changeOutputs += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
+      let amount = parseFloat(currentAmountTarget.value)
+      let usdAmountStr = ''
+      if (_this.exchangeRate > 0) {
+        usdAmountStr = `($${(amount * _this.exchangeRate).toFixed(2)}) `
+      }
+      changeOutputs += `<li>${amount} DCR ${usdAmountStr}to ${changeOutputAddressTarget.value} (change)</li>`
     })
 
     summaryHTML += `<ul>${destinations}</ul>`
