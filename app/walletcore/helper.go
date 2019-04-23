@@ -14,7 +14,7 @@ const (
 	DefaultRequiredConfirmations = 2
 
 	// minimum number of transactions to return per call to Wallet.TransactionHistory()
-	TransactionHistoryCountPerPage = 20
+	TransactionHistoryCountPerPage = 25
 
 	ConfirmedStatus = "Confirmed"
 

@@ -2,6 +2,7 @@ package pages
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -65,10 +66,10 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 
 	// historyTable header
 	historyTable.SetHeaderCell(0, 0, "Date (UTC)")
-	historyTable.SetHeaderCell(0, 1, "Direction")
-	historyTable.SetHeaderCell(0, 2, "Amount")
-	historyTable.SetHeaderCell(0, 3, "Status")
-	historyTable.SetHeaderCell(0, 4, "Type")
+	historyTable.SetHeaderCell(0, 1, (fmt.Sprintf("%10s", "Direction")))
+	historyTable.SetHeaderCell(0, 2, (fmt.Sprintf("%8s", "Amount")))
+	historyTable.SetHeaderCell(0, 3, (fmt.Sprintf("%5s", "Status")))
+	historyTable.SetHeaderCell(0, 4, (fmt.Sprintf("%-5s", "Type")))
 
 	// calculate max number of digits after decimal point for all amounts for 5 most recent txs
 	inputsAndOutputsAmount := make([]int64, 5)
@@ -92,11 +93,11 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 			break
 		}
 
-		historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(tx.FormattedTime).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(tx.Direction.String()).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(formatAmount(tx.RawAmount)).SetAlign(tview.AlignRight))
-		historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(tx.Status).SetAlign(tview.AlignCenter))
-		historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(tx.Type).SetAlign(tview.AlignCenter))
+			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", tx.FormattedTime)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
