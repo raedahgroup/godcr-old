@@ -43,6 +43,7 @@ export default class extends Controller {
         hide(target.parentElement)
       })
     }
+    this.customInputPnlOpnen = !this.customInputPnlOpnen
   }
 
   setBusy (busy) {
