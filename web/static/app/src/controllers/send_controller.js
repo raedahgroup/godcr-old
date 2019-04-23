@@ -10,6 +10,7 @@ export default class extends Controller {
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
+      'destinationAccounts', 'destinationAccountTemplate', 'destinationAccount',
       'useCustom', 'toggleCustomInputPnl', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
@@ -25,9 +26,8 @@ export default class extends Controller {
   }
 
   initialize () {
-    this.destinationCount = 0
-    this.destinationIndex = 0
-    this.newDestination()
+    this.initializeSendToAddress()
+
     let _this = this
 
     // bootstrap4-toggle is not triggering stimulusjs change action directly
@@ -93,6 +93,36 @@ export default class extends Controller {
     this.resetChangeOutput()
   }
 
+  initializeSendToAddress () {
+    if (this.sendingToAddress) {
+      return
+    }
+    this.destinationsTarget.innerHTML = ''
+    this.destinationAccountsTarget.innerHTML = ''
+    this.destinationCount = 0
+    this.destinationIndex = 0
+    this.newDestination()
+    this.calculateCustomInputsPercentage()
+
+    this.sendingToAddress = true
+    this.sendingToAccount = false
+  }
+
+  initializeSendToAccount () {
+    if (this.sendingToAccount) {
+      return
+    }
+    this.destinationsTarget.innerHTML = ''
+    this.destinationAccountsTarget.innerHTML = ''
+    this.destinationCount = 0
+    this.destinationIndex = 0
+    this.newDestinationAccount()
+    this.calculateCustomInputsPercentage()
+
+    this.sendingToAccount = true
+    this.sendingToAddress = false
+  }
+
   newDestination () {
     if (!this.destinationFieldsValid()) {
       return
@@ -125,6 +155,51 @@ export default class extends Controller {
     removeDestinationButton.setAttribute('data-index', this.destinationIndex)
 
     this.destinationsTarget.appendChild(destinationTemplate)
+
+    this.destinationIndex++
+    this.destinationCount++
+
+    if (this.destinationCount === 1) {
+      hide(removeDestinationButton)
+    } else {
+      this.removeDestinationBtnTargets.forEach(btn => {
+        show(btn)
+      })
+    }
+
+    this.updateSendButtonState()
+  }
+
+  newDestinationAccount () {
+    if (!this.destinationFieldsValid()) {
+      return
+    }
+
+    const destinationTemplate = document.importNode(this.destinationAccountTemplateTarget.content, true)
+
+    const destinationNode = destinationTemplate.firstElementChild
+    const accountInput = destinationNode.querySelector('input[name="destination-account"]')
+    const amountInput = destinationNode.querySelector('input[name="destination-account-amount"]')
+    const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
+    const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
+
+    // make clicking on the label toggle the checkbox by setting unique id
+    destinationNode.querySelector('.form-check-label').setAttribute('for', `send-max-amount-${this.destinationIndex}`)
+    sendMaxCheckbox.setAttribute('id', `send-max-amount-${this.destinationIndex}`)
+
+    // disable checkbox if some other checkbox is currently checked
+    if (this.maxSendDestinationIndex >= 0) {
+      sendMaxCheckbox.setAttribute('readonly', 'readonly')
+      sendMaxCheckbox.parentElement.classList.add('disabled')
+    }
+
+    destinationNode.setAttribute('data-index', this.destinationIndex)
+    accountInput.setAttribute('data-index', this.destinationIndex)
+    amountInput.setAttribute('data-index', this.destinationIndex)
+    sendMaxCheckbox.setAttribute('data-index', this.destinationIndex)
+    removeDestinationButton.setAttribute('data-index', this.destinationIndex)
+
+    this.destinationAccountsTarget.appendChild(destinationTemplate)
 
     this.destinationIndex++
     this.destinationCount++

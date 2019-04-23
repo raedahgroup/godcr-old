@@ -98,9 +98,10 @@
 
                             <nav>
                                 <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
-                                    <a class="nav-item nav-link active" id="nav-address-destinations-tab" data-toggle="tab" href="#address-destinations"
+                                    <a data-action="click->send#initializeSendToAddress"
+                                       class="nav-item nav-link active" id="nav-address-destinations-tab" data-toggle="tab" href="#address-destinations"
                                        role="tab" aria-controls="address-destinations" aria-selected="true">Send to Address</a>
-                                    <a class="nav-item nav-link" id="nav-send-to-account-tab" data-toggle="tab" href="#send-to-account"
+                                    <a data-action="click->send#initializeSendToAccount" class="nav-item nav-link" id="nav-send-to-account-tab" data-toggle="tab" href="#send-to-account"
                                        role="tab" aria-controls="send-to-account" aria-selected="false">Send to Account</a>
                                 </div>
                             </nav>
@@ -159,10 +160,50 @@
                                 <div class="tab-pane fade" id="send-to-account" role="tabpanel" aria-labelledby="nav-profile-tab">
                                     <div data-target="send.destinationAccounts" class="row"></div>
 
+
+                                    <template data-target="send.destinationAccountTemplate">
+                                        <div class="col-xl-10 col-md-12 destination">
+                                            <div class="form-row align-items-center mb-2">
+                                                <div class="form-group col-xl-5 col-md-7 col-sm-12">
+                                                    <input data-target="send.destinationAccount"
+                                                           type="text" class="form-control"
+                                                           name="destination-account">
+                                                </div>
+
+                                                <div class="form-group col-md-3 col-sm-12">
+                                                    <input data-target="send.amount"
+                                                           data-action="keyup->send#destinationAmountEdited"
+                                                           type="text" class="form-control amount"
+                                                           placeholder="Amount (DCR)"
+                                                           name="destination-account-amount">
+                                                    <div data-target="send.amountError" class="text-danger address-error"></div>
+                                                </div>
+
+                                                <div class="col-md-4 col-sm-12">
+                                                    <div class="form-group form-check d-inline-flex align-items-center">
+                                                        <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
+                                                        <input type="hidden" value="false" name="send-max-amount">
+                                                        <input data-target="send.maxSendAmountCheck"
+                                                               data-action="click->send#maxSendAmountCheckboxToggle"
+                                                               type="checkbox" class="form-check-input mt-0"
+                                                               name="send-max-amount" value="true">
+                                                        <label class="form-check-label" for="send-max-amount">Send max</label>
+                                                    </div>
+                                                    &nbsp;
+                                                    <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
+                                                            class="removeDestinationBtn btn"
+                                                            style="background: none; border: none;" type="button">X</button>
+                                                </div>
+
+                                                <div class="col-sm-12 invalid-feedback d-none"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+
                                     <div class="form-group mb-0">
-                                        <button type="button" data-action="click->send#newDestination"
+                                        <button type="button" data-action="click->send#newDestinationAccount"
                                                 class="btn" style="border: none; background: none">
-                                            Add another address
+                                            Add another account
                                         </button>
                                     </div>
                                 </div>
