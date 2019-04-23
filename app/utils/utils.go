@@ -54,6 +54,55 @@ func MaxDecimalPlaces(amounts []int64) (maxDecimalPlaces int) {
 	return
 }
 
+func EstimateFee(numberOfInputs int, destinations []txhelper.TransactionDestination) (dcrutil.Amount, error) {
+	maxSignedSize, err := EstimateSerializeSize(numberOfInputs, destinations)
+	if err != nil {
+		return 0, err
+	}
+	relayFeePerKb := txrules.DefaultRelayFeePerKb
+	maxRequiredFee := txrules.FeeForSerializeSize(relayFeePerKb, maxSignedSize)
+
+	return maxRequiredFee, err
+}
+
+func EstimateSerializeSize(numberOfInputs int, destinations []txhelper.TransactionDestination) (int, error) {
+	outputs, err := makeTxOutputs(destinations)
+	if err != nil {
+		return 0, err
+	}
+
+	var changeAddresses []string
+	for _, destination := range destinations {
+		changeAddresses = append(changeAddresses, destination.Address)
+	}
+
+	totalChangeScriptSize, err := calculateChangeScriptSize(changeAddresses)
+	if err != nil {
+		return 0, err
+	}
+
+	scriptSizes := make([]int, numberOfInputs)
+	for i := 0; i < numberOfInputs; i++ {
+		scriptSizes[i] = txhelper.RedeemP2PKHSigScriptSize
+	}
+	maxSignedSize := txhelper.EstimateSerializeSize(scriptSizes, outputs, totalChangeScriptSize)
+
+	return maxSignedSize, nil
+}
+
+func makeTxOutputs(destinations []txhelper.TransactionDestination) (outputs []*wire.TxOut, err error) {
+	for _, destination := range destinations {
+		var output *wire.TxOut
+		output, err = txhelper.MakeTxOutput(destination)
+		if err != nil {
+			return
+		}
+
+		outputs = append(outputs, output)
+	}
+	return
+}
+
 func FormatAmountDisplay(amount int64, maxDecimalPlaces int) string {
 	dcrAmount := dcrutil.Amount(amount).ToCoin()
 	wholeNumber := int(math.Floor(dcrAmount))
