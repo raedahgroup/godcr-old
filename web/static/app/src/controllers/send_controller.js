@@ -282,7 +282,7 @@ export default class extends Controller {
     const accountBalance = this.getAccountBalance()
     const totalSendAmount = this.getTotalSendAmount()
     if (totalSendAmount > accountBalance) {
-      this.setDestinationFieldError(amountTarget, `Total exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less`, false)
+      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
       return
     }
 
