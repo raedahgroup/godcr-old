@@ -177,7 +177,7 @@ export default class extends Controller {
 
     const destinationNode = destinationTemplate.firstElementChild
     const accountInput = destinationNode.querySelector('select[name="destination-account"]')
-    const amountInput = destinationNode.querySelector('input[name="destination-account-amount"]')
+    const amountInput = destinationNode.querySelector('input.amount')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
     const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
 

@@ -99,7 +99,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get max amount: %s", err.Error())
 		return
@@ -153,7 +153,7 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary: %s", err.Error())
 		return
@@ -188,7 +188,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -306,7 +306,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = err.Error()
 		return
