@@ -16,7 +16,7 @@ export default class extends Controller {
       'errors',
       'nextButton',
       // from wallet passphrase modal (utils.html)
-      'walletPassphrase', 'passwordError', 'transactionDetails'
+      'walletPassphrase', 'passwordError', 'transactionDetails', 'fee', 'estimateSize', 'balanceAfter'
     ]
   }
 
@@ -515,6 +515,14 @@ export default class extends Controller {
     return this.spendUnconfirmedTarget.checked ? amount + unconfirmed : amount
   }
 
+  getTotalAccountBalance () {
+    let target = this.sourceAccountTarget
+    if (this.sourceAccountTarget.options) {
+      target = this.sourceAccountTarget.options[this.sourceAccountTarget.selectedIndex]
+    }
+    return parseFloat(target.getAttribute('data-total-balance'))
+  }
+
   getTotalSendAmount () {
     let amount = 0
     this.amountTargets.forEach(amountTarget => {
@@ -709,6 +717,20 @@ export default class extends Controller {
     })
 
     summaryHTML += `<ul>${destinations}</ul>`
+
+    let queryParams = $('#send-form').serialize()
+    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    axios.get('/tx-fee-and-size?' + queryParams).then(response => {
+      const result = response.data
+      if (result.error) {
+        this.passwordErrorTarget.innerHTML = `<div class="error">${result.error}</div>`
+        return
+      }
+      _this.feeTarget.textContent = `${result.fee} DCR`
+      _this.estimateSizeTarget.textContent = `${result.size} bytes`
+      _this.balanceAfterTarget.textContent = `${_this.getTotalAccountBalance() - (_this.getTotalSendAmount() + result.fee)} DCR`
+    })
+
     this.transactionDetailsTarget.innerHTML = summaryHTML
     $('#passphrase-modal').modal()
   }

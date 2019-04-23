@@ -24,6 +24,7 @@
                                         <input data-target="send.sourceAccount"
                                                data-unconfirmed-balance="{{$account.Balance.Unconfirmed.ToCoin}}"
                                                data-spendable-balance="{{$account.Balance.Spendable.ToCoin}}"
+                                               data-total-balance="{{$account.Balance.Total.ToCoin}}"
                                                value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
                                         <b>From:</b> <span data-target="send.sourceAccountSpan">{{ accountString $account }}</span>
@@ -34,6 +35,7 @@
                                         {{ range $account := .accounts }}
                                             <option data-unconfirmed-balance="{{$account.Balance.Unconfirmed.ToCoin}}"
                                                     data-spendable-balance="{{$account.Balance.Spendable.ToCoin}}"
+                                                    data-total-balance="{{$account.Balance.Total.ToCoin}}"
                                                     value="{{ $account.Number }}">{{ accountString $account }}</option>
                                         {{ end }}
                                         </select>
@@ -254,6 +256,20 @@
                             </div>
                             <div class="modal-body">
                                 <div data-target="send.transactionDetails"></div>
+                                <table class="table borderless" style="width: 250px;">
+                                    <tr>
+                                        <td class="text-right">Fee: </td>
+                                        <td data-target="send.fee"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right">Estimate Size: </td>
+                                        <td data-target="send.estimateSize"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right">Balance After: </td>
+                                        <td data-target="send.balanceAfter"></td>
+                                    </tr>
+                                </table>
                                 <p>Enter your passphrase to continue</p>
                                 <div class="form-group form-inline">
                                     <label for="passhprase">Passphrase</label>

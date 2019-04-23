@@ -151,7 +151,7 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 	// the max amount that can be sent after subtracting total amount to send to other recipients.
 	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
 	if len(payload.utxos) == 0 {
-		payload.utxos, payload.totalInputAmount, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
+		payload.utxos, _, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
 			payload.sourceAccount, payload.requiredConfirmations)
 
 		if err != nil {
@@ -169,7 +169,7 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
 		return
 	}
-	data["fee"] = fee
+	data["fee"] = fee.ToCoin()
 	data["size"] = size
 }
 
