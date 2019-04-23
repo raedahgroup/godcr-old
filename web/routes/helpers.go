@@ -26,7 +26,7 @@ type sendPagePayload struct {
 // retrieveSendPagePayload parses the req for the send parameters submitted;
 // the order of form fields on the front end is followed:
 // source account - spend unconfirmed - custom inputs - send destinations - custom change outputs
-func retrieveSendPagePayload(req *http.Request, addressFunc func(accountNumber uint32) (string, error)) (payload *sendPagePayload, err error) {
+func retrieveSendPagePayload(req *http.Request, addressFunc func(accountNumber uint32)(string, error)) (payload *sendPagePayload, err error) {
 	payload = new(sendPagePayload)
 
 	err = req.ParseForm()
