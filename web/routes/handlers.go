@@ -138,6 +138,41 @@ func (routes *Routes) validateAddress(res http.ResponseWriter, req *http.Request
 	data["valid"] = valid
 }
 
+func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	payload, err := retrieveSendPagePayload(req)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary: %s", err.Error())
+		return
+	}
+	// If no input is selected, use all inputs in the account to determine
+	// the max amount that can be sent after subtracting total amount to send to other recipients.
+	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
+	if len(payload.utxos) == 0 {
+		payload.utxos, payload.totalInputAmount, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
+			payload.sourceAccount, payload.requiredConfirmations)
+
+		if err != nil {
+			data["error"] = fmt.Sprintf("Cannot get summary, trying to get unspent outputs in account failed: %s", err.Error())
+			return
+		}
+	}
+	fee, err := walletcore.EstimateFee(len(payload.utxos), payload.sendDestinations)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated fee failed: %s", err.Error())
+		return
+	}
+	size, err := walletcore.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
+		return
+	}
+	data["fee"] = fee
+	data["size"] = size
+}
+
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
