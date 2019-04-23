@@ -123,7 +123,6 @@ export default class extends Controller {
     this.destinationCount = 0
     this.destinationIndex = 0
     this.newDestination()
-    this.calculateCustomInputsPercentage()
 
     this.sendingToAddress = true
     this.sendingToAccount = false
@@ -267,7 +266,6 @@ export default class extends Controller {
         _this.clearDestinationFieldError(editedAddress)
       })
       .catch(() => {
-        console.log(editedAddress)
         _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
       })
   }
@@ -592,7 +590,7 @@ export default class extends Controller {
       }
     })
     this.destinationAccountTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
+      if(el.getAttribute('data-index') === index) {
         accountTarget = el
       }
     })
