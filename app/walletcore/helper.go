@@ -137,7 +137,11 @@ func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, a
 }
 
 func BuildTxDestinations(destinationAddresses, destinationAccounts,
+<<<<<<< df96f472a26b12436851c68852f537fa2117671c
 	destinationAmounts, sendMaxAmountValues []string, addressFunc func(accountNumber uint32) (string, error)) (
+=======
+	destinationAmounts, sendMaxAmountValues []string, addressFunc func(accountNumber uint32)(string, error)) (
+>>>>>>> added send max feature to the sent to account implementation
 	destinations []txhelper.TransactionDestination, totalAmount dcrutil.Amount, err error) {
 
 	destinationAccountAddresses := make([]string, len(destinationAccounts))
