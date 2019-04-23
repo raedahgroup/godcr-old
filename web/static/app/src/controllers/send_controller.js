@@ -105,6 +105,12 @@ export default class extends Controller {
 
     this.sendingToAddress = true
     this.sendingToAccount = false
+
+    this.maxSendAmountCheckTargets.forEach(checkbox => {
+      checkbox.removeAttribute('readonly')
+      checkbox.parentElement.classList.remove('disabled')
+    })
+    this.updateSendButtonState()
   }
 
   initializeSendToAccount () {
@@ -119,6 +125,12 @@ export default class extends Controller {
 
     this.sendingToAccount = true
     this.sendingToAddress = false
+
+    this.maxSendAmountCheckTargets.forEach(checkbox => {
+      checkbox.removeAttribute('readonly')
+      checkbox.parentElement.classList.remove('disabled')
+    })
+    this.updateSendButtonState()
   }
 
   newDestination () {
@@ -275,7 +287,7 @@ export default class extends Controller {
       return
     }
 
-    if (!sendMaxCheckbox.checked) {
+    if (!sendMaxCheckbox.checked && this.useCustomTarget.checked) {
       show(this.changeOutputsTarget)
     }
 
@@ -323,6 +335,7 @@ export default class extends Controller {
       sendMaxCheckbox.removeAttribute('readonly')
       sendMaxCheckbox.parentElement.classList.remove('disabled')
       _this.hideChangeOutputPanel()
+      _this.updateSendButtonState()
       _this.calculateCustomInputsPercentage()
     }, (errMsg) => {
       uncheckCurrentMaxCheckbox()
