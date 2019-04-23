@@ -332,6 +332,7 @@ export default class extends Controller {
     let _this = this
     this.getMaxSendAmount(amount => {
       amountField.value = amount
+      _this.clearDestinationFieldError(amountField)
       sendMaxCheckbox.removeAttribute('readonly')
       sendMaxCheckbox.parentElement.classList.remove('disabled')
       _this.hideChangeOutputPanel()
@@ -802,19 +803,36 @@ export default class extends Controller {
       summaryHTML = '<p>You about to send</p>'
     }
     let destinations = ''
-    this.addressTargets.forEach(addressTarget => {
-      const index = addressTarget.getAttribute('data-index')
-      let currentAmountTarget
-      _this.amountTargets.forEach(function (target) {
-        if (target.getAttribute('data-index') === index) {
-          currentAmountTarget = target
+    if (this.sendingToAddress) {
+      this.addressTargets.forEach(addressTarget => {
+        const index = addressTarget.getAttribute('data-index')
+        let currentAmountTarget
+        _this.amountTargets.forEach(function (target) {
+          if (target.getAttribute('data-index') === index) {
+            currentAmountTarget = target
+          }
+        })
+        if (!currentAmountTarget) {
+          return
         }
+        destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${addressTarget.value}</li>`
       })
-      if (!currentAmountTarget) {
-        return
-      }
-      destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${addressTarget.value}</li>`
-    })
+    } else {
+      this.destinationAccountTargets.forEach(accountTarget => {
+        const index = accountTarget.getAttribute('data-index')
+        let currentAmountTarget
+        _this.amountTargets.forEach(function (target) {
+          if (target.getAttribute('data-index') === index) {
+            currentAmountTarget = target
+          }
+        })
+        if (!currentAmountTarget) {
+          return
+        }
+        const accountName = accountTarget.options[accountTarget.selectedIndex].getAttribute('data-account-name')
+        destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to <b>${accountName}</b></li>`
+      })
+    }
 
     this.changeOutputAddressTargets.forEach(changeOutputAddressTarget => {
       const index = changeOutputAddressTarget.getAttribute('data-index')
@@ -946,17 +964,17 @@ export default class extends Controller {
   resetSendForm () {
     this.resetCustomInputsAndChangeOutputs()
 
-    this.destinationsTarget.innerHTML = ''
     this.destinationIndex = 0
     this.destinationCount = 0
-    this.newDestination()
 
-    this.addressTargets.forEach(ele => {
-      ele.value = ''
-    })
-    this.amountTargets.forEach(ele => {
-      ele.value = ''
-    })
+    if (this.sendingToAddress) {
+      this.destinationsTarget.innerHTML = ''
+      this.newDestination()
+    } else {
+      this.destinationAccountsTarget.innerHTML = ''
+      this.newDestinationAccount()
+    }
+
     this.spendUnconfirmedTarget.checked = false
     $(this.useCustomTarget).bootstrapToggle('off')
 
