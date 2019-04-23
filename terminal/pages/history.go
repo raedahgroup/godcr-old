@@ -93,7 +93,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 		tviewApp.SetFocus(transactionDetailsTable)
 
-		fetchTransactionDetail(txHash, wallet, displayMessage, transactionDetailsTable)
+		displayTxDetails(txHash, wallet, displayMessage, transactionDetailsTable)
 	})
 
 	// handler for returning back to history table
@@ -185,7 +185,7 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 	return
 }
 
-func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayError func(errorMessage string), transactionDetailsTable *tview.Table) {
+func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(errorMessage string), transactionDetailsTable *tview.Table) {
 	tx, err := wallet.GetTransaction(txHash)
 	if err != nil {
 		displayError(err.Error())
@@ -207,7 +207,7 @@ func fetchTransactionDetail(txHash string, wallet walletcore.Wallet, displayErro
 	transactionDetailsTable.SetCellSimple(2, 1, strconv.Itoa(int(tx.BlockHeight)))
 	transactionDetailsTable.SetCellSimple(3, 1, tx.Type)
 	transactionDetailsTable.SetCellSimple(4, 1, dcrutil.Amount(tx.Amount).String())
-	transactionDetailsTable.SetCellSimple(5, 1, utils.FormatUTCTime(tx.Timestamp))
+	transactionDetailsTable.SetCellSimple(5, 1, fmt.Sprintf("%s (UTC)", tx.LongTime))
 	transactionDetailsTable.SetCellSimple(6, 1, tx.Direction.String())
 	transactionDetailsTable.SetCellSimple(7, 1, dcrutil.Amount(tx.Fee).String())
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", dcrutil.Amount(tx.FeeRate)))

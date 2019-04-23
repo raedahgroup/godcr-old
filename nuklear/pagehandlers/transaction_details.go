@@ -7,6 +7,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"fmt"
 )
 
 func (handler *HistoryHandler) clearTxDetails() {
@@ -116,7 +117,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Time", "LC"),
-			widgets.NewLabelTableCell(handler.selectedTxDetails.LongTime, "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%s (UTC)", handler.selectedTxDetails.LongTime), "LC"),
 		)
 		txDetailsTable2.Render(window)
 
