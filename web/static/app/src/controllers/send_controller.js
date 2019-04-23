@@ -496,7 +496,12 @@ export default class extends Controller {
     const targetElement = event.currentTarget
     const index = parseInt(targetElement.getAttribute('data-index'))
 
-    this.destinationsTarget.removeChild(this.destinationsTarget.querySelector(`div.destination[data-index="${index}"]`))
+    if (this.sendingToAddress) {
+      this.destinationsTarget.removeChild(this.destinationsTarget.querySelector(`div.destination[data-index="${index}"]`))
+    } else {
+      this.destinationAccountsTarget.removeChild(this.destinationAccountsTarget.querySelector(`div.destination[data-index="${index}"]`))
+    }
+
     this.destinationCount--
 
     if (this.destinationCount === 1) {
