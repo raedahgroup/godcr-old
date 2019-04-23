@@ -583,7 +583,7 @@ export default class extends Controller {
       }
     })
     this.destinationAccountTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
+      if(el.getAttribute('data-index') === index) {
         accountTarget = el
       }
     })

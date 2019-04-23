@@ -173,13 +173,11 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 	}
-
 	fee, err := utils.EstimateFee(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated fee failed: %s", err.Error())
 		return
 	}
-
 	size, err := utils.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
