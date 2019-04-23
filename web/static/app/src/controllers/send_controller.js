@@ -276,7 +276,6 @@ export default class extends Controller {
         _this.clearDestinationFieldError(editedAddress)
       })
       .catch(() => {
-        console.log(editedAddress)
         _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
       })
   }
