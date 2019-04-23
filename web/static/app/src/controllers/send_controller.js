@@ -123,6 +123,7 @@ export default class extends Controller {
     this.destinationCount = 0
     this.destinationIndex = 0
     this.newDestination()
+    this.calculateCustomInputsPercentage()
 
     this.sendingToAddress = true
     this.sendingToAccount = false
