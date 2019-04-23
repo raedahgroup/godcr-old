@@ -14,6 +14,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/conversion/bitrex"
+	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
@@ -169,12 +170,12 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 	}
-	fee, err := walletcore.EstimateFee(len(payload.utxos), payload.sendDestinations)
+	fee, err := utils.EstimateFee(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated fee failed: %s", err.Error())
 		return
 	}
-	size, err := walletcore.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
+	size, err := utils.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
 		return

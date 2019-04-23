@@ -102,7 +102,6 @@ export default class extends Controller {
     this.destinationCount = 0
     this.destinationIndex = 0
     this.newDestination()
-    this.calculateCustomInputsPercentage()
 
     this.sendingToAddress = true
     this.sendingToAccount = false
@@ -117,7 +116,6 @@ export default class extends Controller {
     this.destinationCount = 0
     this.destinationIndex = 0
     this.newDestinationAccount()
-    this.calculateCustomInputsPercentage()
 
     this.sendingToAccount = true
     this.sendingToAddress = false
@@ -178,7 +176,7 @@ export default class extends Controller {
     const destinationTemplate = document.importNode(this.destinationAccountTemplateTarget.content, true)
 
     const destinationNode = destinationTemplate.firstElementChild
-    const accountInput = destinationNode.querySelector('input[name="destination-account"]')
+    const accountInput = destinationNode.querySelector('select[name="destination-account"]')
     const amountInput = destinationNode.querySelector('input[name="destination-account-amount"]')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
     const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
@@ -231,7 +229,6 @@ export default class extends Controller {
         _this.clearDestinationFieldError(editedAddress)
       })
       .catch(() => {
-        console.log(editedAddress)
         _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
       })
   }
@@ -284,7 +281,7 @@ export default class extends Controller {
 
     const index = parseInt(sendMaxCheckbox.getAttribute('data-index'))
     const destinationNode = document.querySelector(`div.destination[data-index="${index}"]`)
-    const amountField = destinationNode.querySelector('input[name="destination-amount"]')
+    const amountField = destinationNode.querySelector('input.amount')
 
     this.maxSendDestinationIndex = index
     const currentAmount = amountField.value
@@ -429,7 +426,7 @@ export default class extends Controller {
 
   alignDestinationField (element) {
     const index = element.getAttribute('data-index')
-    let addressTarget, amountTarget, sendMaxTarget
+    let addressTarget, amountTarget, sendMaxTarget, accountTarget
     this.addressTargets.forEach(el => {
       if (el.getAttribute('data-index') === index) {
         addressTarget = el
@@ -445,31 +442,50 @@ export default class extends Controller {
         sendMaxTarget = el
       }
     })
+    this.destinationAccountTargets.forEach(el => {
+      if(el.getAttribute('data-index') === index) {
+        accountTarget = el
+      }
+    })
 
     const amountErr = amountTarget.parentElement.lastElementChild.innerHTML
-    const addressErr = addressTarget.parentElement.lastElementChild.innerHTML
+    let addressErr = ''
+    if (this.sendingToAddress) {
+      addressErr = addressTarget.parentElement.lastElementChild.innerHTML
+    }
 
     sendMaxTarget.parentElement.parentElement.style.marginBottom = '0px'
     amountTarget.parentElement.style.marginBottom = '0px'
-    addressTarget.parentElement.style.marginBottom = '0px'
+    if (this.sendingToAddress) {
+      addressTarget.parentElement.style.marginBottom = '0px'
+    } else {
+      accountTarget.parentElement.style.marginBottom = '0px'
+    }
 
     if (amountErr === '' && addressErr === '') {
       return
     }
 
-    sendMaxTarget.parentElement.parentElement.style.marginBottom = '40px'
-    if (amountErr !== '' && addressErr !== '') {
-      addressTarget.parentElement.style.marginBottom = '20px'
-      return
+    // this is the number of char that is shown per line in the error div associated with the element
+    const addressErrCharPerLine = 60, amountErrCharPerLine = 30
+
+    let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
+    numberOfAddressErrLines = Math.round(numberOfAddressErrLines) < numberOfAddressErrLines ? Math.round(numberOfAddressErrLines) + 1 : Math.round(numberOfAddressErrLines)
+    let numberOfAmountErrLines = amountErr.length / amountErrCharPerLine
+    numberOfAmountErrLines = Math.round(numberOfAmountErrLines) < numberOfAmountErrLines ? Math.round(numberOfAmountErrLines) + 1 : Math.round(numberOfAmountErrLines)
+    let maxLines = numberOfAmountErrLines
+    if (numberOfAddressErrLines > numberOfAmountErrLines) {
+      maxLines = numberOfAddressErrLines
     }
 
-    if (amountErr !== '') {
-      addressTarget.parentElement.style.marginBottom = '40px'
-      return
+    const pixelPerLine = 20
+    sendMaxTarget.parentElement.parentElement.style.marginBottom = `${pixelPerLine * maxLines}px`
+    if (this.sendingToAddress) {
+      addressTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAddressErrLines)}px`
+    } else {
+      accountTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAddressErrLines)}px`
     }
-
-    amountTarget.parentElement.style.marginBottom = '20px'
-    sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
+    amountTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAmountErrLines)}px`
   }
 
   removeDestination (event) {
