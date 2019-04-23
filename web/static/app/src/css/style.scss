@@ -77,6 +77,11 @@ table td {
   padding: 0.7rem;
 }
 
+.table.borderless td,
+.table.borderless th {
+  border: none;
+}
+
 .table.inverse tbody td {
   background-color: #f5f5f5 !important;
   border-color: #fff !important;
