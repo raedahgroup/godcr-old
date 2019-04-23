@@ -60,14 +60,22 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group mb-0">
-                                <input data-target="send.useCustom"
-                                       name="use-custom" value="1"
-                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
-
-                                <input data-target="send.toggleCustomInputPnl"
-                                       class="ml-2" value="1"
-                                       type="checkbox" data-toggle="toggle"
-                                       data-on="Collapse Custom Inputs" data-off="Expand Automatic Inputs">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input data-target="send.useCustom"
+                                               name="use-custom" value="1"
+                                               type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check ml-3 mt-2  d-none" data-action="change->send#toggleCustomInputPnlClicked">
+                                            <input data-target="send.toggleCustomInputPnl"
+                                                    checked class="form-check-input" type="checkbox" value="1" id="expandAutomaticInputs">
+                                            <label class="form-check-label" for="expandAutomaticInputs">
+                                                Expand Automatic Inputs
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="collapse mt-2" id="custom-inputs">
@@ -112,14 +120,14 @@
                                     <template data-target="send.destinationTemplate">
                                         <div class="col-xl-12 col-md-12 destination">
                                             <div class="form-row align-items-center mb-2">
-                                                <div class="form-group col-lg-4 col-md-5 col-sm-12">
+                                                <div class="form-group col-xl-4 col-md-5 col-sm-12">
                                                     <input data-target="send.address" data-action="change->send#destinationAddressEdited" placeholder="Address"
                                                            type="text" class="form-control"
                                                            name="destination-address">
                                                     <div data-target="send.addressError" class="text-danger address-error"></div>
                                                 </div>
 
-                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                <div class="form-group col-lg-2 col-md-3 col-sm-5">
                                                     <input data-target="send.amount"
                                                            data-action="keyup->send#destinationAmountEdited"
                                                            type="text" class="form-control amount"
@@ -182,7 +190,7 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                <div class="form-group col-lg-2 col-md-3 col-sm-5">
                                                     <input data-target="send.amount"
                                                            data-action="keyup->send#destinationAmountEdited"
                                                            type="text" class="form-control amount"
@@ -191,7 +199,7 @@
                                                     <div data-target="send.amountError" class="text-danger address-error"></div>
                                                 </div>
 
-                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                <div class="form-group col-lg-2 col-md-3 col-sm-5">
                                                     <input data-target="send.amountUsd"
                                                            data-action="keyup->send#destinationAmountUsdEdited"
                                                            type="text" class="form-control amount-usd"
@@ -200,8 +208,8 @@
                                                     <div data-target="send.amountError" class="text-danger address-error"></div>
                                                 </div>
 
-                                                <div class="col-lg-2 col-md-2 col-sm-4">
-                                                    <div class="form-group form-check d-inline-flex align-items-center">
+                                                <div class="col-md-1 col-sm-2">
+                                                    <div class="form-group form-check d-inline-flex align-items-center  mt-2">
                                                         <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
                                                         <input type="hidden" value="false" name="send-max-amount">
                                                         <input data-target="send.maxSendAmountCheck"
