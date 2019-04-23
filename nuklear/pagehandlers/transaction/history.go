@@ -17,15 +17,10 @@ type paginationData struct {
 	endBlockHeight  int32
 }
 
-type transactionsData struct {
-	firstNumberInSequence int
-	transactions          []*walletcore.Transaction
-}
-
 type HistoryHandler struct {
 	fetchHistoryError      error
 	ctx                    context.Context
-	transactions           []*transactionsData // each []*walletcore.Transaction slice is a page
+	transactions           []*walletcore.Transaction
 	isFetchingTransactions bool
 	isRendering            bool
 	paginationData         paginationData
@@ -79,19 +74,8 @@ func (handler *HistoryHandler) fetchTransactions(window *nucular.Window) {
 	transactions, endBlockHeight, err := handler.wallet.TransactionHistory(handler.ctx, handler.paginationData.nextBlockHeight,
 		handler.paginationData.itemsPerPage)
 
-	firstNumberInSequence := 1
-	if len(handler.transactions) > 0 {
-		lastLoadedTransactionData := handler.transactions[len(handler.transactions)-1]
-		firstNumberInSequence = lastLoadedTransactionData.firstNumberInSequence + len(lastLoadedTransactionData.transactions)
-	}
-
-	transactionsData := &transactionsData{
-		firstNumberInSequence: firstNumberInSequence,
-		transactions:          transactions,
-	}
-
 	handler.fetchHistoryError = err
-	handler.transactions = append(handler.transactions, transactionsData)
+	handler.transactions = append(handler.transactions, transactions...)
 
 	handler.paginationData.endBlockHeight = endBlockHeight
 	handler.paginationData.nextBlockHeight = endBlockHeight - 1
@@ -131,13 +115,10 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		widgets.NewLabelTableCell("Hash", "LC"),
 	)
 
-	// get current page transactions
-	transactions := handler.transactions[handler.paginationData.currentPage-1]
-	currentNumber := transactions.firstNumberInSequence
-
-	for _, tx := range transactions.transactions {
+	pageTransactions, startsAt := handler.getCurrentPageTransactions()
+	for _, tx := range pageTransactions {
 		historyTable.AddRow(
-			widgets.NewLabelTableCell(fmt.Sprintf("%d", currentNumber), "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%d", startsAt+1), "LC"),
 			widgets.NewLabelTableCell(tx.FormattedTime, "LC"),
 			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
 			widgets.NewLabelTableCell(tx.Amount, "RC"),
@@ -145,7 +126,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 			widgets.NewLabelTableCell(tx.Type, "LC"),
 			widgets.NewLinkTableCell(tx.Hash, "Click to see transaction details", handler.gotoTransactionDetails),
 		)
-		currentNumber++
+		startsAt++
 	}
 	historyTable.Render(contentWindow)
 
@@ -165,18 +146,43 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 	}
 }
 
+func (handler *HistoryHandler) getCurrentPageTransactions() ([]*walletcore.Transaction, int) {
+	startsAt, endsAt := handler.getCurrentPageLimits()
+	return handler.transactions[startsAt:endsAt], startsAt
+}
+
+func (handler *HistoryHandler) getCurrentPageLimits() (int, int) {
+	return handler.getPageLimits(handler.paginationData.currentPage)
+}
+
+func (handler *HistoryHandler) getPageLimits(pageNumber int) (int, int) {
+	txnsLen := len(handler.transactions)
+	startsAt := handler.paginationData.itemsPerPage * (pageNumber - 1)
+	endsAt := startsAt + (handler.paginationData.itemsPerPage - 1)
+
+	if startsAt > txnsLen {
+		startsAt = txnsLen
+	}
+
+	if endsAt > txnsLen {
+		endsAt = txnsLen
+	}
+
+	return startsAt, endsAt
+}
+
 func (handler *HistoryHandler) loadPreviousPage(window *widgets.Window) {
 	// only load previous page if we are not on first page
 	if handler.paginationData.currentPage > 1 {
 		handler.paginationData.currentPage--
 	}
-
 	window.Master().Changed()
 }
 
 func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
-	// check we have already fetched transactions for the page we are navigating to
-	if len(handler.transactions) >= handler.paginationData.currentPage+1 {
+	// fetch transactions from remote only if we dont have them yet
+	_, endsAt := handler.getNextPageLimits()
+	if len(handler.transactions) > endsAt {
 		handler.paginationData.currentPage++
 		window.Master().Changed()
 		return
@@ -184,4 +190,8 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 
 	// we've not fetched transactions for this page. fetch now
 	go handler.fetchTransactions(window.Window)
+}
+
+func (handler *HistoryHandler) getNextPageLimits() (int, int) {
+	return handler.getPageLimits(handler.paginationData.currentPage + 1)
 }
