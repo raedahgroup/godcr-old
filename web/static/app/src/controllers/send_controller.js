@@ -260,7 +260,7 @@ export default class extends Controller {
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
+          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'INVALID ADDRESS')
           return
         }
         _this.clearDestinationFieldError(editedAddress)
