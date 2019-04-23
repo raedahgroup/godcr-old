@@ -5,7 +5,6 @@ import (
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
-	"github.com/raedahgroup/godcr/nuklear/pagehandlers/transaction"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -63,7 +62,7 @@ func getNavPages() []navPage {
 		{
 			name:    "history",
 			label:   "History",
-			handler: &transaction.HistoryHandler{},
+			handler: &pagehandlers.HistoryHandler{},
 		},
 		{
 			name:    "send",

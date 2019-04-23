@@ -1,4 +1,4 @@
-package transaction
+package pagehandlers
 
 import (
 	"strconv"
@@ -33,7 +33,9 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 
 	widgets.PageContentWindowDefaultPadding("Transaction Details", window, func(contentWindow *widgets.Window) {
 		contentWindow.AddButton("Back", func() {
-			handler.goBackToHistory(contentWindow)
+			// clear tx details data so that history page is re-displayed
+			handler.clearTxDetails()
+			contentWindow.Master().Changed()
 		})
 
 		if handler.fetchTxDetailsError != nil {
@@ -44,11 +46,6 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 			contentWindow.DisplayIsLoadingMessage()
 		}
 	})
-}
-
-func (handler *HistoryHandler) goBackToHistory(contentWindow *widgets.Window) {
-	handler.clearTxDetails()
-	contentWindow.Master().Changed()
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
