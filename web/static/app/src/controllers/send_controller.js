@@ -16,7 +16,7 @@ export default class extends Controller {
       'errors',
       'nextButton',
       // from wallet passphrase modal (utils.html)
-      'walletPassphrase', 'passwordError', 'transactionDetails', 'fee', 'estimateSize', 'balanceAfter'
+      'walletPassphrase', 'passwordError', 'transactionDetails', 'fee', 'estimateSize', 'exchangeRate', 'balanceAfter'
     ]
   }
 
@@ -43,6 +43,11 @@ export default class extends Controller {
         $('#custom-inputs').slideUp()
       }
       this.customInputPnlOpnen = !this.customInputPnlOpnen
+    }
+
+    this.exchangeRate = parseFloat(this.sourceAccountTarget.getAttribute('data-exchange-rate'))
+    if (this.exchangeRate === 0) {
+      this.exchangeRateTarget.textContent = 'N/A'
     }
   }
 
@@ -699,7 +704,7 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      destinations += `<li>${parseFloat(currentAmountTarget.value).toFixed(8)} DCR to ${addressTarget.value}</li>`
+      destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${addressTarget.value}</li>`
     })
 
     this.changeOutputAddressTargets.forEach(changeOutputAddressTarget => {
@@ -713,7 +718,7 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      destinations += `<li>${parseFloat(currentAmountTarget.value).toFixed(8)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
+      destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
     })
 
     summaryHTML += `<ul>${destinations}</ul>`

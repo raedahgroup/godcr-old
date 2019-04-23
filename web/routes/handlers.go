@@ -13,6 +13,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/conversion/bitrex"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
@@ -81,6 +82,15 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		"accounts":              accounts,
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
+
+	if routes.settings.CurrencyConverter == "bitrex" {
+		exchangeRate, err := bitrex.DcrToUsd(1)
+		if err != nil {
+			weblog.LogError(fmt.Errorf("error fetching exchange rate: %s", err.Error()))
+		}
+		data["exchangeRate"] = fmt.Sprintf("%.8f", exchangeRate)
+	}
+
 	routes.renderPage("send.html", data, res)
 }
 
