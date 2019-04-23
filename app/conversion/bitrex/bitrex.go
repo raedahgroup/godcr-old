@@ -57,8 +57,13 @@ func btcToUsd(btcAmount float64) (float64, error) {
 func fetchMarketSummary(marketName string) (*marketSummary, error) {
 	url := fmt.Sprintf("https://api.bittrex.com/api/v1.1/public/getmarketsummary?market=%s", marketName)
 
+<<<<<<< 3d191897f6c7bbb93ec8abe263bbf068e32d2250
 	httpClient := http.Client{
 		Timeout: time.Second * 5,
+=======
+	spaceClient := http.Client{
+		Timeout: time.Second * 2,
+>>>>>>> Show 'balance after transaction' on send page. Fetched
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -66,7 +71,11 @@ func fetchMarketSummary(marketName string) (*marketSummary, error) {
 		return nil, err
 	}
 
+<<<<<<< 3d191897f6c7bbb93ec8abe263bbf068e32d2250
 	res, err := httpClient.Do(req)
+=======
+	res, err := spaceClient.Do(req)
+>>>>>>> Show 'balance after transaction' on send page. Fetched
 	if err != nil {
 		return nil, err
 	}
