@@ -45,7 +45,7 @@ export default class extends Controller {
       this.customInputPnlOpnen = !this.customInputPnlOpnen
     }
 
-    this.exchangeRate = parseFloat(this.sourceAccountTarget.getAttribute('data-exchange-rate'))
+    this.exchangeRate = parseFloat(this.sourceAccountTarget.getAttribute('data-echange-rate'))
     if (this.exchangeRate === 0) {
       this.exchangeRateTarget.textContent = 'N/A'
     }
@@ -235,7 +235,7 @@ export default class extends Controller {
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
+          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'INVALID ADDRESS')
           return
         }
         _this.clearDestinationFieldError(editedAddress)
@@ -251,13 +251,13 @@ export default class extends Controller {
     const amountTarget = event.currentTarget
     const amount = parseFloat(amountTarget.value)
     if (isNaN(amount) || amount <= 0) {
-      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
+      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number.', false)
       return
     }
     const accountBalance = this.getAccountBalance()
     const totalSendAmount = this.getTotalSendAmount()
     if (totalSendAmount > accountBalance) {
-      this.setDestinationFieldError(amountTarget, `Total exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less`, false)
+      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
       return
     }
 
@@ -316,7 +316,6 @@ export default class extends Controller {
 
     if (!sendMaxCheckbox.checked) {
       uncheckCurrentMaxCheckbox()
-      amountField.value = ''
       return
     }
 
@@ -790,15 +789,18 @@ export default class extends Controller {
     }
     let summaryHTML
     if (this.useCustomTarget.checked) {
-      summaryHTML = '<p>You are about to spend the input(s)</p>'
+      summaryHTML = '<p>You are about to spend these inputs:</p>'
       let inputs = ''
       this.utxoCheckboxTargets.forEach(utxoCheckbox => {
         if (!utxoCheckbox.checked) {
           return
         }
-        inputs += `<li>${parseFloat(utxoCheckbox.getAttribute('data-amount')).toFixed(8)} from ${utxoCheckbox.getAttribute('data-address')}`
+        let utxo = `${utxoCheckbox.value.substring(0, 15)}...${utxoCheckbox.value.substring(utxoCheckbox.value.length - 6)}`
+        const amount = parseFloat(utxoCheckbox.getAttribute('data-amount'))
+        let usdAmount = amount * _this.exchangeRate
+        inputs += `<li>${amount} DCR from ${utxo} ($${usdAmount.toFixed(2)})`
       })
-      summaryHTML += `<ul>${inputs}</ul> <p>and send</p>`
+      summaryHTML += `<ul>${inputs}</ul> <p>Sending them to:</p>`
     } else {
       summaryHTML = '<p>You about to send</p>'
     }
@@ -834,6 +836,7 @@ export default class extends Controller {
       })
     }
 
+    let changeOutputs = ''
     this.changeOutputAddressTargets.forEach(changeOutputAddressTarget => {
       const index = changeOutputAddressTarget.getAttribute('data-index')
       let currentAmountTarget
@@ -845,10 +848,13 @@ export default class extends Controller {
       if (!currentAmountTarget) {
         return
       }
-      destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
+      changeOutputs += `<li>${parseFloat(currentAmountTarget.value)} DCR to ${changeOutputAddressTarget.value} (change)</li>`
     })
 
     summaryHTML += `<ul>${destinations}</ul>`
+    if (changeOutputs !== '') {
+      summaryHTML += `<ul>${changeOutputs}</ul>`
+    }
 
     let queryParams = $('#send-form').serialize()
     queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
