@@ -36,16 +36,6 @@ export default class extends Controller {
       _this.toggleUseCustom()
     }
 
-    this.customInputPnlOpnen = false
-    this.toggleCustomInputPnlTarget.onchange = function () {
-      if (!this.customInputPnlOpnen) {
-        $('#custom-inputs').slideDown()
-      } else {
-        $('#custom-inputs').slideUp()
-      }
-      this.customInputPnlOpnen = !this.customInputPnlOpnen
-    }
-
     this.exchangeRate = parseFloat(this.sourceAccountTarget.getAttribute('data-echange-rate'))
     if (this.exchangeRate === 0) {
       this.exchangeRateTarget.textContent = 'N/A'
@@ -590,7 +580,7 @@ export default class extends Controller {
       }
     })
     this.destinationAccountTargets.forEach(el => {
-      if(el.getAttribute('data-index') === index) {
+      if (el.getAttribute('data-index') === index) {
         accountTarget = el
       }
     })
