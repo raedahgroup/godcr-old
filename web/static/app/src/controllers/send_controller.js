@@ -551,7 +551,6 @@ export default class extends Controller {
         if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
           target.value = usdAmount.toFixed(2)
           _this.clearDestinationFieldError(target)
-
         }
       })
     }
