@@ -291,6 +291,49 @@ export default class extends Controller {
     }
   }
 
+  destinationAmountUsdEdited (event) {
+    const _this = this
+    const amountTarget = event.currentTarget
+    const amount = parseFloat(amountTarget.value)
+    if (isNaN(amount) || amount <= 0) {
+      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number.', false)
+      return
+    }
+
+    let dcrAmount = parseFloat(amountTarget.value) / this.exchangeRate
+
+    const accountBalance = this.getAccountBalance()
+    const totalSendAmount = this.getTotalSendAmount() + dcrAmount
+
+    console.log('accountBalance', accountBalance)
+    console.log('totalSendAmount', totalSendAmount)
+    if (totalSendAmount > accountBalance) {
+      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
+      return
+    }
+
+    this.clearDestinationFieldError(amountTarget)
+    // update max send amount field if some other amount field has been updated
+    const editedAmountFieldIndex = event.target.getAttribute('data-index')
+    if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
+      this.updateMaxAmountFieldIfSet()
+    }
+
+    this.amountTargets.forEach(target => {
+      if (target.getAttribute('data-index') === editedAmountFieldIndex) {
+        target.value = dcrAmount.toFixed(4)
+        _this.clearDestinationFieldError(target)
+      }
+    })
+
+    this.calculateCustomInputsPercentage()
+    if (this.useRandomChangeOutputsTarget.checked) {
+      this.generateChangeOutputs()
+    }
+
+    this.updateSendButtonState()
+  }
+
   updateMaxAmountFieldIfSet () {
     if (this.maxSendDestinationIndex >= 0) {
       const activeSendMaxCheckbox = document.getElementById(`send-max-amount-${this.maxSendDestinationIndex}`)
@@ -676,7 +719,7 @@ export default class extends Controller {
     this.amountTargets.forEach(amountTarget => {
       amount += parseFloat(amountTarget.value)
     })
-    return amount
+    return amount > 0 ? amount : 0
   }
 
   getSelectedInputsSum () {
