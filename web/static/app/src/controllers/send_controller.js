@@ -474,7 +474,7 @@ export default class extends Controller {
           this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
         }
         fieldsAreValid = false
-      } else if(addressTarget.classList.contains('is-invalid')) {
+      } else if (addressTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       } else {
         if (!noErrorOutput) {
@@ -490,7 +490,7 @@ export default class extends Controller {
           this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
         fieldsAreValid = false
-      } else if(amountTarget.classList.contains('is-invalid')) {
+      } else if (amountTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       }
     }
@@ -502,7 +502,7 @@ export default class extends Controller {
           this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
         fieldsAreValid = false
-      } else if(amountTarget.classList.contains('is-invalid')) {
+      } else if (amountTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       }
     }
@@ -650,6 +650,7 @@ export default class extends Controller {
       })
     }
 
+    this.updateMaxAmountFieldIfSet()
     this.updateSendButtonState()
   }
 
@@ -909,6 +910,26 @@ export default class extends Controller {
     if (!this.validateSendForm() || !this.validateChangeOutputAmount()) {
       return
     }
+
+    let queryParams = $('#send-form').serialize()
+    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
+    axios.get('/tx-fee-and-size?' + queryParams).then(response => {
+      const result = response.data
+      if (result.error) {
+        this.passwordErrorTarget.innerHTML = `<div class="error">${result.error}</div>`
+        return
+      }
+      _this.feeTarget.textContent = `${result.fee} DCR`
+      _this.estimateSizeTarget.textContent = `${result.size} bytes`
+      _this.balanceAfterTarget.textContent = `${_this.getTotalAccountBalance() - (_this.getTotalSendAmount() + result.fee)} DCR`
+    })
+
+    this.transactionDetailsTarget.innerHTML = this.summaryHTML()
+    $('#passphrase-modal').modal()
+  }
+
+  summaryHTML () {
+    const _this = this
     let summaryHTML
     if (this.useCustomTarget.checked) {
       summaryHTML = '<p>You are about to spend these inputs:</p>'
@@ -962,8 +983,13 @@ export default class extends Controller {
         if (!currentAmountTarget) {
           return
         }
+        let amount = parseFloat(currentAmountTarget.value)
+        let usdAmountStr = ''
+        if (_this.exchangeRate > 0) {
+          usdAmountStr = `($${(amount * _this.exchangeRate).toFixed(2)}) `
+        }
         const accountName = accountTarget.options[accountTarget.selectedIndex].getAttribute('data-account-name')
-        destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR to <b>${accountName}</b></li>`
+        destinations += `<li>${parseFloat(currentAmountTarget.value)} DCR ${usdAmountStr}to <b>${accountName}</b></li>`
       })
     }
 
@@ -991,22 +1017,7 @@ export default class extends Controller {
     if (changeOutputs !== '') {
       summaryHTML += `<ul>${changeOutputs}</ul>`
     }
-
-    let queryParams = $('#send-form').serialize()
-    queryParams += `&totalSelectedInputAmountDcr=${this.getSelectedInputsSum()}`
-    axios.get('/tx-fee-and-size?' + queryParams).then(response => {
-      const result = response.data
-      if (result.error) {
-        this.passwordErrorTarget.innerHTML = `<div class="error">${result.error}</div>`
-        return
-      }
-      _this.feeTarget.textContent = `${result.fee} DCR`
-      _this.estimateSizeTarget.textContent = `${result.size} bytes`
-      _this.balanceAfterTarget.textContent = `${_this.getTotalAccountBalance() - (_this.getTotalSendAmount() + result.fee)} DCR`
-    })
-
-    this.transactionDetailsTarget.innerHTML = summaryHTML
-    $('#passphrase-modal').modal()
+    return summaryHTML
   }
 
   validateSendForm (noErrorOutput) {
