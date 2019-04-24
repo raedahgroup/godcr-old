@@ -42,13 +42,9 @@ type navPageHandler interface {
 func getStandalonePages() []standalonePage {
 	return []standalonePage{
 		{
-			name:    "sync",
-			handler: &pagehandlers.SyncHandler{},
+			name:    "createwallet",
+			handler: &pagehandlers.CreateWalletHandler{},
 		},
-		//{
-		//	name:    "createwallet",
-		//	handler: &pagehandlers.CreateWalletHandler{},
-		//},
 	}
 }
 
