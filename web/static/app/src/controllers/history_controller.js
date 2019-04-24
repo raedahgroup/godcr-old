@@ -4,7 +4,14 @@ import { hide, show } from '../utils'
 
 export default class extends Controller {
   static get targets () {
-    return ['stickyTableHeader', 'historyTable', 'txRowTemplate', 'nextPageButton', 'loadingIndicator', 'errorMessage']
+    return [
+      'stickyTableHeader', 'historyTable',
+      'txRowTemplate',
+      'errorMessage',
+      'previousPageButton', 'nextPageButton',
+      'pageReport',
+      'loadingIndicator'
+    ]
   }
 
   connect () {
@@ -25,30 +32,36 @@ export default class extends Controller {
 
   initialize () {
     // hide next page button to use infinite scroll
+    hide(this.previousPageButtonTarget)
     hide(this.nextPageButtonTarget)
-    this.nextBlockHeight = this.nextPageButtonTarget.getAttribute('data-next-block-height')
-    this.checkScrollPos()
+    hide(this.pageReportTarget)
+
+    this.nextPage = this.nextPageButtonTarget.getAttribute('data-next-page')
+    if (this.nextPage) {
+      // check if there is space at the bottom to load more now
+      this.checkScrollPos()
+    }
   }
 
   checkScrollPos () {
-    // check if there is space at the bottom to load more now
-    this.windowScrolled({ target: document })
-  }
-
-  windowScrolled (e) {
-    const element = e.target.scrollingElement
-    const scrollTop = element.scrollTop
+    const scrollElement = document.body
+    const scrollTop = scrollElement.scrollTop
     this.makeTableHeaderSticky(scrollTop)
 
-    if (this.isLoading || !this.nextBlockHeight) {
+    if (this.isLoading || !this.nextPage) {
       return
     }
 
-    const scrollPos = scrollTop + element.clientHeight
-    if (scrollPos >= element.scrollHeight * 0.95) {
+    const scrollContentHeight = document.documentElement.scrollHeight
+    const delta = scrollContentHeight - window.outerHeight - 10
+    if (window.scrollY >= delta * 0.9) {
       this.isLoading = true
       this.fetchMoreTxs()
     }
+  }
+
+  windowScrolled () {
+    this.checkScrollPos()
   }
 
   makeTableHeaderSticky (scrollTop) {
@@ -64,12 +77,12 @@ export default class extends Controller {
     show(this.loadingIndicatorTarget)
 
     const _this = this
-    axios.get(`/next-history-page?start=${this.nextBlockHeight}`)
+    axios.get(`/next-history-page?page=${this.nextPage}`)
       .then(function (response) {
         let result = response.data
         if (result.success) {
           hide(_this.errorMessageTarget)
-          _this.nextBlockHeight = result.nextBlockHeight
+          _this.nextPage = result.nextPage
           _this.displayTxs(result.txs)
 
           _this.isLoading = false
@@ -93,20 +106,21 @@ export default class extends Controller {
       }
       return 'Unclear'
     }
-
-    let n = this.historyTableTarget.querySelectorAll('tr').length
+    const amountDcr = (amount) => {
+      return `${amount / 100000000} DCR`
+    }
 
     const _this = this
     txs.forEach(tx => {
       const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
       const fields = txRow.querySelectorAll('td')
 
-      fields[0].innerText = ++n
-      fields[1].innerText = tx.formatted_time
+      fields[0].innerText = tx.long_time
+      fields[1].innerText = tx.type
       fields[2].innerText = txDirection(tx.direction)
-      fields[3].innerText = tx.amount
-      fields[4].innerText = tx.fee
-      fields[5].innerText = tx.type
+      fields[3].innerText = amountDcr(tx.amount)
+      fields[4].innerText = amountDcr(tx.fee)
+      fields[5].innerText = tx.status
       fields[6].innerHTML = `<a href="/transaction-details/${tx.hash}">${tx.hash}</a>`
 
       _this.historyTableTarget.appendChild(txRow)

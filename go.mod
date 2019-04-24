@@ -10,7 +10,6 @@ require (
 	github.com/decred/dcrd/wire v1.2.0
 	github.com/decred/dcrwallet v1.2.3-0.20181120205657-8690f1096aa7
 	github.com/decred/dcrwallet/rpc/walletrpc v1.0.1-0.20181109211527-ca582da21c08
-	github.com/decred/dcrwallet/wallet v1.3.0
 	github.com/decred/dcrwallet/walletseed v1.0.1
 	github.com/decred/slog v1.0.0
 	github.com/gdamore/tcell v1.1.1
@@ -21,12 +20,12 @@ require (
 	github.com/gorilla/websocket v1.2.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
-	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190418120033-58476581bcb1
+	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190423150923-8b7f8c1e911f
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/srwiley/oksvg v0.0.0-20190414003808-c520f0a6c5cc // indirect
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
-	google.golang.org/appengine v1.5.0 // indirect
+	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.19.0
 )

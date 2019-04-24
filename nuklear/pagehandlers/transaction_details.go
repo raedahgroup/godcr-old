@@ -1,4 +1,4 @@
-package transaction
+package pagehandlers
 
 import (
 	"strconv"
@@ -7,6 +7,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"fmt"
 )
 
 func (handler *HistoryHandler) clearTxDetails() {
@@ -33,7 +34,9 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 
 	widgets.PageContentWindowDefaultPadding("Transaction Details", window, func(contentWindow *widgets.Window) {
 		contentWindow.AddButton("Back", func() {
-			handler.goBackToHistory(contentWindow)
+			// clear tx details data so that history page is re-displayed
+			handler.clearTxDetails()
+			contentWindow.Master().Changed()
 		})
 
 		if handler.fetchTxDetailsError != nil {
@@ -44,11 +47,6 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 			contentWindow.DisplayIsLoadingMessage()
 		}
 	})
-}
-
-func (handler *HistoryHandler) goBackToHistory(contentWindow *widgets.Window) {
-	handler.clearTxDetails()
-	contentWindow.Master().Changed()
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
@@ -93,7 +91,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		for _, input := range handler.selectedTxDetails.Inputs {
 			txInputsTable.AddRow(
 				widgets.NewLabelTableCell(input.PreviousTransactionHash, "LC"),
-				widgets.NewLabelTableCell(dcrutil.Amount(input.AmountIn).String(), "LC"),
+				widgets.NewLabelTableCell(dcrutil.Amount(input.Amount).String(), "LC"),
 			)
 		}
 		txInputsTable.Render(window)
@@ -103,7 +101,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		txDetailsTable2 := widgets.NewTable()
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Amount", "LC"),
-			widgets.NewLabelTableCell(handler.selectedTxDetails.Amount, "LC"),
+			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.Amount).String(), "LC"),
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Size", "LC"),
@@ -111,15 +109,15 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Fee", "LC"),
-			widgets.NewLabelTableCell(handler.selectedTxDetails.Fee, "LC"),
+			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.Fee).String(), "LC"),
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Fee Rate", "LC"),
-			widgets.NewLabelTableCell(handler.selectedTxDetails.FeeRate.String(), "LC"),
+			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.FeeRate).String(), "LC"),
 		)
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Time", "LC"),
-			widgets.NewLabelTableCell(handler.selectedTxDetails.FormattedTime, "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", handler.selectedTxDetails.LongTime), "LC"),
 		)
 		txDetailsTable2.Render(window)
 
@@ -136,19 +134,12 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 
 		for _, output := range handler.selectedTxDetails.Outputs {
-			for _, address := range output.Addresses {
-				account := address.AccountName
-				if !address.IsMine {
-					account = "external address"
-				}
-
-				txOutputsTable.AddRow(
-					widgets.NewLabelTableCell(address.Address, "LC"),
-					widgets.NewLabelTableCell(account, "LC"),
-					widgets.NewLabelTableCell(dcrutil.Amount(output.Value).String(), "LC"),
-					widgets.NewLabelTableCell(output.ScriptType, "LC"),
-				)
-			}
+			txOutputsTable.AddRow(
+				widgets.NewLabelTableCell(output.Address, "LC"),
+				widgets.NewLabelTableCell(output.AccountName, "LC"),
+				widgets.NewLabelTableCell(dcrutil.Amount(output.Amount).String(), "LC"),
+				widgets.NewLabelTableCell(output.ScriptType, "LC"),
+			)
 		}
 		txOutputsTable.Render(window)
 	})

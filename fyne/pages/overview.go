@@ -64,7 +64,7 @@ func (page *overviewPageLoader) fetchRecentActivity() {
 
 	page.recentActivityTable.Clear()
 
-	txns, _, err := page.wallet.TransactionHistory(context.Background(), -1, 5)
+	txns, err := page.wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
 		page.fetchRecentActivityError = err.Error()
 		return
@@ -74,10 +74,10 @@ func (page *overviewPageLoader) fetchRecentActivity() {
 	for i, tx := range txns {
 		page.recentActivityTable.AddRowSimple(
 			fmt.Sprintf("%d", i+1),
-			tx.FormattedTime,
+			tx.ShortTime,
 			tx.Direction.String(),
-			tx.Amount,
-			tx.Fee,
+			dcrutil.Amount(tx.Amount).String(),
+			dcrutil.Amount(tx.Fee).String(),
 			tx.Type,
 			tx.Hash,
 		)

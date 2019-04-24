@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -19,29 +20,6 @@ type HistoryCommand struct {
 
 // Run runs the `history` command.
 func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
-	var startBlockHeight int32 = -1
-	var displayedTxHashes []string
-
-	// formatAmount returns the amount as a 17-character string padded with spaces to the left
-	formatAmount := func(amount string) string {
-		return fmt.Sprintf("%17s", amount)
-	}
-
-	// centerAlignAmountHeader returns the Amount or Fee header as a 17-character string
-	// padded with equal spaces to the left and right
-	centerAlignAmountHeader := func(header string) string {
-		nHeaderCharacters := len(header)
-		if nHeaderCharacters < 17 {
-			spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters)/2.0)
-			nLeftSpaces := int(spacesToPad)
-			nRightSpaces := int(17 - nHeaderCharacters - nLeftSpaces)
-
-			header = fmt.Sprintf("%*s", nLeftSpaces, header)   // pad with spaces to the left
-			header = fmt.Sprintf("%-*s", nRightSpaces, header) // pad with spaces to the right
-		}
-		return header
-	}
-
 	columns := []string{
 		"#",
 		"Date",
@@ -52,17 +30,24 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		"Hash",
 	}
 
+	txCount, err := wallet.TransactionCount(nil)
+	if err != nil {
+		return fmt.Errorf("cannot load history, getting tx count failed with error: %s", err.Error())
+	}
+
+	var txHistoryOffset = 0
+	var displayedTxHashes []string
+	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
+
 	// show transactions in pages, using infinite loop
 	// after displaying transactions for each page,
 	// ask user if to show next page, previous page, tx details or exit the loop
 	for {
-		transactions, endBlockHeight, err := wallet.TransactionHistory(ctx, startBlockHeight, walletcore.TransactionHistoryCountPerPage)
+		transactions, err := wallet.TransactionHistory(int32(txHistoryOffset), txPerPage, nil)
 		if err != nil {
 			return err
 		}
-
-		// next start block should be the block immediately preceding the current end block
-		startBlockHeight = endBlockHeight - 1
+		txHistoryOffset += len(transactions)
 
 		lastTxRowNumber := len(displayedTxHashes) + 1
 
@@ -72,7 +57,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 			pageTxRows[i] = []interface{}{
 				lastTxRowNumber + i,
-				tx.FormattedTime,
+				tx.ShortTime,
 				tx.Direction,
 				formatAmount(tx.Amount),
 				formatAmount(tx.Fee),
@@ -82,10 +67,12 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		}
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
 
+		pageInfo := fmt.Sprintf("Showing transactions %d-%d of %d", lastTxRowNumber,
+			lastTxRowNumber+len(transactions)-1, txCount)
+
 		// ask user what to do next
 		var prompt string
-		pageInfo := fmt.Sprintf("Showing transactions %d-%d", lastTxRowNumber, lastTxRowNumber+len(transactions)-1)
-		if startBlockHeight >= 0 {
+		if len(displayedTxHashes) < txCount {
 			prompt = fmt.Sprintf("%s, enter # for details, show (m)ore, or (q)uit", pageInfo)
 		} else {
 			prompt = fmt.Sprintf("%s, enter # for details or (q)uit", pageInfo)
@@ -93,7 +80,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 		validateUserInput := func(userInput string) error {
 			if strings.EqualFold(userInput, "q") ||
-				(strings.EqualFold(userInput, "m") && startBlockHeight >= 0) {
+				(strings.EqualFold(userInput, "m") && txHistoryOffset >= 0) {
 				return nil
 			}
 
@@ -138,4 +125,25 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	}
 
 	return nil
+}
+
+// centerAlignAmountHeader returns the Amount or Fee header as a 17-character string
+// padded with equal spaces to the left and right
+func centerAlignAmountHeader(header string) string {
+	nHeaderCharacters := len(header)
+	if nHeaderCharacters < 17 {
+		spacesToPad := math.Floor(17.0 - float64(nHeaderCharacters)/2.0)
+		nLeftSpaces := int(spacesToPad)
+		nRightSpaces := int(17 - nHeaderCharacters - nLeftSpaces)
+
+		header = fmt.Sprintf("%*s", nLeftSpaces, header)   // pad with spaces to the left
+		header = fmt.Sprintf("%-*s", nRightSpaces, header) // pad with spaces to the right
+	}
+	return header
+}
+
+// formatAmount returns the amount as a 17-character string padded with spaces to the left
+func formatAmount(amount int64) string {
+	amountString := dcrutil.Amount(amount).String()
+	return fmt.Sprintf("%17s", amountString)
 }

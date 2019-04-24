@@ -5,10 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 	"google.golang.org/grpc/codes"
@@ -20,33 +24,39 @@ import (
 type WalletRPCClient struct {
 	walletLoader  walletrpc.WalletLoaderServiceClient
 	walletService walletrpc.WalletServiceClient
-	activeNet     *netparams.Params
 	walletOpen    bool
+	activeNet     *netparams.Params
+
+	numberOfPeers int32
+	syncListener  *defaultsynclistener.DefaultSyncListener
+
+	txIndexDB              *txindex.DB
+	txNotificationListener TransactionListener
 }
 
 // Connect establishes gRPC connection to a running dcrwallet daemon at the specified address,
 // create a WalletServiceClient using the established connection. If the specified address did not connect,
 // the RPC address is retreived from dcrwallet config file and if this fail, the default address is used.
 // returns an instance of `dcrwalletrpc.Client`
-func Connect(ctx context.Context, rpcAddress, rpcCert string, noTLS bool) (walletRPCClient *WalletRPCClient, err error) {
+func Connect(ctx context.Context, cfg *config.Config) (walletRPCClient *WalletRPCClient, err error) {
 	defer func() {
 		if walletRPCClient != nil {
 			// wallet library is setup, prepare it for use by opening
-			err = openWalletIfExist(ctx, walletRPCClient)
+			err = openWalletIfExist(ctx, walletRPCClient, cfg.AppDataDir)
 		}
 	}()
 
-	walletRPCClient, err = createConnection(ctx, rpcAddress, rpcCert, noTLS)
+	walletRPCClient, err = createConnection(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	if err == nil {
 		return
 	}
 
-	walletRPCClient = parseDcrWalletConfigAndConnect(ctx, rpcCert, noTLS)
+	walletRPCClient = parseDcrWalletConfigAndConnect(ctx, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	if walletRPCClient != nil {
 		return
 	}
 
-	walletRPCClient = connectToDefaultAddresses(ctx, rpcCert, noTLS)
+	walletRPCClient = connectToDefaultAddresses(ctx, cfg.WalletRPCCert, cfg.NoWalletRPCTLS)
 	return
 }
 
@@ -97,7 +107,7 @@ func connectToDefaultAddresses(ctx context.Context, rpcCert string, noTLS bool) 
 	return
 }
 
-func openWalletIfExist(ctx context.Context, c *WalletRPCClient) error {
+func openWalletIfExist(ctx context.Context, c *WalletRPCClient, appDataDir string) error {
 	c.walletOpen = false
 	loadWalletDone := make(chan error)
 
@@ -125,9 +135,7 @@ func openWalletIfExist(ctx context.Context, c *WalletRPCClient) error {
 	case err := <-loadWalletDone:
 		// if err is nil, then wallet was opened
 		if err == nil {
-			c.walletOpen = true
-			// wallet is open, best time to detect network type for dcrwallet rpc connection
-			c.activeNet, _ = getNetParam(c.walletService)
+			err = finalizeWalletSetup(ctx, c, appDataDir)
 		} else {
 			c.walletOpen = false
 		}
@@ -136,6 +144,43 @@ func openWalletIfExist(ctx context.Context, c *WalletRPCClient) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func finalizeWalletSetup(ctx context.Context, c *WalletRPCClient, appDataDir string) error {
+	c.walletOpen = true
+
+	// wallet is open, best time to detect network type for dcrwallet rpc connection
+	c.activeNet, _ = getNetParam(c.walletService)
+
+	// set database for indexing transactions for faster loading
+	// important to do it at this point before wallet operations
+	// such as sync and transaction notification are triggered
+	// because those operations will need to access the tx index db.
+	txIndexDbPath := filepath.Join(appDataDir, "rpc-tx-index", txindex.DbName)
+	os.MkdirAll(filepath.Dir(txIndexDbPath), os.ModePerm) // create directory if not exist
+
+	generateWalletAddress := func() (string, error) {
+		return c.GenerateNewAddress(0) // use default account
+	}
+	addressMatchesWallet := func(address string) (bool, error) {
+		addressInfo, err := c.AddressInfo(address)
+		if err != nil {
+			return false, err
+		}
+		return addressInfo.IsMine, nil
+	}
+
+	txIndexDB, err := txindex.Initialize(txIndexDbPath, generateWalletAddress, addressMatchesWallet)
+	if err != nil {
+		return fmt.Errorf("tx index db initialization failed: %s", err.Error())
+	}
+	c.txIndexDB = txIndexDB
+
+	// start tx notification listener now,
+	// so we can index txs as the wallet is notified of new/updated txs
+	c.ListenForTxNotification(ctx)
+
+	return nil
 }
 
 func getNetParam(walletService walletrpc.WalletServiceClient) (param *netparams.Params, err error) {

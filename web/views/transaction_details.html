@@ -49,7 +49,7 @@
                         <tbody>
                         <tr>
                             <td>Amount</td>
-                            <td>{{ .tx.Amount }}</td>
+                            <td>{{ amountDcr .tx.Amount }}</td>
                         </tr>
                         <tr>
                             <td>Size</td>
@@ -57,15 +57,15 @@
                         </tr>
                         <tr>
                             <td>Fee</td>
-                            <td>{{ .tx.Fee }}</td>
+                            <td>{{ amountDcr .tx.Fee }}</td>
                         </tr>
                         <tr>
                             <td>Fee Rate</td>
-                            <td>{{ .tx.FeeRate }}/KB</td>
+                            <td>{{ amountDcr .tx.FeeRate }}/KB</td>
                         </tr>
                         <tr>
                             <td>Date</td>
-                            <td>{{ .tx.FormattedTime }}</td>
+                            <td>{{ .tx.LongTime }} UTC</td>
                         </tr>
                         </tbody>
                     </table>
@@ -82,10 +82,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {{ range $txn := .tx.Inputs }}
+                        {{ range .tx.Inputs }}
                         <tr>
                             <td>{{ .PreviousOutpoint }}</td>
-                            <td>{{ amountDcr .AmountIn  }}</td>
+                            <td>{{ amountDcr .Amount  }}</td>
                         </tr>
                         {{ end }}
                         </tbody>
@@ -103,14 +103,12 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {{ range $txn := .tx.Outputs }}
+                        {{ range .tx.Outputs }}
                         <tr>
-                            {{ range .Addresses }}
                             <td>{{ .Address }}</td>
-                            <td>{{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }}</td>
-                            <td>{{ amountDcr $txn.Value }}</td>
-                            <td>{{ $txn.ScriptType }}</td>
-                            {{ end }}
+                            <td>{{ .AccountName }}</td>
+                            <td>{{ amountDcr .Amount }}</td>
+                            <td>{{ .ScriptType }}</td>
                         </tr>
                         {{ end }}
                         </tbody>

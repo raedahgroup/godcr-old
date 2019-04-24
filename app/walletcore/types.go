@@ -43,28 +43,6 @@ type UnspentOutput struct {
 	Confirmations   int32          `json:"confirmations"`
 }
 
-type Transaction struct {
-	Hash          string                        `json:"hash"`
-	Type          string                        `json:"type"`
-	RawAmount     int64                         `json:"raw_amount"`
-	Amount        string                        `json:"amount"`
-	Fee           string                        `json:"fee"`
-	FeeRate       dcrutil.Amount                `json:"rate,omitempty"`
-	Direction     txhelper.TransactionDirection `json:"direction"`
-	Timestamp     int64                         `json:"timestamp"`
-	FormattedTime string                        `json:"formatted_time"`
-	Status        string                        `json:"status"`
-	Size          int                           `json:"size"`
-}
-
-type TransactionDetails struct {
-	BlockHeight   int32                     `json:"blockHeight"`
-	Confirmations int32                     `json:"confirmations"`
-	Inputs        []*txhelper.DecodedInput  `json:"inputs"`
-	Outputs       []*txhelper.DecodedOutput `json:"outputs"`
-	*Transaction
-}
-
 // StakeInfo holds ticket information summary related to the wallet.
 type StakeInfo struct {
 	// Stake info related to the wallet
@@ -89,4 +67,14 @@ type ConnectionInfo struct {
 	PeersConnected int32  `json:"peersConnected"`
 	TotalBalance   string `json:"totalBalance"`
 	LatestBlock    uint32 `json:"latestBlock"`
+}
+
+type Transaction struct {
+	*txhelper.Transaction
+	// Following additional properties are not constant but change with time.
+	// Need to update these fields before returning the tx to the caller.
+	Status        string `json:"status"`
+	Confirmations int32  `json:"confirmations"`
+	ShortTime     string `json:"short_time"`
+	LongTime      string `json:"long_time"`
 }

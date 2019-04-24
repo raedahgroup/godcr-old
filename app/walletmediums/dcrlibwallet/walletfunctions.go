@@ -4,16 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/dcrlibwallet/utils"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -77,8 +75,8 @@ func (lib *DcrWalletLib) AccountName(accountNumber uint32) (string, error) {
 	return lib.walletLib.AccountName(accountNumber), nil
 }
 
-func (lib *DcrWalletLib) AddressInfo(address string) (*txhelper.AddressInfo, error) {
-	return lib.AddressInfo(address)
+func (lib *DcrWalletLib) AddressInfo(address string) (*dcrlibwallet.AddressInfo, error) {
+	return lib.walletLib.AddressInfo(address)
 }
 
 func (lib *DcrWalletLib) ValidateAddress(address string) (bool, error) {
@@ -154,104 +152,37 @@ func (lib *DcrWalletLib) SendFromUTXOs(sourceAccount uint32, requiredConfirmatio
 		changeDestinations, []byte(passphrase))
 }
 
-func (lib *DcrWalletLib) TransactionHistory(ctx context.Context, startBlockHeight int32, minReturnTxs int) (
-	transactions []*walletcore.Transaction, endBlockHeight int32, err error) {
-
-	if startBlockHeight < 0 {
-		// begin reading from the most recent (unmined) transactions to the most recent (best) block
-		startBlockHeight = -1
-		endBlockHeight = lib.walletLib.GetBestBlock()
-	} else if startBlockHeight == 0 {
-		// requesting earliest transactions
-		endBlockHeight = 0
-	} else {
-		// read from the provided block height to the one before it
-		endBlockHeight = startBlockHeight - 1
-	}
-
-	var startBlock, endBlock *wallet.BlockIdentifier
-	var rawTxs []*dcrlibwallet.Transaction
-
-	for {
-		startBlock = wallet.NewBlockIdentifierFromHeight(startBlockHeight)
-		endBlock = wallet.NewBlockIdentifierFromHeight(endBlockHeight)
-
-		rawTxs, err = lib.walletLib.GetTransactionsInBlockRange(ctx, startBlock, endBlock)
-		if err != nil {
-			return
-		}
-
-		transactions, err = lib.processAndAppendTransactions(rawTxs, transactions)
-		if err != nil {
-			return
-		}
-
-		if len(transactions) >= minReturnTxs {
-			break
-		}
-
-		if endBlockHeight > 1 {
-			// next round should begin with the block height preceding the range just fetched
-			startBlockHeight = endBlockHeight - 1
-			endBlockHeight = startBlockHeight - 1
-		} else if endBlockHeight == 1 {
-			// last range must have been 2 - 1, now fetch 0 - 0
-			startBlockHeight = 0
-			endBlockHeight = 0
-		} else {
-			// gotten to the end (block height 0 represents earliest possible record)
-			break
-		}
-	}
-
-	// sort transactions by date (list newer first)
-	sort.SliceStable(transactions, func(i1, i2 int) bool {
-		return transactions[i1].Timestamp > transactions[i2].Timestamp
-	})
-
-	return
+func (lib *DcrWalletLib) TransactionCount(filter *txindex.ReadFilter) (int, error) {
+	return lib.walletLib.TxCount(filter)
 }
 
-func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.TransactionDetails, error) {
+func (lib *DcrWalletLib) TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*walletcore.Transaction, error) {
+	txs, err := lib.walletLib.GetTransactionsRaw(offset, count, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	processedTxs := make([]*walletcore.Transaction, len(txs))
+	for i, tx := range txs {
+		confirmations := txhelper.TxConfirmations(tx.BlockHeight, lib.walletLib.GetBestBlock())
+		processedTxs[i] = walletcore.TxDetails(tx, confirmations)
+	}
+	return processedTxs, nil
+}
+
+func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Transaction, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
 	}
 
-	txInfo, err := lib.walletLib.GetTransactionRaw(hash[:])
+	tx, err := lib.walletLib.GetTransactionRaw(hash[:])
 	if err != nil {
 		return nil, err
 	}
 
-	decodedTx, err := txhelper.DecodeTransaction(hash, txInfo.Hex, lib.activeNet.Params, lib.walletLib.AddressInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	bestBlockHeight := lib.walletLib.GetBestBlock()
-	confirmations, status := walletcore.TxStatus(txInfo.BlockHeight, bestBlockHeight)
-
-	tx := &walletcore.Transaction{
-		Hash:          txInfo.Hash,
-		Amount:        dcrutil.Amount(txInfo.Amount).String(),
-		RawAmount:     txInfo.Amount,
-		Fee:           dcrutil.Amount(decodedTx.Fee).String(),
-		FormattedTime: utils.ExtractDateOrTime(txInfo.Timestamp),
-		Timestamp:     txInfo.Timestamp,
-		Direction:     txInfo.Direction,
-		Type:          txInfo.Type,
-		FeeRate:       dcrutil.Amount(decodedTx.FeeRate),
-		Status:        status,
-		Size:          decodedTx.Size,
-	}
-
-	return &walletcore.TransactionDetails{
-		BlockHeight:   txInfo.BlockHeight,
-		Confirmations: confirmations,
-		Transaction:   tx,
-		Inputs:        decodedTx.Inputs,
-		Outputs:       decodedTx.Outputs,
-	}, nil
+	confirmations := txhelper.TxConfirmations(tx.BlockHeight, lib.walletLib.GetBestBlock())
+	return walletcore.TxDetails(tx, confirmations), nil
 }
 
 func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {

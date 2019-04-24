@@ -1,10 +1,10 @@
 package pages
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -52,7 +52,7 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 		overviewPage.AddItem(statusTextView, 2, 0, false)
 	})
 
-	txns, _, err := wallet.TransactionHistory(context.Background(), -1, 5)
+	txns, err := wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
 		// updating an element on the page from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
@@ -75,7 +75,7 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 	inputsAndOutputsAmount := make([]int64, 5)
 	for i, tx := range txns {
 		if i < 5 {
-			inputsAndOutputsAmount[i] = tx.RawAmount
+			inputsAndOutputsAmount[i] = tx.Amount
 		} else {
 			break
 		}
@@ -93,11 +93,11 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 			break
 		}
 
-			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", tx.FormattedTime)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.RawAmount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", utils.ExtractDateOrTime(tx.Timestamp))).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.Amount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+		historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {

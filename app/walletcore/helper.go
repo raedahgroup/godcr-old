@@ -7,22 +7,15 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 )
 
 const (
 	// standard decred min confirmations is 2, this should be used as default for wallet operations
 	DefaultRequiredConfirmations = 2
 
-	// minimum number of transactions to return per call to Wallet.TransactionHistory()
+	// default number of transactions to return per call to Wallet.TransactionHistory()
 	TransactionHistoryCountPerPage = 25
-
-	ConfirmedStatus = "Confirmed"
-
-	UnconfirmedStatus = "Pending"
-
-	StoreSeedWarningText = "Keep the seed in a safe place as you will NOT be able to restore your wallet without it. " +
-		"Please keep in mind that anyone who has access to the seed can also restore your wallet " +
-		"thereby giving them access to all your funds, so it is imperative that you keep it in a secure location."
 
 	ReceivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
 )
@@ -122,18 +115,6 @@ func BuildTxDestinations(destinationAddresses, destinationAmounts, sendMaxAmount
 	return
 }
 
-func TxStatus(txBlockHeight, bestBlockHeight int32) (int32, string) {
-	var confirmations int32 = -1
-	if txBlockHeight >= 0 {
-		confirmations = bestBlockHeight - txBlockHeight + 1
-	}
-	if confirmations >= DefaultRequiredConfirmations {
-		return confirmations, ConfirmedStatus
-	} else {
-		return confirmations, UnconfirmedStatus
-	}
-}
-
 func SumUtxosInAccount(wallet Wallet, accountNumber uint32, requiredConfirmations int32) (utxos []string, total dcrutil.Amount, err error) {
 	allUtxos, err := wallet.UnspentOutputs(accountNumber, 0, requiredConfirmations)
 	if err != nil {
@@ -148,4 +129,14 @@ func SumUtxosInAccount(wallet Wallet, accountNumber uint32, requiredConfirmation
 
 	total, err = dcrutil.NewAmount(totalInputAmountDcr)
 	return
+}
+
+func TxDetails(tx *txhelper.Transaction, confirmations int32) *Transaction {
+	return &Transaction{
+		Transaction:   tx,
+		ShortTime:     utils.ExtractDateOrTime(tx.Timestamp),
+		LongTime:      utils.FormatUTCTime(tx.Timestamp),
+		Confirmations: confirmations,
+		Status:        txhelper.TxStatus(confirmations),
+	}
 }

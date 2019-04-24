@@ -13,9 +13,6 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-var numberOfPeers int32
-var syncListener *defaultsynclistener.DefaultSyncListener
-
 func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
 	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
 	if err != nil {
@@ -59,7 +56,7 @@ func (c *WalletRPCClient) IsWalletOpen() bool {
 }
 
 func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
-	ctx := context.Background()
+	ctx := context.Background() // todo use a cancelable ctx
 
 	getBestBlock := func() int32 {
 		bestBlockHeight, _ := c.BestBlock()
@@ -77,76 +74,78 @@ func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(
 		return bestBlockInfo.Timestamp
 	}
 
-	// syncListener listens for reported sync updates, calculates progress and updates the caller via syncProgressUpdated
-	if syncListener == nil {
+	// c.syncListener listens for reported sync updates, calculates progress and updates the caller via syncProgressUpdated
+	if c.syncListener == nil {
 		// use syncProgressUpdatedWrapper to suppress op parameter that's not needed by callers
 		syncProgressUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, _ defaultsynclistener.SyncOp) {
 			syncProgressUpdated(progressReport)
 		}
-		syncListener = defaultsynclistener.DefaultSyncProgressListener(c.NetType(), showLog, getBestBlock, getBestBlockTimestamp,
+		c.syncListener = defaultsynclistener.DefaultSyncProgressListener(c.NetType(), showLog, getBestBlock, getBestBlockTimestamp,
 			syncProgressUpdatedWrapper)
 	}
 
 	syncStream, err := c.walletLoader.SpvSync(ctx, &walletrpc.SpvSyncRequest{})
 	if err != nil {
-		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+		c.syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
 		return
 	}
 
-	// read sync updates from syncStream in go routine and trigger syncListener methods to calculate progress and update caller
+	// read sync updates from syncStream in go routine and trigger c.syncListener methods to calculate progress and update caller
 	go func() {
 		for {
 			syncUpdate, err := syncStream.Recv()
 			if err != nil {
-				syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
-				syncListener.OnSynced(false)
+				c.syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+				c.syncListener.OnSynced(false)
 				return
 			}
 			if syncUpdate.Synced {
-				syncListener.OnSynced(true)
+				c.indexTransactions(ctx, -1, -1, showLog, func() {
+					c.syncListener.OnSynced(true)
+				})
 				return
 			}
 
 			switch syncUpdate.NotificationType {
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_STARTED:
-				syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateStart)
+				c.syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_PROGRESS:
-				syncListener.OnFetchedHeaders(syncUpdate.FetchHeaders.FetchedHeadersCount, syncUpdate.FetchHeaders.LastHeaderTime,
+				c.syncListener.OnFetchedHeaders(syncUpdate.FetchHeaders.FetchedHeadersCount, syncUpdate.FetchHeaders.LastHeaderTime,
 					dcrlibwallet.SyncStateProgress)
 
 			case walletrpc.SyncNotificationType_FETCHED_HEADERS_FINISHED:
-				syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateFinish)
+				c.syncListener.OnFetchedHeaders(0, 0, dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_DISCOVER_ADDRESSES_STARTED:
-				syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateStart)
+				c.syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_DISCOVER_ADDRESSES_FINISHED:
-				syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateFinish)
+				c.syncListener.OnDiscoveredAddresses(dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_RESCAN_STARTED:
-				syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
+				c.syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
 
 			case walletrpc.SyncNotificationType_RESCAN_PROGRESS:
-				syncListener.OnRescan(syncUpdate.RescanProgress.RescannedThrough, dcrlibwallet.SyncStateProgress)
+				c.syncListener.OnRescan(syncUpdate.RescanProgress.RescannedThrough, dcrlibwallet.SyncStateProgress)
 
 			case walletrpc.SyncNotificationType_RESCAN_FINISHED:
-				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
+				c.syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
 
 			case walletrpc.SyncNotificationType_PEER_CONNECTED:
-				numberOfPeers = syncUpdate.PeerInformation.PeerCount
-				syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
+				c.numberOfPeers = syncUpdate.PeerInformation.PeerCount
+				c.syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
 
 			case walletrpc.SyncNotificationType_PEER_DISCONNECTED:
-				numberOfPeers = syncUpdate.PeerInformation.PeerCount
-				syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
+				c.numberOfPeers = syncUpdate.PeerInformation.PeerCount
+				c.syncListener.OnPeerConnected(syncUpdate.PeerInformation.PeerCount)
 			}
 		}
 	}()
 }
 
 func (c *WalletRPCClient) RescanBlockChain() error {
-	if syncListener == nil {
+	if c.syncListener == nil {
 		return fmt.Errorf("blockchain has not been synced previously")
 	}
 
@@ -156,23 +155,23 @@ func (c *WalletRPCClient) RescanBlockChain() error {
 	}
 
 	// notify rescan start
-	syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
+	c.syncListener.OnRescan(0, dcrlibwallet.SyncStateStart)
 
-	// read sync updates from rescanStream in goroutine and trigger syncListener methods to calculate progress and update caller
+	// read sync updates from rescanStream in goroutine and trigger c.syncListener methods to calculate progress and update caller
 	go func() {
 		for {
 			rescanResponse, err := rescanStream.Recv()
 			if err != nil {
-				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
+				c.syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
 				return
 			}
 
 			// notify rescan progress
-			syncListener.OnRescan(rescanResponse.RescannedThrough, dcrlibwallet.SyncStateProgress)
+			c.syncListener.OnRescan(rescanResponse.RescannedThrough, dcrlibwallet.SyncStateProgress)
 
 			bestBlock, err := c.BestBlock()
 			if err == nil && rescanResponse.RescannedThrough >= int32(bestBlock) {
-				syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
+				c.syncListener.OnRescan(0, dcrlibwallet.SyncStateFinish)
 				return
 			}
 		}
@@ -203,7 +202,7 @@ func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo
 
 	info.LatestBlock = bestBlock
 	info.NetworkType = c.NetType()
-	info.PeersConnected = numberOfPeers
+	info.PeersConnected = c.numberOfPeers
 
 	return
 }
@@ -221,6 +220,14 @@ func (c *WalletRPCClient) CloseWallet() {
 	// - if wallet wasn't opened by godcr, closing it could cause troubles for user
 	// - even if wallet was opened by godcr, closing it without closing dcrwallet would cause troubles for user
 	// when they next launch godcr
+
+	// close tx index db though, so it can be re-opened next time
+	if c.txIndexDB != nil {
+		err := c.txIndexDB.Close()
+		if err != nil {
+			fmt.Printf("close tx index db error: %s.\n", err.Error())
+		}
+	}
 }
 
 func (c *WalletRPCClient) DeleteWallet() error {

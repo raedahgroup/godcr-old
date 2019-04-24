@@ -220,8 +220,7 @@ func connectViaDcrlibwallet(ctx context.Context, cfg *config.Config) (*dcrlibwal
 
 // connectViaDcrWalletRPC attempts an rpc connection to dcrwallet at `cfg.WalletRPCServer`
 func connectViaDcrWalletRPC(ctx context.Context, cfg *config.Config) (*dcrwalletrpc.WalletRPCClient, error) {
-	rpcWalletMiddleware, rpcConnectionError := dcrwalletrpc.Connect(ctx, cfg.WalletRPCServer, cfg.WalletRPCCert,
-		cfg.NoWalletRPCTLS)
+	rpcWalletMiddleware, rpcConnectionError := dcrwalletrpc.Connect(ctx, cfg)
 	if rpcConnectionError != nil {
 		return nil, rpcConnectionError
 	}
