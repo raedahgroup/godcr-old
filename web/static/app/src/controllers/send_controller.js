@@ -346,13 +346,19 @@ export default class extends Controller {
 
     let dcrAmount = parseFloat(amountTarget.value) / this.exchangeRate
 
-    const accountBalance = this.getAccountBalance()
-    const totalSendAmount = this.getTotalSendAmount() + dcrAmount
+    let dcrAmountTarget
+    this.amountTargets.forEach(target => {
+      if (target.getAttribute('data-index') === amountTarget.getAttribute('data-index')) {
+        dcrAmountTarget = target
+      }
+    })
 
-    console.log('accountBalance', accountBalance)
-    console.log('totalSendAmount', totalSendAmount)
-    if (totalSendAmount > accountBalance) {
-      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
+    const accountBalance = this.getAccountBalance()
+    const totalSendAmount = (this.getTotalSendAmount() - parseFloat(dcrAmountTarget.value))
+
+    if (totalSendAmount + dcrAmount > accountBalance) {
+      let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
+      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
       return
     }
 
@@ -495,7 +501,6 @@ export default class extends Controller {
         if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
           target.value = usdAmount.toFixed(2)
           _this.clearDestinationFieldError(target)
-
         }
       })
     }
