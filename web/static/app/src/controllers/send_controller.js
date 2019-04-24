@@ -314,6 +314,7 @@ export default class extends Controller {
     if (totalSendAmount + dcrAmount > accountBalance) {
       let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
       this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
+      this.updateSendButtonState()
       return
     }
 
@@ -484,7 +485,7 @@ export default class extends Controller {
           this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
         }
         fieldsAreValid = false
-      } else if (addressTarget.classList.contains('is-invalid')) {
+      } else if(addressTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       } else {
         if (!noErrorOutput) {
@@ -502,9 +503,8 @@ export default class extends Controller {
         fieldsAreValid = false
       } else if (amountTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
-        if (noErrorOutput) {
-          amountTarget.classList.remove('is-invalid')
-        }
+      } else if(amountTarget.classList.contains('is-invalid')) {
+        fieldsAreValid = false
       }
     }
 
