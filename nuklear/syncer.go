@@ -1,4 +1,4 @@
-package pagehandlers
+package nuklear
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
-type SyncHandler struct {
+type Syncer struct {
 	err                error
 	percentageProgress int
 	report             []string
@@ -20,14 +20,20 @@ type SyncHandler struct {
 	syncError          error
 }
 
-func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func()) {
-	s.percentageProgress = 0
-	s.syncError = nil
-	s.report = []string{
-		"Starting...",
+func NewSyncer() *Syncer {
+	handler := &Syncer{
+		percentageProgress: 0,
+		syncError:          nil,
+		report: []string{
+			"Starting...",
+		},
+		showDetails: false,
 	}
-	s.showDetails = false
 
+	return handler
+}
+
+func (s *Syncer) startSyncing(walletMiddleware app.WalletMiddleware, masterWindow nucular.MasterWindow) {
 	// begin block chain sync now so that when `Render` is called shortly after this, there'd be a report to display
 	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
@@ -80,17 +86,15 @@ func (s *SyncHandler) BeforeRender(walletMiddleware app.WalletMiddleware, refres
 			s.report = append(s.report, fmt.Sprintf("Syncing with %d peers on %s.", progressReport.ConnectedPeers, walletMiddleware.NetType()))
 		}
 
-		refreshWindowDisplay()
+		masterWindow.Changed()
 	})
 }
 
-func (s *SyncHandler) Render(window *nucular.Window, changePage func(*nucular.Window, string)) {
-	// change page onSyncStatusSuccess
-	if s.status == defaultsynclistener.SyncStatusSuccess {
-		changePage(window, "overview")
-		return
-	}
+func (s *Syncer) isDoneSyncing() bool {
+	return s.status == defaultsynclistener.SyncStatusSuccess
+}
 
+func (s *Syncer) Render(window *nucular.Window) {
 	widgets.NoScrollGroupWindow("sync-page", window, func(pageWindow *widgets.Window) {
 		pageWindow.Master().Style().GroupWindow.Padding = image.Point{10, 10}
 		pageWindow.AddHorizontalSpace(20)
