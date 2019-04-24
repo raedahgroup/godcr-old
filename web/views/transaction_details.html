@@ -17,12 +17,14 @@
 <div class="content">
     <div class="container">
         <h3>Transactions Details</h3>
-        <div class="d-flex">
-            <table class="table m-0">
+        <div class="row">
+                <div class="col-md-6">
+
+            <table class="table m-0" style="border-bottom: 1px solid #dee2e6">
                 <tbody>
                     <tr>
                         <td>Date</td>
-                        <td class="text-right">{{ .tx.LongTime }}</td>
+                        <td class="text-right">{{ .tx.LongTime }}<span> UTC</span></td>
                     </tr>
                     <tr>
                         <td>Status</td>
@@ -57,21 +59,22 @@
                             </tr>
                             <tr>
                                 <td>Hash</td>
-                                <td class="text-right"><a href="#">{{ .tx.Hash }}</a></td>
+                                <td class="text-right" style="color: #007bff">{{ .tx.Hash }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex">
-                    <table class="table table-sm m-0">
+                </div>
+                <div class="row">
+                <div class="col-md-6">
+                    <table class="table m-0">
                         <tbody>
                             <tr>
-                                <td>
+                                <td style="border-top: none">
                                     <h3>Inputs</h3>
                                     {{ range $txn := .tx.Inputs }}
                                     <p style="margin-bottom: 0.3rem">{{ amountDcr .Amount  }}</p>
-                                    <p style="margin-bottom: 0.1rem"><a href="#">{{ .PreviousTransactionHash }}</a></p>
-                                    <p><a href="#">{{ .PreviousOutpoint }}</a></p>
+                                    <p style="color: #007bff">{{ .PreviousOutpoint }}</p>
                                     {{ end }}
                                 </td> 
                             </tr>
@@ -80,13 +83,14 @@
                                     <h3>Outputs</h3>
                                     {{ range .tx.Outputs }}
                                     <p style="margin-bottom: 0.1rem">{{ amountDcr .Amount }} <span>( {{ .AccountName }} )</span></p>
-                                    <p style="margin-bottom: 1.2rem"><a href="#">{{ .Address }}</a></p>
+                                    <p style="margin-bottom: 1.2rem; color: #007bff">{{ .Address }}</p>
                                     {{ end }}
                                 </td>
                             </tr>
                             <tr></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
