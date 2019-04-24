@@ -314,45 +314,6 @@ export default class extends Controller {
     if (totalSendAmount + dcrAmount > accountBalance) {
       let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
       this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
-      this.updateSendButtonState()
-      return
-    }
-
-    this.clearDestinationFieldError(amountTarget)
-    // update max send amount field if some other amount field has been updated
-    const editedAmountFieldIndex = event.target.getAttribute('data-index')
-    if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
-      this.updateMaxAmountFieldIfSet()
-    }
-
-    this.setDcrField(amountTarget)
-
-    this.calculateCustomInputsPercentage()
-    if (this.useRandomChangeOutputsTarget.checked) {
-      this.generateChangeOutputs()
-    }
-
-    this.updateSendButtonState()
-  }
-
-  destinationAmountUsdEdited (event) {
-    const _this = this
-    const amountTarget = event.currentTarget
-    const amount = parseFloat(amountTarget.value)
-    if (isNaN(amount) || amount <= 0) {
-      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number.', false)
-      return
-    }
-
-    let dcrAmount = parseFloat(amountTarget.value) / this.exchangeRate
-
-    const accountBalance = this.getAccountBalance()
-    const totalSendAmount = this.getTotalSendAmount() + dcrAmount
-
-    console.log('accountBalance', accountBalance)
-    console.log('totalSendAmount', totalSendAmount)
-    if (totalSendAmount > accountBalance) {
-      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
       return
     }
 
@@ -495,7 +456,6 @@ export default class extends Controller {
         if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
           target.value = usdAmount.toFixed(2)
           _this.clearDestinationFieldError(target)
-
         }
       })
     }
