@@ -307,6 +307,7 @@ export default class extends Controller {
     if (totalSendAmount + dcrAmount > accountBalance) {
       let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
       this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
+      this.updateSendButtonState()
       return
     }
 
@@ -378,12 +379,16 @@ export default class extends Controller {
     // temporarily set the destination amount field to 1 to make destination validation pass
     // value will be reset afterwards if there are other destination validation errors or if getting max amount fails
     amountField.value = 1
+    amountUsdField.value = 1
+    amountField.classList.remove('is-invalid')
+    amountUsdField.classList.remove('is-invalid')
     if (!this.destinationFieldsValid()) {
       uncheckCurrentMaxCheckbox()
       return
     }
 
     amountField.value = ''
+    amountUsdField.value = ''
     let _this = this
     this.getMaxSendAmount(amount => {
       amountField.value = amount
@@ -469,6 +474,8 @@ export default class extends Controller {
           this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
         }
         fieldsAreValid = false
+      } else if(addressTarget.classList.contains('is-invalid')) {
+        fieldsAreValid = false
       } else {
         if (!noErrorOutput) {
           this.clearDestinationFieldError(addressTarget)
@@ -483,10 +490,20 @@ export default class extends Controller {
           this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
         fieldsAreValid = false
-      } else {
+      } else if(amountTarget.classList.contains('is-invalid')) {
+        fieldsAreValid = false
+      }
+    }
+
+    for (const amountTarget of this.amountUsdTargets) {
+      const amount = parseFloat(amountTarget.value)
+      if (isNaN(amount) || amount <= 0) {
         if (!noErrorOutput) {
-          amountTarget.classList.remove('is-invalid')
+          this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
+        fieldsAreValid = false
+      } else if(amountTarget.classList.contains('is-invalid')) {
+        fieldsAreValid = false
       }
     }
 
