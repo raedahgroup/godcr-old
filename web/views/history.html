@@ -10,14 +10,14 @@
                 <div class="row">
                     <div class="col-md-2 col-sm-12 mb-2">
                         <select data-target="history.transactionType" data-action="change->history#changeTransactionType" class="form-control">
-                            <option value="-1">All Transaction</option>
+                            <option value="">All Transaction</option>
                             {{ range $index, $txType := .transactionTypes}}
-                            <option value="{{ $index }}">{{ $txType }}</option>
+                            <option value="{{ $txType }}">{{ $txType }}</option>
                             {{ end }}
                         </select>
                     </div>
                     <div class="col-md-4 float-md-right offset-md-6">
-                        <p class="text-right">Showing 1 to
+                        <p data-target="history.transactionCountContainer" class="text-right">Showing 1 to
                             <span data-target="history.transactionCount" data-transactionCount="{{ len .txs}}">{{ len .txs}}</span> of
                             <span data-target="history.transactionTotalCount">{{ .transactionTotalCount }}</span> rows</p>
                     </div>
@@ -26,7 +26,7 @@
                 <table class="table sticky-table d-none history-table" data-target="history.stickyTableHeader">
                     <thead>
                     <tr>
-                        <th class="{{ if eq .accountsCount 2 }}d-none{{ end }}">Account</th>
+                        <th>Account</th>
                         <th>Date (UTC)</th>
                         <th>Type</th>
                         <th>Direction</th>
@@ -41,8 +41,7 @@
                 <table class="table history-table" style="table-layout: fixed">
                     <thead>
                     <tr>
-
-                        <th style="width: 80px;" class="{{ if eq .accountsCount 2 }}d-none{{ end }}">Account</th>
+                        <th style="width: 120px;">Account</th>
                         <th style="width: 142px;">Date (UTC)</th>
                         <th style="width: 68px;">Type</th>
                         <th style="width: 75px;">Direction</th>
@@ -56,7 +55,7 @@
                     {{ $accountsCount := .accountsCount}}
                         {{ range $index, $txn := .txs }}
                         <tr>
-                            <td class="{{ if eq $accountsCount 2 }}d-none{{ end }}">{{ $txn.Account }}</td>
+                            <td>{{ accountName $txn }}</td>
                             <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
                             <td>{{ $txn.Direction }}</td>
@@ -77,7 +76,7 @@
 
                 <template data-target="history.txRowTemplate">
                     <tr>
-                        <td class="{{ if eq .accountsCount 2 }}d-none{{ end }}"></td>
+                        <td></td>
                         <td></td>
                         <td style="text-align: right"></td>
                         <td></td>

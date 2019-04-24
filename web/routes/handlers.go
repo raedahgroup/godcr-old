@@ -8,10 +8,10 @@ import (
 	"strconv"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrwallet/wallet"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
@@ -317,7 +317,12 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	filter := txindex.Filter()
+	if transactionType := req.FormValue("trans-type"); transactionType != "" {
+		filter = filter.WithTxTypes(transactionType)
+	}
+
+	txCount, txCountErr := routes.walletMiddleware.TransactionCount(filter)
 	if txCountErr != nil {
 		data["success"] = false
 		data["message"] = fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s",
@@ -338,21 +343,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	offset := (int32(pageToLoad) - 1) * txPerPage
 
-	var transTypes []wallet.TransactionType
-
-	if transTypeQuery := req.FormValue("trans-type"); transTypeQuery != "" {
-		transactionType, err := strconv.ParseInt(transTypeQuery, 10, 32)
-		if err != nil {
-			data["success"] = false
-			data["message"] = "Invalid transaction type parameter"
-			return
-		}
-		if transactionType > -1 {
-			transTypes = append(transTypes, wallet.TransactionType(transactionType))
-		}
-	}
-
-	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, filter)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -362,6 +353,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 		data["currentPage"] = int(pageToLoad)
 		data["previousPage"] = int(pageToLoad - 1)
 		data["totalPages"] = int(math.Ceil(float64(txCount) / float64(txPerPage)))
+		data["txCount"] = txCount
 
 		totalTxLoaded := int(offset) + len(txns)
 		if totalTxLoaded < txCount {

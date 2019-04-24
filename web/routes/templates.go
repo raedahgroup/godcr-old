@@ -2,7 +2,9 @@ package routes
 
 import (
 	"fmt"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -92,6 +94,33 @@ func templateFuncMap() template.FuncMap {
 				return input
 			}
 			return fmt.Sprintf("%s...", input[0:maxLength])
+		},
+		"accountName" : func(txn *walletcore.Transaction) string {
+			var accountNames []string
+			isInArray := func(accountName string) bool {
+				for _, name := range accountNames {
+					if name == accountName {
+						return true
+					}
+				}
+				return false
+			}
+			if txn.Direction == txhelper.TransactionDirectionReceived {
+				for _, input := range txn.Inputs {
+					if isInArray(input.AccountName) {
+						continue
+					}
+					accountNames = append(accountNames, input.AccountName)
+				}
+			} else {
+				for _, output := range txn.Outputs {
+					if isInArray(output.AccountName) {
+						continue
+					}
+					accountNames = append(accountNames, output.AccountName)
+				}
+			}
+			return strings.Join(accountNames, ", ")
 		},
 	}
 }

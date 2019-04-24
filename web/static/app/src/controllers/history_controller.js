@@ -11,7 +11,8 @@ export default class extends Controller {
       'previousPageButton', 'nextPageButton',
       'pageReport',
       'loadingIndicator',
-      'transactionType', 'transactionCount', 'transactionTotalCount',
+      'transactionType',
+      'transactionCountContainer', 'transactionCount', 'transactionTotalCount',
     ]
   }
 
@@ -79,7 +80,9 @@ export default class extends Controller {
 
   changeTransactionType () {
     this.historyTableTarget.innerHTML = ''
-    this.nextBlockHeight = -1
+    this.transactionCountTarget.setAttribute('data-transactionCount', 0)
+    hide(this.transactionCountContainerTarget)
+    this.nextPage = 1
     this.fetchMoreTxs()
   }
 
@@ -87,9 +90,6 @@ export default class extends Controller {
     show(this.loadingIndicatorTarget)
 
     let transType = this.transactionTypeTarget.value
-    if (parseInt(transType) < 0) {
-      transType = -1
-    }
 
     const _this = this
     axios.get(`/next-history-page?page=${this.nextPage}&trans-type=${transType}`)
@@ -100,6 +100,13 @@ export default class extends Controller {
             _this.setErrorMessage('No Transaction Found')
             return
           }
+
+          let transCount = parseInt(_this.transactionCountTarget.getAttribute('data-transactionCount')) + result.txs.length
+          _this.transactionCountTarget.textContent = transCount
+          _this.transactionCountTarget.setAttribute('data-transactionCount', transCount)
+          _this.transactionTotalCountTarget.textContent = result.txCount
+          show(_this.transactionCountContainerTarget)
+
           hide(_this.errorMessageTarget)
           _this.nextPage = result.nextPage
           _this.displayTxs(result.txs)
@@ -109,7 +116,8 @@ export default class extends Controller {
         } else {
           _this.setErrorMessage(result.message)
         }
-      }).catch(function () {
+      }).catch(function (e) {
+        console.log(e)
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
@@ -129,12 +137,33 @@ export default class extends Controller {
       return `${amount / 100000000} DCR`
     }
 
+    const accountName = tx => {
+      let accountNames = []
+      if (tx.direction === 1) {
+        tx.inputs.forEach(input => {
+          if (accountNames.indexOf(input.account_name) !== -1) {
+            return
+          }
+          accountNames.push(input.account_name)
+        })
+      } else {
+        tx.outputs.forEach(output => {
+          if (accountNames.indexOf(output.account_name) !== -1) {
+            return
+          }
+          accountNames.push(output.account_name)
+        })
+      }
+
+      return accountNames.join(', ')
+    }
+
     const _this = this
     txs.forEach(tx => {
       const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
       const fields = txRow.querySelectorAll('td')
 
-      fields[0].innerText = tx.account
+      fields[0].innerText = accountName(tx)
       fields[1].innerText = tx.long_time
       fields[2].innerText = tx.type
       fields[3].innerText = txDirection(tx.direction)
