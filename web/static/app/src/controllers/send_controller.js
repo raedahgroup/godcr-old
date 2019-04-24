@@ -540,6 +540,36 @@ export default class extends Controller {
     }
   }
 
+  setUsdField (dcrFieldTarget) {
+    const _this = this
+    if (this.exchangeRate > 0) {
+      let usdAmount = parseFloat(dcrFieldTarget.value) * this.exchangeRate
+      if (isNaN(usdAmount)) {
+        usdAmount = 0
+      }
+      this.amountUsdTargets.forEach(target => {
+        if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
+          target.value = usdAmount.toFixed(2)
+          _this.clearDestinationFieldError(target)
+
+        }
+      })
+    }
+  }
+
+  setDcrField (usdFieldTarget) {
+    const _this = this
+    if (this.exchangeRate > 0) {
+      let dcrAmount = parseFloat(usdFieldTarget.value) / this.exchangeRate
+      this.amountTargets.forEach(target => {
+        if (target.getAttribute('data-index') === usdFieldTarget.getAttribute('data-index')) {
+          target.value = dcrAmount.toFixed(2)
+          _this.clearDestinationFieldError(target)
+        }
+      })
+    }
+  }
+
   destinationFieldsValid (noErrorOutput) {
     this.clearMessages()
     let fieldsAreValid = true
