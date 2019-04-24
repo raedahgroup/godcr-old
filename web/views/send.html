@@ -181,7 +181,7 @@
                                     <template data-target="send.destinationAccountTemplate">
                                         <div class="col-xl-12 col-md-12 destination">
                                             <div class="form-row align-items-center mb-2">
-                                                <div class="form-group col-xl-4 col-md-5 col-sm-12">
+                                                <div class="form-group col-lg-4 col-md-5 col-sm-12">
                                                     <select data-target="send.destinationAccount" class="form-control"
                                                             name="destination-account">
                                                         {{ range $account := .accounts }}
@@ -190,7 +190,7 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="form-group col-lg-2 col-md-3 col-sm-5">
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
                                                     <input data-target="send.amount"
                                                            data-action="keyup->send#destinationAmountEdited"
                                                            type="text" class="form-control amount"
@@ -199,7 +199,7 @@
                                                     <div data-target="send.amountError" class="text-danger address-error"></div>
                                                 </div>
 
-                                                <div class="form-group col-lg-2 col-md-3 col-sm-5">
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
                                                     <input data-target="send.amountUsd"
                                                            data-action="keyup->send#destinationAmountUsdEdited"
                                                            type="text" class="form-control amount-usd"
@@ -208,8 +208,8 @@
                                                     <div data-target="send.amountError" class="text-danger address-error"></div>
                                                 </div>
 
-                                                <div class="col-md-1 col-sm-2">
-                                                    <div class="form-group form-check d-inline-flex align-items-center  mt-2">
+                                                <div class="col-lg-2 col-md-2 col-sm-4">
+                                                    <div class="form-group form-check d-inline-flex align-items-center">
                                                         <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
                                                         <input type="hidden" value="false" name="send-max-amount">
                                                         <input data-target="send.maxSendAmountCheck"

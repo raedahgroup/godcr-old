@@ -276,14 +276,7 @@ export default class extends Controller {
       this.updateMaxAmountFieldIfSet()
     }
 
-    if (this.exchangeRate > 0) {
-      let usdAmount = parseFloat(amountTarget.value) * this.exchangeRate
-      this.amountUsdTargets.forEach(target => {
-        if (target.getAttribute('data-index') === editedAmountFieldIndex) {
-          target.value = usdAmount
-        }
-      })
-    }
+    this.setUsdField(amountTarget)
 
     this.calculateCustomInputsPercentage()
     if (this.useRandomChangeOutputsTarget.checked) {
@@ -319,12 +312,7 @@ export default class extends Controller {
       this.updateMaxAmountFieldIfSet()
     }
 
-    this.amountTargets.forEach(target => {
-      if (target.getAttribute('data-index') === editedAmountFieldIndex) {
-        target.value = dcrAmount.toFixed(4)
-        _this.clearDestinationFieldError(target)
-      }
-    })
+    this.setDcrField(amountTarget)
 
     this.calculateCustomInputsPercentage()
     if (this.useRandomChangeOutputsTarget.checked) {
@@ -354,10 +342,12 @@ export default class extends Controller {
     const index = parseInt(sendMaxCheckbox.getAttribute('data-index'))
     const destinationNode = document.querySelector(`div.destination[data-index="${index}"]`)
     const amountField = destinationNode.querySelector('input.amount')
+    const amountUsdField = destinationNode.querySelector('input.amount-usd')
 
     this.maxSendDestinationIndex = index
     const currentAmount = amountField.value
     amountField.setAttribute('readonly', 'readonly')
+    amountUsdField.setAttribute('readonly', 'readonly')
     this.maxSendAmountCheckTargets.forEach(checkbox => {
       checkbox.setAttribute('readonly', 'readonly')
       checkbox.parentElement.classList.add('disabled')
@@ -368,6 +358,7 @@ export default class extends Controller {
       this.maxSendDestinationIndex = -1
       amountField.value = currentAmount
       amountField.removeAttribute('readonly')
+      amountUsdField.removeAttribute('readonly')
       this.maxSendAmountCheckTargets.forEach(checkbox => {
         checkbox.removeAttribute('readonly')
         checkbox.parentElement.classList.remove('disabled')
@@ -391,6 +382,7 @@ export default class extends Controller {
     let _this = this
     this.getMaxSendAmount(amount => {
       amountField.value = amount
+      this.setUsdField(amountField)
       _this.clearDestinationFieldError(amountField)
       sendMaxCheckbox.removeAttribute('readonly')
       sendMaxCheckbox.parentElement.classList.remove('disabled')
@@ -401,6 +393,8 @@ export default class extends Controller {
       uncheckCurrentMaxCheckbox()
       _this.setDestinationFieldError(amountField, errMsg, false)
     })
+
+    this.setUsdField(amountField)
   }
 
   getMaxSendAmount (successCallback, errorCallback) {
@@ -429,6 +423,36 @@ export default class extends Controller {
           _this.setErrorMessage('A server error occurred')
         }
       })
+  }
+
+  setUsdField (dcrFieldTarget) {
+    const _this = this
+    if (this.exchangeRate > 0) {
+      let usdAmount = parseFloat(dcrFieldTarget.value) * this.exchangeRate
+      if (isNaN(usdAmount)) {
+        usdAmount = 0
+      }
+      this.amountUsdTargets.forEach(target => {
+        if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
+          target.value = usdAmount.toFixed(2)
+          _this.clearDestinationFieldError(target)
+
+        }
+      })
+    }
+  }
+
+  setDcrField (usdFieldTarget) {
+    const _this = this
+    if (this.exchangeRate > 0) {
+      let dcrAmount = parseFloat(usdFieldTarget.value) / this.exchangeRate
+      this.amountTargets.forEach(target => {
+        if (target.getAttribute('data-index') === usdFieldTarget.getAttribute('data-index')) {
+          target.value = dcrAmount.toFixed(2)
+          _this.clearDestinationFieldError(target)
+        }
+      })
+    }
   }
 
   destinationFieldsValid (noErrorOutput) {
