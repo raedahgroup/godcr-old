@@ -485,7 +485,7 @@ export default class extends Controller {
           this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
         }
         fieldsAreValid = false
-      } else if(addressTarget.classList.contains('is-invalid')) {
+      } else if (addressTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       } else {
         if (!noErrorOutput) {
@@ -502,8 +502,6 @@ export default class extends Controller {
         }
         fieldsAreValid = false
       } else if (amountTarget.classList.contains('is-invalid')) {
-        fieldsAreValid = false
-      } else if(amountTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       }
     }
@@ -941,7 +939,6 @@ export default class extends Controller {
     })
 
     this.transactionDetailsTarget.innerHTML = this.summaryHTML()
-
     $('#passphrase-modal').modal()
   }
 
