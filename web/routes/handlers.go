@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -288,11 +289,20 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
+		return
+	}
+
 	data := map[string]interface{}{
-		"txs":          txns,
+		"transactionTypes":      walletcore.TransactionTypes(),
+		"txs":                   txns,
 		"currentPage":  int(pageToLoad),
 		"previousPage": int(pageToLoad - 1),
 		"totalPages":   int(math.Ceil(float64(txCount) / float64(txPerPage))),
+		"transactionTotalCount": txCount,
+		"accountsCount":			 len(accounts),
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
@@ -327,8 +337,22 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	offset := (int32(pageToLoad) - 1) * txPerPage
-	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
 
+	var transTypes []wallet.TransactionType
+
+	if transTypeQuery := req.FormValue("trans-type"); transTypeQuery != "" {
+		transactionType, err := strconv.ParseInt(transTypeQuery, 10, 32)
+		if err != nil {
+			data["success"] = false
+			data["message"] = "Invalid transaction type parameter"
+			return
+		}
+		if transactionType > -1 {
+			transTypes = append(transTypes, wallet.TransactionType(transactionType))
+		}
+	}
+
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()

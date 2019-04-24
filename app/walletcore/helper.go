@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 )
@@ -24,6 +25,16 @@ const (
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
 )
+
+func TransactionTypes() map[wallet.TransactionType]string {
+	return map[wallet.TransactionType]string{
+		wallet.TransactionTypeRegular:        "Regular",
+		wallet.TransactionTypeCoinbase:       "Coinbase",
+		wallet.TransactionTypeTicketPurchase: "Ticket",
+		wallet.TransactionTypeVote:           "Vote",
+		wallet.TransactionTypeRevocation:     "Revocation",
+	}
+}
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
 func NormalizeBalance(balance float64) string {

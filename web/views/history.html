@@ -7,10 +7,26 @@
         {{ template "header" .connectionInfo }}
         <div class="content">
             <div class="container">
+                <div class="row">
+                    <div class="col-md-2 col-sm-12 mb-2">
+                        <select data-target="history.transactionType" data-action="change->history#changeTransactionType" class="form-control">
+                            <option value="-1">All Transaction</option>
+                            {{ range $index, $txType := .transactionTypes}}
+                            <option value="{{ $index }}">{{ $txType }}</option>
+                            {{ end }}
+                        </select>
+                    </div>
+                    <div class="col-md-4 float-md-right offset-md-6">
+                        <p class="text-right">Showing 1 to
+                            <span data-target="history.transactionCount" data-transactionCount="{{ len .txs}}">{{ len .txs}}</span> of
+                            <span data-target="history.transactionTotalCount">{{ .transactionTotalCount }}</span> rows</p>
+                    </div>
+                </div>
                 <!-- sticky header -->
-                <table class="table sticky-table d-none" data-target="history.stickyTableHeader">
+                <table class="table sticky-table d-none history-table" data-target="history.stickyTableHeader">
                     <thead>
                     <tr>
+                        <th class="{{ if eq .accountsCount 2 }}d-none{{ end }}">Account</th>
                         <th>Date (UTC)</th>
                         <th>Type</th>
                         <th>Direction</th>
@@ -22,28 +38,38 @@
                     </thead>
                 </table>
 
-                <table class="table">
+                <table class="table history-table" style="table-layout: fixed">
                     <thead>
-                        <tr>
-                            <th>Date (UTC)</th>
-                            <th>Type</th>
-                            <th>Direction</th>
-                            <th>Amount</th>
-                            <th>Fee</th>
-                            <th>Status</th>
-                            <th>Hash</th>
-                        </tr>
+                    <tr>
+
+                        <th style="width: 80px;" class="{{ if eq .accountsCount 2 }}d-none{{ end }}">Account</th>
+                        <th style="width: 142px;">Date (UTC)</th>
+                        <th style="width: 68px;">Type</th>
+                        <th style="width: 75px;">Direction</th>
+                        <th style="width: 115px;text-align: right;">Amount</th>
+                        <th style="width: 100px;text-align: right;">Fee</th>
+                        <th style="width: 85px;">Status</th>
+                        <th>Hash</th>
+                    </tr>
                     </thead>
                     <tbody data-target="history.historyTable">
+                    {{ $accountsCount := .accountsCount}}
                         {{ range $index, $txn := .txs }}
                         <tr>
+                            <td class="{{ if eq $accountsCount 2 }}d-none{{ end }}">{{ $txn.Account }}</td>
                             <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
                             <td>{{ $txn.Direction }}</td>
-                            <td style="text-align: right">{{ amountDcr $txn.Amount }}</td>
-                            <td style="text-align: right">{{ amountDcr $txn.Fee }}</td>
+                            <td style="text-align: right">
+                                {{ $amountParts := splitAmountIntoParts $txn.Amount }}
+                                {{ index $amountParts 0 }}{{ index $amountParts 1 }}<span>{{ index $amountParts 2 }}</span>
+                            </td>
+                            <td style="text-align: right">
+                                {{ $feeParts := splitAmountIntoParts $txn.Fee }}
+                                {{ index $feeParts 0 }}{{ index $feeParts 1 }}<span>{{ index $feeParts 2 }}</span>
+                            </td>
                             <td>{{ $txn.Status }}</td>
-                            <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ $txn.Hash }}</a></td>
+                            <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ truncate $txn.Hash 10 }}</a></td>
                         </tr>
                         {{ end }}
                     </tbody>
@@ -51,11 +77,12 @@
 
                 <template data-target="history.txRowTemplate">
                     <tr>
-                        <td></td>
-                        <td></td>
+                        <td class="{{ if eq .accountsCount 2 }}d-none{{ end }}"></td>
                         <td></td>
                         <td style="text-align: right"></td>
+                        <td></td>
                         <td style="text-align: right"></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                     </tr>

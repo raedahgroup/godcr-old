@@ -66,6 +66,17 @@ table td {
   padding: 0.7rem;
 }
 
+.history-table {
+  table-layout: fixed;
+}
+
+.history-table th,
+.history-table td {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .table.inverse tbody td {
   background-color: #f5f5f5 !important;
   border-color: #fff !important;

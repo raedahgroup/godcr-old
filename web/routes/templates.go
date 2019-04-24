@@ -83,5 +83,15 @@ func templateFuncMap() template.FuncMap {
 		"timestamp": func() int64 {
 			return time.Now().Unix()
 		},
+		"extractDateTime": func(timestamp int64) string {
+			utcTime := time.Unix(timestamp, 0).UTC()
+			return utcTime.Format("2006-01-02 15:04:05")
+		},
+		"truncate": func(input string, maxLength int) string {
+			if len(input) <= maxLength {
+				return input
+			}
+			return fmt.Sprintf("%s...", input[0:maxLength])
+		},
 	}
 }
