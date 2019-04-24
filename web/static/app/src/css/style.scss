@@ -52,14 +52,27 @@ table td {
   white-space: nowrap;
 }
 
+.valign-top td {
+  vertical-align: top;
+}
+
 .table td,
 .table th {
   padding: 0.3rem;
 }
 
+.table.pad-big td,
+.table.pad-big th {
+  padding: 0.7rem;
+}
+
 .table.inverse tbody td {
   background-color: #f5f5f5 !important;
   border-color: #fff !important;
+}
+
+.table.no-border tbody td {
+  border: none;
 }
 
 .card {
@@ -141,6 +154,18 @@ table td {
   text-decoration: none;
   display: block;
   cursor: pointer;
+}
+
+.card-header.white-bg {
+  background-color: #fff;
+}
+
+.no-pad {
+  padding: 0 !important;
+}
+
+.big-pad {
+  padding: 15px 5px;
 }
 
 .no-btm-pad {

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"math"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -13,7 +15,6 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/skip2/go-qrcode"
-	"math"
 )
 
 // todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this code
@@ -456,7 +457,17 @@ func (routes *Routes) submitPurchaseTicketsForm(res http.ResponseWriter, req *ht
 }
 
 func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
+	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		routes.renderError(fmt.Sprintf("Error fetching account balance: %s", err.Error()), res)
+		return
+	}
+
+	data := map[string]interface{}{
+		"accounts":       accounts,
+		"defaultAccount": routes.settings.DefaultAccount,
+		"hiddenAccounts": routes.settings.HiddenAccounts,
+	}
 	routes.renderPage("accounts.html", data, res)
 }
 
@@ -565,7 +576,85 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 		routes.settings.CurrencyConverter = currencyConverter
 	}
 
-	data["success"] = true
+	if defaultAccountStr := req.FormValue("default-account"); defaultAccountStr != "" {
+		defaultAccount, err := strconv.Atoi(defaultAccountStr)
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+
+		// remove default account if exists
+		if routes.settings.DefaultAccount == defaultAccount {
+			defaultAccount = -1
+		}
+
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.DefaultAccount = defaultAccount
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.DefaultAccount = defaultAccount
+		data["success"] = true
+	}
+
+	if accountToBeHidden := req.FormValue("hide-account"); accountToBeHidden != "" {
+		accountInt, err := strconv.Atoi(accountToBeHidden)
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+
+		hiddenAccounts := routes.settings.HiddenAccounts
+		// make sure the account is not already set to be hidden
+		for _, v := range hiddenAccounts {
+			if v == accountInt {
+				data["error"] = "Error updating settings. Account is already hidden"
+				return
+			}
+		}
+
+		hiddenAccounts = append(hiddenAccounts, accountInt)
+		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.HiddenAccounts = hiddenAccounts
+		})
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+		routes.settings.HiddenAccounts = hiddenAccounts
+		data["success"] = true
+	}
+
+	if accountToReveal := req.FormValue("reveal-account"); accountToReveal != "" {
+		account, err := strconv.Atoi(accountToReveal)
+		if err != nil {
+			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+			return
+		}
+
+		hiddenAccounts := routes.settings.HiddenAccounts
+		// make sure the account is hidden
+		for i := range hiddenAccounts {
+			if hiddenAccounts[i] == account {
+				hiddenAccounts = append(hiddenAccounts[:i], hiddenAccounts[i+1:]...)
+				err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+					cnfg.HiddenAccounts = hiddenAccounts
+				})
+				if err != nil {
+					data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
+					return
+				}
+				routes.settings.HiddenAccounts = hiddenAccounts
+				data["success"] = true
+				return
+			}
+		}
+
+		data["error"] = "Error updating settings. Account is not hidden"
+		return
+	}
 }
 
 func (routes *Routes) rescanBlockchain(res http.ResponseWriter, req *http.Request) {

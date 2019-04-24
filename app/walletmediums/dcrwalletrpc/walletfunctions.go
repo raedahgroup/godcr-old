@@ -60,9 +60,12 @@ func (c *WalletRPCClient) AccountsOverview(requiredConfirmations int32) ([]*wall
 		}
 
 		account := &walletcore.Account{
-			Name:    acc.AccountName,
-			Number:  acc.AccountNumber,
-			Balance: balance,
+			Name:             acc.AccountName,
+			Number:           acc.AccountNumber,
+			Balance:          balance,
+			ExternalKeyCount: int32(acc.ExternalKeyCount),
+			InternalKeyCount: int32(acc.InternalKeyCount),
+			ImportedKeyCount: int32(acc.ImportedKeyCount),
 		}
 		accountsOverview = append(accountsOverview, account)
 	}

@@ -30,6 +30,8 @@ type Settings struct {
 	ShowIncomingTransactionNotification bool   `long:"incomingtxnotification" description:"Show incoming transaction notification"`
 	ShowNewBlockNotification            bool   `long:"newblocknotification" description:"Show new block notification"`
 	CurrencyConverter                   string `long:"currencyconverter" description:"Currency Converter {none, bitrex}" choice:"none" choice:"bitrex" default:"none"`
+	HiddenAccounts                      []int  `long:"hiddenaccounts" description:"Accounts with ignored balances"`
+	DefaultAccount                      int    `long:"defaultaccount" description:"Default account for incoming and outgoing transactions"`
 }
 
 func defaultFileOptions() ConfFileOptions {

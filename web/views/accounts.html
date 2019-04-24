@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {{ template "html-head" }}
-<body data-controller="receive">
+<body data-controller="accounts">
     <div class="body">
         {{ template "header" .connectionInfo }}
         <div class="content">
@@ -9,7 +9,91 @@
                 <div class="card">
                    <div class="card-body">
                        <h5 class="card-title">Accounts</h5>
-                       <p class="lead-text">Accounts page coming soon</p>
+                       <div class="my-3 p-3 bg-white rounded box-shadow">
+                            {{ range $index, $account := .accounts }}
+                            <div class="card-header white-bg no-pad">
+                                <div class="btn btn-link btn-block text-left big-pad"
+                                    data-target="#account-{{ $account.Number }}"
+                                    data-toggle="collapse"
+                                    aria-controls="#account-{{ $account.Number }}">
+                                    <table class="valign-top">
+                                        <tr>
+                                            <td width="100px">
+                                                <strong>{{ $account.Name }}</strong> 
+                                            </td>
+                                            <td>
+                                                <div class="lead-text">{{ $account.Balance.Total }}</div>
+                                                <span class="lead-text">Spendable: {{ $account.Balance.Spendable }}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div id="account-{{ $account.Number }}" class="collapse">
+                                    <p>
+                                        <b>Properties</b>
+                                    </p>
+                                <table class="table pad-big" id="#account-{{ $account.Number }}">
+                                    <tbody>
+                                        <tr>
+                                            <td width="160px">
+                                                <span class="lead-text">Account Number</span>
+                                            </td>
+                                            <td>
+                                                <span class="lead-text">{{ $account.Number }}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="160px">HD Path</td>
+                                            <td>ddd</td>  
+                                        </tr>
+                                        <tr>
+                                            <td width="160px">Keys</td>
+                                            <td>
+                                                {{ $account.ExternalKeyCount }} External,  
+                                                {{ $account.InternalKeyCount }} Internal, 
+                                                {{ $account.ImportedKeyCount }} Imported
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p>
+                                    <b>Wallet Settings</b>
+                                </p>
+                                <div class="list-group">
+                                    {{ $isHidden := false }}
+                                    {{ range $key, $value := $.hiddenAccounts }}
+                                        {{ if eq $value $account.Number }}
+                                            {{ $isHidden = true }}
+                                        {{ end }}
+                                    {{ end }}
+
+                                    <input data-target="accounts.hideAccount" data-action="change->accounts#toggleHideAccount"
+                                        data-account="{{ $account.Number }}" id="hide-account-{{ $account.Number }}" {{ if $isHidden }} checked {{ end }} type="checkbox" />
+                                    <label for="hide-account-{{ $account.Number }}" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <p class="mb-1">
+                                                <b>Hide This Account</b>
+                                            </p>
+                                            <span class="lead-text">Account balance will be ignored</span>
+                                        </div>
+                                    </label>
+
+                                    <input data-target="accounts.defaultAccount" data-action="change->accounts#updateDefaultAccount" 
+                                        data-account="{{ $account.Number }}" id="#default-account-{{ $account.Number }}" {{ if eq $.defaultAccount $account.Number }} checked {{ end }} type="checkbox" />
+                                    <label for="#default-account-{{ $account.Number }}" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <p class="mb-1">
+                                                <b>Default Account</b>
+                                            </p>
+                                            <span class="lead-text">Make this account default for all outgoing and incoming transactions</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {{ end }}
+                       </div>
                    </div>
                 </div>
             </div>
