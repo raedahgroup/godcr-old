@@ -22,13 +22,13 @@
                 <tbody>
                     <tr>
                         <td>Date</td>
-                        <td class="text-right">{{ formattedTime .tx.Timestamp }}</td>
+                        <td class="text-right">{{ .tx.LongTime }}</td>
                     </tr>
                     <tr>
                         <td>Status</td>
                         {{ $status := checkStatus .tx.Status}}
                         {{ if and $status }}
-                        <td class="text-right"><p style="border: 1px solid #0BDA72; color: #0BDA72;display: block;width: 6rem; float: right; padding-right: .9rem"> {{ .tx.Status }} </p></td>
+                        <td class="text-right"><p style="border: 1px solid #0BDA72; color: #0BDA72;display: block;width: 6rem; float: right; padding-right: .6rem; margin-bottom: 0"> {{ .tx.Status }} </p></td>
                         {{ else }}
                         <td class="text-right"><p style="border: 1px solid #24E8EF; color: #24E8EF;display: block;width: 6.5rem; float: right"> {{ .tx.Status }}</td>
                         {{ end }}
@@ -36,13 +36,16 @@
                     <tr>
                         <td>Amount</td>
                         <td class="text-right" style="font-size: 15px">
-                            {{ $balanceParts := splitAmountIntoParts .tx.RawAmount }}
+                            {{ $balanceParts := splitAmountIntoParts .tx.Amount }}
                             <b>{{ index $balanceParts 0 }}{{ index $balanceParts 1 }}<span
                                 style="font-size:13px;">{{ index $balanceParts 2 }}</span></b></td>
                             </tr>
                             <tr>
                                 <td>Fee</td>
-                                <td class="text-right">{{ .tx.Fee }}</td>
+                                <td class="text-right" style="font-size: 15px">
+                            {{ $balanceParts := splitAmountIntoParts .tx.Fee }}
+                            <b>{{ index $balanceParts 0 }}{{ index $balanceParts 1 }}<span
+                                style="font-size:13px;">{{ index $balanceParts 2 }}</span></b></td>
                             </tr>
                             <tr>
                                 <td>Type</td>
@@ -54,7 +57,7 @@
                             </tr>
                             <tr>
                                 <td>Hash</td>
-                                <td class="text-right">{{ .tx.Hash }}</td>
+                                <td class="text-right"><a href="#">{{ .tx.Hash }}</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -66,7 +69,7 @@
                                 <td>
                                     <h3>Inputs</h3>
                                     {{ range $txn := .tx.Inputs }}
-                                    <p style="margin-bottom: 0.3rem">{{ amountDcr .AmountIn  }}</p>
+                                    <p style="margin-bottom: 0.3rem">{{ amountDcr .Amount  }}</p>
                                     <p style="margin-bottom: 0.1rem"><a href="#">{{ .PreviousTransactionHash }}</a></p>
                                     <p><a href="#">{{ .PreviousOutpoint }}</a></p>
                                     {{ end }}
@@ -75,11 +78,9 @@
                             <tr>
                                 <td>
                                     <h3>Outputs</h3>
-                                    {{ range $txn := .tx.Outputs }}
-                                    {{ range .Addresses }}
-                                    <p style="margin-bottom: 0.1rem">{{ amountDcr $txn.Value }} <span>({{ if .IsMine }}{{ .AccountName }}{{ else }}external address{{ end }})</span></p>
+                                    {{ range .tx.Outputs }}
+                                    <p style="margin-bottom: 0.1rem">{{ amountDcr .Amount }} <span>( {{ .AccountName }} )</span></p>
                                     <p style="margin-bottom: 1.2rem"><a href="#">{{ .Address }}</a></p>
-                                    {{ end }}
                                     {{ end }}
                                 </td>
                             </tr>
