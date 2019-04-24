@@ -2,22 +2,11 @@ package nuklear
 
 import (
 	"github.com/aarzilli/nucular"
-	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
-
-type standalonePage struct {
-	name    string
-	handler standalonePageHandler
-}
-
-type standalonePageHandler interface {
-	BeforeRender(walletMiddleware app.WalletMiddleware, refreshWindowDisplay func())
-	Render(*nucular.Window, func(*nucular.Window, string))
-}
 
 type navPage struct {
 	name    string
@@ -37,15 +26,6 @@ type navPageHandler interface {
 	// It is usually called several times not only when the page is navigated to.
 	// For example, this method will be triggered whenever the mouse is moved, causing the window to repaint.
 	Render(window *nucular.Window)
-}
-
-func getStandalonePages() []standalonePage {
-	return []standalonePage{
-		{
-			name:    "createwallet",
-			handler: &pagehandlers.CreateWalletHandler{},
-		},
-	}
 }
 
 func getNavPages() []navPage {

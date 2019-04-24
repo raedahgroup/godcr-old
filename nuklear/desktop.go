@@ -23,7 +23,6 @@ const (
 type Desktop struct {
 	walletMiddleware app.WalletMiddleware
 	navPages         map[string]navPageHandler
-	standalonePages  map[string]standalonePageHandler
 	currentPage      string
 	nextPage         string
 	pageChanged      bool
@@ -56,33 +55,8 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		desktop.navPages[page.name] = page.handler
 	}
 
-	// register standalone page handlers
-	standalonePages := getStandalonePages()
-	desktop.standalonePages = make(map[string]standalonePageHandler, len(standalonePages))
-	for _, page := range standalonePages {
-		desktop.standalonePages[page.name] = page.handler
-	}
-
-	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check
-	//walletExists, err := walletMiddleware.WalletExists()
-	//if err != nil {
-	//	return err
-	//}
-	//if !walletExists {
-	//	desktop.currentPage = "createwallet"
-	//}
-	// open wallet and start blockchain syncing in background
-	walletExists, err := walletMiddleware.OpenWalletIfExist(ctx)
-	if err != nil {
-		return err
-	}
-
-	if !walletExists {
-		desktop.currentPage = "createwallet"
-	} else {
-		// start syncing in background
-		go desktop.syncer.startSyncing(walletMiddleware, masterWindow)
-	}
+	// start syncing in background
+	go desktop.syncer.startSyncing(walletMiddleware, masterWindow)
 
 	// draw master window
 	masterWindow.Main()
@@ -90,9 +64,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 }
 
 func (desktop *Desktop) render(window *nucular.Window) {
-	if handler, isStandalonePage := desktop.standalonePages[desktop.currentPage]; isStandalonePage {
-		desktop.renderStandalonePage(window, handler)
-	} else if _, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
+	if _, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
 		desktop.renderNavPage(window)
 	} else {
 		errorMessage := fmt.Sprintf("Page not properly set up: %s", desktop.currentPage)
@@ -101,28 +73,6 @@ func (desktop *Desktop) render(window *nucular.Window) {
 		w := &widgets.Window{window}
 		w.DisplayMessage(errorMessage, styles.DecredOrangeColor)
 	}
-}
-
-func (desktop *Desktop) renderStandalonePage(window *nucular.Window, handler standalonePageHandler) {
-	if desktop.currentPage != desktop.nextPage && desktop.nextPage != "" {
-		// page navigation changes may take some seconds to effect
-		// causing this method to receive the wrong handler
-		desktop.currentPage = desktop.nextPage
-		desktop.pageChanged = true
-		window.Master().Changed()
-		return
-	}
-
-	window.Row(0).Dynamic(1)
-	styles.SetPageStyle(window.Master())
-
-	if desktop.pageChanged {
-		handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed)
-		desktop.pageChanged = false
-	}
-
-	handler.Render(window, desktop.changePage)
-
 }
 
 func (desktop *Desktop) renderNavPage(window *nucular.Window) {
