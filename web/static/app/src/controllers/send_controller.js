@@ -1029,7 +1029,6 @@ export default class extends Controller {
     })
 
     this.transactionDetailsTarget.innerHTML = this.summaryHTML()
-
     $('#passphrase-modal').modal()
   }
 
