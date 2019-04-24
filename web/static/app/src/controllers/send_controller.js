@@ -285,7 +285,6 @@ export default class extends Controller {
   }
 
   destinationAmountUsdEdited (event) {
-    const _this = this
     const amountTarget = event.currentTarget
     const amount = parseFloat(amountTarget.value)
     if (isNaN(amount) || amount <= 0) {
@@ -295,13 +294,19 @@ export default class extends Controller {
 
     let dcrAmount = parseFloat(amountTarget.value) / this.exchangeRate
 
-    const accountBalance = this.getAccountBalance()
-    const totalSendAmount = this.getTotalSendAmount() + dcrAmount
+    let dcrAmountTarget
+    this.amountTargets.forEach(target => {
+      if (target.getAttribute('data-index') === amountTarget.getAttribute('data-index')) {
+        dcrAmountTarget = target
+      }
+    })
 
-    console.log('accountBalance', accountBalance)
-    console.log('totalSendAmount', totalSendAmount)
-    if (totalSendAmount > accountBalance) {
-      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less.`, false)
+    const accountBalance = this.getAccountBalance()
+    const totalSendAmount = (this.getTotalSendAmount() - parseFloat(dcrAmountTarget.value))
+
+    if (totalSendAmount + dcrAmount > accountBalance) {
+      let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
+      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
       return
     }
 
@@ -436,7 +441,6 @@ export default class extends Controller {
         if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
           target.value = usdAmount.toFixed(2)
           _this.clearDestinationFieldError(target)
-
         }
       })
     }
@@ -571,8 +575,8 @@ export default class extends Controller {
     }
 
     // this is the number of char that is shown per line in the error div associated with the element
-    const addressErrCharPerLine = 60
-    const amountErrCharPerLine = 30
+    const addressErrCharPerLine = 54
+    const amountErrCharPerLine = 27
 
     let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
     numberOfAddressErrLines = Math.round(numberOfAddressErrLines) < numberOfAddressErrLines ? Math.round(numberOfAddressErrLines) + 1 : Math.round(numberOfAddressErrLines)
