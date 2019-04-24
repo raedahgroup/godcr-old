@@ -363,12 +363,7 @@ export default class extends Controller {
       this.updateMaxAmountFieldIfSet()
     }
 
-    this.amountTargets.forEach(target => {
-      if (target.getAttribute('data-index') === editedAmountFieldIndex) {
-        target.value = dcrAmount.toFixed(4)
-        _this.clearDestinationFieldError(target)
-      }
-    })
+    this.setDcrField(amountTarget)
 
     this.calculateCustomInputsPercentage()
     if (this.useRandomChangeOutputsTarget.checked) {
@@ -500,6 +495,7 @@ export default class extends Controller {
         if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
           target.value = usdAmount.toFixed(2)
           _this.clearDestinationFieldError(target)
+
         }
       })
     }
