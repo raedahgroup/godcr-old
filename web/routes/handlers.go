@@ -298,11 +298,11 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{
 		"transactionTypes":      walletcore.TransactionTypes(),
 		"txs":                   txns,
-		"currentPage":  int(pageToLoad),
-		"previousPage": int(pageToLoad - 1),
-		"totalPages":   int(math.Ceil(float64(txCount) / float64(txPerPage))),
+		"currentPage":           int(pageToLoad),
+		"previousPage":          int(pageToLoad - 1),
+		"totalPages":            int(math.Ceil(float64(txCount) / float64(txPerPage))),
 		"transactionTotalCount": txCount,
-		"accountsCount":			 len(accounts),
+		"accountsCount":         len(accounts),
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
