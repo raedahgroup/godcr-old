@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
@@ -50,11 +52,12 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
+
 	// Create row to hold tx details in 2 columns
 	// Each column will display data about the tx in a group window.
 	// Row height is calculated based on the max group items total height
-	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(670, 700)
-	widgets.NoScrollGroupWindow("tx-details-col-1", contentWindow.Window, func(window *widgets.Window) {
+	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(670)
+	widgets.NoScrollGroupWindow("tx-details-group-1", contentWindow.Window, func(window *widgets.Window) {
 		txDetailsTable1 := widgets.NewTable()
 		txDetailsTable1.AddRow(
 			widgets.NewLabelTableCell("Confirmations", "LC"),
@@ -78,26 +81,8 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		txDetailsTable1.Render(window)
 
-		window.AddHorizontalSpace(30)
+		window.AddHorizontalSpace(10)
 
-		window.AddLabelWithFont("Inputs", "LC", styles.BoldPageContentFont)
-
-		txInputsTable := widgets.NewTable()
-		txInputsTable.AddRowWithFont(styles.NavFont,
-			widgets.NewLabelTableCell("Previous Outpoint", "LC"),
-			widgets.NewLabelTableCell("Amount", "LC"),
-		)
-
-		for _, input := range handler.selectedTxDetails.Inputs {
-			txInputsTable.AddRow(
-				widgets.NewLabelTableCell(input.PreviousTransactionHash, "LC"),
-				widgets.NewLabelTableCell(dcrutil.Amount(input.Amount).String(), "LC"),
-			)
-		}
-		txInputsTable.Render(window)
-	})
-
-	widgets.NoScrollGroupWindow("tx-details-col-2", contentWindow.Window, func(window *widgets.Window) {
 		txDetailsTable2 := widgets.NewTable()
 		txDetailsTable2.AddRow(
 			widgets.NewLabelTableCell("Amount", "LC"),
@@ -121,8 +106,24 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		)
 		txDetailsTable2.Render(window)
 
-		window.AddHorizontalSpace(30)
+		window.AddHorizontalSpace(10)
+		window.AddLabelWithFont("Inputs", "LC", styles.BoldPageContentFont)
 
+		txInputsTable := widgets.NewTable()
+		txInputsTable.AddRowWithFont(styles.NavFont,
+			widgets.NewLabelTableCell("Previous Outpoint", "LC"),
+			widgets.NewLabelTableCell("Amount", "LC"),
+		)
+
+		for _, input := range handler.selectedTxDetails.Inputs {
+			txInputsTable.AddRow(
+				widgets.NewLabelTableCell(input.PreviousTransactionHash, "LC"),
+				widgets.NewLabelTableCell(dcrutil.Amount(input.Amount).String(), "LC"),
+			)
+		}
+		txInputsTable.Render(window)
+
+		window.AddHorizontalSpace(10)
 		window.AddLabelWithFont("Outputs", "LC", styles.BoldPageContentFont)
 
 		txOutputsTable := widgets.NewTable()
@@ -146,16 +147,10 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 }
 
 func (handler *HistoryHandler) calculateTxDetailsPageHeight() int {
-	firstSectionHeight := 240
-	outputsLen := len(handler.selectedTxDetails.Outputs)
-	inputsLen := len(handler.selectedTxDetails.Inputs)
+	firstSectionHeight := 460
+	lineHeight := 27
+	outputsHeight := len(handler.selectedTxDetails.Outputs) * lineHeight
+	inputsHeight := len(handler.selectedTxDetails.Inputs) * lineHeight
 
-	var secondSectionLines int
-	if outputsLen > inputsLen {
-		secondSectionLines = outputsLen
-	} else {
-		secondSectionLines = inputsLen
-	}
-
-	return firstSectionHeight + (secondSectionLines * 27)
+	return firstSectionHeight + outputsHeight + inputsHeight
 }
