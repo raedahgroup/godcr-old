@@ -35,12 +35,6 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 	}
 
 	widgets.PageContentWindowDefaultPadding("Transaction Details", window, func(contentWindow *widgets.Window) {
-		contentWindow.AddButton("Back", func() {
-			// clear tx details data so that history page is re-displayed
-			handler.clearTxDetails()
-			contentWindow.Master().Changed()
-		})
-
 		if handler.fetchTxDetailsError != nil {
 			contentWindow.DisplayErrorMessage("Error fetching transaction details", handler.fetchTxDetailsError)
 		} else if handler.selectedTxDetails != nil {
@@ -52,12 +46,29 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 }
 
 func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.Window) {
-
 	// Create row to hold tx details in 2 columns
 	// Each column will display data about the tx in a group window.
 	// Row height is calculated based on the max group items total height
 	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(670)
 	widgets.NoScrollGroupWindow("tx-details-group-1", contentWindow.Window, func(window *widgets.Window) {
+		breadcrumb := []*widgets.Breadcrumb{
+			{
+				Text: "History",
+				Action: func(text string, window *widgets.Window) {
+					handler.clearTxDetails()
+					window.Master().Changed()
+				},
+			},
+			{
+				Text:   "Transaction Details",
+				Action: nil,
+			},
+		}
+		window.AddBreadcrumb(breadcrumb)
+		if handler.selectedTxHash == "" {
+			return
+		}
+
 		txDetailsTable1 := widgets.NewTable()
 		txDetailsTable1.AddRow(
 			widgets.NewLabelTableCell("Confirmations", "LC"),
