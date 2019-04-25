@@ -38,7 +38,7 @@ func NavPages() []*Page {
 		},
 		{
 			"History",
-			defaultPageNotImplemented,
+			&historyPageLoader{},
 		},
 		{
 			"Send",
