@@ -12,7 +12,7 @@ export default class extends Controller {
       'pageReport',
       'loadingIndicator',
       'transactionType',
-      'transactionCountContainer', 'transactionCount', 'transactionTotalCount',
+      'transactionCountContainer', 'transactionCount', 'transactionTotalCount'
     ]
   }
 
@@ -158,6 +158,19 @@ export default class extends Controller {
       return accountNames.join(', ')
     }
 
+    const directionImage = tx => {
+      switch (tx.direction) {
+        case 0:
+          return 'ic_send.svg'
+        case 1:
+          return 'ic_receive.svg'
+      }
+      if (tx.type === 'Ticket') {
+        return 'live_ticket.svg'
+      }
+      return 'ic_tx_transferred.svg'
+    }
+
     const _this = this
     txs.forEach(tx => {
       const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
@@ -166,7 +179,10 @@ export default class extends Controller {
       fields[0].innerText = accountName(tx)
       fields[1].innerText = tx.long_time
       fields[2].innerText = tx.type
-      fields[3].innerText = txDirection(tx.direction)
+
+      const direction = txDirection(tx.direction)
+      const image = directionImage(tx).toString()
+      fields[3].innerHTML = '<img style="width: 15px" src="/static/images/' + image + '"> ' + direction
 
       const amountParts = splitAmountIntoParts(amountDcr(tx.amount))
       fields[4].innerHTML = `${amountParts[0]}<span>${amountParts[1]}${amountParts[2]}</span>`

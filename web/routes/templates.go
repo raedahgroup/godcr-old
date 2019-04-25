@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
@@ -121,6 +122,19 @@ func templateFuncMap() template.FuncMap {
 				}
 			}
 			return strings.Join(accountNames, ", ")
+		},
+		"directionImage": func(txn *walletcore.Transaction) (imageFile string) {
+			switch txn.Direction {
+			case txhelper.TransactionDirectionSent:
+				return "ic_send.svg"
+			case txhelper.TransactionDirectionReceived:
+				return "ic_receive.svg"
+			default:
+				if txn.Type == walletcore.TransactionTypes()[wallet.TransactionTypeTicketPurchase] {
+					return "live_ticket.svg"
+				}
+				return "ic_tx_transferred.svg"
+			}
 		},
 	}
 }
