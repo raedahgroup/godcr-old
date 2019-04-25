@@ -266,7 +266,20 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	txTypes := walletcore.TransactionTypes()
+	transactionCountByType := make(map[string]int, len(txTypes))
+
+	for _, txType := range txTypes {
+		txCount, txCountErr := routes.walletMiddleware.TransactionCount(txindex.Filter().WithTxTypes(txType))
+		if txCountErr != nil {
+			routes.renderError(fmt.Sprintf("Cannot load history page. "+
+				"Error getting total transaction count: %s", txCountErr.Error()), res)
+			return
+		}
+		transactionCountByType[txType] = txCount
+	}
+
+	alTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
 	if txCountErr != nil {
 		routes.renderError(fmt.Sprintf("Cannot load history page. "+
 			"Error getting total transaction count: %s", txCountErr.Error()), res)
@@ -296,17 +309,17 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"transactionTypes":      walletcore.TransactionTypes(),
-		"txs":                   txns,
-		"currentPage":           int(pageToLoad),
-		"previousPage":          int(pageToLoad - 1),
-		"totalPages":            int(math.Ceil(float64(txCount) / float64(txPerPage))),
-		"transactionTotalCount": txCount,
-		"accountsCount":         len(accounts),
+		"transactionCountByType": transactionCountByType,
+		"txs":                    txns,
+		"currentPage":            int(pageToLoad),
+		"previousPage":           int(pageToLoad - 1),
+		"totalPages":             int(math.Ceil(float64(alTxCount) / float64(txPerPage))),
+		"transactionTotalCount":  alTxCount,
+		"accountsCount":          len(accounts),
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
-	if totalTxLoaded < txCount {
+	if totalTxLoaded < alTxCount {
 		data["nextPage"] = int(pageToLoad + 1)
 	}
 

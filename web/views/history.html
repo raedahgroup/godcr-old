@@ -10,9 +10,9 @@
                 <div class="row">
                     <div class="col-md-2 col-sm-12 mb-2">
                         <select data-target="history.transactionType" data-action="change->history#changeTransactionType" class="form-control">
-                            <option value="">All Transaction</option>
-                            {{ range $index, $txType := .transactionTypes}}
-                            <option value="{{ $txType }}">{{ $txType }}</option>
+                            <option value="">All Transaction({{ .transactionTotalCount }})</option>
+                            {{ range $count, $txType := .transactionCountByType}}
+                            <option value="{{ $txType }}">{{ $txType }}({{ $count }})</option>
                             {{ end }}
                         </select>
                     </div>
