@@ -148,7 +148,7 @@ export default class extends Controller {
         })
       } else {
         tx.inputs.forEach(input => {
-          if (inputs.account_numberr === -1 || accountNames.indexOf(input.account_name) !== -1) {
+          if (input.account_numberr === -1 || accountNames.indexOf(input.account_name) !== -1) {
             return
           }
           accountNames.push(input.account_name)
