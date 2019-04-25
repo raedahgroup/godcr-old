@@ -28,12 +28,9 @@
                     </tr>
                     <tr>
                         <td>Status</td>
-                        {{ $status := checkStatus .tx.Status}}
-                        {{ if and $status }}
-                        <td class="text-right"><p style="border: 1px solid #0BDA72; color: #0BDA72;display: block;width: 6rem; float: right; padding-right: .6rem; margin-bottom: 0"> {{ .tx.Status }} </p></td>
-                        {{ else }}
-                        <td class="text-right"><p style="border: 1px solid #24E8EF; color: #24E8EF;display: block;width: 6.5rem; float: right"> {{ .tx.Status }}</td>
-                        {{ end }}
+                        <td><P class="text-right {{ if eq .tx.Status "Confirmed" }} confirmed-status {{ else }} pending-status {{ end }}">
+                            {{ .tx.Status }}
+                        </P></td>
                     </tr>
                     <tr>
                         <td>Amount</td>

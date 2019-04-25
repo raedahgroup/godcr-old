@@ -3,12 +3,9 @@ package routes
 import (
 	"fmt"
 	"html/template"
-	"math"
-	"strconv"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -51,40 +48,15 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			balanceParts := make([]string, 3)
-			wholeNumber := int(math.Floor(totalBalance))
-			balanceParts[0] = strconv.Itoa(wholeNumber)
+			balance := walletcore.SplitAmountIntoParts(totalBalance)
+			return balance
+		},
+		"splitAmountIntoParts": func(amount int64) []string {
+			var amountToSplit float64
+			amountToSplit = dcrutil.Amount(amount).ToCoin()
 
-			decimalPortion := utils.DecimalPortion(totalBalance)
-			if len(decimalPortion) == 0 {
-				balanceParts[0] += " DCR"
-			} else if len(decimalPortion) <= 2 {
-				balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
-			} else {
-				balanceParts[1] = fmt.Sprintf(".%s", decimalPortion[0:2])
-				balanceParts[2] = fmt.Sprintf("%s DCR", decimalPortion[2:])
-			}
-
-			return balanceParts
-		},		
-		"splitAmountIntoParts": func(value int64) []string {
-			var amount float64
-			amount = dcrutil.Amount(value).ToCoin()
-			balanceParts := make([]string, 3)
-			wholeNumber := int(math.Floor(amount))
-			balanceParts[0] = strconv.Itoa(wholeNumber)
-
-			decimalPortion := utils.DecimalPortion(amount)
-			if len(decimalPortion) == 0 {
-				balanceParts[2] = " DCR"
-			} else if len(decimalPortion) <= 2 {
-				balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
-			} else {
-				balanceParts[1] = fmt.Sprintf(".%s", decimalPortion[0:2])
-				balanceParts[2] = fmt.Sprintf("%s DCR", decimalPortion[2:])
-			}
-
-			return balanceParts
+			balance := walletcore.SplitAmountIntoParts(amountToSplit)
+			return balance
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
@@ -106,13 +78,6 @@ func templateFuncMap() template.FuncMap {
 				}
 			}
 			return true
-		},
-		"checkStatus": func(status string) bool {
-			if status == "Confirmed" {
-				return true
-			}else{
-				return false
-			}
 		},
 		"amountDcr": func(amount int64) string {
 			return dcrutil.Amount(amount).String()

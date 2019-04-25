@@ -3,11 +3,11 @@ package pagehandlers
 import (
 	"strconv"
 
+	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"fmt"
 )
 
 func (handler *HistoryHandler) clearTxDetails() {
