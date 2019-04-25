@@ -26,13 +26,14 @@
         <div class="inner">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-2">
-                        <img src="/static/images/logo.png" class="img img-fluid" style="max-height: 32px;">
-                        <span data-target="connection-info.networkType" style="font-size:22px">{{ .NetworkType }}</span>
+                    <div class="col-md-2 col-sm-4 col-xs-6">
+                        <img src="/static/images/logo.png" class="img" style="max-height: 32px;">
+
+                        <p data-target="connection-info.networkType" style="font-size:18px; font-weight: 700; padding-left: 4.7rem; margin-bottom: 0">{{ .NetworkType }}</p>
                     </div>
-                    <div class="col-md-8 mt-lg-6">
+                    <div class="col-sm-8 col-md-8 mt-lg-6">
                         <div class="text-center">
-                            <h3>GoDCR</h3>
+                            <h3 style="font-weight: 600;">GoDCR</h3>
                             <p class="mb-0">
                                 <span class="d-none">Balance: <b data-target="connection-info.totalBalance">{{ .TotalBalance }}</b>
                                 | </span>Synced with <b data-target="connection-info.peersConnected">{{ .PeersConnected }}</b> Peers
