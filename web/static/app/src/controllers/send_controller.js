@@ -26,6 +26,7 @@ export default class extends Controller {
   }
 
   initialize () {
+    this.setBusy(false)
     this.initializeSendToAddress()
 
     let _this = this
@@ -42,6 +43,11 @@ export default class extends Controller {
         hide(target.parentElement)
       })
     }
+  }
+
+  setBusy (busy) {
+    this.busy = busy
+    this.updateSendButtonState()
   }
 
   toggleCustomInputPnlClicked () {
@@ -63,6 +69,7 @@ export default class extends Controller {
     if (!this.useCustomTarget.checked) {
       hide(this.toggleCustomInputPnlTarget.parentElement)
       this.resetCustomInputsAndChangeOutputs()
+      this.updateSendButtonState()
       return
     }
 
@@ -82,12 +89,10 @@ export default class extends Controller {
   }
 
   updateSendButtonState () {
-    if (!this.validateSendForm(true)) {
-      this.nextButtonTarget.disabled = true
-      this.nextButtonTarget.classList.add('disabledBtn')
+    if (this.busy || !this.validateSendForm(true)) {
+      this.nextButtonTarget.setAttribute('disabled', true)
     } else {
-      this.nextButtonTarget.disabled = false
-      this.nextButtonTarget.classList.remove('disabledBtn')
+      this.nextButtonTarget.removeAttribute('disabled')
     }
   }
 
@@ -414,6 +419,7 @@ export default class extends Controller {
       queryParams += '&spend-unconfirmed=true'
     }
 
+    this.setBusy(true)
     let _this = this
     axios.get('/max-send-amount?' + queryParams)
       .then((response) => {
@@ -432,6 +438,9 @@ export default class extends Controller {
         } else {
           _this.setErrorMessage('A server error occurred')
         }
+      })
+      .then(() => {
+        _this.setBusy(false)
       })
   }
 
@@ -533,10 +542,6 @@ export default class extends Controller {
     hide(errorElement)
     element.classList.remove('is-invalid')
 
-    if (!this.validateSendForm(true)) {
-      this.nextButtonTarget.disabled = false
-      this.nextButtonTarget.classList.remove('disabledBtn')
-    }
     this.updateSendButtonState()
 
     this.alignDestinationField(element)
@@ -699,7 +704,8 @@ export default class extends Controller {
 
   getUnspentOutputs (accountNumber, successCallback) {
     this.nextButtonTarget.innerHTML = 'Loading...'
-    this.nextButtonTarget.setAttribute('disabled', 'disabled')
+    this.setBusy(true)
+    this.updateSendButtonState()
 
     let url = `/unspent-outputs/${accountNumber}`
     if (this.spendUnconfirmedTarget.checked) {
@@ -718,7 +724,7 @@ export default class extends Controller {
       _this.setErrorMessage('A server error occurred')
     }).then(function () {
       _this.nextButtonTarget.innerHTML = 'Next'
-      _this.nextButtonTarget.removeAttribute('disabled')
+      _this.setBusy(false)
     })
   }
 
@@ -856,6 +862,7 @@ export default class extends Controller {
 
     queryParams += `&nChangeOutput=${numberOfOutputs}`
 
+    this.setBusy(true)
     let _this = this
     axios.get('/random-change-outputs?' + queryParams)
       .then((response) => {
@@ -876,6 +883,7 @@ export default class extends Controller {
         _this.generateOutputsButtonTarget.innerHTML = 'Generate Change Outputs'
         _this.numberOfChangeOutputsTarget.removeAttribute('disabled')
         _this.generatingChangeOutputs = false
+        this.setBusy(false)
       })
   }
 
@@ -1075,6 +1083,7 @@ export default class extends Controller {
     if (!this.validatePassphrase()) {
       return
     }
+    this.setBusy(true)
 
     $('#passphrase-modal').modal('hide')
 
@@ -1101,7 +1110,7 @@ export default class extends Controller {
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
       _this.nextButtonTarget.innerHTML = 'Next'
-      _this.nextButtonTarget.removeAttribute('disabled')
+      _this.setBusy(false)
     })
   }
 

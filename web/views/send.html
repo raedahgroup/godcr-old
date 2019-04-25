@@ -169,7 +169,7 @@
 
                                     <div class="form-group mb-0">
                                         <button type="button" data-action="click->send#newDestination"
-                                                class="btn btn-success">
+                                                class="btn btn-success shadow-sm">
                                             Add another address
                                         </button>
                                     </div>
@@ -220,7 +220,7 @@
                                                     </div>
                                                     &nbsp;
                                                     <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
-                                                            class="removeDestinationBtn btn btn-sm btn-danger" type="button">X</button>
+                                                            class="removeDestinationBtn btn btn-sm btn-danger  shadow-sm" type="button">X</button>
                                                 </div>
 
                                                 <div class="col-sm-12 invalid-feedback d-none"></div>
@@ -230,7 +230,7 @@
 
                                     <div class="form-group mb-0">
                                         <button type="button" data-action="click->send#newDestinationAccount"
-                                                class="btn btn-success">
+                                                class="btn btn-success  shadow-sm">
                                             Add another output
                                         </button>
                                     </div>
@@ -281,7 +281,7 @@
                                             <button data-target="send.generateOutputsButton"
                                                     data-action="send#generateChangeOutputs"
                                                     id="generate-outputs-btn" type="button"
-                                                    class="btn btn-sm btn-outline-secondary mt-0">
+                                                    class="btn btn-sm btn-outline-secondary mt-0 shadow-sm">
                                                 Generate Change Outputs
                                             </button>
                                         </div>
@@ -333,11 +333,11 @@
                             <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
                             <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                             <div class="errors mb-3 d-none" data-target="send.errors"></div>
-                            <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
+                            <button data-action="click->send#resetSendForm" class="btn btn-danger shadow-sm" id="reset-btn"
                                     type="button">Clear Fields
                             </button>
                             <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" disabled
-                                    class="btn btn-primary disabledBtn" id="submit-btn" type="button">Send
+                                    class="btn btn-primary shadow-sm" id="submit-btn" type="button">Send
                             </button>
                         </div>
                     </div>
@@ -380,8 +380,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                <button data-action="click->send#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+                                <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                                <button data-action="click->send#submitForm" type="button" class="btn btn-outline-primary" id="passphrase-submit">Submit</button>
                             </div>
                         </div>
                     </div>
