@@ -36,6 +36,20 @@ func (table *Table) Clear() {
 	table.Rows = []*TableRow{}
 }
 
+func (table *Table) AddRowWithHashClick(hash string, texts ...string) {
+	tableCells := make([]TableCell, len(texts))
+	for i, text := range texts {
+		if i == len(texts)-1 {
+			tableCells[i] = widget.NewButton(text, func() {
+				//do something here
+			})
+			break
+		}
+		tableCells[i] = widget.NewLabel(text)
+	}
+	table.AddRow(tableCells...)
+}
+
 // DefaultTable returns a table that grows beyond the minimum size to cover all available space
 func (table *Table) DefaultTable() fyne.CanvasObject {
 	defaultTable := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
