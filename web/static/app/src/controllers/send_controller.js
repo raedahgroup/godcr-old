@@ -51,6 +51,11 @@ export default class extends Controller {
     this.updateSendButtonState()
   }
 
+  setBusy (busy) {
+    this.busy = busy
+    this.updateSendButtonState()
+  }
+
   toggleCustomInputPnlClicked () {
     if (this.toggleCustomInputPnlTarget.checked) {
       $('#custom-inputs').slideDown()
@@ -94,8 +99,7 @@ export default class extends Controller {
       this.nextButtonTarget.disabled = true
       this.nextButtonTarget.classList.add('disabledBtn')
     } else {
-      this.nextButtonTarget.disabled = false
-      this.nextButtonTarget.classList.remove('disabledBtn')
+      this.nextButtonTarget.removeAttribute('disabled')
     }
   }
 
