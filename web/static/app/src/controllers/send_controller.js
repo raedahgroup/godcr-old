@@ -544,10 +544,6 @@ export default class extends Controller {
     hide(errorElement)
     element.classList.remove('is-invalid')
 
-    if (!this.validateSendForm(true)) {
-      this.nextButtonTarget.disabled = false
-      this.nextButtonTarget.classList.remove('disabledBtn')
-    }
     this.updateSendButtonState()
 
     this.alignDestinationField(element)
