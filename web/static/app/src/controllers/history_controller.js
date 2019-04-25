@@ -140,18 +140,18 @@ export default class extends Controller {
     const accountName = tx => {
       let accountNames = []
       if (tx.direction === 1) {
-        tx.inputs.forEach(input => {
-          if (accountNames.indexOf(input.account_name) !== -1) {
-            return
-          }
-          accountNames.push(input.account_name)
-        })
-      } else {
         tx.outputs.forEach(output => {
           if (accountNames.indexOf(output.account_name) !== -1) {
             return
           }
           accountNames.push(output.account_name)
+        })
+      } else {
+        tx.inputs.forEach(input => {
+          if (accountNames.indexOf(input.account_name) !== -1) {
+            return
+          }
+          accountNames.push(input.account_name)
         })
       }
 

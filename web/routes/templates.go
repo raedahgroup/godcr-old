@@ -106,18 +106,18 @@ func templateFuncMap() template.FuncMap {
 				return false
 			}
 			if txn.Direction == txhelper.TransactionDirectionReceived {
-				for _, input := range txn.Inputs {
-					if isInArray(input.AccountName) {
-						continue
-					}
-					accountNames = append(accountNames, input.AccountName)
-				}
-			} else {
 				for _, output := range txn.Outputs {
 					if isInArray(output.AccountName) {
 						continue
 					}
 					accountNames = append(accountNames, output.AccountName)
+				}
+			} else {
+				for _, input := range txn.Inputs {
+					if isInArray(input.AccountName) {
+						continue
+					}
+					accountNames = append(accountNames, input.AccountName)
 				}
 			}
 			return strings.Join(accountNames, ", ")
