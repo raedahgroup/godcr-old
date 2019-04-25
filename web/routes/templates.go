@@ -76,7 +76,7 @@ func templateFuncMap() template.FuncMap {
 
 			decimalPortion := utils.DecimalPortion(amount)
 			if len(decimalPortion) == 0 {
-				balanceParts[0] += " DCR"
+				balanceParts[2] = " DCR"
 			} else if len(decimalPortion) <= 2 {
 				balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
 			} else {
@@ -119,9 +119,6 @@ func templateFuncMap() template.FuncMap {
 		},
 		"timestamp": func() int64 {
 			return time.Now().Unix()
-		},
-		"formattedTime": func(Timestamp int64) string {
-			return time.Unix(Timestamp, 0).Format("2006-01-02 / 15:04:05 UTC")
 		},
 	}
 }

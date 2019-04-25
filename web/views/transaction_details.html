@@ -38,16 +38,16 @@
                     <tr>
                         <td>Amount</td>
                         <td class="text-right" style="font-size: 15px">
-                            {{ $balanceParts := splitAmountIntoParts .tx.Amount }}
-                            <b>{{ index $balanceParts 0 }}{{ index $balanceParts 1 }}<span
-                                style="font-size:13px;">{{ index $balanceParts 2 }}</span></b></td>
+                            {{ $amountParts := splitAmountIntoParts .tx.Amount }}
+                            <b>{{ index $amountParts 0 }}{{ index $amountParts 1 }}<span
+                                style="font-size:13px;">{{ index $amountParts 2 }}</span></b></td>
                             </tr>
                             <tr>
                                 <td>Fee</td>
                                 <td class="text-right" style="font-size: 15px">
-                            {{ $balanceParts := splitAmountIntoParts .tx.Fee }}
-                            <b>{{ index $balanceParts 0 }}{{ index $balanceParts 1 }}<span
-                                style="font-size:13px;">{{ index $balanceParts 2 }}</span></b></td>
+                            {{ $feeParts := splitAmountIntoParts .tx.Fee }}
+                            <b>{{ index $feeParts 0 }}{{ index $feeParts 1 }}<span
+                                style="font-size:13px;">{{ index $feeParts 2 }}</span></b></td>
                             </tr>
                             <tr>
                                 <td>Type</td>
