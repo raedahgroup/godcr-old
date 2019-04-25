@@ -89,12 +89,10 @@ export default class extends Controller {
   }
 
   updateSendButtonState () {
-    if (!this.validateSendForm(true)) {
-      this.nextButtonTarget.disabled = true
-      this.nextButtonTarget.classList.add('disabledBtn')
+    if (this.busy || !this.validateSendForm(true)) {
+      this.nextButtonTarget.setAttribute('disabled', true)
     } else {
-      this.nextButtonTarget.disabled = false
-      this.nextButtonTarget.classList.remove('disabledBtn')
+      this.nextButtonTarget.removeAttribute('disabled')
     }
   }
 

@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"strconv"
 
+	"fmt"
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
