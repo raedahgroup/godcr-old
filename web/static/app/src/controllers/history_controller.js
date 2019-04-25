@@ -141,14 +141,14 @@ export default class extends Controller {
       let accountNames = []
       if (tx.direction === 1) {
         tx.outputs.forEach(output => {
-          if (accountNames.indexOf(output.account_name) !== -1) {
+          if (output.account_numberr === -1 || accountNames.indexOf(output.account_name) !== -1) {
             return
           }
           accountNames.push(output.account_name)
         })
       } else {
         tx.inputs.forEach(input => {
-          if (accountNames.indexOf(input.account_name) !== -1) {
+          if (inputs.account_numberr === -1 || accountNames.indexOf(input.account_name) !== -1) {
             return
           }
           accountNames.push(input.account_name)
