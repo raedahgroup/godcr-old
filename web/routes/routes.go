@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/go-chi/chi"
+	"github.com/gobuffalo/packr"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
@@ -48,8 +49,26 @@ func (routes *Routes) loadTemplates() {
 	layout := "../../web/views/layout.html"
 	utils := "../../web/views/utils.html"
 
+	viewBox := packr.NewBox("../views")
+
 	for _, tmpl := range templates() {
-		parsedTemplate, err := template.New(tmpl.name).Funcs(templateFuncMap()).ParseFiles(tmpl.path, layout, utils)
+		parsedTemplate := template.New(tmpl.name).Funcs(templateFuncMap())
+
+		viewContent, err := viewBox.FindString(tmpl.path)
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+		parsedTemplate, err = parsedTemplate.Parse(viewContent)
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+
+		parsedTemplate, err = parsedTemplate.Parse(viewBox.String(layout))
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+
+		parsedTemplate, err = parsedTemplate.Parse(viewBox.String(utils))
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}

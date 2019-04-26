@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
+	//"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/gobuffalo/packr"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -24,9 +25,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, htt
 	router := chi.NewRouter()
 
 	// setup static file serving
-	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "../../web/static/dist")
-	makeStaticFileServer(router, "/static", http.Dir(filesDir))
+	makeStaticFileServer(router, "/static", packr.NewBox("../../static/dist"))
 
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened
 	// returns error if wallet exists but could not be opened
