@@ -279,7 +279,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		transactionCountByType[txType] = txCount
 	}
 
-	alTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	allTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
 	if txCountErr != nil {
 		routes.renderError(fmt.Sprintf("Cannot load history page. "+
 			"Error getting total transaction count: %s", txCountErr.Error()), res)
@@ -313,13 +313,13 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		"txs":                    txns,
 		"currentPage":            int(pageToLoad),
 		"previousPage":           int(pageToLoad - 1),
-		"totalPages":             int(math.Ceil(float64(alTxCount) / float64(txPerPage))),
-		"transactionTotalCount":  alTxCount,
+		"totalPages":             int(math.Ceil(float64(allTxCount) / float64(txPerPage))),
+		"transactionTotalCount":  allTxCount,
 		"accountsCount":          len(accounts),
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
-	if totalTxLoaded < alTxCount {
+	if totalTxLoaded < allTxCount {
 		data["nextPage"] = int(pageToLoad + 1)
 	}
 
