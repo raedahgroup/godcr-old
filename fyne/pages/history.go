@@ -12,51 +12,52 @@ import (
 )
 
 type historyPageLoader struct {
-	ctx                      context.Context
-	wallet                   walletcore.Wallet
-	updatePageOnMainWindow   func()
-	recentActivityTable      *widgets.Table
-	fetchRecentActivityError string
+	ctx                    context.Context
+	wallet                 walletcore.Wallet
+	updatePageOnMainWindow func()
+	transactionTable       *widgets.Table
+	loadTransactionsError  string
 }
 
 // Load initializes the page views and updates the app window before and/or after loading data
 func (page *historyPageLoader) Load(ctx context.Context, wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject)) {
 	page.wallet = wallet
 	page.updatePageOnMainWindow = page.makePageUpdateFunc(updatePageOnMainWindow)
-	page.recentActivityTable = widgets.NewTable()
+	page.transactionTable = widgets.NewTable()
 
 	// update window now, then fetch recent activity in background, as it "may" take some time
 	page.updatePageOnMainWindow()
-	go page.fetchRecentActivity()
+	go page.loadTransactions()
 }
 
-func (page *historyPageLoader) fetchRecentActivity() {
+func (page *historyPageLoader) loadTransactions() {
 	// update main window after fetching recent activity
 	defer page.updatePageOnMainWindow()
 
-	page.recentActivityTable.Clear()
-	no, err := page.wallet.TransactionCount(nil)
+	page.transactionTable.Clear()
+	transactionCount, err := page.wallet.TransactionCount(nil)
 	if err != nil {
-		page.fetchRecentActivityError = err.Error()
+		page.loadTransactionsError = err.Error()
 		return
 	}
-	txns, err := page.wallet.TransactionHistory(-1, int32(no), nil)
+	txns, err := page.wallet.TransactionHistory(-1, int32(transactionCount), nil)
 	if err != nil {
-		page.fetchRecentActivityError = err.Error()
+		page.loadTransactionsError = err.Error()
 		return
 	}
 
-	page.recentActivityTable.AddRowSimple("#", "Date", "Direction", "Amount", "Fee", "Type", "Hash")
-	for i, tx := range txns {
+	page.transactionTable.AddRowSimple("Account", "Date", "Type", "Direction", "Amount", "Fee", "Status", "Hash")
+	for _, tx := range txns {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
-		page.recentActivityTable.AddRowWithHashClick(
+		page.transactionTable.AddRowWithHashClick(
 			tx.Hash,
-			fmt.Sprintf("%d", i+1),
+			tx.AccountName(),
 			tx.LongTime,
+			tx.Type,
 			tx.Direction.String(),
 			dcrutil.Amount(tx.Amount).String(),
 			dcrutil.Amount(tx.Fee).String(),
-			tx.Type,
+			tx.Status,
 			trimmedHash,
 		)
 	}
@@ -67,10 +68,10 @@ func (page *historyPageLoader) fetchRecentActivity() {
 func (page *historyPageLoader) makePageUpdateFunc(updatePageOnMainWindow func(object fyne.CanvasObject)) func() {
 	return func() {
 		var recentActivityObject fyne.CanvasObject
-		if page.fetchRecentActivityError != "" {
-			recentActivityObject = widget.NewLabel(fmt.Sprintf("Error History: %s", page.fetchRecentActivityError))
+		if page.loadTransactionsError != "" {
+			recentActivityObject = widget.NewLabel(fmt.Sprintf("Error History: %s", page.loadTransactionsError))
 		} else {
-			recentActivityObject = page.recentActivityTable.CondensedTable()
+			recentActivityObject = page.transactionTable.CondensedTable()
 		}
 
 		pageViews := widget.NewVBox(

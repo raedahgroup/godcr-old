@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 )
 
@@ -14,21 +13,4 @@ func DecimalPortion(n float64) string {
 	return decimalPlaces
 }
 
-func SplitAmountIntoParts(amount float64) []string {
-	balanceParts := make([]string, 3)
-
-	wholeNumber := int(math.Floor(amount))
-	balanceParts[0] = strconv.Itoa(wholeNumber)
-
-	decimalPortion := DecimalPortion(amount)
-	if len(decimalPortion) == 0 {
-		balanceParts[2] = " DCR"
-	} else if len(decimalPortion) <= 2 {
-		balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
-	} else {
-		balanceParts[1] = fmt.Sprintf(".%s", decimalPortion[0:2])
-		balanceParts[2] = fmt.Sprintf("%s DCR", decimalPortion[2:])
-	}
-
-	return balanceParts
-}
+//func accountNameFromTransaction()
