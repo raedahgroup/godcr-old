@@ -14,6 +14,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -463,10 +464,23 @@ func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	connectionInfo, err := routes.walletMiddleware.WalletConnectionInfo()
+	if err != nil {
+		weblog.LogError(err)
+	}
+
+	var networkHDPath string
+	if connectionInfo.NetworkType == "testnet3" {
+		networkHDPath = walletcore.TestnetHDPath
+	} else {
+		networkHDPath = walletcore.MainnetHDPath
+	}
+
 	data := map[string]interface{}{
 		"accounts":       accounts,
 		"defaultAccount": routes.settings.DefaultAccount,
 		"hiddenAccounts": routes.settings.HiddenAccounts,
+		"hdPath":         networkHDPath,
 	}
 	routes.renderPage("accounts.html", data, res)
 }

@@ -23,7 +23,9 @@
                                             </td>
                                             <td>
                                                 <div class="lead-text">{{ $account.Balance.Total }}</div>
-                                                <span class="lead-text">Spendable: {{ $account.Balance.Spendable }}</span>
+                                                {{ if not (eq $account.Balance.Total $account.Balance.Spendable) }}
+                                                    <span class="lead-text">Spendable: {{ $account.Balance.Spendable }}</span>
+                                                {{ end }}
                                             </td>
                                         </tr>
                                     </table>
@@ -46,7 +48,7 @@
                                         </tr>
                                         <tr>
                                             <td width="160px">HD Path</td>
-                                            <td>ddd</td>  
+                                            <td>{{ print $.hdPath $account.Number }}</td>  
                                         </tr>
                                         <tr>
                                             <td width="160px">Keys</td>
