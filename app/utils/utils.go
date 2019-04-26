@@ -12,3 +12,5 @@ func DecimalPortion(n float64) string {
 	decimalPlaces = strings.TrimRight(decimalPlaces, "0")        // remove trailing 0s
 	return decimalPlaces
 }
+
+//func accountNameFromTransaction()
