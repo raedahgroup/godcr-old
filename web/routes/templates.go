@@ -48,15 +48,13 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			balance := walletcore.SplitAmountIntoParts(totalBalance)
-			return balance
+			return walletcore.SplitAmountIntoParts(totalBalance)
 		},
 		"splitAmountIntoParts": func(amount int64) []string {
 			var amountToSplit float64
 			amountToSplit = dcrutil.Amount(amount).ToCoin()
 
-			balance := walletcore.SplitAmountIntoParts(amountToSplit)
-			return balance
+			return walletcore.SplitAmountIntoParts(amountToSplit)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
