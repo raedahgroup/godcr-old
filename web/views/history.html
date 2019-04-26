@@ -59,14 +59,8 @@
                             <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
                             <td><img style="width: 15px" src="/static/images/{{directionImage $txn}}"> {{ $txn.Direction }}</td>
-                            <td style="text-align: right">
-                                {{ $amountParts := splitAmountIntoParts $txn.Amount }}
-                                {{ index $amountParts 0 }}{{ index $amountParts 1 }}<span>{{ index $amountParts 2 }}</span>
-                            </td>
-                            <td style="text-align: right">
-                                {{ $feeParts := splitAmountIntoParts $txn.Fee }}
-                                {{ index $feeParts 0 }}{{ index $feeParts 1 }}<span>{{ index $feeParts 2 }}</span>
-                            </td>
+                            <td style="text-align: right">{{ amountDcr $txn.Amount}}</td>
+                            <td style="text-align: right">{{ amountDcr $txn.Fee}}</td>
                             <td>{{ $txn.Status }}</td>
                             <td><a href="/transaction-details/{{ $txn.Hash }}" >{{ truncate $txn.Hash 10 }}</a></td>
                         </tr>
