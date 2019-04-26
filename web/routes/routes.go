@@ -49,10 +49,14 @@ func (routes *Routes) loadTemplates() {
 	layout := "../../web/views/layout.html"
 	utils := "../../web/views/utils.html"
 
-	viewBox := packr.NewBox("../views")
+	viewBox := packr.NewBox("../../web/views")
 
 	viewContentFunc := func(template string) string {
 		viewContent, err := viewBox.FindString(template)
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+		parsedTemplate, err = parsedTemplate.Parse(viewContent)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
