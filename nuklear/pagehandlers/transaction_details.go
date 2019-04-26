@@ -2,8 +2,8 @@ package pagehandlers
 
 import (
 	"strconv"
-
 	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"

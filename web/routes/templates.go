@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -48,13 +49,13 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			return walletcore.SplitAmountIntoParts(totalBalance)
+			return utils.SplitAmountIntoParts(totalBalance)
 		},
 		"splitAmountIntoParts": func(amount int64) []string {
 			var amountToSplit float64
 			amountToSplit = dcrutil.Amount(amount).ToCoin()
 
-			return walletcore.SplitAmountIntoParts(amountToSplit)
+			return utils.SplitAmountIntoParts(amountToSplit)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
