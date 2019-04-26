@@ -933,6 +933,7 @@ export default class extends Controller {
     })
 
     this.transactionDetailsTarget.innerHTML = this.summaryHTML()
+
     $('#passphrase-modal').modal()
   }
 
@@ -1018,7 +1019,7 @@ export default class extends Controller {
       if (_this.exchangeRate > 0) {
         usdAmountStr = `($${(amount * _this.exchangeRate).toFixed(2)}) `
       }
-      changeOutputs += `<li>${amount} DCR ${usdAmountStr}to ${changeOutputAddressTarget.value} (change)</li>`
+      changeOutputs += `<li>${(amount.toFixed(2))} DCR ${usdAmountStr}to ${changeOutputAddressTarget.value} (change)</li>`
     })
 
     summaryHTML += `<ul>${destinations}</ul>`

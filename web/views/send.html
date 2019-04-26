@@ -153,6 +153,7 @@
                                                         <input data-target="send.maxSendAmountCheck"
                                                                data-action="click->send#maxSendAmountCheckboxToggle"
                                                                type="checkbox" class="form-check-input mt-0"
+                                                               style="margin-left: -0.95rem;"
                                                                name="send-max-amount" value="true">
                                                         <label class="form-check-label" for="send-max-amount">Send max</label>
                                                     </div>
@@ -169,7 +170,7 @@
 
                                     <div class="form-group mb-0">
                                         <button type="button" data-action="click->send#newDestination"
-                                                class="btn btn-success shadow-sm">
+                                                class="btn btn-outline-primary shadow-sm">
                                             Add another address
                                         </button>
                                     </div>
@@ -215,6 +216,7 @@
                                                         <input data-target="send.maxSendAmountCheck"
                                                                data-action="click->send#maxSendAmountCheckboxToggle"
                                                                type="checkbox" class="form-check-input mt-0"
+                                                               style="margin-left: -0.95rem;"
                                                                name="send-max-amount" value="true">
                                                         <label class="form-check-label" for="send-max-amount">Send max</label>
                                                     </div>
@@ -230,7 +232,7 @@
 
                                     <div class="form-group mb-0">
                                         <button type="button" data-action="click->send#newDestinationAccount"
-                                                class="btn btn-success  shadow-sm">
+                                                class="btn btn-outline-primary shadow-sm">
                                             Add another output
                                         </button>
                                     </div>
@@ -352,7 +354,7 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body">
+                            <div class="modal-body" style="margin: 0 auto;">
                                 <div data-target="send.transactionDetails"></div>
                                 <table class="table borderless" style="width: 250px;">
                                     <tr>
@@ -372,9 +374,8 @@
                                         <td data-target="send.balanceAfter"></td>
                                     </tr>
                                 </table>
-                                <p>Enter your passphrase to continue</p>
+                                <p>To confirm, enter your password: </p>
                                 <div class="form-group form-inline">
-                                    <label for="passhprase">Passphrase</label>
                                     <input data-target="send.walletPassphrase" type="password" class="form-control ml-3" name="wallet-passphrase" id="wallet-passphrase" />
                                     <div data-target="send.passwordError" class="errors"></div>
                                 </div>
