@@ -1,8 +1,8 @@
 package pagehandlers
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"

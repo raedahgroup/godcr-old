@@ -52,10 +52,9 @@ func templateFuncMap() template.FuncMap {
 			return utils.SplitAmountIntoParts(totalBalance)
 		},
 		"splitAmountIntoParts": func(amount int64) []string {
-			var amountToSplit float64
-			amountToSplit = dcrutil.Amount(amount).ToCoin()
+			dcrAmount := dcrutil.Amount(amount).ToCoin()
 
-			return utils.SplitAmountIntoParts(amountToSplit)
+			return utils.SplitAmountIntoParts(dcrAmount)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
