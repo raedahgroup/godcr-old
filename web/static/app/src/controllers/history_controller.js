@@ -184,11 +184,8 @@ export default class extends Controller {
       const image = directionImage(tx).toString()
       fields[3].innerHTML = '<img style="width: 15px" src="/static/images/' + image + '"> ' + direction
 
-      const amountParts = splitAmountIntoParts(amountDcr(tx.amount))
-      fields[4].innerHTML = `${amountParts[0]}<span>${amountParts[1]}${amountParts[2]}</span>`
-
-      const feeParts = splitAmountIntoParts(amountDcr(tx.fee))
-      fields[5].innerHTML = `${feeParts[0]}<span>${feeParts[1]}${feeParts[2]}</span>`
+      fields[4].innerHTML = amountDcr(tx.amount)
+      fields[5].innerHTML = amountDcr(tx.fee)
 
       fields[6].innerText = tx.status
       fields[7].innerHTML = `<a href="/transaction-details/${tx.hash}">${truncate(tx.hash, 10)}}</a>`
