@@ -17,6 +17,7 @@ type historyPageLoader struct {
 	updatePageOnMainWindow func()
 	transactionTable       *widgets.Table
 	loadTransactionsError  string
+	transactionCount       int
 }
 
 // Load initializes the page views and updates the app window before and/or after loading data
@@ -35,22 +36,51 @@ func (page *historyPageLoader) loadTransactions() {
 	defer page.updatePageOnMainWindow()
 
 	page.transactionTable.Clear()
-	transactionCount, err := page.wallet.TransactionCount(nil)
+	var err error
+	page.transactionCount, err = page.wallet.TransactionCount(nil)
 	if err != nil {
 		page.loadTransactionsError = err.Error()
 		return
 	}
-	txns, err := page.wallet.TransactionHistory(-1, int32(transactionCount), nil)
+	txns, err := page.wallet.TransactionHistory(-1, int32(page.transactionCount), nil)
 	if err != nil {
 		page.loadTransactionsError = err.Error()
 		return
 	}
 
-	page.transactionTable.AddRowSimple("Account", "Date", "Type", "Direction", "Amount", "Fee", "Status", "Hash")
+	amountCellSize := make(map[int]int)
+	feeCellSize := make(map[int]int)
+	for _, tx := range txns {
+		amountCellSize[len(dcrutil.Amount(tx.Amount).String())] = len(dcrutil.Amount(tx.Amount).String())
+		feeCellSize[len(dcrutil.Amount(tx.Fee).String())] = len(dcrutil.Amount(tx.Fee).String())
+	}
+	var maxNoOfTextInAmount int
+	var maxNoOfTextInFee int
+	for maxNoOfTextInAmount = range amountCellSize {
+		break
+	}
+	for maxNoOfTextInFee = range feeCellSize {
+		break
+	}
+	var amountText string
+	var feeText string
+	var spacing string
+	for i := (maxNoOfTextInAmount - 5) / 2; i != 0; i-- {
+		spacing += "  "
+	}
+	amountText = spacing + "Amount"
+	spacing = ""
+	for i := (maxNoOfTextInFee - 5) / 2; i != 0; i-- {
+		spacing += "  "
+	}
+	feeText = spacing + "Fee"
+	page.transactionTable.AddRowSimple("Account", "Date", "Type", "Direction", amountText, feeText, "Status", "Hash")
 	for _, tx := range txns {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
-		page.transactionTable.AddRowWithHashClick(
+		page.transactionTable.AddRowWithButtonSupport(maxNoOfTextInAmount,
+			maxNoOfTextInFee,
 			tx.Hash,
+			true,
 			tx.AccountName(),
 			tx.LongTime,
 			tx.Type,
@@ -60,7 +90,9 @@ func (page *historyPageLoader) loadTransactions() {
 			tx.Status,
 			trimmedHash,
 		)
+
 	}
+
 }
 
 // makePageUpdateFunc creates a wrapper function around `updatePageOnMainWindow`
@@ -73,9 +105,9 @@ func (page *historyPageLoader) makePageUpdateFunc(updatePageOnMainWindow func(ob
 		} else {
 			recentActivityObject = page.transactionTable.CondensedTable()
 		}
-
 		pageViews := widget.NewVBox(
 			widgets.NewVSpacer(20),
+
 			recentActivityObject,
 		)
 		updatePageOnMainWindow(pageViews)
