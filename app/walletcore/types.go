@@ -2,9 +2,10 @@ package walletcore
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"strings"
 )
 
 type Balance struct {

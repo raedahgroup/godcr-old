@@ -70,17 +70,48 @@ func (page *overviewPageLoader) fetchRecentActivity() {
 		return
 	}
 
-	page.recentActivityTable.AddRowSimple("#", "Date", "Direction", "Amount", "Fee", "Type", "Hash")
-	for i, tx := range txns {
-		page.recentActivityTable.AddRowSimple(
-			fmt.Sprintf("%d", i+1),
-			tx.ShortTime,
+	amountCellSize := make(map[int]int)
+	feeCellSize := make(map[int]int)
+	for _, tx := range txns {
+		amountCellSize[len(dcrutil.Amount(tx.Amount).String())] = len(dcrutil.Amount(tx.Amount).String())
+		feeCellSize[len(dcrutil.Amount(tx.Fee).String())] = len(dcrutil.Amount(tx.Fee).String())
+	}
+	var maxNoOfTextInAmount int
+	var maxNoOfTextInFee int
+	for maxNoOfTextInAmount = range amountCellSize {
+		break
+	}
+	for maxNoOfTextInFee = range feeCellSize {
+		break
+	}
+	var amountText string
+	var feeText string
+	var spacing string
+	for i := (maxNoOfTextInAmount - 5) / 2; i != 0; i-- {
+		spacing += "  "
+	}
+	amountText = spacing + "Amount"
+	spacing = ""
+	for i := (maxNoOfTextInFee - 5) / 2; i != 0; i-- {
+		spacing += "  "
+	}
+	feeText = spacing + "Fee"
+	page.recentActivityTable.AddRowSimple("Account", "Date", "Type", "Direction", amountText, feeText, "Status", "Hash")
+	for _, tx := range txns {
+		page.recentActivityTable.AddRowWithButtonSupport(maxNoOfTextInAmount,
+			maxNoOfTextInFee,
+			"",
+			false,
+			tx.AccountName(),
+			tx.LongTime,
+			tx.Type,
 			tx.Direction.String(),
 			dcrutil.Amount(tx.Amount).String(),
 			dcrutil.Amount(tx.Fee).String(),
-			tx.Type,
+			tx.Status,
 			tx.Hash,
 		)
+
 	}
 }
 

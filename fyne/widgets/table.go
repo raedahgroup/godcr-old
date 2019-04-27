@@ -36,16 +36,34 @@ func (table *Table) Clear() {
 	table.Rows = []*TableRow{}
 }
 
-func (table *Table) AddRowWithHashClick(hash string, texts ...string) {
+func (table *Table) AddRowWithButtonSupport(maxAmountLengthSize int, maxFeeLengthSize int, hash string, buttonSupport bool, texts ...string) {
 	tableCells := make([]TableCell, len(texts))
 	for i, text := range texts {
-		if i == len(texts)-1 {
-			tableCells[i] = widget.NewButton(text, func() {
-				//do something here
-			})
-			break
+		if buttonSupport == true && i == len(texts)-1 {
+			{
+				tableCells[i] = widget.NewButton(text, func() {
+					//do something here
+				})
+				break
+			}
 		}
-		tableCells[i] = widget.NewLabel(text)
+		var spacing string
+		if i == 4 || i == 5 {
+			sizeOfText := len(text)
+			if i == 4 {
+				for maxAmountLengthSize > sizeOfText {
+					//text += " "
+					spacing += "  "
+					sizeOfText++
+				}
+			} else if i == 5 {
+				for maxFeeLengthSize > sizeOfText {
+					spacing += "  "
+					sizeOfText++
+				}
+			}
+		}
+		tableCells[i] = widget.NewLabel(spacing + text)
 	}
 	table.AddRow(tableCells...)
 }
