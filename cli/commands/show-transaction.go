@@ -8,6 +8,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
+	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
 )
 
 // ShowTransactionCommand requests for transaction details with a transaction hash.
@@ -71,6 +72,30 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
 		}
 		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))
+		fmt.Println()
+		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
+
+		validateUserInput := func(userInput string) error {
+			if strings.EqualFold(userInput, "q"){
+				return nil
+			}
+			return nil
+		}
+
+		userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
+		if err != nil {
+			return fmt.Errorf("error reading response: %s", err.Error())
+		}
+
+		if strings.EqualFold(userChoice, "q") {
+			return nil
+		}
+
+		err = HistoryCommand{}.Run( ctx, wallet)
+		if err == nil {
+			fmt.Println()
+		}
+		return err
 	} else {
 		termio.PrintStringResult(basicOutput)
 	}

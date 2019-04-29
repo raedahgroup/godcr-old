@@ -76,7 +76,9 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 		lastTX = len(transactions)
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
-
+		
+		fmt.Println() // print empty line before listing txs for next page
+		
 		var pageInfo string
 		if previous {
 			pageInfo = fmt.Sprintf("Showing transactions %d-%d of %d", lastTxRowNumber-(len(transactions)),
