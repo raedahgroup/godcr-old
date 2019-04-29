@@ -1,122 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-{{ template "html-head" .connectionInfo }}
+{{ template "html-head" }}
 <body>
-<div class="body">
-    {{ template "header" }}
-    <div>
-        <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/history">History</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-    <div class="content">
-        <div class="container">
-            <h3>Transactions Details</h3>
-            <div class="row justify-content-between mb-4">
-                <div class="col-xl-7">
-                    <table class="table m-0">
-                        <tbody>
-                        <tr>
-                            <td>Confirmations</td>
-                            <td>{{ .tx.Confirmations }}</td>
-                        </tr>
-                        <tr>
-                            <td>Hash</td>
-                            <td>{{ .tx.Hash }}</td>
-                        </tr>
-                        <tr>
-                            <td>Block Height</td>
-                            <td>{{ .tx.BlockHeight }}</td>
-                        </tr>
-                        <tr>
-                            <td>Direction</td>
-                            <td>{{ .tx.Direction }}</td>
-                        </tr>
-                        <tr>
-                            <td>Type</td>
-                            <td>{{ .tx.Type }}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="col-xl-5">
-                    <table class="table m-0">
-                        <tbody>
-                        <tr>
-                            <td>Amount</td>
-                            <td>{{ amountDcr .tx.Amount }}</td>
-                        </tr>
-                        <tr>
-                            <td>Size</td>
-                            <td>{{ .tx.Size }} Bytes</td>
-                        </tr>
-                        <tr>
-                            <td>Fee</td>
-                            <td>{{ amountDcr .tx.Fee }}</td>
-                        </tr>
-                        <tr>
-                            <td>Fee Rate</td>
-                            <td>{{ amountDcr .tx.FeeRate }}/KB</td>
-                        </tr>
-                        <tr>
-                            <td>Date</td>
-                            <td>{{ .tx.LongTime }} UTC</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xl-7 mb-3">
-                    <h3>Inputs</h3>
-                    <table class="table m-0">
-                        <thead>
-                        <tr>
-                            <th>Previous Outpoint</th>
-                            <th>Value</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{ range .tx.Inputs }}
-                        <tr>
-                            <td>{{ .PreviousOutpoint }}</td>
-                            <td>{{ amountDcr .Amount  }}</td>
-                        </tr>
-                        {{ end }}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="col-xl-5">
-                    <h3>Outputs</h3>
-                    <table class="table m-0">
-                        <thead>
-                        <tr>
-                            <th>Address</th>
-                            <th>Account</th>
-                            <th>Value</th>
-                            <th>Type</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{ range .tx.Outputs }}
-                        <tr>
-                            <td>{{ .Address }}</td>
-                            <td>{{ .AccountName }}</td>
-                            <td>{{ amountDcr .Amount }}</td>
-                            <td>{{ .ScriptType }}</td>
-                        </tr>
-                        {{ end }}
-                        </tbody>
-                    </table>
-                </div>
+    <div class="body">
+        {{ template "header" .connectionInfo }}
+        <div>
+            <div class="container">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/history">History</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Transaction Details</li>
+                    </ol>
+                </nav>
             </div>
         </div>
-    </div>
-</div>
-</body>
-</html>
+        <div class="content">
+            <div class="container">
+                <h3>Transactions Details</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table m-0" style="border-bottom: 1px solid #dee2e6">
+                            <tbody>
+                                <tr>
+                                    <td>Date</td>
+                                    <td class="text-right">{{ .tx.LongTime }} UTC</td>
+                                </tr>
+                                <tr>
+                                    <td>Status</td>
+                                    <td class="text-right {{ if eq .tx.Status "Confirmed" }} confirmed-status {{ else }} pending-status {{ end }}">
+                                        <span >{{ .tx.Status }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Amount</td>
+                                    <td class="text-right" style="font-size: 15px">
+                                        {{ $amountParts := splitAmountIntoParts .tx.Amount }}
+                                        <b>{{ index $amountParts 0 }}{{ index $amountParts 1 }}
+                                            <span style="font-size:13px;">{{ index $amountParts 2 }}</span>
+                                        </b>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Fee</td>
+                                    <td class="text-right" style="font-size: 15px">
+                                        {{ $feeParts := splitAmountIntoParts .tx.Fee }}
+                                        <b>{{ index $feeParts 0 }}{{ index $feeParts 1 }}
+                                            <span style="font-size:13px;">{{ index $feeParts 2 }}</span></b></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Type</td>
+                                            <td class="text-right">{{ .tx.Type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Confirmations</td>
+                                            <td class="text-right">{{ .tx.Confirmations }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Hash</td>
+                                            <td class="text-right">{{ .tx.Hash }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table m-0">
+                                    <tbody>
+                                        <tr>
+                                            <td style="border-top: none">
+                                                <h3>Inputs</h3>
+                                                {{ range $txn := .tx.Inputs }}
+                                                <p style="margin-bottom: 0.3rem">{{ amountDcr .Amount  }}</p>
+                                                <p>{{ .PreviousOutpoint }}</p>
+                                                {{ end }}
+                                            </td> 
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <h3>Outputs</h3>
+                                                {{ range .tx.Outputs }}
+                                                <p style="margin-bottom: 0.1rem">{{ amountDcr .Amount }} <span>({{ .AccountName }})</span></p>
+                                                <p style="margin-bottom: 1.2rem;">{{ .Address }}</p>
+                                                {{ end }}
+                                            </td>
+                                        </tr>
+                                        <tr></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        

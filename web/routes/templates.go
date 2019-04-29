@@ -3,8 +3,6 @@ package routes
 import (
 	"fmt"
 	"html/template"
-	"math"
-	"strconv"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -51,21 +49,12 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			balanceParts := make([]string, 3)
-			wholeNumber := int(math.Floor(totalBalance))
-			balanceParts[0] = strconv.Itoa(wholeNumber)
+			return utils.SplitAmountIntoParts(totalBalance)
+		},
+		"splitAmountIntoParts": func(amount int64) []string {
+			dcrAmount := dcrutil.Amount(amount).ToCoin()
 
-			decimalPortion := utils.DecimalPortion(totalBalance)
-			if len(decimalPortion) == 0 {
-				balanceParts[0] += " DCR"
-			} else if len(decimalPortion) <= 2 {
-				balanceParts[1] = fmt.Sprintf(".%s DCR", decimalPortion)
-			} else {
-				balanceParts[1] = fmt.Sprintf(".%s", decimalPortion[0:2])
-				balanceParts[2] = fmt.Sprintf("%s DCR", decimalPortion[2:])
-			}
-
-			return balanceParts
+			return utils.SplitAmountIntoParts(dcrAmount)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {

@@ -26,6 +26,24 @@ body {
   font-size: 18px;
 }
 
+.confirmed-status span {
+  border: 1px solid #0bda72;
+  color: #0bda72;
+  display: block;
+  padding: 0 0.1rem;
+  float: right;
+  margin-bottom: 0;
+}
+
+.pending-status span {
+  border: 1px solid #24e8ef;
+  color: #24e8ef;
+  display: block;
+  padding: 0 0.1rem;
+  float: right;
+  margin-bottom: 0;
+}
+
 .content {
   padding: 25px 0;
 }
