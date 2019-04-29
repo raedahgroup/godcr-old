@@ -47,12 +47,13 @@ func (page *historyPageLoader) loadTransactions() {
 		page.loadTransactionsError = err.Error()
 		return
 	}
-
+	leftAlign := []int{3}
 	page.transactionTable.AddRowHeader("Account", "Date", "Type", "Direction", "Amount", "Fee", "Status", "Hash")
 	for _, tx := range txns {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
 		page.transactionTable.AddRowWithButtonSupport(tx.Hash,
 			7,
+			leftAlign,
 			tx.AccountName(),
 			tx.LongTime,
 			tx.Type,

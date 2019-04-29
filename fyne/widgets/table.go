@@ -33,12 +33,15 @@ func (table *Table) AddRowHeader(texts ...string) {
 	}
 	table.AddRow(tableCells...)
 }
-func (table *Table) AddRowSimple(texts ...string) {
+func (table *Table) AddRowSimple(LeftAlign []int, texts ...string) {
 	tableCells := make([]TableCell, len(texts))
 	for i, text := range texts {
 
-		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignTrailing, fyne.TextStyle{Bold: false})
 
+	}
+	for _, no := range LeftAlign {
+		tableCells[no] = widget.NewLabelWithStyle(texts[no], fyne.TextAlignLeading, fyne.TextStyle{Bold: false})
 	}
 	table.AddRow(tableCells...)
 }
@@ -49,7 +52,7 @@ func (table *Table) Clear() {
 
 //AddRowWithButtonSupport creates a row of text and also creates a button handler on specified column
 // note it starts with zero indexed
-func (table *Table) AddRowWithButtonSupport(hash string, buttonColumn int, texts ...string) {
+func (table *Table) AddRowWithButtonSupport(hash string, buttonColumn int, leftAlign []int, texts ...string) {
 	tableCells := make([]TableCell, len(texts))
 	for i, text := range texts {
 		if i == buttonColumn {
@@ -60,8 +63,11 @@ func (table *Table) AddRowWithButtonSupport(hash string, buttonColumn int, texts
 				break
 			}
 		}
-		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignTrailing, fyne.TextStyle{Bold: false})
 
+	}
+	for _, no := range leftAlign {
+		tableCells[no] = widget.NewLabelWithStyle(texts[no], fyne.TextAlignLeading, fyne.TextStyle{Bold: false})
 	}
 	table.AddRow(tableCells...)
 }
