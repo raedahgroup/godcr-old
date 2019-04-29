@@ -69,9 +69,11 @@ func (page *overviewPageLoader) fetchRecentActivity() {
 		page.fetchRecentActivityError = err.Error()
 		return
 	}
+	leftAlign := []int{3}
 	page.recentActivityTable.AddRowHeader("Account", "Date", "Type", "Direction", "Amount", "Fee", "Status", "Hash")
 	for _, tx := range txns {
-		page.recentActivityTable.AddRowSimple(
+		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
+		page.recentActivityTable.AddRowSimple(leftAlign,
 			tx.AccountName(),
 			tx.LongTime,
 			tx.Type,
@@ -79,7 +81,7 @@ func (page *overviewPageLoader) fetchRecentActivity() {
 			dcrutil.Amount(tx.Amount).String(),
 			dcrutil.Amount(tx.Fee).String(),
 			tx.Status,
-			tx.Hash,
+			trimmedHash,
 		)
 
 	}
