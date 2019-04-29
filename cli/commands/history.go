@@ -40,6 +40,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	var previous bool 
 	var lastTX int
+
 	// show transactions in pages, using infinite loop
 	// after displaying transactions for each page,
 	// ask user if to show next page, previous page, tx details or exit the loop
@@ -80,8 +81,8 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		
 		var pageInfo string
 		if previous{
-			pageInfo = fmt.Sprintf("Showing transactions %d-%d of %d", lastTxRowNumber,
-			lastTxRowNumber+len(transactions)-1, txCount)
+			pageInfo = fmt.Sprintf("Showing transactions %d-%d of %d", lastTxRowNumber-(len(transactions)),
+			lastTxRowNumber-1, txCount)
 		} else{
 			pageInfo = fmt.Sprintf("Showing transactions %d-%d of %d", lastTxRowNumber,
 			lastTxRowNumber+len(transactions)-1, txCount)
