@@ -3,104 +3,143 @@ package fyne
 import (
 	"context"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/layout"
+	fyneApp "fyne.io/fyne/app"
 	"fyne.io/fyne/widget"
-
-	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/fyne/styles"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const (
-	menuSectionWidth                 = 200
-	menuSectionPageSectionSeparation = 20
+	navWidth                        = 200
+	pageWidth                       = 600
+	defaultWindowHeight             = 600
+	navSectionPageSectionSeparation = 20
 )
 
-// menuSection represents the menu
-type nav struct {
-	*fyne.Container
+type navSection struct {
+	*widgets.Container
 	buttons []*widget.Button
 }
 
-// pageSection represents the current page
-type page struct {
+type pageSection struct {
+	*widgets.Box
+	container *widgets.Container
+}
+
+type content struct {
+	window      *widgets.Window
+	navSection  *navSection
+	pageSection *pageSection
 }
 
 type Desktop struct {
-	fyne.App
+	*content
 
 	ctx              context.Context
-	walletMiddleware godcrApp.WalletMiddleware
-
-	window fyne.Window
-	nav    *nav
+	walletMiddleware app.WalletMiddleware
+	currentPage      *Page
+	syncer           *Syncer
 }
 
-func LaunchApp(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) error {
-	fyneApp := app.New()
-	fyneApp.Settings().SetTheme(styles.NewTheme())
+func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+	fyneApp := fyneApp.New()
 
 	desktop := &Desktop{
-		App:              fyneApp,
 		ctx:              ctx,
 		walletMiddleware: walletMiddleware,
-		window:           fyneApp.NewWindow(godcrApp.DisplayName),
-		nav:              &nav{},
+		content: &content{
+			window: widgets.NewWindow(app.DisplayName, fyneApp),
+		},
+		currentPage: getPages()[0],
+		syncer:      NewSyncer(),
 	}
 
-	// TODO: start syncing
+	desktop.window.Settings().SetTheme(styles.NewTheme())
 
-	desktop.window.SetContent(fyne.NewContainerWithLayout(
-		layout.NewHBoxLayout(),
-		desktop.renderNavWindow(500),
-		desktop.renderPageContentWindow(),
-	))
-	desktop.window.Show()
+	desktop.render()
 
-	desktop.Run()
 	return nil
 }
 
-func (desktop *Desktop) renderNavWindow(height int) *fyne.Container {
-	menuGroup := widget.NewVBox()
-	for _, page := range getPages() {
-		button := widget.NewButton(page.Title, desktop.changePage(page))
-		menuGroup.Append(button)
-		desktop.nav.buttons = append(desktop.nav.buttons, button)
+func (desktop *Desktop) render() {
+	desktop.window.Settings().SetTheme(styles.NewTheme())
+
+	changePageFunc := desktop.changePage(desktop.currentPage)
+	// start syncing in background
+	go desktop.syncer.startSyncing(desktop.walletMiddleware, changePageFunc)
+
+	mainContainer := widgets.NewHBoxContainer()
+	mainContainer.AddChildContainer(desktop.getNavSection())
+	mainContainer.AddChildContainer(desktop.getContentSection())
+
+	// render sync view
+	desktop.syncer.Render(desktop.pageSection.Box)
+	desktop.window.Render(mainContainer)
+}
+
+func (desktop *Desktop) getNavSection() *widgets.Container {
+	navBox := widgets.NewVBox()
+	pages := getPages()
+
+	desktop.navSection = &navSection{
+		buttons:   make([]*widget.Button, len(pages)+1),
+		Container: widgets.NewFixedGridLayout(navWidth, defaultWindowHeight),
 	}
 
-	menuGroup.Append(widget.NewButton("Exit", desktop.Quit))
+	for index, page := range pages {
+		if index == 0 {
+			desktop.currentPage = page
+		}
 
-	size := fyne.NewSize(menuSectionWidth, height)
-	container := fyne.NewContainerWithLayout(
-		layout.NewFixedGridLayout(size),
-		menuGroup,
-	)
-	desktop.nav.Container = container
+		button := navBox.AddButton(page.Title, desktop.changePage(page))
+		desktop.navSection.buttons[index] = button
+	}
+
+	// add exit button
+	exitButton := navBox.AddButton("Exit", desktop.window.Close)
+	desktop.navSection.buttons[len(desktop.navSection.buttons)-1] = exitButton
+	desktop.navSection.Container.AddBox(navBox)
+
+	return desktop.navSection.Container
+}
+
+func (desktop *Desktop) getContentSection() *widgets.Container {
+	container := widgets.NewFixedGridLayout(pageWidth, defaultWindowHeight)
+	contentBox := widgets.NewVBox()
+	contentBox.SetParent(desktop.content.window)
+	container.AddBox(contentBox)
+
+	desktop.pageSection = &pageSection{
+		Box:       contentBox,
+		container: container,
+	}
 
 	return container
 }
 
-func (desktop *Desktop) renderPageContentWindow() *widget.Box {
-	title := widget.NewLabel(godcrApp.DisplayName)
-	return widget.NewVBox(title)
-}
-
-func (desktop *Desktop) render() {
-
-}
-
-func (desktop *Desktop) changePage(currentPage *Page) func() {
+func (desktop *Desktop) changePage(page *Page) func() {
 	return func() {
+		// if not done syncing, return
+		if !desktop.syncer.isDoneSyncing() {
+			return
+		}
+
 		// highlight current menu item
-		for _, button := range desktop.nav.buttons {
-			if button.Text == currentPage.Title {
+		for _, button := range desktop.navSection.buttons {
+			if button.Text == page.Title {
 				button.Style = widget.PrimaryButton
 			} else {
 				button.Style = widget.DefaultButton
 			}
 		}
-		desktop.window.Canvas().Refresh(desktop.nav)
+
+		desktop.window.RefreshContainer(desktop.navSection.Container)
+		// empty page container
+		desktop.pageSection.Empty()
+		desktop.pageSection.SetTitle(page.Title)
+
+		// render curent page
+		page.handler.Render(desktop.ctx, desktop.walletMiddleware, desktop.pageSection.Box)
 	}
 }

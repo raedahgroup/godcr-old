@@ -12,4 +12,6 @@ var (
 
 	DecredOrangeColor = color.RGBA{237, 109, 71, 255}
 	DecredGreenColor  = color.RGBA{65, 191, 83, 255}
+
+	DefaultBackgroundColor = color.RGBA{0x42, 0x42, 0x42, 0xff}
 )

@@ -15,11 +15,11 @@ func NewTheme() fyne.Theme {
 }
 
 func (theme) BackgroundColor() color.Color {
-	return GrayColor
+	return DefaultBackgroundColor
 }
 
 func (theme) ButtonColor() color.Color {
-	return DecredLightBlueColor
+	return DecredDarkBlueColor
 }
 
 func (theme) HyperlinkColor() color.Color {
@@ -27,7 +27,7 @@ func (theme) HyperlinkColor() color.Color {
 }
 
 func (theme) TextColor() color.Color {
-	return BlackColor
+	return WhiteColor
 }
 
 func (theme) PlaceHolderColor() color.Color {
@@ -35,7 +35,7 @@ func (theme) PlaceHolderColor() color.Color {
 }
 
 func (theme) PrimaryColor() color.Color {
-	return DecredDarkBlueColor
+	return DecredLightBlueColor
 }
 
 func (theme) FocusColor() color.Color {
@@ -47,11 +47,11 @@ func (theme) ScrollBarColor() color.Color {
 }
 
 func (theme) TextSize() int {
-	return 12
+	return 14
 }
 
 func (theme) TextFont() fyne.Resource {
-	return fyneTheme.DefaultTextBoldFont()
+	return fyneTheme.DefaultTextFont()
 }
 
 func (theme) TextBoldFont() fyne.Resource {
@@ -71,7 +71,7 @@ func (theme) TextMonospaceFont() fyne.Resource {
 }
 
 func (theme) Padding() int {
-	return 10
+	return 5
 }
 
 func (theme) IconInlineSize() int {
@@ -94,7 +94,7 @@ func (navTheme) BackgroundColor() color.Color {
 }
 
 func (navTheme) ButtonColor() color.Color {
-	return DecredLightBlueColor
+	return DecredDarkBlueColor
 }
 
 func (navTheme) HyperlinkColor() color.Color {
@@ -102,7 +102,7 @@ func (navTheme) HyperlinkColor() color.Color {
 }
 
 func (navTheme) TextColor() color.Color {
-	return BlackColor
+	return WhiteColor
 }
 
 func (navTheme) PlaceHolderColor() color.Color {
@@ -110,7 +110,7 @@ func (navTheme) PlaceHolderColor() color.Color {
 }
 
 func (navTheme) PrimaryColor() color.Color {
-	return DecredDarkBlueColor
+	return DecredLightBlueColor
 }
 
 func (navTheme) FocusColor() color.Color {

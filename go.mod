@@ -1,9 +1,10 @@
 module github.com/raedahgroup/godcr
 
 require (
-	fyne.io/fyne v1.0.1
+	fyne.io/fyne v1.0.2-0.20190422170042-0e36c34fc4b8
 	github.com/aarzilli/nucular v0.0.0-20190403084742-0071461892e4
 	github.com/atotto/clipboard v0.1.2
+	github.com/davecgh/go-spew v1.1.1
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/dcrd/dcrutil v1.2.0
 	github.com/decred/dcrd/hdkeychain v1.1.1
