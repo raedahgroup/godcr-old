@@ -15,7 +15,7 @@ const (
 	DefaultRequiredConfirmations = 2
 
 	// default number of transactions to return per call to Wallet.TransactionHistory()
-	TransactionHistoryCountPerPage = 10
+	TransactionHistoryCountPerPage = 25
 
 	ReceivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
 )
