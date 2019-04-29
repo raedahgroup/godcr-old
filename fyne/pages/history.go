@@ -48,39 +48,11 @@ func (page *historyPageLoader) loadTransactions() {
 		return
 	}
 
-	amountCellSize := make(map[int]int)
-	feeCellSize := make(map[int]int)
-	for _, tx := range txns {
-		amountCellSize[len(dcrutil.Amount(tx.Amount).String())] = len(dcrutil.Amount(tx.Amount).String())
-		feeCellSize[len(dcrutil.Amount(tx.Fee).String())] = len(dcrutil.Amount(tx.Fee).String())
-	}
-	var maxNoOfTextInAmount int
-	var maxNoOfTextInFee int
-	for maxNoOfTextInAmount = range amountCellSize {
-		break
-	}
-	for maxNoOfTextInFee = range feeCellSize {
-		break
-	}
-	var amountText string
-	var feeText string
-	var spacing string
-	for i := (maxNoOfTextInAmount - 5) / 2; i != 0; i-- {
-		spacing += "  "
-	}
-	amountText = spacing + "Amount"
-	spacing = ""
-	for i := (maxNoOfTextInFee - 5) / 2; i != 0; i-- {
-		spacing += "  "
-	}
-	feeText = spacing + "Fee"
-	page.transactionTable.AddRowSimple("Account", "Date", "Type", "Direction", amountText, feeText, "Status", "Hash")
+	page.transactionTable.AddRowHeader("Account", "Date", "Type", "Direction", "Amount", "Fee", "Status", "Hash")
 	for _, tx := range txns {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
-		page.transactionTable.AddRowWithButtonSupport(maxNoOfTextInAmount,
-			maxNoOfTextInFee,
-			tx.Hash,
-			true,
+		page.transactionTable.AddRowWithButtonSupport(tx.Hash,
+			7,
 			tx.AccountName(),
 			tx.LongTime,
 			tx.Type,

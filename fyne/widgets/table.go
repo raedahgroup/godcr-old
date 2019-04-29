@@ -24,10 +24,21 @@ func (table *Table) AddRow(rowObjects ...TableCell) {
 	table.Rows = append(table.Rows, &TableRow{rowObjects})
 }
 
+func (table *Table) AddRowHeader(texts ...string) {
+	tableCells := make([]TableCell, len(texts))
+	for i, text := range texts {
+
+		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+
+	}
+	table.AddRow(tableCells...)
+}
 func (table *Table) AddRowSimple(texts ...string) {
 	tableCells := make([]TableCell, len(texts))
 	for i, text := range texts {
-		tableCells[i] = widget.NewLabel(text)
+
+		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+
 	}
 	table.AddRow(tableCells...)
 }
@@ -36,10 +47,12 @@ func (table *Table) Clear() {
 	table.Rows = []*TableRow{}
 }
 
-func (table *Table) AddRowWithButtonSupport(maxAmountLengthSize int, maxFeeLengthSize int, hash string, buttonSupport bool, texts ...string) {
+//AddRowWithButtonSupport creates a row of text and also creates a button handler on specified column
+// note it starts with zero indexed
+func (table *Table) AddRowWithButtonSupport(hash string, buttonColumn int, texts ...string) {
 	tableCells := make([]TableCell, len(texts))
 	for i, text := range texts {
-		if buttonSupport == true && i == len(texts)-1 {
+		if i == buttonColumn {
 			{
 				tableCells[i] = widget.NewButton(text, func() {
 					//do something here
@@ -47,23 +60,8 @@ func (table *Table) AddRowWithButtonSupport(maxAmountLengthSize int, maxFeeLengt
 				break
 			}
 		}
-		var spacing string
-		if i == 4 || i == 5 {
-			sizeOfText := len(text)
-			if i == 4 {
-				for maxAmountLengthSize > sizeOfText {
-					//text += " "
-					spacing += "  "
-					sizeOfText++
-				}
-			} else if i == 5 {
-				for maxFeeLengthSize > sizeOfText {
-					spacing += "  "
-					sizeOfText++
-				}
-			}
-		}
-		tableCells[i] = widget.NewLabel(spacing + text)
+		tableCells[i] = widget.NewLabelWithStyle(text, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+
 	}
 	table.AddRow(tableCells...)
 }
