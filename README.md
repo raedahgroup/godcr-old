@@ -64,6 +64,8 @@ go install ./cmd/godcr-fyne
 * To run the http interface (`godcr-web`), you'd need to also build the frontend assets:
 `cd ./web/static/app && yarn install && yarn build`.
 You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
+* To build the distributable bundle, run `./godcr.sh deploy` from the root directory. 
+Note: You use bit bash to run shell commands on windows
 
 **Note: Building on Windows**
 Exporting `GO111MODULE` directly in CLI does not work and
