@@ -8,17 +8,18 @@
         <div class="content">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-2 col-sm-12 mb-2">
-                        <select data-target="history.transactionType" data-action="change->history#changeTransactionType" class="form-control">
-                            <option value="">All Transaction({{ .transactionTotalCount }})</option>
+                    <div class="col-md-3 col-sm-12 mb-2">
+                        <select data-target="history.transactionType" data-action="change->history#changeTransactionType"
+                                class="form-control" style="width: 190px;">
+                            <option value="">All Transactions ({{ .transactionTotalCount }})</option>
                             {{ range $txType, $count := .transactionCountByType}}
-                            <option value="{{ $txType }}">{{ $txType }}({{ $count }})</option>
+                            <option value="{{ $txType }}">{{ $txType }} ({{ $count }})</option>
                             {{ end }}
                         </select>
                     </div>
                     <div class="col-md-4 float-md-right offset-md-6">
                         <p data-target="history.transactionCountContainer" class="text-right">Showing 1 to
-                            <span data-target="history.transactionCount" data-transactionCount="{{ len .txs}}">{{ len .txs}}</span> of
+                            <span data-target="history.transactionCount">{{ len .txs}}</span> of
                             <span data-target="history.transactionTotalCount">{{ .transactionTotalCount }}</span> rows</p>
                     </div>
                 </div>
@@ -38,24 +39,23 @@
                     </thead>
                 </table>
 
-                <table class="table history-table" style="table-layout: fixed">
+                <table class="table history-table">
                     <thead>
                     <tr>
                         <th style="width: 120px;">Account</th>
                         <th style="width: 142px;">Date (UTC)</th>
                         <th style="width: 68px;">Type</th>
                         <th style="width: 105px;">Direction</th>
-                        <th style="width: 115px;text-align: center;">Amount</th>
-                        <th style="width: 100px;text-align: center;">Fee</th>
+                        <th style="width: 115px; text-align: center;">Amount</th>
+                        <th style="width: 100px; text-align: center;">Fee</th>
                         <th style="width: 85px;">Status</th>
                         <th>Hash</th>
                     </tr>
                     </thead>
                     <tbody data-target="history.historyTable">
-                    {{ $accountsCount := .accountsCount}}
                         {{ range $index, $txn := .txs }}
                         <tr>
-                            <td>{{ accountName $txn }}</td>
+                            <td>{{ $txn.WalletAccountForTx }}</td>
                             <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
                             <td><img style="width: 15px" src="/static/images/{{directionImage $txn}}"> {{ $txn.Direction }}</td>

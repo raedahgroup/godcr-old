@@ -9,6 +9,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	libutils "github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -86,15 +87,12 @@ func templateFuncMap() template.FuncMap {
 		"timestamp": func() int64 {
 			return time.Now().Unix()
 		},
-		"extractDateTime": func(timestamp int64) string {
-			utcTime := time.Unix(timestamp, 0).UTC()
-			return utcTime.Format("2006-01-02 15:04:05")
-		},
-		"truncate": func(input string, maxLength int) string {
-			if len(input) <= maxLength {
-				return input
+		"extractDateTime": libutils.FormatUTCTime,
+		"truncate": func(text string, maxNumberOfCharacters int) string {
+			if len(text) < maxNumberOfCharacters {
+				return text
 			}
-			return fmt.Sprintf("%s...", input[0:maxLength])
+			return fmt.Sprintf("%s...", text[0:maxNumberOfCharacters])
 		},
 		"accountName" : func(txn *walletcore.Transaction) string {
 			var accountNames []string

@@ -302,12 +302,6 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	accounts, err := routes.walletMiddleware.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		routes.renderError(fmt.Sprintf("Error fetching accounts: %s", err.Error()), res)
-		return
-	}
-
 	data := map[string]interface{}{
 		"transactionCountByType": transactionCountByType,
 		"txs":                    txns,
@@ -315,7 +309,6 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		"previousPage":           int(pageToLoad - 1),
 		"totalPages":             int(math.Ceil(float64(allTxCount) / float64(txPerPage))),
 		"transactionTotalCount":  allTxCount,
-		"accountsCount":          len(accounts),
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
@@ -331,7 +324,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	defer renderJSON(data, res)
 
 	filter := txindex.Filter()
-	if transactionType := req.FormValue("trans-type"); transactionType != "" {
+	if transactionType := req.FormValue("tx-type"); transactionType != "" {
 		filter = filter.WithTxTypes(transactionType)
 	}
 

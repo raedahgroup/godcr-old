@@ -80,7 +80,7 @@ export default class extends Controller {
 
   changeTransactionType () {
     this.historyTableTarget.innerHTML = ''
-    this.transactionCountTarget.setAttribute('data-transactionCount', 0)
+    this.transactionCountTarget.setAttribute('data-tx-count', 0)
     hide(this.transactionCountContainerTarget)
     this.nextPage = 1
     this.fetchMoreTxs()
@@ -89,10 +89,10 @@ export default class extends Controller {
   fetchMoreTxs () {
     show(this.loadingIndicatorTarget)
 
-    let transType = this.transactionTypeTarget.value
+    const txType = this.transactionTypeTarget.value
 
     const _this = this
-    axios.get(`/next-history-page?page=${this.nextPage}&trans-type=${transType}`)
+    axios.get(`/next-history-page?page=${this.nextPage}&tx-type=${txType}`)
       .then(function (response) {
         let result = response.data
         if (result.success) {
@@ -101,9 +101,6 @@ export default class extends Controller {
             return
           }
 
-          let transCount = parseInt(_this.transactionCountTarget.getAttribute('data-transactionCount')) + result.txs.length
-          _this.transactionCountTarget.textContent = transCount
-          _this.transactionCountTarget.setAttribute('data-transactionCount', transCount)
           _this.transactionTotalCountTarget.textContent = result.txCount
           show(_this.transactionCountContainerTarget)
 
@@ -116,8 +113,7 @@ export default class extends Controller {
         } else {
           _this.setErrorMessage(result.message)
         }
-      }).catch(function (e) {
-        console.log(e)
+      }).catch(function () {
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
@@ -191,6 +187,8 @@ export default class extends Controller {
       fields[7].innerHTML = `<a href="/transaction-details/${tx.hash}">${truncate(tx.hash, 10)}}</a>`
 
       _this.historyTableTarget.appendChild(txRow)
+      _this.transactionCountTarget.textContent = _this.historyTableTarget.childElementCount
+
     })
   }
 

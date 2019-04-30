@@ -28,11 +28,11 @@ const (
 
 func TransactionTypes() map[wallet.TransactionType]string {
 	return map[wallet.TransactionType]string{
-		wallet.TransactionTypeRegular:        "Regular",
-		wallet.TransactionTypeCoinbase:       "Coinbase",
-		wallet.TransactionTypeTicketPurchase: "Ticket",
-		wallet.TransactionTypeVote:           "Vote",
-		wallet.TransactionTypeRevocation:     "Revocation",
+		wallet.TransactionTypeRegular:        txhelper.FormatTransactionType(wallet.TransactionTypeRegular),
+		wallet.TransactionTypeCoinbase:       txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase),
+		wallet.TransactionTypeTicketPurchase: txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase),
+		wallet.TransactionTypeVote:           txhelper.FormatTransactionType(wallet.TransactionTypeVote),
+		wallet.TransactionTypeRevocation:     txhelper.FormatTransactionType(wallet.TransactionTypeRevocation),
 	}
 }
 
