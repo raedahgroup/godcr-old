@@ -19,14 +19,11 @@ function deploy() {
   packr build
 }
 ACTION=$1
-if [[ "$ACTION" = "build" ]]; then
-  buildBe
-elif [[ "$ACTION" = "build-web" ]]; then
-  buildFe
-  buildBe
-elif [[ "$ACTION" = "deploy" ]]; then
+if [[ "$ACTION" = "deploy" ]]; then
   deploy
+elif [[ "$ACTION" = "web" ]]; then
+  buildBe
+  buildFe
 else
-  echo "./godcr $1 $2 $3 $4"
-  ./godcr $1 $2 $3 $4
+  deploy
 fi
