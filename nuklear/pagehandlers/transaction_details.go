@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"fmt"
-
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/nuklear/styles"
@@ -69,53 +67,48 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 			return
 		}
 
-		txDetailsTable1 := widgets.NewTable()
-		txDetailsTable1.AddRow(
+		txDetailsTable := widgets.NewTable()
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Confirmations", "LC"),
 			widgets.NewLabelTableCell(strconv.Itoa(int(handler.selectedTxDetails.Confirmations)), "LC"),
 		)
-		txDetailsTable1.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Hash", "LC"),
 			widgets.NewLabelTableCell(handler.selectedTxDetails.Hash, "LC"),
 		)
-		txDetailsTable1.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Block Height", "LC"),
 			widgets.NewLabelTableCell(strconv.Itoa(int(handler.selectedTxDetails.BlockHeight)), "LC"),
 		)
-		txDetailsTable1.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Direction", "LC"),
 			widgets.NewLabelTableCell(handler.selectedTxDetails.Direction.String(), "LC"),
 		)
-		txDetailsTable1.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Type", "LC"),
 			widgets.NewLabelTableCell(handler.selectedTxDetails.Type, "LC"),
 		)
-		txDetailsTable1.Render(window)
-
-		window.AddHorizontalSpace(10)
-
-		txDetailsTable2 := widgets.NewTable()
-		txDetailsTable2.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Amount", "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.Amount).String(), "LC"),
 		)
-		txDetailsTable2.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Size", "LC"),
 			widgets.NewLabelTableCell(strconv.Itoa(handler.selectedTxDetails.Size)+" Bytes", "LC"),
 		)
-		txDetailsTable2.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Fee", "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.Fee).String(), "LC"),
 		)
-		txDetailsTable2.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Fee Rate", "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.FeeRate).String(), "LC"),
 		)
-		txDetailsTable2.AddRow(
+		txDetailsTable.AddRow(
 			widgets.NewLabelTableCell("Time", "LC"),
 			widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", handler.selectedTxDetails.LongTime), "LC"),
 		)
-		txDetailsTable2.Render(window)
+		txDetailsTable.Render(window)
 
 		window.AddHorizontalSpace(10)
 		window.AddLabelWithFont("Inputs", "LC", styles.BoldPageContentFont)
