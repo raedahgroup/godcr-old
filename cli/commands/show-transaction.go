@@ -18,7 +18,9 @@ type ShowTransactionCommand struct {
 	Args     ShowTransactionCommandArgs `positional-args:"yes"`
 }
 type ShowTransactionCommandArgs struct {
-	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
+	TxHash            string `positional-arg-name:"transaction hash" required:"yes"`
+	TxHistoryOffset   int
+	DisplayedTxHashes []string
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
@@ -76,7 +78,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
 
 		validateUserInput := func(userInput string) error {
-			if strings.EqualFold(userInput, "q"){
+			if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
 				return nil
 			}
 			return nil
@@ -91,7 +93,16 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			return nil
 		}
 
-		err = HistoryCommand{}.Run( ctx, wallet)
+		var DisplayedTxHashes []string
+		DisplayedTxHashes = showTxCommand.Args.DisplayedTxHashes
+		DisplayedTxHashes = DisplayedTxHashes[:len(DisplayedTxHashes)-(len(DisplayedTxHashes)-showTxCommand.Args.TxHistoryOffset)]
+
+		showTxHistory := HistoryCommand{
+			TxHistoryOffset:   showTxCommand.Args.TxHistoryOffset,
+			DisplayedTxHashes: DisplayedTxHashes,
+		}
+
+		err = showTxHistory.Run(ctx, wallet)
 		if err == nil {
 			fmt.Println()
 		}
