@@ -13,6 +13,8 @@ function buildBe {
 }
 function deploy() {
   buildFe
+  echo 'github.com/gobuffalo/packr'
+  go get github.com/gobuffalo/packr
   echo 'go mod download'
   go mod download
   echo 'packr build'
