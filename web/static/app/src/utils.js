@@ -1,4 +1,3 @@
-import toastr from 'toastr'
 import ws from './services/messagesocket_service'
 
 export function listenForBalanceUpdate (_this) {
@@ -68,11 +67,15 @@ export const clearMessages = (controller) => {
 }
 
 export const showErrorNotification = (message) => {
-  toastr.error(message)
+  import(/* webpackChunkName: "toastr" */ 'toastr').then(({ default: toastr }) => {
+    toastr.error(message)
+  })
 }
 
 export const showSuccessNotification = (message) => {
-  toastr.success(message)
+  import(/* webpackChunkName: "toastr" */ 'toastr').then(({ default: toastr }) => {
+    toastr.success(message)
+  })
 }
 
 export const hide = (el) => {
