@@ -276,6 +276,9 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 				"Error getting total transaction count: %s", txCountErr.Error()), res)
 			return
 		}
+		if txCount == 0 {
+			continue
+		}
 		transactionCountByType[txType] = txCount
 	}
 
