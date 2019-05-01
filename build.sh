@@ -17,6 +17,8 @@ function buildBackEnd {
 
 function deploy() {
   buildFrontEnd
+  echo 'go get -u github.com/gobuffalo/packr/v2/packr2'
+  go get -u github.com/gobuffalo/packr/v2/packr2
   echo 'go mod download'
   go mod download
   echo 'packr build'
