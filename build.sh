@@ -2,6 +2,8 @@
 function buildFe {
   echo "cd web/static/app"
   cd web/static/app
+  echo 'yarn install'
+  yarn install
   echo 'yarn build'
   yarn build
   echo 'cd ../../../'

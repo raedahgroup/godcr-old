@@ -7,6 +7,9 @@
 
 ## Requirements
 You can run **godcr** without installing any other software.
+But if you want to build the http frontend from the source code, you will need
+* Yarn which you can get from [here](https://yarnpkg.com/lang/en/docs/install/)
+* You will also need `packr`. Run `go get github.com/gobuffalo/packr` to get it
 
 However, to use dcrwallet instead of dcrlibwallet for wallet operations, you'll need a running dcrwallet daemon.
 Follow the steps below to download, setup and run dcrwallet:
@@ -64,6 +67,7 @@ go install ./cmd/godcr-fyne
 * To run the http interface (`godcr-web`), you'd need to also build the frontend assets:
 `cd ./web/static/app && yarn install && yarn build`.
 You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
+You can also build the http frontend by running `./build.sh web`
 * To build the distributable bundle, run `./godcr.sh deploy` from the root directory. 
 Note: You use bit bash to run shell commands on windows
 
