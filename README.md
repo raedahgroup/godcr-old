@@ -9,7 +9,7 @@
 You can run **godcr** without installing any other software.
 But if you want to build the http frontend from the source code, you will need
 * Yarn which you can get from [here](https://yarnpkg.com/lang/en/docs/install/).
-* You will also need `packr`. Run `go get -u github.com/gobuffalo/packr/packr` to get it.
+* You will also need `packr`. Run `go get -u github.com/gobuffalo/packr/v2/packr2` to get it.
 
 To use dcrwallet instead of dcrlibwallet for wallet operations, you'll need a running dcrwallet daemon.
 
