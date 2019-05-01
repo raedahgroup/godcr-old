@@ -13,7 +13,7 @@ export default class extends Controller {
 
       const postData = (accountElement.checked) ? `hide-account=${accountNumber}`: `reveal-account=${accountNumber}`
       axios.put('/settings', postData).then((response) => {
-        let result = response.data 
+        const result = response.data 
         if (result.success) {
           showSuccessNotification('Changes saved successfully')
         } else {
@@ -27,20 +27,20 @@ export default class extends Controller {
     }
 
     updateDefaultAccount (e) {
-       let defaultAccountEl = e.currentTarget
-       let defaultAccount = defaultAccountEl.getAttribute("data-account")
+       const defaultAccountEl = e.currentTarget
+       const defaultAccount = defaultAccountEl.getAttribute("data-account")
 
        // uncheck all other accounts that were previously marked default
        this.defaultAccountTargets.forEach((el, i) => {
            if (el.checked && el.getAttribute("data-account") != defaultAccount) {
-               el.checked = !el.checked
+               el.checked = false
            }
        })
 
        // post data 
        const postData = `default-account=${defaultAccount}`
        axios.put('/settings', postData).then((response) => {
-            let result = response.data 
+            const result = response.data 
             if (result.success) {
                 showSuccessNotification('Changes saved successfully')
             } else {

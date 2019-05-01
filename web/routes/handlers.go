@@ -3,10 +3,9 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
-
-	"math"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/go-chi/chi"
