@@ -29,6 +29,7 @@ func NewTransactionDetailsHandler(hash string, ctx context.Context, wallet walle
 }
 
 func (t *TransactionDetails) Render(from string, container *widgets.Box) {
+	t.container = container
 	container.Empty()
 	defer container.Update()
 
@@ -37,6 +38,7 @@ func (t *TransactionDetails) Render(from string, container *widgets.Box) {
 
 	// create subview
 	view := widgets.NewVBox()
+	t.addBreadcrumb(from, view)
 
 	// fetch transaction details
 	txDetails, err := t.wallet.GetTransaction(t.hash)
@@ -86,4 +88,25 @@ func (t *TransactionDetails) Render(from string, container *widgets.Box) {
 	// add subview to main view
 	container.Add(view)
 
+}
+
+func (t *TransactionDetails) addBreadcrumb(from string, view *widgets.Box) {
+	// add breadcrumb
+	breadcrumb := []*widgets.Breadcrumb{
+		{
+			Text: from,
+			Action: func() {
+				previousPage := &OverviewHandler{}
+				t.container.Empty()
+				t.container.Update()
+				previousPage.Render(t.ctx, t.wallet, t.container)
+			},
+		},
+		{
+			Text:   "Transaction Details",
+			Action: nil,
+		},
+	}
+
+	view.AddBreadcrumb(breadcrumb)
 }

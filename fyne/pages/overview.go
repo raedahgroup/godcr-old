@@ -102,7 +102,7 @@ func (handler *OverviewHandler) renderRecentActivity() {
 				widget.NewLabel(dcrutil.Amount(txn.Fee).String()),
 				widget.NewLabel(txn.Type),
 				widgets.NewLink(txn.Hash, func() {
-					NewTransactionDetailsHandler(txn.Hash, handler.ctx, handler.wallet).Render("overview", handler.container)
+					NewTransactionDetailsHandler(txn.Hash, handler.ctx, handler.wallet).Render("Overview", handler.container)
 				}),
 			)
 		}

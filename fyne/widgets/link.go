@@ -20,14 +20,14 @@ type linkRenderer struct {
 	link    *Link
 }
 
-// MinSize calculates the minimum size of a button.
+// MinSize calculates the minimum size of a link.
 // This is based on the contained text, any icon that is set and a standard
 // amount of padding added.
 func (l *linkRenderer) MinSize() fyne.Size {
-	return l.label.MinSize().Add(fyne.NewSize(defaultTheme.Padding()*14, defaultTheme.Padding()*2))
+	return l.label.MinSize().Add(fyne.NewSize(defaultTheme.Padding()*2, 0))
 }
 
-// Layout the components of the button widget
+// Layout the components of the link widget
 func (l *linkRenderer) Layout(size fyne.Size) {
 	inner := size.Subtract(fyne.NewSize(defaultTheme.Padding()*4, defaultTheme.Padding()*2))
 	l.label.Resize(inner)
@@ -35,14 +35,22 @@ func (l *linkRenderer) Layout(size fyne.Size) {
 
 }
 
-// ApplyTheme is called when the Button may need to update it's look
+// ApplyTheme is called when the Link may need to update it's look
 func (l *linkRenderer) ApplyTheme() {
-	l.label.Color = defaultTheme.TextColor()
+	if l.link.OnTapped == nil {
+		l.label.Color = defaultTheme.TextColor()
+	} else {
+		l.label.Color = defaultTheme.TextColor()
+	}
 
 	l.Refresh()
 }
 
 func (l *linkRenderer) BackgroundColor() color.Color {
+	return defaultTheme.BackgroundColor()
+}
+
+func (l *linkRenderer) TextColor() color.Color {
 	return defaultTheme.BackgroundColor()
 }
 
@@ -59,7 +67,7 @@ func (l *linkRenderer) Objects() []fyne.CanvasObject {
 func (l *linkRenderer) Destroy() {
 }
 
-// Button widget has a text label and triggers an event func when clicked
+// Link widget has a text label and triggers an event func when clicked
 type Link struct {
 	baseWidget
 	Text  string
@@ -68,14 +76,14 @@ type Link struct {
 	OnTapped func() `json:"-"`
 }
 
-// ButtonStyle determines the behaviour and rendering of a button.
+// LinkStyle determines the behaviour and rendering of a link.
 type TextStyle int
 
 const (
-	// DefaultButton is the standard button style
-	DefaultButton TextStyle = iota
-	// PrimaryButton that should be more prominent to the user
-	PrimaryButton
+	// DefaultLink is the standard link style
+	DefaultLink TextStyle = iota
+	// PrimaryLink that should be more prominent to the user
+	PrimaryLink
 )
 
 // Resize sets a new size for a widget.
@@ -119,8 +127,15 @@ func (l *Link) TappedSecondary(*fyne.PointEvent) {
 // CreateRenderer is a private method to Fyne which links this widget to it's renderer
 func (l *Link) CreateRenderer() fyne.WidgetRenderer {
 	var icon *canvas.Image
+	var color color.Color
 
-	text := canvas.NewText(l.Text, defaultTheme.HyperlinkColor())
+	if l.OnTapped == nil {
+		color = defaultTheme.TextColor()
+	} else {
+		color = defaultTheme.HyperlinkColor()
+	}
+
+	text := canvas.NewText(l.Text, color)
 	text.Alignment = fyne.TextAlignLeading
 
 	objects := []fyne.CanvasObject{
@@ -133,17 +148,20 @@ func (l *Link) CreateRenderer() fyne.WidgetRenderer {
 	return &linkRenderer{icon, text, objects, l}
 }
 
-// SetText allows the button label to be changed
+// SetText allows the link label to be changed
 func (l *Link) SetText(text string) {
 	l.Text = text
 
 	Refresh(l)
 }
 
-// NewButton creates a new button widget with the set label and tap handler
+// NewLink creates a new link widget with the set label and tap handler
 func NewLink(label string, tapped func()) *Link {
-	link := &Link{baseWidget{}, label, DefaultButton, tapped}
+	link := &Link{baseWidget{}, label, DefaultLink, tapped}
 
-	Renderer(link).Layout(link.MinSize())
+	renderer := Renderer(link)
+	renderer.Layout(link.MinSize())
+	renderer.ApplyTheme()
+
 	return link
 }

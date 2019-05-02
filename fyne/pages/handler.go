@@ -1,27 +1,26 @@
-package fyne
+package pages
 
 import (
 	"context"
 
 	"github.com/raedahgroup/godcr/app/walletcore"
-	"github.com/raedahgroup/godcr/fyne/pages"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 type Page struct {
 	Title   string
-	handler pageHandler
+	Handler pageHandler
 }
 
 type pageHandler interface {
 	Render(ctx context.Context, wallet walletcore.Wallet, container *widgets.Box)
 }
 
-func getPages() []*Page {
+func GetPages() []*Page {
 	return []*Page{
 		{
 			"Overview",
-			&pages.OverviewHandler{},
+			&OverviewHandler{},
 		},
 		{
 			"History",

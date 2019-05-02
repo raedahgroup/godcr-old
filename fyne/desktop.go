@@ -6,6 +6,7 @@ import (
 	fyneApp "fyne.io/fyne/app"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/fyne/pages"
 	"github.com/raedahgroup/godcr/fyne/styles"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -38,7 +39,7 @@ type Desktop struct {
 
 	ctx              context.Context
 	walletMiddleware app.WalletMiddleware
-	currentPage      *Page
+	currentPage      *pages.Page
 	syncer           *Syncer
 }
 
@@ -51,7 +52,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 		content: &content{
 			window: widgets.NewWindow(app.DisplayName, fyneApp),
 		},
-		currentPage: getPages()[0],
+		currentPage: pages.GetPages()[0],
 		syncer:      NewSyncer(),
 	}
 
@@ -78,7 +79,7 @@ func (desktop *Desktop) render() {
 
 func (desktop *Desktop) getNavSection() *widgets.Container {
 	navBox := widgets.NewVBox()
-	pages := getPages()
+	pages := pages.GetPages()
 
 	desktop.navSection = &navSection{
 		buttons:   make([]*widget.Button, len(pages)+1),
@@ -116,11 +117,11 @@ func (desktop *Desktop) getContentSection() *widgets.Container {
 	return container
 }
 
-func (desktop *Desktop) changePage(page *Page) func() {
+func (desktop *Desktop) changePage(page *pages.Page) func() {
 	return func() {
 		// if not done syncing, return
 		if !desktop.syncer.isDoneSyncing() {
-			//return
+			return
 		}
 
 		// highlight current menu item
@@ -138,6 +139,6 @@ func (desktop *Desktop) changePage(page *Page) func() {
 		desktop.pageSection.SetTitle(page.Title)
 
 		// render curent page
-		page.handler.Render(desktop.ctx, desktop.walletMiddleware, desktop.pageSection.Box)
+		page.Handler.Render(desktop.ctx, desktop.walletMiddleware, desktop.pageSection.Box)
 	}
 }
