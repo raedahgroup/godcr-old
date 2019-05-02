@@ -47,7 +47,7 @@ func (theme) ScrollBarColor() color.Color {
 }
 
 func (theme) TextSize() int {
-	return 14
+	return 12
 }
 
 func (theme) TextFont() fyne.Resource {
@@ -79,80 +79,5 @@ func (theme) IconInlineSize() int {
 }
 
 func (theme) ScrollBarSize() int {
-	return 10
-}
-
-type navTheme struct {
-}
-
-func NewNavTheme() fyne.Theme {
-	return &navTheme{}
-}
-
-func (navTheme) BackgroundColor() color.Color {
-	return DecredDarkBlueColor
-}
-
-func (navTheme) ButtonColor() color.Color {
-	return DecredDarkBlueColor
-}
-
-func (navTheme) HyperlinkColor() color.Color {
-	return DecredLightBlueColor
-}
-
-func (navTheme) TextColor() color.Color {
-	return WhiteColor
-}
-
-func (navTheme) PlaceHolderColor() color.Color {
-	return GrayColor
-}
-
-func (navTheme) PrimaryColor() color.Color {
-	return DecredLightBlueColor
-}
-
-func (navTheme) FocusColor() color.Color {
-	return DecredOrangeColor
-}
-
-func (navTheme) ScrollBarColor() color.Color {
-	return DecredLightBlueColor
-}
-
-func (navTheme) TextSize() int {
-	return 12
-}
-
-func (navTheme) TextFont() fyne.Resource {
-	return fyneTheme.DefaultTextBoldFont()
-}
-
-func (navTheme) TextBoldFont() fyne.Resource {
-	return fyneTheme.DefaultTextBoldFont()
-}
-
-func (navTheme) TextItalicFont() fyne.Resource {
-	return fyneTheme.DefaultTextBoldItalicFont()
-}
-
-func (navTheme) TextBoldItalicFont() fyne.Resource {
-	return fyneTheme.DefaultTextBoldItalicFont()
-}
-
-func (navTheme) TextMonospaceFont() fyne.Resource {
-	return fyneTheme.DefaultTextMonospaceFont()
-}
-
-func (navTheme) Padding() int {
-	return 10
-}
-
-func (navTheme) IconInlineSize() int {
-	return 20
-}
-
-func (navTheme) ScrollBarSize() int {
 	return 10
 }

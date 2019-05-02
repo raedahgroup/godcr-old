@@ -56,7 +56,6 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 	}
 
 	desktop.window.Settings().SetTheme(styles.NewTheme())
-
 	desktop.render()
 
 	return nil
@@ -65,14 +64,13 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error
 func (desktop *Desktop) render() {
 	desktop.window.Settings().SetTheme(styles.NewTheme())
 
-	changePageFunc := desktop.changePage(desktop.currentPage)
-	// start syncing in background
-	go desktop.syncer.startSyncing(desktop.walletMiddleware, changePageFunc)
-
 	mainContainer := widgets.NewHBoxContainer()
 	mainContainer.AddChildContainer(desktop.getNavSection())
 	mainContainer.AddChildContainer(desktop.getContentSection())
 
+	changePageFunc := desktop.changePage(desktop.currentPage)
+	// start syncing
+	desktop.syncer.startSyncing(desktop.walletMiddleware, changePageFunc)
 	// render sync view
 	desktop.syncer.Render(desktop.pageSection.Box)
 	desktop.window.Render(mainContainer)
@@ -122,7 +120,7 @@ func (desktop *Desktop) changePage(page *Page) func() {
 	return func() {
 		// if not done syncing, return
 		if !desktop.syncer.isDoneSyncing() {
-			return
+			//return
 		}
 
 		// highlight current menu item

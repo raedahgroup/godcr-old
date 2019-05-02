@@ -94,14 +94,16 @@ func (handler *OverviewHandler) renderRecentActivity() {
 		table := widgets.NewTable()
 		table.AddRowSimple("#", "Date", "Direction", "Amount", "Fee", "Type", "Hash")
 		for index, txn := range handler.recentActivity.transactions {
-			table.AddRowSimple(
-				fmt.Sprintf("%d", index+1),
-				txn.ShortTime,
-				txn.Direction.String(),
-				dcrutil.Amount(txn.Amount).String(),
-				dcrutil.Amount(txn.Fee).String(),
-				txn.Type,
-				txn.Hash,
+			table.AddRow(
+				widget.NewLabel(fmt.Sprintf("%d", index+1)),
+				widget.NewLabel(txn.ShortTime),
+				widget.NewLabel(txn.Direction.String()),
+				widget.NewLabel(dcrutil.Amount(txn.Amount).String()),
+				widget.NewLabel(dcrutil.Amount(txn.Fee).String()),
+				widget.NewLabel(txn.Type),
+				widgets.NewLink(txn.Hash, func() {
+					NewTransactionDetailsHandler(txn.Hash, handler.ctx, handler.wallet).Render("overview", handler.container)
+				}),
 			)
 		}
 		handler.recentActivity.view.Add(table.CondensedTable())
