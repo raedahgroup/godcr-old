@@ -16,7 +16,7 @@ import (
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct {
 	commanderStub
-	TxHistoryOffset   int
+	TxHistoryOffset   int32
 	DisplayedTxHashes []string
 }
 
@@ -45,7 +45,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 	// after displaying transactions for each page,
 	// ask user if to show next page, previous page, tx details or exit the loop
 	for {
-		transactions, err := wallet.TransactionHistory(int32(h.TxHistoryOffset), txPerPage, nil)
+		transactions, err := wallet.TransactionHistory(h.TxHistoryOffset, txPerPage, nil)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		validateUserInput := func(userInput string) error {
 			if strings.EqualFold(userInput, "q") ||
 				(strings.EqualFold(userInput, "n") && len(h.DisplayedTxHashes) < txCount) ||
-				(strings.EqualFold(userInput, "p") && (h.TxHistoryOffset-int(txPerPage)) >= 0) {
+				(strings.EqualFold(userInput, "p") && (h.TxHistoryOffset-txPerPage) >= 0) {
 				return nil
 			}
 
@@ -125,12 +125,12 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		} else if strings.EqualFold(userChoice, "n") {
 			previous = false
 			fmt.Println() // print empty line before listing txs for next page
-			h.TxHistoryOffset += len(transactions)
+			h.TxHistoryOffset += int32(len(transactions))
 			continue
 		} else if strings.EqualFold(userChoice, "p") {
 			previous = true
 			fmt.Println() // print empty line before listing txs for next page
-			h.TxHistoryOffset -= int(txPerPage)
+			h.TxHistoryOffset -= txPerPage
 			continue
 		}
 
