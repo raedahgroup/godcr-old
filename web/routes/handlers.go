@@ -270,8 +270,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	transactionCountByFilter := make(map[string]int, 0)
 
 	for _, filter := range filters {
-		txCount, txCountErr := routes.walletMiddleware.TransactionCount(walletcore.BuildTransactionFilters(filter)[0])
-		// TODO: TransactionCount should be able to accept multiple filter
+		txCount, txCountErr := routes.walletMiddleware.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		if txCountErr != nil {
 			routes.renderError(fmt.Sprintf("Cannot load history page. "+
 				"Error getting total transaction count: %s", txCountErr.Error()), res)
@@ -329,13 +328,10 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 
 	filter := txindex.Filter()
 	if selectedFilter := req.FormValue("filter"); selectedFilter != "" {
-		filters := walletcore.BuildTransactionFilters(selectedFilter)
-		if len(filters) >= 1 {
-			filter = filters[0]
-		}
+		filter = walletcore.BuildTransactionFilter(selectedFilter)
 	}
 
-	allTxCount, allTxCountErr := routes.walletMiddleware.TransactionCount(filter) //TODO: TransactionCount should be able to accept multiple filters
+	allTxCount, allTxCountErr := routes.walletMiddleware.TransactionCount(filter)
 	if allTxCountErr != nil {
 		data["success"] = false
 		data["message"] = fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s",
@@ -356,7 +352,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	offset := (int32(pageToLoad) - 1) * txPerPage
 
-	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, filter) //TODO: TransactionHistory should be able to accept multiple filter
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, filter)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
