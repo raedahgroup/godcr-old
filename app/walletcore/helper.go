@@ -8,6 +8,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 )
 
@@ -24,14 +25,50 @@ const (
 	LegacyTestnetHDPath = "m / 44' / 11' / "
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
+	TransactionFilterSend = "Sent"
+	TransactionFilterReceived = "Received"
+	TransactionFilterYourself = "Yourself"
+	TransactionFilterStaking = "Staking"
+	TransactionFilterCoinbase = "Coinbase"
 )
 
-var TransactionTypes = []wallet.TransactionType{
-	wallet.TransactionTypeRegular,
-	wallet.TransactionTypeCoinbase,
-	wallet.TransactionTypeTicketPurchase,
-	wallet.TransactionTypeVote,
-	wallet.TransactionTypeRevocation,
+var TransactionFilters = []string {
+	TransactionFilterSend,
+	TransactionFilterReceived,
+	TransactionFilterYourself,
+	TransactionFilterStaking,
+	TransactionFilterCoinbase,
+}
+
+func BuildTransactionFilters(filters ...string) []*txindex.ReadFilter {
+	var readFilters []*txindex.ReadFilter
+	for _, filter := range filters {
+		switch filter {
+		case TransactionFilterSend:
+			readFilter := txindex.Filter().ForDirections(txhelper.TransactionDirectionSent)
+			readFilters = append(readFilters, readFilter)
+			break
+		case TransactionFilterReceived:
+			readFilter := txindex.Filter().ForDirections(txhelper.TransactionDirectionReceived)
+			readFilters = append(readFilters, readFilter)
+			break
+		case TransactionFilterYourself:
+			readFilter := txindex.Filter().ForDirections(txhelper.TransactionDirectionTransferred)
+			readFilters = append(readFilters, readFilter)
+			break
+		case TransactionFilterCoinbase:
+			readFilter := txindex.Filter().WithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))
+			readFilters = append(readFilters, readFilter)
+			break
+		case TransactionFilterStaking:
+			ticketFilter := txindex.Filter().WithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase))
+			voteFilter := txindex.Filter().WithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeVote))
+			revocationFilter := txindex.Filter().WithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeRevocation))
+			readFilters = append(readFilters, ticketFilter, voteFilter, revocationFilter)
+			break
+		}
+	}
+	return readFilters
 }
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR

@@ -10,14 +10,14 @@
                 <div class="row">
                     <div class="col-md-3 col-sm-12 mb-2">
                         <select data-target="history.selectedTxTypeFilter" data-action="change->history#transactionTypeFilterChanged"
-                                class="form-control" style="width: 190px;">
-                            <option value="">All Transactions ({{ .transactionTotalCount }})</option>
+                                class="form-control" style="width: 150px;">
+                            <option value="">All ({{ .transactionTotalCount }})</option>
                             {{ range $txType, $count := .transactionCountByType}}
                             <option value="{{ $txType }}">{{ $txType }} ({{ $count }})</option>
                             {{ end }}
                         </select>
                     </div>
-                    <div class="col-md-4 float-md-right offset-md-6">
+                    <div class="col-md-4 float-md-right offset-md-5">
                         <p data-target="history.transactionCountContainer" class="text-right">Showing 1 to
                             <span data-target="history.transactionCount">{{ len .txs}}</span> of
                             <span data-target="history.transactionTotalCount">{{ .transactionTotalCount }}</span> rows</p>
