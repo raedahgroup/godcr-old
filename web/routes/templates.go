@@ -3,14 +3,13 @@ package routes
 import (
 	"fmt"
 	"html/template"
-	"strings"
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	libutils "github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app/utils"
+	"github.com/raedahgroup/dcrlibwallet/utils"
+	godcrutils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -53,12 +52,12 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			return utils.SplitAmountIntoParts(totalBalance)
+			return godcrutils.SplitAmountIntoParts(totalBalance)
 		},
 		"splitAmountIntoParts": func(amount int64) []string {
 			dcrAmount := dcrutil.Amount(amount).ToCoin()
 
-			return utils.SplitAmountIntoParts(dcrAmount)
+			return godcrutils.SplitAmountIntoParts(dcrAmount)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
@@ -87,48 +86,24 @@ func templateFuncMap() template.FuncMap {
 		"timestamp": func() int64 {
 			return time.Now().Unix()
 		},
-		"extractDateTime": libutils.FormatUTCTime,
+		"extractDateTime": utils.FormatUTCTime,
 		"truncate": func(text string, maxNumberOfCharacters int) string {
 			if len(text) < maxNumberOfCharacters {
 				return text
 			}
 			return fmt.Sprintf("%s...", text[0:maxNumberOfCharacters])
 		},
-		"accountName" : func(txn *walletcore.Transaction) string {
-			var accountNames []string
-			isInArray := func(accountName string) bool {
-				for _, name := range accountNames {
-					if name == accountName {
-						return true
-					}
-				}
-				return false
-			}
-			if txn.Direction == txhelper.TransactionDirectionReceived {
-				for _, output := range txn.Outputs {
-					if output.AccountNumber == -1 || isInArray(output.AccountName) {
-						continue
-					}
-					accountNames = append(accountNames, output.AccountName)
-				}
-			} else {
-				for _, input := range txn.Inputs {
-					if input.AccountNumber == -1 || isInArray(input.AccountName) {
-						continue
-					}
-					accountNames = append(accountNames, input.AccountName)
-				}
-			}
-			return strings.Join(accountNames, ", ")
+		"accountName": func(txn *walletcore.Transaction) string {
+			return txn.WalletAccountForTx()
 		},
-		"directionImage": func(txn *walletcore.Transaction) (imageFile string) {
+		"directionImage": func(txn *walletcore.Transaction) string {
 			switch txn.Direction {
 			case txhelper.TransactionDirectionSent:
 				return "ic_send.svg"
 			case txhelper.TransactionDirectionReceived:
 				return "ic_receive.svg"
 			default:
-				if txn.Type == walletcore.TransactionTypes()[wallet.TransactionTypeTicketPurchase] {
+				if txn.Type == txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase) {
 					return "live_ticket.svg"
 				}
 				return "ic_tx_transferred.svg"

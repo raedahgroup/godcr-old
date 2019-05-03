@@ -3,7 +3,7 @@ package walletcore
 import (
 	"fmt"
 	"strings"
-	
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
@@ -86,27 +86,27 @@ type Transaction struct {
 
 func (tx *Transaction) WalletAccountForTx() string {
 	var accountNames []string
-	isInArray := func(accountName string) bool {
+	addWalletAccount := func(accountName string) {
 		for _, name := range accountNames {
 			if name == accountName {
-				return true
+				return
 			}
 		}
-		return false
+		accountNames = append(accountNames, accountName)
 	}
 	if tx.Direction == txhelper.TransactionDirectionReceived {
 		for _, output := range tx.Outputs {
-			if output.AccountNumber == -1 || isInArray(output.AccountName) {
-				continue
+			if output.AccountNumber != -1 {
+				// output belongs to this wallet and not an external wallet address
+				addWalletAccount(output.AccountName)
 			}
-			accountNames = append(accountNames, output.AccountName)
 		}
 	} else {
 		for _, input := range tx.Inputs {
-			if input.AccountNumber == -1 || isInArray(input.AccountName) {
-				continue
+			if input.AccountNumber != -1 {
+				// output belongs to this wallet and not an external wallet address
+				addWalletAccount(input.AccountName)
 			}
-			accountNames = append(accountNames, input.AccountName)
 		}
 	}
 	return strings.Join(accountNames, ", ")

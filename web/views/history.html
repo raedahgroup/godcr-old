@@ -9,7 +9,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-3 col-sm-12 mb-2">
-                        <select data-target="history.transactionType" data-action="change->history#changeTransactionType"
+                        <select data-target="history.selectedTxTypeFilter" data-action="change->history#transactionTypeFilterChanged"
                                 class="form-control" style="width: 190px;">
                             <option value="">All Transactions ({{ .transactionTotalCount }})</option>
                             {{ range $txType, $count := .transactionCountByType}}

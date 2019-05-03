@@ -266,11 +266,11 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	txTypes := walletcore.TransactionTypes()
+	txTypes := walletcore.TransactionTypes
 	transactionCountByType := make(map[string]int, len(txTypes))
 
 	for _, txType := range txTypes {
-		txCount, txCountErr := routes.walletMiddleware.TransactionCount(txindex.Filter().WithTxTypes(txType))
+		txCount, txCountErr := routes.walletMiddleware.TransactionCount(txindex.Filter().WithTxTypes(txhelper.FormatTransactionType(txType)))
 		if txCountErr != nil {
 			routes.renderError(fmt.Sprintf("Cannot load history page. "+
 				"Error getting total transaction count: %s", txCountErr.Error()), res)
@@ -279,7 +279,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		if txCount == 0 {
 			continue
 		}
-		transactionCountByType[txType] = txCount
+		transactionCountByType[txhelper.FormatTransactionType(txType)] = txCount
 	}
 
 	allTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
@@ -293,7 +293,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	page := req.FormValue("page")
 
 	pageToLoad, err := strconv.ParseInt(page, 10, 32)
-	if err != nil || pageToLoad < 0 {
+	if err != nil || pageToLoad <= 0 {
 		pageToLoad = 1
 	}
 
@@ -331,11 +331,11 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 		filter = filter.WithTxTypes(transactionType)
 	}
 
-	txCount, txCountErr := routes.walletMiddleware.TransactionCount(filter)
-	if txCountErr != nil {
+	allTxCount, allTxCountErr := routes.walletMiddleware.TransactionCount(filter)
+	if allTxCountErr != nil {
 		data["success"] = false
 		data["message"] = fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s",
-			txCountErr.Error())
+			allTxCountErr.Error())
 		return
 	}
 
@@ -343,7 +343,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	page := req.FormValue("page")
 
 	pageToLoad, err := strconv.ParseInt(page, 10, 32)
-	if err != nil || pageToLoad < 0 {
+	if err != nil || pageToLoad <= 0 {
 		data["success"] = false
 		data["message"] = "Invalid page parameter"
 		return
@@ -361,11 +361,11 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 		data["txs"] = txns
 		data["currentPage"] = int(pageToLoad)
 		data["previousPage"] = int(pageToLoad - 1)
-		data["totalPages"] = int(math.Ceil(float64(txCount) / float64(txPerPage)))
-		data["txCount"] = txCount
+		data["totalPages"] = int(math.Ceil(float64(allTxCount) / float64(txPerPage)))
+		data["transactionTotalCount"] = allTxCount
 
 		totalTxLoaded := int(offset) + len(txns)
-		if totalTxLoaded < txCount {
+		if totalTxLoaded < allTxCount {
 			data["nextPage"] = int(pageToLoad + 1)
 		}
 	}

@@ -26,14 +26,12 @@ const (
 	LegacyMainnetHDPath = "m / 44' / 20' / "
 )
 
-func TransactionTypes() map[wallet.TransactionType]string {
-	return map[wallet.TransactionType]string{
-		wallet.TransactionTypeRegular:        txhelper.FormatTransactionType(wallet.TransactionTypeRegular),
-		wallet.TransactionTypeCoinbase:       txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase),
-		wallet.TransactionTypeTicketPurchase: txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase),
-		wallet.TransactionTypeVote:           txhelper.FormatTransactionType(wallet.TransactionTypeVote),
-		wallet.TransactionTypeRevocation:     txhelper.FormatTransactionType(wallet.TransactionTypeRevocation),
-	}
+var TransactionTypes = []wallet.TransactionType{
+	wallet.TransactionTypeRegular,
+	wallet.TransactionTypeCoinbase,
+	wallet.TransactionTypeTicketPurchase,
+	wallet.TransactionTypeVote,
+	wallet.TransactionTypeRevocation,
 }
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR

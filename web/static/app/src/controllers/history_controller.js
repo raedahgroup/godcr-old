@@ -1,18 +1,17 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { hide, show, splitAmountIntoParts, truncate } from '../utils'
+import { hide, show, truncate } from '../utils'
 
 export default class extends Controller {
   static get targets () {
     return [
+      'selectedTxTypeFilter',
+      'transactionCountContainer', 'transactionCount', 'transactionTotalCount',
       'stickyTableHeader', 'historyTable',
       'txRowTemplate',
       'errorMessage',
-      'previousPageButton', 'nextPageButton',
-      'pageReport',
+      'previousPageButton', 'pageReport', 'nextPageButton',
       'loadingIndicator',
-      'transactionType',
-      'transactionCountContainer', 'transactionCount', 'transactionTotalCount'
     ]
   }
 
@@ -22,11 +21,11 @@ export default class extends Controller {
   }
 
   alignTableHeaderWithStickyHeader () {
-    this.stickyTableHeaderTarget.style.width = `${this.historyTableTarget.clientWidth}px`
-
     if (this.historyTableTarget.innerHTML === '') {
       return
     }
+    this.stickyTableHeaderTarget.style.width = `${this.historyTableTarget.clientWidth}px`
+
     // set column width on sticky header to match real table
     const tableColumns = this.historyTableTarget.querySelector('tr').querySelectorAll('td')
     const staticHeaderColumns = this.stickyTableHeaderTarget.querySelector('tr').querySelectorAll('th')
@@ -78,9 +77,8 @@ export default class extends Controller {
     }
   }
 
-  changeTransactionType () {
+  transactionTypeFilterChanged () {
     this.historyTableTarget.innerHTML = ''
-    this.transactionCountTarget.setAttribute('data-tx-count', 0)
     hide(this.transactionCountContainerTarget)
     this.nextPage = 1
     this.fetchMoreTxs()
@@ -89,19 +87,14 @@ export default class extends Controller {
   fetchMoreTxs () {
     show(this.loadingIndicatorTarget)
 
-    const txType = this.transactionTypeTarget.value
+    const txType = this.selectedTxTypeFilterTarget.value
 
     const _this = this
     axios.get(`/next-history-page?page=${this.nextPage}&tx-type=${txType}`)
       .then(function (response) {
         let result = response.data
         if (result.success) {
-          if (!result.txs || result.txs.length === 0) {
-            _this.setErrorMessage('No Transaction Found')
-            return
-          }
-
-          _this.transactionTotalCountTarget.textContent = result.txCount
+          _this.transactionTotalCountTarget.textContent = result.transactionTotalCount
           show(_this.transactionCountContainerTarget)
 
           hide(_this.errorMessageTarget)
@@ -113,7 +106,8 @@ export default class extends Controller {
         } else {
           _this.setErrorMessage(result.message)
         }
-      }).catch(function () {
+      }).catch(function (e) {
+        console.log(e)
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
@@ -133,28 +127,26 @@ export default class extends Controller {
       return `${amount / 100000000} DCR`
     }
 
-    const accountName = tx => {
-      let accountNames = []
+    const accountName = (tx) => {
+      let accountNames = new Set()
       if (tx.direction === 1) {
         tx.outputs.forEach(output => {
-          if (output.account_numberr === -1 || accountNames.indexOf(output.account_name) !== -1) {
-            return
+          if (output.account_number !== -1) {
+            accountNames.add(output.account_name)
           }
-          accountNames.push(output.account_name)
         })
       } else {
         tx.inputs.forEach(input => {
-          if (input.account_numberr === -1 || accountNames.indexOf(input.account_name) !== -1) {
-            return
+          if (input.account_number !== -1) {
+            accountNames.add(input.account_name)
           }
-          accountNames.push(input.account_name)
         })
       }
 
-      return accountNames.join(', ')
+      return Array.from(accountNames).join(', ')
     }
 
-    const directionImage = tx => {
+    const directionImage = (tx) => {
       switch (tx.direction) {
         case 0:
           return 'ic_send.svg'
@@ -188,7 +180,6 @@ export default class extends Controller {
 
       _this.historyTableTarget.appendChild(txRow)
       _this.transactionCountTarget.textContent = _this.historyTableTarget.childElementCount
-
     })
   }
 
