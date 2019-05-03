@@ -53,7 +53,7 @@ func BuildTransactionFilters(filters ...string) []*txindex.ReadFilter {
 			readFilters = append(readFilters, readFilter)
 			break
 		case TransactionFilterYourself:
-			readFilter := txindex.Filter().ForDirections(txhelper.TransactionDirectionTransferred)
+			readFilter := txindex.Filter().ForDirections(txhelper.TransactionDirectionYourself)
 			readFilters = append(readFilters, readFilter)
 			break
 		case TransactionFilterCoinbase:

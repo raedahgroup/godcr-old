@@ -5,7 +5,7 @@ import { hide, show, truncate } from '../utils'
 export default class extends Controller {
   static get targets () {
     return [
-      'selectedTxTypeFilter',
+      'selectedFilter',
       'transactionCountContainer', 'transactionCount', 'transactionTotalCount',
       'stickyTableHeader', 'historyTable',
       'txRowTemplate',
@@ -77,7 +77,7 @@ export default class extends Controller {
     }
   }
 
-  transactionTypeFilterChanged () {
+  selectedFilterChanged () {
     this.historyTableTarget.innerHTML = ''
     hide(this.transactionCountContainerTarget)
     this.nextPage = 1
@@ -87,11 +87,16 @@ export default class extends Controller {
   fetchMoreTxs () {
     show(this.loadingIndicatorTarget)
 
-    const txType = this.selectedTxTypeFilterTarget.value
+    const filter = this.selectedFilterTarget.value
 
     const _this = this
-    axios.get(`/next-history-page?page=${this.nextPage}&tx-type=${txType}`)
+    axios.get(`/next-history-page?page=${this.nextPage}&filter=${filter}`)
       .then(function (response) {
+        // since results are appended to the table, discard this response
+        // if the user have changed the filter before the result is gottend
+        if (_this.selectedFilterTarget.value !== filter) {
+          return
+        }
         let result = response.data
         if (result.success) {
           _this.transactionTotalCountTarget.textContent = result.transactionTotalCount
@@ -116,7 +121,7 @@ export default class extends Controller {
   }
 
   displayTxs (txs) {
-    const directions = ['Sent', 'Received', 'Transferred']
+    const directions = ['Sent', 'Received', 'Yourself']
     const txDirection = (direction) => {
       if (direction >= 0 && direction < directions.length) {
         return directions[direction]
@@ -131,13 +136,13 @@ export default class extends Controller {
       let accountNames = new Set()
       if (tx.direction === 1) {
         tx.outputs.forEach(output => {
-          if (output.account_number !== -1) {
+          if (parseInt(output.previous_account) !== -1) {
             accountNames.add(output.account_name)
           }
         })
       } else {
         tx.inputs.forEach(input => {
-          if (input.account_number !== -1) {
+          if (parseInt(input.previous_account) !== -1) {
             accountNames.add(input.account_name)
           }
         })
@@ -160,6 +165,7 @@ export default class extends Controller {
     }
 
     const _this = this
+
     txs.forEach(tx => {
       const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
       const fields = txRow.querySelectorAll('td')
@@ -176,11 +182,12 @@ export default class extends Controller {
       fields[5].innerHTML = amountDcr(tx.fee)
 
       fields[6].innerText = tx.status
-      fields[7].innerHTML = `<a href="/transaction-details/${tx.hash}">${truncate(tx.hash, 10)}}</a>`
+      fields[7].innerHTML = `<a href="/transaction-details/${tx.hash}">${truncate(tx.hash, 10)}</a>`
 
       _this.historyTableTarget.appendChild(txRow)
-      _this.transactionCountTarget.textContent = _this.historyTableTarget.childElementCount
     })
+
+    _this.transactionCountTarget.textContent = _this.historyTableTarget.childElementCount
   }
 
   setErrorMessage (message) {

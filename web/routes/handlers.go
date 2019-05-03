@@ -267,7 +267,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	filters := walletcore.TransactionFilters
-	transactionCountByType := make(map[string]int, len(filters))
+	transactionCountByFilter := make(map[string]int, 0)
 
 	for _, filter := range filters {
 		txCount, txCountErr := routes.walletMiddleware.TransactionCount(walletcore.BuildTransactionFilters(filter)[0])
@@ -280,7 +280,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 		if txCount == 0 {
 			continue
 		}
-		transactionCountByType[filter] = txCount
+		transactionCountByFilter[filter] = txCount
 	}
 
 	allTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
@@ -307,7 +307,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"transactionCountByType": transactionCountByType,
+		"transactionCountByFilter": transactionCountByFilter,
 		"txs":                    txns,
 		"currentPage":            int(pageToLoad),
 		"previousPage":           int(pageToLoad - 1),
@@ -328,8 +328,8 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	defer renderJSON(data, res)
 
 	filter := txindex.Filter()
-	if transactionType := req.FormValue("tx-type"); transactionType != "" {
-		filters := walletcore.BuildTransactionFilters(transactionType)
+	if selectedFilter := req.FormValue("filter"); selectedFilter != "" {
+		filters := walletcore.BuildTransactionFilters(selectedFilter)
 		if len(filters) >= 1 {
 			filter = filters[0]
 		}
