@@ -25,15 +25,15 @@ const (
 	LegacyTestnetHDPath = "m / 44' / 11' / "
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
-	TransactionFilterSend = "Sent"
+	TransactionFilterSent     = "Sent"
 	TransactionFilterReceived = "Received"
 	TransactionFilterYourself = "Yourself"
-	TransactionFilterStaking = "Staking"
+	TransactionFilterStaking  = "Staking"
 	TransactionFilterCoinbase = "Coinbase"
 )
 
 var TransactionFilters = []string {
-	TransactionFilterSend,
+	TransactionFilterSent,
 	TransactionFilterReceived,
 	TransactionFilterYourself,
 	TransactionFilterStaking,
@@ -42,31 +42,30 @@ var TransactionFilters = []string {
 
 func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
 	var (
-		typeFilter      []string
-		directionFilter []txhelper.TransactionDirection
+		txFilter = txindex.Filter()
 	)
 	for _, filter := range filters {
 		switch filter {
-		case TransactionFilterSend:
-			directionFilter = append(directionFilter, txhelper.TransactionDirectionSent)
+		case TransactionFilterSent:
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionSent)
 			break
 		case TransactionFilterReceived:
-			directionFilter = append(directionFilter, txhelper.TransactionDirectionReceived)
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionReceived)
 			break
 		case TransactionFilterYourself:
-			directionFilter = append(directionFilter, txhelper.TransactionDirectionYourself)
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionYourself)
 			break
 		case TransactionFilterCoinbase:
-			typeFilter = append(typeFilter, txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))
+			txFilter = txFilter.AndWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))
 			break
 		case TransactionFilterStaking:
-			typeFilter = append(typeFilter, txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase))
-			typeFilter = append(typeFilter, txhelper.FormatTransactionType(wallet.TransactionTypeVote))
-			typeFilter = append(typeFilter, txhelper.FormatTransactionType(wallet.TransactionTypeRevocation))
+			txFilter = txFilter.OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase)).
+				OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeVote)).
+				OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeRevocation))
 			break
 		}
 	}
-	return txindex.Filter().WithTxTypes(typeFilter...).ForDirections(directionFilter...)
+	return txFilter
 }
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
