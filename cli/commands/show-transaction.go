@@ -19,8 +19,8 @@ type ShowTransactionCommand struct {
 }
 type ShowTransactionCommandArgs struct {
 	TxHash            string `positional-arg-name:"transaction hash" required:"yes"`
-	TxHistoryOffset   int32
-	DisplayedTxHashes []string
+	txHistoryOffset   int32
+	displayedTxHashes []string
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
@@ -93,13 +93,13 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			return nil
 		}
 
-		var DisplayedTxHashes []string
-		DisplayedTxHashes = showTxCommand.Args.DisplayedTxHashes
-		DisplayedTxHashes = DisplayedTxHashes[:len(DisplayedTxHashes)-(len(DisplayedTxHashes)-int(showTxCommand.Args.TxHistoryOffset))]
+		var displayedTxHashes []string
+		displayedTxHashes = showTxCommand.Args.displayedTxHashes
+		displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.Args.txHistoryOffset))]
 
 		showTxHistory := HistoryCommand{
-			TxHistoryOffset:   showTxCommand.Args.TxHistoryOffset,
-			DisplayedTxHashes: DisplayedTxHashes,
+			txHistoryOffset:   showTxCommand.Args.txHistoryOffset,
+			displayedTxHashes: displayedTxHashes,
 		}
 
 		err = showTxHistory.Run(ctx, wallet)

@@ -16,12 +16,12 @@ import (
 // HistoryCommand enables the user view their transaction history.
 type HistoryCommand struct {
 	commanderStub
-	TxHistoryOffset   int32
-	DisplayedTxHashes []string
+	txHistoryOffset   int32
+	displayedTxHashes []string
 }
 
 // Run runs the `history` command.
-func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
+func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error {
 	columns := []string{
 		"#",
 		"Date",
@@ -29,7 +29,6 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		centerAlignAmountHeader("Amount"),
 		centerAlignAmountHeader("Fee"),
 		"Type",
-		"Hash",
 	}
 
 	txCount, err := wallet.TransactionCount(nil)
@@ -39,22 +38,22 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	var previous bool
-	var lastTX int
+	var lastTx int
 
 	// show transactions in pages, using infinite loop
 	// after displaying transactions for each page,
 	// ask user if to show next page, previous page, tx details or exit the loop
 	for {
-		transactions, err := wallet.TransactionHistory(h.TxHistoryOffset, txPerPage, nil)
+		transactions, err := wallet.TransactionHistory(history.txHistoryOffset, txPerPage, nil)
 		if err != nil {
 			return err
 		}
 
 		if previous {
-			h.DisplayedTxHashes = h.DisplayedTxHashes[:len(h.DisplayedTxHashes)-lastTX]
+			history.displayedTxHashes = history.displayedTxHashes[:len(history.displayedTxHashes)-lastTx]
 		}
 
-		lastTxRowNumber := len(h.DisplayedTxHashes) + 1
+		lastTxRowNumber := len(history.displayedTxHashes) + 1
 
 		pageTxRows := make([][]interface{}, len(transactions))
 
@@ -63,7 +62,7 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 			if previous {
 				pageTxRows[i] = append(pageTxRows[i], lastTxRowNumber-(len(transactions)-i))
 			} else {
-				h.DisplayedTxHashes = append(h.DisplayedTxHashes, tx.Hash)
+				history.displayedTxHashes = append(history.displayedTxHashes, tx.Hash)
 				pageTxRows[i] = append(pageTxRows[i], lastTxRowNumber+i)
 			}
 			pageTxRows[i] = append(pageTxRows[i], tx.ShortTime)
@@ -71,10 +70,9 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 			pageTxRows[i] = append(pageTxRows[i], formatAmount(tx.Amount))
 			pageTxRows[i] = append(pageTxRows[i], formatAmount(tx.Fee))
 			pageTxRows[i] = append(pageTxRows[i], tx.Type)
-			pageTxRows[i] = append(pageTxRows[i], tx.Hash)
 		}
 
-		lastTX = len(transactions)
+		lastTx = len(transactions)
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
 
 		fmt.Println() // print empty line before listing txs for next page
@@ -89,11 +87,11 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		}
 		// ask user what to do next
 		var prompt string
-		if len(h.DisplayedTxHashes) < txCount && len(h.DisplayedTxHashes) == int(txPerPage) {
+		if len(history.displayedTxHashes) < txCount && len(history.displayedTxHashes) == int(txPerPage) {
 			prompt = fmt.Sprintf("%s, enter # for details, show (n)ext, or (q)uit", pageInfo)
-		} else if len(h.DisplayedTxHashes) >= int(txPerPage) && len(h.DisplayedTxHashes) < txCount {
+		} else if len(history.displayedTxHashes) >= int(txPerPage) && len(history.displayedTxHashes) < txCount {
 			prompt = fmt.Sprintf("%s, enter # for details, show (p)revious, (n)ext, or (q)uit", pageInfo)
-		} else if len(h.DisplayedTxHashes) == txCount {
+		} else if len(history.displayedTxHashes) == txCount {
 			prompt = fmt.Sprintf("%s, enter # for details, show (p)revious, or (q)uit", pageInfo)
 		} else {
 			prompt = fmt.Sprintf("%s, enter # for details or (q)uit", pageInfo)
@@ -101,14 +99,14 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 
 		validateUserInput := func(userInput string) error {
 			if strings.EqualFold(userInput, "q") ||
-				(strings.EqualFold(userInput, "n") && len(h.DisplayedTxHashes) < txCount) ||
-				(strings.EqualFold(userInput, "p") && (h.TxHistoryOffset-txPerPage) >= 0) {
+				(strings.EqualFold(userInput, "n") && len(history.displayedTxHashes) < txCount) ||
+				(strings.EqualFold(userInput, "p") && (history.txHistoryOffset-txPerPage) >= 0) {
 				return nil
 			}
 
 			// check if user input is a valid tx #
 			txRowNumber, err := strconv.ParseUint(userInput, 10, 32)
-			if err != nil || txRowNumber < 1 || int(txRowNumber) > len(h.DisplayedTxHashes) {
+			if err != nil || txRowNumber < 1 || int(txRowNumber) > len(history.displayedTxHashes) {
 				return fmt.Errorf("invalid response, try again")
 			}
 
@@ -125,24 +123,24 @@ func (h HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet) error
 		} else if strings.EqualFold(userChoice, "n") {
 			previous = false
 			fmt.Println() // print empty line before listing txs for next page
-			h.TxHistoryOffset += int32(len(transactions))
+			history.txHistoryOffset += int32(len(transactions))
 			continue
 		} else if strings.EqualFold(userChoice, "p") {
 			previous = true
 			fmt.Println() // print empty line before listing txs for next page
-			h.TxHistoryOffset -= txPerPage
+			history.txHistoryOffset -= txPerPage
 			continue
 		}
 
 		// if the code execution continues to this point, it means user's response was neither "q" nor "n" nor "p"
 		// must therefore be a tx # to view tx details
 		txRowNumber, _ := strconv.ParseUint(userChoice, 10, 32)
-		txHash := h.DisplayedTxHashes[txRowNumber-1]
+		txHash := history.displayedTxHashes[txRowNumber-1]
 
 		showTransactionCommandArgs := ShowTransactionCommandArgs{
 			TxHash:            txHash,
-			TxHistoryOffset:   h.TxHistoryOffset,
-			DisplayedTxHashes: h.DisplayedTxHashes,
+			txHistoryOffset:   history.txHistoryOffset,
+			displayedTxHashes: history.displayedTxHashes,
 		}
 
 		showTxDetails := ShowTransactionCommand{
