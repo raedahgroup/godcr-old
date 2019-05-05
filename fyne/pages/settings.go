@@ -10,7 +10,7 @@ import (
 //SettingsPage comprises of all setting functions they are to be created and passed to the menu function
 func SettingsPage(win fyne.Window, App fyne.App) fyne.CanvasObject {
 	theme := changeTheme(win, App)
-	return Menu(theme, App, win)
+	return Menu(theme, win, App)
 }
 
 func changeTheme(win fyne.Window, change fyne.App) fyne.CanvasObject {
