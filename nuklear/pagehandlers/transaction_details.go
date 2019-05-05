@@ -47,7 +47,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	// Create row to hold tx details in 2 columns
 	// Each column will display data about the tx in a group window.
 	// Row height is calculated based on the max group items total height
-	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(670)
+	contentWindow.Window.Row(handler.calculateTxDetailsPageHeight()).Static(730)
 	widgets.NoScrollGroupWindow("tx-details-group-1", contentWindow.Window, func(window *widgets.Window) {
 		breadcrumb := []*widgets.Breadcrumb{
 			{
@@ -65,6 +65,13 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		window.AddBreadcrumb(breadcrumb)
 		if handler.selectedTxHash == "" {
 			return
+		}
+
+		var status string
+		if handler.selectedTxDetails.Confirmations >= 2 {
+			status = "Confirmed"
+		} else {
+			status = "Unconfirmed"
 		}
 
 		txDetailsTable := widgets.NewTable()
@@ -105,7 +112,11 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 			widgets.NewLabelTableCell(dcrutil.Amount(handler.selectedTxDetails.FeeRate).String(), "LC"),
 		)
 		txDetailsTable.AddRow(
-			widgets.NewLabelTableCell("Time", "LC"),
+			widgets.NewLabelTableCell("Status", "LC"),
+			widgets.NewLabelTableCell(status, "LC"),
+		)
+		txDetailsTable.AddRow(
+			widgets.NewLabelTableCell("Date", "LC"),
 			widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", handler.selectedTxDetails.LongTime), "LC"),
 		)
 		txDetailsTable.Render(window)
@@ -116,12 +127,14 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		txInputsTable := widgets.NewTable()
 		txInputsTable.AddRowWithFont(styles.NavFont,
 			widgets.NewLabelTableCell("Previous Outpoint", "LC"),
+			widgets.NewLabelTableCell("Account", "LC"),
 			widgets.NewLabelTableCell("Amount", "LC"),
 		)
 
 		for _, input := range handler.selectedTxDetails.Inputs {
 			txInputsTable.AddRow(
 				widgets.NewLabelTableCell(input.PreviousTransactionHash, "LC"),
+				widgets.NewLabelTableCell(input.AccountName, "LC"),
 				widgets.NewLabelTableCell(dcrutil.Amount(input.Amount).String(), "LC"),
 			)
 		}
