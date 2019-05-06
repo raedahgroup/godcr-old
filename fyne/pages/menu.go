@@ -46,7 +46,7 @@ func Button(App fyne.App, window fyne.Window) fyne.CanvasObject {
 		widget.NewButton("Overview", func() {
 			if SyncDone == true {
 				window.SetContent(Menu(widget.NewLabelWithStyle("fetching data...", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true, Bold: true}), window, App))
-				window.SetContent(Menu(OverviewPage(window, App), window, App))
+				go window.SetContent(Menu(OverviewPage(window, App), window, App))
 			}
 		}),
 
@@ -96,7 +96,7 @@ func Button(App fyne.App, window fyne.Window) fyne.CanvasObject {
 		widget.NewButton("Exit", func() {
 			window.Close()
 			App.Quit()
-			return
+			//return
 		}),
 	)
 }

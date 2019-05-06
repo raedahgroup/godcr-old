@@ -12,7 +12,7 @@ func HistoryPage(windows fyne.Window, App fyne.App) fyne.CanvasObject {
 	table, _ = FetchRecentActivity(Wallet, table, 0, true)
 	info := widget.NewVBox(
 		label,
-		widgets.NewVSpacer(30),
+		widgets.NewVSpacer(10),
 		table.CondensedTable())
 	return widget.NewScrollContainer(info)
 }
