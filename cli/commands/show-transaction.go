@@ -14,13 +14,13 @@ import (
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	commanderStub
-	Detailed bool                       `short:"d" long:"detailed" description:"Display detailed transaction information"`
-	Args     ShowTransactionCommandArgs `positional-args:"yes"`
-}
-type ShowTransactionCommandArgs struct {
-	TxHash            string `positional-arg-name:"transaction hash" required:"yes"`
+	Detailed          bool                       `short:"d" long:"detailed" description:"Display detailed transaction information"`
+	Args              ShowTransactionCommandArgs `positional-args:"yes"`
 	txHistoryOffset   int32
 	displayedTxHashes []string
+}
+type ShowTransactionCommandArgs struct {
+	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
@@ -74,39 +74,43 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
 		}
 		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))
-		fmt.Println()
-		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
 
-		validateUserInput := func(userInput string) error {
-			if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
+		// var prompt string
+		if len(showTxCommand.displayedTxHashes) > 0 {
+			fmt.Println()
+			prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
+
+			validateUserInput := func(userInput string) error {
+				if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
+					return nil
+				}
 				return nil
 			}
-			return nil
-		}
 
-		userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
-		if err != nil {
-			return fmt.Errorf("error reading response: %s", err.Error())
-		}
+			userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
+			if err != nil {
+				return fmt.Errorf("error reading response: %s", err.Error())
+			}
 
-		if strings.EqualFold(userChoice, "q") {
-			return nil
-		}
+			if strings.EqualFold(userChoice, "q") {
+				return nil
+			}
 
-		var displayedTxHashes []string
-		displayedTxHashes = showTxCommand.Args.displayedTxHashes
-		displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.Args.txHistoryOffset))]
+			var displayedTxHashes []string
+			displayedTxHashes = showTxCommand.displayedTxHashes
+			displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.txHistoryOffset))]
 
-		showTxHistory := HistoryCommand{
-			txHistoryOffset:   showTxCommand.Args.txHistoryOffset,
-			displayedTxHashes: displayedTxHashes,
-		}
+			showTxHistory := HistoryCommand{
+				txHistoryOffset:   showTxCommand.txHistoryOffset,
+				displayedTxHashes: displayedTxHashes,
+			}
 
-		err = showTxHistory.Run(ctx, wallet)
-		if err == nil {
-			fmt.Println()
+			err = showTxHistory.Run(ctx, wallet)
+			if err == nil {
+				fmt.Println()
+			}
+			return err
 		}
-		return err
 	} else {
 		termio.PrintStringResult(basicOutput)
 	}
