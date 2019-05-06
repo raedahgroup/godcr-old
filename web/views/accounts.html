@@ -73,7 +73,7 @@
 
                                     <input data-target="accounts.hideAccount" data-action="change->accounts#toggleHideAccount"
                                         data-account="{{ $account.Number }}" id="hide-account-{{ $account.Number }}" {{ if $isHidden }} checked {{ end }} type="checkbox" />
-                                    <label for="hide-account-{{ $account.Number }}" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <label for="hide-account-{{ $account.Number }}" class="float-icon list-group-item list-group-item-action flex-column align-items-start">
                                         <div class="d-flex w-100 justify-content-between">
                                             <p class="mb-1">
                                                 <b>Hide This Account</b>
@@ -84,7 +84,7 @@
 
                                     <input data-target="accounts.defaultAccount" data-action="change->accounts#updateDefaultAccount" 
                                         data-account="{{ $account.Number }}" id="#default-account-{{ $account.Number }}" {{ if eq $.defaultAccount $account.Number }} checked {{ end }} type="checkbox" />
-                                    <label for="#default-account-{{ $account.Number }}" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <label for="#default-account-{{ $account.Number }}" class="float-icon list-group-item list-group-item-action flex-column align-items-start">
                                         <div class="d-flex w-100 justify-content-between">
                                             <p class="mb-1">
                                                 <b>Default Account</b>

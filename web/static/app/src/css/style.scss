@@ -357,6 +357,10 @@ label.list-group-item h5 {
   display: inline !important;
 }
 
+label.float-icon::before {
+  float: left;
+}
+
 /* this is to take care of the padding embedded in the qr image */
 .address-qr-img img {
   margin-left: -60px;
