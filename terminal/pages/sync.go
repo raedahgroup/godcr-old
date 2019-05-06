@@ -12,12 +12,11 @@ import (
 	"github.com/rivo/tview"
 )
 
-func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, displayPage func(), hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, displayPage func(tview.Primitive), hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	syncPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	// page title and hint
+	// page title 
 	syncPage.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 1, 0, false)
-	hintTextView.SetText("Press ESC twice to cancel sync and exit the app").SetTextColor(helpers.HintTextColor)
 
 	errorTextView := primitives.WordWrappedTextView("")
 	errorTextView.SetTextColor(helpers.DecredOrangeColor)
@@ -57,8 +56,8 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	// function to be executed after the sync operation completes successfully
 	afterSyncing := func() {
 		tviewApp.QueueUpdateDraw(func() {
+			clearFocus()
 			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
-			// clearFocus()
 		})
 	}
 
@@ -68,8 +67,9 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	syncPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEsc {
 			if cancelTriggered {
-				displayPage(exitPage(walletMiddleware, tviewApp, tviewApp.SetFocus, clearFocus))
-			} else {
+				clearFocus()
+			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+		} else {
 				cancelTriggered = true
 				// remove cancel trigger after 1 second if user does not press escape again within that time
 				go func() {
@@ -81,6 +81,8 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		}
 		return event
 	})
+
+	hintTextView.SetText("Press ESC twice to cancel synchronization process").SetTextColor(helpers.HintTextColor)
 
 	setFocus(syncPage)
 	return syncPage
