@@ -5,16 +5,16 @@ type Breadcrumb struct {
 	Action func(string, *Window)
 }
 
-func (window *Window) AddBreadcrumb(breadcrumb []*Breadcrumb) {
+func (window *Window) AddBreadcrumb(breadcrumbs []*Breadcrumb) {
 	tableCells := []TableCell{}
 
-	for index := range breadcrumb {
+	for index := range breadcrumbs {
 		var cell TableCell
-		isLastItem := index == len(breadcrumb)-1
+		isLastItem := breadcrumbs[index].Action == nil
 		if isLastItem {
-			cell = NewLabelTableCell(breadcrumb[index].Text, "LC")
+			cell = NewLabelTableCell(breadcrumbs[index].Text, "LC")
 		} else {
-			cell = NewLinkTableCell(breadcrumb[index].Text, "", breadcrumb[index].Action)
+			cell = NewLinkTableCell(breadcrumbs[index].Text, "", breadcrumbs[index].Action)
 		}
 		tableCells = append(tableCells, cell)
 		if !isLastItem {
