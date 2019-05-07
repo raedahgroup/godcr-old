@@ -1,10 +1,13 @@
-package fyne
+package pages
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
@@ -12,48 +15,70 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-const (
-	defaultWindowWidth  = 800
-	defaultWindowHeight = 600
-)
+var SyncDone bool
+var Wallet godcrApp.WalletMiddleware
 
-func (app *fyneApp) showSyncWindow() {
+func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
+	Wallet = wallet
+	go func() {
+		//wait for sync to be done before calling overview
+		for SyncDone == false {
+			sec, _ := time.ParseDuration("1s")
+			time.Sleep(sec)
+		}
+		window.SetContent(Menu(OverviewPage(window, App), window, App))
+	}()
+	go func() {
+		for {
+			//wait for 5 seconds to get peer info and block height
+			sec, _ := time.ParseDuration("5s")
+			time.Sleep(sec)
+			info, _ := wallet.WalletConnectionInfo()
+			if info.PeersConnected <= 1 {
+				PeerConn.Text = strconv.Itoa(int(info.PeersConnected)) + " Peer Connected"
+			} else {
+				PeerConn.Text = strconv.Itoa(int(info.PeersConnected)) + " Peers Connected"
+			}
+			BlkHeight.Text = strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected"
+			canvas.Refresh(PeerConn)
+			canvas.Refresh(BlkHeight)
+		}
+	}()
 	progressBar := widget.NewProgressBar()
-	progressBar.Max = 100
 	progressBar.Min = 0
+	progressBar.Max = 100
 
-	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
-	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
-
-	var showDetails bool
 	var fullSyncReport string
-	var showDetailsButton *widget.Button
-	showDetailsButton = widget.NewButton("Tap to view information", func() {
-		showDetails = true
-		reportLabel.SetText(fullSyncReport)
-		showDetailsButton.Hide()
+
+	reportLabel := widget.NewLabel("")
+	widget.Refresh(reportLabel)
+	reportLabel.Hide()
+	reportLabel.Alignment = fyne.TextAlignCenter
+	var infoButton *widget.Button
+
+	infoButton = widget.NewButton("Tap to view informations", func() {
+		if infoButton.Text == "Tap to view informations" {
+
+			widget.Refresh(reportLabel)
+			reportLabel.Show()
+			infoButton.SetText("Tap to hide informations")
+
+		} else {
+
+			widget.Refresh(reportLabel)
+			reportLabel.Hide()
+			infoButton.SetText("Tap to view informations")
+			
+		}
 	})
 
-	syncWindowContent := widget.NewVBox(
-		widgets.NewVSpacer(10),
-		widget.NewLabelWithStyle("Synchronizing", fyne.TextAlignCenter, fyne.TextStyle{Italic: true}),
-		progressBar,
-		reportLabel,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(showDetailsButton.MinSize()), showDetailsButton),
-		errorLabel,
-	)
-
-	app.mainWindow.SetTitle(godcrApp.DisplayName)
-	app.resizeAndCenterMainWindow(syncWindowContent)
-	app.mainWindow.Show()
-
-	app.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+	wallet.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
 
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
-			app.loadMainWindowContent()
+			SyncDone = true
 			return
 		}
 
@@ -64,9 +89,8 @@ func (app *fyneApp) showSyncWindow() {
 			stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
 		}
 
-		if !showDetails {
-			reportLabel.SetText(strings.TrimSpace(stringReport.String()))
-		}
+		reportLabel.SetText(strings.TrimSpace(stringReport.String()))
+		widget.Refresh(reportLabel)
 
 		switch progressReport.CurrentStep {
 		case defaultsynclistener.FetchingBlockHeaders:
@@ -76,7 +100,6 @@ func (app *fyneApp) showSyncWindow() {
 			if progressReport.DaysBehind != "" {
 				stringReport.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", progressReport.DaysBehind))
 			}
-
 		case defaultsynclistener.DiscoveringUsedAddresses:
 			stringReport.WriteString("Discovering used addresses.\n")
 			if progressReport.AddressDiscoveryProgress > 100 {
@@ -92,7 +115,7 @@ func (app *fyneApp) showSyncWindow() {
 		}
 
 		// show peer count last
-		netType := app.walletMiddleware.NetType()
+		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
 		} else {
@@ -100,20 +123,13 @@ func (app *fyneApp) showSyncWindow() {
 		}
 
 		fullSyncReport = stringReport.String()
-		if showDetails {
-			reportLabel.SetText(fullSyncReport)
-		}
+		reportLabel.SetText(fullSyncReport)
+		widget.Refresh(reportLabel)
 	})
-}
 
-func (app *fyneApp) loadMainWindowContent() {
-	app.menuButtons[0].OnTapped()
-	app.resizeAndCenterMainWindow(app.mainWindowContent)
-}
-
-func (app *fyneApp) resizeAndCenterMainWindow(windowContent fyne.CanvasObject) {
-	// create a fixedgrid wrapper around window content so that window.CenterOnScreen will work
-	windowSize := fyne.NewSize(defaultWindowWidth, defaultWindowHeight)
-	app.mainWindow.SetContent(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(windowSize), windowContent))
-	app.mainWindow.CenterOnScreen()
+	return widget.NewVBox(
+		widgets.NewVSpacer(10),
+		progressBar,
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(infoButton.MinSize()), infoButton),
+		reportLabel)
 }

@@ -20,14 +20,39 @@ func NewTable() *Table {
 	return &Table{}
 }
 
+type TableTextCell struct {
+	text      string
+	alignment fyne.TextAlign
+	style     fyne.TextStyle
+	onClick   func()
+}
+
+func NewTableTextCell(text string, alignment fyne.TextAlign, style fyne.TextStyle, onClick func()) *TableTextCell {
+	return &TableTextCell{
+		text:      text,
+		alignment: alignment,
+		style:     style,
+		onClick:   onClick,
+	}
+}
+
+func (textCell *TableTextCell) TableCell() fyne.CanvasObject {
+	if textCell.onClick != nil {
+		// use a button to be able to handle click events on this cell
+		return widget.NewButton(textCell.text, textCell.onClick)
+	}
+
+	return widget.NewLabelWithStyle(textCell.text, textCell.alignment, textCell.style)
+}
+
 func (table *Table) AddRow(rowObjects ...TableCell) {
 	table.Rows = append(table.Rows, &TableRow{rowObjects})
 }
 
-func (table *Table) AddRowSimple(texts ...string) {
-	tableCells := make([]TableCell, len(texts))
-	for i, text := range texts {
-		tableCells[i] = widget.NewLabel(text)
+func (table *Table) AddRowWithTextCells(textCells ...*TableTextCell) {
+	tableCells := make([]TableCell, len(textCells))
+	for i, textCell := range textCells {
+		tableCells[i] = textCell.TableCell()
 	}
 	table.AddRow(tableCells...)
 }
