@@ -11,10 +11,9 @@ import (
 )
 
 type TransactionDetails struct {
-	err    error
-	ctx    context.Context
-	wallet walletcore.Wallet
-
+	err       error
+	ctx       context.Context
+	wallet    walletcore.Wallet
 	hash      string
 	container *widgets.Box
 }
