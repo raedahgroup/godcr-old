@@ -18,12 +18,13 @@ func OverviewPage(windows fyne.Window, App fyne.App) fyne.CanvasObject {
 	balanceLabel.TextStyle = fyne.TextStyle{Bold: true}
 	activityLabel.TextStyle = fyne.TextStyle{Bold: true}
 	table := widgets.NewTable()
-	table, _ = FetchRecentActivity(Wallet, table, 5, false)
+	table, _ = FetchRecentActivity(Wallet, table, 0, 5, false)
 	return widget.NewVBox(
 		label,
-		balanceLabel,
 		widgets.NewVSpacer(10),
+		balanceLabel,
 		balance,
+		widgets.NewVSpacer(10),
 		activityLabel,
 		table.CondensedTable())
 }
@@ -37,21 +38,21 @@ func FetchBalance(wallet godcrApp.WalletMiddleware) string {
 	return walletcore.WalletBalance(accounts)
 }
 
-func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table, noOfTransaction int, button bool) (*widgets.Table, error) {
+func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table, offSet, noOfTransaction int, button bool) (*widgets.Table, error) {
 	//table.Clear()
-	txns, err := wallet.TransactionHistory(0, int32(noOfTransaction), nil)
+	txns, err := wallet.TransactionHistory(int32(offSet), int32(noOfTransaction), nil)
 	if err != nil {
 		return nil, err
 	}
 	table.AddRowWithTextCells(
-		widgets.NewTableTextCell("Account", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Type", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Direction", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Amount", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Fee", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Status", fyne.TextAlignCenter, fyne.TextStyle{}, nil),
-		widgets.NewTableTextCell("Hash", fyne.TextAlignCenter, fyne.TextStyle{}, nil))
+		widgets.NewTableTextCell("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
+		widgets.NewTableTextCell("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil))
 	for _, tx := range txns {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
 		hashButton := widgets.NewTableTextCell(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}, nil)

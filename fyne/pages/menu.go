@@ -53,7 +53,7 @@ func Button(App fyne.App, window fyne.Window) fyne.CanvasObject {
 		widget.NewButton("History", func() {
 			if SyncDone == true {
 				window.SetContent(Menu(widget.NewLabelWithStyle("fetching data...", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true, Bold: true}), window, App))
-				window.SetContent(Menu(HistoryPage(window, App), window, App))
+				window.SetContent(Menu(HistoryPage(1, 15, window, App), window, App))
 			}
 		}),
 

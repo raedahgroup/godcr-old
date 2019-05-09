@@ -16,6 +16,7 @@ func SettingsPage(win fyne.Window, App fyne.App) fyne.CanvasObject {
 func changeTheme(win fyne.Window, change fyne.App) fyne.CanvasObject {
 	var radio1 *widget.Radio
 	var radio2 *widget.Radio
+
 	radio1 = widget.NewRadio([]string{"Light Theme"}, func(background string) {
 		if background == "Light Theme" {
 			if radio2.Selected == "Dark Theme" {
@@ -32,16 +33,12 @@ func changeTheme(win fyne.Window, change fyne.App) fyne.CanvasObject {
 			change.Settings().SetTheme(theme.DarkTheme())
 		}
 	})
+
 	orderedRadio := []fyne.CanvasObject{
 		radio1, radio2,
 	}
+
 	radio := layout.NewHBoxLayout()
 	radio.Layout(orderedRadio, fyne.NewSize(0, 0))
 	return fyne.NewContainerWithLayout(radio, radio1, radio2)
-}
-
-func changeSpendingPass(App fyne.App) {
-
-	// PassphraseWindow := App.NewWindow("Enter Current Pin")
-	// widget.NewForm()
 }

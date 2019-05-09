@@ -68,7 +68,7 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 			widget.Refresh(reportLabel)
 			reportLabel.Hide()
 			infoButton.SetText("Tap to view informations")
-			
+
 		}
 	})
 
@@ -128,6 +128,8 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 	})
 
 	return widget.NewVBox(
+		widgets.NewVSpacer(10),
+		widget.NewLabelWithStyle("Synchronizing....", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true}),
 		widgets.NewVSpacer(10),
 		progressBar,
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(infoButton.MinSize()), infoButton),
