@@ -2,6 +2,7 @@ package pagehandlers
 
 import (
 	"fmt"
+	"image/color"
 	"strconv"
 
 	"github.com/aarzilli/nucular"
@@ -53,10 +54,13 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	}
 
 	var status string
+	var statusColor color.RGBA
 	if handler.selectedTxDetails.Confirmations >= 2 {
 		status = "Confirmed"
+		statusColor = styles.DecredGreenColor
 	} else {
 		status = "Unconfirmed"
+		statusColor = styles.DecredOrangeColor
 	}
 
 	// we create our tables here so that we are able to calculate our window height using table data
@@ -99,7 +103,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Status", "LC"),
-		widgets.NewLabelTableCell(status, "LC"),
+		widgets.NewColoredLabelTableCell(status, "LC", statusColor),
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Date", "LC"),
