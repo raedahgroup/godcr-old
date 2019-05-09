@@ -68,7 +68,7 @@ func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 			pageTxRows[i] = append(pageTxRows[i], tx.ShortTime)
 			pageTxRows[i] = append(pageTxRows[i], tx.Direction)
 			pageTxRows[i] = append(pageTxRows[i], formatAmount(tx.Amount))
-			pageTxRows[i] = append(pageTxRows[i], formatAmount(tx.Fee))
+			pageTxRows[i] = append(pageTxRows[i], formatFee(tx.Fee))
 			pageTxRows[i] = append(pageTxRows[i], tx.Type)
 		}
 
@@ -172,8 +172,14 @@ func centerAlignAmountHeader(header string) string {
 	return header
 }
 
-// formatAmount returns the amount as a 17-character string padded with spaces to the left
+// formatAmount returns the amount as a 19-character string padded with spaces to the left
 func formatAmount(amount int64) string {
 	amountString := dcrutil.Amount(amount).String()
-	return fmt.Sprintf("%17s", amountString)
+	return fmt.Sprintf("%19s", amountString)
+}
+
+// formatAmount returns the fee as a 15-character string padded with spaces to the left
+func formatFee(fee int64) string {
+	amountString := dcrutil.Amount(fee).String()
+	return fmt.Sprintf("%15s", amountString)
 }
