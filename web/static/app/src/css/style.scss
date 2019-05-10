@@ -85,6 +85,10 @@ table td {
   padding: 1.3rem 1.8rem !important;
 }
 
+.card-header-list-item:nth-last-child(2) {
+  border: none !important;
+}
+
 .form-control {
   border-radius: 0;
 }
