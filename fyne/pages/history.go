@@ -36,11 +36,12 @@ func HistoryPage(offSet, count int, windows fyne.Window, App fyne.App) fyne.Canv
 	if offSet == 1 {
 		widget.Refresh(back)
 		back.Hide()
-	} else if offSet+15 >= totalNoOfTxns {
+	}
+	if offSet+15 >= totalNoOfTxns {
 		widget.Refresh(next)
 		next.Hide()
 	}
-	
+
 	buttons := widget.NewHBox(
 		back,
 		widgets.NewHSpacer(10),
