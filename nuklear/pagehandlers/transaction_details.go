@@ -53,13 +53,10 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		return
 	}
 
-	var status string
 	var statusColor color.RGBA
-	if handler.selectedTxDetails.Confirmations >= 2 {
-		status = "Confirmed"
+	if handler.selectedTxDetails.Status == "Confirmed" {
 		statusColor = styles.DecredGreenColor
 	} else {
-		status = "Unconfirmed"
 		statusColor = styles.DecredOrangeColor
 	}
 
@@ -103,7 +100,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Status", "LC"),
-		widgets.NewColoredLabelTableCell(status, "LC", statusColor),
+		widgets.NewColoredLabelTableCell(handler.selectedTxDetails.Status, "LC", statusColor),
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Date", "LC"),
