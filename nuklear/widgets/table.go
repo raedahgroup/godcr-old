@@ -1,6 +1,9 @@
 package widgets
 
-const tableRowHeight = 25
+const (
+	TableRowHeight           = 27
+	estimatedTableRowPadding = 3
+)
 
 type Table struct {
 	rows []*TableRow
@@ -63,7 +66,7 @@ func (table *Table) Render(window *Window) {
 
 	// create row constructor for each row of items and call draw on the items
 	for _, row := range table.rows {
-		window.Row(tableRowHeight).Static(maxColumnWidths...)
+		window.Row(TableRowHeight).Static(maxColumnWidths...)
 		if row.isFontSet {
 			window.UseFontAndResetToPrevious(row.font, func() {
 				row.Render(window)
@@ -72,4 +75,8 @@ func (table *Table) Render(window *Window) {
 			row.Render(window)
 		}
 	}
+}
+
+func (table *Table) Height() int {
+	return len(table.rows) * (TableRowHeight + estimatedTableRowPadding)
 }

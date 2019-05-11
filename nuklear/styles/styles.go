@@ -77,9 +77,9 @@ func SetPageStyle(masterWindow nucular.MasterWindow) {
 
 	// style selectable labels (links)
 	currentStyle.Selectable.Padding = noPadding
-	currentStyle.Selectable.TextNormal = DecredDarkBlueColor
-	currentStyle.Selectable.TextHover = DecredLightBlueColor
-	currentStyle.Selectable.TextPressed = DecredLightBlueColor
+	currentStyle.Selectable.TextNormal = DecredLightBlueColor
+	currentStyle.Selectable.TextHover = DecredDarkBlueColor
+	currentStyle.Selectable.TextPressed = DecredDarkBlueColor
 	currentStyle.Selectable.Normal.Data.Color = WhiteColor
 	currentStyle.Selectable.Hover.Data.Color = WhiteColor
 	currentStyle.Selectable.Pressed.Data.Color = WhiteColor
