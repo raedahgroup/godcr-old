@@ -93,7 +93,7 @@ export default class extends Controller {
     axios.get(`/next-history-page?page=${this.nextPage}&filter=${filter}`)
       .then(function (response) {
         // since results are appended to the table, discard this response
-        // if the user have changed the filter before the result is gottend
+        // if the user has changed the filter before the result is gotten
         if (_this.selectedFilterTarget.value !== filter) {
           return
         }

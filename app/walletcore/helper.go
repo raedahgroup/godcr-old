@@ -43,6 +43,11 @@ var TransactionFilters = []string {
 func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
 	var (
 		txFilter = txindex.Filter()
+		stakingTxTypes = []string {
+			txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase),
+			txhelper.FormatTransactionType(wallet.TransactionTypeVote),
+			txhelper.FormatTransactionType(wallet.TransactionTypeRevocation),
+		}
 	)
 	for _, filter := range filters {
 		switch filter {
@@ -53,15 +58,14 @@ func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
 			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionReceived)
 			break
 		case TransactionFilterYourself:
-			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionYourself)
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionYourself).AndNotWithTxTypes(stakingTxTypes...)
+
 			break
 		case TransactionFilterCoinbase:
 			txFilter = txFilter.AndWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))
 			break
 		case TransactionFilterStaking:
-			txFilter = txFilter.OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase)).
-				OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeVote)).
-				OrWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeRevocation))
+			txFilter = txFilter.OrWithTxTypes(stakingTxTypes...)
 			break
 		}
 	}

@@ -91,7 +91,7 @@ func templateFuncMap() template.FuncMap {
 			if len(text) < maxNumberOfCharacters {
 				return text
 			}
-			return fmt.Sprintf("%s...", text[0:maxNumberOfCharacters])
+			return fmt.Sprintf("%s...", text[:maxNumberOfCharacters])
 		},
 		"accountName": func(txn *walletcore.Transaction) string {
 			return txn.WalletAccountForTx()
