@@ -13,10 +13,10 @@ func exitPage(walletMiddleware app.WalletMiddleware, tviewApp *tview.Application
 			if buttonLabel == "Quit" {
 				tviewApp.Stop()
 			} else {
-				tviewApp.SetRoot(rootPage(tviewApp, walletMiddleware), true)
+				clearFocus()
 			}
 		})
 
-	tviewApp.SetRoot(body, true)
+	setFocus(body)
 	return body
 }
