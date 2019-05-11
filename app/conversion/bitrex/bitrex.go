@@ -58,7 +58,7 @@ func fetchMarketSummary(marketName string) (*marketSummary, error) {
 	url := fmt.Sprintf("https://api.bittrex.com/api/v1.1/public/getmarketsummary?market=%s", marketName)
 
 	httpClient := http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 5,
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
