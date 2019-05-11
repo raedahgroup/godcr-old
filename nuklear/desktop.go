@@ -134,7 +134,7 @@ func (desktop *Desktop) renderPageContentWindow(window *nucular.Window, maxWidth
 	styles.SetPageStyle(window.Master())
 	window.LayoutSpacePushScaled(pageSectionRect)
 
-	if !desktop.syncer.isDoneSyncing() {
+	if desktop.syncer.isDoneSyncing() {
 		desktop.syncer.Render(window)
 	} else {
 		handler := desktop.navPages[desktop.currentPage]

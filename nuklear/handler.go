@@ -58,7 +58,7 @@ func getNavPages() []navPage {
 		{
 			name:    "accounts",
 			label:   "Accounts",
-			handler: &notImplementedNavPageHandler{"Accounts"},
+			handler: &pagehandlers.AccountsHandler{},
 		},
 		{
 			name:    "security",
