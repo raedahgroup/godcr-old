@@ -9,6 +9,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -27,14 +28,16 @@ type Desktop struct {
 	nextPage         string
 	pageChanged      bool
 	syncer           *Syncer
+	settings         *config.Settings
 }
 
-func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware) error {
+func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) error {
 	desktop := &Desktop{
 		walletMiddleware: walletMiddleware,
 		pageChanged:      true,
 		currentPage:      "overview",
 		syncer:           NewSyncer(),
+		settings:         settings,
 	}
 
 	// initialize master window and set style
@@ -134,14 +137,14 @@ func (desktop *Desktop) renderPageContentWindow(window *nucular.Window, maxWidth
 	styles.SetPageStyle(window.Master())
 	window.LayoutSpacePushScaled(pageSectionRect)
 
-	if desktop.syncer.isDoneSyncing() {
+	if !desktop.syncer.isDoneSyncing() {
 		desktop.syncer.Render(window)
 	} else {
 		handler := desktop.navPages[desktop.currentPage]
 		// ensure that the handler's BeforeRender function is called only once per page call
 		// as it initializes page variables
 		if desktop.pageChanged {
-			handler.BeforeRender(desktop.walletMiddleware, window.Master().Changed)
+			handler.BeforeRender(desktop.walletMiddleware, desktop.settings, window.Master().Changed)
 			desktop.pageChanged = false
 		}
 		handler.Render(window)
