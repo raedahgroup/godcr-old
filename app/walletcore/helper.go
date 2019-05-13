@@ -18,6 +18,11 @@ const (
 	TransactionHistoryCountPerPage = 25
 
 	ReceivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
+
+	TestnetHDPath       = "m / 44' / 1' / "
+	LegacyTestnetHDPath = "m / 44' / 11' / "
+	MainnetHDPath       = "m / 44' / 42' / "
+	LegacyMainnetHDPath = "m / 44' / 20' / "
 )
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
