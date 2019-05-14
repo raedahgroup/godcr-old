@@ -23,7 +23,7 @@ type AccountsHandler struct {
 	wallet             walletcore.Wallet
 	settings           *config.Settings
 	isFetchingAccounts bool
-	hdPath             string
+	networkHDPath      string
 }
 
 func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
@@ -32,6 +32,13 @@ func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings 
 	handler.accounts = nil
 	handler.isFetchingAccounts = false
 	handler.settings = settings
+	if handler.networkHDPath == "" {
+		if wallet.NetType() == "testnet3" {
+			handler.networkHDPath = walletcore.TestnetHDPath
+		} else {
+			handler.networkHDPath = walletcore.MainnetHDPath
+		}
+	}
 
 	return true
 }
@@ -81,6 +88,10 @@ func (handler *AccountsHandler) fetchAccounts(refreshWindowDisplay func()) {
 			}
 		}
 
+		if handler.settings.DefaultAccount == accountItem.Number {
+			setAsDefaultAccount = true
+		}
+
 		acc := &account{
 			setAsHidden:         setAsHidden,
 			setAsDefaultAccount: setAsDefaultAccount,
@@ -101,7 +112,7 @@ func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
 		if window.TreePush(nucular.TreeNode, headerLabel, false) {
 			window.AddLabelWithFont("Properties", "LC", styles.BoldPageContentFont)
 
-			window.Row(90).Dynamic(1)
+			window.Row(98).Dynamic(1)
 			widgets.GroupWindow("", window.Window, 0, func(propertyWindow *widgets.Window) {
 				table := widgets.NewTable()
 				table.AddRow(
@@ -110,7 +121,7 @@ func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
 				)
 				table.AddRow(
 					widgets.NewLabelTableCell("HD Path", "LC"),
-					widgets.NewLabelTableCell("ggg", "LC"),
+					widgets.NewLabelTableCell(fmt.Sprintf("%s %d", handler.networkHDPath, item.account.Number), "LC"),
 				)
 				table.AddRow(
 					widgets.NewLabelTableCell("Keys", "LC"),

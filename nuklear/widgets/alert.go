@@ -13,7 +13,7 @@ import (
 
 const (
 	alertWidgetWidth = 300
-	lineHeight       = 17
+	lineHeight       = 20
 	displayDuration  = 4      // 4 seconds
 	alertWindowFlag  = 524288 // this displays the popup as a tooltip so the UI does not block
 )
@@ -36,8 +36,8 @@ func NewAlertWidget(text string, isErrorAlert bool, window *Window) {
 
 	bounds := rect.Rect{
 		W: alertWidgetWidth,
-		H: lineHeight*len(a.lines) + 50 // 80 is to allow for vertical spacing between window border and this widget
-		X: windowBounds.W - 80, // 80 is to allow for horizontal spacing between window border and this widget
+		H: lineHeight*len(a.lines) + 50, // 80 is to allow for vertical spacing between window border and this widget
+		X: windowBounds.W - 80,          // 80 is to allow for horizontal spacing between window border and this widget
 		Y: 10,
 	}
 

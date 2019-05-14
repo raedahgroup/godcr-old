@@ -620,6 +620,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+		defaultAccount := uint32(defaultAccountInt)
 
 		defaultAccount := uint32(defaultAccountInt)
 
@@ -645,6 +646,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+		accountUInt32 := uint32(accountInt)
 
 		accountUInt32 := uint32(accountInt)
 
@@ -675,6 +677,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+		account := uint32(accountInt)
 
 		account := uint32(accountInt)
 		hiddenAccounts := routes.settings.HiddenAccounts
