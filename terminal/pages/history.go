@@ -21,6 +21,16 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
+	// handler for returning back to menu column
+	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			clearFocus()
+			return nil
+		}
+
+		return event
+	})
+
 	messageTextView := primitives.WordWrappedTextView("")
 
 	displayMessage := func(message string, error bool) {
@@ -106,16 +116,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			displayHistoryTable()
-			return nil
-		}
-
-		return event
-	})
-
-	// handler for returning back to menu column
-	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
-			clearFocus()
 			return nil
 		}
 
