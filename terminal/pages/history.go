@@ -60,11 +60,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		tviewApp.SetFocus(body)
 		return body
 	}
-	if txCount == 0 {
-		displayMessage("No transactions yet", false)
-		tviewApp.SetFocus(body)
-		return body
-	}
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
@@ -81,6 +76,13 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 		body.AddItem(historyTable, 0, 1, true)
 		tviewApp.SetFocus(historyTable)
+	}
+
+	if txCount == 0 {
+		displayMessage("No transactions yet", false)
+		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
+		tviewApp.SetFocus(body)
+		return body
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
