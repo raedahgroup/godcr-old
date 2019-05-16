@@ -24,6 +24,15 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 
 	hintTextView.SetText("TIP: Scroll recent activity table with ARROW KEYS. Return to navigation menu with ESC")
 
+	overviewPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			clearFocus()
+			return nil
+		}
+
+		return event
+	})
+
 	tviewApp.SetFocus(overviewPage)
 
 	return overviewPage
@@ -46,7 +55,7 @@ func renderBalance(overviewPage *tview.Flex, wallet walletcore.Wallet) {
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tviewApp *tview.Application, clearFocus func()) {
 	overviewPage.AddItem(primitives.NewLeftAlignedTextView("-Recent Activity-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 
-	statusTextView := primitives.NewCenterAlignedTextView("Fetching data...").SetTextColor(helpers.DecredOrangeColor)
+	statusTextView := primitives.NewCenterAlignedTextView("").SetTextColor(helpers.DecredOrangeColor)
 	// adding an element to the page from a goroutine, use tviewApp.QueueUpdateDraw
 	tviewApp.QueueUpdateDraw(func() {
 		overviewPage.AddItem(statusTextView, 2, 0, false)
@@ -60,6 +69,15 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 		})
 		return
 	}
+	if len(txns) == 0 {
+		noTxnsTextview := primitives.NewCenterAlignedTextView("No activity yet")
+		tviewApp.QueueUpdateDraw(func() {
+			overviewPage.AddItem(noTxnsTextview, 2, 0, false)
+		})
+		return
+	}
+
+	statusTextView.SetText("Fetching data...")
 
 	historyTable := primitives.NewTable()
 	historyTable.SetBorders(false).SetFixed(1, 0)

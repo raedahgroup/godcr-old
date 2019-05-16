@@ -21,17 +21,18 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	errorTextView := primitives.WordWrappedTextView("")
-	errorTextView.SetTextColor(helpers.DecredOrangeColor)
+	messageTextView := primitives.WordWrappedTextView("")
 
-	displayMessage := func(message string) {
+	displayMessage := func(message string, error bool) {
 		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
-			body.RemoveItem(errorTextView)
-			if message != "" {
-				errorTextView.SetText(message)
-				body.AddItem(errorTextView, 2, 0, false)
+			body.RemoveItem(messageTextView)
+			messageTextView.SetText(message)
+			if error && message != "" {
+				messageTextView.SetTextColor(helpers.DecredOrangeColor)
 			}
+
+			body.AddItem(messageTextView, 2, 0, false)
 		})
 	}
 
@@ -45,7 +46,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	body.AddItem(titleTextView, 2, 0, false)
 
 	if txCountErr != nil {
-		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()))
+		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), true)
+		tviewApp.SetFocus(body)
+		return body
+	}
+	if txCount == 0 {
+		displayMessage("No transactions yet", false)
 		tviewApp.SetFocus(body)
 		return body
 	}
@@ -106,6 +112,16 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		return event
 	})
 
+	// handler for returning back to menu column
+	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			clearFocus()
+			return nil
+		}
+
+		return event
+	})
+
 	tableHeaderCell := func(text string) *tview.TableCell {
 		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false).SetMaxWidth(1).SetExpansion(1)
 	}
@@ -129,15 +145,14 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	return body
 }
 
-func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application,
-	displayMessage func(string)) {
+func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application, displayMessage func(string, bool)) {
 
 	// show a loading text at the bottom of the table so user knows an op is in progress
-	displayMessage("Fetching data...")
+	displayMessage("Fetching data...", false)
 
 	txns, err := wallet.TransactionHistory(int32(txOffset), txPerPage, nil)
 	if err != nil {
-		displayMessage(err.Error())
+		displayMessage(err.Error(), true)
 		return
 	}
 
@@ -168,7 +183,7 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 		}
 
 		// clear loading message text
-		displayMessage("")
+		displayMessage("", false)
 	})
 
 	if len(displayedTxHashes) < totalTxCount {
@@ -185,10 +200,10 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 	return
 }
 
-func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(errorMessage string), transactionDetailsTable *tview.Table) {
+func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, bool), transactionDetailsTable *tview.Table) {
 	tx, err := wallet.GetTransaction(txHash)
 	if err != nil {
-		displayError(err.Error())
+		displayError(err.Error(), true)
 		return
 	}
 
