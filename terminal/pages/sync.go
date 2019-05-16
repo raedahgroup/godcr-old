@@ -12,13 +12,11 @@ import (
 	"github.com/rivo/tview"
 )
 
-func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) {
+func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, displayPage func(tview.Primitive), hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	syncPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	// page title and hint
+	// page title 
 	syncPage.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 1, 0, false)
-	hintText := primitives.WordWrappedTextView("(Press ESC twice to cancel sync and exit the app)").SetTextColor(helpers.HintTextColor)
-	syncPage.AddItem(hintText, 3, 0, false)
 
 	errorTextView := primitives.WordWrappedTextView("")
 	errorTextView.SetTextColor(helpers.DecredOrangeColor)
@@ -28,7 +26,7 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		tviewApp.QueueUpdateDraw(func() {
 			syncPage.RemoveItem(errorTextView)
 			errorTextView.SetText(errorMessage)
-			syncPage.AddItem(errorTextView, 3, 0, false)
+			syncPage.AddItem(errorTextView, 1, 0, false)
 		})
 	}
 
@@ -50,7 +48,7 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 
 			// re-display error view?
 			if errorTextView.GetText() != "" {
-				syncPage.AddItem(errorTextView, 3, 0, false)
+				syncPage.AddItem(errorTextView, 1, 0, false)
 			}
 		})
 	}
@@ -58,7 +56,8 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	// function to be executed after the sync operation completes successfully
 	afterSyncing := func() {
 		tviewApp.QueueUpdateDraw(func() {
-			tviewApp.SetRoot(rootPage(tviewApp, walletMiddleware), true)
+			clearFocus()
+			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 		})
 	}
 
@@ -68,8 +67,9 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 	syncPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEsc {
 			if cancelTriggered {
-				tviewApp.Stop()
-			} else {
+				clearFocus()
+			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+		} else {
 				cancelTriggered = true
 				// remove cancel trigger after 1 second if user does not press escape again within that time
 				go func() {
@@ -82,9 +82,10 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		return event
 	})
 
-	syncPage.SetBorderPadding(3, 3, 3, 3)
-	syncPage.SetBackgroundColor(tcell.ColorBlack)
-	tviewApp.SetRoot(syncPage, true)
+	hintTextView.SetText("Press ESC twice to cancel synchronization process").SetTextColor(helpers.HintTextColor)
+
+	setFocus(syncPage)
+	return syncPage
 }
 
 func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string), handleError func(string), afterSyncing func()) {

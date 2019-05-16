@@ -2,7 +2,10 @@ package walletcore
 
 import (
 	"fmt"
+<<<<<<< HEAD
 	"strings"
+=======
+>>>>>>> 69206cb8ce727ef1397aeec1f844e0ebd2f150c9
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -25,9 +28,12 @@ func (balance *Balance) String() string {
 }
 
 type Account struct {
-	Name    string   `json:"name"`
-	Number  uint32   `json:"number"`
-	Balance *Balance `json:"balance"`
+	Name             string   `json:"name"`
+	Number           uint32   `json:"number"`
+	Balance          *Balance `json:"balance"`
+	ExternalKeyCount int32    `json:"external_key_count"`
+	InternalKeyCount int32    `json:"internal_key_count"`
+	ImportedKeyCount int32    `json:"imported_key_count"`
 }
 
 func (account *Account) String() string {

@@ -56,6 +56,9 @@ func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walle
 				VotingAuthority: dcrutil.Amount(acc.Balance.VotingAuthority),
 				Unconfirmed:     dcrutil.Amount(acc.Balance.UnConfirmed),
 			},
+			ExternalKeyCount: acc.ExternalKeyCount,
+			InternalKeyCount: acc.InternalKeyCount,
+			ImportedKeyCount: acc.ImportedKeyCount,
 		}
 		accountsOverview = append(accountsOverview, account)
 	}

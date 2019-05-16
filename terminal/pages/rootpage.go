@@ -10,7 +10,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 1, 0, 1, 2).
 		SetColumns(20, 2, 0, 2)
@@ -103,7 +103,9 @@ func rootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 		displayPage(exitPage(walletMiddleware, tviewApp, tviewApp.SetFocus, clearFocus))
 	})
 
-	displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+	tviewApp.QueueUpdateDraw(func() {
+		displayPage(LaunchSyncPage(tviewApp, walletMiddleware, displayPage, hintTextView,  tviewApp.SetFocus, clearFocus))
+	})
 
 	return gridLayout
 }

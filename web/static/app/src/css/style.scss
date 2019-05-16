@@ -52,14 +52,27 @@ table td {
   white-space: nowrap;
 }
 
+.valign-top td {
+  vertical-align: top;
+}
+
 .table td,
 .table th {
   padding: 0.3rem;
 }
 
+.table.pad-big td,
+.table.pad-big th {
+  padding: 0.7rem;
+}
+
 .table.inverse tbody td {
   background-color: #f5f5f5 !important;
   border-color: #fff !important;
+}
+
+.table.no-border tbody td {
+  border: none;
 }
 
 .card {
@@ -70,6 +83,10 @@ table td {
 
 .card-body {
   padding: 1.3rem 1.8rem !important;
+}
+
+.card-header-list-item:nth-last-child(2) {
+  border: none !important;
 }
 
 .form-control {
@@ -141,6 +158,18 @@ table td {
   text-decoration: none;
   display: block;
   cursor: pointer;
+}
+
+.card-header.white-bg {
+  background-color: #fff;
+}
+
+.no-pad {
+  padding: 0 !important;
+}
+
+.big-pad {
+  padding: 15px 5px;
 }
 
 .no-btm-pad {
@@ -330,6 +359,10 @@ label.list-group-item div {
 
 label.list-group-item h5 {
   display: inline !important;
+}
+
+label.float-icon::before {
+  float: left;
 }
 
 /* this is to take care of the padding embedded in the qr image */

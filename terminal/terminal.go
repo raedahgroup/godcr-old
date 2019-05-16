@@ -24,7 +24,7 @@ func StartTerminalApp(_ context.Context, walletMiddleware app.WalletMiddleware) 
 	//	tviewApp.SetRoot(pages.CreateWalletPage(tviewApp, walletMiddleware), true)
 	//}
 
-	pages.LaunchSyncPage(tviewApp, walletMiddleware)
+	tviewApp.SetRoot(pages.RootPage(tviewApp, walletMiddleware), true)
 
 	// `Run` blocks until app.Stop() is called before returning
 	return tviewApp.Run()
