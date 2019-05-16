@@ -39,13 +39,11 @@ func FetchBalance(wallet godcrApp.WalletMiddleware) string {
 }
 
 func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table, offSet, noOfTransaction int, button bool) (*widgets.Table, error) {
-	//table.Clear()
 	txns, err := wallet.TransactionHistory(int32(offSet), int32(noOfTransaction), nil)
 	if err != nil {
 		return nil, err
 	}
 	table.AddRowWithTextCells(
-		widgets.NewTableTextCell("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
 		widgets.NewTableTextCell("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
 		widgets.NewTableTextCell("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
 		widgets.NewTableTextCell("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
@@ -62,7 +60,6 @@ func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table,
 			})
 		}
 		table.AddRowWithTextCells(
-			widgets.NewTableTextCell(tx.AccountName(), fyne.TextAlignLeading, fyne.TextStyle{}, nil),
 			widgets.NewTableTextCell(tx.LongTime, fyne.TextAlignLeading, fyne.TextStyle{}, nil),
 			widgets.NewTableTextCell(tx.Type, fyne.TextAlignLeading, fyne.TextStyle{}, nil),
 			widgets.NewTableTextCell(tx.Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}, nil),

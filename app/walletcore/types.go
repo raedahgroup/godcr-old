@@ -2,7 +2,6 @@ package walletcore
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -82,32 +81,4 @@ type Transaction struct {
 	Confirmations int32  `json:"confirmations"`
 	ShortTime     string `json:"short_time"`
 	LongTime      string `json:"long_time"`
-}
-
-func (txn *Transaction) AccountName() string {
-	var accountNames []string
-	isInArray := func(accountName string) bool {
-		for _, name := range accountNames {
-			if name == accountName {
-				return true
-			}
-		}
-		return false
-	}
-	if txn.Direction == txhelper.TransactionDirectionReceived {
-		for _, output := range txn.Outputs {
-			if output.AccountNumber == -1 || isInArray(output.AccountName) {
-				continue
-			}
-			accountNames = append(accountNames, output.AccountName)
-		}
-	} else {
-		for _, input := range txn.Inputs {
-			if input.AccountNumber == -1 || isInArray(input.AccountName) {
-				continue
-			}
-			accountNames = append(accountNames, input.AccountName)
-		}
-	}
-	return strings.Join(accountNames, ", ")
 }
