@@ -2,10 +2,7 @@ package walletcore
 
 import (
 	"fmt"
-<<<<<<< HEAD
 	"strings"
-=======
->>>>>>> 69206cb8ce727ef1397aeec1f844e0ebd2f150c9
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
