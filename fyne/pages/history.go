@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"strconv"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -9,9 +11,22 @@ import (
 func HistoryPage(offSet, count int, windows fyne.Window, App fyne.App) fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("History", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 	table := widgets.NewTable()
-	table, _ = FetchRecentActivity(Wallet, table, offSet, count, true)
+	table, _ = FetchRecentActivity(table, offSet, count, true)
 
 	totalNoOfTxns, _ := Wallet.TransactionCount(nil)
+	txnCount := widget.NewLabel(strconv.Itoa(totalNoOfTxns) + " transactions")
+
+	//check if transactions exists
+	if totalNoOfTxns == 0 {
+		showText := widget.NewLabel("No transactions yet")
+		showText.Alignment = fyne.TextAlignCenter
+		return widget.NewVBox(
+			label,
+			widgets.NewVSpacer(10),
+			txnCount,
+			widgets.NewVSpacer(10),
+			showText)
+	}
 
 	var next *widget.Button
 	next = widget.NewButton("Next", func() {
@@ -23,6 +38,7 @@ func HistoryPage(offSet, count int, windows fyne.Window, App fyne.App) fyne.Canv
 			windows.SetContent(Menu(HistoryPage(offSet+count, totalNoOfTxns-offSet, windows, App), windows, App))
 		}
 	})
+
 	var back *widget.Button
 	back = widget.NewButton("Back", func() {
 		windows.SetContent(Menu(widget.NewLabelWithStyle("fetching data...", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true, Bold: true}), windows, App))
@@ -51,6 +67,7 @@ func HistoryPage(offSet, count int, windows fyne.Window, App fyne.App) fyne.Canv
 	return widget.NewVBox(
 		label,
 		widgets.NewVSpacer(10),
+		txnCount,
 		table.CondensedTable(),
 		widgets.NewVSpacer(10),
 		buttons)
