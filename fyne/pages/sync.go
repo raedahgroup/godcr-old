@@ -29,10 +29,7 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		window.SetContent(Menu(OverviewPage(window, App), window, App))
 	}()
 	go func() {
-		for {
-			//wait for 5 seconds to get peer info and block height
-			sec, _ := time.ParseDuration("5s")
-			time.Sleep(sec)
+		for{
 			info, _ := wallet.WalletConnectionInfo()
 			if info.PeersConnected <= 1 {
 				PeerConn.Text = strconv.Itoa(int(info.PeersConnected)) + " Peer Connected"
