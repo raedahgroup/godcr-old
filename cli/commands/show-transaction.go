@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-
 	"github.com/decred/dcrd/dcrutil"
+	ut "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -17,7 +17,8 @@ type ShowTransactionCommand struct {
 	commanderStub
 	Args              ShowTransactionCommandArgs `positional-args:"yes"`
 	txHistoryOffset   int32
-	displayedTxHashes []string
+	historyCommandDisplayedTxHashes []string
+	historyCommand bool
 }
 type ShowTransactionCommandArgs struct {
 	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
@@ -62,11 +63,11 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	for _, txOut := range transaction.Outputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
 	}
-	maxDecimalPlacesForInputsAndOutputsAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForInputsAndOutputsAmounts := ut.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return formatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+		return ut.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 	transactionOutput := strings.Builder{}
 	transactionOutput.WriteString("Transaction Details\n")
@@ -88,8 +89,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	}
 	termio.PrintStringResult(strings.TrimRight(transactionOutput.String(), " \n\r"))
 
-	// var prompt string
-	if len(showTxCommand.displayedTxHashes) > 0 {
+	if showTxCommand.historyCommand {
 		fmt.Println()
 		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
 
@@ -109,13 +109,9 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			return nil
 		}
 
-		var displayedTxHashes []string
-		displayedTxHashes = showTxCommand.displayedTxHashes
-		displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.txHistoryOffset))]
-
 		showTxHistory := HistoryCommand{
 			txHistoryOffset:   showTxCommand.txHistoryOffset,
-			displayedTxHashes: displayedTxHashes,
+			displayedTxHashes: showTxCommand.historyCommandDisplayedTxHashes,
 		}
 
 		err = showTxHistory.Run(ctx, wallet)
