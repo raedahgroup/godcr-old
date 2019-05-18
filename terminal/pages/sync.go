@@ -55,9 +55,10 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 
 	// function to be executed after the sync operation completes successfully
 	afterSyncing := func() {
-		clearFocus()
-		displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
-		return
+		tviewApp.QueueUpdateDraw(func() {
+			clearFocus()
+			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+		})
 	}
 
 	startSync(walletMiddleware, updateStatus, handleError, afterSyncing)

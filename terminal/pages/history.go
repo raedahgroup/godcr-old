@@ -32,17 +32,21 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	messageTextView := primitives.WordWrappedTextView("")
-
 	displayMessage := func(message string, error bool) {
 		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
 			body.RemoveItem(messageTextView)
-			messageTextView.SetText(message)
-			if error && message != "" {
-				messageTextView.SetTextColor(helpers.DecredOrangeColor)
-			}
+			if message != "" {
+				if error {
+					messageTextView.SetTextColor(helpers.DecredOrangeColor)
+				} else {
+					messageTextView.SetTextColor(tcell.ColorWhite)
+				}
 
-			body.AddItem(messageTextView, 2, 0, false)
+				messageTextView.SetText(message)
+				body.AddItem(messageTextView, 2, 0, false)
+
+			}
 		})
 	}
 
