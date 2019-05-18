@@ -385,8 +385,10 @@ func (handler *SendHandler) submit(passphrase string, window *widgets.Window) {
 
 	accountNumber := handler.accountSelectorWidget.GetSelectedAccountNumber()
 	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
-	if handler.spendUnconfirmed {
+	if handler.spendUnconfirmed == true {
 		requiredConfirmations = 0
+	}else {
+		requiredConfirmations = 2
 	}
 
 	if handler.selectCustomInputs {
