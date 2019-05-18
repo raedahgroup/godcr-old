@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	ut "github.com/raedahgroup/godcr/app/utils"
+	godcrUtils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
@@ -15,13 +15,17 @@ import (
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	commanderStub
-	Args                            ShowTransactionCommandArgs `positional-args:"yes"`
-	txHistoryOffset                 int32
-	historyCommandDisplayedTxHashes []string
-	historyCommand                  bool
+	Args ShowTransactionCommandArgs `positional-args:"yes"`
+	*HistoryCommandData
 }
+
 type ShowTransactionCommandArgs struct {
 	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
+}
+
+type HistoryCommandData struct {
+	txHistoryOffset                 int32
+	historyCommandDisplayedTxHashes []string
 }
 
 // Run runs the get-transaction command, displaying the transaction details to the client.
@@ -63,33 +67,33 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	for _, txOut := range transaction.Outputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
 	}
-	maxDecimalPlacesForInputsAndOutputsAmounts := ut.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForInputsAndOutputsAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return ut.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
-	transactionOutput := strings.Builder{}
-	transactionOutput.WriteString("Transaction Details\n")
-	transactionOutput.WriteString(basicOutput)
-	transactionOutput.WriteString("-Inputs- \t \n")
+	txDetailsOutput  := strings.Builder{}
+	txDetailsOutput.WriteString("Transaction Details\n")
+	txDetailsOutput.WriteString(basicOutput)
+	txDetailsOutput.WriteString("-Inputs- \t \n")
 	for _, input := range transaction.Inputs {
 		inputAmount := formatAmount(input.Amount)
-		transactionOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
+		txDetailsOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
 	}
-	transactionOutput.WriteString("-Outputs- \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
+	txDetailsOutput.WriteString("-Outputs- \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
 	for _, out := range transaction.Outputs {
 		outputAmount := formatAmount(out.Amount)
 
 		if out.Address == "" {
-			transactionOutput.WriteString(fmt.Sprintf("  %s \t (no address)\n", outputAmount))
+			txDetailsOutput.WriteString(fmt.Sprintf("  %s \t (no address)\n", outputAmount))
 			continue
 		}
-		transactionOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
+		txDetailsOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
 	}
-	termio.PrintStringResult(strings.TrimRight(transactionOutput.String(), " \n\r"))
+	termio.PrintStringResult(strings.TrimRight(txDetailsOutput.String(), " \n\r"))
 
-	if showTxCommand.historyCommand {
+	if showTxCommand.HistoryCommandData != nil {
 		fmt.Println()
 		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
 
@@ -110,8 +114,8 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		}
 
 		showTxHistory := HistoryCommand{
-			txHistoryOffset:   showTxCommand.txHistoryOffset,
-			displayedTxHashes: showTxCommand.historyCommandDisplayedTxHashes,
+			txHistoryOffset:   showTxCommand.HistoryCommandData.txHistoryOffset,
+			displayedTxHashes: showTxCommand.HistoryCommandData.historyCommandDisplayedTxHashes,
 		}
 
 		err = showTxHistory.Run(ctx, wallet)

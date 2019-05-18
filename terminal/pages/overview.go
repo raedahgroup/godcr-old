@@ -5,7 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	ut "github.com/raedahgroup/godcr/app/utils"
+	godcrUtils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -81,11 +81,11 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 			break
 		}
 	}
-	maxDecimalPlacesForTxAmounts := ut.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForTxAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return ut.FormatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
+		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
 	}
 
 	for _, tx := range txns {
