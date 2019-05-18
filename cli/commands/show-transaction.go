@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -53,17 +54,31 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		dcrutil.Amount(transaction.FeeRate).String(),
 	)
 
+	// calculate max number of digits after decimal point for inputs and outputs
+	inputsAndOutputsAmount := make([]int64, 0, len(transaction.Inputs)+len(transaction.Outputs))
+	for _, txIn := range transaction.Inputs {
+		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txIn.Amount)
+	}
+	for _, txOut := range transaction.Outputs {
+		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
+	}
+	maxDecimalPlacesForInputsAndOutputsAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+
+	// now format amount having determined the max number of decimal places
+	formatAmount := func(amount int64) string {
+		return formatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+	}
 	transactionOutput := strings.Builder{}
 	transactionOutput.WriteString("Transaction Details\n")
 	transactionOutput.WriteString(basicOutput)
-	transactionOutput.WriteString("Inputs \t \n")
+	transactionOutput.WriteString("-Inputs- \t \n")
 	for _, input := range transaction.Inputs {
-		inputAmount := dcrutil.Amount(input.Amount).String()
+		inputAmount := formatAmount(input.Amount)
 		transactionOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
 	}
-	transactionOutput.WriteString("Outputs \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
+	transactionOutput.WriteString("-Outputs- \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
 	for _, out := range transaction.Outputs {
-		outputAmount := dcrutil.Amount(out.Amount).String()
+		outputAmount := formatAmount(out.Amount)
 
 		if out.Address == "" {
 			transactionOutput.WriteString(fmt.Sprintf("  %s \t (no address)\n", outputAmount))
