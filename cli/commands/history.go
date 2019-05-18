@@ -143,6 +143,7 @@ func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 			Args:              showTransactionCommandArgs,
 			txHistoryOffset:   history.txHistoryOffset,
 			displayedTxHashes: history.displayedTxHashes,
+			Detailed:          true,
 		}
 
 		fmt.Println()

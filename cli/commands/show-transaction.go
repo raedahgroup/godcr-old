@@ -14,6 +14,7 @@ import (
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	commanderStub
+	Detailed          bool                       `short:"d" long:"detailed" description:"Display detailed transaction information"`
 	Args              ShowTransactionCommandArgs `positional-args:"yes"`
 	txHistoryOffset   int32
 	displayedTxHashes []string
@@ -53,62 +54,65 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		dcrutil.Amount(transaction.FeeRate).String(),
 	)
 
-	transactionOutput := strings.Builder{}
-	transactionOutput.WriteString("Transaction Details\n")
-	transactionOutput.WriteString(basicOutput)
-	transactionOutput.WriteString("Inputs \t \n")
-	for _, input := range transaction.Inputs {
-		inputAmount := dcrutil.Amount(input.Amount).String()
-		transactionOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
-	}
-	transactionOutput.WriteString("Outputs \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
-	for _, out := range transaction.Outputs {
-		outputAmount := dcrutil.Amount(out.Amount).String()
-
-		if out.Address == "" {
-			transactionOutput.WriteString(fmt.Sprintf("  %s \t (no address)\n", outputAmount))
-			continue
+	if showTxCommand.Detailed {
+		detailedOutput := strings.Builder{}
+		detailedOutput.WriteString("Transaction Details\n")
+		detailedOutput.WriteString(basicOutput)
+		detailedOutput.WriteString("Inputs \t \n")
+		for _, input := range transaction.Inputs {
+			inputAmount := dcrutil.Amount(input.Amount).String()
+			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
 		}
-		transactionOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
-	}
-	termio.PrintStringResult(strings.TrimRight(transactionOutput.String(), " \n\r"))
+		detailedOutput.WriteString("Outputs \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
+		for _, out := range transaction.Outputs {
+			outputAmount := dcrutil.Amount(out.Amount).String()
 
-	// var prompt string
-	if len(showTxCommand.displayedTxHashes) > 0 {
-		fmt.Println()
-		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
+			if out.Address == "" {
+				detailedOutput.WriteString(fmt.Sprintf("  %s \t (no address)\n", outputAmount))
+				continue
+			}
+			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s (%s)\n", outputAmount, out.Address, out.AccountName))
+		}
+		termio.PrintStringResult(strings.TrimRight(detailedOutput.String(), " \n\r"))
 
-		validateUserInput := func(userInput string) error {
-			if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
+		// var prompt string
+		if len(showTxCommand.displayedTxHashes) > 0 {
+			fmt.Println()
+			prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
+
+			validateUserInput := func(userInput string) error {
+				if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
+					return nil
+				}
 				return nil
 			}
-			return nil
-		}
 
-		userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
-		if err != nil {
-			return fmt.Errorf("error reading response: %s", err.Error())
-		}
+			userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
+			if err != nil {
+				return fmt.Errorf("error reading response: %s", err.Error())
+			}
 
-		if strings.EqualFold(userChoice, "q") {
-			return nil
-		}
+			if strings.EqualFold(userChoice, "q") {
+				return nil
+			}
 
-		var displayedTxHashes []string
-		displayedTxHashes = showTxCommand.displayedTxHashes
-		displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.txHistoryOffset))]
+			var displayedTxHashes []string
+			displayedTxHashes = showTxCommand.displayedTxHashes
+			displayedTxHashes = displayedTxHashes[:len(displayedTxHashes)-(len(displayedTxHashes)-int(showTxCommand.txHistoryOffset))]
 
-		showTxHistory := HistoryCommand{
-			txHistoryOffset:   showTxCommand.txHistoryOffset,
-			displayedTxHashes: displayedTxHashes,
-		}
+			showTxHistory := HistoryCommand{
+				txHistoryOffset:   showTxCommand.txHistoryOffset,
+				displayedTxHashes: displayedTxHashes,
+			}
 
-		err = showTxHistory.Run(ctx, wallet)
-		if err == nil {
-			fmt.Println()
+			err = showTxHistory.Run(ctx, wallet)
+			if err == nil {
+				fmt.Println()
+			}
+			return err
 		}
-		return err
+	} else {
+		termio.PrintStringResult(basicOutput)
 	}
-
 	return nil
 }
