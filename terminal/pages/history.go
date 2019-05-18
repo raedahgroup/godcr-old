@@ -6,8 +6,8 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
-	ut "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/dcrlibwallet/utils"
+	ut "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"

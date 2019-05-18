@@ -15,10 +15,10 @@ import (
 // ShowTransactionCommand requests for transaction details with a transaction hash.
 type ShowTransactionCommand struct {
 	commanderStub
-	Args              ShowTransactionCommandArgs `positional-args:"yes"`
-	txHistoryOffset   int32
+	Args                            ShowTransactionCommandArgs `positional-args:"yes"`
+	txHistoryOffset                 int32
 	historyCommandDisplayedTxHashes []string
-	historyCommand bool
+	historyCommand                  bool
 }
 type ShowTransactionCommandArgs struct {
 	TxHash string `positional-arg-name:"transaction hash" required:"yes"`

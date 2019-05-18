@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-		"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/dcrutil"
 )
 
 func DecimalPortion(n float64) string {
@@ -34,7 +34,6 @@ func SplitAmountIntoParts(amount float64) []string {
 
 	return balanceParts
 }
-
 
 func MaxDecimalPlaces(amounts []int64) (maxDecimalPlaces int) {
 	for _, amount := range amounts {
