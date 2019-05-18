@@ -11,7 +11,7 @@ export default class extends Controller {
       'txRowTemplate',
       'errorMessage',
       'previousPageButton', 'pageReport', 'nextPageButton',
-      'loadingIndicator',
+      'loadingIndicator'
     ]
   }
 
