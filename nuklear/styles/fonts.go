@@ -9,16 +9,19 @@ import (
 )
 
 var (
-	NavFont             font.Face
-	PageHeaderFont      font.Face
-	PageContentFont     font.Face
-	BoldPageContentFont font.Face
+	NavFont                  font.Face
+	PageHeaderFont           font.Face
+	PageContentFont          font.Face
+	BoldPageContentFont      font.Face
+	SmallBoldPageContentFont font.Face
+	LightPageContentFont     font.Face
 )
 
 const (
 	pageHeaderFontSize  = 18
 	pageContentFontSize = 16
 	navFontSize         = 16
+	SmallFontSize       = 13
 )
 
 func InitFonts() error {
@@ -53,6 +56,11 @@ func InitFonts() error {
 	}
 
 	BoldPageContentFont, err = getFont(pageContentFontSize, semiBoldFontBytes)
+	if err != nil {
+		return err
+	}
+
+	SmallBoldPageContentFont, err = getFont(SmallFontSize, semiBoldFontBytes)
 	if err != nil {
 		return err
 	}

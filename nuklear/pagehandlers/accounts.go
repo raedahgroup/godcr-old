@@ -1,20 +1,31 @@
 package pagehandlers
 
 import (
+	"errors"
 	"fmt"
+	"image"
 	"strconv"
 
 	"github.com/aarzilli/nucular"
+	"github.com/aarzilli/nucular/command"
+	"github.com/aarzilli/nucular/rect"
+	nstyle "github.com/aarzilli/nucular/style"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"golang.org/x/mobile/event/mouse"
+)
+
+const (
+	estimatedSettingsWindowHeight = 140
+	estimatedGroupWindowPadding   = 12
 )
 
 type account struct {
-	setAsHidden         bool
-	setAsDefaultAccount bool
-	account             *walletcore.Account
+	isSetAsHidden         bool
+	isSetAsDefaultAccount bool
+	account               *walletcore.Account
 }
 
 type AccountsHandler struct {
@@ -44,7 +55,7 @@ func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings 
 }
 
 func (handler *AccountsHandler) Render(window *nucular.Window) {
-	if handler.accounts == nil && handler.err == nil {
+	if handler.accounts == nil && handler.err == nil && !handler.isFetchingAccounts {
 		go handler.fetchAccounts(window.Master().Changed)
 	}
 
@@ -68,6 +79,8 @@ func (handler *AccountsHandler) Render(window *nucular.Window) {
 
 func (handler *AccountsHandler) fetchAccounts(refreshWindowDisplay func()) {
 	handler.isFetchingAccounts = true
+	refreshWindowDisplay()
+
 	defer func() {
 		handler.isFetchingAccounts = false
 		refreshWindowDisplay()
@@ -80,98 +93,145 @@ func (handler *AccountsHandler) fetchAccounts(refreshWindowDisplay func()) {
 	}
 
 	for _, accountItem := range accounts {
-		var setAsHidden, setAsDefaultAccount bool
+		var isSetAsHidden, isSetAsDefaultAccount bool
 		for _, hiddenAccount := range handler.settings.HiddenAccounts {
 			if uint32(hiddenAccount) == accountItem.Number {
-				setAsHidden = true
+				isSetAsHidden = true
 				break
 			}
 		}
 
 		if handler.settings.DefaultAccount == accountItem.Number {
-			setAsDefaultAccount = true
+			isSetAsDefaultAccount = true
 		}
 
 		acc := &account{
-			setAsHidden:         setAsHidden,
-			setAsDefaultAccount: setAsDefaultAccount,
-			account:             accountItem,
+			isSetAsHidden:         isSetAsHidden,
+			isSetAsDefaultAccount: isSetAsDefaultAccount,
+			account:               accountItem,
 		}
 		handler.accounts = append(handler.accounts, acc)
 	}
 }
 
 func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
-	for _, item := range handler.accounts {
+	for index, item := range handler.accounts {
 		headerLabel := item.account.Name + " - " + item.account.Balance.Total.String()
 		if item.account.Balance.Total != item.account.Balance.Spendable {
 			headerLabel += fmt.Sprintf(" (Spendable: %s )", item.account.Balance.Spendable.String())
 		}
 
+		table := widgets.NewTable()
+		table.AddRow(
+			widgets.NewLabelTableCell("Account Number:", "LC"),
+			widgets.NewLabelTableCell(strconv.Itoa(int(item.account.Number)), "LC"),
+		)
+		table.AddRow(
+			widgets.NewLabelTableCell("HD Path:", "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%s %d", handler.networkHDPath, item.account.Number), "LC"),
+		)
+		table.AddRow(
+			widgets.NewLabelTableCell("Keys:", "LC"),
+			widgets.NewLabelTableCell(fmt.Sprintf("%d External, %d Internal, %d Imported", item.account.ExternalKeyCount, item.account.InternalKeyCount, item.account.ImportedKeyCount), "LC"),
+		)
+
+		tableHeight := table.Height()
+		totalWindowPadding := estimatedGroupWindowPadding * 3
+
 		window.Row(30).Dynamic(1)
 		if window.TreePush(nucular.TreeNode, headerLabel, false) {
-			window.AddLabelWithFont("Properties", "LC", styles.BoldPageContentFont)
+			window.Row(tableHeight + estimatedSettingsWindowHeight + totalWindowPadding).Dynamic(1)
+			widgets.NoScrollGroupWindow(fmt.Sprintf("properties-window-%d", item.account.Number), window.Window, func(mainWindow *widgets.Window) {
+				mainWindow.AddLabelWithFont("Properties", "LC", styles.BoldPageContentFont)
 
-			window.Row(98).Dynamic(1)
-			widgets.GroupWindow("", window.Window, 0, func(propertyWindow *widgets.Window) {
-				table := widgets.NewTable()
-				table.AddRow(
-					widgets.NewLabelTableCell("Account Number", "LC"),
-					widgets.NewLabelTableCell(strconv.Itoa(int(item.account.Number)), "LC"),
-				)
-				table.AddRow(
-					widgets.NewLabelTableCell("HD Path", "LC"),
-					widgets.NewLabelTableCell(fmt.Sprintf("%s %d", handler.networkHDPath, item.account.Number), "LC"),
-				)
-				table.AddRow(
-					widgets.NewLabelTableCell("Keys", "LC"),
-					widgets.NewLabelTableCell(fmt.Sprintf("%d External, %d Internal, %d Imported", item.account.ExternalKeyCount, item.account.InternalKeyCount, item.account.ImportedKeyCount), "LC"),
-				)
-				table.Render(propertyWindow)
+				mainWindow.Row(tableHeight + estimatedGroupWindowPadding).Dynamic(1)
+				widgets.GroupWindow(fmt.Sprintf("table-window-%d", item.account.Number), mainWindow.Window, 0, func(tableWindow *widgets.Window) {
+					table.Render(tableWindow)
+				})
+
+				mainWindow.AddLabelWithFont("Settings", "LC", styles.BoldPageContentFont)
+				mainWindow.Row(estimatedSettingsWindowHeight + estimatedGroupWindowPadding).Dynamic(1)
+				widgets.GroupWindow(fmt.Sprintf("settings-window-%d", item.account.Number), mainWindow.Window, 0, func(settingsWindow *widgets.Window) {
+					halfHeight := (estimatedSettingsWindowHeight - 30) / 2
+
+					settingsWindow.Row(halfHeight).Dynamic(1)
+					bounds, out := settingsWindow.Custom(nstyle.WidgetStateInactive)
+					handler.drawHideAccountBox(item, settingsWindow, bounds, out)
+
+					bounds, out = settingsWindow.Custom(nstyle.WidgetStateInactive)
+					handler.drawDefaultAccountBox(item, settingsWindow, bounds, out)
+				})
 			})
-
-			window.AddLabelWithFont("Settings", "LC", styles.BoldPageContentFont)
-
-			window.Row(60).Dynamic(1)
-			widgets.GroupWindow("", window.Window, 0, func(settingsWindow *widgets.Window) {
-				settingsWindow.AddCheckbox("Hide This Account (Account balance will be ignored)", &item.setAsHidden, handler.toggleAccountVisibilty(item, settingsWindow))
-				settingsWindow.AddCheckbox("Default Account (Make this account default for all outgoing and incoming transactions)", &item.setAsDefaultAccount, handler.toggleDefaultAccount(item, settingsWindow))
-			})
-
 			window.TreePop()
 		}
-	}
-}
 
-func (handler *AccountsHandler) toggleAccountVisibilty(account *account, window *widgets.Window) func() {
-	return func() {
-		if account.setAsHidden {
-			handler.hideAccount(account, window)
-		} else {
-			handler.revealAccount(account, window)
+		if index != len(handler.accounts)-1 {
+			window.AddHorizontalLine(1, styles.BorderColor)
 		}
 	}
 }
 
-func (handler *AccountsHandler) toggleDefaultAccount(account *account, window *widgets.Window) func() {
-	return func() {
-		if account.setAsDefaultAccount {
-			handler.setDefaultAccount(account, window)
-		} else {
-			handler.unsetDefaultAccount(account, window)
-		}
+func (handler *AccountsHandler) drawHideAccountBox(account *account, window *widgets.Window, bounds rect.Rect, out *command.Buffer) {
+	strokeHeight := 1
+
+	bottomLeftPoint := image.Point{bounds.X, bounds.Y + bounds.H - strokeHeight}
+	bottomRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + bounds.H - strokeHeight}
+	topRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y}
+
+	out.StrokeLine(bounds.Min(), bottomLeftPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(bottomLeftPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(bottomRightPoint, topRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(topRightPoint, bounds.Min(), strokeHeight, styles.BorderColor)
+
+	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, window.LastWidgetBounds, false) {
+		handler.toggleAccountVisibilty(account, window)
 	}
+
+	mainTextRect := rect.Rect{
+		X: bounds.X + 30,
+		Y: bounds.Y + 10,
+		W: bounds.W,
+		H: 20,
+	}
+
+	leadTextRect := rect.Rect{
+		X: bounds.X + 20,
+		Y: mainTextRect.Y + mainTextRect.H,
+		W: bounds.W,
+		H: 20,
+	}
+
+	out.DrawText(mainTextRect, "Hide this account", styles.SmallBoldPageContentFont, styles.BlackColor)
+	out.DrawText(leadTextRect, "Account balance will be ignored", styles.PageContentFont, styles.GrayColor)
 }
 
-func (handler *AccountsHandler) hideAccount(account *account, window *widgets.Window) {
-	accountToBeHidden := account.account.Number
+func (handler *AccountsHandler) toggleAccountVisibilty(accountItem *account, window *widgets.Window) {
+	defer window.Master().Changed()
+
+	var toggleAccountVisibilityFunc func(*account, *widgets.Window) error
+	if accountItem.isSetAsHidden {
+		toggleAccountVisibilityFunc = handler.revealAccount
+	} else {
+		toggleAccountVisibilityFunc = handler.hideAccount
+	}
+
+	if err := toggleAccountVisibilityFunc(accountItem, window); err != nil {
+		widgets.NewAlertWidget(fmt.Sprintf("Error saving changes: %s", err.Error()), true, window)
+		return
+	}
+
+	accountItem.isSetAsHidden = !accountItem.isSetAsHidden
+	widgets.NewAlertWidget("Changes saved successfully!", false, window)
+}
+
+func (handler *AccountsHandler) hideAccount(accountItem *account, window *widgets.Window) error {
+	accountToBeHidden := accountItem.account.Number
 	hiddenAccounts := handler.settings.HiddenAccounts
 
 	// make sure the account is not already set to be hidden
 	for _, hiddenAccount := range hiddenAccounts {
 		if hiddenAccount == accountToBeHidden {
-			widgets.NewAlertWidget("Account is already hidden", true, window)
-			return
+			return errors.New("Account is already hidden")
 		}
 	}
 
@@ -180,75 +240,120 @@ func (handler *AccountsHandler) hideAccount(account *account, window *widgets.Wi
 		cnfg.HiddenAccounts = hiddenAccounts
 	})
 	if err != nil {
-		widgets.NewAlertWidget(fmt.Sprintf("Error hidding account: %s", err.Error()), true, window)
-		return
+		return err
 	}
 	handler.settings.HiddenAccounts = hiddenAccounts
-	widgets.NewAlertWidget("Successfully set account as hidden", false, window)
+	return nil
 }
 
-func (handler *AccountsHandler) revealAccount(account *account, window *widgets.Window) {
-	defer window.Master().Changed()
-
+func (handler *AccountsHandler) revealAccount(accountItem *account, window *widgets.Window) error {
 	hiddenAccounts := handler.settings.HiddenAccounts
 	for index := range handler.settings.HiddenAccounts {
-		if hiddenAccounts[index] == account.account.Number {
+		if hiddenAccounts[index] == accountItem.account.Number {
 			hiddenAccounts = append(hiddenAccounts[:index], hiddenAccounts[index+1:]...)
 			err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
 				cnfg.HiddenAccounts = hiddenAccounts
 			})
 			if err != nil {
-				widgets.NewAlertWidget(fmt.Sprintf("Error revealing account: %s", err.Error()), true, window)
-				return
+				return err
 			}
 
 			handler.settings.HiddenAccounts = hiddenAccounts
-			widgets.NewAlertWidget("Successfully revealed account", false, window)
-			return
+			return nil
 		}
 	}
-	widgets.NewAlertWidget("Error revealing account", true, window)
+	return errors.New("Error revealing account")
 }
 
-func (handler *AccountsHandler) setDefaultAccount(account *account, window *widgets.Window) {
-	// first check if account is alreadr default
-	if handler.settings.DefaultAccount == account.account.Number {
-		widgets.NewAlertWidget("Account already default the default account account", true, window)
+func (handler *AccountsHandler) drawDefaultAccountBox(account *account, window *widgets.Window, bounds rect.Rect, out *command.Buffer) {
+	strokeHeight := 1
+
+	bottomLeftPoint := image.Point{bounds.X, bounds.Y + bounds.H - strokeHeight}
+
+	topRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y}
+	bottomRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + bounds.H - strokeHeight}
+
+	out.StrokeLine(bounds.Min(), bottomLeftPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(topRightPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(bottomLeftPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(topRightPoint, bounds.Min(), strokeHeight, styles.BorderColor)
+
+	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, window.LastWidgetBounds, false) {
+		handler.toggleDefaultAccount(account, window)
+	}
+
+	mainTextRect := rect.Rect{
+		X: bounds.X + 40,
+		Y: bounds.Y + 10,
+		W: bounds.W,
+		H: 20,
+	}
+
+	leadTextRect := rect.Rect{
+		X: bounds.X + 15,
+		Y: mainTextRect.Y + mainTextRect.H,
+		W: bounds.W,
+		H: 20,
+	}
+
+	out.DrawText(mainTextRect, "Default Account", styles.SmallBoldPageContentFont, styles.BlackColor)
+	out.DrawText(leadTextRect, "Make this account default for all outgoing and incoming transactions", styles.PageContentFont, styles.GrayColor)
+}
+
+func (handler *AccountsHandler) toggleDefaultAccount(accountItem *account, window *widgets.Window) {
+	defer window.Master().Changed()
+
+	var toggleAccountFunc func(accountItem *account, window *widgets.Window) error
+	if accountItem.isSetAsDefaultAccount {
+		toggleAccountFunc = handler.unsetDefaultAccount
+	} else {
+		toggleAccountFunc = handler.setDefaultAccount
+	}
+
+	if err := toggleAccountFunc(accountItem, window); err != nil {
+		widgets.NewAlertWidget(fmt.Sprintf("Error saving changes: %s", err.Error()), true, window)
 		return
+	}
+
+	accountItem.isSetAsDefaultAccount = !accountItem.isSetAsDefaultAccount
+	widgets.NewAlertWidget("Changes saved successfully!", false, window)
+}
+
+func (handler *AccountsHandler) setDefaultAccount(accountItem *account, window *widgets.Window) error {
+	// first check if account is alreadr default
+	if handler.settings.DefaultAccount == accountItem.account.Number {
+		return errors.New("The account is already set as default")
 	}
 
 	// uncheck the other default account checkbox
 	for _, acc := range handler.accounts {
-		if acc.setAsDefaultAccount && acc.account.Number != account.account.Number {
-			acc.setAsDefaultAccount = false
+		if acc.isSetAsDefaultAccount && acc.account.Number != accountItem.account.Number {
+			acc.isSetAsDefaultAccount = false
 		}
 	}
 
 	err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
-		cnfg.DefaultAccount = account.account.Number
+		cnfg.DefaultAccount = accountItem.account.Number
 	})
 	if err != nil {
-		widgets.NewAlertWidget(fmt.Sprintf("Error setting default account: %s", err.Error()), true, window)
-		return
+		return err
 	}
-	handler.settings.DefaultAccount = account.account.Number
-	widgets.NewAlertWidget("Successfully set default account", false, window)
+	handler.settings.DefaultAccount = accountItem.account.Number
+	return nil
 }
 
-func (handler *AccountsHandler) unsetDefaultAccount(account *account, window *widgets.Window) {
+func (handler *AccountsHandler) unsetDefaultAccount(accountItem *account, window *widgets.Window) error {
 	// first check if account is default
-	if handler.settings.DefaultAccount != account.account.Number {
-		widgets.NewAlertWidget("Account is not set as default", true, window)
-		return
+	if handler.settings.DefaultAccount != accountItem.account.Number {
+		return errors.New("This account is not set as default")
 	}
 
 	err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
 		cnfg.DefaultAccount = 0
 	})
 	if err != nil {
-		widgets.NewAlertWidget(fmt.Sprintf("Error updating default account: %s", err.Error()), true, window)
-		return
+		return err
 	}
-	widgets.NewAlertWidget("Successfully updated default account", false, window)
 	handler.settings.DefaultAccount = 0
+	return nil
 }
