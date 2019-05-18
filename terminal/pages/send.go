@@ -74,8 +74,10 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		}
 
 		var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
-		if spendUnconfirmed {
+		if spendUnconfirmed == true {
 			requiredConfirmations = 0
+		}else {
+			requiredConfirmations = 2
 		}
 
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
