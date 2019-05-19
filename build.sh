@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-function buildFe {
+function buildFrontEnd {
   echo "cd web/static/app"
   cd web/static/app
   echo 'yarn install'
@@ -9,23 +9,23 @@ function buildFe {
   echo 'cd ../../../'
   cd ../../../
 }
-function buildBe {
+
+function buildBackEnd {
   echo 'go build'
   go build
 }
+
 function deploy() {
-  buildFe
+  buildFrontEnd
   echo 'go mod download'
   go mod download
   echo 'packr build'
   packr build
 }
 ACTION=$1
-if [[ "$ACTION" = "deploy" ]]; then
-  deploy
-elif [[ "$ACTION" = "web" ]]; then
-  buildBe
-  buildFe
+if [[ "$ACTION" = "web" ]]; then
+  buildBackEnd
+  buildFrontEnd
 else
   deploy
 fi
