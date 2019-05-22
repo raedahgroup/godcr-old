@@ -90,6 +90,7 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			weblog.LogError(fmt.Errorf("error fetching exchange rate: %s", err.Error()))
 		}
+
 		data["exchangeRate"] = fmt.Sprintf("%.8f", exchangeRate)
 	}
 
@@ -173,11 +174,13 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 	}
+
 	fee, err := utils.EstimateFee(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated fee failed: %s", err.Error())
 		return
 	}
+
 	size, err := utils.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
