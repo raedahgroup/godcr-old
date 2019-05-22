@@ -137,13 +137,12 @@ func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 		txRowNumber, _ := strconv.ParseUint(userChoice, 10, 32)
 		txHash := history.displayedTxHashes[txRowNumber-1]
 
-		displayedTxHashes := history.displayedTxHashes[:len(history.displayedTxHashes)-(len(history.displayedTxHashes)-int(history.txHistoryOffset))]
-
+		displayedTxHashes := history.displayedTxHashes[:int(history.txHistoryOffset)]
 		showTransactionCommandArgs := ShowTransactionCommandArgs{txHash}
 
 		showTxDetails := ShowTransactionCommand{
 			Args: showTransactionCommandArgs,
-			HistoryCommandData: &HistoryCommandData {
+			historyCommandData: &historyCommandData{
 				txHistoryOffset:                 history.txHistoryOffset,
 				historyCommandDisplayedTxHashes: displayedTxHashes,
 			},

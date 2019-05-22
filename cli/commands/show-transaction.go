@@ -16,14 +16,14 @@ import (
 type ShowTransactionCommand struct {
 	commanderStub
 	Args ShowTransactionCommandArgs `positional-args:"yes"`
-	*HistoryCommandData
+	*historyCommandData
 }
 
 type ShowTransactionCommandArgs struct {
 	TxHash string `positional-arg-name:"transaction hash" required:"yes"`
 }
 
-type HistoryCommandData struct {
+type historyCommandData struct {
 	txHistoryOffset                 int32
 	historyCommandDisplayedTxHashes []string
 }
@@ -73,7 +73,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	formatAmount := func(amount int64) string {
 		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
-	txDetailsOutput  := strings.Builder{}
+	txDetailsOutput := strings.Builder{}
 	txDetailsOutput.WriteString("Transaction Details\n")
 	txDetailsOutput.WriteString(basicOutput)
 	txDetailsOutput.WriteString("-Inputs- \t \n")
@@ -93,7 +93,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 	}
 	termio.PrintStringResult(strings.TrimRight(txDetailsOutput.String(), " \n\r"))
 
-	if showTxCommand.HistoryCommandData != nil {
+	if showTxCommand.historyCommandData != nil {
 		fmt.Println()
 		prompt := fmt.Sprintf("Enter (h)istory table, or (q)uit")
 
@@ -114,8 +114,8 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		}
 
 		showTxHistory := HistoryCommand{
-			txHistoryOffset:   showTxCommand.HistoryCommandData.txHistoryOffset,
-			displayedTxHashes: showTxCommand.HistoryCommandData.historyCommandDisplayedTxHashes,
+			txHistoryOffset:   showTxCommand.historyCommandData.txHistoryOffset,
+			displayedTxHashes: showTxCommand.historyCommandData.historyCommandDisplayedTxHashes,
 		}
 
 		err = showTxHistory.Run(ctx, wallet)
