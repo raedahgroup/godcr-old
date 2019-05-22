@@ -45,7 +45,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 				messageTextView.SetText(message)
 				body.AddItem(messageTextView, 2, 0, false)
-
 			}
 		})
 	}
@@ -152,7 +151,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 }
 
 func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application, displayMessage func(string, bool)) {
-
 	// show a loading text at the bottom of the table so user knows an op is in progress
 	displayMessage("Fetching data...", false)
 
@@ -210,7 +208,6 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	tx, err := wallet.GetTransaction(txHash)
 	if err != nil {
 		displayError(err.Error(), true)
-		return
 	}
 
 	transactionDetailsTable.SetCellSimple(0, 0, "Hash")
