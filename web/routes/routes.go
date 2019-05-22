@@ -64,9 +64,9 @@ func (routes *Routes) loadTemplates() {
 		parsedTemplate := template.New(tmpl.name).Funcs(templateFuncMap())
 
 		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(tmpl.path))
-		
+
 		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(layout))
-		
+
 		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(utils))
 
 		routes.templates[tmpl.name] = parsedTemplate
