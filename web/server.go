@@ -24,7 +24,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, htt
 	router := chi.NewRouter()
 
 	// setup static file serving
-	makeStaticFileServer(router, "/static", packr.NewBox("../../static/dist"))
+	makeStaticFileServer(router, "/static", packr.NewBox("../../web/static/dist"))
 
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened
 	// returns error if wallet exists but could not be opened

@@ -51,27 +51,23 @@ func (routes *Routes) loadTemplates() {
 
 	viewBox := packr.NewBox("../views")
 
+	viewContentFunc := func(template string) string {
+		viewContent, err := viewBox.FindString(template)
+		if err != nil {
+			log.Fatalf("error loading templates: %s", err.Error())
+		}
+
+		return viewContent
+	}
+
 	for _, tmpl := range templates() {
 		parsedTemplate := template.New(tmpl.name).Funcs(templateFuncMap())
 
-		viewContent, err := viewBox.FindString(tmpl.path)
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
-		parsedTemplate, err = parsedTemplate.Parse(viewContent)
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
-
-		parsedTemplate, err = parsedTemplate.Parse(viewBox.String(layout))
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
-
-		parsedTemplate, err = parsedTemplate.Parse(viewBox.String(utils))
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
+		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(tmpl.path))
+		
+		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(layout))
+		
+		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(utils))
 
 		routes.templates[tmpl.name] = parsedTemplate
 	}
