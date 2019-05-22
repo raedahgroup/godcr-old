@@ -137,16 +137,16 @@ func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, a
 }
 
 func BuildTxDestinations(destinationAddresses, destinationAccounts,
-	destinationAmounts, sendMaxAmountValues []string, addressFunc func(accountNumber uint32) (string, error)) (
+	destinationAmounts, sendMaxAmountValues []string, generateAddressFn func(accountNumber uint32) (string, error)) (
 	destinations []txhelper.TransactionDestination, totalAmount dcrutil.Amount, err error) {
 
 	destinationAccountAddresses := make([]string, len(destinationAccounts))
-	for i, accountStr := range destinationAccounts {
-		account, err := strconv.ParseInt(accountStr, 10, 32)
+	for i, accountNumberStr := range destinationAccounts {
+		account, err := strconv.ParseInt(accountNumberStr, 10, 32)
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, fmt.Errorf("Invalid account number")
 		}
-		address, err := addressFunc(uint32(account))
+		address, err := generateAddressFn(uint32(account))
 		destinationAccountAddresses[i] = address
 	}
 

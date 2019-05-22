@@ -184,7 +184,7 @@
                                             <div class="form-row align-items-center mb-2">
                                                 <div class="form-group col-lg-4 col-md-5 col-sm-12">
                                                     <select data-target="send.destinationAccount" class="form-control"
-                                                            name="destination-account">
+                                                            name="destination-account-number">
                                                         {{ range $account := .accounts }}
                                                             <option value="{{ $account.Number }}" data-account-name="{{ $account.Name }}">{{ accountString $account }}</option>
                                                         {{ end }}

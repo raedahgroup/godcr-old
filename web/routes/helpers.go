@@ -66,7 +66,7 @@ func retrieveSendPagePayload(req *http.Request, addressFunc func(accountNumber u
 
 	// parse send destinations form data
 	destinationAddresses := req.Form["destination-address"]
-	destinationAccounts := req.Form["destination-account"]
+	destinationAccountNumbers := req.Form["destination-account-number"]
 	destinationAmounts := req.Form["destination-amount"]
 	sendMaxAmountChecks := req.Form["send-max-amount"]
 
@@ -91,7 +91,7 @@ func retrieveSendPagePayload(req *http.Request, addressFunc func(accountNumber u
 	}
 
 	payload.sendDestinations, payload.totalSendAmount, err = walletcore.BuildTxDestinations(destinationAddresses,
-		destinationAccounts, destinationAmounts, actualSendMaxAmountValues, addressFunc)
+		destinationAccountNumbers, destinationAmounts, actualSendMaxAmountValues, addressFunc)
 	if err != nil {
 		return nil, fmt.Errorf("error in parsing send destinations: %s", err.Error())
 	}
