@@ -56,10 +56,6 @@ func (routes *Routes) loadTemplates() {
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
-		parsedTemplate, err = parsedTemplate.Parse(viewContent)
-		if err != nil {
-			log.Fatalf("error loading templates: %s", err.Error())
-		}
 
 		return viewContent
 	}
