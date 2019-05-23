@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"strconv"
+	"strings"
 
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/command"
@@ -20,6 +21,9 @@ import (
 const (
 	estimatedSettingsWindowHeight = 140
 	estimatedGroupWindowPadding   = 12
+	strokeHeight                  = 1
+	rectXPadding                  = 15
+	rectYPadding                  = 10
 )
 
 type account struct {
@@ -35,6 +39,8 @@ type AccountsHandler struct {
 	settings           *config.Settings
 	isFetchingAccounts bool
 	networkHDPath      string
+	tickIcon           string
+	crossIcon          string
 }
 
 func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
@@ -43,6 +49,15 @@ func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings 
 	handler.accounts = nil
 	handler.isFetchingAccounts = false
 	handler.settings = settings
+
+	if handler.tickIcon == "" {
+		handler.tickIcon = getTickIcon()
+	}
+
+	if handler.crossIcon == "" {
+		handler.crossIcon = getCrossIcon()
+	}
+
 	if handler.networkHDPath == "" {
 		if wallet.NetType() == "testnet3" {
 			handler.networkHDPath = walletcore.TestnetHDPath
@@ -52,6 +67,20 @@ func (handler *AccountsHandler) BeforeRender(wallet walletcore.Wallet, settings 
 	}
 
 	return true
+}
+
+func getTickIcon() string {
+	tickUnicode := "\\U2713"
+	tickUnicodeInt, _ := strconv.ParseInt(strings.TrimPrefix(tickUnicode, "\\U"), 16, 32)
+
+	return fmt.Sprintf("%s\n", string(tickUnicodeInt))
+}
+
+func getCrossIcon() string {
+	crossUnicode := "\\U03c7"
+	crossUnicodeInt, _ := strconv.ParseInt(strings.TrimPrefix(crossUnicode, "\\U"), 16, 32)
+
+	return fmt.Sprintf("%s\n", string(crossUnicodeInt))
 }
 
 func (handler *AccountsHandler) Render(window *nucular.Window) {
@@ -116,7 +145,7 @@ func (handler *AccountsHandler) fetchAccounts(refreshWindowDisplay func()) {
 
 func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
 	for index, item := range handler.accounts {
-		headerLabel := item.account.Name + " - " + item.account.Balance.Total.String()
+		headerLabel := item.account.Name + ":   " + item.account.Balance.Total.String()
 		if item.account.Balance.Total != item.account.Balance.Spendable {
 			headerLabel += fmt.Sprintf(" (Spendable: %s )", item.account.Balance.Spendable.String())
 		}
@@ -149,17 +178,13 @@ func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
 					table.Render(tableWindow)
 				})
 
-				mainWindow.AddLabelWithFont("Settings", "LC", styles.BoldPageContentFont)
+				mainWindow.AddLabelWithFont("Wallet Settings", "LC", styles.BoldPageContentFont)
 				mainWindow.Row(estimatedSettingsWindowHeight + estimatedGroupWindowPadding).Dynamic(1)
 				widgets.GroupWindow(fmt.Sprintf("settings-window-%d", item.account.Number), mainWindow.Window, 0, func(settingsWindow *widgets.Window) {
-					halfHeight := (estimatedSettingsWindowHeight - 30) / 2
-
-					settingsWindow.Row(halfHeight).Dynamic(1)
+					settingsWindow.Row(estimatedSettingsWindowHeight - 30).Dynamic(1)
 					bounds, out := settingsWindow.Custom(nstyle.WidgetStateInactive)
-					handler.drawHideAccountBox(item, settingsWindow, bounds, out)
+					handler.drawCustomCheckbox(item, settingsWindow, bounds, out)
 
-					bounds, out = settingsWindow.Custom(nstyle.WidgetStateInactive)
-					handler.drawDefaultAccountBox(item, settingsWindow, bounds, out)
 				})
 			})
 			window.TreePop()
@@ -171,38 +196,55 @@ func (handler *AccountsHandler) renderAccounts(window *widgets.Window) {
 	}
 }
 
-func (handler *AccountsHandler) drawHideAccountBox(account *account, window *widgets.Window, bounds rect.Rect, out *command.Buffer) {
-	strokeHeight := 1
+func (handler *AccountsHandler) drawCustomCheckbox(account *account, window *widgets.Window, bounds rect.Rect, out *command.Buffer) {
+	accountVisibiltyRect, defaultAccountRect := drawRectangle(window, bounds, out)
 
-	bottomLeftPoint := image.Point{bounds.X, bounds.Y + bounds.H - strokeHeight}
-	bottomRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + bounds.H - strokeHeight}
-	topRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y}
+	// account visibilty section
+	accountVisibiltyRectInnerRect := rect.Rect{
+		X: accountVisibiltyRect.X + strokeHeight,
+		Y: accountVisibiltyRect.Y + strokeHeight,
+		W: accountVisibiltyRect.W - (2 * strokeHeight),
+		H: accountVisibiltyRect.H - (2 * strokeHeight),
+	}
 
-	out.StrokeLine(bounds.Min(), bottomLeftPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(bottomLeftPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(bottomRightPoint, topRightPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(topRightPoint, bounds.Min(), strokeHeight, styles.BorderColor)
+	accountVisibilityIcon := handler.tickIcon
 
-	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, window.LastWidgetBounds, false) {
+	// listen account visibilty events
+	if window.Input().Mouse.HoveringRect(accountVisibiltyRect) {
+		out.FillRect(accountVisibiltyRectInnerRect, 0, styles.AlternateGrayColor)
+	}
+
+	if !account.isSetAsHidden {
+		accountVisibilityIcon = handler.crossIcon
+	}
+	drawText(accountVisibiltyRect, out, "Hide account", "Account balance will be ignored", accountVisibilityIcon)
+
+	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, accountVisibiltyRect, false) {
 		handler.toggleAccountVisibilty(account, window)
 	}
 
-	mainTextRect := rect.Rect{
-		X: bounds.X + 30,
-		Y: bounds.Y + 10,
-		W: bounds.W,
-		H: 20,
+	// default account section
+	defaultAccountRectInnerRect := rect.Rect{
+		X: defaultAccountRect.X + strokeHeight,
+		Y: defaultAccountRect.Y,
+		W: defaultAccountRect.W - (2 * strokeHeight),
+		H: defaultAccountRect.H - (2 * strokeHeight),
 	}
 
-	leadTextRect := rect.Rect{
-		X: bounds.X + 20,
-		Y: mainTextRect.Y + mainTextRect.H,
-		W: bounds.W,
-		H: 20,
+	defaultAccountIcon := handler.tickIcon
+	if !account.isSetAsDefaultAccount {
+		defaultAccountIcon = handler.crossIcon
 	}
 
-	out.DrawText(mainTextRect, "Hide this account", styles.SmallBoldPageContentFont, styles.BlackColor)
-	out.DrawText(leadTextRect, "Account balance will be ignored", styles.PageContentFont, styles.GrayColor)
+	if window.Input().Mouse.HoveringRect(defaultAccountRect) {
+		out.FillRect(defaultAccountRectInnerRect, 0, styles.AlternateGrayColor)
+	}
+
+	drawText(defaultAccountRect, out, "Default account", "Make this account default for all outgoing and incoming transactions", defaultAccountIcon)
+
+	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, defaultAccountRect, false) {
+		handler.toggleDefaultAccount(account, window)
+	}
 }
 
 func (handler *AccountsHandler) toggleAccountVisibilty(accountItem *account, window *widgets.Window) {
@@ -265,43 +307,10 @@ func (handler *AccountsHandler) revealAccount(accountItem *account, window *widg
 	return errors.New("Error revealing account")
 }
 
-func (handler *AccountsHandler) drawDefaultAccountBox(account *account, window *widgets.Window, bounds rect.Rect, out *command.Buffer) {
-	strokeHeight := 1
-
-	bottomLeftPoint := image.Point{bounds.X, bounds.Y + bounds.H - strokeHeight}
-
-	topRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y}
-	bottomRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + bounds.H - strokeHeight}
-
-	out.StrokeLine(bounds.Min(), bottomLeftPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(topRightPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(bottomLeftPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
-	out.StrokeLine(topRightPoint, bounds.Min(), strokeHeight, styles.BorderColor)
-
-	if window.Input().Mouse.IsClickDownInRect(mouse.ButtonLeft, window.LastWidgetBounds, false) {
-		handler.toggleDefaultAccount(account, window)
-	}
-
-	mainTextRect := rect.Rect{
-		X: bounds.X + 40,
-		Y: bounds.Y + 10,
-		W: bounds.W,
-		H: 20,
-	}
-
-	leadTextRect := rect.Rect{
-		X: bounds.X + 15,
-		Y: mainTextRect.Y + mainTextRect.H,
-		W: bounds.W,
-		H: 20,
-	}
-
-	out.DrawText(mainTextRect, "Default Account", styles.SmallBoldPageContentFont, styles.BlackColor)
-	out.DrawText(leadTextRect, "Make this account default for all outgoing and incoming transactions", styles.PageContentFont, styles.GrayColor)
-}
-
 func (handler *AccountsHandler) toggleDefaultAccount(accountItem *account, window *widgets.Window) {
 	defer window.Master().Changed()
+
+	fmt.Println("dddd")
 
 	var toggleAccountFunc func(accountItem *account, window *widgets.Window) error
 	if accountItem.isSetAsDefaultAccount {
@@ -356,4 +365,63 @@ func (handler *AccountsHandler) unsetDefaultAccount(accountItem *account, window
 	}
 	handler.settings.DefaultAccount = 0
 	return nil
+}
+
+func drawRectangle(window *widgets.Window, bounds rect.Rect, out *command.Buffer) (rect.Rect, rect.Rect) {
+	topLeftPoint := bounds.Min()
+	topRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y}
+	bottomLeftPoint := image.Point{bounds.X, bounds.Y + bounds.H - strokeHeight}
+	bottomRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + bounds.H - strokeHeight}
+	middleLeftPoint := image.Point{bounds.X, bounds.Y + (bounds.H / 2) - strokeHeight}
+	middleRightPoint := image.Point{bounds.X + bounds.W - strokeHeight, bounds.Y + (bounds.H / 2) - strokeHeight}
+
+	out.StrokeLine(topLeftPoint, topRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(topLeftPoint, bottomLeftPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(bottomLeftPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(topRightPoint, bottomRightPoint, strokeHeight, styles.BorderColor)
+	out.StrokeLine(middleLeftPoint, middleRightPoint, strokeHeight, styles.BorderColor)
+
+	topRect := rect.Rect{
+		X: topLeftPoint.X,
+		Y: topLeftPoint.Y,
+		W: bounds.W,
+		H: bounds.H / 2,
+	}
+
+	bottomRect := rect.Rect{
+		X: topLeftPoint.X,
+		Y: topLeftPoint.Y + (bounds.H / 2),
+		W: bounds.W,
+		H: bounds.H / 2,
+	}
+
+	return topRect, bottomRect
+}
+
+func drawText(bounds rect.Rect, out *command.Buffer, mainText, leadText, icon string) {
+	iconRect := rect.Rect{
+		X: bounds.X + rectXPadding,
+		Y: bounds.Y + rectYPadding - 3,
+		W: 15,
+		H: 20,
+	}
+
+	mainTextRect := rect.Rect{
+		X: iconRect.X + 15,
+		Y: bounds.Y + rectYPadding,
+		W: bounds.W,
+		H: 20,
+	}
+
+	leadTextRect := rect.Rect{
+		X: bounds.X + rectXPadding,
+		Y: mainTextRect.Y + mainTextRect.H,
+		W: bounds.W,
+		H: 20,
+	}
+
+	out.DrawText(iconRect, icon, styles.BoldPageContentFont, styles.BlackColor)
+	out.DrawText(mainTextRect, mainText, styles.SmallBoldPageContentFont, styles.BlackColor)
+	out.DrawText(leadTextRect, leadText, styles.PageContentFont, styles.GrayColor)
+
 }
