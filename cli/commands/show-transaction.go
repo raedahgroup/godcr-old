@@ -61,7 +61,7 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 		detailedOutput.WriteString("Inputs \t \n")
 		for _, input := range transaction.Inputs {
 			inputAmount := dcrutil.Amount(input.Amount).String()
-			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s\n", inputAmount, input.PreviousOutpoint))
+			detailedOutput.WriteString(fmt.Sprintf("  %s \t %s  (%s)\n", inputAmount, input.PreviousOutpoint, input.AccountName))
 		}
 		detailedOutput.WriteString("Outputs \t \n") // add tabs to maintain tab spacing for previous inputs section and next outputs section
 		for _, out := range transaction.Outputs {
