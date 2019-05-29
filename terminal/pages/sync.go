@@ -15,7 +15,7 @@ import (
 func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, displayPage func(tview.Primitive), hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
 	syncPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	// page title 
+	// page title
 	syncPage.AddItem(primitives.NewCenterAlignedTextView("Synchronizing"), 1, 0, false)
 
 	errorTextView := primitives.WordWrappedTextView("")
@@ -68,8 +68,8 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 		if event.Key() == tcell.KeyEsc {
 			if cancelTriggered {
 				clearFocus()
-			displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
-		} else {
+				displayPage(overviewPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+			} else {
 				cancelTriggered = true
 				// remove cancel trigger after 1 second if user does not press escape again within that time
 				go func() {

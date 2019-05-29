@@ -72,7 +72,7 @@ func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	menuColumn.AddItem("Accounts", "", 'a', func() {
-		displayPage(accountsPage(walletMiddleware, tviewApp.SetFocus, clearFocus))
+		displayPage(accountsPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	menuColumn.AddItem("Security", "", 'u', func() {
@@ -104,7 +104,7 @@ func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	tviewApp.QueueUpdateDraw(func() {
-		displayPage(LaunchSyncPage(tviewApp, walletMiddleware, displayPage, hintTextView,  tviewApp.SetFocus, clearFocus))
+		displayPage(LaunchSyncPage(tviewApp, walletMiddleware, displayPage, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	return gridLayout
