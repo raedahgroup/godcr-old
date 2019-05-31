@@ -25,6 +25,7 @@ const (
 	LegacyTestnetHDPath = "m / 44' / 11' / "
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
+
 	TransactionFilterSent     = "Sent"
 	TransactionFilterReceived = "Received"
 	TransactionFilterYourself = "Yourself"
@@ -32,7 +33,7 @@ const (
 	TransactionFilterCoinbase = "Coinbase"
 )
 
-var TransactionFilters = []string {
+var TransactionFilters = []string{
 	TransactionFilterSent,
 	TransactionFilterReceived,
 	TransactionFilterYourself,
@@ -42,8 +43,8 @@ var TransactionFilters = []string {
 
 func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
 	var (
-		txFilter = txindex.Filter()
-		stakingTxTypes = []string {
+		txFilter       = txindex.Filter()
+		stakingTxTypes = []string{
 			txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase),
 			txhelper.FormatTransactionType(wallet.TransactionTypeVote),
 			txhelper.FormatTransactionType(wallet.TransactionTypeRevocation),

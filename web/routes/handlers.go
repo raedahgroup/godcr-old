@@ -307,11 +307,11 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 
 	data := map[string]interface{}{
 		"transactionCountByFilter": transactionCountByFilter,
-		"txs":                    txns,
-		"currentPage":            int(pageToLoad),
-		"previousPage":           int(pageToLoad - 1),
-		"totalPages":             int(math.Ceil(float64(allTxCount) / float64(txPerPage))),
-		"transactionTotalCount":  allTxCount,
+		"txs":                      txns,
+		"currentPage":              int(pageToLoad),
+		"previousPage":             int(pageToLoad - 1),
+		"totalPages":               int(math.Ceil(float64(allTxCount) / float64(txPerPage))),
+		"transactionTotalCount":    allTxCount,
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
