@@ -72,7 +72,7 @@ func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	menuColumn.AddItem("Accounts", "", 'a', func() {
-		displayPage(accountsPage(walletMiddleware, hintTextView, tviewApp.SetFocus, clearFocus))
+		displayPage(accountsPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
 	})
 
 	menuColumn.AddItem("Security", "", 'u', func() {
