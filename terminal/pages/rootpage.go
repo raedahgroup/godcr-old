@@ -104,7 +104,7 @@ func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	tviewApp.QueueUpdateDraw(func() {
-		displayPage(LaunchSyncPage(tviewApp, walletMiddleware, displayPage, hintTextView,  tviewApp.SetFocus, clearFocus))
+		displayPage(LaunchSyncPage(tviewApp, walletMiddleware, displayPage, hintTextView, tviewApp.SetFocus, clearFocus))
 	})
 
 	return gridLayout

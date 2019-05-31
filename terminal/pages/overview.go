@@ -24,6 +24,15 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 
 	hintTextView.SetText("TIP: Scroll recent activity table with ARROW KEYS. Return to navigation menu with ESC")
 
+	overviewPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			clearFocus()
+			return nil
+		}
+
+		return event
+	})
+
 	tviewApp.SetFocus(overviewPage)
 
 	return overviewPage
@@ -46,18 +55,37 @@ func renderBalance(overviewPage *tview.Flex, wallet walletcore.Wallet) {
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tviewApp *tview.Application, clearFocus func()) {
 	overviewPage.AddItem(primitives.NewLeftAlignedTextView("-Recent Activity-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 
-	statusTextView := primitives.NewCenterAlignedTextView("Fetching data...").SetTextColor(helpers.DecredOrangeColor)
-	// adding an element to the page from a goroutine, use tviewApp.QueueUpdateDraw
-	tviewApp.QueueUpdateDraw(func() {
-		overviewPage.AddItem(statusTextView, 2, 0, false)
-	})
+	statusTextView := primitives.NewCenterAlignedTextView("")
+	displayMessage := func(message string, error bool) {
+		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
+		tviewApp.QueueUpdateDraw(func() {
+			overviewPage.RemoveItem(statusTextView)
+			if message != "" {
+				if error {
+					statusTextView.SetTextColor(helpers.DecredOrangeColor)
+				} else {
+					statusTextView.SetTextColor(tcell.ColorWhite)
+				}
+
+				statusTextView.SetText(message)
+				overviewPage.AddItem(statusTextView, 2, 0, false)
+			}
+		})
+	}
+
+	displayMessage("Fetching data...", false)
 
 	txns, err := wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
 		// updating an element on the page from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
-			statusTextView.SetText(err.Error())
+			displayMessage(err.Error(), true)
 		})
+		return
+	}
+
+	if len(txns) == 0 {
+		displayMessage("No activity yet", false)
 		return
 	}
 
