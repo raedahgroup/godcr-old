@@ -64,7 +64,7 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 	}
 
 	err = filepath.Walk(walletDir, func(path string, file os.FileInfo, err error) error {
-		if err != nil || file.IsDir() || file.Name() != app.WalletDbFileName {
+		if err != nil || file.Name() != app.WalletDbFileName {
 			return nil
 		}
 
