@@ -150,10 +150,10 @@ func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 
 		fmt.Println()
 		err = showTxDetails.Run(ctx, wallet)
-		if err == nil {
-			fmt.Println()
+		if err != nil {
+			return err
 		}
-		return err
+		return nil
 	}
 
 	return nil

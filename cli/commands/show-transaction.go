@@ -101,7 +101,8 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			if strings.EqualFold(userInput, "q") || strings.EqualFold(userInput, "h") {
 				return nil
 			}
-			return nil
+
+			return fmt.Errorf("invalid response, try again")
 		}
 
 		userChoice, err := terminalprompt.RequestInput(prompt, validateUserInput)
@@ -118,11 +119,11 @@ func (showTxCommand ShowTransactionCommand) Run(ctx context.Context, wallet wall
 			displayedTxHashes: showTxCommand.historyCommandData.historyCommandDisplayedTxHashes,
 		}
 
+		fmt.Println()
 		err = showTxHistory.Run(ctx, wallet)
-		if err == nil {
-			fmt.Println()
+		if err != nil {
+			return err
 		}
-		return err
 	}
 
 	return nil
