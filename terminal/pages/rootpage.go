@@ -5,12 +5,13 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware) tview.Primitive {
+func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, settings *config.Settings) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 1, 0, 1, 2).
 		SetColumns(20, 2, 0, 2)
@@ -72,7 +73,7 @@ func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware
 	})
 
 	menuColumn.AddItem("Accounts", "", 'a', func() {
-		displayPage(accountsPage(walletMiddleware, hintTextView, tviewApp, clearFocus))
+		displayPage(accountsPage(walletMiddleware, hintTextView, settings, tviewApp, clearFocus))
 	})
 
 	menuColumn.AddItem("Security", "", 'u', func() {

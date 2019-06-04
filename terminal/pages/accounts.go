@@ -5,13 +5,14 @@ import (
 	"strconv"
 
 	"github.com/gdamore/tcell"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
+func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, settings *config.Settings, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	accountPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	messageTextView := primitives.WordWrappedTextView("")
@@ -36,11 +37,22 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 
 	accountPropertiesTable := tview.NewTable().SetBorders(false)
 
-	accountSettingFlex := tview.NewFlex().SetDirection(tview.FlexRow)
+	// checkboxPrimitive := func(text string) tview.Primitive {
+	// 	return tview.NewCheckbox().
+	// 		SetLabel(text)
+	// }
+
+	hideAccount := primitives.NewCheckbox("Hide this account (Account balance will be ignored): ")
+	defaultAccount := primitives.NewCheckbox("Default account (Make this account default for all outgoing and incoming transactions): ")
+	// h := tview.NewCheckbox()("Hide this account (Account balance will be ignored): ")
+	// d := tview.NewCheckbox().SetLabel("Default account (Make this account default for all outgoing and incoming transactions): ")
+
+	// accountSettingFlex := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	displayAccountsTable := func() {
 		accountPage.RemoveItem(accountPropertiesTable)
-		accountPage.RemoveItem(accountSettingFlex)
+		accountPage.RemoveItem(hideAccount)
+		accountPage.RemoveItem(defaultAccount)
 
 		titleTextView.SetText("Accounts")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select an account,\nENTER to view details, ESC to return to navigation menu")
@@ -55,29 +67,54 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 		}
 	})
 
-	h := tview.NewCheckbox()
-	d := tview.NewCheckbox()
+	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		displayMessage(err.Error())
+	}
 
 	// method for getting transaction details when a tx is selected from the history table
+	var selectedAccount *walletcore.Account
 	accountsTable.SetSelectedFunc(func(row, column int) {
 		accountPage.RemoveItem(accountsTable)
-		accountPage.RemoveItem(accountSettingFlex)
+
+		// accounts := fetchAccounts(wallet, displayMessage)
+		selectedAccount = accounts[row]
 
 		titleTextView.SetText("Account Details")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to retun to accounts page, ESC to return to navigation menu")
 
 		accountPage.AddItem(accountPropertiesTable, 9, 0, true)
-		tviewApp.SetFocus(accountPropertiesTable)
-		displayAccountsDetails(wallet, accountPropertiesTable, row, displayMessage)
+		tviewApp.SetFocus(hideAccount)
+		displayAccountsDetails(wallet.NetType(), selectedAccount, accountPropertiesTable, displayMessage)
 
-		accountSettingFlex.AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
-			AddItem(h, 3, 0, true).
-			AddItem(primitives.NewLeftAlignedTextView("Hide this account (Account balance will be ignored)"), 0, 1, false), 2, 0, false).
-			AddItem(tview.NewFlex().SetDirection(tview.FlexColumn).
-				AddItem(d, 3, 0, true).
-				AddItem(primitives.NewLeftAlignedTextView("Default account (Make this account default for all outgoing and incoming transactions)"), 0, 1, false), 2, 0, false)
-		accountPage.AddItem(accountSettingFlex, 2, 0, false)
+		accountPage.AddItem(hideAccount, 2, 0, false)
+		accountPage.AddItem(defaultAccount, 2, 0, false)
+	})
 
+	defaultAccount.SetChangedFunc(func(checked bool) {
+		if checked {
+			err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+				cnfg.DefaultAccount = selectedAccount.Number
+			})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			settings.DefaultAccount = selectedAccount.Number
+			return
+		}
+
+		err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+			cnfg.DefaultAccount = 0
+		})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		settings.DefaultAccount = 0
+		return
 	})
 
 	// handler for returning back to accounts page
@@ -87,7 +124,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 			return nil
 		}
 		if event.Key() == tcell.KeyTab {
-			tviewApp.SetFocus(h)
+			tviewApp.SetFocus(hideAccount)
 			return nil
 		}
 
@@ -95,9 +132,14 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 	})
 
 	// handler for returning back to accounts page
-	h.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	hideAccount.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			displayAccountsTable()
+			return nil
+		}
+
 		if event.Key() == tcell.KeyTab {
-			tviewApp.SetFocus(d)
+			tviewApp.SetFocus(defaultAccount)
 			return nil
 		}
 
@@ -105,9 +147,14 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 	})
 
 	// handler for returning back to accounts page
-	d.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	defaultAccount.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			displayAccountsTable()
+			return nil
+		}
+
 		if event.Key() == tcell.KeyTab {
-			tviewApp.SetFocus(h)
+			tviewApp.SetFocus(hideAccount)
 			return nil
 		}
 
@@ -115,23 +162,23 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 	})
 
 	displayAccountsTable()
-	displayWalletAcccounts(wallet, accountsTable, displayMessage)
+	displayWalletAcccounts(accounts, accountsTable, displayMessage)
 
 	tviewApp.SetFocus(accountPage)
 	return accountPage
 }
 
-func fetchAccounts(wallet walletcore.Wallet, displayMessage func(string)) []*walletcore.Account {
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		displayMessage(err.Error())
-	}
+// func fetchAccounts(wallet walletcore.Wallet, displayMessage func(string)) []*walletcore.Account {
+// 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+// 	if err != nil {
+// 		displayMessage(err.Error())
+// 	}
 
-	return accounts
-}
+// 	return accounts
+// }
 
-func displayWalletAcccounts(wallet walletcore.Wallet, accountsTable *tview.Table, displayMessage func(string)) {
-	accounts := fetchAccounts(wallet, displayMessage)
+func displayWalletAcccounts(accounts []*walletcore.Account, accountsTable *tview.Table, displayMessage func(string)) {
+	// accounts := fetchAccounts(wallet, displayMessage)
 
 	for row, account := range accounts {
 		accountsTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf("%-5s", account.Name)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
@@ -143,9 +190,9 @@ func displayWalletAcccounts(wallet walletcore.Wallet, accountsTable *tview.Table
 
 }
 
-func displayAccountsDetails(wallet walletcore.Wallet, accountPropertiesTable *tview.Table, row int, displayMessage func(string)) {
+func displayAccountsDetails(netType string, account *walletcore.Account, accountPropertiesTable *tview.Table, displayMessage func(string)) {
 	var networkHDPath string
-	if wallet.NetType() == "testnet3" {
+	if netType == "testnet3" {
 		networkHDPath = walletcore.TestnetHDPath
 	} else {
 		networkHDPath = walletcore.MainnetHDPath
@@ -159,14 +206,14 @@ func displayAccountsDetails(wallet walletcore.Wallet, accountPropertiesTable *tv
 	accountPropertiesTable.SetCellSimple(5, 0, "HD Path:")
 	accountPropertiesTable.SetCellSimple(6, 0, "Keys:")
 
-	accounts := fetchAccounts(wallet, displayMessage)
+	// accounts := fetchAccounts(wallet, displayMessage)
 
-	accountPropertiesTable.SetCellSimple(0, 1, accounts[row].Name)
-	accountPropertiesTable.SetCellSimple(1, 1, accounts[row].Balance.Total.String())
-	accountPropertiesTable.SetCellSimple(2, 1, accounts[row].Balance.Spendable.String())
-	accountPropertiesTable.SetCellSimple(4, 1, strconv.FormatInt(int64(accounts[row].Number), 10))
+	accountPropertiesTable.SetCellSimple(0, 1, account.Name)
+	accountPropertiesTable.SetCellSimple(1, 1, account.Balance.Total.String())
+	accountPropertiesTable.SetCellSimple(2, 1, account.Balance.Spendable.String())
+	accountPropertiesTable.SetCellSimple(4, 1, strconv.FormatInt(int64(account.Number), 10))
 	accountPropertiesTable.SetCellSimple(5, 1, networkHDPath)
-	accountPropertiesTable.SetCellSimple(6, 1, fmt.Sprintf("%d External, %d Internal, %d Imported", accounts[row].ExternalKeyCount,
-		accounts[row].InternalKeyCount,
-		accounts[row].ImportedKeyCount))
+	accountPropertiesTable.SetCellSimple(6, 1, fmt.Sprintf("%d External, %d Internal, %d Imported", account.ExternalKeyCount,
+		account.InternalKeyCount,
+		account.ImportedKeyCount))
 }
