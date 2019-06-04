@@ -201,7 +201,7 @@ export default class extends Controller {
     const destinationTemplate = document.importNode(this.destinationAccountTemplateTarget.content, true)
 
     const destinationNode = destinationTemplate.firstElementChild
-    const accountInput = destinationNode.querySelector('select[name="destination-account"]')
+    const accountInput = destinationNode.querySelector('select[name="destination-account-number"]')
     const amountInput = destinationNode.querySelector('input.amount')
     const amountUsdInput = destinationNode.querySelector('input.amount-usd')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
