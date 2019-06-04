@@ -7,6 +7,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/utils"
+	godcrUtils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -165,11 +166,11 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 	for i, tx := range txns {
 		inputsAndOutputsAmount[i] = tx.Amount
 	}
-	maxDecimalPlacesForTxAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForTxAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return formatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
+		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
 	}
 
 	// updating the history table from a goroutine, use tviewApp.QueueUpdateDraw
@@ -238,11 +239,11 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	for _, txOut := range tx.Outputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
 	}
-	maxDecimalPlacesForInputsAndOutputsAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForInputsAndOutputsAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return formatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")
