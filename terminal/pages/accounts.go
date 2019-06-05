@@ -72,7 +72,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 		selectedAccount = accounts[row]
 
 		titleTextView.SetText("Account Details")
-		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to retun to accounts page, ESC to return to navigation menu")
+		hintTextView.SetText("TIP: Use TAB key to switch between checkbox, \nBACKSPACE to retun to accounts page, ESC to return to navigation menu")
 
 		accountPage.AddItem(accountPropertiesTable, 9, 0, true)
 		tviewApp.SetFocus(hideAccount)
@@ -84,14 +84,14 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 			defaultAccount.SetChecked(true)
 		}
 
-		var accEx bool
+		var accountExist bool
 		for _, hiddenAccount := range hiddenAccounts {
 			if selectedAccount.Number == hiddenAccount {
-				accEx = true
+				accountExist = true
 			}
 		}
 
-		hideAccount.SetChecked(accEx)
+		hideAccount.SetChecked(accountExist)
 
 		accountPage.AddItem(hideAccount, 2, 0, false)
 		accountPage.AddItem(defaultAccount, 2, 0, false)
@@ -103,7 +103,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 				cnfg.DefaultAccount = selectedAccount.Number
 			})
 			if err != nil {
-				fmt.Println(err.Error())
+				displayMessage(err.Error())
 				return
 			}
 
@@ -115,7 +115,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 			cnfg.DefaultAccount = 0
 		})
 		if err != nil {
-			fmt.Println(err.Error())
+			displayMessage(err.Error())
 			return
 		}
 
@@ -130,7 +130,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 				cnfg.HiddenAccounts = hiddenAccounts
 			})
 			if err != nil {
-				fmt.Println(err.Error())
+				displayMessage(err.Error())
 				return
 			}
 
@@ -145,7 +145,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 					cnfg.HiddenAccounts = hiddenAccounts
 				})
 				if err != nil {
-					fmt.Println(err.Error())
+					displayMessage(err.Error())
 					return
 				}
 
