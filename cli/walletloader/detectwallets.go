@@ -52,14 +52,15 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 		dirName := filepath.Base(walletDbDir)
 
 		// check if folder name starts with any of the supported nettypes
-		if strings.Index(dirName, "mainnet") == 0 {
+		if strings.Index(dirName, "mainnet") == 0 ||
+			strings.Index(dirName, "mainnet") == -1 {
 			return utils.NetParams("mainnet")
-		} else if strings.Index(dirName, "testnet3") == 0 {
+		} else if strings.Index(dirName, "testnet3") == 0 ||
+			strings.Index(dirName, "testnet") == -1 {
 			return utils.NetParams("testnet3")
-		} else if strings.Index(dirName, "simnet") == 0 {
+		} else if strings.Index(dirName, "simnet") == 0 ||
+			strings.Index(dirName, "simnet") == -1{
 			return utils.NetParams("simnet")
-		}else if strings.Index(dirName, "") == -1 {
-			return nil
 		}
 
 
