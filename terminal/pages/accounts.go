@@ -207,12 +207,20 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 }
 
 func displayWalletAcccounts(accounts []*walletcore.Account, accountsTable *tview.Table, displayMessage func(string)) {
-	for row, account := range accounts {
+	tableHeaderCell := func(text string) *tview.TableCell {
+		return tview.NewTableCell(text).SetAlign(tview.AlignLeft).SetSelectable(false).SetMaxWidth(1).SetExpansion(1)
+	}
+
+	accountsTable.SetCell(0, 0, tableHeaderCell("Account Name"))
+	accountsTable.SetCell(0, 1, tableHeaderCell("Total Balance"))
+	accountsTable.SetCell(0, 2, tableHeaderCell("Spendable Balance"))
+
+	for _, account := range accounts {
+		row := accountsTable.GetRowCount()
+
 		accountsTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf("%-5s", account.Name)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
 		accountsTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintf("%-5s", account.Balance.Total)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
-		if account.Balance.Total != account.Balance.Spendable {
-			accountsTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("%5s", account.Balance.Spendable)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
-		}
+		accountsTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("%5s", account.Balance.Spendable)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
 	}
 }
 
