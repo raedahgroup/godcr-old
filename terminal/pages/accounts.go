@@ -37,17 +37,8 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 
 	accountPropertiesTable := tview.NewTable().SetBorders(false)
 
-	// checkboxPrimitive := func(text string) tview.Primitive {
-	// 	return tview.NewCheckbox().
-	// 		SetLabel(text)
-	// }
-
 	hideAccount := primitives.NewCheckbox("Hide this account (Account balance will be ignored): ")
 	defaultAccount := primitives.NewCheckbox("Default account (Make this account default for all outgoing and incoming transactions): ")
-	// h := tview.NewCheckbox()("Hide this account (Account balance will be ignored): ")
-	// d := tview.NewCheckbox().SetLabel("Default account (Make this account default for all outgoing and incoming transactions): ")
-
-	// accountSettingFlex := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	displayAccountsTable := func() {
 		accountPage.RemoveItem(accountPropertiesTable)
@@ -74,10 +65,10 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 
 	// method for getting transaction details when a tx is selected from the history table
 	var selectedAccount *walletcore.Account
+	hiddenAccounts := settings.HiddenAccounts
 	accountsTable.SetSelectedFunc(func(row, column int) {
 		accountPage.RemoveItem(accountsTable)
 
-		// accounts := fetchAccounts(wallet, displayMessage)
 		selectedAccount = accounts[row]
 
 		titleTextView.SetText("Account Details")
@@ -86,6 +77,21 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 		accountPage.AddItem(accountPropertiesTable, 9, 0, true)
 		tviewApp.SetFocus(hideAccount)
 		displayAccountsDetails(wallet.NetType(), selectedAccount, accountPropertiesTable, displayMessage)
+
+		if settings.DefaultAccount != selectedAccount.Number {
+			defaultAccount.SetChecked(false)
+		} else {
+			defaultAccount.SetChecked(true)
+		}
+
+		var accEx bool
+		for _, hiddenAccount := range hiddenAccounts {
+			if selectedAccount.Number == hiddenAccount {
+				accEx = true
+			}
+		}
+
+		hideAccount.SetChecked(accEx)
 
 		accountPage.AddItem(hideAccount, 2, 0, false)
 		accountPage.AddItem(defaultAccount, 2, 0, false)
@@ -115,6 +121,38 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 
 		settings.DefaultAccount = 0
 		return
+	})
+
+	hideAccount.SetChangedFunc(func(checked bool) {
+		if checked {
+			hiddenAccounts = append(hiddenAccounts, selectedAccount.Number)
+			err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+				cnfg.HiddenAccounts = hiddenAccounts
+			})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			settings.HiddenAccounts = hiddenAccounts
+			return
+		}
+
+		for index := range settings.HiddenAccounts {
+			if hiddenAccounts[index] == selectedAccount.Number {
+				hiddenAccounts = append(hiddenAccounts[:index], hiddenAccounts[index+1:]...)
+				err := config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
+					cnfg.HiddenAccounts = hiddenAccounts
+				})
+				if err != nil {
+					fmt.Println(err.Error())
+					return
+				}
+
+				settings.HiddenAccounts = hiddenAccounts
+				return
+			}
+		}
 	})
 
 	// handler for returning back to accounts page
@@ -168,18 +206,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	return accountPage
 }
 
-// func fetchAccounts(wallet walletcore.Wallet, displayMessage func(string)) []*walletcore.Account {
-// 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-// 	if err != nil {
-// 		displayMessage(err.Error())
-// 	}
-
-// 	return accounts
-// }
-
 func displayWalletAcccounts(accounts []*walletcore.Account, accountsTable *tview.Table, displayMessage func(string)) {
-	// accounts := fetchAccounts(wallet, displayMessage)
-
 	for row, account := range accounts {
 		accountsTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf("%-5s", account.Name)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
 		accountsTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintf("%-5s", account.Balance.Total)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
@@ -187,7 +214,6 @@ func displayWalletAcccounts(accounts []*walletcore.Account, accountsTable *tview
 			accountsTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("%5s", account.Balance.Spendable)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
 		}
 	}
-
 }
 
 func displayAccountsDetails(netType string, account *walletcore.Account, accountPropertiesTable *tview.Table, displayMessage func(string)) {
@@ -205,8 +231,6 @@ func displayAccountsDetails(netType string, account *walletcore.Account, account
 	accountPropertiesTable.SetCellSimple(4, 0, "Account Number:")
 	accountPropertiesTable.SetCellSimple(5, 0, "HD Path:")
 	accountPropertiesTable.SetCellSimple(6, 0, "Keys:")
-
-	// accounts := fetchAccounts(wallet, displayMessage)
 
 	accountPropertiesTable.SetCellSimple(0, 1, account.Name)
 	accountPropertiesTable.SetCellSimple(1, 1, account.Balance.Total.String())

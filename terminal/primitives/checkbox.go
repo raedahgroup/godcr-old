@@ -1,6 +1,9 @@
 package primitives
 
-import "github.com/rivo/tview"
+import (
+	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
+)
 
 type Checkbox struct {
 	*tview.Checkbox
@@ -9,6 +12,6 @@ type Checkbox struct {
 
 func NewCheckbox(text string) *Checkbox {
 	return &Checkbox{
-		Checkbox: tview.NewCheckbox().SetLabel(text),
+		Checkbox: tview.NewCheckbox().SetLabel(text).SetLabelColor(tcell.ColorWhite),
 	}
 }
