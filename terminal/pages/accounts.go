@@ -68,8 +68,8 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	hiddenAccounts := settings.HiddenAccounts
 	accountsTable.SetSelectedFunc(func(row, column int) {
 		accountPage.RemoveItem(accountsTable)
-
-		selectedAccount = accounts[row]
+		selectedRow := row - 1		
+		selectedAccount = accounts[selectedRow]
 
 		titleTextView.SetText("Account Details")
 		hintTextView.SetText("TIP: Use TAB key to switch between checkbox, \nBACKSPACE to retun to accounts page, ESC to return to navigation menu")
