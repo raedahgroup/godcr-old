@@ -158,7 +158,7 @@
                                                     </div>
                                                     &nbsp;
                                                     <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
-                                                            class="removeDestinationBtn btn btn-danger btn-sm"
+                                                            class="removeDestinationBtn btn" style="background: none; border: none;"
                                                             type="button">X</button>
                                                 </div>
 
@@ -221,8 +221,7 @@
                                                     </div>
                                                     &nbsp;
                                                     <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
-                                                            class="removeDestinationBtn btn btn-sm btn-danger  shadow-sm" 
-                                                            style="background: none; border: none;" type="button">X</button>
+                                                            class="removeDestinationBtn btn" style="background: none; border: none;"  type="button">X</button>
                                                 </div>
 
                                                 <div class="col-sm-12 invalid-feedback d-none"></div>
@@ -335,7 +334,7 @@
                             <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
                             <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                             <div class="errors mb-3 d-none" data-target="send.errors"></div>
-                            <button data-action="click->send#resetSendForm" class="btn btn-danger shadow-sm" id="reset-btn"
+                            <button data-action="click->send#clearFields" class="btn btn-danger shadow-sm" id="reset-btn"
                                     type="button">Clear Fields
                             </button>
                             <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" disabled

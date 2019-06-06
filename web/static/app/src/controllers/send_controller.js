@@ -43,12 +43,7 @@ export default class extends Controller {
         hide(target.parentElement)
       })
     }
-    this.customInputPnlOpnen = !this.customInputPnlOpnen
-  }
-
-  setBusy (busy) {
-    this.busy = busy
-    this.updateSendButtonState()
+    this.customInputPnlOpnen = false
   }
 
   setBusy (busy) {
@@ -255,26 +250,6 @@ export default class extends Controller {
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'INVALID ADDRESS')
-          return
-        }
-        _this.clearDestinationFieldError(editedAddress)
-      })
-      .catch(() => {
-        _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
-      })
-  }
-
-  destinationAddressEdited (event) {
-    const editedAddress = event.currentTarget
-    const _this = this
-
-    this.updateSendButtonState()
-
-    axios.post('/validate-address?address=' + editedAddress.value)
-      .then((response) => {
-        let result = response.data
-        if (!result.valid) {
           _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
           return
         }
@@ -340,50 +315,6 @@ export default class extends Controller {
       let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
       this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
       this.updateSendButtonState()
-      return
-    }
-
-    this.clearDestinationFieldError(amountTarget)
-    // update max send amount field if some other amount field has been updated
-    const editedAmountFieldIndex = event.target.getAttribute('data-index')
-    if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
-      this.updateMaxAmountFieldIfSet()
-    }
-
-    this.setDcrField(amountTarget)
-
-    this.calculateCustomInputsPercentage()
-    if (this.useRandomChangeOutputsTarget.checked) {
-      this.generateChangeOutputs()
-    }
-
-    this.updateSendButtonState()
-  }
-
-  destinationAmountUsdEdited (event) {
-    const _this = this
-    const amountTarget = event.currentTarget
-    const amount = parseFloat(amountTarget.value)
-    if (isNaN(amount) || amount <= 0) {
-      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number.', false)
-      return
-    }
-
-    let dcrAmount = parseFloat(amountTarget.value) / this.exchangeRate
-
-    let dcrAmountTarget
-    this.amountTargets.forEach(target => {
-      if (target.getAttribute('data-index') === amountTarget.getAttribute('data-index')) {
-        dcrAmountTarget = target
-      }
-    })
-
-    const accountBalance = this.getAccountBalance()
-    const totalSendAmount = (this.getTotalSendAmount() - parseFloat(dcrAmountTarget.value))
-
-    if (totalSendAmount + dcrAmount > accountBalance) {
-      let amountLeft = this.exchangeRate * (accountBalance - totalSendAmount)
-      this.setDestinationFieldError(amountTarget, `Amount exceeds balance. Please enter ${amountLeft.toFixed(4)} or less.`, false)
       return
     }
 
@@ -544,49 +475,22 @@ export default class extends Controller {
     }
   }
 
-  setUsdField (dcrFieldTarget) {
-    const _this = this
-    if (this.exchangeRate > 0) {
-      let usdAmount = parseFloat(dcrFieldTarget.value) * this.exchangeRate
-      if (isNaN(usdAmount)) {
-        usdAmount = 0
-      }
-      this.amountUsdTargets.forEach(target => {
-        if (target.getAttribute('data-index') === dcrFieldTarget.getAttribute('data-index')) {
-          target.value = usdAmount.toFixed(2)
-          _this.clearDestinationFieldError(target)
-        }
-      })
+  destinationFieldsValid (dontModifyErrorOutput) {
+    if(!dontModifyErrorOutput){
+      this.clearMessages()
     }
-  }
-
-  setDcrField (usdFieldTarget) {
-    const _this = this
-    if (this.exchangeRate > 0) {
-      let dcrAmount = parseFloat(usdFieldTarget.value) / this.exchangeRate
-      this.amountTargets.forEach(target => {
-        if (target.getAttribute('data-index') === usdFieldTarget.getAttribute('data-index')) {
-          target.value = dcrAmount.toFixed(2)
-          _this.clearDestinationFieldError(target)
-        }
-      })
-    }
-  }
-
-  destinationFieldsValid (noErrorOutput) {
-    this.clearMessages()
     let fieldsAreValid = true
 
     for (const addressTarget of this.addressTargets) {
       if (addressTarget.value === '') {
-        if (!noErrorOutput) {
+        if (!dontModifyErrorOutput) {
           this.setDestinationFieldError(addressTarget, 'Destination address should not be empty', false)
         }
         fieldsAreValid = false
       } else if (addressTarget.classList.contains('is-invalid')) {
         fieldsAreValid = false
       } else {
-        if (!noErrorOutput) {
+        if (!dontModifyErrorOutput) {
           this.clearDestinationFieldError(addressTarget)
         }
       }
@@ -595,7 +499,7 @@ export default class extends Controller {
     for (const amountTarget of this.amountTargets) {
       const amount = parseFloat(amountTarget.value)
       if (isNaN(amount) || amount <= 0) {
-        if (!noErrorOutput) {
+        if (!dontModifyErrorOutput) {
           this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
         fieldsAreValid = false
@@ -607,7 +511,7 @@ export default class extends Controller {
     for (const amountTarget of this.amountUsdTargets) {
       const amount = parseFloat(amountTarget.value)
       if (isNaN(amount) || amount <= 0) {
-        if (!noErrorOutput) {
+        if (!dontModifyErrorOutput) {
           this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         }
         fieldsAreValid = false
@@ -823,7 +727,7 @@ export default class extends Controller {
     }).catch(function () {
       _this.setErrorMessage('A server error occurred')
     }).then(function () {
-      _this.nextButtonTarget.innerHTML = 'Next'
+      _this.nextButtonTarget.innerHTML = 'Send'
       _this.setBusy(false)
     })
   }
@@ -1129,22 +1033,22 @@ export default class extends Controller {
     return summaryHTML
   }
 
-  validateSendForm (noErrorOutput) {
-    if (!noErrorOutput) {
+  validateSendForm (dontModifyErrorOutput) {
+    if (!dontModifyErrorOutput) {
       this.errorsTarget.innerHTML = ''
       hide(this.errorsTarget)
     }
-    let valid = this.destinationFieldsValid(noErrorOutput)
+    let valid = this.destinationFieldsValid(dontModifyErrorOutput)
 
     if (this.sourceAccountTarget.value === '') {
-      if (!noErrorOutput) {
+      if (!dontModifyErrorOutput) {
         this.showError('The source account is required')
       }
       valid = false
     }
 
     if (this.useCustomTarget.checked && this.getSelectedInputsSum() < this.getTotalSendAmount()) {
-      if (!noErrorOutput) {
+      if (!dontModifyErrorOutput) {
         this.showError('The sum of selected inputs is less than send amount')
       }
       valid = false
@@ -1210,7 +1114,7 @@ export default class extends Controller {
     }).catch((e) => {
       _this.setErrorMessage('A server error occurred')
     }).then(() => {
-      _this.nextButtonTarget.innerHTML = 'Next'
+      _this.nextButtonTarget.innerHTML = 'Send'
       _this.setBusy(false)
     })
   }
@@ -1222,6 +1126,11 @@ export default class extends Controller {
     }
 
     return true
+  }
+
+  clearFields () {
+    this.resetSendForm()
+    this.clearMessages()
   }
 
   resetSendForm () {
@@ -1240,8 +1149,6 @@ export default class extends Controller {
 
     this.spendUnconfirmedTarget.checked = false
     $(this.useCustomTarget).bootstrapToggle('off')
-
-    this.clearMessages()
   }
 
   setErrorMessage (message) {
