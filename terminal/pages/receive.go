@@ -37,13 +37,22 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	addressTextView := primitives.NewCenterAlignedTextView("").
 		SetTextColor(helpers.DecredLightBlueColor)
 
-	generateAndDisplayAddress := func(accountNumber uint32) {
+	generateAndDisplayAddress := func(accountNumber uint32, newAddress bool) {
 		// clear previously generated address or displayed error before generating new one
 		body.RemoveItem(qrCodeTextView)
 		body.RemoveItem(addressTextView)
 		body.RemoveItem(errorMessageTextView)
 
-		address, qr, err := generateAddressAndQrCode(wallet, accountNumber)
+		var address string
+		var qr *qrcode.QRCode
+		var err error
+
+		if newAddress {
+			address, qr, err = generateNewAddressAndQrCode(wallet, accountNumber)
+		} else {
+			address, qr, err = generateAddressAndQrCode(wallet, accountNumber)
+		}
+
 		if err != nil {
 			errorText := fmt.Sprintf("Error: %s", err.Error())
 			displayErrorMessage(errorText)
@@ -53,8 +62,8 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		qrCodeTextView.SetText(qr.ToSmallString(false))
 		addressTextView.SetText(address)
 
-		body.AddItem(qrCodeTextView, 19, 0, true)
-		body.AddItem(addressTextView, 0, 1, true)
+		body.AddItem(addressTextView, 2, 0, true)
+		body.AddItem(qrCodeTextView, 0, 1, true)
 	}
 
 	accountNumbers := make([]uint32, len(accounts))
@@ -63,6 +72,11 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		accountNames[index] = account.Name
 		accountNumbers[index] = account.Number
 	}
+
+	form := primitives.NewForm(false)
+	form.SetBorderPadding(0, 0, 0, 0)
+	form.SetLabelColor(helpers.DecredLightBlueColor)
+	form.SetCancelFunc(clearFocus)
 
 	if len(accounts) == 1 {
 		singleAccountTextView := primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts[0].Name))
@@ -73,8 +87,23 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			}
 		})
 
+		form.AddButton("generate new address", func() {
+			generateAndDisplayAddress(accounts[0].Number, true)
+		})
+
 		body.AddItem(singleAccountTextView, 2, 1, true)
-		hintTextView.SetText("TIP: ESC to return to navigation menu")
+		body.AddItem(form, 2, 1, true)
+
+		singleAccountTextView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyTab {
+				setFocus(form)
+				return nil
+			}
+
+			return event
+		})
+
+		hintTextView.SetText("TIP: Move around with TAB. ESC to return to navigation menu")
 	} else {
 		accountNumbers := make([]uint32, len(accounts))
 		accountNames := make([]string, len(accounts))
@@ -83,22 +112,22 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			accountNumbers[index] = account.Number
 		}
 
-		form := primitives.NewForm(false)
-		form.SetBorderPadding(0, 0, 0, 0)
-		form.SetLabelColor(helpers.DecredLightBlueColor)
+		var accountNumber uint32
 		form.AddDropDown("Source Account: ", accountNames, 0, func(option string, optionIndex int) {
-			accountNumber := accountNumbers[optionIndex]
-			generateAndDisplayAddress(accountNumber)
+			accountNumber = accountNumbers[optionIndex]
+			generateAndDisplayAddress(accountNumber, false)
 		})
 
-		form.SetCancelFunc(clearFocus)
+		form.AddButton(" generate new address ", func() {
+			generateAndDisplayAddress(accountNumber, true)
+		})
 
-		body.AddItem(form, 2, 0, true)
-		hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address. ESC to return to navigation menu")
+		body.AddItem(form, 4, 0, true)
+		hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address, \nMove around with TAB, ESC to return to navigation menu")
 	}
 
 	// always generate and display address for the first account, even if there are multiple accounts
-	generateAndDisplayAddress(accounts[0].Number)
+	generateAndDisplayAddress(accounts[0].Number, false)
 
 	setFocus(body)
 	return body
@@ -110,11 +139,34 @@ func generateAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (s
 		return "", nil, err
 	}
 
-	// generate qrcode
-	qr, err := qrcode.New(generatedAddress, qrcode.Medium)
+	qrCode, err := generateQrcode(generatedAddress)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return generatedAddress, qr, nil
+	return generatedAddress, qrCode, nil
+}
+
+func generateNewAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (string, *qrcode.QRCode, error) {
+	generatedAddress, err := wallet.GenerateNewAddress(accountNumber)
+	if err != nil {
+		return "", nil, err
+	}
+
+	qrCode, err := generateQrcode(generatedAddress)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return generatedAddress, qrCode, nil
+}
+
+func generateQrcode(generatedAddress string) (*qrcode.QRCode, error) {
+	// generate qrcode
+	qr, err := qrcode.New(generatedAddress, qrcode.Medium)
+	if err != nil {
+		return nil, err
+	}
+
+	return qr, nil
 }

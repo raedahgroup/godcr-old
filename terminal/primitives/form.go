@@ -135,6 +135,14 @@ func (f *Form) SetButtonTextColor(color tcell.Color) *Form {
 	return f
 }
 
+// SetItemPadding sets the number of empty rows between form items for vertical
+// layouts and the number of empty cells between form items for horizontal
+// layouts.
+func (f *Form) SetItemPadding(padding int) *Form {
+	f.itemPadding = padding
+	return f
+}
+
 // AddInputField adds an input field to the form. It has a label, an optional
 // initial value, a field width (a value of 0 extends it as far as possible),
 // an optional accept function to validate the item's value (set to nil to
