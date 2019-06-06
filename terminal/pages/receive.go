@@ -34,8 +34,13 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	qrCodeTextView := primitives.NewCenterAlignedTextView("")
-	addressTextView := primitives.NewCenterAlignedTextView("").
-		SetTextColor(helpers.DecredLightBlueColor)
+	addressTextView := primitives.NewCenterAlignedTextView("").SetTextColor(helpers.DecredLightBlueColor)
+
+	// form primitive for both accounts dropdown menu and buttons(modal button not involved)
+	form := primitives.NewForm(false)
+	form.SetBorderPadding(0, 0, 0, 0)
+	form.SetLabelColor(helpers.DecredLightBlueColor)
+	form.SetCancelFunc(clearFocus)
 
 	generateAndDisplayAddress := func(accountNumber uint32, newAddress bool) {
 		// clear previously generated address or displayed error before generating new one
@@ -66,17 +71,31 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(qrCodeTextView, 0, 1, true)
 	}
 
+	ConfirmNewAddressGeneration := func(accountNumber uint32, newAddress bool) {
+		modal := tview.NewModal()
+		modal.SetText("You are about to generate\n a new Receive Address").
+			AddButtons([]string{"Generate", "Cancel"}).
+			SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+				if buttonLabel == "Generate" {
+					generateAndDisplayAddress(accountNumber, newAddress)
+					body.RemoveItem(modal)
+					setFocus(form)
+				} else {
+					body.RemoveItem(modal)
+					setFocus(form)
+				}
+			})
+
+		body.AddItem(modal, 1, 0, true)
+		setFocus(modal)
+	}
+
 	accountNumbers := make([]uint32, len(accounts))
 	accountNames := make([]string, len(accounts))
 	for index, account := range accounts {
 		accountNames[index] = account.Name
 		accountNumbers[index] = account.Number
 	}
-
-	form := primitives.NewForm(false)
-	form.SetBorderPadding(0, 0, 0, 0)
-	form.SetLabelColor(helpers.DecredLightBlueColor)
-	form.SetCancelFunc(clearFocus)
 
 	if len(accounts) == 1 {
 		singleAccountTextView := primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts[0].Name))
@@ -88,7 +107,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		})
 
 		form.AddButton("generate new address", func() {
-			generateAndDisplayAddress(accounts[0].Number, true)
+			ConfirmNewAddressGeneration(accounts[0].Number, true)
 		})
 
 		body.AddItem(singleAccountTextView, 2, 1, true)
@@ -119,7 +138,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		})
 
 		form.AddButton(" generate new address ", func() {
-			generateAndDisplayAddress(accountNumber, true)
+			ConfirmNewAddressGeneration(accountNumber, true)
 		})
 
 		body.AddItem(form, 4, 0, true)
