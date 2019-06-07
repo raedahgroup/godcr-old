@@ -19,10 +19,10 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		SetTextColor(helpers.HintTextColor)
 	body.AddItem(receivingDecredHintTextView, 2, 1, false)
 
-	generateAdressFunc := func (formButton tview.Primitive) {
+	generateAdressFunc := func(formButton tview.Primitive) {
 		newAdd := tview.NewFlex().
-		AddItem(primitives.NewLeftAlignedTextView("You can also manually generate a").SetTextColor(helpers.HintTextColor), 33, 0, false).
-		AddItem(formButton, 0, 1, false)
+			AddItem(primitives.NewLeftAlignedTextView("You can also manually generate a").SetTextColor(helpers.HintTextColor), 33, 0, false).
+			AddItem(formButton, 0, 1, false)
 		body.AddItem(newAdd, 3, 1, false)
 	}
 
@@ -140,12 +140,12 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		formButton.AddButton("New Address", func() {
 			generateAndDisplayAddress(accountNumber, true)
 		})
-		
+
 		generateAdressFunc(formButton)
 
 		body.AddItem(formDropdown, 2, 0, true)
 		hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address, \nMove around with TAB, ESC to return to navigation menu")
-	
+
 		formDropdown.GetFormItemBox(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyTab {
 				setFocus(formButton)
@@ -164,7 +164,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			return event
 		})
 	}
-	
+
 	// always generate and display address for the first account, even if there are multiple accounts
 	generateAndDisplayAddress(accounts[0].Number, false)
 
