@@ -20,10 +20,10 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	body.AddItem(receivingDecredHintTextView, 2, 1, false)
 
 	generateAdressFunc := func(formButton tview.Primitive) {
-		newAdd := tview.NewFlex().
+		newAddressFlex := tview.NewFlex().
 			AddItem(primitives.NewLeftAlignedTextView("You can also manually generate a").SetTextColor(helpers.HintTextColor), 33, 0, false).
 			AddItem(formButton, 0, 1, false)
-		body.AddItem(newAdd, 3, 1, false)
+		body.AddItem(newAddressFlex, 3, 1, false)
 	}
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
@@ -92,7 +92,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 				clearFocus()
 			}
 		})
-		formButton.AddButton("New Address", func() {
+		formButton.AddButton("NEW ADDRESS.", func() {
 			generateAndDisplayAddress(accounts[0].Number, true)
 		})
 
@@ -137,7 +137,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			generateAndDisplayAddress(accountNumber, false)
 		})
 
-		formButton.AddButton("New Address", func() {
+		formButton.AddButton("NEW ADDRESS.", func() {
 			generateAndDisplayAddress(accountNumber, true)
 		})
 
