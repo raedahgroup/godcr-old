@@ -476,7 +476,7 @@ export default class extends Controller {
   }
 
   destinationFieldsValid (dontModifyErrorOutput) {
-    if(!dontModifyErrorOutput){
+    if (!dontModifyErrorOutput) {
       this.clearMessages()
     }
     let fieldsAreValid = true
