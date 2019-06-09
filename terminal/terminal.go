@@ -11,7 +11,7 @@ import (
 
 // todo the ctx variable should be stored somewhere for as long as this terminal app is open
 // it will be necessary for use in some wallet operations
-func StartTerminalApp(_ context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) error {
+func StartTerminalApp(_ context.Context, walletMiddleware app.WalletMiddleware, settings config.Settings) error {
 	tviewApp := tview.NewApplication()
 
 	// todo: main.go now requires that the user select a wallet or create one before launching interfaces, so need for this check

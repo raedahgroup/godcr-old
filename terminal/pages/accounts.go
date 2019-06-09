@@ -12,7 +12,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, settings *config.Settings, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
+func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, settings config.Settings, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	accountPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	messageTextView := primitives.WordWrappedTextView("")

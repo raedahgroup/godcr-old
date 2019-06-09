@@ -120,7 +120,7 @@ func main() {
 	case "fyne":
 		enterFyneMode(ctx, walletMiddleware)
 	case "terminal":
-		enterTerminalMode(ctx, walletMiddleware, appConfig)
+		enterTerminalMode(ctx, walletMiddleware, appConfig.Settings)
 	}
 
 	// wait for handleShutdown goroutine, to finish before exiting main
@@ -265,9 +265,9 @@ func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	beginShutdown <- true
 }
 
-func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
+func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Settings) {
 	fmt.Println("Launching Terminal...")
-	opError = terminal.StartTerminalApp(ctx, walletMiddleware, &appConfig.Settings)
+	opError = terminal.StartTerminalApp(ctx, walletMiddleware, appConfig)
 	// Terminal app closed, trigger shutdown
 	beginShutdown <- true
 }

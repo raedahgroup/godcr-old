@@ -11,7 +11,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, settings *config.Settings) tview.Primitive {
+func RootPage(tviewApp *tview.Application, walletMiddleware app.WalletMiddleware, settings config.Settings) tview.Primitive {
 	gridLayout := tview.NewGrid().
 		SetRows(3, 1, 0, 1, 2).
 		SetColumns(20, 2, 0, 2)
