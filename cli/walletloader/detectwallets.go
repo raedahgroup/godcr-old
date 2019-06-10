@@ -59,10 +59,9 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 			strings.Index(dirName, "testnet") == -1 {
 			return utils.NetParams("testnet3")
 		} else if strings.Index(dirName, "simnet") == 0 ||
-			strings.Index(dirName, "simnet") == -1{
+			strings.Index(dirName, "simnet") == -1 {
 			return utils.NetParams("simnet")
 		}
-
 
 		return nil
 	}

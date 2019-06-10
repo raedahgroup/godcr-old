@@ -115,11 +115,6 @@ func prepareMiddlewareToCreateNewWallet(ctx context.Context, newWalletNetwork st
 
 	return dcrlibwallet.Connect(ctx, walletDbDir, newWalletNetwork)
 }
-func detectWalletType(wallet string) (walletType dcrlibwallet.DcrWalletLib, err error) {
-	wallet = dcrutil.AppDataDir(wallet, false)
-
-	return
-}
 
 // requestNewWalletPassphrase asks user to enter private passphrase for new wallet twice.
 // Prompt is repeated if both entered passphrases don't match.
@@ -142,6 +137,7 @@ func requestNewWalletPassphrase() (string, error) {
 		return passphrase, nil
 	}
 }
+
 func generateNewWalletSeedAndDisplay() (string, error) {
 	// generate seed
 	seed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
