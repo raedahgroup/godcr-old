@@ -265,9 +265,9 @@ func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
 	beginShutdown <- true
 }
 
-func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig config.Settings) {
+func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appSettings config.Settings) {
 	fmt.Println("Launching Terminal...")
-	opError = terminal.StartTerminalApp(ctx, walletMiddleware, appConfig)
+	opError = terminal.StartTerminalApp(ctx, walletMiddleware, appSettings)
 	// Terminal app closed, trigger shutdown
 	beginShutdown <- true
 }
