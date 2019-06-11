@@ -151,7 +151,7 @@ export default class extends Controller {
       return Array.from(accountNames).join(', ')
     }
 
-    const directionImage = (tx) => {
+    const txDirectionImage = (tx) => {
       switch (tx.direction) {
         case 0:
           return 'ic_send.svg'
@@ -175,7 +175,7 @@ export default class extends Controller {
       fields[2].innerText = tx.type
 
       const direction = txDirection(tx.direction)
-      const image = directionImage(tx).toString()
+      const image = txDirectionImage(tx).toString()
       fields[3].innerHTML = '<img style="width: 15px" src="/static/images/' + image + '"> ' + direction
 
       fields[4].innerHTML = amountDcr(tx.amount)

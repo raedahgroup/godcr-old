@@ -96,7 +96,7 @@ func templateFuncMap() template.FuncMap {
 		"accountName": func(txn *walletcore.Transaction) string {
 			return txn.WalletAccountForTx()
 		},
-		"directionImage": func(txn *walletcore.Transaction) string {
+		"txDirectionImage": func(txn *walletcore.Transaction) string {
 			switch txn.Direction {
 			case txhelper.TransactionDirectionSent:
 				return "ic_send.svg"

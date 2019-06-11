@@ -58,7 +58,7 @@
                             <td>{{ $txn.WalletAccountForTx }}</td>
                             <td>{{ $txn.LongTime }}</td>
                             <td>{{ $txn.Type }}</td>
-                            <td><img style="width: 15px" src="/static/images/{{directionImage $txn}}"> {{ $txn.Direction }}</td>
+                            <td><img style="width: 15px" src="/static/images/{{txDirectionImage $txn}}"> {{ $txn.Direction }}</td>
                             <td style="text-align: right">{{ amountDcr $txn.Amount }}</td>
                             <td style="text-align: right">{{ amountDcr $txn.Fee }}</td>
                             <td>{{ $txn.Status }}</td>
