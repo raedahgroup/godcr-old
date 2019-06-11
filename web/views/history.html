@@ -6,7 +6,7 @@
 
         {{ template "header" .connectionInfo }}
         <div class="content">
-            <div class="container">
+            <div class="container" style="min-width: 850px !important; overflow: auto !important;">
                 <div class="row">
                     <div class="col-md-3 col-sm-12 mb-2">
                         <select data-target="history.selectedFilter" data-action="change->history#selectedFilterChanged"
