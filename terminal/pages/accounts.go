@@ -84,14 +84,14 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 			defaultAccount.SetChecked(true)
 		}
 
-		var accountExist bool
+		var accountIsHidden bool
 		for _, hiddenAccount := range hiddenAccounts {
 			if selectedAccount.Number == hiddenAccount {
-				accountExist = true
+				accountIsHidden = true
 			}
 		}
 
-		hideAccount.SetChecked(accountExist)
+		hideAccount.SetChecked(accountIsHidden)
 
 		accountPage.AddItem(hideAccount, 2, 0, false)
 		accountPage.AddItem(defaultAccount, 2, 0, false)
