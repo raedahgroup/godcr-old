@@ -1,6 +1,6 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { hide, show, listenForBalanceUpdate } from '../utils'
+import { hide, show, listenForBalanceUpdate, isHidden } from '../utils'
 
 export default class extends Controller {
   static get targets () {
@@ -76,6 +76,7 @@ export default class extends Controller {
 
     this.openCustomInputsAndChangeOutputsPanel()
     show(this.toggleCustomInputPnlTarget.parentElement)
+    this.calculateCustomInputsPercentage()
     this.updateSendButtonState()
   }
 
@@ -799,7 +800,7 @@ export default class extends Controller {
   }
 
   generateChangeOutputs () {
-    if (this.generatingChangeOutputs || !this.useCustomChangeOutput) {
+    if (this.generatingChangeOutputs || !this.usingCustomChangeOutput()) {
       return
     }
 
@@ -817,7 +818,7 @@ export default class extends Controller {
 
     let _this = this
     this.getRandomChangeOutputs(numberOfChangeOutput, function (changeOutputs) {
-      if (!_this.useCustomChangeOutput) {
+      if (!_this.usingCustomChangeOutput()) {
         return
       }
 
@@ -889,6 +890,10 @@ export default class extends Controller {
         _this.generatingChangeOutputs = false
         this.setBusy(false)
       })
+  }
+
+  usingCustomChangeOutput () {
+    return this.useCustomChangeOutput && !isHidden(this.changeOutputsTarget)
   }
 
   changeOutputAmountPercentageChanged (event) {
@@ -1076,7 +1081,7 @@ export default class extends Controller {
       totalPercentageAllotted += thisPercent
     })
 
-    if (this.useCustomChangeOutput && totalPercentageAllotted !== 100) {
+    if (this.usingCustomChangeOutput() && totalPercentageAllotted !== 100) {
       this.showError(`Total change amount percentage must be equal to 100. Current total is ${totalPercentageAllotted}`)
       return false
     }

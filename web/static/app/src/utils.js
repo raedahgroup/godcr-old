@@ -83,6 +83,10 @@ export const show = (el) => {
   el.classList.remove('d-none')
 }
 
+export const isHidden = (el) => {
+  return el.classList.contains('d-none')
+}
+
 export const truncate = (input, maxLength) => {
   if (input.length <= maxLength) {
     return input
