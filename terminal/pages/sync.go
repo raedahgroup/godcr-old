@@ -89,18 +89,15 @@ func LaunchSyncPage(tviewApp *tview.Application, walletMiddleware app.WalletMidd
 }
 
 func startSync(walletMiddleware app.WalletMiddleware, updateStatus func([]string), handleError func(string), afterSyncing func()) {
-	var syncCompleted bool
+	var isFirstSyncCompleted = true
 	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
-			if !syncCompleted {
+			if isFirstSyncCompleted {
 				afterSyncing()
-				syncCompleted = true
-			}else{
-				return
+				isFirstSyncCompleted = false
 			}
-
 			return
 		}
 

@@ -47,18 +47,16 @@ func (app *fyneApp) showSyncWindow() {
 	app.resizeAndCenterMainWindow(syncWindowContent)
 	app.mainWindow.Show()
 
-	var syncCompleted bool
+	var isFirstSyncCompleted = true
 	app.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
 
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
-			if !syncCompleted {
+			if isFirstSyncCompleted {
 				app.loadMainWindowContent()
-				syncCompleted = true
-			}else{
-				return
+				isFirstSyncCompleted = false
 			}			
 			return
 		}
