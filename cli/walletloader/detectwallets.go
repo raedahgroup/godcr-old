@@ -14,6 +14,7 @@ import (
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
+	"github.com/decred/dcrd/chaincfg"
 )
 
 type WalletInfo struct {
@@ -52,16 +53,20 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 		dirName := filepath.Base(walletDbDir)
 
 		// check if folder name starts with any of the supported nettypes
-		if strings.Index(dirName, "mainnet") == 0 ||
-			strings.Index(dirName, "mainnet") == -1 {
+		if strings.Index(dirName, "mainnet") == 0 {
 			return utils.NetParams("mainnet")
-		} else if strings.Index(dirName, "testnet3") == 0 ||
-			strings.Index(dirName, "testnet") == -1 {
+		} else if strings.Index(dirName, "mainnet") == -1 {
+			return nil
+		} else if strings.Index(dirName, "testnet3") == 0 {
 			return utils.NetParams("testnet3")
-		} else if strings.Index(dirName, "simnet") == 0 ||
-			strings.Index(dirName, "simnet") == -1 {
+		}else if strings.Index(dirName, "testnet") == -1 {
+			return nil
+		} else if strings.Index(dirName, "simnet") == 0 {
 			return utils.NetParams("simnet")
+		} else if strings.Index(dirName, "simnet") == -1 {
+			return nil
 		}
+
 
 		return nil
 	}
