@@ -590,15 +590,17 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	}
 
 	if defaultAccountStr := req.FormValue("default-account"); defaultAccountStr != "" {
-		defaultAccount, err := strconv.Atoi(defaultAccountStr)
+		defaultAccountInt, err := strconv.Atoi(defaultAccountStr)
 		if err != nil {
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 
+		defaultAccount := uint32(defaultAccountInt)
+
 		// remove default account if exists
 		if routes.settings.DefaultAccount == defaultAccount {
-			defaultAccount = -1
+			defaultAccount = 0
 		}
 
 		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
@@ -619,16 +621,18 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 
+		accountUInt32 := uint32(accountInt)
+
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is not already set to be hidden
 		for _, v := range hiddenAccounts {
-			if v == accountInt {
+			if v == accountUInt32 {
 				data["error"] = "Error updating settings. Account is already hidden"
 				return
 			}
 		}
 
-		hiddenAccounts = append(hiddenAccounts, accountInt)
+		hiddenAccounts = append(hiddenAccounts, accountUInt32)
 		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
 			cnfg.HiddenAccounts = hiddenAccounts
 		})
@@ -641,12 +645,13 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	}
 
 	if accountToReveal := req.FormValue("reveal-account"); accountToReveal != "" {
-		account, err := strconv.Atoi(accountToReveal)
+		accountInt, err := strconv.Atoi(accountToReveal)
 		if err != nil {
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 
+		account := uint32(accountInt)
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is hidden
 		for i := range hiddenAccounts {
