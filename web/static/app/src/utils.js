@@ -82,3 +82,28 @@ export const hide = (el) => {
 export const show = (el) => {
   el.classList.remove('d-none')
 }
+
+export const truncate = (input, maxLength) => {
+  if (input.length <= maxLength) {
+    return input
+  }
+  return input.substring(0, maxLength - 1)
+}
+
+export const splitAmountIntoParts = (amountStr) => {
+  if (amountStr.indexOf('.') === -1) {
+    const splitBalance = amountStr.split(' ')
+    return [
+      splitBalance[0], '', splitBalance[1]
+    ]
+  }
+  let balanceParts = ['', '', '']
+  const splitBalance = amountStr.split('.')
+  balanceParts[0] = splitBalance[0]
+  balanceParts[1] = splitBalance[1].substring(0, 1)
+  const decimalPart = splitBalance[1].split(' ')[0]
+  if (decimalPart.length > 2) {
+    balanceParts[2] = splitBalance[1].substring(2)
+  }
+  return balanceParts
+}

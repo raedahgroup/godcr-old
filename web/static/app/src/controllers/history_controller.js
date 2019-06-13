@@ -1,15 +1,16 @@
 import { Controller } from 'stimulus'
 import axios from 'axios'
-import { hide, show } from '../utils'
+import { hide, show, truncate } from '../utils'
 
 export default class extends Controller {
   static get targets () {
     return [
+      'selectedFilter',
+      'transactionCountContainer', 'transactionCount', 'transactionTotalCount',
       'stickyTableHeader', 'historyTable',
       'txRowTemplate',
       'errorMessage',
-      'previousPageButton', 'nextPageButton',
-      'pageReport',
+      'previousPageButton', 'pageReport', 'nextPageButton',
       'loadingIndicator'
     ]
   }
@@ -20,6 +21,9 @@ export default class extends Controller {
   }
 
   alignTableHeaderWithStickyHeader () {
+    if (this.historyTableTarget.innerHTML === '') {
+      return
+    }
     this.stickyTableHeaderTarget.style.width = `${this.historyTableTarget.clientWidth}px`
 
     // set column width on sticky header to match real table
@@ -73,14 +77,31 @@ export default class extends Controller {
     }
   }
 
+  selectedFilterChanged () {
+    this.historyTableTarget.innerHTML = ''
+    hide(this.transactionCountContainerTarget)
+    this.nextPage = 1
+    this.fetchMoreTxs()
+  }
+
   fetchMoreTxs () {
     show(this.loadingIndicatorTarget)
 
+    const filter = this.selectedFilterTarget.value
+
     const _this = this
-    axios.get(`/next-history-page?page=${this.nextPage}`)
+    axios.get(`/next-history-page?page=${this.nextPage}&filter=${filter}`)
       .then(function (response) {
+        // since results are appended to the table, discard this response
+        // if the user has changed the filter before the result is gotten
+        if (_this.selectedFilterTarget.value !== filter) {
+          return
+        }
         let result = response.data
         if (result.success) {
+          _this.transactionTotalCountTarget.textContent = result.transactionTotalCount
+          show(_this.transactionCountContainerTarget)
+
           hide(_this.errorMessageTarget)
           _this.nextPage = result.nextPage
           _this.displayTxs(result.txs)
@@ -90,7 +111,8 @@ export default class extends Controller {
         } else {
           _this.setErrorMessage(result.message)
         }
-      }).catch(function () {
+      }).catch(function (e) {
+        console.log(e)
         _this.setErrorMessage('A server error occurred')
       }).then(function () {
         _this.isLoading = false
@@ -99,7 +121,7 @@ export default class extends Controller {
   }
 
   displayTxs (txs) {
-    const directions = ['Sent', 'Received', 'Transferred']
+    const directions = ['Sent', 'Received', 'Yourself']
     const txDirection = (direction) => {
       if (direction >= 0 && direction < directions.length) {
         return directions[direction]
@@ -110,21 +132,62 @@ export default class extends Controller {
       return `${amount / 100000000} DCR`
     }
 
+    const accountName = (tx) => {
+      let accountNames = new Set()
+      if (tx.direction === 1) {
+        tx.outputs.forEach(output => {
+          if (parseInt(output.previous_account) !== -1) {
+            accountNames.add(output.account_name)
+          }
+        })
+      } else {
+        tx.inputs.forEach(input => {
+          if (parseInt(input.previous_account) !== -1) {
+            accountNames.add(input.account_name)
+          }
+        })
+      }
+
+      return Array.from(accountNames).join(', ')
+    }
+
+    const txDirectionImage = (tx) => {
+      switch (tx.direction) {
+        case 0:
+          return 'ic_send.svg'
+        case 1:
+          return 'ic_receive.svg'
+      }
+      if (tx.type === 'Ticket') {
+        return 'live_ticket.svg'
+      }
+      return 'ic_tx_transferred.svg'
+    }
+
     const _this = this
+
     txs.forEach(tx => {
       const txRow = document.importNode(_this.txRowTemplateTarget.content, true)
       const fields = txRow.querySelectorAll('td')
 
-      fields[0].innerText = tx.long_time
-      fields[1].innerText = tx.type
-      fields[2].innerText = txDirection(tx.direction)
-      fields[3].innerText = amountDcr(tx.amount)
-      fields[4].innerText = amountDcr(tx.fee)
-      fields[5].innerText = tx.status
-      fields[6].innerHTML = `<a href="/transaction-details/${tx.hash}">${tx.hash}</a>`
+      fields[0].innerText = accountName(tx)
+      fields[1].innerText = tx.long_time
+      fields[2].innerText = tx.type
+
+      const direction = txDirection(tx.direction)
+      const image = txDirectionImage(tx).toString()
+      fields[3].innerHTML = '<img style="width: 15px" src="/static/images/' + image + '"> ' + direction
+
+      fields[4].innerHTML = amountDcr(tx.amount)
+      fields[5].innerHTML = amountDcr(tx.fee)
+
+      fields[6].innerText = tx.status
+      fields[7].innerHTML = `<a href="/transaction-details/${tx.hash}">${truncate(tx.hash, 10)}</a>`
 
       _this.historyTableTarget.appendChild(txRow)
     })
+
+    _this.transactionCountTarget.textContent = _this.historyTableTarget.childElementCount
   }
 
   setErrorMessage (message) {

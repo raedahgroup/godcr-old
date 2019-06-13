@@ -61,6 +61,17 @@ table td {
   padding: 0.3rem;
 }
 
+.history-table {
+  table-layout: fixed;
+}
+
+.history-table th,
+.history-table td {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .table.pad-big td,
 .table.pad-big th {
   padding: 0.7rem;

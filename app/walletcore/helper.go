@@ -6,7 +6,9 @@ import (
 	"strconv"
 
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/dcrlibwallet/utils"
 )
 
@@ -23,7 +25,53 @@ const (
 	LegacyTestnetHDPath = "m / 44' / 11' / "
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
+
+	TransactionFilterSent     = "Sent"
+	TransactionFilterReceived = "Received"
+	TransactionFilterYourself = "Yourself"
+	TransactionFilterStaking  = "Staking"
+	TransactionFilterCoinbase = "Coinbase"
 )
+
+var TransactionFilters = []string{
+	TransactionFilterSent,
+	TransactionFilterReceived,
+	TransactionFilterYourself,
+	TransactionFilterStaking,
+	TransactionFilterCoinbase,
+}
+
+func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
+	var (
+		txFilter       = txindex.Filter()
+		stakingTxTypes = []string{
+			txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase),
+			txhelper.FormatTransactionType(wallet.TransactionTypeVote),
+			txhelper.FormatTransactionType(wallet.TransactionTypeRevocation),
+		}
+	)
+	for _, filter := range filters {
+		switch filter {
+		case TransactionFilterSent:
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionSent)
+			break
+		case TransactionFilterReceived:
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionReceived)
+			break
+		case TransactionFilterYourself:
+			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionYourself).AndNotWithTxTypes(stakingTxTypes...)
+
+			break
+		case TransactionFilterCoinbase:
+			txFilter = txFilter.AndWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))
+			break
+		case TransactionFilterStaking:
+			txFilter = txFilter.OrWithTxTypes(stakingTxTypes...)
+			break
+		}
+	}
+	return txFilter
+}
 
 // NormalizeBalance adds 0s the right of balance to make it x.xxxxxxxx DCR
 func NormalizeBalance(balance float64) string {
