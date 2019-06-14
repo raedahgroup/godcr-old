@@ -48,7 +48,7 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 	// netType checks if the name of the directory where a wallet.db file was found is the name of a known/supported network type
 	// dcrwallet, decredition and dcrlibwallet place wallet db files in "mainnet" or "testnet3" directories
 	// returns nil if the directory used does not correspond to a known/supported network type
-	firstAddressChar := chaincfg.Params.NetworkAddressPrefix
+	firstAddressChar := chaincfg.Params{}.NetworkAddressPrefix
 
 	detectNetParams := func(path string) *netparams.Params {
 		//walletDbDir := filepath.Dir(path)

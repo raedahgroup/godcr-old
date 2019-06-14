@@ -4,6 +4,7 @@ require (
 	fyne.io/fyne v0.0.0-20190411071008-b3687258b083
 	github.com/aarzilli/nucular v0.0.0-20190403084742-0071461892e4
 	github.com/atotto/clipboard v0.1.2
+	github.com/decred/dcrd/chaincfg v1.3.0
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/dcrd/dcrutil v1.2.0
 	github.com/decred/dcrd/hdkeychain v1.1.1
