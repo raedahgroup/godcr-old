@@ -48,28 +48,36 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 	// netType checks if the name of the directory where a wallet.db file was found is the name of a known/supported network type
 	// dcrwallet, decredition and dcrlibwallet place wallet db files in "mainnet" or "testnet3" directories
 	// returns nil if the directory used does not correspond to a known/supported network type
+	firstAddressChar := chaincfg.Params.NetworkAddressPrefix
+
 	detectNetParams := func(path string) *netparams.Params {
-		walletDbDir := filepath.Dir(path)
-		dirName := filepath.Base(walletDbDir)
+		//walletDbDir := filepath.Dir(path)
+		//dirName := filepath.Base(walletDbDir)
 
 		// check if folder name starts with any of the supported nettypes
-		if strings.Index(dirName, "mainnet") == 0 {
+		//if strings.Index(firstAddressChar, "mainnet") == 0 {
+		//	return utils.NetParams("mainnet")
+		//} else if strings.Index(firstAddressChar, "testnet3") == 0 {
+		//	return utils.NetParams("testnet3")
+		//} else if strings.Index(firstAddressChar, "simnet") == 0 {
+		//	return utils.NetParams("simnet")
+		//}
+
+		//check if the prefix of the generated address is simulacrum
+		//to the first index of the supported nettypes and returns the
+		//appropriate nettype found in the wallet directory
+		if firstAddressChar == "D" {
 			return utils.NetParams("mainnet")
-		} else if strings.Index(dirName, "mainnet") == -1 {
-			return nil
-		} else if strings.Index(dirName, "testnet3") == 0 {
+		}else if firstAddressChar == "T" {
 			return utils.NetParams("testnet3")
-		}else if strings.Index(dirName, "testnet") == -1 {
-			return nil
-		} else if strings.Index(dirName, "simnet") == 0 {
+		}else if firstAddressChar == "S" {
 			return utils.NetParams("simnet")
-		} else if strings.Index(dirName, "simnet") == -1 {
-			return nil
 		}
 
 
 		return nil
-	}
+	} 
+	
 
 	err = filepath.Walk(walletDir, func(path string, file os.FileInfo, err error) error {
 		if err != nil || file.IsDir() || file.Name() != app.WalletDbFileName {
@@ -161,6 +169,7 @@ func listWalletsForSelection(ctx context.Context, cfg *config.Config, allDetecte
 	// user chose to create new wallet
 	return createWallet(ctx, cfg)
 }
+
 
 func promptToSaveDefaultWallet(walletDbDir string) {
 	prompt := "Would you like to use this wallet by default?"
