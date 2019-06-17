@@ -20,10 +20,10 @@ var totalTxCount int
 
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
-	body := tview.NewFlex().SetDirection(tview.FlexRow)
+	historyPage := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// handler for returning back to menu column
-	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	historyPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			clearFocus()
 			return nil
@@ -36,7 +36,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	displayMessage := func(message string, error bool) {
 		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
-			body.RemoveItem(messageTextView)
+			historyPage.RemoveItem(messageTextView)
 			if message != "" {
 				if error {
 					messageTextView.SetTextColor(helpers.DecredOrangeColor)
@@ -45,25 +45,50 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 				}
 
 				messageTextView.SetText(message)
-				body.AddItem(messageTextView, 2, 0, false)
+				historyPage.AddItem(messageTextView, 2, 0, false)
 			}
 		})
 	}
 
-	// get total tx count early on, so as to display on history header
-	txCount, txCountErr := wallet.TransactionCount(nil)
-	totalTxCount = txCount
-
 	// page title
-	historyPageTitle := fmt.Sprintf("History (%d transactions)", txCount)
+	historyPageTitle := "History"
 	titleTextView := primitives.NewLeftAlignedTextView(historyPageTitle)
-	body.AddItem(titleTextView, 2, 0, false)
+	historyPage.AddItem(titleTextView, 2, 0, false)
+
+	// tx filter
+	filters := walletcore.TransactionFilters
+	transactionCountByFilter := make([]string, len(filters))
+
+	var txCount int
+	var txCountErr error
+	for index, filter := range filters {
+		if filter == "All" {
+				txCount, txCountErr = wallet.TransactionCount(nil)
+		}
+		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
+		if txCountErr != nil {
+			displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), true)
+			tviewApp.SetFocus(historyPage)
+			return historyPage
+		}
+		if txCount == 0 {
+			continue
+		}
+		transactionCountByFilter[index] = fmt.Sprintf("%s (%d)", filter, txCount)
+	}
+
+	// get total tx count early on, so as to display on history header
+	totalTxCount = txCount
 
 	if txCountErr != nil {
 		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), true)
-		tviewApp.SetFocus(body)
-		return body
+		tviewApp.SetFocus(historyPage)
+		return historyPage
 	}
+
+	txDropdown := tview.NewDropDown().
+	SetOptions(transactionCountByFilter, nil)
+	historyPage.AddItem(txDropdown, 2, 0, true)
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
@@ -73,20 +98,20 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
 	displayHistoryTable := func() {
-		body.RemoveItem(transactionDetailsTable)
+		historyPage.RemoveItem(transactionDetailsTable)
 
 		titleTextView.SetText(historyPageTitle)
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn,\nENTER to view details, ESC to return to navigation menu")
 
-		body.AddItem(historyTable, 0, 1, true)
+		historyPage.AddItem(historyTable, 0, 1, true)
 		tviewApp.SetFocus(historyTable)
 	}
 
 	if txCount == 0 {
 		displayMessage("No transactions yet", false)
 		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
-		tviewApp.SetFocus(body)
-		return body
+		tviewApp.SetFocus(historyPage)
+		return historyPage
 	}
 
 	historyTable.SetDoneFunc(func(key tcell.Key) {
@@ -104,14 +129,14 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 			return
 		}
 
-		body.RemoveItem(historyTable)
+		historyPage.RemoveItem(historyTable)
 		txHash := displayedTxHashes[row-1]
 
 		titleTextView.SetText("Transaction Details")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to view History page, ESC to return to navigation menu")
 
 		transactionDetailsTable.Clear()
-		body.AddItem(transactionDetailsTable, 0, 1, true)
+		historyPage.AddItem(transactionDetailsTable, 0, 1, true)
 
 		tviewApp.SetFocus(transactionDetailsTable)
 
@@ -146,9 +171,9 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \nENTER to view details, ESC to return to navigation menu")
 
-	tviewApp.SetFocus(body)
+	tviewApp.SetFocus(historyPage)
 
-	return body
+	return historyPage
 }
 
 func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application, displayMessage func(string, bool)) {
