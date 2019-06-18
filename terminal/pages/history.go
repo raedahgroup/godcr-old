@@ -227,7 +227,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	selectedFilter, lastSelectedFilter = "All", "All"
 	go fetchAndDisplayTransactions(0, wallet, nil, historyTable, tviewApp, displayMessage)
 
-	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \nENTER to view details, ESC to return to navigation menu")
+	hintTextView.SetText("TIP: Use TAB to switch/navigate, ARROW UP/DOWN to select txn, \nENTER to view details, ESC to return to navigation menu")
 
 	tviewApp.SetFocus(historyPage)
 
