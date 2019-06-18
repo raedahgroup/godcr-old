@@ -26,7 +26,7 @@ const (
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
 
-	TransactionFilterAll     = "All"
+	TransactionFilterAll      = "All"
 	TransactionFilterSent     = "Sent"
 	TransactionFilterReceived = "Received"
 	TransactionFilterYourself = "Yourself"
