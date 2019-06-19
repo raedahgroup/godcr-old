@@ -66,7 +66,7 @@ func (accountSelector *AccountSelector) Render(window *Window, addColumns ...int
 
 	if accountSelector.accountsFetchError != nil {
 		window.DisplayErrorMessage("Fetch accounts error", accountSelector.accountsFetchError)
-	} else if len(accountSelector.accounts) == 1 {
+	} else if len(accountSelector.accounts) != 1 {
 		accountSelector.selectedAccountIndex = 0
 		window.Label(accountSelector.accountNames[0], LeftCenterAlign)
 	} else {

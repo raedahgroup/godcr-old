@@ -14,6 +14,7 @@ import (
 type HistoryHandler struct {
 	wallet               walletcore.Wallet
 	refreshWindowDisplay func()
+	filterSelectorWidget *widgets.FilterSelector
 
 	totalTxCount int
 
@@ -32,6 +33,8 @@ type HistoryHandler struct {
 func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
+
+	handler.filterSelectorWidget = widgets.FilterSelectorWidget(wallet)
 
 	handler.currentPage = 1
 	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
@@ -77,6 +80,10 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
+		handler.filterSelectorWidget = widgets.FilterSelectorWidget(handler.wallet)
+		handler.filterSelectorWidget.Render(contentWindow)
+		handler.refreshWindowDisplay()
+
 		// show transactions first, if any
 		if len(handler.transactions) > 0 {
 			handler.displayTransactions(contentWindow)
