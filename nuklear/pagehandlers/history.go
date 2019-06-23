@@ -2,6 +2,7 @@ package pagehandlers
 
 import (
 	"fmt"
+	// "strings"
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
@@ -14,7 +15,10 @@ import (
 type HistoryHandler struct {
 	wallet               walletcore.Wallet
 	refreshWindowDisplay func()
+
 	filterSelectorWidget *widgets.FilterSelector
+	// selectedFilter string
+	filter *txindex.ReadFilter
 
 	totalTxCount int
 
@@ -44,24 +48,26 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 
 	handler.clearTxDetails()
 
-	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
-	if handler.fetchHistoryError == nil {
-		// only fetch txs if there was no error getting tx count.
-		go handler.fetchTransactions()
-	}
+	// handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	// if handler.fetchHistoryError != nil {
+	// 	return true
+	// }
 
 	return true
 }
 
-func (handler *HistoryHandler) fetchTransactions() {
+func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
 	handler.isFetchingTransactions = true
 	handler.refreshWindowDisplay() // refresh display to show loading indicator
-
 	txHistoryOffset := 0
+
 	if handler.transactions != nil {
 		txHistoryOffset = len(handler.transactions)
+		fmt.Println(txHistoryOffset)
+
 	}
-	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), nil)
+	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), filter)
+	fmt.Println(len(transactions))
 
 	handler.fetchHistoryError = err
 	handler.transactions = append(handler.transactions, transactions...)
@@ -80,9 +86,25 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		handler.filterSelectorWidget = widgets.FilterSelectorWidget(handler.wallet)
 		handler.filterSelectorWidget.Render(contentWindow)
-		handler.refreshWindowDisplay()
+
+		handler.totalTxCount, handler.filter = handler.filterSelectorWidget.GetSelectedFilter()
+		// handler.selectedFilter = selectedFilterAndCount[0]
+		// fmt.Println(handler.selectedFilter)
+
+		// if handler.selectedFilter == "All" {
+		// 	go handler.fetchTransactions(nil)
+		// }else{
+		// 	handler.filter = txindex.Filter()
+		// 	handler.filter = walletcore.BuildTransactionFilter(handler.selectedFilter)
+
+		// 	handler.totalTxCount, handler.fetchHistoryError = handler.wallet.TransactionCount(handler.filter)
+		// 	if handler.fetchHistoryError != nil {
+		// 		return
+		// 	}
+
+		go handler.fetchTransactions(handler.filter)
+		// }
 
 		// show transactions first, if any
 		if len(handler.transactions) > 0 {
@@ -166,8 +188,28 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 	nextPageTxOffset := (nextPage - 1) * handler.txPerPage
 	if nextPageTxOffset >= len(handler.transactions) {
 		// we've not loaded txs for this page
-		go handler.fetchTransactions()
+		go handler.fetchTransactions(nil)
 	}
 
 	handler.refreshWindowDisplay()
 }
+
+// func (handler *HistoryHandler) {
+// 	selectedFilterAndCount := strings.Split(handler.filterSelectorWidget.GetSelectedFilter(), " ")
+// 	handler.selectedFilter = selectedFilterAndCount[0]
+// 	fmt.Println(handler.selectedFilter)
+
+// 	if handler.selectedFilter == "All" {
+// 		go handler.fetchTransactions(nil)
+// 		return false
+// 	}
+
+// 	handler.filter = txindex.Filter()
+// 	handler.filter = walletcore.BuildTransactionFilter(handler.selectedFilter)
+
+// 	handler.totalTxCount, handler.fetchHistoryError = handler.wallet.TransactionCount(handler.filter)
+// 	if handler.fetchHistoryError != nil {
+// 		return true
+// 	}
+
+// }

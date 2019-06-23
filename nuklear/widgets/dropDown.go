@@ -2,11 +2,15 @@ package widgets
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/walletcore"
-	// "github.com/raedahgroup/dcrlibwallet/txindex"
 )
 
 type FilterSelector struct {
+	wallet walletcore.Wallet
+
 	filters                  []string
 	filter                   string
 	txCount                  int
@@ -14,6 +18,9 @@ type FilterSelector struct {
 	txCountErr               error
 	selectedFilterIndex      int
 	totalTxCount             int
+	selectedFilter           string
+	selectedFilterAndCount   string
+	txFilter                 *txindex.ReadFilter
 }
 
 const (
@@ -23,6 +30,8 @@ const (
 
 func FilterSelectorWidget(wallet walletcore.Wallet) (filterSelector *FilterSelector) {
 	filterSelector = &FilterSelector{}
+
+	filterSelector.wallet = wallet
 
 	filterSelector.filters = walletcore.TransactionFilters
 
@@ -71,3 +80,35 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 	filterSelector.selectedFilterIndex = window.ComboSimple(filterSelector.transactionCountByFilter,
 		filterSelector.selectedFilterIndex, filterSelectorHeight)
 }
+
+func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter) {
+	fmt.Println("this func was called")
+	if filterSelector.selectedFilterIndex < len(filterSelector.transactionCountByFilter) {
+		selectedFilterAndCount := filterSelector.transactionCountByFilter[filterSelector.selectedFilterIndex]
+
+		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
+		filterSelector.selectedFilter = selectedFilterCount[0]
+
+		if filterSelector.selectedFilter == "All" {
+			return filterSelector.totalTxCount, nil
+		}
+
+		txFilter := txindex.Filter()
+		txFilter = walletcore.BuildTransactionFilter(filterSelector.selectedFilter)
+
+		filterSelector.totalTxCount, _ = filterSelector.wallet.TransactionCount(txFilter)
+		// if handler.fetchHistoryError != nil {
+		// 	// return
+		// }
+
+		return filterSelector.totalTxCount, txFilter
+	}
+
+	return filterSelector.totalTxCount, nil
+}
+
+// func (filterSelector *FilterSelector) Reset() {
+// 	if len(filterSelector.accounts) > 1 {
+// 		filterSelector.selectedAccountIndex = 0
+// 	}
+// }
