@@ -48,10 +48,10 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 
 	handler.clearTxDetails()
 
-	// handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
-	// if handler.fetchHistoryError != nil {
-	// 	return true
-	// }
+	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	if handler.fetchHistoryError == nil {
+		go handler.fetchTransactions(handler.filter)
+	}
 
 	return true
 }
@@ -89,22 +89,6 @@ func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 		handler.filterSelectorWidget.Render(contentWindow)
 
 		handler.totalTxCount, handler.filter = handler.filterSelectorWidget.GetSelectedFilter()
-		// handler.selectedFilter = selectedFilterAndCount[0]
-		// fmt.Println(handler.selectedFilter)
-
-		// if handler.selectedFilter == "All" {
-		// 	go handler.fetchTransactions(nil)
-		// }else{
-		// 	handler.filter = txindex.Filter()
-		// 	handler.filter = walletcore.BuildTransactionFilter(handler.selectedFilter)
-
-		// 	handler.totalTxCount, handler.fetchHistoryError = handler.wallet.TransactionCount(handler.filter)
-		// 	if handler.fetchHistoryError != nil {
-		// 		return
-		// 	}
-
-		go handler.fetchTransactions(handler.filter)
-		// }
 
 		// show transactions first, if any
 		if len(handler.transactions) > 0 {
