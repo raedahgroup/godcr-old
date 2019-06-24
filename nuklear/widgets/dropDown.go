@@ -19,6 +19,8 @@ type FilterSelector struct {
 	selectedFilterIndex      int
 	totalTxCount             int
 	selectedFilter           string
+	lastfilter	string
+	changed bool
 	selectedFilterAndCount   string
 	txFilter                 *txindex.ReadFilter
 }
@@ -81,16 +83,15 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 		filterSelector.selectedFilterIndex, filterSelectorHeight)
 }
 
-func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter) {
-	fmt.Println("this func was called")
+func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string) {
 	if filterSelector.selectedFilterIndex < len(filterSelector.transactionCountByFilter) {
 		selectedFilterAndCount := filterSelector.transactionCountByFilter[filterSelector.selectedFilterIndex]
 
 		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
 		filterSelector.selectedFilter = selectedFilterCount[0]
 
-		if filterSelector.selectedFilter == "All" {
-			return filterSelector.totalTxCount, nil
+		if filterSelector.selectedFilter == "All"{
+			return filterSelector.totalTxCount, nil, "All"
 		}
 
 		txFilter := txindex.Filter()
@@ -101,10 +102,10 @@ func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFil
 		// 	// return
 		// }
 
-		return filterSelector.totalTxCount, txFilter
+		return filterSelector.totalTxCount, txFilter, filterSelector.selectedFilter
 	}
 
-	return filterSelector.totalTxCount, nil
+	return filterSelector.totalTxCount, nil, "All"
 }
 
 // func (filterSelector *FilterSelector) Reset() {

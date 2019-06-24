@@ -17,7 +17,7 @@ type HistoryHandler struct {
 	refreshWindowDisplay func()
 
 	filterSelectorWidget *widgets.FilterSelector
-	// selectedFilter string
+	selectedFilter string
 	filter *txindex.ReadFilter
 
 	totalTxCount int
@@ -39,7 +39,6 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.refreshWindowDisplay = refreshWindowDisplay
 
 	handler.filterSelectorWidget = widgets.FilterSelectorWidget(wallet)
-
 	handler.currentPage = 1
 	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
 	handler.transactions = nil
@@ -47,11 +46,6 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.isFetchingTransactions = false
 
 	handler.clearTxDetails()
-
-	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
-	if handler.fetchHistoryError == nil {
-		go handler.fetchTransactions(handler.filter)
-	}
 
 	return true
 }
@@ -63,9 +57,9 @@ func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
 
 	if handler.transactions != nil {
 		txHistoryOffset = len(handler.transactions)
-		fmt.Println(txHistoryOffset)
-
 	}
+
+	fmt.Println(filter)
 	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), filter)
 	fmt.Println(len(transactions))
 
@@ -88,7 +82,17 @@ func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
 		handler.filterSelectorWidget.Render(contentWindow)
 
-		handler.totalTxCount, handler.filter = handler.filterSelectorWidget.GetSelectedFilter()
+		totalTxCount, filter, selectedFilter := handler.filterSelectorWidget.GetSelectedFilter()
+		handler.totalTxCount = totalTxCount
+
+		if selectedFilter != handler.selectedFilter{
+			handler.selectedFilter = selectedFilter
+			go handler.fetchTransactions(filter)
+				// handler.refreshWindowDisplay()
+				window.Master().Changed()
+
+		}
+			fmt.Println(handler.selectedFilter)
 
 		// show transactions first, if any
 		if len(handler.transactions) > 0 {
