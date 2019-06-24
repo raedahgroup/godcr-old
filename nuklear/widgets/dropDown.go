@@ -19,8 +19,8 @@ type FilterSelector struct {
 	selectedFilterIndex      int
 	totalTxCount             int
 	selectedFilter           string
-	lastfilter	string
-	changed bool
+	lastfilter               string
+	changed                  bool
 	selectedFilterAndCount   string
 	txFilter                 *txindex.ReadFilter
 }
@@ -51,9 +51,6 @@ func FilterSelectorWidget(wallet walletcore.Wallet) (filterSelector *FilterSelec
 			return
 		}
 
-		if filterSelector.txCount == 0 {
-			continue
-		}
 		filterSelector.filter = filter
 
 		filterSelector.transactionCountByFilter[index] = fmt.Sprintf("%s (%d)", filterSelector.filter, filterSelector.txCount)
@@ -83,33 +80,27 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 		filterSelector.selectedFilterIndex, filterSelectorHeight)
 }
 
-func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string) {
+func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string, error) {
 	if filterSelector.selectedFilterIndex < len(filterSelector.transactionCountByFilter) {
 		selectedFilterAndCount := filterSelector.transactionCountByFilter[filterSelector.selectedFilterIndex]
 
 		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
 		filterSelector.selectedFilter = selectedFilterCount[0]
 
-		if filterSelector.selectedFilter == "All"{
-			return filterSelector.totalTxCount, nil, "All"
+		if filterSelector.selectedFilter == "All" {
+			return filterSelector.totalTxCount, nil, "All", nil
 		}
 
 		txFilter := txindex.Filter()
 		txFilter = walletcore.BuildTransactionFilter(filterSelector.selectedFilter)
 
-		filterSelector.totalTxCount, _ = filterSelector.wallet.TransactionCount(txFilter)
-		// if handler.fetchHistoryError != nil {
-		// 	// return
-		// }
+		filterSelector.totalTxCount, filterSelector.txCountErr = filterSelector.wallet.TransactionCount(txFilter)
+		if filterSelector.txCountErr != nil {
+			return filterSelector.totalTxCount, nil, " ", filterSelector.txCountErr
+		}
 
-		return filterSelector.totalTxCount, txFilter, filterSelector.selectedFilter
+		return filterSelector.totalTxCount, txFilter, filterSelector.selectedFilter, nil
 	}
 
-	return filterSelector.totalTxCount, nil, "All"
+	return filterSelector.totalTxCount, nil, "All", nil
 }
-
-// func (filterSelector *FilterSelector) Reset() {
-// 	if len(filterSelector.accounts) > 1 {
-// 		filterSelector.selectedAccountIndex = 0
-// 	}
-// }
