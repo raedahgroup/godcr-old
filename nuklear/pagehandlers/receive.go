@@ -25,6 +25,8 @@ type ReceiveHandler struct {
 	accountSelectorWidget *widgets.AccountSelector
 	generateAddressError  error
 	generatedAddress      string
+	accounts             []*walletcore.Account
+	accountNumber uint32
 }
 
 func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
@@ -32,6 +34,9 @@ func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet)
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
+
+	handler.accounts, handler.generateAddressError = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	handler.accountNumber = handler.accounts[0].Number
 	return true
 }
 
@@ -44,17 +49,23 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 		// draw account selection widget before rendering previously generated address
 		handler.accountSelectorWidget.Render(contentWindow)
 
-		contentWindow.AddButton("Generate Address", func() {
-			accountNumber := handler.accountSelectorWidget.GetSelectedAccountNumber()
-			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(accountNumber)
-			window.Master().Changed()
-		})
-
-		// display error if there was an error the last time address generation was attempted
-		if handler.generateAddressError != nil {
-			contentWindow.DisplayErrorMessage("Address could not be generated", handler.generateAddressError)
-		} else if handler.generatedAddress != "" {
+		if len(handler.accounts) == 1 {
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
 			handler.RenderAddress(contentWindow)
+		}else{
+
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
+			contentWindow.AddButton("Generate Address", func() {
+				handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
+				window.Master().Changed()
+			})
+
+			// display error if there was an error the last time address generation was attempted
+			if handler.generateAddressError != nil {
+				contentWindow.DisplayErrorMessage("Address could not be generated", handler.generateAddressError)
+			} else if handler.generatedAddress != "" {
+				handler.RenderAddress(contentWindow)
+			}
 		}
 	})
 }
