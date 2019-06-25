@@ -46,7 +46,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 
 		contentWindow.AddHorizontalSpace(1)
 
-		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a "), 120)
+		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a"), 120)
 		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a", widgets.LeftCenterAlign, styles.GrayColor))
 		contentWindow.AddLinkLabelsToCurrentRow(widgets.NewLinkLabelCellCell("new address.", func() {
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountNumber)
