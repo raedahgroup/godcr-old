@@ -49,7 +49,6 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a "), 120)
 		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a ", widgets.LeftCenterAlign, styles.GrayColor))
 		contentWindow.AddButtonToCurrentRow("new address.", func() {
-			handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountNumber)
 			window.Master().Changed()
 		})
@@ -61,22 +60,18 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 
 		if len(handler.accounts) == 1 {
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
-			handler.RenderAddress(contentWindow)
+			window.Master().Changed()
 		} else {
+			handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
+			window.Master().Changed()
+		}
 
-			contentWindow.AddHorizontalSpace(10)
-			contentWindow.AddButton("Generate Address", func() {
-				handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
-				window.Master().Changed()
-			})
-
-			// display error if there was an error the last time address generation was attempted
-			if handler.generateAddressError != nil {
-				contentWindow.DisplayErrorMessage("Address could not be generated", handler.generateAddressError)
-			} else if handler.generatedAddress != "" {
-				handler.RenderAddress(contentWindow)
-			}
+		// display error if there was an error the last time address generation was attempted
+		if handler.generateAddressError != nil {
+			contentWindow.DisplayErrorMessage("Address could not be generated", handler.generateAddressError)
+		} else if handler.generatedAddress != "" {
+			handler.RenderAddress(contentWindow)
 		}
 	})
 }
