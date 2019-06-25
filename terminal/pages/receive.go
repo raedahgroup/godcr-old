@@ -137,7 +137,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 			generateAndDisplayAddress(accountNumber, false)
 		})
 
-		formButton.AddButton("NEW ADDRESS.", func() {
+		formButton.AddButton("new address.", func() {
 			generateAndDisplayAddress(accountNumber, true)
 		})
 
