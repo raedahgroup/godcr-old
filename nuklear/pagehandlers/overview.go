@@ -1,8 +1,6 @@
 package pagehandlers
 
 import (
-	"fmt"
-
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/app/config"
@@ -33,19 +31,22 @@ func (handler *OverviewHandler) Render(window *nucular.Window) {
 			contentWindow.AddLabel(walletcore.WalletBalance(handler.accounts), widgets.LeftCenterAlign)
 			contentWindow.AddHorizontalSpace(20)
 			handler.displayRecentActivities(contentWindow)
-
 		}
 	})
 }
 
+
 func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.Window) {
+	contentWindow.AddLabelWithFont("Recent Activities", widgets.LeftCenterAlign, styles.BoldPageContentFont)
+
 	txns, err := handler.wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
 		handler.err = err
 	}
 
 	if len(txns) == 0 {
-		contentWindow.AddLabel("No activity yet", widgets.LeftCenterAlign)
+		contentWindow.AddHorizontalSpace(20)
+		contentWindow.AddLabel("No Transaction yet", widgets.CenterAlign)
 		return
 	}
 
@@ -53,7 +54,6 @@ func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.W
 
 	// render table header with nav font
 	historyTable.AddRowWithFont(styles.NavFont,
-		widgets.NewLabelTableCell("#", "LC"),
 		widgets.NewLabelTableCell("Date", "LC"),
 		widgets.NewLabelTableCell("Direction", "LC"),
 		widgets.NewLabelTableCell("Amount", "LC"),
@@ -62,9 +62,8 @@ func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.W
 		widgets.NewLabelTableCell("Hash", "LC"),
 	)
 
-	for currentTxIndex, tx := range txns {
+	for _, tx := range txns {
 		historyTable.AddRow(
-			widgets.NewLabelTableCell(fmt.Sprintf("%d", currentTxIndex+1), "LC"),
 			widgets.NewLabelTableCell(tx.ShortTime, "LC"),
 			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(tx.Amount).String(), "RC"),
