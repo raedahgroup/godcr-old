@@ -136,6 +136,17 @@ func (window *Window) AddLabelsToCurrentRow(labels ...*LabelTableCell) {
 	}
 }
 
+func (window *Window) AddLinkLabelsToCurrentRow(labels ...*LinkLabelCell) {
+	for _, labelCell := range labels {
+		if labelCell == nil {
+			// need to fill this column with empty space so the next cell is added to the next column instead of this column
+			window.Spacing(1)
+		} else {
+			labelCell.Render(window)
+		}
+	}
+}
+
 func (window *Window) LabelWidth(text string) int {
 	return nucular.FontWidth(window.Font(), text) + 8 // add 8 to text width to avoid text being cut off in label
 }

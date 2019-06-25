@@ -44,16 +44,16 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("Receiving Decred", window, func(contentWindow *widgets.Window) {
 		contentWindow.AddWrappedLabelWithColor(walletcore.ReceivingDecredHint, widgets.LeftCenterAlign, styles.GrayColor)
 
-		contentWindow.AddHorizontalSpace(3)
+		contentWindow.AddHorizontalSpace(1)
 
 		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a "), 120)
-		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a ", widgets.LeftCenterAlign, styles.GrayColor))
-		contentWindow.AddButtonToCurrentRow("new address.", func() {
+		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a", widgets.LeftCenterAlign, styles.GrayColor))
+		contentWindow.AddLinkLabelsToCurrentRow(widgets.NewLinkLabelCellCell("new address.", func() {
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountNumber)
 			window.Master().Changed()
-		})
+		}))
 
-		contentWindow.AddHorizontalSpace(25)
+		contentWindow.AddHorizontalSpace(15)
 
 		// draw account selection widget before rendering previously generated address
 		handler.accountSelectorWidget.Render(contentWindow)
