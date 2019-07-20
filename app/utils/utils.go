@@ -7,6 +7,9 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
+
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func DecimalPortion(n float64) string {
@@ -56,4 +59,40 @@ func FormatAmountDisplay(amount int64, maxDecimalPlaces int) string {
 	} else {
 		return fmt.Sprintf("%2d.%-*s DCR", wholeNumber, maxDecimalPlaces, decimalPortion)
 	}
+}
+
+type Account struct {
+	IsSetAsHidden         bool
+	IsSetAsDefaultAccount bool
+	Account               *walletcore.Account
+}
+
+func FetchAccounts(requiredConfirmations int32, settings *config.Settings, wallet walletcore.Wallet) ([]Account, error) {
+	walletAccounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts := make([]Account, len(walletAccounts))
+	for index, accountItem := range walletAccounts {
+		var isSetAsHidden, isSetAsDefaultAccount bool
+		for _, hiddenAccount := range settings.HiddenAccounts {
+			if uint32(hiddenAccount) == accountItem.Number {
+				isSetAsHidden = true
+				break
+			}
+		}
+
+		if settings.DefaultAccount == accountItem.Number {
+			isSetAsDefaultAccount = true
+		}
+
+		accounts[index] = Account{
+			IsSetAsHidden:         isSetAsHidden,
+			IsSetAsDefaultAccount: isSetAsDefaultAccount,
+			Account:               accountItem,
+		}
+	}
+
+	return accounts, nil
 }

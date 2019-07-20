@@ -31,7 +31,7 @@ func NewAlertWidget(text string, isErrorAlert bool, window *Window) {
 		isErrorAlert:     isErrorAlert,
 		closeAlertWindow: false,
 	}
-	a.lines = a.WrapLabelText(window)
+	a.lines = a.SplitToLines(window)
 	windowBounds := window.Window.Bounds
 
 	bounds := rect.Rect{
@@ -49,7 +49,7 @@ func NewAlertWidget(text string, isErrorAlert bool, window *Window) {
 	})
 }
 
-func (a *Alert) WrapLabelText(window *Window) (wrappedLines []string) {
+func (a *Alert) SplitToLines(window *Window) (wrappedLines []string) {
 	font := window.Font()
 	textWidth := nucular.FontWidth(font, a.text)
 
