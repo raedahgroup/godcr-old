@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
@@ -265,7 +266,23 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 }
 
 func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
-	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
+	filters := walletcore.TransactionFilters
+	transactionCountByFilter := make(map[string]int, 0)
+
+	for _, filter := range filters {
+		txCount, txCountErr := routes.walletMiddleware.TransactionCount(walletcore.BuildTransactionFilter(filter))
+		if txCountErr != nil {
+			routes.renderError(fmt.Sprintf("Cannot load history page. "+
+				"Error getting total transaction count: %s", txCountErr.Error()), res)
+			return
+		}
+		if txCount == 0 {
+			continue
+		}
+		transactionCountByFilter[filter] = txCount
+	}
+
+	allTxCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
 	if txCountErr != nil {
 		routes.renderError(fmt.Sprintf("Cannot load history page. "+
 			"Error getting total transaction count: %s", txCountErr.Error()), res)
@@ -276,7 +293,7 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	page := req.FormValue("page")
 
 	pageToLoad, err := strconv.ParseInt(page, 10, 32)
-	if err != nil || pageToLoad < 0 {
+	if err != nil || pageToLoad <= 0 {
 		pageToLoad = 1
 	}
 
@@ -289,14 +306,16 @@ func (routes *Routes) historyPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"txs":          txns,
-		"currentPage":  int(pageToLoad),
-		"previousPage": int(pageToLoad - 1),
-		"totalPages":   int(math.Ceil(float64(txCount) / float64(txPerPage))),
+		"transactionCountByFilter": transactionCountByFilter,
+		"txs":                      txns,
+		"currentPage":              int(pageToLoad),
+		"previousPage":             int(pageToLoad - 1),
+		"totalPages":               int(math.Ceil(float64(allTxCount) / float64(txPerPage))),
+		"transactionTotalCount":    allTxCount,
 	}
 
 	totalTxLoaded := int(offset) + len(txns)
-	if totalTxLoaded < txCount {
+	if totalTxLoaded < allTxCount {
 		data["nextPage"] = int(pageToLoad + 1)
 	}
 
@@ -307,11 +326,16 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	txCount, txCountErr := routes.walletMiddleware.TransactionCount(nil)
-	if txCountErr != nil {
+	filter := txindex.Filter()
+	if selectedFilter := req.FormValue("filter"); selectedFilter != "" {
+		filter = walletcore.BuildTransactionFilter(selectedFilter)
+	}
+
+	allTxCount, allTxCountErr := routes.walletMiddleware.TransactionCount(filter)
+	if allTxCountErr != nil {
 		data["success"] = false
 		data["message"] = fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s",
-			txCountErr.Error())
+			allTxCountErr.Error())
 		return
 	}
 
@@ -319,7 +343,7 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 	page := req.FormValue("page")
 
 	pageToLoad, err := strconv.ParseInt(page, 10, 32)
-	if err != nil || pageToLoad < 0 {
+	if err != nil || pageToLoad <= 0 {
 		data["success"] = false
 		data["message"] = "Invalid page parameter"
 		return
@@ -327,8 +351,8 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 
 	var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 	offset := (int32(pageToLoad) - 1) * txPerPage
-	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, nil)
 
+	txns, err := routes.walletMiddleware.TransactionHistory(offset, txPerPage, filter)
 	if err != nil {
 		data["success"] = false
 		data["message"] = err.Error()
@@ -337,10 +361,11 @@ func (routes *Routes) getNextHistoryPage(res http.ResponseWriter, req *http.Requ
 		data["txs"] = txns
 		data["currentPage"] = int(pageToLoad)
 		data["previousPage"] = int(pageToLoad - 1)
-		data["totalPages"] = int(math.Ceil(float64(txCount) / float64(txPerPage)))
+		data["totalPages"] = int(math.Ceil(float64(allTxCount) / float64(txPerPage)))
+		data["transactionTotalCount"] = allTxCount
 
 		totalTxLoaded := int(offset) + len(txns)
-		if totalTxLoaded < txCount {
+		if totalTxLoaded < allTxCount {
 			data["nextPage"] = int(pageToLoad + 1)
 		}
 	}
@@ -590,15 +615,17 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	}
 
 	if defaultAccountStr := req.FormValue("default-account"); defaultAccountStr != "" {
-		defaultAccount, err := strconv.Atoi(defaultAccountStr)
+		defaultAccountInt, err := strconv.Atoi(defaultAccountStr)
 		if err != nil {
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 
+		defaultAccount := uint32(defaultAccountInt)
+
 		// remove default account if exists
 		if routes.settings.DefaultAccount == defaultAccount {
-			defaultAccount = -1
+			defaultAccount = 0
 		}
 
 		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
@@ -619,16 +646,18 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			return
 		}
 
+		accountUInt32 := uint32(accountInt)
+
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is not already set to be hidden
 		for _, v := range hiddenAccounts {
-			if v == accountInt {
+			if v == accountUInt32 {
 				data["error"] = "Error updating settings. Account is already hidden"
 				return
 			}
 		}
 
-		hiddenAccounts = append(hiddenAccounts, accountInt)
+		hiddenAccounts = append(hiddenAccounts, accountUInt32)
 		err = config.UpdateConfigFile(func(cnfg *config.ConfFileOptions) {
 			cnfg.HiddenAccounts = hiddenAccounts
 		})
@@ -641,12 +670,13 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 	}
 
 	if accountToReveal := req.FormValue("reveal-account"); accountToReveal != "" {
-		account, err := strconv.Atoi(accountToReveal)
+		accountInt, err := strconv.Atoi(accountToReveal)
 		if err != nil {
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
 
+		account := uint32(accountInt)
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is hidden
 		for i := range hiddenAccounts {

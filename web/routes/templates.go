@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app/utils"
+	"github.com/decred/dcrwallet/wallet"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/dcrlibwallet/utils"
+	godcrutils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -49,12 +52,12 @@ func templateFuncMap() template.FuncMap {
 				totalBalance += account.Balance.Total.ToCoin()
 			}
 
-			return utils.SplitAmountIntoParts(totalBalance)
+			return godcrutils.SplitAmountIntoParts(totalBalance)
 		},
 		"splitAmountIntoParts": func(amount int64) []string {
 			dcrAmount := dcrutil.Amount(amount).ToCoin()
 
-			return utils.SplitAmountIntoParts(dcrAmount)
+			return godcrutils.SplitAmountIntoParts(dcrAmount)
 		},
 		"intSum": func(numbers ...int) (sum int) {
 			for _, n := range numbers {
@@ -82,6 +85,29 @@ func templateFuncMap() template.FuncMap {
 		},
 		"timestamp": func() int64 {
 			return time.Now().Unix()
+		},
+		"extractDateTime": utils.FormatUTCTime,
+		"truncate": func(text string, maxNumberOfCharacters int) string {
+			if len(text) < maxNumberOfCharacters {
+				return text
+			}
+			return fmt.Sprintf("%s...", text[:maxNumberOfCharacters])
+		},
+		"accountName": func(txn *walletcore.Transaction) string {
+			return txn.WalletAccountForTx()
+		},
+		"txDirectionImage": func(txn *walletcore.Transaction) string {
+			switch txn.Direction {
+			case txhelper.TransactionDirectionSent:
+				return "ic_send.svg"
+			case txhelper.TransactionDirectionReceived:
+				return "ic_receive.svg"
+			default:
+				if txn.Type == txhelper.FormatTransactionType(wallet.TransactionTypeTicketPurchase) {
+					return "live_ticket.svg"
+				}
+				return "ic_tx_transferred.svg"
+			}
 		},
 	}
 }

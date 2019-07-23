@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet/utils"
+	godcrUtils "github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
@@ -23,6 +24,15 @@ func overviewPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, t
 	go renderRecentActivity(overviewPage, wallet, tviewApp, clearFocus)
 
 	hintTextView.SetText("TIP: Scroll recent activity table with ARROW KEYS. Return to navigation menu with ESC")
+
+	overviewPage.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			clearFocus()
+			return nil
+		}
+
+		return event
+	})
 
 	tviewApp.SetFocus(overviewPage)
 
@@ -46,18 +56,37 @@ func renderBalance(overviewPage *tview.Flex, wallet walletcore.Wallet) {
 func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tviewApp *tview.Application, clearFocus func()) {
 	overviewPage.AddItem(primitives.NewLeftAlignedTextView("-Recent Activity-").SetTextColor(helpers.DecredLightBlueColor), 1, 0, false)
 
-	statusTextView := primitives.NewCenterAlignedTextView("Fetching data...").SetTextColor(helpers.DecredOrangeColor)
-	// adding an element to the page from a goroutine, use tviewApp.QueueUpdateDraw
-	tviewApp.QueueUpdateDraw(func() {
-		overviewPage.AddItem(statusTextView, 2, 0, false)
-	})
+	statusTextView := primitives.NewCenterAlignedTextView("")
+	displayMessage := func(message string, error bool) {
+		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
+		tviewApp.QueueUpdateDraw(func() {
+			overviewPage.RemoveItem(statusTextView)
+			if message != "" {
+				if error {
+					statusTextView.SetTextColor(helpers.DecredOrangeColor)
+				} else {
+					statusTextView.SetTextColor(tcell.ColorWhite)
+				}
+
+				statusTextView.SetText(message)
+				overviewPage.AddItem(statusTextView, 2, 0, false)
+			}
+		})
+	}
+
+	displayMessage("Fetching data...", false)
 
 	txns, err := wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
 		// updating an element on the page from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
-			statusTextView.SetText(err.Error())
+			displayMessage(err.Error(), true)
 		})
+		return
+	}
+
+	if len(txns) == 0 {
+		displayMessage("No activity yet", false)
 		return
 	}
 
@@ -80,11 +109,11 @@ func renderRecentActivity(overviewPage *tview.Flex, wallet walletcore.Wallet, tv
 			break
 		}
 	}
-	maxDecimalPlacesForTxAmounts := maxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForTxAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return formatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
+		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
 	}
 
 	for _, tx := range txns {
