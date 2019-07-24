@@ -2,23 +2,24 @@ package pages
 
 import (
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/godcr/app/walletcore"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func OverviewPage(windows fyne.Window, App fyne.App) fyne.CanvasObject {
+func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("Overview", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 	balanceLabel := widget.NewLabel("Current Total Balance")
 	activityLabel := widget.NewLabel("Recent Activity")
 
-	balance := widget.NewLabel(FetchBalance())
+	balance := widget.NewLabel(FetchBalance(wallet))
 	balanceLabel.TextStyle = fyne.TextStyle{Bold: true}
 	activityLabel.TextStyle = fyne.TextStyle{Bold: true}
 
-	noOfTxns, _ := Wallet.TransactionCount(nil)
+	noOfTxns, _ := wallet.TransactionCount(nil)
 	if noOfTxns < 1 {
 		showText := widget.NewLabel("No activities yet")
 		showText.Alignment = fyne.TextAlignCenter
@@ -34,7 +35,7 @@ func OverviewPage(windows fyne.Window, App fyne.App) fyne.CanvasObject {
 	}
 
 	table := widgets.NewTable()
-	table, _ = FetchRecentActivity(table, 0, 5, false)
+	table, _ = FetchRecentActivity(wallet, table, 0, 5, false)
 
 	return widget.NewVBox(
 		label,
@@ -46,8 +47,8 @@ func OverviewPage(windows fyne.Window, App fyne.App) fyne.CanvasObject {
 		table.CondensedTable())
 }
 
-func FetchBalance() string {
-	accounts, err := Wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+func FetchBalance(wallet godcrApp.WalletMiddleware) string {
+	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return err.Error()
 	}
@@ -55,8 +56,8 @@ func FetchBalance() string {
 	return walletcore.WalletBalance(accounts)
 }
 
-func FetchRecentActivity(table *widgets.Table, offSet, noOfTransaction int, button bool) (*widgets.Table, error) {
-	txns, err := Wallet.TransactionHistory(int32(offSet), int32(noOfTransaction), nil)
+func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table, offSet, noOfTransaction int, button bool) (*widgets.Table, error) {
+	txns, err := wallet.TransactionHistory(int32(offSet), int32(noOfTransaction), nil)
 	if err != nil {
 		return nil, err
 	}
