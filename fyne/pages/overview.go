@@ -1,95 +1,84 @@
 package pages
 
 import (
-	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
+
+type overviewPageData struct {
+	balance  *widget.Label
+	showText *widget.Label
+}
+
+var overview overviewPageData
+
+func init() {
+	overview.balance = widget.NewLabel("")
+	overview.showText = widget.NewLabel("")
+}
+
+func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+	tx, _ := wallet.TransactionHistory(0, 5, nil)
+	if len(tx) > 0 {
+		if overview.showText != nil {
+			widget.Refresh(overview.showText)
+			overview.showText.Hide()
+			widget.Refresh(overview.showText)
+		}
+	}
+	widget.Refresh(overview.balance)
+	overview.balance.SetText(fetchBalance(wallet))
+	widget.Refresh(overview.balance)
+}
 
 func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("Overview", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 	balanceLabel := widget.NewLabel("Current Total Balance")
 	activityLabel := widget.NewLabel("Recent Activity")
+	overview.balance = widget.NewLabel(fetchBalance(wallet))
 
-	balance := widget.NewLabel(FetchBalance(wallet))
 	balanceLabel.TextStyle = fyne.TextStyle{Bold: true}
 	activityLabel.TextStyle = fyne.TextStyle{Bold: true}
+	var output fyne.CanvasObject
+	overview.showText = widget.NewLabel("No activities yet")
+	overview.showText.Alignment = fyne.TextAlignCenter
 
-	noOfTxns, _ := wallet.TransactionCount(nil)
-	if noOfTxns < 1 {
-		showText := widget.NewLabel("No activities yet")
-		showText.Alignment = fyne.TextAlignCenter
-		return widget.NewVBox(
-			label,
-			widgets.NewVSpacer(10),
-			balanceLabel,
-			balance,
-			widgets.NewVSpacer(10),
-			activityLabel,
-			widgets.NewVSpacer(10),
-			showText)
+	tx, _ := wallet.TransactionHistory(0, 5, nil)
+	if len(tx) == 0 {
+		overview.showText.Hide()
+		widget.Refresh(overview.showText)
 	}
-
-	table := widgets.NewTable()
-	table, _ = FetchRecentActivity(wallet, table, 0, 5, false)
-
-	return widget.NewVBox(
+	output = widget.NewVBox(
 		label,
 		widgets.NewVSpacer(10),
 		balanceLabel,
-		balance,
+		overview.balance,
 		widgets.NewVSpacer(10),
 		activityLabel,
-		table.CondensedTable())
+		widgets.NewVSpacer(10),
+		overview.showText)
+
+	//this would update all labels for all pages every seconds
+	go func() {
+		for {
+			overviewUpdates(wallet)
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
 
-func FetchBalance(wallet godcrApp.WalletMiddleware) string {
+func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		return err.Error()
 	}
 
 	return walletcore.WalletBalance(accounts)
-}
-
-func FetchRecentActivity(wallet godcrApp.WalletMiddleware, table *widgets.Table, offSet, noOfTransaction int, button bool) (*widgets.Table, error) {
-	txns, err := wallet.TransactionHistory(int32(offSet), int32(noOfTransaction), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	table.AddRowWithTextCells(
-		widgets.NewTableTextCell("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil),
-		widgets.NewTableTextCell("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}, nil))
-
-	for _, tx := range txns {
-		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
-		hashButton := widgets.NewTableTextCell(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}, nil)
-
-		if button {
-			hashButton = widgets.NewTableTextCell(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}, func() {
-				//todo
-			})
-		}
-
-		table.AddRowWithTextCells(
-			widgets.NewTableTextCell(tx.LongTime, fyne.TextAlignLeading, fyne.TextStyle{}, nil),
-			widgets.NewTableTextCell(tx.Type, fyne.TextAlignLeading, fyne.TextStyle{}, nil),
-			widgets.NewTableTextCell(tx.Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}, nil),
-			widgets.NewTableTextCell(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}, nil),
-			widgets.NewTableTextCell(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignTrailing, fyne.TextStyle{}, nil),
-			widgets.NewTableTextCell(tx.Status, fyne.TextAlignLeading, fyne.TextStyle{}, nil),
-			hashButton,
-		)
-	}
-	return table, nil
 }

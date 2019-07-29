@@ -1,8 +1,7 @@
-package fyne
+package pages
 
 import (
 	"fmt"
-	"github.com/raedahgroup/godcr/fyne/pages"
 	"strconv"
 	"strings"
 
@@ -29,15 +28,15 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 
 	infoButton = widget.NewButton("Tap to view informations", func() {
 		if infoButton.Text == "Tap to view informations" {
-
-			widget.Refresh(reportLabel)
 			reportLabel.Show()
+			widget.Refresh(reportLabel)
 			infoButton.SetText("Tap to hide informations")
+			widget.Refresh(infoButton)
 
 		} else {
-			widget.Refresh(reportLabel)
 			reportLabel.Hide()
 			infoButton.SetText("Tap to view informations")
+			widget.Refresh(reportLabel)
 		}
 	})
 
@@ -49,7 +48,22 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
 			if syncDone == false {
-				window.SetContent(pages.Menu(wallet))
+				info, _ := wallet.WalletConnectionInfo()
+				if info.PeersConnected <= 1 {
+					widget.Refresh(peerConn)
+					peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
+					widget.Refresh(peerConn)
+				} else {
+					widget.Refresh(peerConn)
+					peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
+					widget.Refresh(peerConn)
+				}
+				widget.Refresh(blkHeight)
+				blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
+				widget.Refresh(blkHeight)
+
+				menu := Menu(wallet, App, window)
+				window.SetContent(menu)
 			}
 			syncDone = true
 		}
@@ -67,9 +81,6 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		switch progressReport.CurrentStep {
 		case defaultsynclistener.FetchingBlockHeaders:
 			stringReport.WriteString(fmt.Sprintf("Fetched %d of %d block headers.\n", progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
-			widget.Refresh(pages.BlkHeight)
-			pages.BlkHeight.SetText(strconv.Itoa(int(progressReport.CurrentRescanHeight)) + " Blocks Connected")
-			widget.Refresh(pages.BlkHeight)
 			stringReport.WriteString(fmt.Sprintf("%d%% through step 1 of 3.\n", progressReport.HeadersFetchProgress))
 
 			if progressReport.DaysBehind != "" {
@@ -86,9 +97,10 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		case defaultsynclistener.ScanningBlockHeaders:
 			stringReport.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", progressReport.CurrentRescanHeight,
 				progressReport.TotalHeadersToFetch))
-			widget.Refresh(pages.BlkHeight)
-			pages.BlkHeight.SetText(strconv.Itoa(int(progressReport.CurrentRescanHeight)) + " Blocks Connected")
-			widget.Refresh(pages.BlkHeight)
+			widget.Refresh(blkHeight)
+			blkHeight.SetText(strconv.Itoa(int(progressReport.TotalHeadersToFetch)) + " Blocks Connected")
+			widget.Refresh(blkHeight)
+
 			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
 		}
 
@@ -96,22 +108,19 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
+			widget.Refresh(peerConn)
+			peerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peer Connected")
+			widget.Refresh(peerConn)
 		} else {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", progressReport.ConnectedPeers, netType))
-		}
-		if progressReport.ConnectedPeers <= 1 {
-			widget.Refresh(pages.PeerConn)
-			pages.PeerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peer Connected")
-			widget.Refresh(pages.PeerConn)
-		} else {
-			widget.Refresh(pages.PeerConn)
-			pages.PeerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peers Connected")
-			widget.Refresh(pages.PeerConn)
+			widget.Refresh(peerConn)
+			peerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peers Connected")
+			widget.Refresh(peerConn)
 		}
 
 		fullSyncReport = stringReport.String()
-		reportLabel.SetText(fullSyncReport)
 		widget.Refresh(reportLabel)
+		reportLabel.SetText(fullSyncReport)
 	})
 
 	return widget.NewVBox(
