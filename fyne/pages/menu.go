@@ -1,13 +1,11 @@
 package pages
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 
-	"fyne.io/fyne/layout"
-
 	"fyne.io/fyne"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	godcrApp "github.com/raedahgroup/godcr/app"
 )
@@ -27,7 +25,6 @@ func init() {
 
 func pageNotImplemented() fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
-	fmt.Println("Done")
 	return label
 }
 
