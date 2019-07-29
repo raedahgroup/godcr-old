@@ -31,45 +31,45 @@ func pageNotImplemented() fyne.CanvasObject {
 func Menu(wallet godcrApp.WalletMiddleware, app fyne.App, window fyne.Window) fyne.CanvasObject {
 	overviewFile, err := ioutil.ReadFile("./fyne/pages/png/overview.png")
 	if err != nil {
-		log.Fatalln("overviewFile file missing", err)
+		log.Fatalln("overview file missing", err)
 	}
 	historyFile, err := ioutil.ReadFile("./fyne/pages/png/block.png")
 	if err != nil {
-		log.Fatalln("historyFile file missing", err)
+		log.Fatalln("history file missing", err)
 	}
 	sendFile, err := ioutil.ReadFile("./fyne/pages/png/send.png")
 	if err != nil {
-		log.Fatalln("sendFile file missing", err)
+		log.Fatalln("send file missing", err)
 	}
 	receiveFile, err := ioutil.ReadFile("./fyne/pages/png/receive.png")
 	if err != nil {
-		log.Fatalln("receiveFile file missing", err)
+		log.Fatalln("receive file missing", err)
 	}
 	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stakeyBaby.png")
 	if err != nil {
-		log.Fatalln("stakingFile file missing", err)
+		log.Fatalln("staking file missing", err)
 	}
 	accountsFile, err := ioutil.ReadFile("./fyne/pages/png/wallet.png")
 	if err != nil {
-		log.Fatalln("accountsFile file missing", err)
+		log.Fatalln("accounts file missing", err)
 	}
 	securityFile, err := ioutil.ReadFile("./fyne/pages/png/info.png")
 	if err != nil {
-		log.Fatalln("securityFile file missing", err)
+		log.Fatalln("security file missing", err)
 	}
 	settingsFile, err := ioutil.ReadFile("./fyne/pages/png/gears.png")
 	if err != nil {
-		log.Fatalln("settingsFile file missing", err)
+		log.Fatalln("settings file missing", err)
 	}
 
 	tabs = widget.NewTabContainer(
 		widget.NewTabItemWithIcon("Overview", fyne.NewStaticResource("Overview", overviewFile), overviewPage(wallet)),
-		widget.NewTabItemWithIcon("History", fyne.NewStaticResource("History", historyFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
-		widget.NewTabItemWithIcon("Send", fyne.NewStaticResource("Send", sendFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
-		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
-		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
-		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
-		widget.NewTabItemWithIcon("Security", fyne.NewStaticResource("Security", securityFile), widget.NewLabelWithStyle("This page has not been implemented yet", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})),
+		widget.NewTabItemWithIcon("History", fyne.NewStaticResource("History", historyFile), pageNotImplemented()),
+		widget.NewTabItemWithIcon("Send", fyne.NewStaticResource("Send", sendFile), pageNotImplemented()),
+		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), pageNotImplemented()),
+		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), pageNotImplemented()),
+		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), pageNotImplemented()),
+		widget.NewTabItemWithIcon("Security", fyne.NewStaticResource("Security", securityFile), pageNotImplemented()),
 		widget.NewTabItemWithIcon("Settings", fyne.NewStaticResource("Settings", settingsFile), settingsPage(app)))
 	tabs.SetTabLocation(widget.TabLocationLeading)
 
