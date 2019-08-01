@@ -1,7 +1,7 @@
 module github.com/raedahgroup/godcr
 
 require (
-	fyne.io/fyne v0.0.0-20190411071008-b3687258b083
+	fyne.io/fyne v1.1.0
 	github.com/aarzilli/nucular v0.0.0-20190403084742-0071461892e4
 	github.com/atotto/clipboard v0.1.2
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
@@ -25,8 +25,12 @@ require (
 	github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/srwiley/oksvg v0.0.0-20190414003808-c520f0a6c5cc // indirect
-	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
-	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
+	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
+	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82 // indirect
+	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.19.0
 )

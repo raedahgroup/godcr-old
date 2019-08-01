@@ -1,6 +1,7 @@
-package fyne
+package pages
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -12,53 +13,46 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-const (
-	defaultWindowWidth  = 800
-	defaultWindowHeight = 600
-)
-
-func (app *fyneApp) showSyncWindow() {
+func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
 	progressBar := widget.NewProgressBar()
-	progressBar.Max = 100
 	progressBar.Min = 0
+	progressBar.Max = 100
 
-	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
-	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
-
-	var showDetails bool
 	var fullSyncReport string
-	var showDetailsButton *widget.Button
-	showDetailsButton = widget.NewButton("Tap to view information", func() {
-		showDetails = true
-		reportLabel.SetText(fullSyncReport)
-		showDetailsButton.Hide()
+
+	reportLabel := widget.NewLabel("")
+	widget.Refresh(reportLabel)
+	reportLabel.Hide()
+	reportLabel.Alignment = fyne.TextAlignCenter
+	var infoButton *widget.Button
+
+	infoButton = widget.NewButton("Tap to view informations", func() {
+		if infoButton.Text == "Tap to view informations" {
+			reportLabel.Show()
+			widget.Refresh(reportLabel)
+			infoButton.SetText("Tap to hide informations")
+			widget.Refresh(infoButton)
+
+		} else {
+			reportLabel.Hide()
+			infoButton.SetText("Tap to view informations")
+			widget.Refresh(infoButton)
+			widget.Refresh(reportLabel)
+		}
 	})
 
-	syncWindowContent := widget.NewVBox(
-		widgets.NewVSpacer(10),
-		widget.NewLabelWithStyle("Synchronizing", fyne.TextAlignCenter, fyne.TextStyle{Italic: true}),
-		progressBar,
-		reportLabel,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(showDetailsButton.MinSize()), showDetailsButton),
-		errorLabel,
-	)
+	var syncDone bool
 
-	app.mainWindow.SetTitle(godcrApp.DisplayName)
-	app.resizeAndCenterMainWindow(syncWindowContent)
-	app.mainWindow.Show()
-
-	var isFirstSyncCompleted = true
-	app.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+	wallet.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
-
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
-			if isFirstSyncCompleted {
-				app.loadMainWindowContent()
-				isFirstSyncCompleted = false
-			}			
-			return
+			if syncDone == false {
+				syncDone = true
+				menu := menuPage(ctx, wallet, App, window)
+				window.SetContent(menu)
+			}
 		}
 
 		stringReport := strings.Builder{}
@@ -68,9 +62,8 @@ func (app *fyneApp) showSyncWindow() {
 			stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
 		}
 
-		if !showDetails {
-			reportLabel.SetText(strings.TrimSpace(stringReport.String()))
-		}
+		reportLabel.SetText(strings.TrimSpace(stringReport.String()))
+		widget.Refresh(reportLabel)
 
 		switch progressReport.CurrentStep {
 		case defaultsynclistener.FetchingBlockHeaders:
@@ -80,7 +73,6 @@ func (app *fyneApp) showSyncWindow() {
 			if progressReport.DaysBehind != "" {
 				stringReport.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", progressReport.DaysBehind))
 			}
-
 		case defaultsynclistener.DiscoveringUsedAddresses:
 			stringReport.WriteString("Discovering used addresses.\n")
 			if progressReport.AddressDiscoveryProgress > 100 {
@@ -96,7 +88,7 @@ func (app *fyneApp) showSyncWindow() {
 		}
 
 		// show peer count last
-		netType := app.walletMiddleware.NetType()
+		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
 		} else {
@@ -104,20 +96,15 @@ func (app *fyneApp) showSyncWindow() {
 		}
 
 		fullSyncReport = stringReport.String()
-		if showDetails {
-			reportLabel.SetText(fullSyncReport)
-		}
+		widget.Refresh(reportLabel)
+		reportLabel.SetText(fullSyncReport)
 	})
-}
 
-func (app *fyneApp) loadMainWindowContent() {
-	app.menuButtons[0].OnTapped()
-	app.resizeAndCenterMainWindow(app.mainWindowContent)
-}
-
-func (app *fyneApp) resizeAndCenterMainWindow(windowContent fyne.CanvasObject) {
-	// create a fixedgrid wrapper around window content so that window.CenterOnScreen will work
-	windowSize := fyne.NewSize(defaultWindowWidth, defaultWindowHeight)
-	app.mainWindow.SetContent(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(windowSize), windowContent))
-	app.mainWindow.CenterOnScreen()
+	return widget.NewVBox(
+		widgets.NewVSpacer(10),
+		widget.NewLabelWithStyle("Synchronizing....", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true}),
+		widgets.NewVSpacer(10),
+		progressBar,
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(infoButton.MinSize()), infoButton),
+		reportLabel)
 }

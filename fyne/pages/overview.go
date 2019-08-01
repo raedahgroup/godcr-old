@@ -1,114 +1,85 @@
 package pages
 
 import (
-	"context"
-	"fmt"
+	"strconv"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
-	"github.com/decred/dcrd/dcrutil"
+	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-type overviewPageLoader struct {
-	ctx                    context.Context
-	wallet                 walletcore.Wallet
-	updatePageOnMainWindow func()
-
-	balanceSectionTitle *widget.Label
-	balanceLabel        *widget.Label
-	fetchBalanceError   string
-
-	recentActivitySectionTitle *widget.Label
-	recentActivityTable        *widgets.Table
-	fetchRecentActivityError   string
+//this contains widgets that needs to be updated realtime
+type overviewPageData struct {
+	balance         *widget.Label
+	noActivityLabel *widget.Label
 }
 
-// Load initializes the page views and updates the app window before and/or after loading data
-func (page *overviewPageLoader) Load(ctx context.Context, wallet walletcore.Wallet, updatePageOnMainWindow func(object fyne.CanvasObject)) {
-	page.wallet = wallet
-	page.updatePageOnMainWindow = page.makePageUpdateFunc(updatePageOnMainWindow)
+var overview overviewPageData
 
-	// init balance views
-	page.balanceSectionTitle = widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	page.fetchBalance()
+func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+	tx, _ := wallet.TransactionHistory(0, 5, nil)
 
-	// init recent activity views
-	page.recentActivitySectionTitle = widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	page.recentActivityTable = widgets.NewTable()
-
-	// update window now, then fetch recent activity in background, as it "may" take some time
-	page.updatePageOnMainWindow()
-	go page.fetchRecentActivity()
-}
-
-func (page *overviewPageLoader) fetchBalance() {
-	accounts, err := page.wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	if err != nil {
-		page.fetchBalanceError = err.Error()
-		return
-	}
-
-	var totalBalance dcrutil.Amount
-	for _, account := range accounts {
-		totalBalance += account.Balance.Total
-	}
-
-	page.balanceLabel = widget.NewLabel(walletcore.NormalizeBalance(accounts[0].Balance.Total.ToCoin()))
-}
-
-func (page *overviewPageLoader) fetchRecentActivity() {
-	// update main window after fetching recent activity
-	defer page.updatePageOnMainWindow()
-
-	page.recentActivityTable.Clear()
-
-	txns, err := page.wallet.TransactionHistory(0, 5, nil)
-	if err != nil {
-		page.fetchRecentActivityError = err.Error()
-		return
-	}
-
-	page.recentActivityTable.AddRowSimple("#", "Date", "Direction", "Amount", "Fee", "Type", "Hash")
-	for i, tx := range txns {
-		page.recentActivityTable.AddRowSimple(
-			fmt.Sprintf("%d", i+1),
-			tx.ShortTime,
-			tx.Direction.String(),
-			dcrutil.Amount(tx.Amount).String(),
-			dcrutil.Amount(tx.Fee).String(),
-			tx.Type,
-			tx.Hash,
-		)
-	}
-}
-
-// makePageUpdateFunc creates a wrapper function around `updatePageOnMainWindow`
-// to update the app window when relevant changes are made to the page content
-func (page *overviewPageLoader) makePageUpdateFunc(updatePageOnMainWindow func(object fyne.CanvasObject)) func() {
-	return func() {
-		var balanceView fyne.CanvasObject
-		if page.fetchBalanceError != "" {
-			balanceView = widget.NewLabel(fmt.Sprintf("Error fetching balance: %s", page.fetchBalanceError))
-		} else {
-			balanceView = page.balanceLabel
+	if len(tx) > 0 {
+		if overview.noActivityLabel.Text != "" {
+			overview.noActivityLabel.SetText("")
+			overview.noActivityLabel.Hide()
+			widget.Refresh(overview.noActivityLabel)
 		}
-
-		var recentActivityObject fyne.CanvasObject
-		if page.fetchBalanceError != "" {
-			recentActivityObject = widget.NewLabel(fmt.Sprintf("Error fetching recent activity: %s", page.fetchRecentActivityError))
-		} else {
-			recentActivityObject = page.recentActivityTable.CondensedTable()
-		}
-
-		pageViews := widget.NewVBox(
-			page.balanceSectionTitle,
-			balanceView,
-			widgets.NewVSpacer(20),
-			page.recentActivitySectionTitle,
-			recentActivityObject,
-		)
-		updatePageOnMainWindow(pageViews)
 	}
+
+	overview.balance.SetText(fetchBalance(wallet))
+	widget.Refresh(overview.balance)
+}
+
+//this updates peerconn and blkheight
+func statusUpdates(wallet godcrApp.WalletMiddleware) {
+	info, _ := wallet.WalletConnectionInfo()
+
+	if info.PeersConnected <= 1 {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
+	} else {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
+	}
+	widget.Refresh(menu.peerConn)
+
+	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
+	widget.Refresh(menu.blkHeight)
+}
+
+func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
+	label := widget.NewLabelWithStyle("Overview", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
+	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	overview.balance = widget.NewLabel(fetchBalance(wallet))
+
+	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
+
+	tx, _ := wallet.TransactionHistory(0, 5, nil)
+	if len(tx) == 0 {
+		overview.noActivityLabel.Hide()
+		widget.Refresh(overview.noActivityLabel)
+	}
+
+	output := widget.NewVBox(
+		label,
+		widgets.NewVSpacer(10),
+		balanceLabel,
+		overview.balance,
+		widgets.NewVSpacer(10),
+		activityLabel,
+		widgets.NewVSpacer(10),
+		overview.noActivityLabel)
+
+	return widget.NewHBox(widgets.NewHSpacer(10), output)
+}
+
+func fetchBalance(wallet godcrApp.WalletMiddleware) string {
+	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	if err != nil {
+		return err.Error()
+	}
+
+	return walletcore.WalletBalance(accounts)
 }
