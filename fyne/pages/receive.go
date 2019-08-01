@@ -3,26 +3,38 @@ package pages
 import (
 	"fmt"
 
-	"github.com/skip2/go-qrcode"
-
+	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
-
-	"fyne.io/fyne/canvas"
-
-	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
-
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
+	"github.com/skip2/go-qrcode"
 )
+
+type receivePageData struct {
+	accountSelect *widget.Select
+}
+
+var receive receivePageData
+
+func receiveUpdates(wallet godcrApp.WalletMiddleware) {
+	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+
+	var options []string
+	for _, account := range accounts {
+		options = append(options, account.Name)
+	}
+	receive.accountSelect.Options = options
+	widget.Refresh(receive.accountSelect)
+}
 
 //todo: should we make concurrent checks if users add a new account?
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
-	//initially load the fyne logo and hide it
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
-	qrImage.SetMinSize(fyne.NewSize(200, 200))
+	qrImage.SetMinSize(fyne.NewSize(300, 300))
 	qrImage.Hide()
 
 	label := widget.NewLabelWithStyle("Receiving Funds", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
@@ -50,7 +62,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 
 	var button *widget.Button
 
-	accountSelect := widget.NewSelect(options, func(s string) {
+	receive.accountSelect = widget.NewSelect(options, func(s string) {
 		if button.Disabled() == true {
 			button.Enable()
 			widget.Refresh(button)
@@ -66,7 +78,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	copy.Hide()
 
 	button = widget.NewButton("Generate Address", func() {
-		name, err := wallet.AccountNumber(accountSelect.Selected)
+		name, err := wallet.AccountNumber(receive.accountSelect.Selected)
 		if err != nil {
 			errorLabel.SetText("error getting account name, " + err.Error())
 			errorLabel.Show()
@@ -80,6 +92,11 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 			errorLabel.Show()
 			widget.Refresh(errorLabel)
 			return
+		}
+		//if there was a rectified error and user clicks the generate again, this hides the error text
+		if errorLabel.Hidden == false {
+			errorLabel.Hide()
+			widget.Refresh(errorLabel)
 		}
 
 		generatedAddress.SetText(addr)
@@ -102,7 +119,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	output := widget.NewVBox(
 		label,
 		info,
-		widget.NewHBox(accountLabel, accountSelect),
+		widget.NewHBox(accountLabel, receive.accountSelect),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(button.MinSize()), button),
 		widgets.NewVSpacer(10),
 		widget.NewHBox(layout.NewSpacer(), qrImage, layout.NewSpacer()),

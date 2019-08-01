@@ -2,7 +2,6 @@ package pages
 
 import (
 	"strconv"
-	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
@@ -19,23 +18,18 @@ type overviewPageData struct {
 
 var overview overviewPageData
 
-func init() {
-	overview.balance = widget.NewLabel("")
-	overview.noActivityLabel = widget.NewLabel("")
-}
-
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	tx, _ := wallet.TransactionHistory(0, 5, nil)
 
 	if len(tx) > 0 {
-		if overview.noActivityLabel != nil {
+		if overview.noActivityLabel.Text != "" {
+			overview.noActivityLabel.SetText("")
 			overview.noActivityLabel.Hide()
 			widget.Refresh(overview.noActivityLabel)
 		}
 	}
 
-	bal := fetchBalance(wallet)
-	overview.balance.SetText(bal)
+	overview.balance.SetText(fetchBalance(wallet))
 	widget.Refresh(overview.balance)
 }
 
@@ -77,15 +71,6 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		activityLabel,
 		widgets.NewVSpacer(10),
 		overview.noActivityLabel)
-
-	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
-	go func() {
-		for {
-			overviewUpdates(wallet)
-			statusUpdates(wallet)
-			time.Sleep(time.Second * 1)
-		}
-	}()
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }

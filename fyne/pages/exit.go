@@ -2,6 +2,7 @@ package pages
 
 import (
 	"context"
+	"fmt"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/theme"
@@ -16,6 +17,7 @@ func exit(ctx context.Context, app fyne.App, window fyne.Window) fyne.CanvasObje
 		window.Close()
 		<-ctx.Done()
 		app.Quit()
+		fmt.Println("Exited fyne")
 	})
 	noButton := widget.NewButtonWithIcon("No", theme.CancelIcon(), func() {
 		menu.tabs.SelectTabIndex(0)
