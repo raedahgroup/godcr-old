@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"strconv"
 	"time"
 
 	"fyne.io/fyne"
@@ -10,50 +11,64 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
+//this contains widgets that needs to be updated realtime
 type overviewPageData struct {
-	balance  *widget.Label
-	showText *widget.Label
+	balance         *widget.Label
+	noActivityLabel *widget.Label
 }
 
 var overview overviewPageData
 
 func init() {
 	overview.balance = widget.NewLabel("")
-	overview.showText = widget.NewLabel("")
+	overview.noActivityLabel = widget.NewLabel("")
 }
 
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	tx, _ := wallet.TransactionHistory(0, 5, nil)
+
 	if len(tx) > 0 {
-		if overview.showText != nil {
-			widget.Refresh(overview.showText)
-			overview.showText.Hide()
-			widget.Refresh(overview.showText)
+		if overview.noActivityLabel != nil {
+			overview.noActivityLabel.Hide()
+			widget.Refresh(overview.noActivityLabel)
 		}
 	}
+
+	bal := fetchBalance(wallet)
+	overview.balance.SetText(bal)
 	widget.Refresh(overview.balance)
-	overview.balance.SetText(fetchBalance(wallet))
-	widget.Refresh(overview.balance)
+}
+
+//this updates peerconn and blkheight
+func statusUpdates(wallet godcrApp.WalletMiddleware) {
+	info, _ := wallet.WalletConnectionInfo()
+
+	if info.PeersConnected <= 1 {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
+	} else {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
+	}
+	widget.Refresh(menu.peerConn)
+
+	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
+	widget.Refresh(menu.blkHeight)
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("Overview", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
-	balanceLabel := widget.NewLabel("Current Total Balance")
-	activityLabel := widget.NewLabel("Recent Activity")
+	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	overview.balance = widget.NewLabel(fetchBalance(wallet))
 
-	balanceLabel.TextStyle = fyne.TextStyle{Bold: true}
-	activityLabel.TextStyle = fyne.TextStyle{Bold: true}
-	var output fyne.CanvasObject
-	overview.showText = widget.NewLabel("No activities yet")
-	overview.showText.Alignment = fyne.TextAlignCenter
+	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
 	tx, _ := wallet.TransactionHistory(0, 5, nil)
 	if len(tx) == 0 {
-		overview.showText.Hide()
-		widget.Refresh(overview.showText)
+		overview.noActivityLabel.Hide()
+		widget.Refresh(overview.noActivityLabel)
 	}
-	output = widget.NewVBox(
+
+	output := widget.NewVBox(
 		label,
 		widgets.NewVSpacer(10),
 		balanceLabel,
@@ -61,12 +76,13 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		widgets.NewVSpacer(10),
 		activityLabel,
 		widgets.NewVSpacer(10),
-		overview.showText)
+		overview.noActivityLabel)
 
-	//this would update all labels for all pages every seconds
+	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
 	go func() {
 		for {
 			overviewUpdates(wallet)
+			statusUpdates(wallet)
 			time.Sleep(time.Second * 1)
 		}
 	}()

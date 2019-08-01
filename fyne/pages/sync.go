@@ -1,8 +1,8 @@
 package pages
 
 import (
+	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"fyne.io/fyne"
@@ -13,7 +13,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
+func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
 	progressBar := widget.NewProgressBar()
 	progressBar.Min = 0
 	progressBar.Max = 100
@@ -36,6 +36,7 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		} else {
 			reportLabel.Hide()
 			infoButton.SetText("Tap to view informations")
+			widget.Refresh(infoButton)
 			widget.Refresh(reportLabel)
 		}
 	})
@@ -48,24 +49,10 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
 			if syncDone == false {
-				info, _ := wallet.WalletConnectionInfo()
-				if info.PeersConnected <= 1 {
-					widget.Refresh(peerConn)
-					peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
-					widget.Refresh(peerConn)
-				} else {
-					widget.Refresh(peerConn)
-					peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
-					widget.Refresh(peerConn)
-				}
-				widget.Refresh(blkHeight)
-				blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
-				widget.Refresh(blkHeight)
-
-				menu := Menu(wallet, App, window)
+				syncDone = true
+				menu := menuPage(ctx, wallet, App, window)
 				window.SetContent(menu)
 			}
-			syncDone = true
 		}
 
 		stringReport := strings.Builder{}
@@ -97,10 +84,6 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		case defaultsynclistener.ScanningBlockHeaders:
 			stringReport.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", progressReport.CurrentRescanHeight,
 				progressReport.TotalHeadersToFetch))
-			widget.Refresh(blkHeight)
-			blkHeight.SetText(strconv.Itoa(int(progressReport.TotalHeadersToFetch)) + " Blocks Connected")
-			widget.Refresh(blkHeight)
-
 			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
 		}
 
@@ -108,14 +91,8 @@ func ShowSyncWindow(wallet godcrApp.WalletMiddleware, window fyne.Window, App fy
 		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
-			widget.Refresh(peerConn)
-			peerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peer Connected")
-			widget.Refresh(peerConn)
 		} else {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", progressReport.ConnectedPeers, netType))
-			widget.Refresh(peerConn)
-			peerConn.SetText(strconv.Itoa(int(progressReport.ConnectedPeers)) + " Peers Connected")
-			widget.Refresh(peerConn)
 		}
 
 		fullSyncReport = stringReport.String()
