@@ -116,7 +116,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	})
 	button.Disable()
 
-	output := widget.NewVBox(
+	output := widget.NewGroup("Receive", widget.NewVBox(
 		label,
 		info,
 		widget.NewHBox(accountLabel, receive.accountSelect),
@@ -125,7 +125,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 		widget.NewHBox(layout.NewSpacer(), qrImage, layout.NewSpacer()),
 		widget.NewHBox(layout.NewSpacer(), generatedAddress, copy, layout.NewSpacer()),
 		errorLabel,
-	)
+	))
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
