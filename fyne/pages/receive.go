@@ -23,17 +23,17 @@ var receive receivePageData
 func receiveUpdates(wallet godcrApp.WalletMiddleware) {
 	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 
-	var options []string
+	var name []string
 	for _, account := range accounts {
-		options = append(options, account.Name)
+		name = append(name, account.String())
 	}
-	receive.accountSelect.Options = options
+	receive.accountSelect.Options = name
 	widget.Refresh(receive.accountSelect)
 }
 
 //todo: should we make concurrent checks if users add a new account?
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
-	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
+	qrImage := canvas.NewImageFromResource(theme.InfoIcon())
 	qrImage.SetMinSize(fyne.NewSize(300, 300))
 	qrImage.Hide()
 
@@ -116,7 +116,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	})
 	button.Disable()
 
-	output := widget.NewGroup("Receive", widget.NewVBox(
+	output := widget.NewVBox(
 		label,
 		info,
 		widget.NewHBox(accountLabel, receive.accountSelect),
@@ -125,7 +125,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 		widget.NewHBox(layout.NewSpacer(), qrImage, layout.NewSpacer()),
 		widget.NewHBox(layout.NewSpacer(), generatedAddress, copy, layout.NewSpacer()),
 		errorLabel,
-	))
+	)
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
