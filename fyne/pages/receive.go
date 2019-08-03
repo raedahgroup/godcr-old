@@ -84,7 +84,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	//get account and generate address on start
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		errorLabel.SetText("Could not retrieve account information" + err.Error())
+		errorLabel = widget.NewLabelWithStyle("Could not retrieve account information"+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 		//todo: log to file
 		fmt.Println(err.Error())
 		errorLabel.Show()
