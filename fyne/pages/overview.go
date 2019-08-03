@@ -25,12 +25,10 @@ func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 		if overview.noActivityLabel.Text != "" {
 			overview.noActivityLabel.SetText("")
 			overview.noActivityLabel.Hide()
-			widget.Refresh(overview.noActivityLabel)
 		}
 	}
 
 	overview.balance.SetText(fetchBalance(wallet))
-	widget.Refresh(overview.balance)
 }
 
 //this updates peerconn and blkheight
@@ -42,10 +40,8 @@ func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	} else {
 		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
 	}
-	widget.Refresh(menu.peerConn)
 
 	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
-	widget.Refresh(menu.blkHeight)
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
@@ -59,7 +55,6 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	tx, _ := wallet.TransactionHistory(0, 5, nil)
 	if len(tx) == 0 {
 		overview.noActivityLabel.Hide()
-		widget.Refresh(overview.noActivityLabel)
 	}
 
 	output := widget.NewVBox(
