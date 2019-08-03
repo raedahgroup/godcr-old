@@ -43,6 +43,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	//todo: remove this after the hide bug on fyne is fixed
+	//to test you can fmt.Println(errorLabel.Hidden) before the second hide function
 	errorLabel.Hide()
 	errorLabel.Hide()
 
