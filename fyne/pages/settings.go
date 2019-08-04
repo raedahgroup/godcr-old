@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"image/color"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
@@ -19,8 +21,12 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
 			change.Settings().SetTheme(theme.LightTheme())
+			receive.errorLabel.Color = color.RGBA{255, 0, 0, 255}
+			menu.alphaTheme = 255
 		} else if background == "Dark Theme" {
 			change.Settings().SetTheme(theme.DarkTheme())
+			receive.errorLabel.Color = color.RGBA{255, 0, 0, 0}
+			menu.alphaTheme = 200
 		}
 	})
 	radio.Horizontal = true

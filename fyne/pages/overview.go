@@ -1,8 +1,6 @@
 package pages
 
 import (
-	"strconv"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	godcrApp "github.com/raedahgroup/godcr/app"
@@ -29,19 +27,6 @@ func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	}
 
 	overview.balance.SetText(fetchBalance(wallet))
-}
-
-//this updates peerconn and blkheight
-func statusUpdates(wallet godcrApp.WalletMiddleware) {
-	info, _ := wallet.WalletConnectionInfo()
-
-	if info.PeersConnected <= 1 {
-		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
-	} else {
-		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
-	}
-
-	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
