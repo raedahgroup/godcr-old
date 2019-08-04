@@ -21,7 +21,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 	var fullSyncReport string
 
 	reportLabel := widget.NewLabel("")
-	widget.Refresh(reportLabel)
 	reportLabel.Hide()
 	reportLabel.Alignment = fyne.TextAlignCenter
 	var infoButton *widget.Button
@@ -29,15 +28,11 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 	infoButton = widget.NewButton("Tap to view informations", func() {
 		if infoButton.Text == "Tap to view informations" {
 			reportLabel.Show()
-			widget.Refresh(reportLabel)
 			infoButton.SetText("Tap to hide informations")
-			widget.Refresh(infoButton)
 
 		} else {
 			reportLabel.Hide()
 			infoButton.SetText("Tap to view informations")
-			widget.Refresh(infoButton)
-			widget.Refresh(reportLabel)
 		}
 	})
 
@@ -63,7 +58,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 		}
 
 		reportLabel.SetText(strings.TrimSpace(stringReport.String()))
-		widget.Refresh(reportLabel)
 
 		switch progressReport.CurrentStep {
 		case defaultsynclistener.FetchingBlockHeaders:
@@ -96,7 +90,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 		}
 
 		fullSyncReport = stringReport.String()
-		widget.Refresh(reportLabel)
 		reportLabel.SetText(fullSyncReport)
 	})
 

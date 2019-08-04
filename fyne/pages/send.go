@@ -30,7 +30,6 @@ func sendPage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasO
 		//todo: log to file
 		fmt.Println(err.Error())
 		errorLabel.Show()
-		widget.Refresh(errorLabel)
 	}
 
 	var options []string
@@ -42,7 +41,6 @@ func sendPage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasO
 	receive.accountSelect = widget.NewSelect(options, func(s string) {
 		if button.Disabled() == true {
 			button.Enable()
-			widget.Refresh(button)
 		}
 	})
 
