@@ -33,7 +33,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.Ap
 		widget.NewTabItem("History", pageNotImplemented()),
 		widget.NewTabItem("Send", pageNotImplemented()),
 		widget.NewTabItem("Receive", receivePage(wallet, window)),
-		widget.NewTabItem("Staking", pageNotImplemented()),
+		widget.NewTabItem("Staking", stakingPage(wallet)),
 		widget.NewTabItem("Accounts", pageNotImplemented()),
 		widget.NewTabItem("Security", pageNotImplemented()),
 		widget.NewTabItem("Settings", settingsPage(app)),

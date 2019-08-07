@@ -436,6 +436,15 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 			balance.Spendable, totalTicketPrice)
 	}
 
+	fmt.Println(request.TicketAddress)
+	// fetch redeem script+ticket address+pool address+pool fee if vsp host is provided
+	if request.VSPHost != "" {
+		if err = c.updateTicketPurchaseRequestWithVSPInfo(&request); err != nil {
+			return nil, err
+		}
+	}
+	fmt.Println(request.TicketAddress)
+
 	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
 		Account:               request.Account,
 		Expiry:                request.Expiry,
@@ -461,6 +470,10 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 		ticketHashes[i] = hash.String()
 	}
 	return ticketHashes, nil
+}
+
+func (c *WalletRPCClient) PurchaseTicketWithVSP(ctx context.Context, vspHost string, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
+	return nil, fmt.Errorf("not supported in dcrwallet mode")
 }
 
 func (c *WalletRPCClient) ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error {

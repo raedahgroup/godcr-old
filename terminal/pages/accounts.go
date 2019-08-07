@@ -68,7 +68,7 @@ func accountsPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, s
 	hiddenAccounts := settings.HiddenAccounts
 	accountsTable.SetSelectedFunc(func(row, column int) {
 		accountPage.RemoveItem(accountsTable)
-		selectedRow := row - 1		
+		selectedRow := row - 1
 		selectedAccount = accounts[selectedRow]
 
 		titleTextView.SetText("Account Details")
