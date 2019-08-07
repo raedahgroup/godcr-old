@@ -3,6 +3,8 @@ package pages
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
@@ -10,36 +12,40 @@ import (
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
-	"strconv"
-	"strings"
 )
+
+type stakingPageData struct {
+	stakeInfoLabel *widget.Label
+}
+
+var staking stakingPageData
+
+func stakingPageReloadData(wallet godcrApp.WalletMiddleware) {
+	var stakeInfoText string
+
+	stakeInfo, err := wallet.StakeInfo(context.Background())
+	if err != nil {
+		stakeInfoText = fmt.Sprintf("Error loading stake info: %s", err.Error())
+	} else {
+		stakeInfoText = fmt.Sprintf("unmined %d   immature %d   live %d   voted %d   missed %d   expired %d \n"+
+			"revoked %d   unspent %d   allmempooltix %d   poolsize %d   total subsidy %s",
+			stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Live, stakeInfo.Voted, stakeInfo.Missed, stakeInfo.Expired,
+			stakeInfo.Revoked, stakeInfo.Unspent, stakeInfo.AllMempoolTix, stakeInfo.PoolSize, stakeInfo.TotalSubsidy)
+	}
+
+	if staking.stakeInfoLabel.Text == "" {
+		staking.stakeInfoLabel.Text = stakeInfoText
+	} else {
+		staking.stakeInfoLabel.SetText(stakeInfoText) // use SetText to refresh widget
+	}
+}
 
 func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	pageTitleLabel := widget.NewLabelWithStyle("Staking", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 
 	summarySectionTitleLabel := widget.NewLabelWithStyle("Summary", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	summaryLabel := widget.NewLabel("")
-
-	readStakeInfo := func() {
-		var stakeInfoText string
-
-		stakeInfo, err := wallet.StakeInfo(context.Background())
-		if err != nil {
-			stakeInfoText = fmt.Sprintf("Error loading stake info: %s", err.Error())
-		} else {
-			stakeInfoText = fmt.Sprintf("unmined %d   immature %d   live %d   voted %d   missed %d   expired %d \n"+
-				"revoked %d   unspent %d   allmempooltix %d   poolsize %d   total subsidy %s",
-				stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Live, stakeInfo.Voted, stakeInfo.Missed, stakeInfo.Expired,
-				stakeInfo.Revoked, stakeInfo.Unspent, stakeInfo.AllMempoolTix, stakeInfo.PoolSize, stakeInfo.TotalSubsidy)
-		}
-
-		if summaryLabel.Text == "" {
-			summaryLabel.Text = stakeInfoText
-		} else {
-			summaryLabel.SetText(stakeInfoText) // use SetText to refresh widget
-		}
-	}
-	readStakeInfo()
+	staking.stakeInfoLabel = widget.NewLabel("")
+	stakingPageReloadData(wallet)
 
 	ticketsSectionTitleLabel := widget.NewLabelWithStyle("Purchase Ticket(s)",
 		fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -101,7 +107,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 
 			ticketsLabel.SetText(fmt.Sprintf("Success: \n%s", strings.Join(ticketHashes, "\n")))
 			widget.Refresh(ticketsLabel)
-			readStakeInfo()
+			stakingPageReloadData(wallet)
 		}
 	})
 
@@ -109,7 +115,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		pageTitleLabel,
 		widgets.NewVSpacer(10),
 		summarySectionTitleLabel,
-		summaryLabel,
+		staking.stakeInfoLabel,
 		widgets.NewVSpacer(10),
 		ticketsSectionTitleLabel,
 		widgets.NewVSpacer(10),

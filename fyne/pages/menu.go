@@ -48,6 +48,8 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.Ap
 				overviewUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 3 {
 				receiveUpdates(wallet)
+			} else if menu.tabs.CurrentTabIndex() == 4 {
+				stakingPageReloadData(wallet)
 			}
 			statusUpdates(wallet)
 			time.Sleep(time.Second * 1)
