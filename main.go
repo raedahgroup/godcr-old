@@ -118,7 +118,7 @@ func main() {
 	case "nuklear":
 		enterNuklearMode(ctx, walletMiddleware)
 	case "fyne":
-		enterFyneMode(ctx, walletMiddleware)
+		enterFyneMode(ctx, walletMiddleware, appConfig.Settings)
 	case "terminal":
 		enterTerminalMode(ctx, walletMiddleware, appConfig.Settings)
 	}
@@ -259,9 +259,9 @@ func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware
 	beginShutdown <- true
 }
 
-func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
+func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appSettings config.Settings) {
 	logInfo("Launching desktop app with fyne")
-	fyne.LaunchFyne(ctx, walletMiddleware)
+	fyne.LaunchFyne(ctx, walletMiddleware, appSettings)
 	beginShutdown <- true
 }
 

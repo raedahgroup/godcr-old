@@ -17,7 +17,9 @@ import (
 
 type receivePageData struct {
 	accountSelect *widget.Select
-	errorLabel    *canvas.Text
+
+	//errorLabel is defined here so as to be able to update its color when theme is changed
+	errorLabel *canvas.Text
 }
 
 var receive receivePageData

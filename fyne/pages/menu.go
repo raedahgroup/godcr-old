@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 type menuPageData struct {
@@ -52,7 +53,7 @@ func pageNotImplemented() fyne.CanvasObject {
 	return label
 }
 
-func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.App, window fyne.Window) fyne.CanvasObject {
+func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings config.Settings, app fyne.App, window fyne.Window) fyne.CanvasObject {
 	if app.Settings().Theme() == theme.LightTheme() {
 		menu.alphaTheme = 255
 	} else {
@@ -69,7 +70,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.Ap
 		widget.NewTabItem("Send", sendPage(wallet, window)), //send(window)),
 		widget.NewTabItem("Receive", receivePage(wallet, window)),
 		widget.NewTabItem("Staking", pageNotImplemented()),
-		widget.NewTabItem("Accounts", pageNotImplemented()),
+		widget.NewTabItem("Accounts", accountPage(wallet, appSettings, window)),
 		widget.NewTabItem("Security", pageNotImplemented()),
 		widget.NewTabItem("Settings", settingsPage(app)),
 		widget.NewTabItem("Exit", exit(ctx, app, window)))

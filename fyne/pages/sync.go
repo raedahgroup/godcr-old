@@ -10,10 +10,11 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
+func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings config.Settings, window fyne.Window, App fyne.App) fyne.CanvasObject {
 	progressBar := widget.NewProgressBar()
 	progressBar.Min = 0
 	progressBar.Max = 100
@@ -46,7 +47,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 		if progressReport.Status == defaultsynclistener.SyncStatusSuccess {
 			if syncDone == false {
 				syncDone = true
-				menu := menuPage(ctx, wallet, App, window)
+				menu := menuPage(ctx, wallet, appSettings, App, window)
 				window.SetContent(menu)
 			}
 		}
