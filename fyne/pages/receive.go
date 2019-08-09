@@ -103,21 +103,20 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 
 	receive.accountSelect.SetSelected(accounts[0].Name)
 
-	if errorLabel.Hidden {
-		addr, err = wallet.GenerateNewAddress(0)
-		if err != nil {
-			errorLabel.SetText("could not generate new address, " + err.Error())
-			errorLabel.Show()
-		}
-
-		if errorLabel.Hidden {
-			generatedAddress = widget.NewLabelWithStyle(addr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-
-			png, _ := qrcode.Encode(addr, qrcode.High, 256)
-			qrImage.Resource = fyne.NewStaticResource("Address", png)
-			canvas.Refresh(qrImage)
-		}
+	addr, err = wallet.GenerateNewAddress(0)
+	if err != nil {
+		errorLabel.SetText("could not generate new address, " + err.Error())
+		errorLabel.Show()
 	}
+
+	if errorLabel.Hidden {
+		generatedAddress = widget.NewLabelWithStyle(addr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+
+		png, _ := qrcode.Encode(addr, qrcode.High, 256)
+		qrImage.Resource = fyne.NewStaticResource("Address", png)
+		canvas.Refresh(qrImage)
+	}
+
 
 	output := widget.NewVBox(
 		label,
