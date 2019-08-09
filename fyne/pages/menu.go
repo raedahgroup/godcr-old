@@ -42,6 +42,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.Ap
 
 	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
 	go func() {
+
 		for {
 			//update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
