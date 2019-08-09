@@ -21,22 +21,17 @@ type stakingPageData struct {
 var staking stakingPageData
 
 func stakingPageReloadData(wallet godcrApp.WalletMiddleware) {
-	var stakeInfoText string
+	widget.Refresh(staking.stakeInfoLabel) // necessary to prevent the following SetText() call from throwing an error
 
 	stakeInfo, err := wallet.StakeInfo(context.Background())
 	if err != nil {
-		stakeInfoText = fmt.Sprintf("Error loading stake info: %s", err.Error())
+		staking.stakeInfoLabel.SetText(fmt.Sprintf("Error loading stake info: %s", err.Error()))
 	} else {
-		stakeInfoText = fmt.Sprintf("unmined %d   immature %d   live %d   voted %d   missed %d   expired %d \n"+
+		stakeInfoText := fmt.Sprintf("unmined %d   immature %d   live %d   voted %d   missed %d   expired %d \n"+
 			"revoked %d   unspent %d   allmempooltix %d   poolsize %d   total subsidy %s",
 			stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Live, stakeInfo.Voted, stakeInfo.Missed, stakeInfo.Expired,
 			stakeInfo.Revoked, stakeInfo.Unspent, stakeInfo.AllMempoolTix, stakeInfo.PoolSize, stakeInfo.TotalSubsidy)
-	}
-
-	if staking.stakeInfoLabel.Text == "" {
-		staking.stakeInfoLabel.Text = stakeInfoText
-	} else {
-		staking.stakeInfoLabel.SetText(stakeInfoText) // use SetText to refresh widget
+		staking.stakeInfoLabel.SetText(stakeInfoText)
 	}
 }
 
