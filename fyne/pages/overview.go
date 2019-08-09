@@ -22,15 +22,6 @@ type overviewPageData struct {
 var overview overviewPageData
 
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
-	txCount, _ := wallet.TransactionCount(nil)
-
-	if txCount > 0 {
-		if overview.noActivityLabel.Text != "" {
-			overview.noActivityLabel.SetText("")
-			overview.noActivityLabel.Hide()
-		}
-	}
-
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
 
