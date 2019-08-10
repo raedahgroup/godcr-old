@@ -44,13 +44,14 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings config.Settings, 
 	})
 	addAccount := widget.NewToolbar(addAccountIcon)
 
+	container := widget.NewScrollContainer(listAccounts)
 	output := widget.NewVBox(
 		widget.NewHBox(label, addAccount),
 		successLabel,
 		account.errorLabel,
-		listAccounts,
-	)
-	return widget.NewScrollContainer(widget.NewHBox(widgets.NewHSpacer(10), output))
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(container.MinSize().Width, container.MinSize().Height+200)), container))
+
+	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
 
 //accountProperties creates a popUp that asks for account name and password so as to create the new account
@@ -232,11 +233,9 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings config.Se
 			widget.Refresh(container)
 		})
 
-		//fmt.Println(button)
 		container.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(1000, 30)), button))
 		container.Append(propertiesContainer)
 	}
 
-	//scrollContainer = widget.NewScrollContainer(container)
 	return container
 }

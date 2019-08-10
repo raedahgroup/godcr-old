@@ -2,7 +2,9 @@ package pages
 
 import (
 	"fyne.io/fyne"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/decred/dcrd/dcrutil"
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -12,14 +14,15 @@ import (
 type overviewPageData struct {
 	balance         *widget.Label
 	noActivityLabel *widget.Label
+	txTable         widgets.TableStruct
 }
 
 var overview overviewPageData
 
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
-	tx, _ := wallet.TransactionHistory(0, 5, nil)
+	txCount, _ := wallet.TransactionCount(nil)
 
-	if len(tx) > 0 {
+	if txCount > 0 {
 		if overview.noActivityLabel.Text != "" {
 			overview.noActivityLabel.SetText("")
 			overview.noActivityLabel.Hide()
@@ -27,6 +30,11 @@ func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	}
 
 	overview.balance.SetText(fetchBalance(wallet))
+	var txTable widgets.TableStruct
+
+	fetchOverviewTx(&txTable, 0, 5, wallet)
+	overview.txTable.Result.Children = txTable.Result.Children
+	widget.Refresh(overview.txTable.Result)
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
@@ -37,10 +45,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
-	tx, _ := wallet.TransactionHistory(0, 5, nil)
-	if len(tx) == 0 {
-		overview.noActivityLabel.Hide()
-	}
+	fetchOverviewTx(&overview.txTable, 0, 5, wallet)
 
 	output := widget.NewVBox(
 		label,
@@ -50,7 +55,8 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		widgets.NewVSpacer(10),
 		activityLabel,
 		widgets.NewVSpacer(10),
-		overview.noActivityLabel)
+		overview.noActivityLabel,
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Container.MinSize().Width, overview.txTable.Container.MinSize().Height+200)), overview.txTable.Container))
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
@@ -62,4 +68,37 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 	}
 
 	return walletcore.WalletBalance(accounts)
+}
+
+func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
+	tx, _ := wallet.TransactionHistory(offset, counter, nil)
+	if len(tx) == 0 {
+		overview.noActivityLabel.Hide()
+		return
+	}
+
+	heading := widget.NewHBox(
+		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+
+	var hBox []*widget.Box
+	for i := 0; int32(i) < counter; i++ {
+		trimmedHash := tx[i].Hash[:len(tx[i].Hash)/2] + "..."
+		hBox = append(hBox, widget.NewHBox(
+			widget.NewLabelWithStyle(tx[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx[i].Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx[i].Status, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{}),
+		))
+	}
+	txTable.NewTable(heading, hBox...)
+	txTable.Refresh()
 }
