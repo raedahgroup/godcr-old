@@ -14,7 +14,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings config.Settings, window fyne.Window, App fyne.App) fyne.CanvasObject {
+func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, window fyne.Window, App fyne.App) fyne.CanvasObject {
 	progressBar := widget.NewProgressBar()
 	progressBar.Min = 0
 	progressBar.Max = 100

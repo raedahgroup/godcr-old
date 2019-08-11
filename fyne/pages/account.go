@@ -22,7 +22,7 @@ type accountPageData struct {
 
 var account accountPageData
 
-func accountPage(wallet godcrApp.WalletMiddleware, appSettings config.Settings, window fyne.Window) fyne.CanvasObject {
+func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings, window fyne.Window) fyne.CanvasObject {
 	label := widget.NewLabelWithStyle("Accounts", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	successLabel := canvas.NewText("", color.RGBA{11, 156, 49, menu.alphaTheme})
 
@@ -45,17 +45,19 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings config.Settings, 
 	addAccount := widget.NewToolbar(addAccountIcon)
 
 	container := widget.NewScrollContainer(listAccounts)
+	fmt.Println("Container", container.MinSize())
+
 	output := widget.NewVBox(
 		widget.NewHBox(label, addAccount),
 		successLabel,
 		account.errorLabel,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(container.MinSize().Width, container.MinSize().Height+200)), container))
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(container.MinSize().Width, container.MinSize().Height+300)), container))
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
 
 //accountProperties creates a popUp that asks for account name and password so as to create the new account
-func createAccount(wallet godcrApp.WalletMiddleware, appSettings config.Settings, listAccounts *widget.Box, successLabel *canvas.Text, window fyne.Window) fyne.CanvasObject {
+func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Settings, listAccounts *widget.Box, successLabel *canvas.Text, window fyne.Window) fyne.CanvasObject {
 	//popUp houses all widgets, to display account creation
 	var popUp *widget.PopUp
 	var createAccountButton *widget.Button
@@ -159,23 +161,22 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings config.Settings
 // 	return overallContainer
 // }
 
-func receiveAccountDetails(accounts []*walletcore.Account, appSettings config.Settings) *widget.Box {
-	//load buttons in a vbox this
-	// accountButtons := widget.NewVBox()
-	var container *widget.Box
+func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.Settings) *widget.Box {
+	fmt.Println(appSettings)
 	var defaultAccount []*widget.Check
 	defaultAccount = make([]*widget.Check, len(accounts))
+	container := widget.NewVBox()
 
 	for i, account := range accounts {
-		var button *widget.Button
-		container = widget.NewVBox()
-
 		propertiesForm := widget.NewForm()
 		propertiesForm.Append("Account Number", widget.NewLabelWithStyle(strconv.Itoa(int(account.Number)), fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}))
 		propertiesForm.Append("HD Path", widget.NewLabelWithStyle(strconv.Itoa(int(account.Number)), fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}))
 
 		fmt.Println(appSettings.HiddenAccounts)
 		hideAccount := widget.NewCheck("Hide Account", func(s bool) {
+			if s == true {
+
+			}
 			appSettings.HiddenAccounts = append(appSettings.HiddenAccounts, uint32(i))
 		})
 
@@ -187,11 +188,11 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings config.Se
 		}
 
 		(defaultAccount)[i] = widget.NewCheck("Default Account", func(s bool) {
+			//remove all accounts that are defaults
 			//check if account is hidden, if hidden remove from being hidden and disable hidden check
-			if hideAccount.Checked {
+			if hideAccount.Checked && s == true {
 				hideAccount.SetChecked(false)
 				hideAccount.Disable()
-
 				var hiddenAccountNo []uint32
 				for _, hidden := range appSettings.HiddenAccounts {
 					if hidden == uint32(i) {
@@ -221,7 +222,7 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings config.Se
 			propertiesForm,
 			widgets.NewVSpacer(10))
 
-		button = widget.NewButton(account.Name+": "+account.Balance.Total.String()+" (Spendable: "+account.Balance.Spendable.String()+")", func() {
+		button := widget.NewButton(account.Name+": "+account.Balance.Total.String()+" (Spendable: "+account.Balance.Spendable.String()+")", func() {
 			if propertiesContainer.Hidden {
 				propertiesContainer.Show()
 				//container.Children = []fyne.CanvasObject{fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(1000, 30)), button), propertiesContainer}

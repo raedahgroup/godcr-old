@@ -31,9 +31,6 @@ func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	for _, account := range accounts {
 		name = append(name, account.Name)
 	}
-
-	name = append(name, "test")
-
 	receive.accountSelect.Options = name
 }
 

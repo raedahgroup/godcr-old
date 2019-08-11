@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"fmt"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
@@ -101,4 +103,6 @@ func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet
 	}
 	txTable.NewTable(heading, hBox...)
 	txTable.Refresh()
+
+	fmt.Println(txTable.Container.MinSize())
 }

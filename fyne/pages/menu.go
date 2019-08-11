@@ -53,7 +53,7 @@ func pageNotImplemented() fyne.CanvasObject {
 	return label
 }
 
-func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings config.Settings, app fyne.App, window fyne.Window) fyne.CanvasObject {
+func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, app fyne.App, window fyne.Window) fyne.CanvasObject {
 	if app.Settings().Theme() == theme.LightTheme() {
 		menu.alphaTheme = 255
 	} else {
@@ -78,7 +78,6 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 
 	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
 	go func() {
-
 		for {
 			//update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
