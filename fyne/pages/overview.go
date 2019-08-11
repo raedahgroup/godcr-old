@@ -60,11 +60,10 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		overview.balance,
 		widgets.NewVSpacer(10),
 		activityLabel,
-		widgets.NewVSpacer(10),
 		overview.noActivityLabel,
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Container.MinSize().Width, overview.txTable.Container.MinSize().Height+200)), overview.txTable.Container))
 
-	return widget.NewHBox(widgets.NewHSpacer(10), output)
+	return widget.NewHBox(widgets.NewHSpacer(20), output)
 }
 
 func fetchBalance(wallet godcrApp.WalletMiddleware) string {
@@ -77,10 +76,9 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 }
 
 func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
-	tx, _ := wallet.TransactionHistory(offset, counter, nil)
-	if len(tx) == 0 {
+	txs, _ := wallet.TransactionHistory(offset, counter, nil)
+	if len(txs) > 0 && overview.noActivityLabel.Hidden == false {
 		overview.noActivityLabel.Hide()
-		return
 	}
 
 	heading := widget.NewHBox(
@@ -94,15 +92,15 @@ func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet
 
 	var hBox []*widget.Box
 	for i := 0; int32(i) < counter; i++ {
-		trimmedHash := tx[i].Hash[:len(tx[i].Hash)/2] + "..."
+		trimmedHash := txs[i].Hash[:len(txs[i].Hash)/2] + "..."
 		hBox = append(hBox, widget.NewHBox(
-			widget.NewLabelWithStyle(tx[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Status, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txs[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txs[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txs[i].Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(txs[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(txs[i].Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txs[i].Status, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}),
 		))
 	}
 	txTable.NewTable(heading, hBox...)

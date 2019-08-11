@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
 
@@ -74,7 +73,5 @@ func (table *TableStruct) Refresh() {
 
 	table.Result.Children = container.Children
 	table.Container.Content = widget.NewScrollContainer(table.Result).Content
-
-	table.Container.Resize(fyne.NewSize(200, 200))
 	widget.Refresh(table.Result)
 }
