@@ -1,7 +1,11 @@
 package pages
 
 import (
+	"io/ioutil"
+	"log"
+
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -18,8 +22,25 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
+			//set overview icon
+			decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
+			if err != nil {
+				log.Fatalln("exit png file missing", err)
+			}
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+			overview.icon.Resource = iconResource.Resource
+			canvas.Refresh(overview.icon)
+
 			change.Settings().SetTheme(theme.LightTheme())
 		} else if background == "Dark Theme" {
+			decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
+			if err != nil {
+				log.Fatalln("exit png file missing", err)
+			}
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+			overview.icon.Resource = iconResource.Resource
+			canvas.Refresh(overview.icon)
+
 			change.Settings().SetTheme(theme.DarkTheme())
 		}
 	})
