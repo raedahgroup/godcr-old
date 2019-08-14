@@ -66,7 +66,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 			log.Fatalln("exit png file missing", err)
 		}
 		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
-		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
 	}
 	overview.icon.FillMode = canvas.ImageFillOriginal
 	iconFix := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
