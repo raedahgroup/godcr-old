@@ -30,9 +30,9 @@ func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	receive.accountSelect.Options = options
 }
 
-//todo: should we make concurrent checks if users add a new account?
+// todo: should we make concurrent checks if users add a new account?
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
-	//if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
+	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
 	qrImage.SetMinSize(fyne.NewSize(300, 300))
 
@@ -42,8 +42,8 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	var generatedAddress *widget.Label
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	//todo: remove this after the hide bug on fyne is fixed
-	//to test you can fmt.Println(errorLabel.Hidden) before the second hide function
+	// todo: remove this after the hide bug on fyne is fixed
+	// to test you can fmt.Println(errorLabel.Hidden) before the second hide function
 	errorLabel.Hide()
 	errorLabel.Hide()
 
@@ -67,7 +67,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 			errorLabel.Show()
 			return
 		}
-		//if there was a rectified error and user clicks the generate again, this hides the error text
+		// if there was a rectified error and user clicks the generate again, this hides the error text
 		if errorLabel.Hidden == false {
 			errorLabel.Hide()
 		}

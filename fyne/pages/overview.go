@@ -37,7 +37,7 @@ func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	widget.Refresh(overview.txTable.Result)
 }
 
-//this updates peerconn and blkheight
+// statusUpdates updates peerconn and blkheight
 func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	info, _ := wallet.WalletConnectionInfo()
 
@@ -125,7 +125,7 @@ func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet
 
 	var hBox []*widget.Box
 	for i := 0; i < len(txs); i++ {
-		trimmedHash := txs[i].Hash[:len(txs[i].Hash)/2] + "..."
+		trimmedHash := txs[i].Hash[:25] + "..."
 		hBox = append(hBox, widget.NewHBox(
 			widget.NewLabelWithStyle(txs[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(txs[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),

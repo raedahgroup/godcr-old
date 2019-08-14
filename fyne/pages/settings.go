@@ -23,7 +23,7 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
-			//set overview icon and name
+			// set overview icon and name
 			decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
 			if err != nil {
 				log.Fatalln("exit png file missing", err)

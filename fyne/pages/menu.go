@@ -15,7 +15,7 @@ import (
 type menuPageData struct {
 	peerConn  *widget.Label
 	blkHeight *widget.Label
-	//there might be situations we would want to get the particular opened tab
+	// there might be situations we would want to get the particular opened tab
 	tabs *widget.TabContainer
 }
 
@@ -69,10 +69,10 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 		widget.NewTabItemWithIcon("Exit", fyne.NewStaticResource("Exit", exitFile), exit(ctx, fyneApp, window)))
 	menu.tabs.SetTabLocation(widget.TabLocationLeading)
 
-	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
+	// this would update all labels for all pages every seconds, all objects to be updated should be placed here
 	go func() {
 		for {
-			//update only when the user is on the page
+			// update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
 				overviewPageUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 3 {
@@ -83,7 +83,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 		}
 	}()
 
-	//where peerConn and blkHeight are the realtime status texts
+	// where peerConn and blkHeight are the realtime status texts
 	status := widget.NewVBox(menu.peerConn, menu.blkHeight)
 	data := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, status, menu.tabs, nil), menu.tabs, status)
 
