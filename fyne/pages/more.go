@@ -9,15 +9,15 @@ import (
 )
 
 func morePage(fyneApp fyne.App) fyne.CanvasObject {
-	settingFile, err := ioutil.ReadFile("./fyne/pages/png/optionsA.png")
+	settingFile, err := ioutil.ReadFile("./fyne/pages/png/settings.png")
 	if err != nil {
 		log.Fatalln("setting png file missing", err)
 	}
-	helpFile, err := ioutil.ReadFile("./fyne/pages/png/questionmark.png")
+	helpFile, err := ioutil.ReadFile("./fyne/pages/png/help.png")
 	if err != nil {
 		log.Fatalln("help png file missing", err)
 	}
-	securityFile, err := ioutil.ReadFile("./fyne/pages/png/lockEye.png")
+	securityFile, err := ioutil.ReadFile("./fyne/pages/png/security.png")
 	if err != nil {
 		log.Fatalln("security png file missing", err)
 	}
@@ -25,7 +25,7 @@ func morePage(fyneApp fyne.App) fyne.CanvasObject {
 	if err != nil {
 		log.Fatalln("info png file missing", err)
 	}
-	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stakeyBaby.png")
+	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stake.png")
 	if err != nil {
 		log.Fatalln("staking png file missing", err)
 	}

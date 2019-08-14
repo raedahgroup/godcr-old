@@ -1,16 +1,15 @@
 package pages
 
 import (
+	"image/color"
 	"io/ioutil"
 	"log"
 	"strconv"
 
-	"fyne.io/fyne/theme"
-
-	"fyne.io/fyne/canvas"
-
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/decred/dcrd/dcrutil"
 	godcrApp "github.com/raedahgroup/godcr/app"
@@ -24,6 +23,7 @@ type overviewPageData struct {
 	noActivityLabel *widget.Label
 	txTable         widgets.TableStruct
 	icon            *canvas.Image
+	name            *canvas.Text
 }
 
 var overview overviewPageData
@@ -57,30 +57,38 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}
-		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+		overview.name = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
+		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
+
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
 		decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}
+		overview.name = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
 	}
+	overview.icon.FillMode = canvas.ImageFillOriginal
+	iconFix := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
 
-	iconFix := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(100, 100)), overview.icon)
-	name := widget.NewLabelWithStyle(godcrApp.DisplayName, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	iconLabel := fyne.NewContainer(iconFix, name)
-	name.Move(fyne.NewPos(20, 65))
+	overview.name.TextSize = 20
+	overview.name.TextStyle = fyne.TextStyle{Bold: true}
+	canvas.Refresh(overview.name)
+
+	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconFix, overview.name, nil, nil), iconFix, overview.name)
+	overview.name.Move(fyne.NewPos(15, 40))
 
 	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	overview.balance = widget.NewLabel(fetchBalance(wallet))
-
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
 	fetchOverviewTx(&overview.txTable, 0, 5, wallet)
 
 	output := widget.NewVBox(
+		widgets.NewVSpacer(20),
 		iconLabel,
+		widgets.NewVSpacer(20),
 		balanceLabel,
 		overview.balance,
 		widgets.NewVSpacer(5),

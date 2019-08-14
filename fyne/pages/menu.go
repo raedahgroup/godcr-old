@@ -31,7 +31,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 	if err != nil {
 		log.Fatalln("overview png file missing", err)
 	}
-	historyFile, err := ioutil.ReadFile("./fyne/pages/png/block.png")
+	historyFile, err := ioutil.ReadFile("./fyne/pages/png/history.png")
 	if err != nil {
 		log.Fatalln("history png file missing", err)
 	}
@@ -43,15 +43,15 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 	if err != nil {
 		log.Fatalln("receive png file missing", err)
 	}
-	accountsFile, err := ioutil.ReadFile("./fyne/pages/png/wallet.png")
+	accountsFile, err := ioutil.ReadFile("./fyne/pages/png/account.png")
 	if err != nil {
-		log.Fatalln("accounts png file missing", err)
+		log.Fatalln("account png file missing", err)
 	}
-	moreFile, err := ioutil.ReadFile("./fyne/pages/png/optionsA.png")
+	moreFile, err := ioutil.ReadFile("./fyne/pages/png/settings.png")
 	if err != nil {
 		log.Fatalln("security png file missing", err)
 	}
-	exitFile, err := ioutil.ReadFile("./fyne/pages/png/powerButton.png")
+	exitFile, err := ioutil.ReadFile("./fyne/pages/png/exit.png")
 	if err != nil {
 		log.Fatalln("exit png file missing", err)
 	}
