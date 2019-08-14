@@ -1,8 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 fyne.io/fyne v1.1.0 h1:gQHhhS3u4uvjyP+LPU7gCj39gdO7czZ/ahhWQXwZlIk=
 fyne.io/fyne v1.1.0/go.mod h1:mz0CvQX1ACEjiDGpSH3D8Qf9yHq8dfYA039kG7p8ZhQ=
-fyne.io/fyne v1.1.1-0.20190806084507-fd47310b24a9 h1:ZloqLPfzjA2unTN4jpLtHxtvqjF6arlT0Fu2jKA3fkA=
-fyne.io/fyne v1.1.1-0.20190806084507-fd47310b24a9/go.mod h1:mz0CvQX1ACEjiDGpSH3D8Qf9yHq8dfYA039kG7p8ZhQ=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9 h1:HD8gA2tkByhMAwYaFAX9w2l7vxvBQ5NMoxDrkhqhtn4=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=

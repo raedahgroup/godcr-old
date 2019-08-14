@@ -29,6 +29,7 @@ func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 		options = append(options, account.Name)
 	}
 	receive.accountSelect.Options = options
+	widget.Refresh(receive.accountSelect)
 }
 
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
