@@ -23,7 +23,7 @@ type overviewPageData struct {
 	noActivityLabel *widget.Label
 	txTable         widgets.TableStruct
 	icon            *canvas.Image
-	name            *canvas.Text
+	goDcrLabel      *canvas.Text
 }
 
 var overview overviewPageData
@@ -57,7 +57,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}
-		overview.name = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
+		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
 
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
@@ -65,18 +65,18 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}
-		overview.name = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
+		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
 	}
 	overview.icon.FillMode = canvas.ImageFillOriginal
 	iconFix := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
 
-	overview.name.TextSize = 20
-	overview.name.TextStyle = fyne.TextStyle{Bold: true}
-	canvas.Refresh(overview.name)
+	overview.goDcrLabel.TextSize = 20
+	overview.goDcrLabel.TextStyle = fyne.TextStyle{Bold: true}
+	canvas.Refresh(overview.goDcrLabel)
 
-	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconFix, overview.name, nil, nil), iconFix, overview.name)
-	overview.name.Move(fyne.NewPos(15, 40))
+	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconFix, overview.goDcrLabel, nil, nil), iconFix, overview.goDcrLabel)
+	overview.goDcrLabel.Move(fyne.NewPos(15, 40))
 
 	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
