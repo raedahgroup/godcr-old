@@ -26,14 +26,8 @@ func morePage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.CanvasObj
 	if err != nil {
 		log.Fatalln("about png file missing", err)
 	}
-	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stake.png")
-	if err != nil {
-		log.Fatalln("staking png file missing", err)
-	}
 
 	container := widget.NewTabContainer(
-
-		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), stakingPage(wallet)),
 		widget.NewTabItemWithIcon("Settings", fyne.NewStaticResource("More", settingFile), settingsPage(fyneApp)),
 		widget.NewTabItemWithIcon("Security Tools", fyne.NewStaticResource("More", securityFile), pageNotImplemented()),
 		widget.NewTabItemWithIcon("Help", fyne.NewStaticResource("More", helpFile), pageNotImplemented()),
