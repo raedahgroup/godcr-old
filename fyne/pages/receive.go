@@ -20,7 +20,7 @@ type receivePageData struct {
 
 var receive receivePageData
 
-func receiveUpdates(wallet godcrApp.WalletMiddleware) {
+func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 
 	var options []string
@@ -116,7 +116,6 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 		qrImage.Resource = fyne.NewStaticResource("Address", png)
 		canvas.Refresh(qrImage)
 	}
-
 
 	output := widget.NewVBox(
 		label,

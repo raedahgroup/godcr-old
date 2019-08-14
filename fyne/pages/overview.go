@@ -28,7 +28,7 @@ type overviewPageData struct {
 
 var overview overviewPageData
 
-func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
 
@@ -124,7 +124,7 @@ func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 
 	var hBox []*widget.Box
-	for i := 0; int32(i) < counter; i++ {
+	for i := 0; i < len(txs); i++ {
 		trimmedHash := txs[i].Hash[:len(txs[i].Hash)/2] + "..."
 		hBox = append(hBox, widget.NewHBox(
 			widget.NewLabelWithStyle(txs[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),

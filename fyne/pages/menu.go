@@ -74,9 +74,9 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 		for {
 			//update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
-				overviewUpdates(wallet)
+				overviewPageUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 3 {
-				receiveUpdates(wallet)
+				receivePageUpdates(wallet)
 			}
 			statusUpdates(wallet)
 			time.Sleep(time.Second * 1)
