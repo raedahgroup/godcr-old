@@ -21,7 +21,7 @@ type overviewPageData struct {
 
 var overview overviewPageData
 
-func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	txCount, _ := wallet.TransactionCount(nil)
 
 	if txCount > 0 {

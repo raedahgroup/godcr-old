@@ -2,13 +2,10 @@ package pages
 
 import (
 	"context"
-	"image/color"
 	"strconv"
 	"time"
 
 	"fyne.io/fyne/theme"
-
-	"fyne.io/fyne/canvas"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -18,11 +15,12 @@ import (
 )
 
 type menuPageData struct {
-	alphaTheme uint8
-	peerConn   *canvas.Text
-	blkHeight  *canvas.Text
+	peerConn  *widget.Label
+	blkHeight *widget.Label
 	//there might be situations we would want to get the particular opened tab
 	tabs *widget.TabContainer
+	//when theme changes, this updates the canvas text
+	alphaTheme uint8
 }
 
 var menu menuPageData
@@ -31,21 +29,13 @@ var menu menuPageData
 func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	info, _ := wallet.WalletConnectionInfo()
 
-	if info.PeersConnected == 1 {
-		menu.peerConn.Text = (strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
-		menu.peerConn.Color = color.RGBA{11, 156, 49, menu.alphaTheme}
-	} else if info.PeersConnected > 1 {
-		menu.peerConn.Text = (strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
-		menu.peerConn.Color = color.RGBA{11, 156, 49, menu.alphaTheme}
+	if info.PeersConnected <= 1 {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
 	} else {
-		menu.peerConn.Text = ("No Peer Connected")
-		menu.peerConn.Color = color.RGBA{255, 0, 0, menu.alphaTheme}
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
 	}
-	canvas.Refresh(menu.peerConn)
 
-	menu.blkHeight.Text = (strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
-	menu.blkHeight.Color = color.RGBA{11, 156, 49, menu.alphaTheme}
-	canvas.Refresh(menu.blkHeight)
+	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
 }
 
 func pageNotImplemented() fyne.CanvasObject {
@@ -53,27 +43,26 @@ func pageNotImplemented() fyne.CanvasObject {
 	return label
 }
 
-func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, app fyne.App, window fyne.Window) fyne.CanvasObject {
-	if app.Settings().Theme() == theme.LightTheme() {
+func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, fyneApp fyne.App, window fyne.Window) fyne.CanvasObject {
+	if fyneApp.Settings().Theme() == theme.LightTheme() {
 		menu.alphaTheme = 255
 	} else {
-		menu.alphaTheme = 200
+		menu.alphaTheme = 0
 	}
-	menu.peerConn = canvas.NewText("", color.RGBA{11, 156, 49, menu.alphaTheme})
-	menu.peerConn.TextStyle = fyne.TextStyle{Bold: true}
-	menu.blkHeight = canvas.NewText("", color.RGBA{11, 156, 49, menu.alphaTheme})
-	menu.blkHeight.TextStyle = fyne.TextStyle{Bold: true}
+
+	menu.peerConn = widget.NewLabel("")
+	menu.blkHeight = widget.NewLabel("")
 
 	menu.tabs = widget.NewTabContainer(
 		widget.NewTabItem("Overview", overviewPage(wallet)),
 		widget.NewTabItem("History", pageNotImplemented()),
-		widget.NewTabItem("Send", sendPage(wallet, window)), //send(window)),
+		widget.NewTabItem("Send", pageNotImplemented()),
 		widget.NewTabItem("Receive", receivePage(wallet, window)),
 		widget.NewTabItem("Staking", pageNotImplemented()),
 		widget.NewTabItem("Accounts", accountPage(wallet, appSettings, window)),
 		widget.NewTabItem("Security", pageNotImplemented()),
-		widget.NewTabItem("Settings", settingsPage(app)),
-		widget.NewTabItem("Exit", exit(ctx, app, window)))
+		widget.NewTabItem("Settings", settingsPage(fyneApp)),
+		widget.NewTabItem("Exit", exit(ctx, fyneApp, window)))
 	menu.tabs.SetTabLocation(widget.TabLocationLeading)
 
 	//this would update all labels for all pages every seconds, all objects to be updated should be placed here
@@ -81,9 +70,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		for {
 			//update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
-				overviewUpdates(wallet)
-			} else if menu.tabs.CurrentTabIndex() == 2 {
-				sendPageUpdates(wallet)
+				overviewPageUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 3 {
 				receivePageUpdates(wallet)
 			}

@@ -27,13 +27,17 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings,
 	successLabel := canvas.NewText("", color.RGBA{11, 156, 49, menu.alphaTheme})
 
 	account.errorLabel = canvas.NewText("", color.RGBA{})
+	//error Text should be in red
 	account.errorLabel = canvas.NewText("", color.RGBA{255, 0, 0, menu.alphaTheme})
 	account.errorLabel.Alignment = fyne.TextAlignCenter
 	account.errorLabel.TextStyle = fyne.TextStyle{Bold: true}
+	canvas.Refresh(account.errorLabel)
 	account.errorLabel.Hide()
+
 	accountNames, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		//TODO: treat error here
+		//TODO: treat error here using error label, also note that we are passing accountNames to receiveAccountDetails
+
 	}
 
 	listAccounts := receiveAccountDetails(accountNames, appSettings)
@@ -43,9 +47,7 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings,
 		popup.Show()
 	})
 	addAccount := widget.NewToolbar(addAccountIcon)
-
 	container := widget.NewScrollContainer(listAccounts)
-	fmt.Println("Container", container.MinSize())
 
 	output := widget.NewVBox(
 		widget.NewHBox(label, addAccount),
@@ -58,13 +60,15 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings,
 
 //accountProperties creates a popUp that asks for account name and password so as to create the new account
 func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Settings, listAccounts *widget.Box, successLabel *canvas.Text, window fyne.Window) fyne.CanvasObject {
-	//popUp houses all widgets, to display account creation
+	//popUp houses all widgets, to display on account creation
 	var popUp *widget.PopUp
 	var createAccountButton *widget.Button
 
 	label := widget.NewLabelWithStyle("Create new account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	info := canvas.NewText("Accounts CANNOT be deleted once created", color.RGBA{255, 0, 0, menu.alphaTheme})
+	//error is in red text
 	errorLabel := canvas.NewText("", color.RGBA{255, 0, 0, menu.alphaTheme})
+	info := canvas.NewText("Accounts CANNOT be deleted once created", color.RGBA{255, 0, 0, menu.alphaTheme})
+	info.TextStyle = fyne.TextStyle{Bold: true}
 
 	name := widget.NewEntry()
 	password := widget.NewPasswordEntry()
@@ -72,6 +76,7 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Setting
 	password.SetPlaceHolder("Password")
 
 	password.OnChanged = func(s string) {
+		//disable button till there's a name and password
 		if name.Text != "" && password.Text != "" {
 			if createAccountButton.Disabled() {
 				createAccountButton.Enable()
@@ -89,13 +94,12 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Setting
 			errorLabel.Text = "could not create new account " + err.Error()
 			canvas.Refresh(errorLabel)
 		} else {
-			//if there were recent
+			//this displays the account success text, TODO: we need a way to disable the text, maybe a timer
 			successLabel.Text = "Account created"
 			canvas.Refresh(successLabel)
 
 			accountNames, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 			listAccounts = receiveAccountDetails(accountNames, appSettings)
-			widget.Refresh(listAccounts)
 			popUp.Hide()
 		}
 	})
@@ -119,50 +123,7 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Setting
 	return popUp
 }
 
-// func receiveAccountDetails(accounts []*walletcore.Account, appSettings config.Settings) *widget.Box {
-// 	overallContainer := widget.NewVBox()
-// 	var walletInfoContainer []fyne.CanvasObject
-
-// 	propertiesForm := widget.NewForm()
-// 	walletSettingsForm := widget.NewForm()
-// 	propertiesForm.Append("Account Number", widget.NewLabelWithStyle(strconv.Itoa(int(account.Number)), fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}))
-// 	propertiesForm.Append("HD Path", widget.NewLabelWithStyle(strconv.Itoa(int(account.Number)), fyne.TextAlignLeading, fyne.TextStyle{Monospace: true}))
-// 	walletSettingsForm.Append()
-
-// 	//initially hide form
-
-// 	var button *widget.Button
-// 	var buttons []fyne.CanvasObject
-
-// 	for i, account := range accounts {
-// 		container := widget.NewVBox()
-
-// 		container.Append(widget.NewLabelWithStyle("Properties", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}))
-// 		container.Append(propertiesForm)
-// 		container.Append(widgets.NewVSpacer(10))
-// 		container.Append(widget.NewLabelWithStyle("Wallet Settings", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}))
-// 		container.Append(walletSettingsForm)
-// 		container.Hide()
-
-// 		append(buttons, widget.NewButton(account.Name, func() {
-// 			//TODO: remove this when issue #377 is merged to masters
-// 			if (*walletInfoContainer)[i].Hidden {
-// 				overallContainer.Children = []fyne.CanvasObject{buttons[i], walletInfoContainer}
-// 				(*walletInfoContainer)[i].Show()
-// 			} else {
-// 				overallContainer.Children = []fyne.CanvasObject{button}
-// 				walletInfoContainer.Hide()
-// 			}
-// 			widget.Refresh(overallContainer)
-// 		}))
-// 	}
-
-// 	overallContainer.Append(button)
-// 	return overallContainer
-// }
-
 func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.Settings) *widget.Box {
-	fmt.Println(appSettings)
 	var defaultAccount []*widget.Check
 	defaultAccount = make([]*widget.Check, len(accounts))
 	container := widget.NewVBox()
@@ -188,9 +149,11 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 		}
 
 		(defaultAccount)[i] = widget.NewCheck("Default Account", func(s bool) {
-			//remove all accounts that are defaults
-			//check if account is hidden, if hidden remove from being hidden and disable hidden check
+			//Required follow android account page rules
+			//when a new default account is checked remove all other accounts that are defaults
+			//check if account is hidden, if hidden, remove from being hidden and disable hidden checkbox
 			if hideAccount.Checked && s == true {
+				//this removes the account from hidden
 				hideAccount.SetChecked(false)
 				hideAccount.Disable()
 				var hiddenAccountNo []uint32
@@ -206,6 +169,7 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 					hideAccount.Enable()
 				}
 			}
+			//TODO: remove other default accounts
 
 			appSettings.DefaultAccount = uint32(i)
 		})
@@ -225,11 +189,9 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 		button := widget.NewButton(account.Name+": "+account.Balance.Total.String()+" (Spendable: "+account.Balance.Spendable.String()+")", func() {
 			if propertiesContainer.Hidden {
 				propertiesContainer.Show()
-				//container.Children = []fyne.CanvasObject{fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(1000, 30)), button), propertiesContainer}
 
 			} else {
 				propertiesContainer.Hide()
-				//container.Children = []fyne.CanvasObject{fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(1000, 30)), button)}
 			}
 			widget.Refresh(container)
 		})
