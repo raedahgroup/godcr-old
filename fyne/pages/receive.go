@@ -20,7 +20,7 @@ type receivePageData struct {
 
 var receive receivePageData
 
-//todo: remove this when account page is implemented
+// todo: remove this when account page is implemented
 func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 
@@ -81,11 +81,11 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	})
 	button.Disable()
 
-	//get account and generate address on start
+	// get account and generate address on start
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		errorLabel = widget.NewLabelWithStyle("Could not retrieve account information"+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-		//todo: log to file
+		// todo: log to file
 		fmt.Println(err.Error())
 		errorLabel.Show()
 	}

@@ -17,7 +17,7 @@ func settingsPage(App fyne.App) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), settings)
 }
 
-//todo: after changing theme, make it default
+// todo: after changing theme, make it default
 func changeTheme(change fyne.App) fyne.CanvasObject {
 	fyneTheme := change.Settings().Theme()
 
