@@ -20,6 +20,7 @@ type receivePageData struct {
 
 var receive receivePageData
 
+//todo: remove this when account page is implemented
 func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 
@@ -30,7 +31,6 @@ func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	receive.accountSelect.Options = options
 }
 
-// todo: should we make concurrent checks if users add a new account?
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
 	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())

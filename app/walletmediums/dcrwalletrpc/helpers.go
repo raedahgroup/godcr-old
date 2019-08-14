@@ -2,10 +2,12 @@ package dcrwalletrpc
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrwallet/rpc/walletrpc"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
@@ -102,4 +104,50 @@ func (c *WalletRPCClient) decodeTransactionWithTxSummary(ctx context.Context, tx
 	}
 
 	return txhelper.DecodeTransaction(walletTx, c.activeNet.Params)
+}
+
+func (c *WalletRPCClient) updateTicketPurchaseRequestWithVSPInfo(request *dcrlibwallet.PurchaseTicketsRequest) error {
+	// generate an address from the connected wallet
+	address, err := c.ReceiveAddress(0)
+	if err != nil {
+		return fmt.Errorf("get wallet pubkeyaddr error: %s", err.Error())
+	}
+
+	// get the pubkeyaddr for the generated address
+	req := &walletrpc.ValidateAddressRequest{
+		Address: address,
+	}
+	addressValidationResult, err := c.walletService.ValidateAddress(context.Background(), req)
+	if err != nil {
+		return fmt.Errorf("get wallet pubkeyaddr error: %s", err.Error())
+	}
+	pubKeyAddr := addressValidationResult.PubKeyAddr
+
+	// invoke vsp api
+	ticketPurchaseInfo, err := dcrlibwallet.CallVSPTicketInfoAPI(request.VSPHost, pubKeyAddr)
+	if err != nil {
+		return fmt.Errorf("vsp connection error: %s", err.Error())
+	}
+
+	// decode the redeem script gotten from vsp
+	rs, err := hex.DecodeString(ticketPurchaseInfo.Script)
+	if err != nil {
+		return fmt.Errorf("vsp data corruption: %s", err.Error())
+	}
+
+	// import the decoded script into the connected wallet
+	_, err = c.walletService.ImportScript(context.Background(), &walletrpc.ImportScriptRequest{
+		Script:            rs,
+		Passphrase:        request.Passphrase,
+		RequireRedeemable: true,
+		Rescan:            false,
+	})
+	if err != nil {
+		return fmt.Errorf("error importing vsp redeem script: %s", err.Error())
+	}
+
+	request.TicketAddress = ticketPurchaseInfo.TicketAddress
+	request.PoolAddress = ticketPurchaseInfo.PoolAddress
+	request.PoolFees = ticketPurchaseInfo.PoolFees
+	return nil
 }

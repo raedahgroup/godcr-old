@@ -17,7 +17,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-//this contains widgets that needs to be updated realtime
+// overviewPageData contains widgets that needs to be updated realtime
 type overviewPageData struct {
 	balance         *widget.Label
 	noActivityLabel *widget.Label
