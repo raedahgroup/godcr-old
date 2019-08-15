@@ -69,13 +69,13 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
 	}
 	overview.icon.FillMode = canvas.ImageFillOriginal
-	iconFix := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
+	iconEnlarge := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
 
 	overview.goDcrLabel.TextSize = 20
 	overview.goDcrLabel.TextStyle = fyne.TextStyle{Bold: true}
 	canvas.Refresh(overview.goDcrLabel)
 
-	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconFix, overview.goDcrLabel, nil, nil), iconFix, overview.goDcrLabel)
+	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconEnlarge, overview.goDcrLabel, nil, nil), iconEnlarge, overview.goDcrLabel)
 	overview.goDcrLabel.Move(fyne.NewPos(15, 40))
 
 	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})

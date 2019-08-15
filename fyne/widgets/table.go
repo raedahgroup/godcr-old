@@ -20,44 +20,6 @@ func (table *TableStruct) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.Refresh()
 }
 
-func (table *TableStruct) Append(data ...*widget.Box) {
-	table.tableData = append(table.tableData, data...)
-	table.Refresh()
-}
-
-// Prepend is used to add to a stack
-func (table *TableStruct) Prepend(data ...*widget.Box) {
-	table.tableData = append(data, table.tableData[1:]...)
-	table.tableData = append([]*widget.Box{table.heading}, table.tableData...)
-	table.Refresh()
-}
-
-// Delete method is used to delete object from stack. if tx notifier is created this remove the table from the stack thereby allowing call for for now we should just track transactions by comparing old with new
-// Note: while using delete, consider heading
-func (table *TableStruct) Delete(tableNo int) {
-	if len(table.tableData) < tableNo || tableNo >= len(table.tableData) {
-		return
-	}
-
-	// cannot delete heading
-	if tableNo == 0 {
-		return
-	}
-
-	table.tableData = append(table.tableData[:tableNo], table.tableData[tableNo+1:]...)
-	table.Refresh()
-}
-
-// Pop remove an object from the stack, Note it cant remove header
-func (table *TableStruct) Pop() {
-	// not allowed to remove heading
-	if len(table.tableData) <= 1 {
-		return
-	}
-	table.tableData = table.tableData[:len(table.tableData)-1]
-	table.Refresh()
-}
-
 func (table *TableStruct) Refresh() {
 	var container = widget.NewHBox()
 
