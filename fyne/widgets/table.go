@@ -1,6 +1,8 @@
 package widgets
 
 import (
+	"fmt"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
@@ -14,23 +16,59 @@ type TableStruct struct {
 
 func (table *TableStruct) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.heading = heading
-	table.Container = widget.NewScrollContainer(nil)
+	table.Result = widget.NewHBox()
+	table.Container = widget.NewScrollContainer(table.Result)
 	table.tableData = []*widget.Box{heading}
 	table.tableData = append(table.tableData, data...)
-	table.Result = widget.NewHBox()
 	table.Refresh()
 }
 
 func (table *TableStruct) Append(data ...*widget.Box) {
-	table.tableData = append(table.tableData, data...)
-	table.Refresh()
+	if len(table.tableData) == 0 {
+		return
+	}
+	//fmt.Println(table.Result.Children[0])
+	_, ok := interface{}(table.Result.Children[0]).(*widget.Box)
+	fmt.Println("IS this correct", ok)
+
+	//for i := range data {
+	//data = append(, fyne.CanvasObject(data[i].Children))
+	//}
+	//var newData TableStruct
+	//newData.NewTable(table.heading, data...)
+	//newData.Result.Children.(fyne.CanvasObject) = table.Result.Children
+	//table.Result.Children = append(table.Result.Children, newData.Result.Children...)
+	//table.Result.Children = append(table.Result.Children, newData.Result.Children[1:]...) //Append(newData.Container.Content)
+	//widget.Refresh(table.Result)
+	//canvas.Refresh(table.Result)
+	//widget.Refresh(table.Container)
+	//widget.Refresh(table.Result)
 }
 
 //Prepend is used to add to a stack
 func (table *TableStruct) Prepend(data ...*widget.Box) {
-	table.tableData = append(data, table.tableData[1:]...)
-	table.tableData = append([]*widget.Box{table.heading}, table.tableData...)
-	table.Refresh()
+	// this makes sure an heading is placed
+	if len(table.Result.Children) == 0 {
+		return
+	}
+	newData := &TableStruct{
+		tableData: data,
+		heading:   table.heading,
+	}
+	newData.Refresh()
+
+	newData.Result.Children = append([]fyne.CanvasObject{table.Result.Children[0]}, newData.Result.Children...)
+	newData.Result.Children = append(newData.Result.Children, table.Result.Children[0:]...)
+
+	// table.Result.Children = []fyne.CanvasObject{table.Result.Children[0]}
+	// table.Result.Children = append(table.Result.Children, newData.Result)
+
+	// newData.tableData = append(data, newData.tableData[1:]...)
+	// newData.tableData = append([]*widget.Box{table.heading}, table.tableData...)
+	// newData.Refresh()
+
+	table.Result.Children = newData.Result.Children
+	widget.Refresh(table.Result)
 }
 
 //Delete method is used to delete object from stack. if tx notifier is created this remove the table from the stack thereby allowing call for for now we should just track transactions by comparing old with new
@@ -73,8 +111,5 @@ func (table *TableStruct) Refresh() {
 	}
 
 	table.Result.Children = container.Children
-	table.Container.Content = widget.NewScrollContainer(table.Result).Content
-
-	table.Container.Resize(fyne.NewSize(200, 200))
 	widget.Refresh(table.Result)
 }

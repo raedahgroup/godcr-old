@@ -1,7 +1,9 @@
 package pages
 
 import (
+	"fmt"
 	"strconv"
+	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -22,10 +24,10 @@ type overviewPageData struct {
 var overview overviewPageData
 
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+	return
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
-
-	fetchOverviewTx(&txTable, 0, 5, wallet)
+	fetchTxTable(&txTable, 0, 5, wallet)
 	overview.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(overview.txTable.Result)
 }
@@ -51,7 +53,35 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
-	fetchOverviewTx(&overview.txTable, 0, 5, wallet)
+	fetchTxTable(&overview.txTable, 0, 5, wallet)
+
+	time.AfterFunc(time.Second*5, func() {
+		fmt.Println("Up")
+		heading := widget.NewHBox(
+			widget.NewLabelWithStyle("Michael (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("Uti", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("Test1", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("Google", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("Happy", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("jay", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle("Gifted", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+
+		overview.txTable.Append(heading)
+		//i cant use this method, since we are adding to verticals
+		//var table widgets.TableStruct
+		//table.NewTable(heading)
+		//overview.txTable.Result.Append(table.Result)
+
+		//data := append(overview.txTable.Result.Children, table.Result.Children...)
+		//overview.txTable.Result.Append(data)
+		//widget.Refresh(overview.txTable.Result)
+		//txTable.NewTable()
+		//overview.txTable.Append(heading)
+		//widget.Refresh(overview.txTable.Result)
+		fmt.Println("Done")
+		//time.Sleep(10)
+		//overview.txTable.Prepend(heading)
+	})
 
 	output := widget.NewVBox(
 		label,
@@ -76,11 +106,10 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 	return walletcore.WalletBalance(accounts)
 }
 
-func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
+func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
 	tx, _ := wallet.TransactionHistory(offset, counter, nil)
-	if len(tx) == 0 {
+	if len(tx) > 0 {
 		overview.noActivityLabel.Hide()
-		return
 	}
 
 	heading := widget.NewHBox(
