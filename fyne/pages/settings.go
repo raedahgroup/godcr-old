@@ -29,7 +29,7 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 				log.Fatalln("exit png file missing", err)
 			}
 			overview.goDcrLabel.Color = color.RGBA{0, 0, 0, 255}
-			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
 			overview.icon.Resource = iconResource.Resource
 			canvas.Refresh(overview.icon)
 
@@ -41,7 +41,7 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 			}
 
 			overview.goDcrLabel.Color = color.RGBA{255, 255, 255, 0}
-			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)) //NewIcon(fyne.NewStaticResource("deced", decredLogo))
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
 			overview.icon.Resource = iconResource.Resource
 			canvas.Refresh(overview.icon)
 			canvas.Refresh(overview.goDcrLabel)

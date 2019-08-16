@@ -111,7 +111,11 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
 	txs, _ := wallet.TransactionHistory(offset, counter, nil)
 	if len(txs) > 0 && overview.noActivityLabel.Hidden == false {
-		overview.noActivityLabel.Hide()
+		if overview.noActivityLabel.Text != "" {
+			overview.noActivityLabel.Text = ""
+			overview.noActivityLabel.Hide()
+			widget.Refresh(overview.noActivityLabel)
+		}
 	}
 
 	heading := widget.NewHBox(
