@@ -83,5 +83,4 @@ func fetchHistoryTx(txTable *widgets.TableStruct, wallet godcrApp.WalletMiddlewa
 
 	fmt.Println(len(hBox))
 	txTable.NewTable(heading, hBox...)
-	txTable.Refresh()
 }

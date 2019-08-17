@@ -1,9 +1,7 @@
 package pages
 
 import (
-	"fmt"
 	"strconv"
-	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -24,7 +22,6 @@ type overviewPageData struct {
 var overview overviewPageData
 
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
-	return
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
 	fetchTxTable(&txTable, 0, 5, wallet)
@@ -54,35 +51,6 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
 	fetchTxTable(&overview.txTable, 0, 5, wallet)
-
-	time.AfterFunc(time.Second*5, func() {
-		fmt.Println("Up")
-		heading := widget.NewHBox(
-			widget.NewLabelWithStyle("Michael (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("Uti", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("Test1", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("Google", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("Happy", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("jay", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-			widget.NewLabelWithStyle("Gifted", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
-
-		overview.txTable.Append(heading)
-		//i cant use this method, since we are adding to verticals
-		//var table widgets.TableStruct
-		//table.NewTable(heading)
-		//overview.txTable.Result.Append(table.Result)
-
-		//data := append(overview.txTable.Result.Children, table.Result.Children...)
-		//overview.txTable.Result.Append(data)
-		//widget.Refresh(overview.txTable.Result)
-		//txTable.NewTable()
-		//overview.txTable.Append(heading)
-		//widget.Refresh(overview.txTable.Result)
-		fmt.Println("Done")
-		//time.Sleep(10)
-		//overview.txTable.Prepend(heading)
-	})
-
 	output := widget.NewVBox(
 		label,
 		widgets.NewVSpacer(10),
@@ -92,7 +60,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		activityLabel,
 		widgets.NewVSpacer(10),
 		overview.noActivityLabel,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Container.MinSize().Width, overview.txTable.Container.MinSize().Height+200)), overview.txTable.Container))
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Result.MinSize().Width, overview.txTable.Result.MinSize().Height)), overview.txTable.Container))
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
@@ -135,5 +103,4 @@ func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet go
 		))
 	}
 	txTable.NewTable(heading, hBox...)
-	txTable.Refresh()
 }
