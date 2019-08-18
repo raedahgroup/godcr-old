@@ -15,7 +15,6 @@ import (
 )
 
 type historyPageData struct {
-	txCount     int
 	loadedCount int
 	txFilters   *widget.Select
 	//txType  string
@@ -26,7 +25,7 @@ var history historyPageData
 
 func historyUpdates(wallet godcrApp.WalletMiddleware) {
 	filters := walletcore.TransactionFilters
-	transactionCountByFilter := make(map[string]int, 0)
+	txCountByFilter := make(map[string]int, 0)
 
 	for _, filter := range filters {
 		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
@@ -37,10 +36,10 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 		if txCount == 0 {
 			continue
 		}
-		transactionCountByFilter[filter] = txCount
+		txCountByFilter[filter] = txCount
 	}
 	var options []string
-	for value, name := range transactionCountByFilter {
+	for value, name := range txCountByFilter {
 		options = append(options, value+"("+strconv.Itoa(name)+")")
 	}
 
@@ -48,18 +47,10 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 }
 
 func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
-	history.txFilters = widget.NewSelect([]string{}, func(selected string) {
-		fmt.Println("Hello")
+	history.txFilters = widget.NewSelect(nil, func(selected string) {
+		fmt.Println(selected)
 	})
 	historyUpdates(wallet)
-
-	return widget.NewHBox(layout.NewSpacer(), history.txFilters)
-}
-
-func fetchHistoryTx(txTable *widgets.TableStruct, wallet godcrApp.WalletMiddleware) {
-	count, _ := wallet.TransactionCount(nil)
-	history.txCount = count
-	tx, _ := wallet.TransactionHistory(0, int32(count), nil)
 
 	heading := widget.NewHBox(
 		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -69,21 +60,29 @@ func fetchHistoryTx(txTable *widgets.TableStruct, wallet godcrApp.WalletMiddlewa
 		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+	history.txTable.NewTable(heading)
 
+	output := widget.NewVBox(widget.NewHBox(layout.NewSpacer(), history.txFilters),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(history.txTable.Result.MinSize().Width, history.txTable.Result.MinSize().Height)), history.txTable.Container))
+
+	return widget.NewHBox(widgets.NewHSpacer(10), output)
+}
+
+func fetchHistoryTx(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware) {
+	txs, _ := wallet.TransactionHistory(offset, count, walletcore.BuildTransactionFilter(history.txFilters.Selected))
 	var hBox []*widget.Box
-	for i := 0; i < count; i++ {
-		trimmedHash := tx[i].Hash[:len(tx[i].Hash)/2] + "..."
+	for _, tx := range txs {
+		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
 		hBox = append(hBox, widget.NewHBox(
-			widget.NewLabelWithStyle(tx[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Status, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Status, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewButton(trimmedHash, func() { fmt.Println("Hello") }),
 		))
 	}
 
-	fmt.Println(len(hBox))
-	txTable.NewTable(heading, hBox...)
+	history.txTable.Append(hBox...)
 }

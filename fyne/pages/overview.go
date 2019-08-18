@@ -75,8 +75,8 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 }
 
 func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
-	tx, _ := wallet.TransactionHistory(offset, counter, nil)
-	if len(tx) > 0 {
+	txs, _ := wallet.TransactionHistory(offset, counter, nil)
+	if len(txs) > 0 {
 		overview.noActivityLabel.Hide()
 	}
 
@@ -90,15 +90,15 @@ func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet go
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 
 	var hBox []*widget.Box
-	for i := 0; int32(i) < counter; i++ {
-		trimmedHash := tx[i].Hash[:len(tx[i].Hash)/2] + "..."
+	for _, tx := range txs {
+		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
 		hBox = append(hBox, widget.NewHBox(
-			widget.NewLabelWithStyle(tx[i].LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx[i].Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx[i].Status, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(tx.Status, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{}),
 		))
 	}

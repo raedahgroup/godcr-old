@@ -30,7 +30,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, app fyne.Ap
 
 	menu.tabs = widget.NewTabContainer(
 		widget.NewTabItem("Overview", overviewPage(wallet)),
-		widget.NewTabItem("History", pageNotImplemented()),
+		widget.NewTabItem("History", historyPage(wallet)),
 		widget.NewTabItem("Send", pageNotImplemented()),
 		widget.NewTabItem("Receive", receivePage(wallet, window)),
 		widget.NewTabItem("Staking", pageNotImplemented()),
