@@ -2,6 +2,9 @@ package pages
 
 import (
 	"fmt"
+	"strconv"
+
+	"github.com/raedahgroup/godcr/app/walletcore"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -12,45 +15,45 @@ import (
 )
 
 type historyPageData struct {
-	txCount int
-	txType  string
+	txCount     int
+	loadedCount int
+	txFilters   *widget.Select
+	//txType  string
 	txTable widgets.TableStruct
 }
 
 var history historyPageData
 
 func historyUpdates(wallet godcrApp.WalletMiddleware) {
-	txCount, _ := wallet.TransactionCount(nil)
+	filters := walletcore.TransactionFilters
+	transactionCountByFilter := make(map[string]int, 0)
 
-	if txCount == history.txCount {
-		return
+	for _, filter := range filters {
+		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
+		if txCountErr != nil {
+			//treat
+			return
+		}
+		if txCount == 0 {
+			continue
+		}
+		transactionCountByFilter[filter] = txCount
 	}
-	val := txCount - history.txCount
-	history.txCount = txCount
-
-	//TODO: need to treat types
-	txs, _ := wallet.TransactionHistory(0, int32(val), nil)
-
-	var hBox []*widget.Box
-	for _, tx := range txs {
-		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
-		hBox = append(hBox, widget.NewHBox(
-			widget.NewLabelWithStyle(tx.LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx.Direction.String(), fyne.TextAlignLeading, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx.Status, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewButton(trimmedHash, func() { fmt.Println("Hello") }),
-		))
+	var options []string
+	for value, name := range transactionCountByFilter {
+		options = append(options, value+"("+strconv.Itoa(name)+")")
 	}
-	history.txTable.Prepend(hBox...)
+
+	history.txFilters.Options = options
 }
 
 func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
-	fetchHistoryTx(&history.txTable, wallet)
-	//TODO: add dropdown to select history types
-	return widget.NewHBox(widgets.NewHSpacer(10), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(history.txTable.Container.MinSize().Width, history.txTable.Container.MinSize().Height+600)), history.txTable.Container))
+	history.txFilters = widget.NewSelect([]string{}, func(selected string) {
+		fmt.Println("Hello")
+	})
+	historyUpdates(wallet)
+
+	return widget.NewHBox(layout.NewSpacer(), history.txFilters)
 }
 
 func fetchHistoryTx(txTable *widgets.TableStruct, wallet godcrApp.WalletMiddleware) {
