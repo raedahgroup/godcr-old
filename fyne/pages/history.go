@@ -20,12 +20,9 @@ type historyPageData struct {
 	currentTxCount int
 	txFilters      *widget.Select
 	options        map[string]int
-	//txType  string
-	txTable widgets.TableStruct
+	txTable        widgets.TableStruct
 }
 
-var offsetYMin, offsetYMax = 180, 10
-var sizeMin, sizeMax = 433, 610
 var selected bool
 var history historyPageData
 
@@ -34,11 +31,7 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 	txCountByFilter := make(map[string]int)
 
 	for _, filter := range filters {
-		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
-		if txCountErr != nil {
-			//treat
-			return
-		}
+		txCount, _ := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		txCountByFilter[filter] = txCount
 	}
 	var options []string
@@ -56,8 +49,12 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 		history.txFilters.SetSelected(options[0])
 	}
 
-	if history.txTable.Container.Offset.Y >= offsetYMin && history.txTable.Container.Size().Height >= sizeMin || history.txTable.Container.Offset.Y >= offsetYMax && history.txTable.Container.Size().Height >= sizeMax {
+	size := history.txTable.Container.Content.Size().Height - history.txTable.Container.Size().Height
+	tt := float64(history.txTable.Container.Offset.Y) / float64(size)
 
+	// append to table when scrollbar is at 80% of the scroller.
+	if tt > 0.8 {
+		fmt.Println("Found")
 	} else if history.txTable.Container.Offset.Y == 0 {
 		// if the scroll bar is at the begining, then fetch 1st 50 tx
 		if count > history.currentTxCount {
