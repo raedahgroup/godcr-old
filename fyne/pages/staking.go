@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
 	godcrApp "github.com/raedahgroup/godcr/app"
@@ -115,7 +116,8 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		ticketsSectionTitleLabel,
 		widgets.NewVSpacer(10),
 		purchaseForm,
-		submitFormButton,
+		widgets.NewVSpacer(10),
+		widget.NewHBox(layout.NewSpacer(), submitFormButton, layout.NewSpacer()),
 		ticketsLabel,
 	)
 
