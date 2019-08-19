@@ -77,6 +77,24 @@ func (table *TableStruct) Prepend(data ...*widget.Box) {
 	}
 }
 
+// DeleteContent deletes all table data aside heading.
+func (table *TableStruct) DeleteContent() {
+	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
+		return
+	}
+
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		// T.Children = []fyne.CanvasObject{a.Children[0], T}
+		// T.Children = append(T.Children, a.Children[1:]...)
+		a.Children = []fyne.CanvasObject{a.Children[0]}
+		widget.Refresh(a)
+	}
+}
+
 //Delete method is used to delete object from stack. if tx notifier is created this remove the table from the stack thereby allowing call for for now we should just track transactions by comparing old with new
 //Note: while using delete, consider heading WIP, not needed in fyne.
 func (table *TableStruct) Delete(tableNo int) {

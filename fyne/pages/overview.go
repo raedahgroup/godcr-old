@@ -1,7 +1,9 @@
 package pages
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -24,7 +26,7 @@ var overview overviewPageData
 func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
-	fetchTxTable(&txTable, 0, 5, wallet)
+	fetchTxTable(false, &txTable, 0, 5, wallet)
 	overview.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(overview.txTable.Result)
 }
@@ -50,7 +52,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
-	fetchTxTable(&overview.txTable, 0, 5, wallet)
+	fetchTxTable(false, &overview.txTable, 0, 5, wallet)
 	output := widget.NewVBox(
 		label,
 		widgets.NewVSpacer(10),
@@ -74,8 +76,14 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 	return walletcore.WalletBalance(accounts)
 }
 
-func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
-	txs, _ := wallet.TransactionHistory(offset, counter, nil)
+func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
+	var txs []*walletcore.Transaction
+	if !isHistoryPage {
+		txs, _ = wallet.TransactionHistory(offset, counter, nil)
+	} else {
+		splittedWord := strings.Split(history.txFilters.Selected, " ")
+		txs, _ = wallet.TransactionHistory(offset, counter, walletcore.BuildTransactionFilter(splittedWord[0]))
+	}
 	if len(txs) > 0 {
 		overview.noActivityLabel.Hide()
 	}
@@ -92,6 +100,15 @@ func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet go
 	var hBox []*widget.Box
 	for _, tx := range txs {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
+		var hash fyne.CanvasObject
+		if isHistoryPage {
+			hash = widget.NewButton(trimmedHash, func() {
+				fmt.Println("Hello")
+			})
+		} else {
+			hash = widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{})
+		}
+
 		hBox = append(hBox, widget.NewHBox(
 			widget.NewLabelWithStyle(tx.LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -99,7 +116,7 @@ func fetchTxTable(txTable *widgets.TableStruct, offset, counter int32, wallet go
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(tx.Status, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{}),
+			hash,
 		))
 	}
 	txTable.NewTable(heading, hBox...)
