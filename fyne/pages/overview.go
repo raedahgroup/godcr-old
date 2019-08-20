@@ -84,6 +84,8 @@ func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, coun
 		splittedWord := strings.Split(history.txFilters.Selected, " ")
 		txs, _ = wallet.TransactionHistory(offset, counter, walletcore.BuildTransactionFilter(splittedWord[0]))
 	}
+	history.currentTxCount = int32(len(txs))
+	fmt.Println("len of txs", len(txs))
 	if len(txs) > 0 {
 		overview.noActivityLabel.Hide()
 	}

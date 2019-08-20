@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -16,8 +17,9 @@ import (
 )
 
 type historyPageData struct {
-	totalTx        int
-	currentTxCount int
+	totalTxOnTable int32
+	offset         int32
+	currentTxCount int32
 	txFilters      *widget.Select
 	options        map[string]int
 	txTable        widgets.TableStruct
@@ -27,6 +29,7 @@ var selected bool
 var history historyPageData
 
 func historyUpdates(wallet godcrApp.WalletMiddleware) {
+	fmt.Println("len of table is", history.txTable.NumberOfRows())
 	filters := walletcore.TransactionFilters
 	txCountByFilter := make(map[string]int)
 
@@ -36,6 +39,7 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 	}
 	var options []string
 	count, _ := wallet.TransactionCount(nil)
+	txCountByFilter["All"] = count
 	options = append(options, "All ("+strconv.Itoa(count)+")")
 	options = append(options, "Sent ("+strconv.Itoa(txCountByFilter["Sent"])+")")
 	options = append(options, "Received ("+strconv.Itoa(txCountByFilter["Received"])+")")
@@ -50,17 +54,48 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 	}
 
 	size := history.txTable.Container.Content.Size().Height - history.txTable.Container.Size().Height
-	tt := float64(history.txTable.Container.Offset.Y) / float64(size)
+	scrollPosition := float64(history.txTable.Container.Offset.Y) / float64(size)
 
+	splittedWord := strings.Split(history.txFilters.Selected, " ")
+	var found int32
+	if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
+		found = int32(txCountByFilter[splittedWord[0]]) - history.currentTxCount
+	}
+
+	history.currentTxCount = int32(txCountByFilter[splittedWord[0]])
 	// append to table when scrollbar is at 80% of the scroller.
-	if tt > 0.8 {
-		fmt.Println("Found")
+	if scrollPosition == 1 {
+		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, false)
+		fmt.Println(history.txTable.Container.Offset.Y)
+		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
+			history.totalTxOnTable = history.totalTxOnTable + 20
+		} else {
+			history.totalTxOnTable = int32(txCountByFilter[splittedWord[0]])
+		}
+		if history.txTable.NumberOfRows() >= 90 {
+			history.txTable.Delete(0, 20)
+			history.offset = history.offset + 20
+		}
+		fmt.Println("The len111 of table is", history.txTable.NumberOfRows(), int32(txCountByFilter[splittedWord[0]]), history.currentTxCount, history.totalTxOnTable, history.totalTxOnTable+found)
+
 	} else if history.txTable.Container.Offset.Y == 0 {
 		// if the scroll bar is at the begining, then fetch 1st 50 tx
-		if count > history.currentTxCount {
-			splittedWord := strings.Split(history.txFilters.Selected, " ")
+		if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
 			history.txFilters.SetSelected(history.txFilters.Options[history.options[splittedWord[0]]])
-			history.currentTxCount = count
+		}
+	} else if scrollPosition < 0.2 {
+		if history.offset == 0 {
+			fmt.Println("I am not appending")
+			return
+		}
+		fmt.Println("Appending now", history.offset+found)
+		addToHistoryTable(&history.txTable, history.offset+found-20, history.offset+found, wallet, true)
+		history.offset = history.offset - 20
+
+		rowNo := history.txTable.NumberOfRows()
+		if rowNo >= 90 {
+			history.txTable.Delete(rowNo-20, rowNo)
+			history.totalTxOnTable = int32(rowNo) + history.offset
 		}
 	}
 }
@@ -77,8 +112,21 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		// if a new type is selected, load the first 50tx so as to allow the scroller move to the starting point
 		var txTable widgets.TableStruct
 		fetchTxTable(true, &txTable, 0, 50, wallet)
+		splittedWord := strings.Split(history.txFilters.Selected, " ")
+		currentTxCount, err := wallet.TransactionCount(walletcore.BuildTransactionFilter(splittedWord[0]))
+		log.Println(err)
+		history.currentTxCount = int32(currentTxCount)
+		if currentTxCount >= 50 {
+			history.totalTxOnTable = 50
+		} else {
+			history.totalTxOnTable = int32(currentTxCount)
+		}
+
+		history.offset = 0
 		history.txTable.Result.Children = txTable.Result.Children
 		widget.Refresh(history.txTable.Result)
+		history.txTable.Container.Offset.Y = 0
+		widget.Refresh(history.txTable.Container)
 	})
 
 	heading := widget.NewHBox(
@@ -90,7 +138,6 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	history.txTable.NewTable(heading)
-	history.currentTxCount, _ = wallet.TransactionCount(nil)
 	historyUpdates(wallet)
 
 	output := widget.NewVBox(widget.NewHBox(layout.NewSpacer(), history.txFilters),
@@ -99,8 +146,10 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
 
-func fetchHistoryTx(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware) {
-	txs, _ := wallet.TransactionHistory(offset, count, walletcore.BuildTransactionFilter(history.txFilters.Selected))
+func addToHistoryTable(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware, prepend bool) {
+	splittedWord := strings.Split(history.txFilters.Selected, " ")
+	txs, _ := wallet.TransactionHistory(offset, count, walletcore.BuildTransactionFilter(splittedWord[0]))
+	fmt.Println("Append", len(txs))
 	var hBox []*widget.Box
 	for _, tx := range txs {
 		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
@@ -115,5 +164,10 @@ func fetchHistoryTx(txTable *widgets.TableStruct, offset, count int32, wallet go
 		))
 	}
 
-	history.txTable.Append(hBox...)
+	if prepend {
+		history.txTable.Prepend(hBox...)
+	} else {
+		history.txTable.Append(hBox...)
+	}
+
 }

@@ -1,6 +1,8 @@
 package widgets
 
 import (
+	"fmt"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
@@ -42,7 +44,8 @@ func (table *TableStruct) Append(data ...*widget.Box) {
 		if !ok {
 			return
 		}
-		a.Append(T)
+		a.Children = append(a.Children, T.Children...)
+		widget.Refresh(a)
 	}
 }
 
@@ -88,28 +91,77 @@ func (table *TableStruct) DeleteContent() {
 		if !ok {
 			return
 		}
-		// T.Children = []fyne.CanvasObject{a.Children[0], T}
-		// T.Children = append(T.Children, a.Children[1:]...)
 		a.Children = []fyne.CanvasObject{a.Children[0]}
 		widget.Refresh(a)
 	}
+
+}
+
+func (table *TableStruct) NumberOfRows() (count int) {
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return 0
+		}
+		fmt.Println("Number of row is", len(a.Children))
+		if count < len(a.Children) {
+			count = len(a.Children)
+		}
+
+	}
+	return count - 1
+}
+
+// Delete method deletes contents from the table.
+// if deleting only one content then specify to as 0
+func (table *TableStruct) Delete(from, to int) {
+	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
+		return
+	}
+	if from < 0 || to < 0 {
+		return
+	}
+	if to != 0 {
+		for i := 0; i < len(table.heading.Children); i++ {
+			a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+			if !ok {
+				return
+			}
+			a.Children = append(a.Children[:from+1], a.Children[to:]...)
+			widget.Refresh(a)
+		}
+	} else {
+		for i := 0; i < len(table.heading.Children); i++ {
+			a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+			if !ok {
+				return
+			}
+			a.Children = append(a.Children[:from+1], a.Children[from+1:]...)
+			widget.Refresh(a)
+		}
+	}
+
+	table.Container.Offset.Y = 1110
+	fmt.Println(table.Container.Offset.Y)
+	widget.Refresh(table.Container)
+	fmt.Println("Deleted", table.NumberOfRows())
 }
 
 //Delete method is used to delete object from stack. if tx notifier is created this remove the table from the stack thereby allowing call for for now we should just track transactions by comparing old with new
 //Note: while using delete, consider heading WIP, not needed in fyne.
-func (table *TableStruct) Delete(tableNo int) {
-	if len(table.tableData) < tableNo || tableNo >= len(table.tableData) {
-		return
-	}
+// // func (table *TableStruct) Delete(tableNo int) {
+// // 	if len(table.tableData) < tableNo || tableNo >= len(table.tableData) {
+// // 		return
+// // 	}
 
-	//cannot delete heading
-	if tableNo == 0 {
-		return
-	}
+// // 	//cannot delete heading
+// // 	if tableNo == 0 {
+// // 		return
+// // 	}
 
-	// table.tableData = append(table.tableData[:tableNo], table.tableData[tableNo+1:]...)
-	// table.set()
-}
+// // 	// table.tableData = append(table.tableData[:tableNo], table.tableData[tableNo+1:]...)
+// // 	// table.set()
+// // }
 
 func (table *TableStruct) Pop() {
 	//not allowed to remove heading
