@@ -28,7 +28,7 @@ type historyPageData struct {
 var selected bool
 var history historyPageData
 
-func historyUpdates(wallet godcrApp.WalletMiddleware) {
+func historyPageUpdates(wallet godcrApp.WalletMiddleware) {
 	filters := walletcore.TransactionFilters
 	txCountByFilter := make(map[string]int)
 
@@ -63,7 +63,6 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 		widget.Refresh(history.txFilters)
 	}
 
-	//history.currentTxCount = int32(txCountByFilter[splittedWord[0]])
 	// append to table when scrollbar is at 80% of the scroller.
 	if scrollPosition == 1 {
 		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, false)
@@ -86,7 +85,7 @@ func historyUpdates(wallet godcrApp.WalletMiddleware) {
 		if history.offset == 0 {
 			return
 		}
-		addToHistoryTable(&history.txTable, history.offset+found-20, history.offset+found, wallet, true)
+		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, true)
 		history.offset = history.offset - 20
 
 		rowNo := history.txTable.NumberOfRows()
@@ -135,7 +134,7 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	history.txTable.NewTable(heading)
-	historyUpdates(wallet)
+	historyPageUpdates(wallet)
 
 	output := widget.NewVBox(widget.NewHBox(layout.NewSpacer(), history.txFilters),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(history.txTable.Result.MinSize().Width, (history.txTable.Result.MinSize().Height/3)+10)), history.txTable.Container))

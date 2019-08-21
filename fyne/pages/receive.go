@@ -20,7 +20,8 @@ type receivePageData struct {
 
 var receive receivePageData
 
-func receiveUpdates(wallet godcrApp.WalletMiddleware) {
+// todo: remove this when account page is implemented
+func receivePageUpdates(wallet godcrApp.WalletMiddleware) {
 	accounts, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 
 	var options []string
@@ -28,11 +29,11 @@ func receiveUpdates(wallet godcrApp.WalletMiddleware) {
 		options = append(options, account.Name)
 	}
 	receive.accountSelect.Options = options
+	widget.Refresh(receive.accountSelect)
 }
 
-//todo: should we make concurrent checks if users add a new account?
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
-	//if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
+	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
 	qrImage.SetMinSize(fyne.NewSize(300, 300))
 
@@ -42,8 +43,8 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	var generatedAddress *widget.Label
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	//todo: remove this after the hide bug on fyne is fixed
-	//to test you can fmt.Println(errorLabel.Hidden) before the second hide function
+	// todo: remove this after the hide bug on fyne is fixed
+	// to test you can fmt.Println(errorLabel.Hidden) before the second hide function
 	errorLabel.Hide()
 	errorLabel.Hide()
 
@@ -67,7 +68,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 			errorLabel.Show()
 			return
 		}
-		//if there was a rectified error and user clicks the generate again, this hides the error text
+		// if there was a rectified error and user clicks the generate again, this hides the error text
 		if errorLabel.Hidden == false {
 			errorLabel.Hide()
 		}
@@ -81,11 +82,11 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 	})
 	button.Disable()
 
-	//get account and generate address on start
+	// get account and generate address on start
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
 		errorLabel = widget.NewLabelWithStyle("Could not retrieve account information"+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-		//todo: log to file
+		// todo: log to file
 		fmt.Println(err.Error())
 		errorLabel.Show()
 	}
@@ -116,7 +117,6 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.Canv
 		qrImage.Resource = fyne.NewStaticResource("Address", png)
 		canvas.Refresh(qrImage)
 	}
-
 
 	output := widget.NewVBox(
 		label,

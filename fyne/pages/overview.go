@@ -2,11 +2,16 @@ package pages
 
 import (
 	"fmt"
+	"image/color"
+	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/decred/dcrd/dcrutil"
 	godcrApp "github.com/raedahgroup/godcr/app"
@@ -14,16 +19,18 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-//this contains widgets that needs to be updated realtime
+// overviewPageData contains widgets that needs to be updated realtime
 type overviewPageData struct {
 	balance         *widget.Label
 	noActivityLabel *widget.Label
 	txTable         widgets.TableStruct
+	icon            *canvas.Image
+	goDcrLabel      *canvas.Text
 }
 
 var overview overviewPageData
 
-func overviewUpdates(wallet godcrApp.WalletMiddleware) {
+func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
 	fetchTxTable(false, &txTable, 0, 5, wallet)
@@ -31,7 +38,7 @@ func overviewUpdates(wallet godcrApp.WalletMiddleware) {
 	widget.Refresh(overview.txTable.Result)
 }
 
-//this updates peerconn and blkheight
+// statusUpdates updates peerconn and blkheight
 func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	info, _ := wallet.WalletConnectionInfo()
 
@@ -44,27 +51,52 @@ func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
 }
 
-func overviewPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
-	label := widget.NewLabelWithStyle("Overview", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
+func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.CanvasObject {
+	fyneTheme := fyneApp.Settings().Theme()
+	if fyneTheme.BackgroundColor() == theme.LightTheme().BackgroundColor() {
+		decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
+		if err != nil {
+			log.Fatalln("exit png file missing", err)
+		}
+		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
+		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
+
+	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
+		decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
+		if err != nil {
+			log.Fatalln("exit png file missing", err)
+		}
+		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
+		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
+	}
+	overview.icon.FillMode = canvas.ImageFillOriginal
+	iconEnlarge := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(66, 55)), overview.icon)
+
+	overview.goDcrLabel.TextSize = 20
+	overview.goDcrLabel.TextStyle = fyne.TextStyle{Bold: true}
+	canvas.Refresh(overview.goDcrLabel)
+
+	iconLabel := fyne.NewContainerWithLayout(layout.NewBorderLayout(iconEnlarge, overview.goDcrLabel, nil, nil), iconEnlarge, overview.goDcrLabel)
+	overview.goDcrLabel.Move(fyne.NewPos(15, 40))
+
 	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	overview.balance = widget.NewLabel(fetchBalance(wallet))
-
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
 	fetchTxTable(false, &overview.txTable, 0, 5, wallet)
 	output := widget.NewVBox(
-		label,
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(20),
+		iconLabel,
+		widgets.NewVSpacer(20),
 		balanceLabel,
 		overview.balance,
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(5),
 		activityLabel,
-		widgets.NewVSpacer(10),
 		overview.noActivityLabel,
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Result.MinSize().Width, overview.txTable.Result.MinSize().Height)), overview.txTable.Container))
 
-	return widget.NewHBox(widgets.NewHSpacer(10), output)
+	return widget.NewHBox(widgets.NewHSpacer(20), output)
 }
 
 func fetchBalance(wallet godcrApp.WalletMiddleware) string {

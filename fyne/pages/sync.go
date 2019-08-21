@@ -20,20 +20,14 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 
 	var fullSyncReport string
 
-	reportLabel := widget.NewLabel("")
+	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
+	widget.Refresh(reportLabel)
 	reportLabel.Hide()
-	reportLabel.Alignment = fyne.TextAlignCenter
 	var infoButton *widget.Button
 
 	infoButton = widget.NewButton("Tap to view informations", func() {
-		if infoButton.Text == "Tap to view informations" {
-			reportLabel.Show()
-			infoButton.SetText("Tap to hide informations")
-
-		} else {
-			reportLabel.Hide()
-			infoButton.SetText("Tap to view informations")
-		}
+		reportLabel.Show()
+		infoButton.Hide()
 	})
 
 	var syncDone bool
@@ -57,6 +51,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 			stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
 		}
 
+		widget.Refresh(reportLabel)
 		reportLabel.SetText(strings.TrimSpace(stringReport.String()))
 
 		switch progressReport.CurrentStep {
@@ -90,6 +85,8 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 		}
 
 		fullSyncReport = stringReport.String()
+
+		widget.Refresh(reportLabel)
 		reportLabel.SetText(fullSyncReport)
 	})
 
@@ -98,6 +95,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 		widget.NewLabelWithStyle("Synchronizing....", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true}),
 		widgets.NewVSpacer(10),
 		progressBar,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(infoButton.MinSize()), infoButton),
+		widget.NewHBox(layout.NewSpacer(), infoButton, layout.NewSpacer()),
 		reportLabel)
 }

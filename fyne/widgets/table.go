@@ -1,8 +1,6 @@
 package widgets
 
 import (
-	"fmt"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
@@ -105,7 +103,6 @@ func (table *TableStruct) NumberOfRows() (count int) {
 		if !ok {
 			return 0
 		}
-		fmt.Println("Number of row is", len(a.Children))
 		if count < len(a.Children) {
 			count = len(a.Children)
 		}
@@ -145,4 +142,24 @@ func (table *TableStruct) Delete(from, to int) {
 
 	table.Container.Offset.Y = 1110
 	widget.Refresh(table.Container)
+}
+
+func (table *TableStruct) set() {
+	var container = widget.NewHBox()
+
+	//get horizontals apart from heading
+	for i := 0; i < len(table.heading.Children); i++ {
+		//get vertical
+		var getVerticals = widget.NewVBox()
+		for _, data := range table.tableData {
+			if len(table.heading.Children) > len(data.Children) && i > len(data.Children)-1 {
+				continue
+			}
+			getVerticals.Append(data.Children[i])
+		}
+		container.Append(getVerticals)
+	}
+
+	table.Result.Children = container.Children
+	widget.Refresh(table.Result)
 }

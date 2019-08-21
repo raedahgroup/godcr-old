@@ -10,13 +10,13 @@ import (
 )
 
 //exit functions blocks interactions till user exit goes back to overview if user doesnt
-func exit(ctx context.Context, app fyne.App, window fyne.Window) fyne.CanvasObject {
+func exit(ctx context.Context, fyneApp fyne.App, window fyne.Window) fyne.CanvasObject {
 	var popup *widget.PopUp
 
 	yesButton := widget.NewButtonWithIcon("Yes", theme.ConfirmIcon(), func() {
 		window.Close()
 		<-ctx.Done()
-		app.Quit()
+		fyneApp.Quit()
 		fmt.Println("Exited fyne")
 	})
 	noButton := widget.NewButtonWithIcon("No", theme.CancelIcon(), func() {
