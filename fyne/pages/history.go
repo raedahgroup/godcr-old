@@ -1,8 +1,6 @@
 package pages
 
 import (
-	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -28,7 +26,7 @@ type historyPageData struct {
 var selected bool
 var history historyPageData
 
-func historyPageUpdates(wallet godcrApp.WalletMiddleware) {
+func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	filters := walletcore.TransactionFilters
 	txCountByFilter := make(map[string]int)
 
@@ -65,7 +63,7 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware) {
 
 	// append to table when scrollbar is at 80% of the scroller.
 	if scrollPosition == 1 {
-		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, false)
+		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, window, false)
 		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
 			history.totalTxOnTable = history.totalTxOnTable + 20
 		} else {
@@ -85,7 +83,7 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware) {
 		if history.offset == 0 {
 			return
 		}
-		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, true)
+		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, window, true)
 		history.offset = history.offset - 20
 
 		rowNo := history.txTable.NumberOfRows()
@@ -96,7 +94,7 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware) {
 	}
 }
 
-func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
+func historyPage(wallet godcrApp.WalletMiddleware, window fyne.Window) fyne.CanvasObject {
 	history.options = make(map[string]int)
 	history.options["All"] = 0
 	history.options["Sent"] = 1
@@ -107,10 +105,9 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	history.txFilters = widget.NewSelect(nil, func(selected string) {
 		// if a new type is selected, load the first 50tx so as to allow the scroller move to the starting point
 		var txTable widgets.TableStruct
-		fetchTxTable(true, &txTable, 0, 50, wallet)
+		fetchTxTable(true, &txTable, 0, 50, wallet, window)
 		splittedWord := strings.Split(history.txFilters.Selected, " ")
-		currentTxCount, err := wallet.TransactionCount(walletcore.BuildTransactionFilter(splittedWord[0]))
-		log.Println(err)
+		currentTxCount, _ := wallet.TransactionCount(walletcore.BuildTransactionFilter(splittedWord[0]))
 		history.currentTxCount = int32(currentTxCount)
 		if currentTxCount >= 50 {
 			history.totalTxOnTable = 50
@@ -134,7 +131,7 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	history.txTable.NewTable(heading)
-	historyPageUpdates(wallet)
+	historyPageUpdates(wallet, window)
 
 	output := widget.NewVBox(widget.NewHBox(layout.NewSpacer(), history.txFilters),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(history.txTable.Result.MinSize().Width, (history.txTable.Result.MinSize().Height/3)+10)), history.txTable.Container))
@@ -142,12 +139,12 @@ func historyPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
 }
 
-func addToHistoryTable(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware, prepend bool) {
+func addToHistoryTable(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware, window fyne.Window, prepend bool) {
 	splittedWord := strings.Split(history.txFilters.Selected, " ")
 	txs, _ := wallet.TransactionHistory(offset, count, walletcore.BuildTransactionFilter(splittedWord[0]))
 	var hBox []*widget.Box
 	for _, tx := range txs {
-		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
+		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
 		hBox = append(hBox, widget.NewHBox(
 			widget.NewLabelWithStyle(tx.LongTime, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -155,15 +152,77 @@ func addToHistoryTable(txTable *widgets.TableStruct, offset, count int32, wallet
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(tx.Status, fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewButton(trimmedHash, func() { fmt.Println("Hello") }),
+			widget.NewButton(trimmedHash, func() {
+				getTxDetails(tx.Hash, wallet, window)
+			}),
 		))
 	}
-
 	if prepend {
 		history.txTable.Prepend(hBox...)
 	} else {
 		history.txTable.Append(hBox...)
 	}
 	widget.Refresh(history.txTable.Container)
+}
 
+func getTxDetails(hash string, wallet godcrApp.WalletMiddleware, window fyne.Window) {
+	txDetails, _ := wallet.GetTransaction(hash)
+	label := widget.NewLabelWithStyle("Transaction Details", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	form := widget.NewForm()
+	form.Append("Date", widget.NewLabel(txDetails.LongTime))
+	form.Append("Status", widget.NewLabel(txDetails.Status))
+	form.Append("Amount", widget.NewLabel(dcrutil.Amount(txDetails.Amount).String()))
+	form.Append("Fee", widget.NewLabel(dcrutil.Amount(txDetails.Fee).String()))
+	form.Append("Fee Rate", widget.NewLabel(dcrutil.Amount(txDetails.FeeRate).String()))
+	form.Append("Type", widget.NewLabel(txDetails.Type))
+	form.Append("Confirmation", widget.NewLabel(strconv.Itoa(int(txDetails.Confirmations))))
+	form.Append("Hash", widget.NewLabel(txDetails.Hash))
+
+	var txInput widgets.TableStruct
+	heading := widget.NewHBox(
+		widget.NewLabelWithStyle("Previous Outpoint", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+
+	var inputBox []*widget.Box
+	for i := range txDetails.Inputs {
+		inputBox = append(inputBox, widget.NewHBox(
+			widget.NewLabelWithStyle(txDetails.Inputs[i].PreviousOutpoint, fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txDetails.Inputs[i].AccountName, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Inputs[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+		))
+	}
+	txInput.NewTable(heading, inputBox...)
+
+	var txOutput widgets.TableStruct
+	heading = widget.NewHBox(
+		widget.NewLabelWithStyle("Address", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Value", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+
+	var outputBox []*widget.Box
+	for i := range txDetails.Outputs {
+		outputBox = append(outputBox, widget.NewHBox(
+			widget.NewLabelWithStyle(txDetails.Outputs[i].Address, fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txDetails.Outputs[i].AccountName, fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Outputs[i].Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(txDetails.Outputs[i].ScriptType, fyne.TextAlignCenter, fyne.TextStyle{})))
+	}
+	txOutput.NewTable(heading, outputBox...)
+
+	output := widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(
+		form,
+		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		txInput.Result,
+		widgets.NewVSpacer(10),
+		widget.NewLabelWithStyle("Outputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		txOutput.Result,
+	), widgets.NewHSpacer(10))
+
+	scrollContainer := widget.NewScrollContainer(output)
+	scrollContainer.Resize(fyne.NewSize(scrollContainer.MinSize().Width, scrollContainer.MinSize().Width-230))
+	popUp := widget.NewPopUp(widget.NewVBox(label, fyne.NewContainer(scrollContainer)),
+		window.Canvas())
+	popUp.Show()
 }

@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"fmt"
 	"image/color"
 	"io/ioutil"
 	"log"
@@ -33,7 +32,7 @@ var overview overviewPageData
 func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	overview.balance.SetText(fetchBalance(wallet))
 	var txTable widgets.TableStruct
-	fetchTxTable(false, &txTable, 0, 5, wallet)
+	fetchTxTable(false, &txTable, 0, 5, wallet, nil)
 	overview.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(overview.txTable.Result)
 }
@@ -56,7 +55,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 	if fyneTheme.BackgroundColor() == theme.LightTheme().BackgroundColor() {
 		decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
 		if err != nil {
-			log.Fatalln("exit png file missing", err)
+			log.Fatalln("decred dark png file missing", err)
 		}
 		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
@@ -64,7 +63,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
 		decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
 		if err != nil {
-			log.Fatalln("exit png file missing", err)
+			log.Fatalln("decred light file missing", err)
 		}
 		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
@@ -84,7 +83,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 	overview.balance = widget.NewLabel(fetchBalance(wallet))
 	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
 
-	fetchTxTable(false, &overview.txTable, 0, 5, wallet)
+	fetchTxTable(false, &overview.txTable, 0, 5, wallet, nil)
 	output := widget.NewVBox(
 		widgets.NewVSpacer(20),
 		iconLabel,
@@ -108,7 +107,7 @@ func fetchBalance(wallet godcrApp.WalletMiddleware) string {
 	return walletcore.WalletBalance(accounts)
 }
 
-func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {
+func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	var txs []*walletcore.Transaction
 	if !isHistoryPage {
 		txs, _ = wallet.TransactionHistory(offset, counter, nil)
@@ -131,11 +130,11 @@ func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, coun
 
 	var hBox []*widget.Box
 	for _, tx := range txs {
-		trimmedHash := tx.Hash[:len(tx.Hash)/2] + "..."
+		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
 		var hash fyne.CanvasObject
 		if isHistoryPage {
 			hash = widget.NewButton(trimmedHash, func() {
-				fmt.Println("Hello")
+				getTxDetails(tx.Hash, wallet, window)
 			})
 		} else {
 			hash = widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{})

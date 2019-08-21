@@ -23,11 +23,12 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
 	widget.Refresh(reportLabel)
 	reportLabel.Hide()
+
 	var infoButton *widget.Button
 
 	infoButton = widget.NewButton("Tap to view informations", func() {
-		reportLabel.Show()
 		infoButton.Hide()
+		reportLabel.Show()
 	})
 
 	var syncDone bool
@@ -76,7 +77,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
 		}
 
-		// show peer count last
 		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
@@ -88,6 +88,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 
 		widget.Refresh(reportLabel)
 		reportLabel.SetText(fullSyncReport)
+
 	})
 
 	return widget.NewVBox(
