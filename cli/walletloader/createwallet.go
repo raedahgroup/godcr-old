@@ -1,15 +1,18 @@
 package walletloader
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/walletseed"
+	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/cli/termio"
@@ -18,7 +21,7 @@ import (
 
 // createWallet creates a new wallet using the dcrlibwallet WalletMiddleware.
 // User is prompted to select the network type for the wallet to be created.
-// If no wallet for that type already exist, user is asked to provide a private passphrase for the wallet.
+// User is asked to provide a private passphrase for the wallet.
 // After which, a new wallet seed is generated and shown to the user.
 func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddleware *dcrlibwallet.DcrWalletLib, err error) {
 	newWalletNetwork, err := requestNetworkTypeForNewWallet()
@@ -44,6 +47,49 @@ func createWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlewa
 	}
 
 	// user says they have backed up the generated wallet seed, finalize wallet creation
+	err = dcrlibwalletMiddleware.CreateWallet(newWalletPassphrase, seed)
+	if err != nil {
+		return nil, fmt.Errorf("\nError creating wallet: %s.", err.Error())
+	}
+	fmt.Printf("Decred %s wallet created successfully at\n", dcrlibwalletMiddleware.NetType())
+	fmt.Println(dcrlibwalletMiddleware.WalletDbDir)
+
+	sync, err := runInitialSync(cfg)
+	if err != nil || !sync {
+		return dcrlibwalletMiddleware, err
+	}
+
+	return dcrlibwalletMiddleware, SyncBlockChain(ctx, dcrlibwalletMiddleware)
+}
+
+// restoreWallet creates a new wallet using the dcrlibwallet WalletMiddleware.
+// User is prompted to select the network type for the wallet to be created.
+// IUser is asked to enter backed up seed and provide a private passphrase for the wallet.
+// Wallet is restored if a valid seed is provided.
+func restoreWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddleware *dcrlibwallet.DcrWalletLib, err error) {
+	newWalletNetwork, err := requestNetworkTypeForNewWallet()
+	if err != nil {
+		return
+	}
+
+	// create dcrlibwallet wallet middleware and check if wallet of this type already exist
+	dcrlibwalletMiddleware, err = prepareMiddlewareToCreateNewWallet(ctx, newWalletNetwork)
+	if err != nil {
+		return
+	}
+
+	// prompt for backedup seed
+	seed, err := requestAndValidateWalletSeed()
+	if err != nil {
+		return
+	}
+
+	newWalletPassphrase, err := requestNewWalletPassphrase()
+	if err != nil {
+		return
+	}
+
+	// finalize wallet creation using user-provided seed
 	err = dcrlibwalletMiddleware.CreateWallet(newWalletPassphrase, seed)
 	if err != nil {
 		return nil, fmt.Errorf("\nError creating wallet: %s.", err.Error())
@@ -171,6 +217,49 @@ func generateNewWalletSeedAndDisplay() (string, error) {
 	fmt.Println("-------------------------------")
 
 	return seedWords, nil
+}
+
+func requestAndValidateWalletSeed() (string, error) {
+	fmt.Print("Enter existing wallet seed (followed by a blank line): ")
+
+	// Use scanner instead of buffio.Reader so we can choose choose
+	// more complicated ending condition rather than just a single newline.
+	var seedStr string
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			break
+		}
+		seedStr += " " + line
+	}
+	seedMnemonic := strings.TrimSpace(seedStr)
+	seedMnemonic = collapseSpace(seedMnemonic)
+
+	if utils.VerifySeed(seedMnemonic) {
+		return seedMnemonic, nil
+	} else {
+		return "", fmt.Errorf("invalid seed specified")
+	}
+}
+
+// collapseSpace takes a string and replaces any repeated areas of whitespace
+// with a single space character.
+func collapseSpace(in string) string {
+	whiteSpace := false
+	out := ""
+	for _, c := range in {
+		if unicode.IsSpace(c) {
+			if !whiteSpace {
+				out = out + " "
+			}
+			whiteSpace = true
+		} else {
+			out = out + string(c)
+			whiteSpace = false
+		}
+	}
+	return out
 }
 
 func runInitialSync(cfg *config.Config) (bool, error) {

@@ -33,7 +33,7 @@ func DetectWallets(ctx context.Context, cfg *config.Config) (*dcrlibwallet.DcrWa
 	}
 
 	if len(allDetectedWallets) == 0 {
-		walletMiddleware, err := askToCreateWallet(ctx, cfg)
+		walletMiddleware, err := askToCreateOrRestoreWallet(ctx, cfg)
 		if walletMiddleware != nil {
 			promptToSaveDefaultWallet(walletMiddleware.WalletDbDir)
 		}
@@ -83,16 +83,25 @@ func findWalletsInDirectory(walletDir, walletSource string) (wallets []*WalletIn
 	return
 }
 
-func askToCreateWallet(ctx context.Context, cfg *config.Config) (*dcrlibwallet.DcrWalletLib, error) {
-	prompt := "No wallets found. Do you want to create a new one?"
-	shouldCreateWallet, err := terminalprompt.RequestYesNoConfirmation(prompt, "y")
+func askToCreateOrRestoreWallet(ctx context.Context, cfg *config.Config) (*dcrlibwallet.DcrWalletLib, error) {
+	prompt := "No wallets found. Do you want to (c)reate a new one or (r)estore from seed backup?"
+	userResponse, err := terminalprompt.RequestInput(prompt, func(input string) error {
+		if strings.EqualFold("c", input) || strings.EqualFold("r", input) {
+			return nil
+		}
+		return fmt.Errorf("invalid choice, please enter 'c' or 'r'")
+	})
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
 		return nil, fmt.Errorf("error getting selected account: %s", err.Error())
 	}
 
-	if shouldCreateWallet {
+	if strings.EqualFold("c", userResponse) {
 		return createWallet(ctx, cfg)
+	}
+
+	if strings.EqualFold("r", userResponse) {
+		return restoreWallet(ctx, cfg)
 	}
 
 	fmt.Println("Maybe later. Bye.")
@@ -103,23 +112,23 @@ func askToCreateWallet(ctx context.Context, cfg *config.Config) (*dcrlibwallet.D
 func listWalletsForSelection(ctx context.Context, cfg *config.Config, allDetectedWallets []*WalletInfo) (*dcrlibwallet.DcrWalletLib, error) {
 	// this function will be called when a user responds to the prompt to select wallet
 	var selectedWallet *WalletInfo
+	var restoreWalletSelected bool
 	validateWalletSelection := func(selection string) error {
-		if selection == "" || strings.EqualFold(selection, "c") {
+		if selection == "" || strings.EqualFold(selection, "C") || strings.EqualFold(selection, "R") {
+			restoreWalletSelected = strings.EqualFold(selection, "R")
 			return nil
 		}
 
 		selectedIndex, err := strconv.Atoi(selection)
 		if err != nil || selectedIndex < 1 || selectedIndex > len(allDetectedWallets) {
 			if len(allDetectedWallets) == 1 {
-				return fmt.Errorf("\nInvalid selection. Enter '1' or 'C'.")
+				return fmt.Errorf("\nInvalid selection. Enter '1', 'C' or 'R'.")
 			}
-			return fmt.Errorf("\nInvalid selection. Enter a number between 1 and %d or enter 'C'.",
+			return fmt.Errorf("\nInvalid selection. Enter a number between 1 and %d or enter 'C' or 'R'.",
 				len(allDetectedWallets))
 		}
 
-		if selectedIndex <= len(allDetectedWallets) {
-			selectedWallet = allDetectedWallets[selectedIndex-1]
-		}
+		selectedWallet = allDetectedWallets[selectedIndex-1]
 		return nil
 	}
 
@@ -128,6 +137,7 @@ func listWalletsForSelection(ctx context.Context, cfg *config.Config, allDetecte
 		fmt.Printf("(%d) %s\n", i+1, wallet.DbDir)
 	}
 	fmt.Println("(C)reate a new wallet.")
+	fmt.Println("(R)estore wallet from seed.")
 
 	for {
 		response, err := terminalprompt.RequestInput("Select the wallet to use for this session", validateWalletSelection)
@@ -150,7 +160,12 @@ func listWalletsForSelection(ctx context.Context, cfg *config.Config, allDetecte
 		return dcrlibwallet.Connect(ctx, selectedWallet.DbDir, selectedWallet.Network)
 	}
 
-	// user chose to create new wallet
+	// did user chose to restore wallet?
+	if restoreWalletSelected {
+		return restoreWallet(ctx, cfg)
+	}
+
+	// final possible valid option is create wallet
 	return createWallet(ctx, cfg)
 }
 
