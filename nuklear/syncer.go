@@ -35,7 +35,7 @@ func NewSyncer() *Syncer {
 
 func (s *Syncer) startSyncing(walletMiddleware app.WalletMiddleware, masterWindow nucular.MasterWindow) {
 	// begin block chain sync now so that when `Render` is called shortly after this, there'd be a report to display
-	walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+	walletMiddleware.SpvSync(false, func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
 
 		s.status = progressReport.Status

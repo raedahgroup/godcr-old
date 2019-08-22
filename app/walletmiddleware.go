@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -16,8 +17,12 @@ type WalletMiddleware interface {
 
 	IsWalletOpen() bool
 
-	SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport))
+	SpvSync(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport))
 
+	// todo implement for dcrwallet rpc connections
+	RpcSync(showLog bool, dcrdConfig config.DcrdRpcConfig, syncProgressUpdated func(*defaultsynclistener.ProgressReport))
+
+	// todo should introduce SpvRescan and RpcRescan
 	RescanBlockChain() error
 
 	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)

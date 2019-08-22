@@ -10,6 +10,7 @@ import (
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -55,7 +56,7 @@ func (c *WalletRPCClient) IsWalletOpen() bool {
 	return c.walletOpen
 }
 
-func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+func (c *WalletRPCClient) SpvSync(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
 	ctx := context.Background() // todo use a cancelable ctx
 
 	getBestBlock := func() int32 {
@@ -142,6 +143,10 @@ func (c *WalletRPCClient) SyncBlockChain(showLog bool, syncProgressUpdated func(
 			}
 		}
 	}()
+}
+
+func (c *WalletRPCClient) RpcSync(showLog bool, dcrdConfig config.DcrdRpcConfig, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+	fmt.Println("rpc sync not yet implemented")
 }
 
 func (c *WalletRPCClient) RescanBlockChain() error {

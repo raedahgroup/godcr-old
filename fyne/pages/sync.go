@@ -10,10 +10,13 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	godcrApp "github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, window fyne.Window, App fyne.App) fyne.CanvasObject {
+func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware,
+	dcrdSync bool, dcrdConfig config.DcrdRpcConfig, window fyne.Window, App fyne.App) fyne.CanvasObject {
+
 	progressBar := widget.NewProgressBar()
 	progressBar.Min = 0
 	progressBar.Max = 100
@@ -31,8 +34,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 	})
 
 	var syncDone bool
-
-	wallet.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+	var syncProgressListener = func(report *defaultsynclistener.ProgressReport) {
 		progressReport := report.Read()
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 
@@ -88,7 +90,13 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, windo
 
 		widget.Refresh(reportLabel)
 		reportLabel.SetText(fullSyncReport)
-	})
+	}
+
+	if dcrdSync {
+		wallet.RpcSync(false, dcrdConfig, syncProgressListener)
+	} else {
+		wallet.SpvSync(false, syncProgressListener)
+	}
 
 	return widget.NewVBox(
 		widgets.NewVSpacer(10),
