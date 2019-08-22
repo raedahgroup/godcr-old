@@ -41,8 +41,9 @@ func accountsPage(wallet app.WalletMiddleware) fyne.CanvasObject {
 
 func createOverviewSection(account *walletcore.Account) fyne.CanvasObject {
 	accountName := widget.NewLabel(account.Name)
-	accountBalance := widget.NewLabelWithStyle(account.Balance.String(), fyne.TextAlignTrailing, fyne.TextStyle{})
-	return widget.NewHBox(accountName, layout.NewSpacer(), accountBalance)
+	totalBalance := widget.NewLabel(fmt.Sprintf("Total balance: %s", account.Balance.Total))
+	spendableBalance := widget.NewLabel(fmt.Sprintf("Spendable balance: %s", account.Balance.Spendable))
+	return widget.NewHBox(accountName, layout.NewSpacer(), totalBalance, spendableBalance)
 }
 
 func createDetailSection(account *walletcore.Account, netType string) fyne.CanvasObject {
