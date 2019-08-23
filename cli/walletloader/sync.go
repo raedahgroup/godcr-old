@@ -37,7 +37,7 @@ func SyncBlockChain(ctx context.Context, walletMiddleware app.WalletMiddleware) 
 	}
 
 	fmt.Println("Sync started.")
-	walletMiddleware.SyncBlockChain(true, processSyncUpdates)
+	walletMiddleware.SpvSync(true, processSyncUpdates)
 
 	// wait for context cancel or sync done trigger before exiting function
 	select {

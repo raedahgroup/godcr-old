@@ -69,7 +69,7 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 }
 
 func (routes *Routes) syncBlockChain() {
-	routes.walletMiddleware.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+	routes.walletMiddleware.SpvSync(false, func(report *defaultsynclistener.ProgressReport) {
 		routes.syncProgressReport = report
 		routes.sendWsSyncProgress()
 		routes.sendWsConnectionInfoUpdate()

@@ -2,12 +2,14 @@ package dcrlibwallet
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/dcrlibwallet/utils"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -29,7 +31,7 @@ func (lib *DcrWalletLib) IsWalletOpen() bool {
 	return lib.walletLib.WalletOpened()
 }
 
-func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+func (lib *DcrWalletLib) SpvSync(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
 	// create wrapper around syncProgressUpdated to store updated peer count before calling main syncInfoUpdated fn
 	syncInfoUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, op defaultsynclistener.SyncOp) {
 		if op == defaultsynclistener.PeersCountUpdate {
@@ -45,6 +47,37 @@ func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*
 
 	err := lib.walletLib.SpvSync("")
 	if err != nil {
+		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+	}
+}
+
+func (lib *DcrWalletLib) RpcSync(showLog bool, dcrdConfig config.DcrdRpcConfig, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
+	// create wrapper around syncProgressUpdated to store updated peer count before calling main syncInfoUpdated fn
+	syncInfoUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, op defaultsynclistener.SyncOp) {
+		if op == defaultsynclistener.PeersCountUpdate {
+			// todo peers connection/disconnection are not broadcasted on rpc sync
+			numberOfPeers = progressReport.Read().ConnectedPeers
+		}
+		syncProgressUpdated(progressReport)
+	}
+
+	// syncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
+	syncListener := defaultsynclistener.DefaultSyncProgressListener(lib.NetType(), showLog,
+		lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp, syncInfoUpdatedWrapper)
+	lib.walletLib.AddSyncProgressListener(syncListener)
+
+	cert, err := ioutil.ReadFile(dcrdConfig.DcrdCert)
+	if err != nil {
+		err = fmt.Errorf("error reading dcrd cert file at %s: %s\n", dcrdConfig.DcrdCert, err.Error())
+		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+		return
+	}
+
+	err = lib.walletLib.RpcSync(dcrdConfig.DcrdHost, dcrdConfig.DcrdUser, dcrdConfig.DcrdPassword, cert)
+	if err != nil {
+		// todo any errors at this point won't propagate to the UI because sync has not started
+		// see implementation of syncListener.OnSyncError for more
+		fmt.Println("rpc sync error", err.Error())
 		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
 	}
 }

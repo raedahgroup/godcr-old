@@ -20,9 +20,18 @@ type ConfFileOptions struct {
 	NoWalletRPCTLS   bool   `long:"nowalletrpctls" description:"Disable TLS when connecting to dcrwallet daemon via RPC."`
 	HTTPHost         string `long:"httphost" description:"HTTP server host address or IP when running godcr in http mode."`
 	HTTPPort         string `long:"httpport" description:"HTTP server port when running godcr in http mode."`
-	DebugLevel       string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	DebugLevel       string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}."`
+	UseDcrdBackend   bool   `long:"usedcrdbackend" description:"Connect to dcrd for syncing."`
 
-	Settings `group:"Settings"`
+	DcrdRpcConfig `group:"Dcrd Connection Options"`
+	Settings      `group:"Settings"`
+}
+
+type DcrdRpcConfig struct {
+	DcrdHost     string `long:"dcrdhost" description:"Hostname/IP for dcrd server"`
+	DcrdUser     string `long:"dcrduser" description:"Username for dcrd server"`
+	DcrdPassword string `long:"dcrdpassword" description:"Password for dcrd server"`
+	DcrdCert     string `long:"dcrdcert" description:"Certificate path for dcrd server"`
 }
 
 type Settings struct {
