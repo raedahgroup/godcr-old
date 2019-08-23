@@ -220,6 +220,10 @@ func (lib *DcrWalletLib) TicketPrice(ctx context.Context) (int64, error) {
 	return ticketPrice.TicketPrice, nil
 }
 
+func (lib *DcrWalletLib) GetTickets() (tickets []*dcrlibwallet.TicketInfo, err error) {
+	return lib.walletLib.GetTickets(&dcrlibwallet.GetTicketsRequest{})
+}
+
 func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	balance, err := lib.AccountBalance(request.Account, int32(request.RequiredConfirmations))
 	if err != nil {
