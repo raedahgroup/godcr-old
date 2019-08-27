@@ -18,19 +18,19 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-// overviewPageData contains widgets that needs to be updated realtime
+// overview page memory is cleared when page isn't viewed.
 type overviewPageData struct {
+	iconLabel       *fyne.Container
+	errorLabel      *widget.Label
 	balance         *widget.Label
 	noActivityLabel *widget.Label
 	txTable         widgets.TableStruct
 	icon            *canvas.Image
 	goDcrLabel      *canvas.Text
-	errorLabel      *widget.Label
-	container       *widget.Box
-	iconLabel       *fyne.Container
 }
 
 var overview overviewPageData
+var overviewPageContainer pageContainer
 
 func initOverview(wallet godcrApp.WalletMiddleware) {
 	fyneTheme := fyne.CurrentApp().Settings().Theme()
@@ -39,7 +39,7 @@ func initOverview(wallet godcrApp.WalletMiddleware) {
 		if err != nil {
 			log.Fatalln("decred dark png file missing", err)
 		}
-		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0})
+		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 0, 255})
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
 
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
@@ -59,23 +59,10 @@ func initOverview(wallet godcrApp.WalletMiddleware) {
 	overview.goDcrLabel.Move(fyne.NewPos(15, 40))
 
 	overview.errorLabel = widget.NewLabel("")
-	// fyne neglects the hide method call when the window hasn't been presented yet.
-	overview.errorLabel.Hide()
-	overview.errorLabel.Hide()
-	overview.balance = widget.NewLabel("")
-	overview.noActivityLabel = widget.NewLabelWithStyle("No activities yet", fyne.TextAlignCenter, fyne.TextStyle{})
+	overview.balance = widget.NewLabel(fetchBalance(wallet))
+	overview.noActivityLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
 
-	heading := widget.NewHBox(
-		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
-	history.txTable.NewTable(heading)
-	overview.txTable.NewTable(heading)
-	overviewPageUpdates(wallet)
+	fetchTxTable(false, &overview.txTable, 0, 5, wallet, nil)
 }
 
 func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
@@ -85,8 +72,6 @@ func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	fetchTxTable(false, &txTable, 0, 5, wallet, nil)
 	overview.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(overview.txTable.Result)
-	// overview.txTable.Container.Show()
-	// overview.txTable.Result.Show()
 }
 
 // statusUpdates updates peerconn and blkheight
@@ -107,29 +92,10 @@ func statusUpdates(wallet godcrApp.WalletMiddleware) {
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) {
-	// fyneTheme := fyneApp.Settings().Theme()
-	// if fyneTheme.BackgroundColor() == theme.LightTheme().BackgroundColor() {
-	// 	decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
-	// 	if err != nil {
-	// 		log.Fatalln("decred dark png file missing", err)
-	// 	}
-	// 	overview.goDcrLabel.Color = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 255, 0}).Color
-	// 	overview.icon.Resource = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark)).Resource
-
-	// } else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
-	// 	decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
-	// 	if err != nil {
-	// 		log.Fatalln("decred light file missing", err)
-	// 	}
-	// 	overview.goDcrLabel.Color = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0}).Color
-	// 	overview.icon.Resource = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight)).Resource
-	// }
-	overview.txTable.Container.Resize(fyne.NewSize(overview.txTable.Container.MinSize().Width, 300))
+	initOverview(wallet)
 
 	balanceLabel := widget.NewLabelWithStyle("Current Total Balance", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	activityLabel := widget.NewLabelWithStyle("Recent Activity", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	overview.noActivityLabel.Hide()
-	overview.noActivityLabel.Hide()
 
 	output := widget.NewVBox(
 		widgets.NewVSpacer(10),
@@ -142,14 +108,10 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) {
 		activityLabel,
 		overview.noActivityLabel,
 		fyne.NewContainer(overview.txTable.Container))
-	//fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Container.MinSize().Width, 150)), overview.txTable.Container))
 
-	// a, ok := interface{}(menu.tabs.Items[0].Content).(*widget.Box)
-	// if !ok {
-	// 	return
-	// }
-	overview.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
-	widget.Refresh(overview.container)
+	overview.txTable.Container.Resize(fyne.NewSize(overview.txTable.Container.MinSize().Width, 300))
+	overviewPageContainer.container.Children = widget.NewHBox(widgets.NewHSpacer(20), output).Children
+	widget.Refresh(overviewPageContainer.container)
 }
 
 func fetchBalance(wallet godcrApp.WalletMiddleware) string {
@@ -218,10 +180,13 @@ func fetchTxTable(isHistoryPage bool, txTable *widgets.TableStruct, offset, coun
 	}
 	txTable.NewTable(heading, hBox...)
 
+	if overview.noActivityLabel == nil {
+		return
+	}
 	if len(txs) > 0 && !overview.noActivityLabel.Hidden {
 		overview.noActivityLabel.Hide()
 		overview.txTable.Container.Show()
-	} else if overview.noActivityLabel.Hidden {
-		//overview.txTable.Container.Hide()
+	} else {
+		overview.noActivityLabel.SetText("No activities yet")
 	}
 }

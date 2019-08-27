@@ -12,11 +12,7 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-type receivePageData struct {
-	container *widget.Box
-}
-
-var receive receivePageData
+var receivePageContainer pageContainer
 
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
@@ -79,8 +75,8 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 
 	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	if err != nil {
-		receive.container.Children = []fyne.CanvasObject{widget.NewLabel("error getting account name " + err.Error())}
-		widget.Refresh(receive.container)
+		receivePageContainer.container.Children = []fyne.CanvasObject{widget.NewLabel("error getting account name " + err.Error())}
+		widget.Refresh(receivePageContainer.container)
 		return
 	}
 	errorLabel.Hide()
@@ -105,6 +101,6 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 		errorLabel,
 	)
 
-	receive.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
-	widget.Refresh(receive.container)
+	receivePageContainer.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
+	widget.Refresh(receivePageContainer.container)
 }

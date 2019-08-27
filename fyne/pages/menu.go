@@ -2,6 +2,7 @@ package pages
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -25,9 +26,13 @@ type menuPageData struct {
 	alphaTheme uint8
 }
 
+type pageContainer struct {
+	container *widget.Box
+}
+
 var menu menuPageData
 
-func initPages(exempt int) {
+func resetPages(exempt int, window fyne.Window) {
 	for i := 0; i < len(menu.tabs.Items); i++ {
 		if i == exempt {
 			continue
@@ -36,15 +41,10 @@ func initPages(exempt int) {
 		if !ok {
 			continue
 		}
-		a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})).Children
+
+		a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true})).Children
 		widget.Refresh(a)
 	}
-
-	render := menu.tabs.CreateRenderer()
-	render.Layout(menu.tabs.MinSize())
-	render.ApplyTheme()
-	render.Refresh()
-	widget.Refresh(menu.tabs)
 }
 
 func pageNotImplemented() fyne.CanvasObject {
@@ -94,23 +94,21 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 	} else {
 		menu.alphaTheme = 0
 	}
-	initOverview(wallet)
 
-	overview.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching overview data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}))
-	history.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching history data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}))
-	receive.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching receive data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}))
-	staking.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching staking data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}))
-	account.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching account data...", fyne.TextAlignLeading, fyne.TextStyle{Italic: true}))
+	overviewPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
+	historyPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
+	receivePageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
+	stakingPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
+	accountPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
 
-	overviewPageUpdates(wallet)
 	overviewPage(wallet, fyneApp)
 	menu.tabs = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", fyne.NewStaticResource("Overview", overviewFile), overview.container), //overviewPage(wallet, fyneApp)),
-		widget.NewTabItemWithIcon("History", fyne.NewStaticResource("History", historyFile), history.container),
+		widget.NewTabItemWithIcon("Overview", fyne.NewStaticResource("Overview", overviewFile), overviewPageContainer.container), //overviewPage(wallet, fyneApp)),
+		widget.NewTabItemWithIcon("History", fyne.NewStaticResource("History", historyFile), historyPageContainer.container),
 		widget.NewTabItemWithIcon("Send", fyne.NewStaticResource("Send", sendFile), pageNotImplemented()),
-		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), receive.container),    //receivePage(wallet, window)),
-		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), account.container), // accountPage(wallet, appSettings, window)),
-		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), staking.container),    //stakingPage(wallet)),
+		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), receivePageContainer.container),    //receivePage(wallet, window)),
+		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), accountPageContainer.container), // accountPage(wallet, appSettings, window)),
+		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), stakingPageContainer.container),    //stakingPage(wallet)),
 		widget.NewTabItemWithIcon("More", fyne.NewStaticResource("More", moreFile), morePage(wallet, fyneApp)),
 		widget.NewTabItemWithIcon("Exit", fyne.NewStaticResource("Exit", exitFile), exit(ctx, fyneApp, window)))
 	menu.tabs.SetTabLocation(widget.TabLocationLeading)
@@ -120,42 +118,60 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		var currentPage = 0
 
 		for {
+			fmt.Println(window.Content())
 			// load contents to page when user is on the page
 			// update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
 				if currentPage != 0 {
+					history = historyPageData{}
 					overviewPage(wallet, fyneApp)
-					initPages(0)
+					resetPages(0, window)
 					currentPage = 0
+
 				}
-				overviewPageUpdates(wallet)
+				//overviewPageUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 1 {
 				if currentPage != 1 {
+					overview = overviewPageData{}
 					historyPage(wallet, window)
-					initPages(1)
+					resetPages(1, window)
 					currentPage = 1
 				}
 				historyPageUpdates(wallet, window)
+			} else if menu.tabs.CurrentTabIndex() == 2 {
+				if currentPage != 2 {
+					resetPages(2, window)
+					currentPage = 2
+				}
 			} else if menu.tabs.CurrentTabIndex() == 3 {
 				if currentPage != 3 {
+					overview = overviewPageData{}
+					history = historyPageData{}
 					receivePage(wallet, window)
-					initPages(3)
+					resetPages(3, window)
 					currentPage = 3
 				}
 			} else if menu.tabs.CurrentTabIndex() == 4 {
 				if currentPage != 4 {
+					overview = overviewPageData{}
+					history = historyPageData{}
 					accountPage(wallet, appSettings, window)
-					initPages(4)
+					resetPages(4, window)
 					currentPage = 4
 				}
 			} else if menu.tabs.CurrentTabIndex() == 5 {
-				//staking page only updates when client reverts back to staking page
 				if currentPage != 5 {
+					overview = overviewPageData{}
+					history = historyPageData{}
 					stakingPage(wallet)
-					initPages(5)
+					resetPages(5, window)
 					currentPage = 5
 				}
-				//stakingPageUpdates(wallet)
+			} else if menu.tabs.CurrentTabIndex() == 6 || menu.tabs.CurrentTabIndex() == 7 {
+				overview = overviewPageData{}
+				history = historyPageData{}
+				resetPages(6, window)
+				currentPage = 6
 			}
 			statusUpdates(wallet)
 

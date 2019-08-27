@@ -1,12 +1,7 @@
 package pages
 
 import (
-	"image/color"
-	"io/ioutil"
-	"log"
-
 	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -23,39 +18,11 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
-			// set overview icon and name
-			decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
-			if err != nil {
-				log.Fatalln("exit png file missing", err)
-			}
-			overview.goDcrLabel.Color = color.RGBA{0, 0, 0, 255}
-			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
-			overview.icon.Resource = iconResource.Resource
-
-			canvas.Refresh(overview.icon)
-			canvas.Refresh(overview.goDcrLabel)
-			canvas.Refresh(account.successLabel)
-			canvas.Refresh(account.errorLabel)
-
 			change.Settings().SetTheme(theme.LightTheme())
+			menu.alphaTheme = 0
 		} else if background == "Dark Theme" {
-			decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
-			if err != nil {
-				log.Fatalln("exit png file missing", err)
-			}
-
-			overview.goDcrLabel.Color = color.RGBA{255, 255, 255, 0}
-			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
-			overview.icon.Resource = iconResource.Resource
-			// account.errorLabel.Color = color.RGBA{0, 0, 0, 0}
-			// account.successLabel.Color = color.RGBA{11, 156, 49, 0}
-
-			canvas.Refresh(overview.icon)
-			canvas.Refresh(overview.goDcrLabel)
-			canvas.Refresh(account.successLabel)
-			canvas.Refresh(account.errorLabel)
-
 			change.Settings().SetTheme(theme.DarkTheme())
+			menu.alphaTheme = 225
 		}
 	})
 	radio.Horizontal = true

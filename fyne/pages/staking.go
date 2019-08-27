@@ -15,24 +15,19 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-type stakingPageData struct {
-	stakeInfoLabel *widget.Label
-	container      *widget.Box
-}
+var stakingPageContainer pageContainer
 
-var staking stakingPageData
-
-func stakingPageUpdates(wallet godcrApp.WalletMiddleware) {
+func stakingPageUpdates(wallet godcrApp.WalletMiddleware, stakeInfoLabel *widget.Label) {
 	stakeInfo, err := wallet.StakeInfo(context.Background())
-	widget.Refresh(staking.stakeInfoLabel)
+	widget.Refresh(stakeInfoLabel)
 	if err != nil {
-		staking.stakeInfoLabel.SetText(fmt.Sprintf("Error loading stake info: %s", err.Error()))
+		stakeInfoLabel.SetText(fmt.Sprintf("Error loading stake info: %s", err.Error()))
 	} else {
 		stakeInfoText := fmt.Sprintf("unmined %d   immature %d   live %d   voted %d   missed %d   expired %d \n"+
 			"revoked %d   unspent %d   allmempooltix %d   poolsize %d   total subsidy %s",
 			stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Live, stakeInfo.Voted, stakeInfo.Missed, stakeInfo.Expired,
 			stakeInfo.Revoked, stakeInfo.Unspent, stakeInfo.AllMempoolTix, stakeInfo.PoolSize, stakeInfo.TotalSubsidy)
-		staking.stakeInfoLabel.SetText(stakeInfoText)
+		stakeInfoLabel.SetText(stakeInfoText)
 	}
 }
 
@@ -40,8 +35,8 @@ func stakingPage(wallet godcrApp.WalletMiddleware) {
 	pageTitleLabel := widget.NewLabelWithStyle("Staking", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true})
 
 	summarySectionTitleLabel := widget.NewLabelWithStyle("Summary", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	staking.stakeInfoLabel = widget.NewLabel("")
-	stakingPageUpdates(wallet)
+	stakeInfoLabel := widget.NewLabel("")
+	stakingPageUpdates(wallet, stakeInfoLabel)
 
 	ticketsSectionTitleLabel := widget.NewLabelWithStyle("Purchase Ticket(s)",
 		fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -102,7 +97,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) {
 			passphraseEntry.SetText("")
 			ticketsLabel.SetText(fmt.Sprintf("Success: \n%s", strings.Join(ticketHashes, "\n")))
 
-			stakingPageUpdates(wallet)
+			stakingPageUpdates(wallet, stakeInfoLabel)
 		}
 	})
 
@@ -110,7 +105,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) {
 		pageTitleLabel,
 		widgets.NewVSpacer(10),
 		summarySectionTitleLabel,
-		staking.stakeInfoLabel,
+		stakeInfoLabel,
 		widgets.NewVSpacer(10),
 		ticketsSectionTitleLabel,
 		widgets.NewVSpacer(10),
@@ -120,8 +115,8 @@ func stakingPage(wallet godcrApp.WalletMiddleware) {
 		ticketsLabel,
 	)
 
-	staking.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
-	widget.Refresh(staking.container)
+	stakingPageContainer.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
+	widget.Refresh(stakingPageContainer.container)
 }
 
 func accountSelectionWidget(wallet godcrApp.WalletMiddleware) *widget.Select {

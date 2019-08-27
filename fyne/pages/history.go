@@ -22,11 +22,10 @@ type historyPageData struct {
 	options        map[string]int
 	txTable        widgets.TableStruct
 	errorLabel     *widget.Label
-	container      *widget.Box
 }
 
-var selected bool
 var history historyPageData
+var historyPageContainer pageContainer
 
 func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	filters := walletcore.TransactionFilters
@@ -147,9 +146,10 @@ func historyPage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 		history.txTable.Container.Offset.Y = 0
 		widget.Refresh(history.txTable.Container)
 	})
+	fetchTxTable(true, &history.txTable, 0, 50, wallet, window)
 
 	historyPageUpdates(wallet, window)
-	if overview.errorLabel.Hidden {
+	if history.errorLabel.Hidden {
 		history.txFilters.SetSelected(history.txFilters.Options[0])
 	}
 	history.txTable.Container.Resize(fyne.NewSize(history.txTable.Container.MinSize().Width, 500))
@@ -159,8 +159,8 @@ func historyPage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 		fyne.NewContainer(history.txTable.Container),
 		history.errorLabel)
 
-	history.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
-	widget.Refresh(history.container)
+	historyPageContainer.container.Children = widget.NewHBox(widgets.NewHSpacer(10), output).Children
+	widget.Refresh(historyPageContainer.container)
 }
 
 func addToHistoryTable(txTable *widgets.TableStruct, offset, count int32, wallet godcrApp.WalletMiddleware, window fyne.Window, prepend bool) {
