@@ -436,6 +436,13 @@ func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwall
 			balance.Spendable, totalTicketPrice)
 	}
 
+	// fetch redeem script+ticket address+pool address+pool fee if vsp host is provided
+	if request.VSPHost != "" {
+		if err = c.updateTicketPurchaseRequestWithVSPInfo(&request); err != nil {
+			return nil, err
+		}
+	}
+
 	response, err := c.walletService.PurchaseTickets(ctx, &walletrpc.PurchaseTicketsRequest{
 		Account:               request.Account,
 		Expiry:                request.Expiry,

@@ -14,52 +14,137 @@ type TableStruct struct {
 
 func (table *TableStruct) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.heading = heading
-	table.Container = widget.NewScrollContainer(nil)
+	table.Result = widget.NewHBox()
+	table.Container = widget.NewScrollContainer(table.Result)
 	table.tableData = []*widget.Box{heading}
 	table.tableData = append(table.tableData, data...)
-	table.Result = widget.NewHBox()
-	table.Refresh()
+	table.set()
 }
 
 func (table *TableStruct) Append(data ...*widget.Box) {
-	table.tableData = append(table.tableData, data...)
-	table.Refresh()
+	if len(table.tableData) == 0 {
+		return
+	}
+	iTable := TableStruct{
+		heading:   table.heading,
+		tableData: data,
+		Result:    widget.NewHBox(),
+		Container: widget.NewScrollContainer(nil),
+	}
+	iTable.set()
+
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		T, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		a.Children = append(a.Children, T.Children...)
+		widget.Refresh(a)
+	}
 }
 
-//Prepend is used to add to a stack
+// Prepend adds to a table.
 func (table *TableStruct) Prepend(data ...*widget.Box) {
-	table.tableData = append(data, table.tableData[1:]...)
-	table.tableData = append([]*widget.Box{table.heading}, table.tableData...)
-	table.Refresh()
-}
-
-//Delete method is used to delete object from stack. if tx notifier is created this remove the table from the stack thereby allowing call for for now we should just track transactions by comparing old with new
-//Note: while using delete, consider heading
-func (table *TableStruct) Delete(tableNo int) {
-	if len(table.tableData) < tableNo || tableNo >= len(table.tableData) {
+	// this makes sure an heading is placed
+	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
 		return
 	}
 
-	//cannot delete heading
-	if tableNo == 0 {
+	iTable := TableStruct{
+		heading:   table.heading,
+		tableData: data,
+		Result:    widget.NewHBox(),
+		Container: widget.NewScrollContainer(nil),
+	}
+	iTable.set()
+
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		T, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		T.Children = append([]fyne.CanvasObject{a.Children[0]}, T.Children...)
+		T.Children = append(T.Children, a.Children[1:]...)
+		a.Children = T.Children
+		widget.Refresh(a)
+	}
+	table.Container.Offset.Y = 1110
+	widget.Refresh(table.Container)
+}
+
+// DeleteContent deletes all table data aside heading.
+func (table *TableStruct) DeleteContent() {
+	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
 		return
 	}
 
-	table.tableData = append(table.tableData[:tableNo], table.tableData[tableNo+1:]...)
-	table.Refresh()
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return
+		}
+		a.Children = []fyne.CanvasObject{a.Children[0]}
+		widget.Refresh(a)
+	}
+
 }
 
-//Pop remove an object from the stack, Note it cant remove header
-func (table *TableStruct) Pop() {
-	//not allowed to remove heading
-	if len(table.tableData) <= 1 {
+func (table *TableStruct) NumberOfRows() (count int) {
+	for i := 0; i < len(table.heading.Children); i++ {
+		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		if !ok {
+			return 0
+		}
+		if count < len(a.Children) {
+			count = len(a.Children)
+		}
+
+	}
+	return count - 1
+}
+
+// Delete method deletes contents from the table.
+// if deleting only one content then specify to as 0
+func (table *TableStruct) Delete(from, to int) {
+	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
 		return
 	}
-	table.tableData = table.tableData[:len(table.tableData)-1]
-	table.Refresh()
+	if from < 0 || to < 0 {
+		return
+	}
+	if to != 0 {
+		for i := 0; i < len(table.heading.Children); i++ {
+			a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+			if !ok {
+				return
+			}
+			a.Children = append(a.Children[:from+1], a.Children[to+1:]...)
+			widget.Refresh(a)
+		}
+	} else {
+		for i := 0; i < len(table.heading.Children); i++ {
+			a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+			if !ok {
+				return
+			}
+			a.Children = append(a.Children[:from+1], a.Children[from+2:]...)
+			widget.Refresh(a)
+		}
+	}
+
+	table.Container.Offset.Y = 1110
+	widget.Refresh(table.Container)
 }
 
-func (table *TableStruct) Refresh() {
+func (table *TableStruct) set() {
 	var container = widget.NewHBox()
 
 	//get horizontals apart from heading
@@ -67,14 +152,14 @@ func (table *TableStruct) Refresh() {
 		//get vertical
 		var getVerticals = widget.NewVBox()
 		for _, data := range table.tableData {
+			if len(table.heading.Children) > len(data.Children) && i > len(data.Children)-1 {
+				continue
+			}
 			getVerticals.Append(data.Children[i])
 		}
 		container.Append(getVerticals)
 	}
 
 	table.Result.Children = container.Children
-	table.Container.Content = widget.NewScrollContainer(table.Result).Content
-
-	table.Container.Resize(fyne.NewSize(200, 200))
 	widget.Refresh(table.Result)
 }

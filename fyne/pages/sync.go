@@ -21,26 +21,22 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 
 	var fullSyncReport string
 
-	reportLabel := widget.NewLabel("")
+	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
 	reportLabel.Hide()
-	reportLabel.Alignment = fyne.TextAlignCenter
+
 	var infoButton *widget.Button
-	reportLabel.Hide()
-
 	infoButton = widget.NewButton("Tap to view informations", func() {
-		if infoButton.Text == "Tap to view informations" {
-			reportLabel.Show()
-			infoButton.SetText("Tap to hide informations")
-
-		} else {
-			reportLabel.Hide()
-			infoButton.SetText("Tap to view informations")
-		}
+		infoButton.Hide()
+		reportLabel.Show()
 	})
 
 	var syncDone bool
 
 	wallet.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
+		// return if no window is being shown
+		if len(fyne.CurrentApp().Driver().AllWindows()) == 0 {
+			return
+		}
 		progressReport := report.Read()
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 
@@ -83,7 +79,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
 		}
 
-		// show peer count last
 		netType := wallet.NetType()
 		if progressReport.ConnectedPeers == 1 {
 			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
@@ -93,6 +88,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 
 		fullSyncReport = stringReport.String()
 		reportLabel.SetText(fullSyncReport)
+
 	})
 
 	return widget.NewVBox(
@@ -100,6 +96,6 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 		widget.NewLabelWithStyle("Synchronizing....", fyne.TextAlignLeading, fyne.TextStyle{Italic: true, Bold: true}),
 		widgets.NewVSpacer(10),
 		progressBar,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(infoButton.MinSize()), infoButton),
+		widget.NewHBox(layout.NewSpacer(), infoButton, layout.NewSpacer()),
 		reportLabel)
 }

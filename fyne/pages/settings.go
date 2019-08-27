@@ -2,8 +2,11 @@ package pages
 
 import (
 	"image/color"
+	"io/ioutil"
+	"log"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -14,19 +17,45 @@ func settingsPage(App fyne.App) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), settings)
 }
 
-//todo: after changing theme, make it default
+// todo: after changing theme, set it to default
 func changeTheme(change fyne.App) fyne.CanvasObject {
 	fyneTheme := change.Settings().Theme()
 
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
+			// set overview icon and name
+			decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
+			if err != nil {
+				log.Fatalln("exit png file missing", err)
+			}
+			overview.goDcrLabel.Color = color.RGBA{0, 0, 0, 255}
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
+			overview.icon.Resource = iconResource.Resource
+
+			canvas.Refresh(overview.icon)
+			canvas.Refresh(overview.goDcrLabel)
+			canvas.Refresh(account.successLabel)
+			canvas.Refresh(account.errorLabel)
+
 			change.Settings().SetTheme(theme.LightTheme())
-			receive.errorLabel.Color = color.RGBA{255, 0, 0, 255}
-			menu.alphaTheme = 255
 		} else if background == "Dark Theme" {
+			decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
+			if err != nil {
+				log.Fatalln("exit png file missing", err)
+			}
+
+			overview.goDcrLabel.Color = color.RGBA{255, 255, 255, 0}
+			iconResource := canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
+			overview.icon.Resource = iconResource.Resource
+			// account.errorLabel.Color = color.RGBA{0, 0, 0, 0}
+			// account.successLabel.Color = color.RGBA{11, 156, 49, 0}
+
+			canvas.Refresh(overview.icon)
+			canvas.Refresh(overview.goDcrLabel)
+			canvas.Refresh(account.successLabel)
+			canvas.Refresh(account.errorLabel)
+
 			change.Settings().SetTheme(theme.DarkTheme())
-			receive.errorLabel.Color = color.RGBA{255, 0, 0, 0}
-			menu.alphaTheme = 200
 		}
 	})
 	radio.Horizontal = true
