@@ -2,7 +2,6 @@ package pages
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -118,7 +117,6 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		var currentPage = 0
 
 		for {
-			fmt.Println(window.Content())
 			// load contents to page when user is on the page
 			// update only when the user is on the page
 			if menu.tabs.CurrentTabIndex() == 0 {
