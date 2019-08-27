@@ -22,6 +22,7 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 	var fullSyncReport string
 
 	reportLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{})
+	widget.Refresh(reportLabel)
 	reportLabel.Hide()
 
 	var infoButton *widget.Button
@@ -47,47 +48,49 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 				window.SetContent(menu)
 			}
 		}
-
-		stringReport := strings.Builder{}
-		if progressReport.TotalTimeRemaining == "" {
-			stringReport.WriteString(fmt.Sprintf("%d%% completed.\n", progressReport.TotalSyncProgress))
-		} else {
-			stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
-		}
-
-		reportLabel.SetText(strings.TrimSpace(stringReport.String()))
-
-		switch progressReport.CurrentStep {
-		case defaultsynclistener.FetchingBlockHeaders:
-			stringReport.WriteString(fmt.Sprintf("Fetched %d of %d block headers.\n", progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
-			stringReport.WriteString(fmt.Sprintf("%d%% through step 1 of 3.\n", progressReport.HeadersFetchProgress))
-
-			if progressReport.DaysBehind != "" {
-				stringReport.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", progressReport.DaysBehind))
-			}
-		case defaultsynclistener.DiscoveringUsedAddresses:
-			stringReport.WriteString("Discovering used addresses.\n")
-			if progressReport.AddressDiscoveryProgress > 100 {
-				stringReport.WriteString(fmt.Sprintf("%d%% (over) through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
+		if !reportLabel.Hidden {
+			stringReport := strings.Builder{}
+			if progressReport.TotalTimeRemaining == "" {
+				stringReport.WriteString(fmt.Sprintf("%d%% completed.\n", progressReport.TotalSyncProgress))
 			} else {
-				stringReport.WriteString(fmt.Sprintf("%d%% through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
+				stringReport.WriteString(fmt.Sprintf("%d%% completed, %s remaining.\n", progressReport.TotalSyncProgress, progressReport.TotalTimeRemaining))
 			}
 
-		case defaultsynclistener.ScanningBlockHeaders:
-			stringReport.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", progressReport.CurrentRescanHeight,
-				progressReport.TotalHeadersToFetch))
-			stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
-		}
+			reportLabel.SetText(strings.TrimSpace(stringReport.String()))
 
-		netType := wallet.NetType()
-		if progressReport.ConnectedPeers == 1 {
-			stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
-		} else {
-			stringReport.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", progressReport.ConnectedPeers, netType))
-		}
+			switch progressReport.CurrentStep {
+			case defaultsynclistener.FetchingBlockHeaders:
+				stringReport.WriteString(fmt.Sprintf("Fetched %d of %d block headers.\n", progressReport.FetchedHeadersCount, progressReport.TotalHeadersToFetch))
+				stringReport.WriteString(fmt.Sprintf("%d%% through step 1 of 3.\n", progressReport.HeadersFetchProgress))
 
-		fullSyncReport = stringReport.String()
-		reportLabel.SetText(fullSyncReport)
+				if progressReport.DaysBehind != "" {
+					stringReport.WriteString(fmt.Sprintf("Your wallet is %s behind.\n", progressReport.DaysBehind))
+				}
+			case defaultsynclistener.DiscoveringUsedAddresses:
+				stringReport.WriteString("Discovering used addresses.\n")
+				if progressReport.AddressDiscoveryProgress > 100 {
+					stringReport.WriteString(fmt.Sprintf("%d%% (over) through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
+				} else {
+					stringReport.WriteString(fmt.Sprintf("%d%% through step 2 of 3.\n", progressReport.AddressDiscoveryProgress))
+				}
+
+			case defaultsynclistener.ScanningBlockHeaders:
+				stringReport.WriteString(fmt.Sprintf("Scanning %d of %d block headers.\n", progressReport.CurrentRescanHeight,
+					progressReport.TotalHeadersToFetch))
+				stringReport.WriteString(fmt.Sprintf("%d%% through step 3 of 3.\n", progressReport.HeadersFetchProgress))
+			}
+
+			netType := wallet.NetType()
+			if progressReport.ConnectedPeers == 1 {
+				stringReport.WriteString(fmt.Sprintf("Syncing with %d peer on %s.\n", progressReport.ConnectedPeers, netType))
+			} else {
+				stringReport.WriteString(fmt.Sprintf("Syncing with %d peers on %s.\n", progressReport.ConnectedPeers, netType))
+			}
+
+			fullSyncReport = stringReport.String()
+			reportLabel.SetText(fullSyncReport)
+
+		}
 
 	})
 
