@@ -77,6 +77,9 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 
 	// Append to table when scrollbar is at 90% of the scrollbar.
 	if scrollPosition == 0.9 {
+		if history.totalTxOnTable == int32(count)-found {
+			return
+		}
 		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, window, false)
 		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
 			history.totalTxOnTable = history.totalTxOnTable + 20
@@ -95,6 +98,7 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 			history.txFilters.SetSelected(splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")")
 		}
 	} else if scrollPosition < 0.2 {
+		// Return if there's no currently deleted table.
 		if history.offset == 0 {
 			return
 		}
