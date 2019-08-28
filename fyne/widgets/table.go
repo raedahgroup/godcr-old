@@ -12,6 +12,7 @@ type TableStruct struct {
 	Container *widget.ScrollContainer
 }
 
+// NewTable creates a new table widget
 func (table *TableStruct) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.heading = heading
 	table.Result = widget.NewHBox()
@@ -21,6 +22,7 @@ func (table *TableStruct) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.set()
 }
 
+// Append widget adds to the bottom row of a table.
 func (table *TableStruct) Append(data ...*widget.Box) {
 	if len(table.tableData) == 0 {
 		return
@@ -34,22 +36,22 @@ func (table *TableStruct) Append(data ...*widget.Box) {
 	iTable.set()
 
 	for i := 0; i < len(table.heading.Children); i++ {
-		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		tableBox, ok := interface{}(table.Result.Children[i]).(*widget.Box)
 		if !ok {
 			return
 		}
-		T, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
+		iTableBox, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
 		if !ok {
 			return
 		}
-		a.Children = append(a.Children, T.Children...)
-		widget.Refresh(a)
+		tableBox.Children = append(tableBox.Children, iTableBox.Children...)
+		widget.Refresh(tableBox)
 	}
 }
 
-// Prepend adds to a table.
+// Prepend adds to the top row of a table.
 func (table *TableStruct) Prepend(data ...*widget.Box) {
-	// this makes sure an heading is placed
+	// Makes sure an heading is placed
 	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
 		return
 	}
@@ -63,18 +65,18 @@ func (table *TableStruct) Prepend(data ...*widget.Box) {
 	iTable.set()
 
 	for i := 0; i < len(table.heading.Children); i++ {
-		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
+		tableBox, ok := interface{}(table.Result.Children[i]).(*widget.Box)
 		if !ok {
 			return
 		}
-		T, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
+		iTableBox, ok := interface{}(iTable.Result.Children[i]).(*widget.Box)
 		if !ok {
 			return
 		}
-		T.Children = append([]fyne.CanvasObject{a.Children[0]}, T.Children...)
-		T.Children = append(T.Children, a.Children[1:]...)
-		a.Children = T.Children
-		widget.Refresh(a)
+		iTableBox.Children = append([]fyne.CanvasObject{tableBox.Children[0]}, iTableBox.Children...)
+		iTableBox.Children = append(iTableBox.Children, tableBox.Children[1:]...)
+		tableBox.Children = iTableBox.Children
+		widget.Refresh(tableBox)
 	}
 	table.Container.Offset.Y = 1110
 	widget.Refresh(table.Container)
@@ -97,7 +99,8 @@ func (table *TableStruct) DeleteContent() {
 
 }
 
-func (table *TableStruct) NumberOfRows() (count int) {
+// NumberOfColumns returns the number of columns in a table neglecting header count.
+func (table *TableStruct) NumberOfColumns() (count int) {
 	for i := 0; i < len(table.heading.Children); i++ {
 		a, ok := interface{}(table.Result.Children[i]).(*widget.Box)
 		if !ok {
@@ -111,8 +114,8 @@ func (table *TableStruct) NumberOfRows() (count int) {
 	return count - 1
 }
 
-// Delete method deletes contents from the table.
-// if deleting only one content then specify to as 0
+// Delete method deletes contents from the table NEGLECTING header.
+// If deleting only one content then specify to as 0.
 func (table *TableStruct) Delete(from, to int) {
 	if len(table.Result.Children) == 0 || len(table.heading.Children) == 0 || len(table.tableData) == 0 {
 		return
@@ -147,9 +150,9 @@ func (table *TableStruct) Delete(from, to int) {
 func (table *TableStruct) set() {
 	var container = widget.NewHBox()
 
-	//get horizontals apart from heading
+	// Get horizontals apart from heading.
 	for i := 0; i < len(table.heading.Children); i++ {
-		//get vertical
+		// Get vertical.
 		var getVerticals = widget.NewVBox()
 		for _, data := range table.tableData {
 			if len(table.heading.Children) > len(data.Children) && i > len(data.Children)-1 {

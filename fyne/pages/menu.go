@@ -2,8 +2,8 @@ package pages
 
 import (
 	"context"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -41,7 +41,7 @@ func resetPages(exempt int, window fyne.Window) {
 			continue
 		}
 
-		a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true})).Children
+		a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})).Children
 		widget.Refresh(a)
 	}
 }
@@ -51,40 +51,23 @@ func pageNotImplemented() fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), label)
 }
 
-func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, fyneApp fyne.App, window fyne.Window) fyne.CanvasObject {
-	overviewFile, err := ioutil.ReadFile("./fyne/pages/png/overview.png")
+func statusUpdates(wallet godcrApp.WalletMiddleware) {
+	info, err := wallet.WalletConnectionInfo()
 	if err != nil {
-		log.Fatalln("overview png file missing", err)
-	}
-	historyFile, err := ioutil.ReadFile("./fyne/pages/png/history.png")
-	if err != nil {
-		log.Fatalln("history png file missing", err)
-	}
-	sendFile, err := ioutil.ReadFile("./fyne/pages/png/send.png")
-	if err != nil {
-		log.Fatalln("send png file missing", err)
-	}
-	receiveFile, err := ioutil.ReadFile("./fyne/pages/png/receive.png")
-	if err != nil {
-		log.Fatalln("receive png file missing", err)
-	}
-	accountsFile, err := ioutil.ReadFile("./fyne/pages/png/account.png")
-	if err != nil {
-		log.Fatalln("account png file missing", err)
-	}
-	moreFile, err := ioutil.ReadFile("./fyne/pages/png/more.png")
-	if err != nil {
-		log.Fatalln("security png file missing", err)
-	}
-	exitFile, err := ioutil.ReadFile("./fyne/pages/png/exit.png")
-	if err != nil {
-		log.Fatalln("exit png file missing", err)
-	}
-	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stake.png")
-	if err != nil {
-		log.Fatalln("staking png file missing", err)
+		widget.Refresh(overview.errorLabel)
+		overview.errorLabel.SetText(err.Error())
 	}
 
+	if info.PeersConnected <= 1 {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
+	} else {
+		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
+	}
+
+	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
+}
+
+func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings *config.Settings, fyneApp fyne.App, window fyne.Window) fyne.CanvasObject {
 	menu.peerConn = widget.NewLabel("")
 	menu.blkHeight = widget.NewLabel("")
 
@@ -94,40 +77,55 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		menu.alphaTheme = 0
 	}
 
-	overviewPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
-	historyPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
-	receivePageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
-	stakingPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
-	accountPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Bold: true, Italic: true}))
+	overviewPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
+	historyPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
+	receivePageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
+	stakingPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
+	accountPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
 
 	overviewPage(wallet, fyneApp)
 	menu.tabs = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", fyne.NewStaticResource("Overview", overviewFile), overviewPageContainer.container), //overviewPage(wallet, fyneApp)),
-		widget.NewTabItemWithIcon("History", fyne.NewStaticResource("History", historyFile), historyPageContainer.container),
-		widget.NewTabItemWithIcon("Send", fyne.NewStaticResource("Send", sendFile), pageNotImplemented()),
-		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), receivePageContainer.container),    //receivePage(wallet, window)),
-		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), accountPageContainer.container), // accountPage(wallet, appSettings, window)),
-		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), stakingPageContainer.container),    //stakingPage(wallet)),
-		widget.NewTabItemWithIcon("More", fyne.NewStaticResource("More", moreFile), morePage(wallet, fyneApp)),
-		widget.NewTabItemWithIcon("Exit", fyne.NewStaticResource("Exit", exitFile), exit(ctx, fyneApp, window)))
+		widget.NewTabItemWithIcon("Overview", overviewIcon, overviewPageContainer.container),
+		widget.NewTabItemWithIcon("History", historyIcon, historyPageContainer.container),
+		widget.NewTabItemWithIcon("Send", sendIcon, pageNotImplemented()),
+		widget.NewTabItemWithIcon("Receive", receiveIcon, receivePageContainer.container),
+		widget.NewTabItemWithIcon("Accounts", accountIcon, accountPageContainer.container),
+		widget.NewTabItemWithIcon("Staking", stakingIcon, stakingPageContainer.container),
+		widget.NewTabItemWithIcon("More", moreIcon, morePage(wallet, fyneApp)),
+		widget.NewTabItemWithIcon("Exit", exitIcon, exit(ctx, fyneApp, window)))
 	menu.tabs.SetTabLocation(widget.TabLocationLeading)
 
-	// would update all labels for all pages every seconds, all objects to be updated should be placed here
+	// This goroutine tracks tab changes, and deallocates unneeded tab memory contents.
 	go func() {
+		// Todo: notImplemented function should be removed when all page has been implemented
+		notImplemented := func(page int) {
+			if (page + 1) > len(menu.tabs.Items) {
+				fmt.Println("page not available in tab")
+				return
+			}
+			a, ok := interface{}(menu.tabs.Items[page].Content).(*widget.Box)
+			if !ok {
+				return
+			}
+
+			a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("This page has not been implemented yet...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})).Children
+			widget.Refresh(a)
+		}
+
 		var currentPage = 0
 
 		for {
-			// load contents to page when user is on the page
-			// update only when the user is on the page
+			// Load contents to page when user is on the page.
+			// Update only when the user is on the page.
 			if menu.tabs.CurrentTabIndex() == 0 {
 				if currentPage != 0 {
 					history = historyPageData{}
 					overviewPage(wallet, fyneApp)
 					resetPages(0, window)
 					currentPage = 0
-
 				}
-				//overviewPageUpdates(wallet)
+				// Todo: Remove overviewPageUpdate when TxNofier is implemented.
+				overviewPageUpdates(wallet)
 			} else if menu.tabs.CurrentTabIndex() == 1 {
 				if currentPage != 1 {
 					overview = overviewPageData{}
@@ -138,6 +136,9 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 				historyPageUpdates(wallet, window)
 			} else if menu.tabs.CurrentTabIndex() == 2 {
 				if currentPage != 2 {
+					overview = overviewPageData{}
+					history = historyPageData{}
+					notImplemented(2)
 					resetPages(2, window)
 					currentPage = 2
 				}
@@ -177,7 +178,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		}
 	}()
 
-	// where peerConn and blkHeight are the realtime status texts
+	// Where peerConn and blkHeight are the realtime status texts.
 	status := widget.NewVBox(menu.peerConn, menu.blkHeight)
 	data := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, status, menu.tabs, nil), menu.tabs, status)
 

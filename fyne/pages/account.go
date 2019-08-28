@@ -32,15 +32,9 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings,
 	}
 
 	listAccounts := receiveAccountDetails(accountNames, appSettings, wallet, errorLabel, successLabel)
-	acctBox, ok := interface{}(listAccounts.Content).(*widget.Box)
-	if !ok {
-		accountPageContainer.container.Children = []fyne.CanvasObject{widget.NewLabelWithStyle("Unable to retrieve account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})}
-		widget.Refresh(accountPageContainer.container)
-		return
-	}
 
 	addAccountIcon := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
-		popup := createAccount(wallet, appSettings, acctBox, successLabel, window)
+		popup := createAccount(wallet, appSettings, listAccounts, window)
 		popup.Show()
 	})
 	addAccount := widget.NewToolbar(addAccountIcon)
@@ -58,14 +52,12 @@ func accountPage(wallet godcrApp.WalletMiddleware, appSettings *config.Settings,
 	widget.Refresh(accountPageContainer.container)
 }
 
-//accountProperties creates a popUp that asks for account name and password so as to create the new account
-func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Settings, listAccounts *widget.Box, successLabel *widget.Label, window fyne.Window) fyne.CanvasObject {
-	//popUp houses all widgets, to display on account creation
+func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Settings, listAccounts *widget.ScrollContainer, window fyne.Window) fyne.CanvasObject {
+	// popUp houses all widgets, to display on account creation
 	var popUp *widget.PopUp
 	var createAccountButton *widget.Button
 
 	titleLabel := widget.NewLabelWithStyle("Create new account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	//error is in red text
 	errorLabel := widget.NewLabel("")
 	errorLabel.Hide()
 	errorLabel.Hide()
@@ -78,7 +70,7 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Setting
 	password.SetPlaceHolder("Password")
 
 	password.OnChanged = func(s string) {
-		//disable button till there's a name and password
+		// disable button till there's a name and password.
 		if name.Text != "" && password.Text != "" {
 			if createAccountButton.Disabled() {
 				createAccountButton.Enable()
@@ -91,34 +83,33 @@ func createAccount(wallet godcrApp.WalletMiddleware, appSettings *config.Setting
 	}
 
 	createAccountButton = widget.NewButton("Create", func() {
-		createAccountButton.Disable()
 		_, err := wallet.NextAccount(name.Text, password.Text)
 		if err != nil {
-			errorLabel.SetText("could not create new account " + err.Error())
-			successLabel.Hide()
-			createAccountButton.Enable()
-		} else {
-			successLabel.SetText("Account created")
-			errorLabel.Hide()
-
-			accountNames, _ := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-			acct := receiveAccountDetails(accountNames, appSettings, wallet, errorLabel, successLabel).Content
-			acctBox, ok := interface{}(acct).(*widget.Box)
-			if !ok {
-				return
-			}
-			listAccounts = acctBox
-
-			widget.Refresh(listAccounts)
-			widget.Refresh(accountPageContainer.container)
-
-			popUp.Hide()
+			errorLabel.Show()
+			errorLabel.SetText("could not create a new account: " + err.Error())
+			return
 		}
+
+		// Reset the page.
+		accountPage(wallet, appSettings, window)
+		// Get the first object in the vbox container of account page.
+		a, ok := interface{}(accountPageContainer.container.Children[1]).(*widget.Box)
+		if !ok {
+			return
+		}
+
+		successLabel, ok := interface{}(a.Children[1]).(*widget.Label)
+		if !ok {
+			return
+		}
+		successLabel.Show()
+		successLabel.SetText("Account created")
+
+		popUp.Hide()
 	})
+	createAccountButton.Disable()
 
 	cancel := widget.NewButton("Cancel", func() {
-		name.SetText("")
-		password.SetText("")
 		popUp.Hide()
 	})
 
@@ -152,18 +143,16 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 
 		propertiesForm.Append("Account Number", widget.NewLabelWithStyle(strconv.Itoa(int(acct.Number)), fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
 		if wallet.NetType() == "testnet3" {
-			propertiesForm.Append("HD Path", widget.NewLabelWithStyle(fmt.Sprintf("%s / %d", walletcore.TestnetHDPath, acct.Number), fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
+			propertiesForm.Append("HD Path", widget.NewLabelWithStyle(fmt.Sprintf("%s%d'", walletcore.TestnetHDPath, acct.Number), fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
 		} else {
-			propertiesForm.Append("HD Path", widget.NewLabelWithStyle(fmt.Sprintf("%s / %d", walletcore.MainnetHDPath, acct.Number), fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
+			propertiesForm.Append("HD Path", widget.NewLabelWithStyle(fmt.Sprintf("%s%d'", walletcore.MainnetHDPath, acct.Number), fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
 		}
 		keys := fmt.Sprintf("%d external, %d internal, %d imported", acct.ExternalKeyCount, acct.InternalKeyCount, acct.ImportedKeyCount)
 		propertiesForm.Append("Keys", widget.NewLabelWithStyle(keys, fyne.TextAlignTrailing, fyne.TextStyle{Monospace: true}))
 
-		//detailsForm.Append("Immature Rewards",)
-
 		hideAccount[accountName] = widget.NewCheck("Hide Account", func(s bool) {
 			if s == true {
-				// filter for duplicate hidden acct
+				// Filter for duplicate hidden account.
 				hiddenAcct := make(map[uint32]uint32)
 				for _, hidden := range appSettings.HiddenAccounts {
 					hiddenAcct[hidden] = hidden
@@ -203,10 +192,10 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 		}
 
 		(defaultAccount)[accountNo[accountName]] = widget.NewCheck("Default Account", func(s bool) {
-			// enable as default account and disable default account checkbox and hidden account checkbox
-			// else enable hidden account checkbox
+			// Enable as default account and disable default account checkbox and hidden account checkbox
+			// else enable hidden account checkbox.
 			if s == true {
-				//this removes the account from hidden
+				// Remove account from hidden.
 				if hideAccount[accountName].Checked {
 					hideAccount[accountName].SetChecked(false)
 					var hiddenAccounts []uint32
@@ -229,7 +218,7 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 					errorLabel.Show()
 				}
 
-				// remove other account that has been set as default
+				// Remove other account that has been set as default.
 				for no := range accounts {
 					if uint32(no) == appSettings.DefaultAccount {
 						continue
@@ -253,26 +242,25 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 			widget.NewLabelWithStyle("Properties", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			propertiesForm,
 			widgets.NewVSpacer(10))
+		propertiesContainer[accountName].Hide()
 
 		button[accountName] = widget.NewButton(accountName, func() {
 			if propertiesContainer[accountName].Hidden {
 				propertiesContainer[accountName].Show()
-				container[accountName].Children = []fyne.CanvasObject{button[accountName], propertiesContainer[accountName]} //fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(1000, 30)), button[accountName]), propertiesContainer[accountName]}
-				//collapsibleContainer.Resize(propertiesForm.MinSize())
+				container[accountName].Children = []fyne.CanvasObject{button[accountName], propertiesContainer[accountName]}
 			} else {
 				propertiesContainer[accountName].Hide()
 				container[accountName].Children = []fyne.CanvasObject{button[accountName]}
-				//collapsibleContainer.Resize(fyne.NewSize(scrollContainer.MinSize().Width, button[accountName].MinSize().Height))
 			}
 			widget.Refresh(container[accountName])
 			widget.Refresh(collapsibleContainer)
+			scrollContainer.Resize(fyne.NewSize(500, 500))
 			widget.Refresh(scrollContainer)
 			widget.Refresh(accountPageContainer.container)
 		})
 
 		container[accountName] = widget.NewVBox()
 		container[accountName].Append(button[accountName])
-		container[accountName].Append(propertiesContainer[accountName])
 		collapsibleContainer.Append(container[accountName])
 	}
 	for i := range accounts {
@@ -281,8 +269,6 @@ func receiveAccountDetails(accounts []*walletcore.Account, appSettings *config.S
 			break
 		}
 	}
-	scrollContainer.Content = widget.NewHBox(collapsibleContainer, widgets.NewHSpacer(20))
-	widget.Refresh(scrollContainer)
-
+	scrollContainer.Content = widget.NewHBox(collapsibleContainer)
 	return scrollContainer
 }

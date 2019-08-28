@@ -19,10 +19,10 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
 			change.Settings().SetTheme(theme.LightTheme())
-			menu.alphaTheme = 0
+			menu.alphaTheme = 225
 		} else if background == "Dark Theme" {
 			change.Settings().SetTheme(theme.DarkTheme())
-			menu.alphaTheme = 225
+			menu.alphaTheme = 0
 		}
 	})
 	radio.Horizontal = true

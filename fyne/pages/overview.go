@@ -2,9 +2,6 @@ package pages
 
 import (
 	"image/color"
-	"io/ioutil"
-	"log"
-	"strconv"
 	"strings"
 
 	"fyne.io/fyne"
@@ -18,7 +15,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-// overview page memory is cleared when page isn't viewed.
+// Overview page memory is cleared when page isn't viewed.
 type overviewPageData struct {
 	iconLabel       *fyne.Container
 	errorLabel      *widget.Label
@@ -35,20 +32,13 @@ var overviewPageContainer pageContainer
 func initOverview(wallet godcrApp.WalletMiddleware) {
 	fyneTheme := fyne.CurrentApp().Settings().Theme()
 	if fyneTheme.BackgroundColor() == theme.LightTheme().BackgroundColor() {
-		decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
-		if err != nil {
-			log.Fatalln("decred dark png file missing", err)
-		}
 		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{0, 0, 0, 255})
-		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
+		overview.icon = canvas.NewImageFromResource(decredDarkIcon)
 
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
-		decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
-		if err != nil {
-			log.Fatalln("decred light file missing", err)
-		}
+
 		overview.goDcrLabel = canvas.NewText(godcrApp.DisplayName, color.RGBA{255, 255, 255, 0})
-		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredLight))
+		overview.icon = canvas.NewImageFromResource(decredLightIcon)
 	}
 	overview.icon.FillMode = canvas.ImageFillOriginal
 	overview.goDcrLabel.TextSize = 20
@@ -72,23 +62,6 @@ func overviewPageUpdates(wallet godcrApp.WalletMiddleware) {
 	fetchTxTable(false, &txTable, 0, 5, wallet, nil)
 	overview.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(overview.txTable.Result)
-}
-
-// statusUpdates updates peerconn and blkheight
-func statusUpdates(wallet godcrApp.WalletMiddleware) {
-	info, err := wallet.WalletConnectionInfo()
-	if err != nil {
-		widget.Refresh(overview.errorLabel)
-		overview.errorLabel.SetText(err.Error())
-	}
-
-	if info.PeersConnected <= 1 {
-		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peer Connected")
-	} else {
-		menu.peerConn.SetText(strconv.Itoa(int(info.PeersConnected)) + " Peers Connected")
-	}
-
-	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
 }
 
 func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) {

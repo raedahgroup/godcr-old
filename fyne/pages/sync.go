@@ -34,10 +34,11 @@ func ShowSyncWindow(ctx context.Context, wallet godcrApp.WalletMiddleware, appSe
 	var syncDone bool
 
 	wallet.SyncBlockChain(false, func(report *defaultsynclistener.ProgressReport) {
-		// return if no window is being shown
+		// Return if no window is being shown.
 		if len(fyne.CurrentApp().Driver().AllWindows()) == 0 {
 			return
 		}
+
 		progressReport := report.Read()
 		progressBar.SetValue(float64(progressReport.TotalSyncProgress))
 

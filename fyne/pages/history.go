@@ -75,21 +75,22 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 		widget.Refresh(history.txFilters)
 	}
 
-	// append to table when scrollbar is at 80% of the scroller.
-	if scrollPosition == 1 {
+	// Append to table when scrollbar is at 90% of the scrollbar.
+	if scrollPosition == 0.9 {
 		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, window, false)
 		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
 			history.totalTxOnTable = history.totalTxOnTable + 20
 		} else {
 			history.totalTxOnTable = int32(txCountByFilter[splittedWord[0]])
 		}
-		if history.txTable.NumberOfRows() >= 90 {
+		// Delete from table if rows exceeds 90.
+		if history.txTable.NumberOfColumns() >= 90 {
 			history.txTable.Delete(0, 20)
 			history.offset = history.offset + 20
 		}
 
 	} else if history.txTable.Container.Offset.Y == 0 {
-		// if the scroll bar is at the begining, then fetch 1st 50 tx
+		// If the scroll bar is at the begining, then fetch 1st 50 tx
 		if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
 			history.txFilters.SetSelected(splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")")
 		}
@@ -100,7 +101,7 @@ func historyPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, window, true)
 		history.offset = history.offset - 20
 
-		rowNo := history.txTable.NumberOfRows()
+		rowNo := history.txTable.NumberOfColumns()
 		if rowNo >= 90 {
 			history.txTable.Delete(rowNo-20, rowNo)
 			history.totalTxOnTable = int32(rowNo) + history.offset
@@ -120,7 +121,7 @@ func historyPage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	history.errorLabel.Hide()
 
 	history.txFilters = widget.NewSelect(nil, func(selected string) {
-		// if a new type is selected, load the first 50tx
+		// If a new type is selected, load the first 50tx
 		var txTable widgets.TableStruct
 		fetchTxTable(true, &txTable, 0, 50, wallet, window)
 		splittedWord := strings.Split(history.txFilters.Selected, " ")
@@ -154,7 +155,7 @@ func historyPage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 	}
 	history.txTable.Container.Resize(fyne.NewSize(history.txTable.Container.MinSize().Width, 500))
 
-	output := widget.NewVBox(widget.NewLabelWithStyle("History", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), widgets.NewVSpacer(10),
+	output := widget.NewVBox(widget.NewLabelWithStyle("History", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}), widgets.NewVSpacer(10),
 		widget.NewHBox(layout.NewSpacer(), history.txFilters),
 		fyne.NewContainer(history.txTable.Container),
 		history.errorLabel)

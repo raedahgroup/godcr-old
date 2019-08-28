@@ -15,7 +15,7 @@ import (
 var receivePageContainer pageContainer
 
 func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
-	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
+	// If there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo.
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
 	qrImage.SetMinSize(fyne.NewSize(300, 300))
 
@@ -59,7 +59,7 @@ func receivePage(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 			errorHandler(err.Error())
 			return
 		}
-		// if there was a rectified error and user clicks the generate again, this hides the error text
+		// If there was a rectified error and user clicks the generate again, this hides the error text.
 		if !errorLabel.Hidden {
 			errorLabel.Hide()
 		}
