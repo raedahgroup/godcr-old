@@ -92,7 +92,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 				stakingPageReloadData(wallet)
 			case 6:
 				// might take some time, fetch data in background
-				go ticketPageUpdates(wallet)
+				go ticketPageUpdates(wallet, window)
 			}
 
 			statusUpdates(wallet)

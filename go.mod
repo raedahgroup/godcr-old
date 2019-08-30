@@ -1,7 +1,7 @@
 module github.com/raedahgroup/godcr
 
 require (
-	fyne.io/fyne v1.1.0
+	fyne.io/fyne v1.1.1
 	github.com/aarzilli/nucular v0.0.0-20190403084742-0071461892e4
 	github.com/atotto/clipboard v0.1.2
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1

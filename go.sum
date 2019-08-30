@@ -1,6 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-fyne.io/fyne v1.1.0 h1:gQHhhS3u4uvjyP+LPU7gCj39gdO7czZ/ahhWQXwZlIk=
-fyne.io/fyne v1.1.0/go.mod h1:mz0CvQX1ACEjiDGpSH3D8Qf9yHq8dfYA039kG7p8ZhQ=
+fyne.io/fyne v1.1.1 h1:vmeT7lqdho+Upt/PWuDInj8xAkNAaZC/rbtr3goJczY=
+fyne.io/fyne v1.1.1/go.mod h1:mz0CvQX1ACEjiDGpSH3D8Qf9yHq8dfYA039kG7p8ZhQ=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9 h1:HD8gA2tkByhMAwYaFAX9w2l7vxvBQ5NMoxDrkhqhtn4=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -241,8 +241,6 @@ github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190823223630-39cd1f6f0041 h1:npK+jhuYG850VTbSS06GbAsf8ZrEbMS5EGj8Mh9Jr1Y=
-github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190823223630-39cd1f6f0041/go.mod h1:7BxsN3VU3KWUt9R8eHgrBI88kE7/WWSfN0yl0vU1SM8=
 github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790 h1:yt1AZgiBi8RcCo0PoyU4gSFwKjlbkSGRFVZGz7R6oB0=
 github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790/go.mod h1:J4W+hErFfITUbyFAEXizpmkuxX7ZN56dopxHB4XQhMw=
 github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9 h1:lpEzuenPuO1XNTeikEmvqYFcU37GVLl8SRNblzyvGBE=

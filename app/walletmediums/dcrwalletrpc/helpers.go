@@ -124,7 +124,7 @@ func (c *WalletRPCClient) updateTicketPurchaseRequestWithVSPInfo(request *dcrlib
 	pubKeyAddr := addressValidationResult.PubKeyAddr
 
 	// invoke vsp api
-	ticketPurchaseInfo, err := dcrlibwallet.CallVSPTicketInfoAPI(request.VSPHost, pubKeyAddr)
+	ticketPurchaseInfo, err := dcrlibwallet.CallVSPPurchaseTicketAPI(request.VSPHost, pubKeyAddr)
 	if err != nil {
 		return fmt.Errorf("vsp connection error: %s", err.Error())
 	}

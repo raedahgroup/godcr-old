@@ -248,6 +248,12 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 	return tickets, nil
 }
 
+func (lib *DcrWalletLib) ImportRedeemScriptsForTickets(requests []dcrlibwallet.VSPTicketPurchaseInfoRequest,
+	vspHost string, passphrase string) (errors []error) {
+
+	return lib.walletLib.ImportRedeemScriptsForTickets(requests, vspHost, []byte(passphrase))
+}
+
 func (lib *DcrWalletLib) ChangePrivatePassphrase(_ context.Context, oldPass, newPass string) error {
 	if oldPass == "" || newPass == "" {
 		return errors.New("Passphrase cannot be empty")
