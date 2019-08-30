@@ -5,16 +5,55 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/raedahgroup/dcrlibwallet"
+	godcrApp "github.com/raedahgroup/godcr/app"
+	dlw "github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/godcr/fyne/widgets"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func settingsPage(App fyne.App) fyne.CanvasObject {
-	settings := widget.NewVBox(changeTheme(App))
-	return widget.NewHBox(widgets.NewHSpacer(10), settings)
+func settingsPage(App fyne.App, wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
+	settings := widget.NewVBox(
+		widgets.NewItalicizedLabel("Staking"),
+		stakingForm(wallet),
+		widgets.NewVSpacer(10),
+		changeTheme(App),
+	)
+
+	return widget.NewHBox(
+		widgets.NewHSpacer(10),
+		settings,
+	)
+}
+
+func stakingForm(wallet godcrApp.WalletMiddleware) fyne.Widget {
+	libwallet, ok := wallet.(*dlw.DcrWalletLib)
+	if !ok {
+		return widgets.NewItalicizedLabel("Settings not yet supported for dcrwallet")
+	}
+
+	var vspHostValue string
+	if err := libwallet.ReadFromSettings(dcrlibwallet.VSPHostSettingsKey, &vspHostValue); err != nil {
+		println(err.Error())
+	}
+
+	vspHost := widget.NewEntry()
+	vspHost.SetText(vspHostValue)
+
+	stakingForm := &widget.Form{
+		OnSubmit: func() {
+			if err := libwallet.SaveToSettings(dcrlibwallet.VSPHostSettingsKey, vspHost.Text); err != nil {
+				println(err.Error())
+			}
+		},
+	}
+	stakingForm.Append("VSP Host", vspHost)
+
+	return stakingForm
 }
 
 // todo: after changing theme, make it default

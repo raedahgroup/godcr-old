@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
 	godcrApp "github.com/raedahgroup/godcr/app"
+	dlw "github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -57,9 +58,6 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 	spendUnconfirmedCheck := widget.NewCheck("", nil)
 	purchaseForm.Append("Spend unconfirmed", spendUnconfirmedCheck)
 
-	vspHostEntry := widget.NewEntry()
-	purchaseForm.Append("VSP host (leave empty if not using vsp)", vspHostEntry)
-
 	passphraseEntry := widget.NewPasswordEntry()
 	purchaseForm.Append("Passphrase", passphraseEntry)
 
@@ -88,8 +86,16 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 			Account:               sourceAccount,
 			NumTickets:            uint32(nTickets),
 			RequiredConfirmations: uint32(requiredConfirmations),
-			VSPHost:               vspHostEntry.Text,
 			Passphrase:            []byte(passphraseEntry.Text),
+		}
+
+		if libwallet, ok := wallet.(*dlw.DcrWalletLib); ok {
+			var vspHost string
+			if err := libwallet.ReadFromSettings(dcrlibwallet.VSPHostSettingsKey, &vspHost); err != nil {
+				println(err.Error())
+			}
+			purchaseTicketsRequest.VSPHost = vspHost
+			println(vspHost)
 		}
 
 		ticketHashes, err := wallet.PurchaseTicket(context.Background(), purchaseTicketsRequest)
@@ -97,7 +103,6 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 			ticketPurchaseError(err.Error())
 		} else {
 			numberOfTicketsEntry.SetText("")
-			vspHostEntry.SetText("")
 			passphraseEntry.SetText("")
 			widget.Refresh(purchaseForm)
 

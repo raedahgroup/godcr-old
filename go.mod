@@ -34,3 +34,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.19.0
 )
+
+replace github.com/raedahgroup/dcrlibwallet => ../dcrlibwallet-wip
