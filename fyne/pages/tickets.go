@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"fyne.io/fyne"
-	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
@@ -19,9 +19,11 @@ import (
 
 // ticketPageData contains widgets that needs to be updated realtime
 type ticketPageData struct {
-	stakeInfoLabel          *widget.Label
-	ticketsTable            widgets.TableStruct
-	ticketsListMessageLabel *widget.Label
+	stakeInfoLabel               *widget.Label
+	ticketsTable                 widgets.TableStruct
+	ticketsListMessageLabel      *widget.Label
+	scriptRecoveryPassphraseForm *widget.Form
+	passphraseChan               chan string
 }
 
 var ticket ticketPageData
@@ -42,37 +44,49 @@ func initTicketPage() fyne.CanvasObject {
 	txTable.NewTable(heading)
 	ticket.ticketsTable = txTable
 
+	ticket.passphraseChan = make(chan string)
+	passphraseEntry := widget.NewPasswordEntry()
+	ticket.scriptRecoveryPassphraseForm = &widget.Form{
+		OnSubmit: func() {
+			if passphraseEntry.Text != "" {
+				ticket.passphraseChan <- passphraseEntry.Text
+				ticket.scriptRecoveryPassphraseForm.Hide()
+				passphraseEntry.SetText("")
+			}
+		},
+		OnCancel: func() {
+			ticket.passphraseChan <- ""
+			ticket.scriptRecoveryPassphraseForm.Hide()
+			passphraseEntry.SetText("")
+		},
+	}
+	ticket.scriptRecoveryPassphraseForm.Append("Enter passphrase:", passphraseEntry)
+	ticket.scriptRecoveryPassphraseForm.Hide()
+
 	output := widget.NewVBox(
 		widgets.NewVSpacer(20),
-		widget.NewLabelWithStyle("Staking Summary", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic:true}),
+		widget.NewLabelWithStyle("Staking Summary", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}),
 		ticket.stakeInfoLabel,
 		widgets.NewVSpacer(20),
-		widget.NewLabelWithStyle("Your Tickets", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic:true}),
+		widget.NewLabelWithStyle("Your Tickets", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}),
 		fyne.NewContainerWithLayout(
 			// this is a hack, should be able to resize table when dynamic content size changes
 			layout.NewFixedGridLayout(fyne.NewSize(700, 200)),
 			ticket.ticketsTable.Container),
 		widgets.NewVSpacer(20),
 		ticket.ticketsListMessageLabel,
+		ticket.scriptRecoveryPassphraseForm,
 	)
 
 	return widget.NewHBox(widgets.NewHSpacer(20), output)
 }
 
-func ticketPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
-	stakeInfo, err := wallet.StakeInfo(context.Background())
-	if err != nil {
-		ticket.stakeInfoLabel.SetText(fmt.Sprintf("Error loading stake info: %s", err.Error()))
-	} else {
-		stakeInfoText := fmt.Sprintf(
-			"Own Mempool Tickets: %d   Immature Tickets: %d   Unspent Tickets: %d   Live Tickets: %d \n"+
-				"Missed Tickets: %d   Expired Tickets: %d   Revoked Tickets: %d \n"+
-				"Voted Tickets: %d   Total Rewards: %s",
-			stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Unspent, stakeInfo.Live,
-			stakeInfo.Missed, stakeInfo.Expired, stakeInfo.Revoked,
-			stakeInfo.Voted, stakeInfo.TotalSubsidy)
-		ticket.stakeInfoLabel.SetText(stakeInfoText)
-	}
+func ticketPageUpdates(wallet godcrApp.WalletMiddleware) {
+	// hide script recovery related items when this page is navigated to
+	ticket.ticketsListMessageLabel.SetText("")
+	ticket.scriptRecoveryPassphraseForm.Hide()
+
+	loadStakeInfoSummary(wallet)
 
 	tickets, err := wallet.GetTickets()
 	if err != nil {
@@ -105,10 +119,26 @@ func ticketPageUpdates(wallet godcrApp.WalletMiddleware, window fyne.Window) {
 
 	ticket.ticketsTable.Container.Show()
 
-	processVSPTickets(tickets, wallet, window)
+	processVSPTickets(tickets, wallet)
 }
 
-func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.WalletMiddleware, window fyne.Window) {
+func loadStakeInfoSummary(wallet godcrApp.WalletMiddleware) {
+	stakeInfo, err := wallet.StakeInfo(context.Background())
+	if err != nil {
+		ticket.stakeInfoLabel.SetText(fmt.Sprintf("Error loading stake info: %s", err.Error()))
+	} else {
+		stakeInfoText := fmt.Sprintf(
+			"Own Mempool Tickets: %d   Immature Tickets: %d   Unspent Tickets: %d   Live Tickets: %d \n"+
+				"Missed Tickets: %d   Expired Tickets: %d   Revoked Tickets: %d \n"+
+				"Voted Tickets: %d   Total Rewards: %s",
+			stakeInfo.OwnMempoolTix, stakeInfo.Immature, stakeInfo.Unspent, stakeInfo.Live,
+			stakeInfo.Missed, stakeInfo.Expired, stakeInfo.Revoked,
+			stakeInfo.Voted, stakeInfo.TotalSubsidy)
+		ticket.stakeInfoLabel.SetText(stakeInfoText)
+	}
+}
+
+func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.WalletMiddleware) {
 	allVSPTicketHashes := make([]dcrlibwallet.VSPTicketPurchaseInfoRequest, 0)
 	errors := make([]string, 0)
 
@@ -130,14 +160,14 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 			}
 
 			allVSPTicketHashes = append(allVSPTicketHashes, dcrlibwallet.VSPTicketPurchaseInfoRequest{
-				TicketHash: hash,
+				TicketHash:                hash,
 				TicketOwnerCommitmentAddr: walletOwnedSstxCommitOutAddr,
 			})
 		}
 	}
 
 	if len(errors) > 0 {
-		errorMessage := "Errors:\n"+strings.Join(errors, "\n")
+		errorMessage := "Errors:\n" + strings.Join(errors, "\n")
 		ticket.ticketsListMessageLabel.SetText(errorMessage)
 	}
 
@@ -179,43 +209,48 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 		return
 	}
 
-	updateReport(fmt.Sprintf("\nAttempting to download redeem scripts from %s...", vspHost))
+	updateReport(fmt.Sprintf("Enter your wallet private passphrase to attempt to download\n"+
+		"and import redeem scripts from %s", vspHost))
 
-	passphrase := requestPassphrase(window)
+	ticket.scriptRecoveryPassphraseForm.Show()
+	passphrase := <-ticket.passphraseChan
 	if passphrase == "" {
+		updateReport("Canceled")
 		return
 	}
+
+	updateReport(fmt.Sprintf("\nAttempting to download redeem scripts from %s...", vspHost))
+
+	// todo: setup blocks rescan listener to update UI of rescan progress post-script importation
 
 	importErrors := libwallet.ImportRedeemScriptsForTickets(allVSPTicketHashes, vspHost, passphrase)
 	var finalReport string
 	if len(importErrors) > 0 {
 		finalReport = fmt.Sprintf("Redeem scripts recovery completed with %d errors:", len(importErrors))
 		for _, err := range importErrors {
-			finalReport += "\n"+err.Error()
+			finalReport += "\n" + err.Error()
 		}
 	} else {
-		finalReport = "Redeem scripts recovery completed."
+		finalReport = "Redeem scripts recovery completed successfully."
 	}
+
+	if len(importErrors) < len(allVSPTicketHashes) {
+		// at least 1 script was imported, there would likely be a rescan
+		finalReport += "\nRescan in progress, please wait..."
+	}
+
 	updateReport(finalReport)
-}
 
-func requestPassphrase(window fyne.Window) string {
-	passphraseChan := make(chan string)
+	// refresh stake info summary to display more accurate tickets count
+	loadStakeInfoSummary(wallet)
 
-	passphraseEntry := widget.NewPasswordEntry()
-	modalForm := &widget.Form{
-		OnSubmit: func() {
-			if passphraseEntry.Text != "" {
-				passphraseChan <- passphraseEntry.Text
+	go func() {
+		for {
+			if !libwallet.IsRescanning() {
+				break
 			}
-		},
-		OnCancel: func() {
-			passphraseChan <- ""
-		},
-	}
-	modalForm.Append("Enter passphrase to proceed", passphraseEntry)
-
-	dialog.ShowCustom("Fetch Missing Scripts", "Ignore", modalForm, window)
-
-	return <- passphraseChan
+			time.Sleep(1 * time.Second)
+		}
+		updateReport("Rescan complete.")
+	}()
 }

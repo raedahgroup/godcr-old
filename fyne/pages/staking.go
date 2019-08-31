@@ -11,8 +11,8 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
 	godcrApp "github.com/raedahgroup/godcr/app"
-	dlw "github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	dlw "github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -95,7 +95,6 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 				println(err.Error())
 			}
 			purchaseTicketsRequest.VSPHost = vspHost
-			println(vspHost)
 		}
 
 		ticketHashes, err := wallet.PurchaseTicket(context.Background(), purchaseTicketsRequest)

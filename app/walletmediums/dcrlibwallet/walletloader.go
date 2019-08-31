@@ -50,7 +50,11 @@ func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*
 }
 
 func (lib *DcrWalletLib) RescanBlockChain() error {
-	return lib.walletLib.RescanBlocks()
+	return lib.walletLib.RescanBlocks(0)
+}
+
+func (lib *DcrWalletLib) IsRescanning() bool {
+	return lib.walletLib.IsRescanning()
 }
 
 func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
