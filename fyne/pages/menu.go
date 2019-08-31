@@ -41,7 +41,7 @@ func resetPages(exempt int, window fyne.Window) {
 			continue
 		}
 
-		a.Children = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})).Children
+		a.Children = widget.NewHBox().Children
 		widget.Refresh(a)
 	}
 }
@@ -77,11 +77,11 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 		menu.alphaTheme = 0
 	}
 
-	overviewPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
-	historyPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
-	receivePageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
-	stakingPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
-	accountPageContainer.container = widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("fetching data...", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}))
+	overviewPageContainer.container = widget.NewHBox()
+	historyPageContainer.container = widget.NewHBox()
+	receivePageContainer.container = widget.NewHBox()
+	stakingPageContainer.container = widget.NewHBox()
+	accountPageContainer.container = widget.NewHBox()
 
 	overviewPage(wallet, fyneApp)
 	menu.tabs = widget.NewTabContainer(
