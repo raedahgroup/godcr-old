@@ -8,6 +8,7 @@ import (
 
 	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
@@ -249,7 +250,7 @@ func (lib *DcrWalletLib) PurchaseTicket(ctx context.Context, request dcrlibwalle
 }
 
 func (lib *DcrWalletLib) ImportRedeemScriptsForTickets(requests []dcrlibwallet.VSPTicketPurchaseInfoRequest,
-	vspHost string, passphrase string) (errors []error) {
+	vspHost string, passphrase string) (chan wallet.RescanProgress, []error) {
 
 	return lib.walletLib.ImportRedeemScriptsForTickets(requests, vspHost, []byte(passphrase))
 }

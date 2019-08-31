@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -161,6 +160,7 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 
 			allVSPTicketHashes = append(allVSPTicketHashes, dcrlibwallet.VSPTicketPurchaseInfoRequest{
 				TicketHash:                hash,
+				BlockHeight:     		   ticket.BlockHeight,
 				TicketOwnerCommitmentAddr: walletOwnedSstxCommitOutAddr,
 			})
 		}
@@ -221,7 +221,7 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 
 	updateReport(fmt.Sprintf("\nAttempting to download redeem scripts from %s...", vspHost))
 
-	importErrors := libwallet.ImportRedeemScriptsForTickets(allVSPTicketHashes, vspHost, passphrase)
+	rescanProgress, importErrors := libwallet.ImportRedeemScriptsForTickets(allVSPTicketHashes, vspHost, passphrase)
 	var finalReport string
 	if len(importErrors) > 0 {
 		finalReport = fmt.Sprintf("Redeem scripts recovery completed with %d errors:", len(importErrors))
@@ -232,24 +232,24 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 		finalReport = "Redeem scripts recovery completed successfully."
 	}
 
-	if len(importErrors) < len(allVSPTicketHashes) {
-		// at least 1 script was imported, there would likely be a rescan
+	if rescanProgress == nil {
+		updateReport(finalReport)
+	} else {
 		finalReport += "\nRescan in progress, please wait..."
-	}
+		updateReport(finalReport)
 
-	updateReport(finalReport)
+		for p := range rescanProgress {
+			if p.Err != nil {
+				updateReport(fmt.Sprintf("Rescan error: %s", p.Err.Error()))
+				break
+			} else {
+				fmt.Printf("Scanned through %d\n", p.ScannedThrough)
+			}
+		}
+
+		updateReport("Rescan complete.")
+	}
 
 	// refresh stake info summary to display more accurate tickets count
 	loadStakeInfoSummary(wallet)
-
-	// todo: hack! Use rescan listener to track rescan progress and update UI.
-	go func() {
-		for {
-			if !libwallet.IsRescanning() {
-				break
-			}
-			time.Sleep(1 * time.Second)
-		}
-		updateReport("Rescan complete.")
-	}()
 }
