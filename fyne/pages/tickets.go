@@ -221,8 +221,6 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 
 	updateReport(fmt.Sprintf("\nAttempting to download redeem scripts from %s...", vspHost))
 
-	// todo: setup blocks rescan listener to update UI of rescan progress post-script importation
-
 	importErrors := libwallet.ImportRedeemScriptsForTickets(allVSPTicketHashes, vspHost, passphrase)
 	var finalReport string
 	if len(importErrors) > 0 {
@@ -244,6 +242,7 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 	// refresh stake info summary to display more accurate tickets count
 	loadStakeInfoSummary(wallet)
 
+	// todo: hack! Use rescan listener to track rescan progress and update UI.
 	go func() {
 		for {
 			if !libwallet.IsRescanning() {
