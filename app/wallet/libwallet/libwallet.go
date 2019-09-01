@@ -2,8 +2,8 @@ package libwallet
 
 import (
 	"context"
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -13,9 +13,9 @@ import (
 // LibWallet implements `wallet.Wallet` using `dcrlibwallet.LibWallet`
 // as medium for connecting to a decred wallet.
 type LibWallet struct {
-	WalletDbDir string // todo confirm if this is needed
+	WalletDbDir string // todo confirm if this is needed to be public
 	activeNet   *netparams.Params
-	lw   *dcrlibwallet.LibWallet
+	lw          *dcrlibwallet.LibWallet
 }
 
 // todo: correct this doc
@@ -34,7 +34,7 @@ func Init(walletDbDir, networkType string) (*LibWallet, error) {
 
 	return &LibWallet{
 		WalletDbDir: walletDbDir,
-		lw:   lw,
+		lw:          lw,
 		activeNet:   activeNet,
 	}, nil
 }

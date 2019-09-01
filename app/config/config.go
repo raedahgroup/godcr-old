@@ -12,16 +12,17 @@ const (
 )
 
 var (
-	defaultAppDataDir          = dcrutil.AppDataDir("godcr", false)
-	LogFile                    = filepath.Join(defaultAppDataDir, "logs/godcr.log")
+	defaultAppDataDir = dcrutil.AppDataDir("godcr", false)
+	LogFile           = filepath.Join(defaultAppDataDir, "logs/godcr.log")
 )
 
 // Config holds app-wide configuration values.
 // Struct tags present on each field are used for
 // parsing/reading config values from a config file or from db.
 type Config struct {
-	AppDataDir       string `long:"appdata" description:"Path to application data directory."`
-	DebugLevel       string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}"`
+	AppDataDir string `long:"appdata" description:"Path to application data directory."`
+	DebugLevel string `long:"debuglevel" description:"Logging level {trace, debug, info, warn, error, critical}."`
+	UseTestnet bool   `long:"usetestnet" description:"Use testnet rather than mainnet."`
 
 	Settings `group:"Settings"`
 }
@@ -37,8 +38,8 @@ type Settings struct {
 
 func initConfigWithDefaultValues() *Config {
 	return &Config{
-		AppDataDir:    defaultAppDataDir,
-		DebugLevel:    defaultLogLevel,
+		AppDataDir: defaultAppDataDir,
+		DebugLevel: defaultLogLevel,
 		Settings: Settings{
 			CurrencyConverter: defaultCurrencyConverter,
 		},

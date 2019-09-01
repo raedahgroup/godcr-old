@@ -1,8 +1,11 @@
-module github.com/raedahgroup/godcr-fyne
+module github.com/raedahgroup/godcr
 
 go 1.12
 
 require (
+	github.com/decred/dcrd/dcrutil v1.2.0
 	github.com/decred/dcrwallet v1.2.2
+	github.com/decred/slog v1.0.0
+	github.com/jrick/logrotate v1.0.0
 	github.com/raedahgroup/dcrlibwallet v1.1.0
 )

@@ -13,7 +13,7 @@ type Wallet interface {
 
 	// Shutdown cancels any ongoing operations, unloads the wallet,
 	// closes all open databases and other resources.
-	Shutdown() error
+	Shutdown()
 
 	// SpvSync begins the spv syncing process,
 	// providing progress report via the provided progress listener.
