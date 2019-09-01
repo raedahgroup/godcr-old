@@ -27,15 +27,17 @@ func main() {
 	// nb: cli support will require loading from a config file
 	cfg, err := config.LoadConfigFromDb()
 	if err != nil {
-		log.Errorf("error loading config from db: %v", err)
-		fyneUI.HandlePreLaunchError(err)
+		errorMessage := fmt.Sprintf("Error loading config from db: %v", err)
+		log.Errorf(errorMessage)
+		fyneUI.DisplayPreLaunchError(errorMessage)
 		return
 	}
 
 	// Parse, validate, and set debug log level(s).
 	if err := parseAndSetDebugLevels(cfg.DebugLevel); err != nil {
-		log.Errorf("error setting log levels: %v", err)
-		fyneUI.HandlePreLaunchError(err)
+		errorMessage := fmt.Sprintf("error setting log levels: %v", err)
+		log.Errorf(errorMessage)
+		fyneUI.DisplayPreLaunchError(errorMessage)
 		return
 	}
 

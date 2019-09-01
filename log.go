@@ -14,7 +14,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
-	fyneLog "github.com/raedahgroup/godcr/fyne/log"
+	"github.com/raedahgroup/godcr/fyne"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -49,7 +49,7 @@ var (
 
 // Initialize package-global logger variables.
 func init() {
-	fyneLog.UseLogger(fyneLogger)
+	fyne.UseLogger(fyneLogger)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
