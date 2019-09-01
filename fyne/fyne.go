@@ -1,0 +1,5 @@
+package fyne
+
+func LaunchApp() {
+
+}
