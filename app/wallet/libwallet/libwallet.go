@@ -11,13 +11,11 @@ import (
 // LibWallet implements `wallet.Wallet` using `dcrlibwallet.LibWallet`
 // as medium for connecting to a decred wallet.
 type LibWallet struct {
-	WalletDbDir string // todo confirm if this is needed to be public
+	walletDbDir string
 	activeNet   *netparams.Params
 	dcrlw       *dcrlibwallet.LibWallet
 }
 
-// todo: correct this doc
-// Init opens connection to the wallet database via dcrlibwallet and returns an instance of LibWallet
 func Init(walletDbDir, networkType string) (*LibWallet, error) {
 	activeNet := utils.NetParams(networkType)
 	if activeNet == nil {
@@ -31,7 +29,7 @@ func Init(walletDbDir, networkType string) (*LibWallet, error) {
 	}
 
 	return &LibWallet{
-		WalletDbDir: walletDbDir,
+		walletDbDir: walletDbDir,
 		dcrlw:       lw,
 		activeNet:   activeNet,
 	}, nil
