@@ -60,6 +60,8 @@ func main() {
 	shutdownOps = append(shutdownOps, cancel)
 	fyneUI.LaunchApp(ctx, cfg, wallet)
 
+	// fyne showandrun function is a blocking function
+	// beginshutdown calls for an exit to app when fyneUI quits
 	beginShutdown <- true
 	shutdownWaitGroup.Wait()
 
