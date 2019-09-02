@@ -1,0 +1,10 @@
+.vscode/
+*.exe
+.DS_Store
+.idea/
+*.log
+*.bat
+vendor/
+godcr
+godcr.conf
+godcr.exe
