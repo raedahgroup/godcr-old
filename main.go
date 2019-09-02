@@ -10,7 +10,6 @@ import (
 	w "github.com/raedahgroup/godcr/app/wallet"
 	"github.com/raedahgroup/godcr/app/wallet/libwallet"
 	"github.com/raedahgroup/godcr/fyne"
-	"github.com/raedahgroup/godcr/app"
 )
 
 func main() {
@@ -23,17 +22,13 @@ func main() {
 		}
 	}()
 
-	var appUI app.UserInterface
-
-	// initialize appropriate ui here, fyne for now, could be any other interface in the future
-	appUI = fyne.InitializeUserInterface()
-
+	fyneUI := fyne.InitializeUserInterface()
 	// nb: cli support will require loading from a config file
 	cfg, err := config.LoadConfigFromDb()
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error loading config from db: %v", err)
 		log.Errorf(errorMessage)
-		appUI.DisplayPreLaunchError(errorMessage)
+		fyneUI.DisplayPreLaunchError(errorMessage)
 		return
 	}
 
@@ -41,7 +36,7 @@ func main() {
 	if err := parseAndSetDebugLevels(cfg.DebugLevel); err != nil {
 		errorMessage := fmt.Sprintf("error setting log levels: %v", err)
 		log.Errorf(errorMessage)
-		appUI.DisplayPreLaunchError(errorMessage)
+		fyneUI.DisplayPreLaunchError(errorMessage)
 		return
 	}
 
@@ -63,11 +58,16 @@ func main() {
 	// such operations should listen for ctx.Done and stop further processing
 	ctx, cancel := context.WithCancel(context.Background())
 	shutdownOps = append(shutdownOps, cancel)
+	fyneUI.LaunchApp(ctx, cfg, wallet)
 
-	appUI.LaunchApp(ctx, cfg, wallet)
+	// fyne showandrun function is a blocking function
+	// beginshutdown calls for an exit to app when fyneUI quits
+	beginShutdown <- true
+
+	shutdownWaitGroup.Wait()
 
 	// wait for handleShutdownRequests goroutine, to finish before exiting main
-	shutdownWaitGroup.Wait()
+
 }
 
 // connectToWallet opens connection to a wallet via dcrlibwallet (LibWallet)

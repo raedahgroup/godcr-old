@@ -3,6 +3,13 @@ package fyne
 import (
 	"context"
 	"fmt"
+	"os"
+
+	"fyne.io/fyne/layout"
+
+	"fyne.io/fyne/widget"
+
+	godcrApp "github.com/raedahgroup/godcr/app"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -16,16 +23,27 @@ type fyneApp struct {
 	ctx    context.Context
 	cfg    *config.Config
 	wallet wallet.Wallet
+	window fyne.Window
 }
 
 func InitializeUserInterface() *fyneApp {
 	// set app instance to be accessed subsequently as fyne.CurrentApp()
 	fyne.SetCurrentApp(app.New())
-	return &fyneApp{}
+	window := fyne.CurrentApp().NewWindow(godcrApp.DisplayName)
+	return &fyneApp{window: window}
 }
 
 func (app *fyneApp) DisplayPreLaunchError(errorMessage string) {
-	// todo: show an error message dialog
+
+	app.window.SetContent(widget.NewVBox(
+		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
+		widget.NewHBox(layout.NewSpacer(), widget.NewButton("Exit", func() {
+			app.window.Close()
+			fyne.CurrentApp().Quit()
+			os.Exit(1)
+		}), layout.NewSpacer())))
+
+	app.window.ShowAndRun()
 }
 
 func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wallet.Wallet) {
@@ -42,7 +60,7 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 	}
 
 	if !walletExists {
-		pages.ShowWelcomePage(app.wallet)
+		pages.ShowCreateAndRestoreWalletPage(app.wallet, app.window, ctx)
 		return
 	}
 
