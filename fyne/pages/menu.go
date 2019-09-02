@@ -174,7 +174,7 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, appSettings
 			}
 			statusUpdates(wallet)
 
-			time.Sleep(time.Second * 1)
+			time.Sleep(time.Millisecond * 50)
 		}
 	}()
 
