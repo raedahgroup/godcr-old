@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"fyne.io/fyne"
+	"fyne.io/fyne/app"
 	"fyne.io/fyne/layout"
-
 	"fyne.io/fyne/widget"
 
 	godcrApp "github.com/raedahgroup/godcr/app"
-
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/wallet"
 	"github.com/raedahgroup/godcr/fyne/pages"
@@ -34,7 +31,6 @@ func InitializeUserInterface() *fyneApp {
 }
 
 func (app *fyneApp) DisplayPreLaunchError(errorMessage string) {
-
 	app.window.SetContent(widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
 		widget.NewHBox(layout.NewSpacer(), widget.NewButton("Exit", func() {

@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
+
 	"github.com/raedahgroup/godcr/app/wallet"
 )
 
