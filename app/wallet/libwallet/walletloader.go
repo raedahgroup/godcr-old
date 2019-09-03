@@ -1,4 +1,4 @@
-package dcrlibwallet
+package libwallet
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 )
 
 var numberOfPeers int32
@@ -53,8 +53,8 @@ func (lib *DcrWalletLib) RescanBlockChain() error {
 	return lib.walletLib.RescanBlocks()
 }
 
-func (lib *DcrWalletLib) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
-	accounts, loadAccountErr := lib.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+func (lib *DcrWalletLib) WalletConnectionInfo() (info wallet.ConnectionInfo, err error) {
+	accounts, loadAccountErr := lib.AccountsOverview(wallet.DefaultRequiredConfirmations)
 	if loadAccountErr != nil {
 		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
 		info.TotalBalance = "0 DCR"

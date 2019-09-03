@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
 	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -79,7 +79,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 			return
 		}
 
-		requiredConfirmations := walletcore.DefaultRequiredConfirmations
+		requiredConfirmations := wallet.DefaultRequiredConfirmations
 		if spendUnconfirmedCheck.Checked {
 			requiredConfirmations = 0
 		}
@@ -125,7 +125,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 }
 
 func accountSelectionWidget(wallet godcrApp.WalletMiddleware) *widget.Select {
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	accounts, err := wallet.AccountsOverview(wallet.DefaultRequiredConfirmations)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil

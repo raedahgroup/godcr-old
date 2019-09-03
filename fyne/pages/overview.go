@@ -13,7 +13,7 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/decred/dcrd/dcrutil"
 	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -100,12 +100,12 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 }
 
 func fetchBalance(wallet godcrApp.WalletMiddleware) string {
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	accounts, err := wallet.AccountsOverview(wallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return err.Error()
 	}
 
-	return walletcore.WalletBalance(accounts)
+	return wallet.WalletBalance(accounts)
 }
 
 func fetchOverviewTx(txTable *widgets.TableStruct, offset, counter int32, wallet godcrApp.WalletMiddleware) {

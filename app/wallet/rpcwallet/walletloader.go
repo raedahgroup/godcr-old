@@ -1,4 +1,4 @@
-package dcrwalletrpc
+package rpcwallet
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/decred/dcrwallet/walletseed"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 )
 
 func (c *WalletRPCClient) GenerateNewWalletSeed() (string, error) {
@@ -180,8 +180,8 @@ func (c *WalletRPCClient) RescanBlockChain() error {
 	return nil
 }
 
-func (c *WalletRPCClient) WalletConnectionInfo() (info walletcore.ConnectionInfo, err error) {
-	accounts, loadAccountErr := c.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+func (c *WalletRPCClient) WalletConnectionInfo() (info wallet.ConnectionInfo, err error) {
+	accounts, loadAccountErr := c.AccountsOverview(wallet.DefaultRequiredConfirmations)
 	if loadAccountErr != nil {
 		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
 		info.TotalBalance = "0 DCR"

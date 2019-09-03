@@ -1,4 +1,4 @@
-package dcrwalletrpc
+package rpcwallet
 
 import (
 	"bytes"
@@ -16,11 +16,11 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/txindex"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 	"google.golang.org/grpc/codes"
 )
 
-func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
+func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*wallet.Balance, error) {
 	req := &walletrpc.BalanceRequest{
 		AccountNumber:         accountNumber,
 		RequiredConfirmations: requiredConfirmations,
@@ -31,7 +31,7 @@ func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmat
 		return nil, fmt.Errorf("error fetching balance for account: %d \n:%s", accountNumber, err.Error())
 	}
 
-	return &walletcore.Balance{
+	return &wallet.Balance{
 		Total:           dcrutil.Amount(res.Total),
 		Spendable:       dcrutil.Amount(res.Spendable),
 		LockedByTickets: dcrutil.Amount(res.LockedByTickets),
@@ -40,13 +40,13 @@ func (c *WalletRPCClient) AccountBalance(accountNumber uint32, requiredConfirmat
 	}, nil
 }
 
-func (c *WalletRPCClient) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
+func (c *WalletRPCClient) AccountsOverview(requiredConfirmations int32) ([]*wallet.Account, error) {
 	accounts, err := c.walletService.Accounts(context.Background(), &walletrpc.AccountsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	accountsOverview := make([]*walletcore.Account, 0, len(accounts.Accounts))
+	accountsOverview := make([]*wallet.Account, 0, len(accounts.Accounts))
 
 	for _, acc := range accounts.Accounts {
 		balance, err := c.AccountBalance(acc.AccountNumber, requiredConfirmations)
@@ -59,7 +59,7 @@ func (c *WalletRPCClient) AccountsOverview(requiredConfirmations int32) ([]*wall
 			continue
 		}
 
-		account := &walletcore.Account{
+		account := &wallet.Account{
 			Name:             acc.AccountName,
 			Number:           acc.AccountNumber,
 			Balance:          balance,
@@ -178,13 +178,13 @@ func (c *WalletRPCClient) GenerateNewAddress(account uint32) (string, error) {
 	return nextAddress.Address, nil
 }
 
-func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
+func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*wallet.UnspentOutput, error) {
 	utxoStream, err := c.unspentOutputStream(account, targetAmount, requiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
 
-	var unspentOutputs []*walletcore.UnspentOutput
+	var unspentOutputs []*wallet.UnspentOutput
 
 	for {
 		utxo, err := utxoStream.Recv()
@@ -212,7 +212,7 @@ func (c *WalletRPCClient) UnspentOutputs(account uint32, targetAmount int64, req
 			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
 		}
 
-		unspentOutput := &walletcore.UnspentOutput{
+		unspentOutput := &wallet.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
@@ -339,7 +339,7 @@ func (c *WalletRPCClient) TransactionCount(filter *txindex.ReadFilter) (int, err
 	return c.txIndexDB.CountTx(filter)
 }
 
-func (c *WalletRPCClient) TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*walletcore.Transaction, error) {
+func (c *WalletRPCClient) TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*wallet.Transaction, error) {
 	txs, err := c.txIndexDB.Read(offset, count, filter)
 	if err != nil {
 		return nil, err
@@ -354,19 +354,19 @@ func (c *WalletRPCClient) TransactionHistory(offset, count int32, filter *txinde
 		bestBlockHeight = int32(bestBlock)
 	}
 
-	processedTxs := make([]*walletcore.Transaction, len(txs))
+	processedTxs := make([]*wallet.Transaction, len(txs))
 	for i, tx := range txs {
 		var confirmations int32
 		if bestBlockHeight != -1 {
 			confirmations = txhelper.TxConfirmations(tx.BlockHeight, bestBlockHeight)
 		}
-		processedTxs[i] = walletcore.TxDetails(tx, confirmations)
+		processedTxs[i] = wallet.TxDetails(tx, confirmations)
 	}
 
 	return processedTxs, nil
 }
 
-func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Transaction, error) {
+func (c *WalletRPCClient) GetTransaction(transactionHash string) (*wallet.Transaction, error) {
 	ctx := context.Background()
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
@@ -386,16 +386,16 @@ func (c *WalletRPCClient) GetTransaction(transactionHash string) (*walletcore.Tr
 		return nil, err
 	}
 
-	return walletcore.TxDetails(tx, getTxResponse.Confirmations), nil
+	return wallet.TxDetails(tx, getTxResponse.Confirmations), nil
 }
 
-func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+func (c *WalletRPCClient) StakeInfo(ctx context.Context) (*wallet.StakeInfo, error) {
 	stakeInfo, err := c.walletService.StakeInfo(ctx, &walletrpc.StakeInfoRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
 	}
 
-	return &walletcore.StakeInfo{
+	return &wallet.StakeInfo{
 		AllMempoolTix: stakeInfo.AllMempoolTix,
 		Expired:       stakeInfo.Expired,
 		Immature:      stakeInfo.Immature,

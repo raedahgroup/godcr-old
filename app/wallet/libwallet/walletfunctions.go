@@ -1,4 +1,4 @@
-package dcrlibwallet
+package libwallet
 
 import (
 	"context"
@@ -12,16 +12,16 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/addresshelper"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/txindex"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 )
 
-func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*walletcore.Balance, error) {
+func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmations int32) (*wallet.Balance, error) {
 	balance, err := lib.walletLib.GetAccountBalance(accountNumber, requiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
 
-	return &walletcore.Balance{
+	return &wallet.Balance{
 		Total:           dcrutil.Amount(balance.Total),
 		Spendable:       dcrutil.Amount(balance.Spendable),
 		LockedByTickets: dcrutil.Amount(balance.LockedByTickets),
@@ -30,13 +30,13 @@ func (lib *DcrWalletLib) AccountBalance(accountNumber uint32, requiredConfirmati
 	}, nil
 }
 
-func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walletcore.Account, error) {
+func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*wallet.Account, error) {
 	accounts, err := lib.walletLib.GetAccountsRaw(requiredConfirmations)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching accounts: %s", err.Error())
 	}
 
-	accountsOverview := make([]*walletcore.Account, 0, len(accounts.Acc))
+	accountsOverview := make([]*wallet.Account, 0, len(accounts.Acc))
 
 	for _, acc := range accounts.Acc {
 		accountNumber := uint32(acc.Number)
@@ -46,10 +46,10 @@ func (lib *DcrWalletLib) AccountsOverview(requiredConfirmations int32) ([]*walle
 			continue
 		}
 
-		account := &walletcore.Account{
+		account := &wallet.Account{
 			Name:   acc.Name,
 			Number: accountNumber,
-			Balance: &walletcore.Balance{
+			Balance: &wallet.Balance{
 				Total:           dcrutil.Amount(acc.Balance.Total),
 				Spendable:       dcrutil.Amount(acc.Balance.Spendable),
 				LockedByTickets: dcrutil.Amount(acc.Balance.LockedByTickets),
@@ -94,13 +94,13 @@ func (lib *DcrWalletLib) GenerateNewAddress(account uint32) (string, error) {
 	return lib.walletLib.NextAddress(int32(account))
 }
 
-func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*walletcore.UnspentOutput, error) {
+func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*wallet.UnspentOutput, error) {
 	utxos, err := lib.walletLib.UnspentOutputs(account, requiredConfirmations, targetAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	unspentOutputs := make([]*walletcore.UnspentOutput, len(utxos))
+	unspentOutputs := make([]*wallet.UnspentOutput, len(utxos))
 	for i, utxo := range utxos {
 		hash, err := chainhash.NewHash(utxo.TransactionHash)
 		if err != nil {
@@ -119,7 +119,7 @@ func (lib *DcrWalletLib) UnspentOutputs(account uint32, targetAmount int64, requ
 			return nil, fmt.Errorf("error reading transaction: %s", err.Error())
 		}
 
-		unspentOutputs[i] = &walletcore.UnspentOutput{
+		unspentOutputs[i] = &wallet.UnspentOutput{
 			OutputKey:       fmt.Sprintf("%s:%d", txHash, utxo.OutputIndex),
 			TransactionHash: txHash,
 			OutputIndex:     utxo.OutputIndex,
@@ -159,21 +159,21 @@ func (lib *DcrWalletLib) TransactionCount(filter *txindex.ReadFilter) (int, erro
 	return lib.walletLib.TxCount(filter)
 }
 
-func (lib *DcrWalletLib) TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*walletcore.Transaction, error) {
+func (lib *DcrWalletLib) TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*wallet.Transaction, error) {
 	txs, err := lib.walletLib.GetTransactionsRaw(offset, count, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	processedTxs := make([]*walletcore.Transaction, len(txs))
+	processedTxs := make([]*wallet.Transaction, len(txs))
 	for i, tx := range txs {
 		confirmations := txhelper.TxConfirmations(tx.BlockHeight, lib.walletLib.GetBestBlock())
-		processedTxs[i] = walletcore.TxDetails(tx, confirmations)
+		processedTxs[i] = wallet.TxDetails(tx, confirmations)
 	}
 	return processedTxs, nil
 }
 
-func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Transaction, error) {
+func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*wallet.Transaction, error) {
 	hash, err := chainhash.NewHashFromStr(transactionHash)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash: %s\n%s", transactionHash, err.Error())
@@ -185,16 +185,16 @@ func (lib *DcrWalletLib) GetTransaction(transactionHash string) (*walletcore.Tra
 	}
 
 	confirmations := txhelper.TxConfirmations(tx.BlockHeight, lib.walletLib.GetBestBlock())
-	return walletcore.TxDetails(tx, confirmations), nil
+	return wallet.TxDetails(tx, confirmations), nil
 }
 
-func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*walletcore.StakeInfo, error) {
+func (lib *DcrWalletLib) StakeInfo(ctx context.Context) (*wallet.StakeInfo, error) {
 	data, err := lib.walletLib.StakeInfo()
 	if err != nil {
 		return nil, fmt.Errorf("error getting stake info: %s", err.Error())
 	}
 
-	stakeInfo := &walletcore.StakeInfo{
+	stakeInfo := &wallet.StakeInfo{
 		AllMempoolTix: data.AllMempoolTix,
 		Expired:       data.Expired,
 		Immature:      data.Immature,

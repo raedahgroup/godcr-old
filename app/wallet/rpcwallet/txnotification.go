@@ -1,4 +1,4 @@
-package dcrwalletrpc
+package rpcwallet
 
 import (
 	"context"
@@ -40,7 +40,7 @@ func (c *WalletRPCClient) startTxNotificationListener(ctx context.Context,
 		}
 
 		if err != nil {
-			// todo use logger, similar logging should be done across dcrwalletrpc and dcrlibwallet functions
+			// todo use logger, similar logging should be done across rpcwallet and dcrlibwallet functions
 			fmt.Printf("error reading tx notification update: %s\n", err.Error())
 		}
 

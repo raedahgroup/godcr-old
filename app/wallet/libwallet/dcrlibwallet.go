@@ -1,4 +1,4 @@
-package dcrlibwallet
+package libwallet
 
 import (
 	"context"

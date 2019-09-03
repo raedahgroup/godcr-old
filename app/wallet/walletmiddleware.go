@@ -1,8 +1,8 @@
-package app
+package wallet
 
 import (
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/godcr/app/wallet"
 )
 
 // WalletMiddleware defines key functions for interacting with a decred wallet
@@ -20,7 +20,7 @@ type WalletMiddleware interface {
 
 	RescanBlockChain() error
 
-	WalletConnectionInfo() (info walletcore.ConnectionInfo, err error)
+	WalletConnectionInfo() (info wallet.ConnectionInfo, err error)
 
 	// BestBlock fetches the best block on the network
 	BestBlock() (uint32, error)
@@ -31,5 +31,5 @@ type WalletMiddleware interface {
 
 	DeleteWallet() error
 
-	walletcore.Wallet
+	wallet.Wallet
 }

@@ -1,4 +1,4 @@
-package dcrwalletrpc
+package rpcwallet
 
 import (
 	"path/filepath"
