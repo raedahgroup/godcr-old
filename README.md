@@ -47,8 +47,9 @@ Building will place the different `godcr-{interface}` binaries in your working d
 while install will place the binaries in $GOPATH/bin.
 * Alternatively, you can build only the binary for the interface you intend to run.
 Run `go build ./cmd/godcr-{interface}` or `go install ./cmd/godcr-{interface}`.
-* If running the http interface (`godcr-web`), you'd need to first build the the http frontend: `cd web/static/app`
-and run `yarn install` then `yarn build`.
+* Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`.
+* To run the http interface (`godcr-web`), you'd need to first build the frontend assets:
+`cd web/static/app` and run `yarn install` then `yarn build`.
 You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
 
 **Note: Building on Windows**
@@ -78,13 +79,13 @@ godcr-cli [options] <command> [args]
 where wallet operations are performed by interacting with a graphical user interface.
 The following GUI interface modes are supported:
 1. Full GUI app on terminal.
-Run `godcr-terminal`
+Run `godcr-terminal`.
 2. Web app served over http or https.
-Run `godcr-web`
+Run `godcr-web`,
 3. Native desktop app with [nuklear](https://github.com/aarzilli/nucular) library.
-Run `godcr-nuklear`
+Run `godcr-nuklear`.
 4. Native desktop app with [fyne](https://github.com/fyne-io/fyne) library.
-Run `godcr-fyne`
+Run `godcr-fyne`.
 
 ### Configuration
 The behaviour of the godcr program can be customized by editing the godcr configuration file.
