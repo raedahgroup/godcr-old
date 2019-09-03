@@ -1,22 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
-	"context"
-	"github.com/raedahgroup/godcr/app/config"
-	"path/filepath"
-	"github.com/raedahgroup/godcr/app"
+
 	"github.com/jessevdk/go-flags"
-	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
-	"github.com/raedahgroup/godcr/cli/walletloader"
-	"github.com/raedahgroup/godcr/cli"
-	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/help"
-	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
+	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
+	"github.com/raedahgroup/godcr/cli"
+	"github.com/raedahgroup/godcr/cli/commands"
+	"github.com/raedahgroup/godcr/cli/runner"
+	"github.com/raedahgroup/godcr/cli/walletloader"
 )
 
 func main() {
