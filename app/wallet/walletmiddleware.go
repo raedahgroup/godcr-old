@@ -2,7 +2,6 @@ package wallet
 
 import (
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
-	"github.com/raedahgroup/godcr/app/wallet"
 )
 
 // WalletMiddleware defines key functions for interacting with a decred wallet
@@ -31,5 +30,5 @@ type WalletMiddleware interface {
 
 	DeleteWallet() error
 
-	wallet.Wallet
+	Wallet
 }
