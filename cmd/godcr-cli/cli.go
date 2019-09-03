@@ -62,12 +62,6 @@ func main() {
 		}
 	}
 
-	// check if user passed commands/options/args but is not running in cli mode
-	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
-		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
-		os.Exit(1)
-	}
-
 	// use wait group to keep main alive until shutdown completes
 	shutdownWaitGroup := &sync.WaitGroup{}
 
