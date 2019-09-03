@@ -50,10 +50,11 @@ func statusUpdates(wallet godcrApp.WalletMiddleware) {
 	menu.blkHeight.SetText(strconv.Itoa(int(info.LatestBlock)) + " Blocks Connected")
 }
 
+// todo fix image paths
 func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.CanvasObject {
 	fyneTheme := fyneApp.Settings().Theme()
 	if fyneTheme.BackgroundColor() == theme.LightTheme().BackgroundColor() {
-		decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
+		decredDark, err := ioutil.ReadFile("../../fyne/pages/png/decredDark.png")
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}
@@ -61,7 +62,7 @@ func overviewPage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.Canva
 		overview.icon = canvas.NewImageFromResource(fyne.NewStaticResource("Decred", decredDark))
 
 	} else if fyneTheme.BackgroundColor() == theme.DarkTheme().BackgroundColor() {
-		decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
+		decredLight, err := ioutil.ReadFile("../../fyne/pages/png/decredLight.png")
 		if err != nil {
 			log.Fatalln("exit png file missing", err)
 		}

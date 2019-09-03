@@ -8,16 +8,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/help"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrlibwallet"
 	"github.com/raedahgroup/godcr/app/walletmediums/dcrwalletrpc"
-	"github.com/raedahgroup/godcr/cli"
-	"github.com/raedahgroup/godcr/cli/commands"
-	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
+	"github.com/raedahgroup/godcr/fyne"
 )
 
 func main() {
@@ -36,35 +32,11 @@ func main() {
 		}
 	}()
 
-	// Special show command to list supported subsystems and exit.
-	if appConfig.DebugLevel == "show" {
-		fmt.Println("Supported subsystems", supportedSubsystems())
-		os.Exit(0)
-	}
-
-	// Parse, validate, and set debug log level(s).
-	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
-		err := fmt.Errorf("loadConfig: %s", err.Error())
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-		return
-	}
-
-	// check if we can execute the needed op without connecting to a wallet
-	// if len(args) == 0, then there's nothing to execute as all command-line args were parsed as app options
+	// check if user passed commands/options/args in non-cli (fyne) mode
 	if len(args) > 0 {
-		if ok, err := attemptExecuteSimpleOp(); ok {
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err.Error())
-				os.Exit(1)
-			}
-			return
-		}
-	}
-
-	// check if user passed commands/options/args but is not running in cli mode
-	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
-		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
+		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n",
+			"fyne",
+			strings.Join(args, " "))
 		os.Exit(1)
 	}
 
@@ -95,49 +67,14 @@ func main() {
 
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
-	err = cli.Run(ctx, walletMiddleware, appConfig)
-	if err != nil {
-		exitCode = 1
-	}
-	// cli run done, trigger shutdown
+	log.Info("Launching desktop app with fyne")
+	fyne.LaunchFyne(ctx, walletMiddleware)
+
+	// if execution gets to this point, then the fyne app has been quit by the user
 	beginShutdown <- true
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
-}
-
-// attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
-// such operations may include cli commands like `help`, ergo a flags parser object is created with cli commands and flags
-// help flag errors (-h, --help) are also handled here, since they do not require access to wallet
-func attemptExecuteSimpleOp() (isSimpleOp bool, err error) {
-	configWithCommands := &cli.AppConfigWithCliCommands{}
-	parser := flags.NewParser(configWithCommands, flags.HelpFlag|flags.PassDoubleDash)
-
-	// use command handler wrapper function to check if any command passed by user can be executed simply
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		if runner.CommandRequiresWallet(command) {
-			return nil
-		}
-
-		isSimpleOp = true
-		commandRunner := runner.New(parser, nil, nil)
-		return commandRunner.RunNoneWalletCommands(command, args)
-	}
-
-	// re-parse command-line args to catch help flag or execute any commands passed
-	_, err = parser.Parse()
-	if config.IsFlagErrorType(err, flags.ErrHelp) {
-		err = nil
-		isSimpleOp = true
-
-		if parser.Active != nil {
-			help.PrintCommandHelp(os.Stdout, parser.Name, parser.Active)
-		} else {
-			help.PrintGeneralHelp(os.Stdout, commands.HelpParser(), commands.Categories())
-		}
-	}
-
-	return
 }
 
 // connectToWallet opens connection to a wallet via any of the available walletmiddleware

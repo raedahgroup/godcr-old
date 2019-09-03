@@ -18,13 +18,14 @@ func settingsPage(App fyne.App) fyne.CanvasObject {
 }
 
 // todo: after changing theme, make it default
+// todo fix image paths
 func changeTheme(change fyne.App) fyne.CanvasObject {
 	fyneTheme := change.Settings().Theme()
 
 	radio := widget.NewRadio([]string{"Light Theme", "Dark Theme"}, func(background string) {
 		if background == "Light Theme" {
 			// set overview icon and name
-			decredDark, err := ioutil.ReadFile("./fyne/pages/png/decredDark.png")
+			decredDark, err := ioutil.ReadFile("../../fyne/pages/png/decredDark.png")
 			if err != nil {
 				log.Fatalln("exit png file missing", err)
 			}
@@ -35,7 +36,7 @@ func changeTheme(change fyne.App) fyne.CanvasObject {
 
 			change.Settings().SetTheme(theme.LightTheme())
 		} else if background == "Dark Theme" {
-			decredLight, err := ioutil.ReadFile("./fyne/pages/png/decredLight.png")
+			decredLight, err := ioutil.ReadFile("../../fyne/pages/png/decredLight.png")
 			if err != nil {
 				log.Fatalln("exit png file missing", err)
 			}

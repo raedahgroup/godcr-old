@@ -9,20 +9,21 @@ import (
 	godcrApp "github.com/raedahgroup/godcr/app"
 )
 
+// todo fix image paths
 func morePage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.CanvasObject {
-	settingFile, err := ioutil.ReadFile("./fyne/pages/png/settings.png")
+	settingFile, err := ioutil.ReadFile("../../fyne/pages/png/settings.png")
 	if err != nil {
 		log.Fatalln("setting png file missing", err)
 	}
-	helpFile, err := ioutil.ReadFile("./fyne/pages/png/help.png")
+	helpFile, err := ioutil.ReadFile("../../fyne/pages/png/help.png")
 	if err != nil {
 		log.Fatalln("help png file missing", err)
 	}
-	securityFile, err := ioutil.ReadFile("./fyne/pages/png/security.png")
+	securityFile, err := ioutil.ReadFile("../../fyne/pages/png/security.png")
 	if err != nil {
 		log.Fatalln("security png file missing", err)
 	}
-	aboutFile, err := ioutil.ReadFile("./fyne/pages/png/about.png")
+	aboutFile, err := ioutil.ReadFile("../../fyne/pages/png/about.png")
 	if err != nil {
 		log.Fatalln("about png file missing", err)
 	}
