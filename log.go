@@ -14,11 +14,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
-	"github.com/raedahgroup/godcr/cli/clilog"
 	fyneLog "github.com/raedahgroup/godcr/fyne/log"
-	"github.com/raedahgroup/godcr/nuklear/nuklog"
-	"github.com/raedahgroup/godcr/terminal/terlog"
-	"github.com/raedahgroup/godcr/web/weblog"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -48,29 +44,17 @@ var (
 	logRotator *rotator.Rotator
 
 	log        = backendLog.Logger("GODC")
-	webLog     = backendLog.Logger("WEB")
-	nuklearLog = backendLog.Logger("NUK")
-	cliLog     = backendLog.Logger("CLI")
-	terLog     = backendLog.Logger("TER")
 	fyneLogger = backendLog.Logger("FYN")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	clilog.UseLogger(cliLog)
-	nuklog.UseLogger(nuklearLog)
-	weblog.UseLogger(webLog)
-	terlog.UseLogger(terLog)
 	fyneLog.UseLogger(fyneLogger)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODC": log,
-	"WEB":  webLog,
-	"NUK":  nuklearLog,
-	"CLI":  cliLog,
-	"TER":  terLog,
 	"FYN":  fyneLogger,
 }
 
@@ -188,13 +172,4 @@ func parseAndSetDebugLevels(debugLevel string) error {
 	}
 
 	return nil
-}
-
-// fatalf logs a message, flushes the logger, and finally exit the process with
-// a non-zero return code.
-func fatalf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
-	os.Stdout.Sync()
-	logRotator.Close()
-	os.Exit(1)
 }
