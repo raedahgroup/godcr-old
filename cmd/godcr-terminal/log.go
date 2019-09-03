@@ -14,7 +14,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
-	"github.com/raedahgroup/godcr/cli/clilog"
+	"github.com/raedahgroup/godcr/terminal/terlog"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -43,17 +43,19 @@ var (
 	// application shutdown.
 	logRotator *rotator.Rotator
 
-	log = backendLog.Logger("GODCR")
+	log    = backendLog.Logger("GODCR")
+	terLog = backendLog.Logger("TERM")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	clilog.UseLogger(log)
+	terlog.UseLogger(terLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODCR": log,
+	"TERM":  terLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

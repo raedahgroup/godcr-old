@@ -43,17 +43,19 @@ var (
 	// application shutdown.
 	logRotator *rotator.Rotator
 
-	log = backendLog.Logger("GODCR")
+	log    = backendLog.Logger("GODCR")
+	cliLog = backendLog.Logger("CLI")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	clilog.UseLogger(log)
+	clilog.UseLogger(cliLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODCR": log,
+	"CLI":   cliLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

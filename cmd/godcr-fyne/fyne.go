@@ -32,6 +32,14 @@ func main() {
 		}
 	}()
 
+	// Parse, validate, and set debug log level(s).
+	if err := parseAndSetDebugLevels(appConfig.DebugLevel); err != nil {
+		err := fmt.Errorf("loadConfig: %s", err.Error())
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+		return
+	}
+
 	// check if user passed commands/options/args in non-cli (fyne) mode
 	if len(args) > 0 {
 		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n",
