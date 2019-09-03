@@ -8,6 +8,7 @@ vendor/
 godcr
 godcr.conf
 godcr.exe
+enablegomod.bat
 web/static/app/node_modules
 web/static/dist/js/app.bundle.js
 web/static/dist/js/app.bundle.js.map
