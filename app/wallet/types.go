@@ -2,10 +2,8 @@ package wallet
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
 )
 
 type Balance struct {
@@ -75,39 +73,11 @@ type ConnectionInfo struct {
 }
 
 type Transaction struct {
-	*txhelper.Transaction
+	//*txhelper.Transaction
 	// Following additional properties are not constant but change with time.
 	// Need to update these fields before returning the tx to the caller.
 	Status        string `json:"status"`
 	Confirmations int32  `json:"confirmations"`
 	ShortTime     string `json:"short_time"`
 	LongTime      string `json:"long_time"`
-}
-
-func (tx *Transaction) WalletAccountForTx() string {
-	var accountNames []string
-	addWalletAccount := func(accountName string) {
-		for _, name := range accountNames {
-			if name == accountName {
-				return
-			}
-		}
-		accountNames = append(accountNames, accountName)
-	}
-	if tx.Direction == txhelper.TransactionDirectionReceived {
-		for _, output := range tx.Outputs {
-			if output.AccountNumber != -1 {
-				// output belongs to this wallet and not an external wallet address
-				addWalletAccount(output.AccountName)
-			}
-		}
-	} else {
-		for _, input := range tx.Inputs {
-			if input.AccountNumber != -1 {
-				// output belongs to this wallet and not an external wallet address
-				addWalletAccount(input.AccountName)
-			}
-		}
-	}
-	return strings.Join(accountNames, ", ")
 }

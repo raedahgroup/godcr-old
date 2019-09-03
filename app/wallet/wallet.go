@@ -4,14 +4,48 @@ import (
 	"context"
 
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/dcrlibwallet/txindex"
 )
 
-// Wallet defines key functions for performing operations on a decred wallet
-// These functions are implemented by the different mediums that provide access to a decred wallet
+const (
+	DefaultRequiredConfirmations = 2
+)
+
+// Wallet defines key functions for interacting with a decred wallet.
+// These functions are implemented by the different mediums that provide access to a decred wallet.
 type Wallet interface {
-	// Balance returns account balance for the accountNumbers passed in
+	// WalletExists returns whether a file at the wallet database's file path exists.
+	// If so, OpenWallet should be used to open the existing wallet, or CreateWallet to create a new wallet.
+	WalletExists() (bool, error)
+
+	// CreateWallet creates a new wallet using the provided seed and private passphrase.
+	// Providing a previously backed-up seed performs wallet restore.
+	CreateWallet(privatePass, seed string) error
+
+	// OpenWallet opens an existing wallet database using the provided public passphrase.
+	// Supply an empty passphrase to use the default public passphrase.
+	// If the wallet database is already open, no error is returned.
+	OpenWallet(ctx context.Context, publicPass string) error
+
+	// Shutdown cancels any ongoing operations, unloads the wallet,
+	// closes all open databases and other resources.
+	Shutdown()
+
+	// AddSyncProgressListener registers a set of callback functions to receive sync progress updates.
+	// Multiple listeners can be registered, each with a unique id.
+	// Registering a listener for a unique id with a listener already registered returns an error.
+	// If a sync operation is ongoing when a listener is registered,
+	// the listener receives the current sync progress report as at the time of registering the listener.
+	AddSyncProgressListener(syncProgressListener dcrlibwallet.SyncProgressListener, uniqueIdentifier string) error
+
+	// RemoveSyncProgressListener de-registers a progress listener for the specified unique id.
+	// Useful if the progress listener no longer serves any purpose.
+	RemoveSyncProgressListener(uniqueIdentifier string)
+
+	// SpvSync begins the spv syncing process,
+	// providing progress report to all registered progress listeners.
+	SpvSync(showLog bool, persistentPeers []string) error
+
+	// AccountBalance returns account balance for the accountNumbers passed in
 	// or for all accounts if no account number is passed in
 	AccountBalance(accountNumber uint32, requiredConfirmations int32) (*Balance, error)
 
@@ -41,54 +75,6 @@ type Wallet interface {
 	// GenerateNewAddress generates a new address to receive funds into specified account
 	// regardless of whether there was a previously generated address that has not been used
 	GenerateNewAddress(account uint32) (string, error)
-
-	// UnspentOutputs lists all unspent outputs in the specified account that sum up to `targetAmount`
-	// If `targetAmount` is 0, all unspent outputs in account are returned
-	UnspentOutputs(account uint32, targetAmount int64, requiredConfirmations int32) ([]*UnspentOutput, error)
-
-	// SendFromAccount sends funds to 1 or more destination addresses, each with a specified amount.
-	// The inputs to the transaction are automatically selected from any combination of unspent outputs in the account.
-	// Returns the transaction hash as string if successful.
-	SendFromAccount(sourceAccount uint32, requiredConfirmations int32, destinations []txhelper.TransactionDestination, passphrase string) (string, error)
-
-	// SendFromUTXOs sends funds to 1 or more destination addresses, each with a specified amount.
-	// The inputs to the transaction are unspent outputs in the account, matching the keys sent in []utxoKeys.
-	// Also supports specifying how and where to send any change amount that arises from the transaction.
-	// If no change destinations are provided, one is automatically created using an address generated from the account.
-	// Returns the transaction hash as string if successful
-	SendFromUTXOs(sourceAccount uint32, requiredConfirmations int32, utxoKeys []string, txDestinations []txhelper.TransactionDestination, changeDestinations []txhelper.TransactionDestination, passphrase string) (string, error)
-
-	// TransactionCount returns the number of transactions in the tx index database.
-	// If `filter` is set to `nil`, all transactions are counted.
-	// Otherwise, only transactions matching the provided filter are counted.
-	// A `filter` can be created using `txIndex.Filter()`.
-	// Fields to filter can be specified using `filter.WithTxTypes(...tx types to return)`
-	// and `filter.ForDirections(...tx directions to return)`.
-	// Can combine both filters using `filter.WithTxTypes(...tx types to return).ForDirections(...tx directions to return)`.
-	TransactionCount(filter *txindex.ReadFilter) (int, error)
-
-	// TransactionHistory fetches the specified count of transactions from a tx index database,
-	// beginning at the specified offset.
-	// If `filter` is set to `nil`, all transactions are returned.
-	// Otherwise, only transactions matching the provided filter are returned.
-	// A `filter` can be created using `txIndex.Filter()`.
-	// Fields to filter can be specified using `filter.WithTxTypes(...tx types to return)`
-	// and `filter.ForDirections(...tx directions to return)`.
-	// Can combine both filters using `filter.WithTxTypes(...tx types to return).ForDirections(...tx directions to return)`.
-	TransactionHistory(offset, count int32, filter *txindex.ReadFilter) ([]*Transaction, error)
-
-	// GetTransaction returns information about the transaction with the given hash.
-	// An error is returned if the no transaction with the given hash is found.
-	GetTransaction(transactionHash string) (*Transaction, error)
-
-	// StakeInfo returns information about wallet stakes, tickets and their statuses.
-	StakeInfo(ctx context.Context) (*StakeInfo, error)
-
-	// PurchaseTicket is used to purchase tickets.
-	PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) (ticketHashes []string, err error)
-
-	// TicketPrice returns the current ticket price
-	TicketPrice(ctx context.Context) (ticketPrice int64, err error)
 
 	// ChangePrivatePassphrase changes the private passphrase from the oldPass to the provided newPass
 	ChangePrivatePassphrase(ctx context.Context, oldPass, newPass string) error

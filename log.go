@@ -14,7 +14,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/jrick/logrotate/rotator"
-	fyneLog "github.com/raedahgroup/godcr/fyne/log"
+	"github.com/raedahgroup/godcr/fyne"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -43,19 +43,19 @@ var (
 	// application shutdown.
 	logRotator *rotator.Rotator
 
-	log        = backendLog.Logger("GODC")
+	log        = backendLog.Logger("GODCR")
 	fyneLogger = backendLog.Logger("FYN")
 )
 
 // Initialize package-global logger variables.
 func init() {
-	fyneLog.UseLogger(fyneLogger)
+	fyne.UseLogger(fyneLogger)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
-	"GODC": log,
-	"FYN":  fyneLogger,
+	"GODCR": log,
+	"FYN":   fyneLogger,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

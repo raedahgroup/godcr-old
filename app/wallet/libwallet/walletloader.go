@@ -1,60 +1,82 @@
 package libwallet
 
 import (
+	"context"
 	"fmt"
-	"os"
+	"strings"
+	"time"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
-	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/app/wallet"
 )
 
-var numberOfPeers int32
-
-func (lib *DcrWalletLib) GenerateNewWalletSeed() (string, error) {
-	return utils.GenerateSeed()
+func (lw *LibWallet) WalletExists() (bool, error) {
+	return lw.dcrlw.WalletExists()
 }
 
-func (lib *DcrWalletLib) WalletExists() (bool, error) {
-	return lib.walletLib.WalletExists()
+func (lw *LibWallet) CreateWallet(privatePass, seed string) error {
+	return lw.dcrlw.CreateWallet(privatePass, seed)
 }
 
-func (lib *DcrWalletLib) CreateWallet(passphrase, seed string) error {
-	return lib.walletLib.CreateWallet(passphrase, seed)
-}
-
-func (lib *DcrWalletLib) IsWalletOpen() bool {
-	return lib.walletLib.WalletOpened()
-}
-
-func (lib *DcrWalletLib) SyncBlockChain(showLog bool, syncProgressUpdated func(*defaultsynclistener.ProgressReport)) {
-	// create wrapper around syncProgressUpdated to store updated peer count before calling main syncInfoUpdated fn
-	syncInfoUpdatedWrapper := func(progressReport *defaultsynclistener.ProgressReport, op defaultsynclistener.SyncOp) {
-		if op == defaultsynclistener.PeersCountUpdate {
-			numberOfPeers = progressReport.Read().ConnectedPeers
-		}
-		syncProgressUpdated(progressReport)
+// This method may stall if the wallet database is in use by some other process,
+// hence the need for ctx, so user can cancel the operation if it's taking too long
+// additionally, an error is returned if there's a delay in opening the wallet.
+func (lw *LibWallet) OpenWallet(ctx context.Context, publicPass string) error {
+	if lw.dcrlw.WalletOpened() {
+		return nil
 	}
 
-	// syncListener listens for actual sync updates, calculates progress and updates the caller via syncInfoUpdated
-	syncListener := defaultsynclistener.DefaultSyncProgressListener(lib.NetType(), showLog,
-		lib.walletLib.GetBestBlock, lib.walletLib.GetBestBlockTimeStamp, syncInfoUpdatedWrapper)
-	lib.walletLib.AddSyncProgressListener(syncListener)
+	// wallet database is opened using bolt db by `github.com/decred/dcrwallet/wallet/internal/bdb`
+	// bolt db stalls if the database is currently in use by another process,
+	// waiting for the other process to release the file.
+	// bold db doc advise setting a 1 second timeout to prevent this stalling.
+	// see https://github.com/boltdb/bolt#opening-a-database
+	walletOpenDelay := time.NewTicker(5 * time.Second)
 
-	err := lib.walletLib.SpvSync("")
-	if err != nil {
-		syncListener.OnSyncError(dcrlibwallet.ErrorCodeUnexpectedError, err)
+	loadWalletDone := make(chan error)
+	go func() {
+		openWalletError := lw.dcrlw.OpenWallet([]byte(publicPass))
+		loadWalletDone <- openWalletError
+		walletOpenDelay.Stop()
+	}()
+
+	select {
+	case <-walletOpenDelay.C:
+		return fmt.Errorf("wallet database is in use by another process")
+
+	case err := <-loadWalletDone:
+		return err
+
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
-func (lib *DcrWalletLib) RescanBlockChain() error {
-	return lib.walletLib.RescanBlocks()
+func (lw *LibWallet) AddSyncProgressListener(syncProgressListener dcrlibwallet.SyncProgressListener,
+	uniqueIdentifier string) error {
+	return lw.dcrlw.AddSyncProgressListener(syncProgressListener, uniqueIdentifier)
 }
 
-func (lib *DcrWalletLib) WalletConnectionInfo() (info wallet.ConnectionInfo, err error) {
-	accounts, loadAccountErr := lib.AccountsOverview(wallet.DefaultRequiredConfirmations)
+func (lw *LibWallet) RemoveSyncProgressListener(uniqueIdentifier string) {
+	lw.dcrlw.RemoveSyncProgressListener(uniqueIdentifier)
+}
+
+func (lw *LibWallet) SpvSync(showLog bool, persistentPeers []string) error {
+	if showLog {
+		lw.dcrlw.EnableSyncLogs()
+	}
+
+	var peerAddresses string
+	if persistentPeers != nil && len(persistentPeers) > 0 {
+		peerAddresses = strings.Join(persistentPeers, ";")
+	}
+
+	return lw.dcrlw.SpvSync(peerAddresses)
+}
+
+func (lw *LibWallet) WalletConnectionInfo() (info wallet.ConnectionInfo, err error) {
+	accounts, loadAccountErr := lw.AccountsOverview(wallet.DefaultRequiredConfirmations)
 	if loadAccountErr != nil {
 		err = fmt.Errorf("error fetching account balance: %s", loadAccountErr.Error())
 		info.TotalBalance = "0 DCR"
@@ -66,7 +88,7 @@ func (lib *DcrWalletLib) WalletConnectionInfo() (info wallet.ConnectionInfo, err
 		info.TotalBalance = totalBalance.String()
 	}
 
-	bestBlock, bestBlockErr := lib.BestBlock()
+	bestBlock, bestBlockErr := lw.BestBlock()
 	if bestBlockErr != nil && err != nil {
 		err = fmt.Errorf("%s, error in fetching best block %s", err.Error(), bestBlockErr.Error())
 	} else if bestBlockErr != nil {
@@ -74,21 +96,16 @@ func (lib *DcrWalletLib) WalletConnectionInfo() (info wallet.ConnectionInfo, err
 	}
 
 	info.LatestBlock = bestBlock
-	info.NetworkType = lib.NetType()
-	info.PeersConnected = numberOfPeers
+	info.NetworkType = lw.NetType()
+	info.PeersConnected = 0 // todo read from lw.dcrlw
 
 	return
 }
 
-func (lib *DcrWalletLib) BestBlock() (uint32, error) {
-	return uint32(lib.walletLib.GetBestBlock()), nil
+func (lw *LibWallet) BestBlock() (uint32, error) {
+	return uint32(lw.dcrlw.GetBestBlock()), nil
 }
 
-func (lib *DcrWalletLib) CloseWallet() {
-	lib.walletLib.Shutdown(false)
-}
-
-func (lib *DcrWalletLib) DeleteWallet() error {
-	lib.CloseWallet()
-	return os.RemoveAll(lib.WalletDbDir)
+func (lw *LibWallet) Shutdown() {
+	lw.dcrlw.Shutdown()
 }
