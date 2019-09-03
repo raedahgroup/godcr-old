@@ -60,7 +60,7 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 		return
 	}
 
-	err = app.wallet.OpenWallet(app.ctx, "")
+	err = app.wallet.OpenWallet("")
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error opening wallet db: %v", err)
 		log.Errorf(errorMessage)
