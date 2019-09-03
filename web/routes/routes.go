@@ -45,8 +45,8 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 }
 
 func (routes *Routes) loadTemplates() {
-	layout := "web/views/layout.html"
-	utils := "web/views/utils.html"
+	layout := "../../web/views/layout.html"
+	utils := "../../web/views/utils.html"
 
 	for _, tmpl := range templates() {
 		parsedTemplate, err := template.New(tmpl.name).Funcs(templateFuncMap()).ParseFiles(tmpl.path, layout, utils)
