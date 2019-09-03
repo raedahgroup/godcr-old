@@ -40,13 +40,18 @@ func main() {
 		return
 	}
 
+	// use ctx to monitor potentially long running operations
+	// such operations should listen for ctx.Done and stop further processing
+	ctx, cancel := context.WithCancel(context.Background())
+	shutdownOps = append(shutdownOps, cancel)
+
 	// use wait group to keep main alive until shutdown completes
 	shutdownWaitGroup := &sync.WaitGroup{}
 	go handleShutdownRequests(shutdownWaitGroup)
 	go listenForShutdownRequests()
 
 	// open connection to wallet and add wallet shutdown function to shutdownOps
-	wallet, err := connectToWallet(cfg)
+	wallet, err := connectToWallet(ctx, cfg)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Failed to connect to wallet: %v", err)
 		log.Errorf(errorMessage)
@@ -55,10 +60,6 @@ func main() {
 	}
 	shutdownOps = append(shutdownOps, wallet.Shutdown)
 
-	// use ctx to monitor potentially long running operations
-	// such operations should listen for ctx.Done and stop further processing
-	ctx, cancel := context.WithCancel(context.Background())
-	shutdownOps = append(shutdownOps, cancel)
 	fyneUI.LaunchApp(ctx, cfg, wallet)
 
 	// fyneUI.LaunchApp calls fyne's showandrun function which blocks until the fyne app is exited
@@ -71,10 +72,10 @@ func main() {
 
 // connectToWallet opens connection to a wallet via dcrlibwallet (LibWallet)
 // or dcrwalletrpc (RpcWallet, currently unimplemented.unsuported)
-func connectToWallet(cfg *config.Config) (w.Wallet, error) {
+func connectToWallet(ctx context.Context, cfg *config.Config) (w.Wallet, error) {
 	netType := "mainnet"
 	if cfg.UseTestnet {
 		netType = "testnet3"
 	}
-	return libwallet.Init(cfg.AppDataDir, netType)
+	return libwallet.Init(ctx, cfg.AppDataDir, netType)
 }
