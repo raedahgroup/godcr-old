@@ -24,18 +24,19 @@ const (
 	SmallFontSize       = 13
 )
 
+// todo fix font file paths
 func InitFonts() error {
-	boldItalicsFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-SemiboldIt.ttf")
+	boldItalicsFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-SemiboldIt.ttf")
 	if err != nil {
 		return err
 	}
 
-	semiBoldFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-Semibold.ttf")
+	semiBoldFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-Semibold.ttf")
 	if err != nil {
 		return err
 	}
 
-	regularFontBytes, err := ioutil.ReadFile("nuklear/assets/font/SourceSansPro-Regular.ttf")
+	regularFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-Regular.ttf")
 	if err != nil {
 		return err
 	}
