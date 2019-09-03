@@ -2,17 +2,17 @@ package libwallet
 
 import (
 	"fmt"
+	"context"
 
 	"github.com/decred/dcrwallet/netparams"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/dcrlibwallet/utils"
-	"context"
 )
 
 // LibWallet implements `wallet.Wallet` using `dcrlibwallet.LibWallet`
 // as medium for connecting to a decred wallet.
 type LibWallet struct {
-	appCtx 	context.Context
+	appCtx      context.Context
 	walletDbDir string
 	activeNet   *netparams.Params
 	dcrlw       *dcrlibwallet.LibWallet
@@ -31,7 +31,7 @@ func Init(appCtx context.Context, walletDbDir, networkType string) (*LibWallet, 
 	}
 
 	return &LibWallet{
-		appCtx: appCtx,
+		appCtx:      appCtx,
 		walletDbDir: walletDbDir,
 		dcrlw:       lw,
 		activeNet:   activeNet,
