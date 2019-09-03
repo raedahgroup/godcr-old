@@ -16,7 +16,7 @@ New issues may be submitted for enhancement requests as well as bug reports. How
 
 You are strongly advised to submit a new issue when you plan to perform work and submit a pull request (PR). See [When to Submit a Pull Request](#when-to-submit-a-pull-request) below.
 
-A related matter of GitHub etiquette is when and how to post comments on Issues or PRs. Instead of simply posting "mee to! plus one", you can use the emoji responses to give a +1 or thumbs up.  Feel free to comment if you have more to add to the conversation.
+A related matter of GitHub etiquette is when and how to post comments on Issues or PRs. Instead of simply posting "mee too! plus one", you can use the emoji responses to give a +1 or thumbs up.  Feel free to comment if you have more to add to the conversation.
 
 ### When to Submit a Pull Request
 
@@ -24,17 +24,18 @@ Before submitting a PR, check the issue tracker for existing issues or relevant 
 
 If the planned commits will involve significant effort on your part, you definitely want to either (1) submit a new issue, or (2) announce your intention to work on an existing issue. Why? Someone else could already be working on the problem. Duplicating work really sucks. Also, there may be good reason why the change is not appropriate at the time. The best way to check is to head to the issue tracker.
 
-Only submit a PR once the intended edits are either done or nearing completion. When submitting a PR with incomplete work, "Work in progress" or "WIP" should be prefixed to the PR title or prominently displayed in the description.
+Only submit a PR once the intended edits are either done or nearing completion. When submitting a PR with incomplete work, "Work in progress" or "WIP" should be prefixed to the PR title or prominently displayed in the description;
+or better still, submit a draft PR.
 
 ## How to Contribute
 
 ### Suggested Toolkit
 
-- Go language distribution - latest release or latest-1 (e.g. 1.8.3 and 1.9). [download](https://golang.org/doc/install)
-- git client with command line support. [download](https://git-scm.com/downloads)
+- Go language distribution - latest release preferably. [download](https://golang.org/doc/install)
+- Git client with command line support. [download](https://git-scm.com/downloads)
 - [GitHub](https://github.com/) account
 - Visual Studio Code with Go extension plus `gometalinter`
-- coffee, preferably black. [some good stuff](http://haiticoffeeacademy.com/)
+- Coffee, preferably black. [some good stuff](http://haiticoffeeacademy.com/)
 
 ## Quick Start
 
@@ -45,10 +46,11 @@ Only submit a PR once the intended edits are either done or nearing completion. 
 git clone https://github.com/[your-username]/godcr.git
 ```
 
-3. Make a branch for your planned work, based on `master`
+3. Make a branch for your planned work, based on `fyne-standalone`
 
 ```sh
-git checkout -b my-great-stuff master
+git checkout fyne-standalone
+git checkout -b [new-branch-name]
 ```
 
 4. Make edits. Review changes
@@ -76,7 +78,7 @@ git commit # type a good commit message
 Assuming `origin` is the name of the remote used for *your* repository:
 
 ```sh
-git push -u origin my-great-stuff
+git push -u origin [new-branch-name]
 ```
 
 7. Create the pull request
