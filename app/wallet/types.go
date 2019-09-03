@@ -71,13 +71,3 @@ type ConnectionInfo struct {
 	TotalBalance   string `json:"totalBalance"`
 	LatestBlock    uint32 `json:"latestBlock"`
 }
-
-type Transaction struct {
-	//*txhelper.Transaction
-	// Following additional properties are not constant but change with time.
-	// Need to update these fields before returning the tx to the caller.
-	Status        string `json:"status"`
-	Confirmations int32  `json:"confirmations"`
-	ShortTime     string `json:"short_time"`
-	LongTime      string `json:"long_time"`
-}
