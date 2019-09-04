@@ -76,7 +76,7 @@ func main() {
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
 	log.Info("Launching desktop app with nuklear")
-	nuklear.LaunchApp(ctx, walletMiddleware)
+	nuklear.LaunchApp(ctx, walletMiddleware, &appConfig.Settings)
 	// todo need to properly listen for shutdown and trigger shutdown
 	beginShutdown <- true
 
