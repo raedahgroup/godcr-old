@@ -2,6 +2,7 @@ package nuklear
 
 import (
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/pagehandlers"
 	"github.com/raedahgroup/godcr/nuklear/styles"
@@ -20,7 +21,7 @@ type navPageHandler interface {
 	// It might be necessary to load some wallet data in background thread
 	// after which the app can be notified to repaint the page using `refreshWindowDisplay()`
 	// Returns true when done.
-	BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool
+	BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool
 
 	// Render draws widgets on the provided window.
 	// It is usually called several times not only when the page is navigated to.
@@ -58,7 +59,7 @@ func getNavPages() []navPage {
 		{
 			name:    "accounts",
 			label:   "Accounts",
-			handler: &notImplementedNavPageHandler{"Accounts"},
+			handler: &pagehandlers.AccountsHandler{},
 		},
 		{
 			name:    "security",
@@ -77,7 +78,7 @@ type notImplementedNavPageHandler struct {
 	pageTitle string
 }
 
-func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ func()) bool {
+func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ *config.Settings, _ func()) bool {
 	return true
 }
 

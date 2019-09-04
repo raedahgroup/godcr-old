@@ -7,9 +7,12 @@ import (
 )
 
 var (
-	WhiteColor = color.RGBA{255, 255, 255, 255}
-	BlackColor = color.RGBA{0, 0, 0, 255}
-	GrayColor  = color.RGBA{200, 200, 200, 255}
+	WhiteColor         = color.RGBA{255, 255, 255, 255}
+	BlackColor         = color.RGBA{0, 0, 0, 255}
+	GrayColor          = color.RGBA{128, 128, 128, 255}
+	AlternateGrayColor = color.RGBA{248, 249, 250, 255}
+
+	BorderColor = color.RGBA{0, 0, 0, 25}
 
 	DecredDarkBlueColor  = color.RGBA{9, 20, 64, 255}
 	DecredLightBlueColor = color.RGBA{112, 203, 255, 255}

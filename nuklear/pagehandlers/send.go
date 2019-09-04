@@ -8,6 +8,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -51,7 +52,7 @@ type sendDestination struct {
 	amountErr  string
 }
 
-func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
+func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
 

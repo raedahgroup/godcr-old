@@ -8,6 +8,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -31,7 +32,7 @@ type StakingHandler struct {
 	purchaseTicketsError   error
 }
 
-func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
+func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 
 	handler.stakeInfoFetchError = nil

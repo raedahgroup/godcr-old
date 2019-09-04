@@ -116,7 +116,7 @@ func main() {
 	case "http":
 		enterHttpMode(ctx, walletMiddleware, appConfig)
 	case "nuklear":
-		enterNuklearMode(ctx, walletMiddleware)
+		enterNuklearMode(ctx, walletMiddleware, &appConfig.Settings)
 	case "fyne":
 		enterFyneMode(ctx, walletMiddleware)
 	case "terminal":
@@ -252,9 +252,9 @@ func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, a
 	}
 }
 
-func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
+func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) {
 	logInfo("Launching desktop app with nuklear")
-	nuklear.LaunchApp(ctx, walletMiddleware)
+	nuklear.LaunchApp(ctx, walletMiddleware, settings)
 	// todo need to properly listen for shutdown and trigger shutdown
 	beginShutdown <- true
 }

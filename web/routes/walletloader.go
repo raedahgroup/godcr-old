@@ -50,6 +50,8 @@ func (routes *Routes) walletLoaderFn(next http.Handler) http.Handler {
 			return
 		}
 
+		syncProgressReport.Status = defaultsynclistener.SyncStatusSuccess
+
 		switch syncProgressReport.Status {
 		case defaultsynclistener.SyncStatusSuccess:
 			next.ServeHTTP(res, req)

@@ -7,6 +7,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/atotto/clipboard"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
@@ -26,7 +27,7 @@ type ReceiveHandler struct {
 	generatedAddress      string
 }
 
-func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, refreshWindowDisplay func()) bool {
+func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet)
 	handler.generateAddressError = nil

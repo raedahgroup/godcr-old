@@ -2,6 +2,7 @@ package pagehandlers
 
 import (
 	"github.com/aarzilli/nucular"
+	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -12,7 +13,7 @@ type OverviewHandler struct {
 	accounts []*walletcore.Account
 }
 
-func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, _ func()) bool {
+func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, _ func()) bool {
 	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
 	return true
 }

@@ -620,7 +620,6 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
-
 		defaultAccount := uint32(defaultAccountInt)
 
 		// remove default account if exists
@@ -645,9 +644,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
-
 		accountUInt32 := uint32(accountInt)
-
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is not already set to be hidden
 		for _, v := range hiddenAccounts {
@@ -675,7 +672,6 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
-
 		account := uint32(accountInt)
 		hiddenAccounts := routes.settings.HiddenAccounts
 		// make sure the account is hidden
