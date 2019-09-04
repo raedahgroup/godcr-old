@@ -10,5 +10,3 @@ require (
 )
 
 replace github.com/raedahgroup/godcr/fyne => ./
-
-replace github.com/raedahgroup/dcrlibwallet => ../../dcrlibwallet
