@@ -227,6 +227,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190807181808-37b6666fe764/go.mod h1:7BxsN3VU3KWUt9R8eHgrBI88kE7/WWSfN0yl0vU1SM8=
 github.com/raedahgroup/dcrlibwallet v1.1.0 h1:UeOqLi3h9oQGUlhwwmCspJlEAPD2IfrHdu5EPtph54w=
 github.com/raedahgroup/dcrlibwallet v1.1.0/go.mod h1:szxgNhCQ/GRyFpmkfYi3T3ZkXPx9Hm9j0EnjaBfJK/o=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190904121310-90259892e503 h1:XEV7WHdFkVMjjC+y4SiDe4K5FUGPx4+3jddz4tVEjLs=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190904121310-90259892e503/go.mod h1:szxgNhCQ/GRyFpmkfYi3T3ZkXPx9Hm9j0EnjaBfJK/o=
 github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790/go.mod h1:J4W+hErFfITUbyFAEXizpmkuxX7ZN56dopxHB4XQhMw=
 github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9 h1:lpEzuenPuO1XNTeikEmvqYFcU37GVLl8SRNblzyvGBE=
 github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
