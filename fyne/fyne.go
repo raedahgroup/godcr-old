@@ -1,21 +1,36 @@
 package fyne
 
 import (
-	"context"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
-	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/fyne/pages"
+
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
-//todo: implement better error logger, probably log to a file
-func LaunchFyne(ctx context.Context, walletMiddleware godcrApp.WalletMiddleware) {
-	fyneApp := app.New()
-	window := fyneApp.NewWindow(godcrApp.DisplayName)
-	sync := pages.ShowSyncWindow(ctx, walletMiddleware, window, fyneApp)
-	window.SetContent(sync)
-	window.Resize(fyne.NewSize(1000, 500))
-	window.CenterOnScreen()
-	window.ShowAndRun()
+type fyneApp struct {
+	defaultAppDataDir string
+	netType string
+	dcrlw *dcrlibwallet.LibWallet
+	window fyne.Window
+}
+
+func InitializeUserInterface(appDisplayName, defaultAppDataDir, netType string) *fyneApp {
+	// set app instance to be accessed subsequently as fyne.CurrentApp()
+	fyne.SetCurrentApp(app.New())
+
+	return &fyneApp{
+		defaultAppDataDir: defaultAppDataDir,
+		netType: netType,
+		window: fyne.CurrentApp().NewWindow(appDisplayName),
+	}
+}
+
+func (app *fyneApp) Launch() {
+	dcrlw, err := dcrlibwallet.NewLibWallet(app.defaultAppDataDir, "", app.netType)
+	if err != nil {
+		// todo: display prelaunch error
+		return
+	}
+
+	app.dcrlw = dcrlw
 }
