@@ -35,9 +35,8 @@ func (handler *OverviewHandler) Render(window *nucular.Window) {
 	})
 }
 
-
 func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.Window) {
-	contentWindow.AddLabelWithFont("Recent Activities", widgets.LeftCenterAlign, styles.BoldPageContentFont)
+	contentWindow.AddLabelWithFont("Recent Activity", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 
 	txns, err := handler.wallet.TransactionHistory(0, 5, nil)
 	if err != nil {
