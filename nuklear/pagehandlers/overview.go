@@ -73,5 +73,4 @@ func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.W
 	}
 
 	historyTable.Render(contentWindow)
-
 }
