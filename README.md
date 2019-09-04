@@ -42,11 +42,11 @@ git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgro
 #### Step 3. Build the source code
 * If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
-* `cd` to the cloned project directory and run `go build ./cmd/...` or `go install ./cmd/...`.
-Building will place the different `godcr-{interface}` binaries in your working directory
-while install will place the binaries in $GOPATH/bin.
+* `cd` to the cloned project directory and `go install ./cmd/...`.
+This will place the different `godcr-{interface}` binaries in $GOPATH/bin.
 * Alternatively, you can build only the binary for the interface you intend to run.
 Run `go build ./cmd/godcr-{interface}` or `go install ./cmd/godcr-{interface}`.
+Note that `go build ./cmd/...` does not store but rather discards the binaries.
 * Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`.
 * To run the http interface (`godcr-web`), you'd need to first build the frontend assets:
 `cd web/static/app` and run `yarn install` then `yarn build`.
