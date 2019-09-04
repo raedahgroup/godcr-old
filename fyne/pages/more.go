@@ -28,7 +28,7 @@ func morePage(wallet godcrApp.WalletMiddleware, fyneApp fyne.App) fyne.CanvasObj
 	}
 
 	container := widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Settings", fyne.NewStaticResource("More", settingFile), settingsPage(fyneApp)),
+		widget.NewTabItemWithIcon("Settings", fyne.NewStaticResource("More", settingFile), settingsPage(fyneApp, wallet)),
 		widget.NewTabItemWithIcon("Security Tools", fyne.NewStaticResource("More", securityFile), pageNotImplemented()),
 		widget.NewTabItemWithIcon("Help", fyne.NewStaticResource("More", helpFile), pageNotImplemented()),
 		widget.NewTabItemWithIcon("Debug", fyne.NewStaticResource("More", settingFile), pageNotImplemented()),

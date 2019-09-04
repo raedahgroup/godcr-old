@@ -419,6 +419,10 @@ func (c *WalletRPCClient) TicketPrice(ctx context.Context) (int64, error) {
 	return ticketPrice.TicketPrice, nil
 }
 
+func (c *WalletRPCClient) GetTickets() ([]*dcrlibwallet.TicketInfo, error) {
+	return nil, fmt.Errorf("gettickets not yet implemented for dcrwallet rpc")
+}
+
 func (c *WalletRPCClient) PurchaseTicket(ctx context.Context, request dcrlibwallet.PurchaseTicketsRequest) ([]string, error) {
 	ticketPrice, err := c.TicketPrice(ctx)
 	if err != nil {

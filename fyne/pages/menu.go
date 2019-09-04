@@ -70,22 +70,33 @@ func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyn
 		widget.NewTabItemWithIcon("Receive", fyne.NewStaticResource("Receive", receiveFile), receivePage(wallet, window)),
 		widget.NewTabItemWithIcon("Accounts", fyne.NewStaticResource("Accounts", accountsFile), pageNotImplemented()),
 		widget.NewTabItemWithIcon("Staking", fyne.NewStaticResource("Staking", stakingFile), stakingPage(wallet)),
+		widget.NewTabItemWithIcon("Tickets", fyne.NewStaticResource("Tickets", stakingFile), initTicketPage()),
 		widget.NewTabItemWithIcon("More", fyne.NewStaticResource("More", moreFile), morePage(wallet, fyneApp)),
 		widget.NewTabItemWithIcon("Exit", fyne.NewStaticResource("Exit", exitFile), exit(ctx, fyneApp, window)))
 	menu.tabs.SetTabLocation(widget.TabLocationLeading)
 
 	// would update all labels for all pages every seconds, all objects to be updated should be placed here
 	go func() {
+		var lastActiveTabIndex = 0
 		for {
-			// update only when the user is on the page
-			if menu.tabs.CurrentTabIndex() == 0 {
+			// update only when the user returns to the page after leaving previously
+			switch menu.tabs.CurrentTabIndex() {
+			case lastActiveTabIndex:
+				// still on the same tab, no need to refresh
+				break
+			case 0:
 				overviewPageUpdates(wallet)
-			} else if menu.tabs.CurrentTabIndex() == 3 {
+			case 3:
 				receivePageUpdates(wallet)
-			} else if menu.tabs.CurrentTabIndex() == 4 {
+			case 5:
 				stakingPageReloadData(wallet)
+			case 6:
+				// might take some time, fetch data in background
+				go ticketPageUpdates(wallet)
 			}
+
 			statusUpdates(wallet)
+			lastActiveTabIndex = menu.tabs.CurrentTabIndex()
 			time.Sleep(time.Second * 1)
 		}
 	}()
