@@ -42,7 +42,7 @@ func main() {
 
 	// check if user passed commands/options/args in non-cli (web) mode
 	if len(args) > 0 {
-		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n",
+		fmt.Fprintf(os.Stderr, "Unexpected command or flag in %s mode: %s.\n",
 			"web",
 			strings.Join(args, " "))
 		os.Exit(1)
