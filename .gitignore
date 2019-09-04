@@ -5,6 +5,8 @@
 *.log
 *.bat
 vendor/
+fyne/fyne-packr.go
+fyne/packrd/
 godcr
 godcr.conf
 godcr.exe

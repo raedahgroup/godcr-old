@@ -1,6 +1,7 @@
 package fyne
 
 import (
+	"fmt"
 	"time"
 
 	"fyne.io/fyne"
@@ -35,13 +36,17 @@ func (app *fyneApp) displayMainWindow() {
 }
 
 func (app *fyneApp) setupNavigationMenu() {
+	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon)
+	if err != nil {
+		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
+	}
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", overviewIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("History", historyIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Send", sendIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Receive", receiveIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Accounts", accountIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", stakingIcon, widget.NewHBox()),
+		widget.NewTabItemWithIcon("Overview", icons[overviewIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("History", icons[historyIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Send", icons[sendIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Receive", icons[receiveIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Accounts", icons[accountsIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Staking", icons[stakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 

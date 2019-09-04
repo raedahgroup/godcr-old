@@ -3,7 +3,6 @@ module github.com/raedahgroup/godcr/cmd
 go 1.12
 
 require (
-	github.com/decred/dcrd/dcrutil v1.2.0
 	github.com/decred/slog v1.0.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
