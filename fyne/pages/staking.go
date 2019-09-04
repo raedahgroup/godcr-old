@@ -94,6 +94,7 @@ func stakingPage(wallet godcrApp.WalletMiddleware) fyne.CanvasObject {
 			if err := libwallet.ReadFromSettings(dcrlibwallet.VSPHostSettingsKey, &vspHost); err != nil {
 				println(err.Error())
 			}
+
 			purchaseTicketsRequest.VSPHost = vspHost
 		}
 

@@ -94,6 +94,7 @@ func restoreWallet(ctx context.Context, cfg *config.Config) (dcrlibwalletMiddlew
 	if err != nil {
 		return nil, fmt.Errorf("\nError creating wallet: %s.", err.Error())
 	}
+
 	fmt.Printf("Decred %s wallet created successfully at\n", dcrlibwalletMiddleware.NetType())
 	fmt.Println(dcrlibwalletMiddleware.WalletDbDir)
 
@@ -222,7 +223,7 @@ func generateNewWalletSeedAndDisplay() (string, error) {
 func requestAndValidateWalletSeed() (string, error) {
 	fmt.Print("Enter existing wallet seed (followed by a blank line): ")
 
-	// Use scanner instead of buffio.Reader so we can choose choose
+	// Use scanner instead of buffio.Reader so we can choose
 	// more complicated ending condition rather than just a single newline.
 	var seedStr string
 	scanner := bufio.NewScanner(os.Stdin)
@@ -233,13 +234,14 @@ func requestAndValidateWalletSeed() (string, error) {
 		}
 		seedStr += " " + line
 	}
+
 	seedMnemonic := strings.TrimSpace(seedStr)
 	seedMnemonic = collapseSpace(seedMnemonic)
 
 	if utils.VerifySeed(seedMnemonic) {
 		return seedMnemonic, nil
 	} else {
-		return "", fmt.Errorf("invalid seed specified")
+		return "", fmt.Errorf("invalid seed provided")
 	}
 }
 

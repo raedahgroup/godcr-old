@@ -93,7 +93,7 @@ func askToCreateOrRestoreWallet(ctx context.Context, cfg *config.Config) (*dcrli
 	})
 	if err != nil {
 		// There was an error reading input; we cannot proceed.
-		return nil, fmt.Errorf("error getting selected account: %s", err.Error())
+		return nil, fmt.Errorf("error reading your response: %s", err.Error())
 	}
 
 	if strings.EqualFold("c", userResponse) {

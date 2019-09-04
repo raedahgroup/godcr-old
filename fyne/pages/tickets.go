@@ -59,6 +59,7 @@ func initTicketPage() fyne.CanvasObject {
 			passphraseEntry.SetText("")
 		},
 	}
+
 	ticket.scriptRecoveryPassphraseForm.Append("Enter passphrase:", passphraseEntry)
 	ticket.scriptRecoveryPassphraseForm.Hide()
 
@@ -238,12 +239,12 @@ func processVSPTickets(tickets []*dcrlibwallet.TicketInfo, wallet godcrApp.Walle
 		finalReport += "\nRescan in progress, please wait..."
 		updateReport(finalReport)
 
-		for p := range rescanProgress {
-			if p.Err != nil {
-				updateReport(fmt.Sprintf("Rescan error: %s", p.Err.Error()))
+		for scanProgress := range rescanProgress {
+			if scanProgress.Err != nil {
+				updateReport(fmt.Sprintf("Rescan error: %s", scanProgress.Err.Error()))
 				break
 			} else {
-				fmt.Printf("Scanned through %d\n", p.ScannedThrough)
+				fmt.Printf("Scanned through %d\n", scanProgress.ScannedThrough)
 			}
 		}
 

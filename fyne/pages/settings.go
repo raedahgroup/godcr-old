@@ -51,6 +51,7 @@ func stakingForm(wallet godcrApp.WalletMiddleware) fyne.Widget {
 			}
 		},
 	}
+
 	stakingForm.Append("VSP Host", vspHost)
 
 	return stakingForm
