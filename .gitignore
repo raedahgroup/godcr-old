@@ -18,6 +18,11 @@ godcr-terminal
 godcr-terminal.exe
 godcr-web
 godcr-web.exe
+!godcr-cli/
+!godcr-fyne/
+!godcr-nuklear/
+!godcr-terminal/
+!godcr-web/
 enablegomod.bat
 web/static/app/node_modules
 web/static/dist/js/app.bundle.js
