@@ -4,11 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync"
-	"syscall"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/raedahgroup/godcr/app"
@@ -20,20 +17,7 @@ import (
 	"github.com/raedahgroup/godcr/cli/commands"
 	"github.com/raedahgroup/godcr/cli/runner"
 	"github.com/raedahgroup/godcr/cli/walletloader"
-	"github.com/raedahgroup/godcr/fyne"
-	"github.com/raedahgroup/godcr/nuklear"
-	"github.com/raedahgroup/godcr/terminal"
-	"github.com/raedahgroup/godcr/web"
 )
-
-// triggered after program execution is complete or if interrupt signal is received
-var beginShutdown = make(chan bool)
-
-// shutdownOps holds cleanup/shutdown functions that should be executed when shutdown signal is triggered
-var shutdownOps []func()
-
-// opError stores any error that occurs while performing an operation
-var opError error
 
 func main() {
 	appConfig, args, err := config.LoadConfig()
@@ -77,17 +61,11 @@ func main() {
 		}
 	}
 
-	// check if user passed commands/options/args but is not running in cli mode
-	if appConfig.InterfaceMode != "cli" && len(args) > 0 {
-		fmt.Fprintf(os.Stderr, "unexpected command or flag in %s mode: %s\n", appConfig.InterfaceMode, strings.Join(args, " "))
-		os.Exit(1)
-	}
-
 	// use wait group to keep main alive until shutdown completes
 	shutdownWaitGroup := &sync.WaitGroup{}
 
-	go listenForInterruptRequests()
-	go handleShutdown(shutdownWaitGroup)
+	go listenForShutdownRequests()
+	go handleShutdownRequests(shutdownWaitGroup)
 
 	// use ctx to monitor potentially long running operations
 	// such operations should listen for ctx.Done and stop further processing
@@ -110,32 +88,15 @@ func main() {
 
 	shutdownOps = append(shutdownOps, walletMiddleware.CloseWallet)
 
-	switch appConfig.InterfaceMode {
-	case "cli":
-		enterCliMode(ctx, walletMiddleware, appConfig)
-	case "http":
-		enterHttpMode(ctx, walletMiddleware, appConfig)
-	case "nuklear":
-		enterNuklearMode(ctx, walletMiddleware, &appConfig.Settings)
-	case "fyne":
-		enterFyneMode(ctx, walletMiddleware)
-	case "terminal":
-		enterTerminalMode(ctx, walletMiddleware, appConfig.Settings)
+	err = cli.Run(ctx, walletMiddleware, appConfig)
+	if err != nil {
+		exitCode = 1
 	}
+	// cli run done, trigger shutdown
+	beginShutdown <- true
 
 	// wait for handleShutdown goroutine, to finish before exiting main
 	shutdownWaitGroup.Wait()
-}
-
-//function for writing to stdOut and file simultaneously
-func logInfo(message string) {
-	log.Info(message)
-	fmt.Println(message)
-}
-
-func logWarn(message string) {
-	log.Warn(message)
-	fmt.Println(message)
 }
 
 // attemptExecuteSimpleOp checks if the operation requested by the user does not require a connection to a decred wallet
@@ -236,75 +197,4 @@ func connectViaDcrWalletRPC(ctx context.Context, cfg *config.Config) (*dcrwallet
 	}
 
 	return rpcWalletMiddleware, nil
-}
-
-func enterCliMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
-	opError = cli.Run(ctx, walletMiddleware, appConfig)
-	// cli run done, trigger shutdown
-	beginShutdown <- true
-}
-
-func enterHttpMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appConfig *config.Config) {
-	opError = web.StartServer(ctx, walletMiddleware, appConfig.HTTPHost, appConfig.HTTPPort, &appConfig.Settings)
-	// only trigger shutdown if some error occurred, ctx.Err cases would already have triggered shutdown, so ignore
-	if opError != nil && ctx.Err() == nil {
-		beginShutdown <- true
-	}
-}
-
-func enterNuklearMode(ctx context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) {
-	logInfo("Launching desktop app with nuklear")
-	nuklear.LaunchApp(ctx, walletMiddleware, settings)
-	// todo need to properly listen for shutdown and trigger shutdown
-	beginShutdown <- true
-}
-
-func enterFyneMode(ctx context.Context, walletMiddleware app.WalletMiddleware) {
-	logInfo("Launching desktop app with fyne")
-	fyne.LaunchFyne(ctx, walletMiddleware)
-	beginShutdown <- true
-}
-
-func enterTerminalMode(ctx context.Context, walletMiddleware app.WalletMiddleware, appSettings config.Settings) {
-	fmt.Println("Launching Terminal...")
-	opError = terminal.StartTerminalApp(ctx, walletMiddleware, appSettings)
-	// Terminal app closed, trigger shutdown
-	beginShutdown <- true
-}
-
-func listenForInterruptRequests() {
-	interruptChannel := make(chan os.Signal, 1)
-	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM)
-
-	// listen for the initial interrupt request and trigger shutdown signal
-	sig := <-interruptChannel
-	logWarn(fmt.Sprintf("\nReceived %s signal. Shutting down...\n", sig))
-	beginShutdown <- true
-
-	// continue to listen for interrupt requests and log that shutdown has already been signaled
-	for {
-		<-interruptChannel
-		logInfo(" Already shutting down... Please wait")
-		fmt.Println(" Already shutting down... Please wait")
-	}
-}
-
-func handleShutdown(wg *sync.WaitGroup) {
-	// make wait group wait till shutdownSignal is received and shutdownOps performed
-	wg.Add(1)
-
-	<-beginShutdown
-	for _, shutdownOp := range shutdownOps {
-		shutdownOp()
-	}
-
-	// shutdown complete
-	wg.Done()
-
-	// check if error occurred while program was running
-	if opError != nil {
-		os.Exit(1)
-	} else {
-		os.Exit(0)
-	}
 }

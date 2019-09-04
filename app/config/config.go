@@ -32,7 +32,6 @@ type Config struct {
 
 // CommandLineOptions holds the top-level options/flags that are displayed on the command-line menu
 type CommandLineOptions struct {
-	InterfaceMode string `long:"mode" description:"Interface mode to run" choice:"cli" choice:"http" choice:"nuklear" choice:"fyne" choice:"terminal" default:"cli"`
 	CliOptions
 }
 
@@ -49,9 +48,7 @@ func defaultConfig() Config {
 }
 
 func defaultCommandLineOptions() CommandLineOptions {
-	return CommandLineOptions{
-		InterfaceMode: "cli",
-	}
+	return CommandLineOptions{}
 }
 
 // LoadConfig parses program configuration from both command-line args and godcr config file, ignoring unknown options and the help flag

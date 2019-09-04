@@ -26,36 +26,37 @@ func pageNotImplemented() fyne.CanvasObject {
 	return label
 }
 
+// todo should find a better way to reference image paths, path below is currently set relative to ./cmd/fyne/fyne.go
 func menuPage(ctx context.Context, wallet godcrApp.WalletMiddleware, fyneApp fyne.App, window fyne.Window) fyne.CanvasObject {
-	overviewFile, err := ioutil.ReadFile("./fyne/pages/png/overview.png")
+	overviewFile, err := ioutil.ReadFile("../../fyne/pages/png/overview.png")
 	if err != nil {
 		log.Fatalln("overview png file missing", err)
 	}
-	historyFile, err := ioutil.ReadFile("./fyne/pages/png/history.png")
+	historyFile, err := ioutil.ReadFile("../../fyne/pages/png/history.png")
 	if err != nil {
 		log.Fatalln("history png file missing", err)
 	}
-	sendFile, err := ioutil.ReadFile("./fyne/pages/png/send.png")
+	sendFile, err := ioutil.ReadFile("../../fyne/pages/png/send.png")
 	if err != nil {
 		log.Fatalln("send png file missing", err)
 	}
-	receiveFile, err := ioutil.ReadFile("./fyne/pages/png/receive.png")
+	receiveFile, err := ioutil.ReadFile("../../fyne/pages/png/receive.png")
 	if err != nil {
 		log.Fatalln("receive png file missing", err)
 	}
-	accountsFile, err := ioutil.ReadFile("./fyne/pages/png/account.png")
+	accountsFile, err := ioutil.ReadFile("../../fyne/pages/png/account.png")
 	if err != nil {
 		log.Fatalln("account png file missing", err)
 	}
-	moreFile, err := ioutil.ReadFile("./fyne/pages/png/more.png")
+	moreFile, err := ioutil.ReadFile("../../fyne/pages/png/more.png")
 	if err != nil {
 		log.Fatalln("security png file missing", err)
 	}
-	exitFile, err := ioutil.ReadFile("./fyne/pages/png/exit.png")
+	exitFile, err := ioutil.ReadFile("../../fyne/pages/png/exit.png")
 	if err != nil {
 		log.Fatalln("exit png file missing", err)
 	}
-	stakingFile, err := ioutil.ReadFile("./fyne/pages/png/stake.png")
+	stakingFile, err := ioutil.ReadFile("../../fyne/pages/png/stake.png")
 	if err != nil {
 		log.Fatalln("staking png file missing", err)
 	}

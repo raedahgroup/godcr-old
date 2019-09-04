@@ -42,53 +42,61 @@ git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgro
 #### Step 3. Build the source code
 * If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
-* `cd` to the cloned project directory and run `go build` or `go install`.
-Building will place the `godcr` binary in your working directory while install will place the binary in $GOPATH/bin.
-* To build the http frontend, `cd web/static/app`
-and run `yarn install` then
-`yarn build`. You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
+* `cd` to the cloned project directory and `go install ./cmd/...`.
+This will place the different `godcr-{interface}` binaries in $GOPATH/bin.
+* Alternatively, you can build only the binary for the interface you intend to run.
+Run `go build ./cmd/godcr-{interface}` or `go install ./cmd/godcr-{interface}`.
+Note that `go build ./cmd/...` does not store but rather discards the binaries.
+* Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`.
+* To run the http interface (`godcr-web`), you'd need to first build the frontend assets:
+`cd web/static/app` and run `yarn install` then `yarn build`.
+You can get yarn from [here](https://yarnpkg.com/lang/en/docs/install/)
 
 **Note: Building on Windows**
-Exporting `GO111MODULE` directly in CLI does not work and it is recommended to trigger
-via a `.bat` file.
+Exporting `GO111MODULE` directly in CLI does not work and
+it is recommended to trigger via a `.bat` file.
 
-* Create `modInstall.bat` in cloned project directory
+* Create `enablegomod.bat` in the cloned project directory
 * Paste:
   ```
   setx GO111MODULE on
   go mod download
   ```
-* Execute `modInstall.bat`
+* Execute `./enablegomod.bat`
 
 ## Running godcr
-### General usage
-By default, **godcr** runs as a [cli app](https://en.wikipedia.org/wiki/Command-line_interface) where various wallet operations are performed by issuing commands on the terminal in the format:
+### As a CLI app
+`godcr-cli` runs the program in a [command-line interface](https://en.wikipedia.org/wiki/Command-line_interface)
+where various wallet operations are performed by issuing commands on the terminal in the format:
 ```bash
-godcr [options] <command> [args]
+godcr-cli [options] <command> [args]
 ```
-- Run `godcr -h` or `godcr help` to get general information of commands and options that can be issued on the cli.
-- Use `godcr <command> -h` or   `godcr help <command>` to get detailed information about a command.
+- Run `godcr-cli -h` or `godcr-cli help` to get general information of commands and options that can be issued on the cli.
+- Use `godcr-cli <command> -h` or   `godcr-cli help <command>` to get detailed information about a command.
 
 ### As a GUI app
-**godcr** can also be run as a full [GUI app](https://en.wikipedia.org/wiki/Graphical_user_interface) where wallet operations are performed by interacting with a graphical user interface.
+**godcr** can also be run as a full [GUI app](https://en.wikipedia.org/wiki/Graphical_user_interface)
+where wallet operations are performed by interacting with a graphical user interface.
 The following GUI interface modes are supported:
 1. Full GUI app on terminal.
-Run `godcr --mode=terminal`
+Run `godcr-terminal`.
 2. Web app served over http or https.
-Run `godcr --mode=http`
+Run `godcr-web`,
 3. Native desktop app with [nuklear](https://github.com/aarzilli/nucular) library.
-Run `godcr --mode=nuklear`
+Run `godcr-nuklear`.
 4. Native desktop app with [fyne](https://github.com/fyne-io/fyne) library.
-Run `godcr --mode=fyne`
+Run `godcr-fyne`.
 
 ### Configuration
 The behaviour of the godcr program can be customized by editing the godcr configuration file.
 The config file is where you set most options used by the godcr app, such as:
-- the host and port to use for the http web server (if running godcr with `--mode=http`)
-- the default interface mode to run (if you're tired of having to set `--mode=` everytime you run godcr)
-- whether or not to use dcrwallet over gRPC for wallet functionality. To use dcrwallet, set the dcrwallet rpc address in config (e.g. `wallerrpcaddress=localhost:19111`). If the rpc address is set in config, connection is made to dcrwallet. If not, dcrlibwallet is used.
+- the host and port to use for the http web server (if running `godcr-web`)
+- whether or not to use dcrwallet over gRPC for wallet functionality. 
+To use dcrwallet, set the dcrwallet rpc address in config (e.g. `wallerrpcaddress=localhost:19111`).
+If the rpc address is set in config, connection is made to dcrwallet. If not, dcrlibwallet is used.
 
-Run `godcr -h` to see the location of the config file. Open the file with a text editor to see all customizable options.
+Run `godcr-cli -h` to see the location of the config file.
+Open the file with a text editor to see all customizable options.
 
 ### Features
 [Go here](status.md) to view updated information about implemented features and known issues and workarounds.

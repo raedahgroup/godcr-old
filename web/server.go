@@ -25,7 +25,7 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, htt
 
 	// setup static file serving
 	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "web/static/dist")
+	filesDir := filepath.Join(workDir, "../../web/static/dist")
 	makeStaticFileServer(router, "/static", http.Dir(filesDir))
 
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened

@@ -263,12 +263,6 @@ func collapseSpace(in string) string {
 }
 
 func runInitialSync(cfg *config.Config) (bool, error) {
-	if cfg.InterfaceMode != "cli" {
-		// do not attempt to sync on cli if the user requested a different interface to be launched
-		// all other interfaces perform sync on launch
-		return false, nil
-	}
-
 	if cfg.SyncBlockchain {
 		// no need to ask user if to sync since `--sync` was already specified
 		return true, nil
