@@ -7,4 +7,4 @@ require (
 	github.com/raedahgroup/dcrlibwallet v1.1.0
 )
 
-replace github.com/raedahgroup/dcrlibwallet => ../dcrlibwallet
+replace github.com/raedahgroup/dcrlibwallet => ../../dcrlibwallet

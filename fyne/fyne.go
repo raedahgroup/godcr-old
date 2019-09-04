@@ -14,15 +14,17 @@ type fyneApp struct {
 	window fyne.Window
 }
 
-func InitializeUserInterface(appDisplayName, defaultAppDataDir, netType string) *fyneApp {
+func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 	// set app instance to be accessed subsequently as fyne.CurrentApp()
 	fyne.SetCurrentApp(app.New())
 
-	return &fyneApp{
+	f := &fyneApp{
 		defaultAppDataDir: defaultAppDataDir,
 		netType: netType,
 		window: fyne.CurrentApp().NewWindow(appDisplayName),
 	}
+
+	f.Launch()
 }
 
 func (app *fyneApp) Launch() {
