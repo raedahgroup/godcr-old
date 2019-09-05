@@ -2,11 +2,12 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"log"
 
 	"github.com/go-chi/chi"
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
@@ -46,14 +47,15 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 }
 
 func (routes *Routes) loadTemplates() {
-	layout := "../../web/views/layout.html"
-	utils := "../../web/views/utils.html"
+	layout := "layout.html"
+	utils := "utils.html"
 
-	viewBox := packr.NewBox("../../web/views")
+	viewBox := packr.New("templates", "../../web/views")
 
 	viewContentFunc := func(template string) string {
 		viewContent, err := viewBox.FindString(template)
 		if err != nil {
+			fmt.Println(template)
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
 

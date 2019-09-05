@@ -27,8 +27,8 @@ godcr-web.exe
 !godcr-web/
 enablegomod.bat
 web/static/app/node_modules
-web/static/public/js/*.bundle.js
-web/static/public/js/*.bundle.js.map
+web/static/dist/js/*.bundle.js
+web/static/dist/js/*.bundle.js.map
 *-packr.go
 
 packrd/packed-packr.go
