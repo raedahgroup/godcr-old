@@ -1,10 +1,6 @@
 package fyne
 
 import (
-	"fmt"
-	"path/filepath"
-	"sync"
-
 	"github.com/gobuffalo/packr/v2"
 
 	"fyne.io/fyne"
@@ -27,30 +23,12 @@ const (
 	stakeIcon       = "stake.png"
 )
 
-var (
-	imageBox       *packr.Box
-	prepareBoxOnce = sync.Once{}
-)
-
-func makeIconBox() (*packr.Box, error) {
-	var iconsLocation, err = filepath.Abs("assets")
-	if err != nil {
-		return nil, fmt.Errorf("could not get path to assets directory: %v", err)
-	}
-	return packr.New("icons", iconsLocation), nil
-}
+var imageBox = packr.New("icons", "assets")
 
 // getIcons returns a map from the names of the icons passed as arguments to
 // the icon resources that correspond to them. If an error is encountered
 // while loading any of the icons, the error is returned immediately.
 func getIcons(names ...string) (map[string]*fyne.StaticResource, error) {
-	var err error
-	prepareBoxOnce.Do(func() {
-		imageBox, err = makeIconBox()
-	})
-	if err != nil {
-		return nil, err
-	}
 	icons := make(map[string]*fyne.StaticResource, len(names))
 	for _, name := range names {
 		iconBytes, err := imageBox.Find(name)
