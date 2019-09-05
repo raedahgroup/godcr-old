@@ -40,6 +40,9 @@ func makeIconBox() (*packr.Box, error) {
 	return packr.New("icons", iconsLocation), nil
 }
 
+// getIcons returns a map from the names of the icons passed as arguments to
+// the icon resources that correspond to them. If an error is encountered
+// while loading any of the icons, the error is returned immediately.
 func getIcons(names ...string) (map[string]*fyne.StaticResource, error) {
 	var err error
 	prepareBoxOnce.Do(func() {
