@@ -5,8 +5,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"fyne.io/fyne"
 	"github.com/gobuffalo/packr/v2"
+
+	"fyne.io/fyne"
 )
 
 const (
