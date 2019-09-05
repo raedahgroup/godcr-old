@@ -21,8 +21,8 @@ function deploy() {
   go get -u github.com/gobuffalo/packr/v2/packr2
   echo 'go mod download'
   go mod download
-  echo 'packr build'
-  packr build
+  echo 'packr2 build'
+  packr2 build
 }
 ACTION=$1
 if [[ "$ACTION" = "web" ]]; then

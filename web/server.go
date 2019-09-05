@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/cli/termio/terminalprompt"
