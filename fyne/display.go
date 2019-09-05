@@ -1,6 +1,7 @@
 package fyne
 
 import (
+	"fmt"
 	"time"
 
 	"fyne.io/fyne"
@@ -37,7 +38,7 @@ func (app *fyneApp) displayMainWindow() {
 func (app *fyneApp) setupNavigationMenu() {
 	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon)
 	if err != nil {
-		panic(err)
+		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while load app icons: %s", err))
 	}
 	app.tabMenu = widget.NewTabContainer(
 		widget.NewTabItemWithIcon("Overview", icons[overviewIcon], widget.NewHBox()),
