@@ -9,5 +9,3 @@ require (
 	github.com/gobuffalo/packr/v2 v2.6.0
 	github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190904121310-90259892e503
 )
-
-replace github.com/raedahgroup/godcr/fyne => ./
