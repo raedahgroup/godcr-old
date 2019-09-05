@@ -43,8 +43,15 @@ git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgro
 * If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
 * `cd` to the cloned project directory.
-* To build/install godcr-fyne:
-`go build ./cmd/godcr-fyne` or `go install ./cmd/godcr-fyne`.
+* To build/install godcr-fyne, you need to install Packr also:
+```sh
+# Install Packr2 binary
+go get -u github.com/gobuffalo/packr/v2/packr2
+# Then build godcr-fyne
+cd cmd/godcr-fyne && go build .
+# or install into $GOBIN
+cd cmd/godcr-fyne && go install
+```
 * To build/install the binaries for other interfaces:
 `cd ./cmd/godcr-{interface} && go build` or `cd ./cmd/godcr-{interface} && go install`.
 * Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`. 
