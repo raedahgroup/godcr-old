@@ -25,7 +25,6 @@ func StartServer(ctx context.Context, walletMiddleware app.WalletMiddleware, htt
 
 	// setup static file serving
 	assetBox := packr.New("Static content", "../web/static/dist")
-	appJs, err := assetBox.FindString("")
 	makeStaticFileServer(router, "/static", assetBox)
 
 	// setup routes for templated pages, returns sync blockchain function if wallet is successfully opened
