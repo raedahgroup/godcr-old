@@ -15,19 +15,21 @@ function buildBackEnd {
   go build
 }
 
-function deploy() {
+function deployWeb() {
   buildFrontEnd
+  cd cmd/godcr-web
   echo 'go get -u github.com/gobuffalo/packr/v2/packr2'
   go get -u github.com/gobuffalo/packr/v2/packr2
   echo 'go mod download'
   go mod download
   echo 'packr2 build'
   packr2 build
+  cd ../../
 }
 ACTION=$1
 if [[ "$ACTION" = "web" ]]; then
   buildBackEnd
   buildFrontEnd
 else
-  deploy
+  deployWeb
 fi
