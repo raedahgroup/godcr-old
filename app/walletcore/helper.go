@@ -7,8 +7,6 @@ import (
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrwallet/wallet"
-	"github.com/decred/dcrd/wire"
-	"github.com/decred/dcrwallet/wallet/txrules"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/dcrlibwallet/utils"
