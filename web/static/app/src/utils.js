@@ -84,7 +84,7 @@ export const show = (el) => {
 }
 
 export const isHidden = (el) => {
-  return el.classList.contains('d-none')
+  return el.classList.contains('d-none') || el.classList.contains('d-hide')
 }
 
 export const truncate = (input, maxLength) => {

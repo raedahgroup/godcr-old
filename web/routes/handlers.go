@@ -162,10 +162,11 @@ func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	// If no input is selected, use all inputs in the account to determine
 	// the max amount that can be sent after subtracting total amount to send to other recipients.
 	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
 	if len(payload.utxos) == 0 {
+		// The reason we need all inputs is to properly determine the number of inputs to take into account
+		// when estimating fee and tx serialize size.
 		payload.utxos, _, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
 			payload.sourceAccount, payload.requiredConfirmations)
 

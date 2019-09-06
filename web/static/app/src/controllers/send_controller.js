@@ -96,6 +96,7 @@ export default class extends Controller {
       this.nextButtonTarget.classList.add('disabledBtn')
     } else {
       this.nextButtonTarget.removeAttribute('disabled')
+      this.nextButtonTarget.classList.remove('disabledBtn')
     }
   }
 
