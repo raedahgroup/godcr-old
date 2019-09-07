@@ -1,7 +1,7 @@
 module github.com/raedahgroup/godcr
 
 require (
-	fyne.io/fyne v1.1.0
+	fyne.io/fyne v1.1.2-0.20190906162925-d013f019457e
 	github.com/decred/dcrd/dcrec v0.0.0-20190311054417-9a5161ce9e68 // indirect
 	github.com/decred/dcrd/dcrjson v1.2.0 // indirect
 	github.com/decred/dcrd/dcrutil v1.2.0
@@ -15,7 +15,7 @@ require (
 	github.com/srwiley/oksvg v0.0.0-20190414003808-c520f0a6c5cc // indirect
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734 // indirect
 	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75 // indirect
-	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
 	golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )
