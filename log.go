@@ -55,7 +55,7 @@ func init() {
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]slog.Logger{
 	"GODCR": log,
-	"FYN":   fyneLogger,
+	"FYNE":  fyneLogger,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and
