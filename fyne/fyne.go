@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
-
 	godcrApp "github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/wallet"
@@ -56,7 +55,7 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 	}
 
 	if !walletExists {
-		pages.ShowCreateAndRestoreWalletPage(app.wallet, app.window, ctx)
+		pages.ShowCreateAndRestoreWalletPage(ctx, app.wallet, app.window)
 		return
 	}
 
@@ -75,7 +74,6 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 		app.DisplayPreLaunchError(errorMessage)
 		return
 	}
-
-	// todo: display overview page (include sync progress UI elements)
-	// todo: register sync progress listener on overview page to update sync progress views
+	var menu pages.MenuPageStruct
+	menu.MenuPage(ctx, wallet, app.window)
 }
