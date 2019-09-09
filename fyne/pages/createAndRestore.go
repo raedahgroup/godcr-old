@@ -26,6 +26,7 @@ func ShowCreateAndRestoreWalletPage(ctx context.Context, wallet wallet.Wallet, w
 	window.CenterOnScreen()
 	window.Resize(fyne.NewSize(500, 500))
 	window.SetFixedSize(true)
+	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	window.ShowAndRun()
 
 }

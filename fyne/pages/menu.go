@@ -3,6 +3,7 @@ package pages
 import (
 	"context"
 	"time"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/app/wallet"
@@ -25,9 +26,7 @@ func (menu *MenuPageStruct) MenuPage(ctx context.Context, wallet wallet.Wallet, 
 		widget.NewTabItemWithIcon("Send", sendIcon, widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", receiveIcon, widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", accountIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", stakingIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("More", moreIcon, widget.NewHBox()),
-		widget.NewTabItemWithIcon("Exit", exitIcon, widget.NewHBox()))
+		widget.NewTabItemWithIcon("Staking", stakingIcon, widget.NewHBox()))
 	menu.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
 	window.SetContent(menu.tabMenu)
