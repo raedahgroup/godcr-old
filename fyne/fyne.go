@@ -38,6 +38,7 @@ func (app *fyneApp) DisplayPreLaunchError(errorMessage string) {
 			os.Exit(1)
 		}), layout.NewSpacer())))
 
+	app.window.CenterOnScreen()
 	app.window.ShowAndRun()
 }
 
