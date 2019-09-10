@@ -55,8 +55,14 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 		return
 	}
 
+	var menu = pages.AppInterface{
+		Ctx:    app.ctx,
+		Wallet: app.wallet,
+		Window: app.window,
+	}
+
 	if !walletExists {
-		pages.ShowCreateAndRestoreWalletPage(ctx, app.wallet, app.window)
+		menu.ShowCreateAndRestoreWalletPage()
 		return
 	}
 
@@ -75,7 +81,7 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 		app.DisplayPreLaunchError(errorMessage)
 		return
 	}
-	var menu pages.MenuPageStruct
-	menu.MenuPage(ctx, wallet, app.window)
-	app.window.ShowAndRun()
+
+	menu.MenuPage()
+	menu.Window.ShowAndRun()
 }

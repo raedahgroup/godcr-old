@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"context"
 	"fmt"
 	"image/color"
 	"io/ioutil"
@@ -17,33 +16,31 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
 	godcrApp "github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/wallet"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func ShowCreateAndRestoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Window) {
-	window.SetContent(createAndRestoreWalletPage(ctx, window, wallet))
-	window.CenterOnScreen()
-	window.Resize(fyne.NewSize(500, 500))
-	window.SetFixedSize(true)
+func (app *AppInterface) ShowCreateAndRestoreWalletPage() {
+	app.Window.SetContent(app.createAndRestoreWalletPage())
+	app.Window.CenterOnScreen()
+	app.Window.Resize(fyne.NewSize(500, 500))
+	app.Window.SetFixedSize(true)
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
-	window.ShowAndRun()
-
+	app.Window.ShowAndRun()
 }
 
-func createAndRestoreWalletPage(ctx context.Context, window fyne.Window, wallet wallet.Wallet) fyne.CanvasObject {
+func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 	createWallet := widget.NewButtonWithIcon("Create a new Wallet", theme.ContentAddIcon(), func() {
-		createSpendingPasswordPopup(ctx, window, wallet, "")
+		app.createSpendingPasswordPopup("")
 	})
 
 	restoreWallet := widget.NewButtonWithIcon("Restore an existing wallet", theme.ContentRedoIcon(), func() {
-		window.SetContent(restoreWalletPage(ctx, wallet, window))
+		app.Window.SetContent(app.restoreWalletPage())
 	})
 
 	image := canvas.NewImageFromFile("fyne/assets/decred.png")
 	image.FillMode = canvas.ImageFillOriginal
 
-	createAndRestoreButtons:=widget.NewVBox(fyne.NewContainerWithLayout(
+	createAndRestoreButtons := widget.NewVBox(fyne.NewContainerWithLayout(
 		layout.NewFixedGridLayout(restoreWallet.MinSize()), createWallet),
 		restoreWallet)
 
@@ -51,28 +48,33 @@ func createAndRestoreWalletPage(ctx context.Context, window fyne.Window, wallet 
 		image,
 		widget.NewLabelWithStyle("Welcome to\nDecred Desktop Wallet", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		layout.NewSpacer(),
-		widget.NewHBox(layout.NewSpacer(),createAndRestoreButtons,layout.NewSpacer()))
+		widget.NewHBox(layout.NewSpacer(), createAndRestoreButtons, layout.NewSpacer()))
 
 	return widget.NewHBox(layout.NewSpacer(), page, layout.NewSpacer())
 }
 
-func passwordTab(ctx context.Context, wallet wallet.Wallet, popup *widget.PopUp, isPassword bool, seed string, window fyne.Window) fyne.CanvasObject {
+func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed string) fyne.CanvasObject {
 	displayError := func(err error) {
 		log.Println("could not generate seed", err.Error())
 		newWindow := fyne.CurrentApp().NewWindow(godcrApp.DisplayName)
 		newWindow.SetContent(widget.NewVBox(
 			widget.NewLabelWithStyle(fmt.Sprintf("Could not generate seed, %s", err.Error()), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewButton("Exit", func() { newWindow.Close() })))
+			widget.NewButton("Close", func() { newWindow.Close() })))
 	}
 
 	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 225})
 	errorLabel.TextSize = 10
 	errorLabel.Hide()
 
+	placeholder := "Spending Password"
+	if !isPassword {
+		placeholder = "Spending PIN"
+	}
+
 	password := widget.NewPasswordEntry()
-	password.SetPlaceHolder("Password")
+	password.SetPlaceHolder(placeholder)
 	confirmPassword := widget.NewPasswordEntry()
-	confirmPassword.SetPlaceHolder("Confirm Password")
+	confirmPassword.SetPlaceHolder(fmt.Sprintf("Confirm %s", placeholder))
 
 	passwordLength := canvas.NewText("0", color.Black)
 	passwordLength.TextSize = 10
@@ -148,14 +150,14 @@ func passwordTab(ctx context.Context, wallet wallet.Wallet, popup *widget.PopUp,
 			}
 		}
 
-		if wallet.CreateWallet(password.Text, seed) != nil {
+		if app.Wallet.CreateWallet(password.Text, seed) != nil {
 			displayError(err)
 			log.Println("could not create wallet", err.Error())
 			return
 		}
 		popup.Hide()
-		var menu MenuPageStruct
-		menu.MenuPage(ctx, wallet, window)
+		app.Window.SetFixedSize(false)
+		app.MenuPage()
 	})
 
 	createButton.Disable()
@@ -204,14 +206,14 @@ func passwordTab(ctx context.Context, wallet wallet.Wallet, popup *widget.PopUp,
 		errorLabel)
 }
 
-func restoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Window) fyne.CanvasObject {
-	window.SetOnClosed(func() {
-		newWindow := fyne.CurrentApp().NewWindow(godcrApp.DisplayName)
-		newWindow.SetContent(createAndRestoreWalletPage(ctx, newWindow, wallet))
-		newWindow.CenterOnScreen()
-		newWindow.Resize(fyne.NewSize(500, 500))
-		newWindow.SetFixedSize(true)
-		newWindow.Show()
+func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
+	app.Window.SetOnClosed(func() {
+		app.Window = fyne.CurrentApp().NewWindow(godcrApp.DisplayName)
+		app.Window.SetContent(app.createAndRestoreWalletPage())
+		app.Window.CenterOnScreen()
+		app.Window.Resize(fyne.NewSize(500, 500))
+		app.Window.SetFixedSize(true)
+		app.Window.Show()
 	})
 
 	var textbox = make([]*widget.Entry, 33)
@@ -251,7 +253,7 @@ func restoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Wi
 			return
 		}
 
-		popup = widget.NewPopUpMenu(fyne.NewMenu("", menuItem...), window.Canvas())
+		popup = widget.NewPopUpMenu(fyne.NewMenu("", menuItem...), app.Window.Canvas())
 		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(textbox[textboxIndex]).Add(fyne.NewPos(0, textbox[textboxIndex].Size().Height)))
 	}
 
@@ -266,7 +268,7 @@ func restoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Wi
 			check, _ := ioutil.ReadFile("fyne/assets/ic_checkmark_64px.png")
 			icon := canvas.NewImageFromResource(fyne.NewStaticResource("", check))
 			icon.FillMode = canvas.ImageFillOriginal
-			windowContent := window.Content()
+			windowContent := app.Window.Content()
 			if box, ok := windowContent.(*widget.Box); ok {
 				box.Children = []fyne.CanvasObject{
 					layout.NewSpacer(),
@@ -274,7 +276,7 @@ func restoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Wi
 					layout.NewSpacer(),
 					widget.NewLabelWithStyle("Your wallet is successfully restored", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
-					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { createSpendingPasswordPopup(ctx, window, wallet, seed) }), layout.NewSpacer()),
+					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }), layout.NewSpacer()),
 					widgets.NewVSpacer(20)}
 				widget.Refresh(box)
 			}
@@ -319,16 +321,16 @@ func restoreWalletPage(ctx context.Context, wallet wallet.Wallet, window fyne.Wi
 	return widget.NewVBox(errorLabel, textBoxContainer, buttonContainer)
 }
 
-func createSpendingPasswordPopup(ctx context.Context, window fyne.Window, wallet wallet.Wallet, seed string) {
+func (app *AppInterface) createSpendingPasswordPopup(seed string) {
 	var popup *widget.PopUp
 
 	popupContent := widget.NewVBox()
 	popup = widget.NewModalPopUp(widget.NewVBox(
 		widget.NewLabelWithStyle("Create a Spending Password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), popupContent),
-		window.Canvas())
+		app.Window.Canvas())
 
 	tabMenu := widget.NewTabContainer(
-		widget.NewTabItem("     Password    ", passwordTab(ctx, wallet, popup, true, seed, window)), widget.NewTabItem("       Pin        ", passwordTab(ctx, wallet, popup, false, seed, window)))
+		widget.NewTabItem("     Password    ", app.passwordTab(popup, true, seed)), widget.NewTabItem("       Pin        ", app.passwordTab(popup, false, seed)))
 
 	popupContent.Children = []fyne.CanvasObject{tabMenu}
 	widget.Refresh(popupContent)

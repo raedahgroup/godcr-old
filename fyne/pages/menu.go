@@ -10,7 +10,11 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-type MenuPageStruct struct {
+type AppInterface struct {
+	Ctx    context.Context
+	Wallet wallet.Wallet
+	Window fyne.Window
+
 	tabMenu *widget.TabContainer
 }
 
@@ -19,7 +23,7 @@ func pageNotImplemented() fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), label)
 }
 
-func (menu *MenuPageStruct) MenuPage(ctx context.Context, wallet wallet.Wallet, window fyne.Window) {
+func (menu *AppInterface) MenuPage() {
 	menu.tabMenu = widget.NewTabContainer(
 		widget.NewTabItemWithIcon("Overview", overviewIcon, pageNotImplemented()),
 		widget.NewTabItemWithIcon("History", historyIcon, widget.NewHBox()),
@@ -29,7 +33,7 @@ func (menu *MenuPageStruct) MenuPage(ctx context.Context, wallet wallet.Wallet, 
 		widget.NewTabItemWithIcon("Staking", stakingIcon, widget.NewHBox()))
 	menu.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
-	window.SetContent(menu.tabMenu)
+	menu.Window.SetContent(menu.tabMenu)
 
 	go func() {
 		var currentTabIndex = -1
