@@ -76,4 +76,5 @@ func (app *fyneApp) LaunchApp(ctx context.Context, cfg *config.Config, wallet wa
 	}
 	var menu pages.MenuPageStruct
 	menu.MenuPage(ctx, wallet, app.window)
+	app.window.ShowAndRun()
 }
