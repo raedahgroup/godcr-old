@@ -197,10 +197,10 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	})
 
 	return widget.NewVBox(
-		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), password), passwordConceal, layout.NewSpacer()), //fyne.NewContainerWithLayout(layout.NewFixedGridLayout(passwordConceal.MinSize()), passwordConceal), layout.NewSpacer()),
+		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), password), passwordConceal, layout.NewSpacer()),
 		passwordLength,
-		widget.NewHBox(widget.NewLabel("Password Strength"), layout.NewSpacer(), passwordStrength),                                                                                         //passwordWeak, passwordStrong),
-		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), confirmPassword), confirmPasswordConceal, layout.NewSpacer()), //, confirmPasswordConceal, layout.NewSpacer()),
+		widget.NewHBox(widget.NewLabel("Password Strength"), layout.NewSpacer(), passwordStrength),
+		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), confirmPassword), confirmPasswordConceal, layout.NewSpacer()),
 		confirmPasswordLength,
 		widget.NewHBox(layout.NewSpacer(), widget.NewButton("Cancel", func() { popup.Hide() }), createButton),
 		errorLabel)
