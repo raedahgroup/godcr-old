@@ -68,7 +68,7 @@ func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
 		return
 	}
 
-	err = app.dcrlw.SpvSync()
+	err = app.dcrlw.SpvSync("") // todo dcrlibwallet should ideally read this parameter from config
 	if err != nil {
 		errorMessage := fmt.Sprintf("Spv sync attempt failed: %v", err)
 		app.log.Errorf(errorMessage)
