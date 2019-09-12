@@ -6,7 +6,8 @@ function packFyneAssets() {
 function buildFyne() {
     packFyneAssets
     echo "building with go build"
-    go build ./cmd/godcr-fyne
+    (cd ./cmd/godcr-fyne && go build)
+    cp cmd/godcr-fyne/godcr-fyne .
 }
 
 if [[ "$1" = "fyne" ]]; then

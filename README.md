@@ -49,10 +49,15 @@ Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on`
 GO111MODULE=off go get -u github.com/gobuffalo/packr/v2/packr2
 # Generate Go files to pack fyne icons into the binary as byte slices. Run in subshell.
 (cd fyne && packr2)
-# Then build godcr-fyne
-go build ./cmd/godcr-fyne
+# Then build godcr-fyne. This is done in its own module directory.
+# Building from any other directory will fail, because godcr-fyne currently
+# depends on an untagged version of dcrlibwallet that is newer than that used by
+# other packages. Therefore, it will always override the other versions if built
+# together with them.
+./build.sh fyne
+
 # or install into $GOBIN
-go install ./cmd/godcr-fyne
+(cd ./cmd/godcr-fyne && go install)
 ```
 * To build/install the binaries for other interfaces:
 `cd ./cmd/godcr-{interface} && go build` or `cd ./cmd/godcr-{interface} && go install`.
