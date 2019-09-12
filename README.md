@@ -47,13 +47,16 @@ Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on`
 ```sh
 # Install Packr2 binary to GOPATH. Run the command with module mode turned off.
 GO111MODULE=off go get -u github.com/gobuffalo/packr/v2/packr2
-# Generate Go files to pack fyne icons into the binary as byte slices. Run in subshell.
-(cd fyne && packr2)
-# Then build godcr-fyne
-go build ./cmd/godcr-fyne
-# or install into $GOBIN
-go install ./cmd/godcr-fyne
 ```
+Then run the build script `build.sh` as follows.
+```sh
+./build.sh fyne
+```
+Or install `godcr-fyne` into $GOBIN as follows.
+```sh
+(cd cmd/godcr-fyne && go install)
+```
+
 * To build/install the binaries for other interfaces:
 `cd ./cmd/godcr-{interface} && go build` or `cd ./cmd/godcr-{interface} && go install`.
 * Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`. 
