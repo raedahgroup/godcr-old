@@ -7,20 +7,12 @@ import (
 )
 
 const (
-	aboutIcon       = "about.png"
-	accountsIcon    = "account.png"
-	decredDarkIcon  = "decredDark.png"
-	decredLightIcon = "decredLight.png"
-	exitIcon        = "exit.png"
-	helpIcon        = "help.png"
-	historyIcon     = "history.png"
-	moreIcon        = "more.png"
-	overviewIcon    = "overview.png"
-	receiveIcon     = "receive.png"
-	securityIcon    = "security.png"
-	sendIcon        = "send.png"
-	settingsIcon    = "settings.png"
-	stakeIcon       = "stake.png"
+	accountsIcon = "account.png"
+	historyIcon  = "history.png"
+	overviewIcon = "overview.png"
+	receiveIcon  = "receive.png"
+	sendIcon     = "send.png"
+	stakeIcon    = "stake.png"
 )
 
 var imageBox = packr.New("icons", "assets")

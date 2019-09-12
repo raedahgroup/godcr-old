@@ -261,6 +261,7 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77 h1:cGSRi6zwgpXGmCYCAkEDgX6XdO4Y4MwdFa7LCKDzQ/8=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
+github.com/raedahgroup/godcr v0.0.0-20190912053213-48fdd185f0dd h1:ffevmMlb1iEuWQCoV5zFbihGSi9LgOPehEZLvAHZf4Y=
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0 h1:RR9dF3JtopPvtkroDZuVD7qquD0bnHlKSqaQhgwt8yk=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
