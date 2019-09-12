@@ -1,3 +1,4 @@
+# Generate Go files to pack fyne icons into the binary as byte slices. Run in subshell.
 function packFyneAssets() {
     echo "packing assets with packr2"
     (cd fyne && packr2)

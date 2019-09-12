@@ -59,6 +59,15 @@ GO111MODULE=off go get -u github.com/gobuffalo/packr/v2/packr2
 # or install into $GOBIN
 (cd ./cmd/godcr-fyne && go install)
 ```
+Then run the build script `build.sh` as follows.
+```sh
+./build.sh fyne
+```
+Or install `godcr-fyne` into $GOBIN as follows.
+```sh
+(cd cmd/godcr-fyne && go install)
+```
+
 * To build/install the binaries for other interfaces:
 `cd ./cmd/godcr-{interface} && go build` or `cd ./cmd/godcr-{interface} && go install`.
 * Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`. 
