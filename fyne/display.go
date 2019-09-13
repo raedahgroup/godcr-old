@@ -22,7 +22,9 @@ func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
 		),
 	))
 
+	fmt.Println("There")
 	app.window.ShowAndRun()
+	fmt.Println("Done")
 	app.tearDown()
 }
 
