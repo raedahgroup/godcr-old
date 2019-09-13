@@ -43,31 +43,21 @@ git clone https://github.com/raedahgroup/godcr %GOPATH%/src/github.com/raedahgro
 * If you cloned to $GOPATH, set the `GO111MODULE=on` environment variable before building.
 Run `export GO111MODULE=on` in terminal (for Mac/Linux) or `setx GO111MODULE on` in command prompt for Windows.
 * `cd` to the cloned project directory.
-* To build/install godcr-fyne, you need to install Packr first:
+
+* To build/install godcr-fyne, run the following commands.
 ```sh
 # Install Packr2 binary to GOPATH. Run the command with module mode turned off.
 GO111MODULE=off go get -u github.com/gobuffalo/packr/v2/packr2
-# Generate Go files to pack fyne icons into the binary as byte slices. Run in subshell.
+
+# Generate Go files to pack fyne icons into the binary as byte slices.
 (cd fyne && packr2)
-# Then build godcr-fyne. This is done in its own module directory.
-# Building from any other directory will fail, because godcr-fyne currently
-# depends on an untagged version of dcrlibwallet that is newer than that used by
-# other packages. Therefore, it will always override the other versions if built
-# together with them.
-./build.sh fyne
+
+# Then build godcr-fyne.
+go build ./cmd/godcr-fyne
 
 # or install into $GOBIN
-(cd ./cmd/godcr-fyne && go install)
+go install ./cmd/godcr-fyne
 ```
-Then run the build script `build.sh` as follows.
-```sh
-./build.sh fyne
-```
-Or install `godcr-fyne` into $GOBIN as follows.
-```sh
-(cd cmd/godcr-fyne && go install)
-```
-
 * To build/install the binaries for other interfaces:
 `cd ./cmd/godcr-{interface} && go build` or `cd ./cmd/godcr-{interface} && go install`.
 * Currently supported interfaces are `godcr-cli`, `godcr-fyne`, `godcr-nuklear`, `godcr-terminal` and `godcr-web`. 
