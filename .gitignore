@@ -30,15 +30,3 @@ web/static/app/node_modules
 web/static/dist/js/*.bundle.js
 web/static/dist/js/*.bundle.js.map
 *-packr.go
-
-packrd/packed-packr.go
-web/routes/routes-packr.go
-web/web-packr.go
-
-web/static/dist/js/app.bundle.js
-
-web/static/dist/js/app.bundle.js.map
-
-web/static/dist/js/vendors~app.bundle.js
-
-web/static/dist/js/vendors~app.bundle.js.map
