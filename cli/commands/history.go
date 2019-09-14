@@ -71,7 +71,7 @@ func (history HistoryCommand) Run(ctx context.Context, wallet walletcore.Wallet)
 			pageTxRows[i] = append(pageTxRows[i], formatFee(tx.Fee))
 			pageTxRows[i] = append(pageTxRows[i], tx.Type)
 		}
-		fmt.Println(len(history.displayedTxHashes))
+
 		previousPageTxCount = len(transactions)
 		termio.PrintTabularResult(termio.StdoutWriter, columns, pageTxRows)
 

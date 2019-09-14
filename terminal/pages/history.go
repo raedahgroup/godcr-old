@@ -60,15 +60,22 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	// tx filter
 	filters := walletcore.TransactionFilters
-	transactionCountByFilter := make([]string, len(filters))
+	var transactionCountByFilter []string
 
 	var txCount int
 	var txCountErr error
-	for index, filter := range filters {
+	for _, filter := range filters {
 		if filter == "All" {
 			txCount, txCountErr = wallet.TransactionCount(nil)
+			if txCountErr != nil {
+				displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), true)
+				tviewApp.SetFocus(historyPage)
+				return historyPage
+			}
+
 			totalTxCount = txCount
 		}
+
 		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		if txCountErr != nil {
 			displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), true)
@@ -78,7 +85,8 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		if txCount == 0 {
 			continue
 		}
-		transactionCountByFilter[index] = fmt.Sprintf("%s (%d)", filter, txCount)
+
+		transactionCountByFilter = append(transactionCountByFilter, fmt.Sprintf("%s (%d)", filter, txCount))
 	}
 
 	if txCountErr != nil {
