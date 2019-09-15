@@ -20,6 +20,11 @@ var displayedTxHashes []string
 var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 var totalTxCount int
 var selectedFilter, lastSelectedFilter string
+	type MessageKind string
+	const (
+		ErrorMessage MessageKind = "error"
+		InfoMessage MessageKind = "info"
+	)
 
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
@@ -36,12 +41,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	messageTextView := primitives.WordWrappedTextView("")
-	displayMessage := func(message string, error bool) {
+	displayMessage := func(message string, kind MessageKind) {
 		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
 			historyPage.RemoveItem(messageTextView)
 			if message != "" {
-				if error {
+				if message != "" && kind == ErrorMessage {
 					messageTextView.SetTextColor(helpers.DecredOrangeColor)
 				} else {
 					messageTextView.SetTextColor(tcell.ColorWhite)
@@ -68,7 +73,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		if filter == "All" {
 			txCount, txCountErr = wallet.TransactionCount(nil)
 			if txCountErr != nil {
-				displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), true)
+				displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), ErrorMessage)
 				tviewApp.SetFocus(historyPage)
 				return historyPage
 			}
@@ -78,7 +83,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		if txCountErr != nil {
-			displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), true)
+			displayMessage(fmt.Sprintf("Cannot load history page. Error getting total transaction count: %s", txCountErr.Error()), ErrorMessage)
 			tviewApp.SetFocus(historyPage)
 			return historyPage
 		}
@@ -90,13 +95,13 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	}
 
 	if txCountErr != nil {
-		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), true)
+		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), ErrorMessage)
 		tviewApp.SetFocus(historyPage)
 		return historyPage
 	}
 
-	if totalTxCount == 0 {
-		displayMessage("No transactions yet", false)
+	if totalTxCount != 0 {
+		displayMessage("No transactions yet", InfoMessage)
 		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
 		tviewApp.SetFocus(historyPage)
 		return historyPage
@@ -131,7 +136,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 		totalTxCount, txCountErr = wallet.TransactionCount(filter)
 		if txCountErr != nil {
-			displayMessage(txCountErr.Error(), true)
+			displayMessage(txCountErr.Error(), ErrorMessage)
 			return
 		}
 
@@ -153,7 +158,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	}
 
 	if txCount == 0 {
-		displayMessage("No transactions yet", false)
+		displayMessage("No transactions yet", InfoMessage)
 		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
 		tviewApp.SetFocus(historyPage)
 		return historyPage
@@ -164,8 +169,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 			clearFocus()
 		}
 	})
-
-	// displayedTxHashes = []string{}
 
 	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
@@ -242,13 +245,18 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	return historyPage
 }
 
-func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, filter *txindex.ReadFilter, historyTable *tview.Table, tviewApp *tview.Application, displayMessage func(string, bool)) {
+func fetchAndDisplayTransactions(txOffset int, 
+	wallet walletcore.Wallet, 
+	filter *txindex.ReadFilter, 
+	historyTable *tview.Table, 
+	tviewApp *tview.Application, 
+	displayMessage func(string, MessageKind)) {
 	// show a loading text at the bottom of the table so user knows an op is in progress
-	displayMessage("Fetching data...", false)
+	displayMessage("Fetching data...", InfoMessage)
 
 	txns, err := wallet.TransactionHistory(int32(txOffset), txPerPage, filter)
 	if err != nil {
-		displayMessage(err.Error(), true)
+		displayMessage(err.Error(), ErrorMessage)
 		return
 	}
 
@@ -297,7 +305,7 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, filter 
 		}
 
 		// clear loading message text
-		displayMessage("", false)
+		displayMessage("", InfoMessage)
 		
 		if len(displayedTxHashes) < totalTxCount {
 			nextOffset := txOffset + len(txns)
@@ -313,10 +321,10 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, filter 
 	return
 }
 
-func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, bool), transactionDetailsTable *tview.Table) {
+func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, MessageKind), transactionDetailsTable *tview.Table) {
 	tx, err := wallet.GetTransaction(txHash)
 	if err != nil {
-		displayError(err.Error(), true)
+		displayError(err.Error(), ErrorMessage)
 	}
 
 	transactionDetailsTable.SetCellSimple(0, 0, "Hash")
