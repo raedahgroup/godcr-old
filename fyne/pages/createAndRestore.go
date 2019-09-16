@@ -49,7 +49,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 
 	page := widget.NewVBox(
 		image,
-		widget.NewLabelWithStyle("Welcome to\nDecred Desktop Wallet", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Welcome to GoDCR", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		layout.NewSpacer(),
 		widget.NewHBox(layout.NewSpacer(), createAndRestoreButtons, layout.NewSpacer()),
 		widgets.NewVSpacer(10))
@@ -221,7 +221,6 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 }
 
 func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
-	fmt.Println(dcrlibwallet.GenerateSeed())
 	app.Window.SetOnClosed(func() {
 		app.Window = fyne.CurrentApp().NewWindow(app.AppDisplayName)
 		app.Window.SetContent(app.createAndRestoreWalletPage())
