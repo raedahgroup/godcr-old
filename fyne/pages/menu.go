@@ -1,49 +1,45 @@
-package fyne
+package pages
 
 import (
-	"fmt"
 	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
-
-	"github.com/raedahgroup/godcr/fyne/pages"
+	"github.com/decred/slog"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
-func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
-	app.window.SetContent(widget.NewVBox(
+type AppInterface struct {
+	Log            slog.Logger
+	Dcrlw          *dcrlibwallet.LibWallet
+	Window         fyne.Window
+	AppDisplayName string
+
+	tabMenu *widget.TabContainer
+}
+
+// DisplayLaunchErrorAndExit displays the error message to users.
+func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) fyne.CanvasObject {
+	return widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
 
 		widget.NewHBox(
 			layout.NewSpacer(),
-			widget.NewButton("Exit", app.window.Close), // closing the window will trigger app.tearDown()
+			widget.NewButton("Exit", app.Window.Close), // closing the window will trigger app.tearDown()
 			layout.NewSpacer(),
-		),
-	))
-
-	fmt.Println("There")
-	app.window.ShowAndRun()
-	fmt.Println("Done")
-	app.tearDown()
+		))
 }
 
-func (app *fyneApp) displayMainWindow() {
-	app.setupNavigationMenu()
-	app.tabMenu.SelectTabIndex(0)
-	app.window.SetContent(app.tabMenu)
-
-	app.window.ShowAndRun()
-	app.tearDown()
-}
-
-func (app *fyneApp) setupNavigationMenu() {
+func (app *AppInterface) MenuPage() {
 	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon)
 	if err != nil {
-		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
+		app.Window.SetContent(app.DisplayLaunchErrorAndExit(err.Error()))
+		return
 	}
+
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[overviewIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Overview", icons[overviewIcon], overviewPageContent()),
 		widget.NewTabItemWithIcon("History", icons[historyIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Send", icons[sendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[receiveIcon], widget.NewHBox()),
@@ -52,8 +48,10 @@ func (app *fyneApp) setupNavigationMenu() {
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
+	app.Window.SetContent(app.tabMenu)
+
 	go func() {
-		var currentTabIndex = -1
+		var currentTabIndex = 0
 
 		for {
 			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
@@ -75,17 +73,17 @@ func (app *fyneApp) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = pages.OverviewPageContent()
+				newPageContent = overviewPageContent()
 			case 1:
-				newPageContent = pages.HistoryPageContent()
+				newPageContent = historyPageContent()
 			case 2:
-				newPageContent = pages.SendPageContent()
+				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = pages.ReceivePageContent()
+				newPageContent = receivePageContent()
 			case 4:
-				newPageContent = pages.AccountsPageContent()
+				newPageContent = accountsPageContent()
 			case 5:
-				newPageContent = pages.StakingPageContent()
+				newPageContent = stakingPageContent()
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {

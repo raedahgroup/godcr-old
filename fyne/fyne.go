@@ -3,20 +3,36 @@ package fyne
 import (
 	"fmt"
 
+	"fyne.io/fyne"
+	"fyne.io/fyne/app"
+	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
+	"fyne.io/fyne/widget"
+
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/pages"
-
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/widget"
 )
 
 type fyneApp struct {
-	log     slog.Logger
-	dcrlw   *dcrlibwallet.LibWallet
-	window  fyne.Window
-	tabMenu *widget.TabContainer
+	log    slog.Logger
+	dcrlw  *dcrlibwallet.LibWallet
+	window fyne.Window
+}
+
+func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
+	app.window.SetContent(widget.NewVBox(
+		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
+
+		widget.NewHBox(
+			layout.NewSpacer(),
+			widget.NewButton("Exit", app.window.Close), // closing the window will trigger app.tearDown()
+			layout.NewSpacer(),
+		),
+	))
+
+	app.window.ShowAndRun()
+	app.tearDown()
 }
 
 func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
@@ -26,10 +42,10 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 		window: fyne.CurrentApp().NewWindow(appDisplayName),
 	}
 
-	appInstance.startUp(defaultAppDataDir, netType)
+	appInstance.startUp(defaultAppDataDir, appDisplayName, netType)
 }
 
-func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
+func (app *fyneApp) startUp(defaultAppDataDir, appDisplayName, netType string) {
 	var err error
 	app.log, err = dcrlibwallet.RegisterLogger("FYNE")
 	if err != nil {
@@ -53,8 +69,15 @@ func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
 		return
 	}
 
+	var menu = pages.AppInterface{
+		Dcrlw:          app.dcrlw,
+		Window:         app.window,
+		Log:            app.log,
+		AppDisplayName: appDisplayName,
+	}
+
 	if !walletExists {
-		pages.ShowCreateAndRestoreWalletPage(app.dcrlw, app.window)
+		menu.ShowCreateAndRestoreWalletPage()
 		return
 	}
 
@@ -68,7 +91,7 @@ func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
 		return
 	}
 
-	err = app.dcrlw.SpvSync("") // todo dcrlibwallet should ideally read this parameter from config
+	err = app.dcrlw.SpvSync("")
 	if err != nil {
 		errorMessage := fmt.Sprintf("Spv sync attempt failed: %v", err)
 		app.log.Errorf(errorMessage)
@@ -76,7 +99,12 @@ func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
 		return
 	}
 
-	app.displayMainWindow()
+	menu.MenuPage()
+	menu.Window.CenterOnScreen()
+	menu.Window.Resize(fyne.NewSize(500, 500))
+	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
+	menu.Window.ShowAndRun()
+	app.tearDown()
 }
 
 func (app *fyneApp) tearDown() {
@@ -86,48 +114,3 @@ func (app *fyneApp) tearDown() {
 
 	fyne.CurrentApp().Quit()
 }
-
-/*
-go func() {
-		var currentTabIndex = -1
-
-		for {
-			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
-				time.Sleep(50 * time.Millisecond)
-				return
-			}
-
-			// clear previous tab content
-			previousTabIndex := currentTabIndex
-			if previousTabIndex >= 0 {
-				if previousPageBox, ok := app.tabMenu.Items[previousTabIndex].Content.(*widget.Box); ok {
-					previousPageBox.Children = widget.NewHBox().Children
-					widget.Refresh(previousPageBox)
-				}
-			}
-
-			currentTabIndex = app.tabMenu.CurrentTabIndex()
-			var newPageContent fyne.CanvasObject
-
-			switch currentTabIndex {
-			case 0:
-				newPageContent = pages.OverviewPageContent()
-			case 1:
-				newPageContent = pages.HistoryPageContent()
-			case 2:
-				newPageContent = pages.SendPageContent()
-			case 3:
-				newPageContent = pages.ReceivePageContent()
-			case 4:
-				newPageContent = pages.AccountsPageContent()
-			case 5:
-				newPageContent = pages.StakingPageContent()
-			}
-
-			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
-				activePageBox.Children = []fyne.CanvasObject{newPageContent}
-				widget.Refresh(activePageBox)
-			}
-		}
-	}()
-*/

@@ -1,4 +1,4 @@
-package fyne
+package pages
 
 import (
 	"github.com/gobuffalo/packr/v2"
@@ -13,9 +13,14 @@ const (
 	receiveIcon  = "receive.png"
 	sendIcon     = "send.png"
 	stakeIcon    = "stake.png"
+	decredLogo   = "decred.png"
+	reveal       = "reveal.png"
+	conceal      = "conceal.png"
+	checkmark    = "checkmark.png"
+	wordlist     = "wordlist.txt"
 )
 
-var imageBox = packr.New("icons", "assets")
+var imageBox = packr.New("icons", "../assets")
 
 // getIcons returns a map from the names of the icons passed as arguments to
 // the icon resources that correspond to them. If an error is encountered

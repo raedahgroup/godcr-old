@@ -1,4 +1,4 @@
-package fyne
+package pages
 
 import (
 	"math/rand"
