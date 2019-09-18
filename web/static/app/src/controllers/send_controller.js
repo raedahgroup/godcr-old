@@ -136,9 +136,15 @@ export default class extends Controller {
     if (isNaN(amount) || amount <= 0) {
       this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
       return
-    } else {
-      this.clearDestinationFieldError(amountTarget)
     }
+    const accountBalance = this.getAccountBalance()
+    const totalSendAmount = this.getTotalSendAmount()
+    if (totalSendAmount > accountBalance) {
+      this.setDestinationFieldError(amountTarget, `Total exceeds balance. Please enter ${accountBalance - (totalSendAmount - amount)} or less`, false)
+      return
+    }
+
+    this.clearDestinationFieldError(amountTarget)
     // update max send amount field if some other amount field has been updated
     const editedAmountFieldIndex = event.target.getAttribute('data-index')
     if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
@@ -282,7 +288,8 @@ export default class extends Controller {
     }
     element.classList.add('is-invalid')
     show(errorElement)
-
+    element.select()
+    element.focus()
     this.alignDestinationField(element)
   }
 
@@ -446,6 +453,17 @@ export default class extends Controller {
     }
 
     this.utxoSelectionProgressBarTarget.style.width = `${percentage}%`
+  }
+
+  getAccountBalance () {
+    let target = this.sourceAccountTarget
+    if (this.sourceAccountTarget.options) {
+      target = this.sourceAccountTarget.options[this.sourceAccountTarget.selectedIndex]
+    }
+    let amount = parseFloat(target.getAttribute('data-spendable-balance'))
+    let unconfirmed = parseFloat(target.getAttribute('data-unconfirmed-balance'))
+
+    return this.spendUnconfirmedTarget.checked ? amount + unconfirmed : amount
   }
 
   getTotalSendAmount () {
