@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
+      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
@@ -112,46 +112,33 @@ export default class extends Controller {
   }
 
   destinationAddressEdited (event) {
+    const editedAddress = event.currentTarget
     const _this = this
-    const index = event.currentTarget.getAttribute('data-index')
-    let addressErrorTarget, amountTarget, sendMaxTarget
-    _this.addressErrorTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        addressErrorTarget = el
-      }
-    })
-    _this.amountTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        amountTarget = el
-      }
-    })
-    _this.maxSendAmountCheckTargets.forEach(el => {
-      if (el.getAttribute('data-index') === index) {
-        sendMaxTarget = el
-      }
-    })
 
-    axios.post('/validate-address?address=' + event.currentTarget.value)
+    axios.post('/validate-address?address=' + editedAddress.value)
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          addressErrorTarget.textContent = result.error ? result.error : 'Invalid address'
-          amountTarget.parentElement.style.marginBottom = '20px'
-          sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
+          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
           return
         }
-        addressErrorTarget.textContent = ''
-        amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
+        _this.clearDestinationFieldError(editedAddress)
       })
       .catch(() => {
-        addressErrorTarget.textContent = 'Cannot validate address. You can continue if you are sure'
-        amountTarget.parentElement.style.marginBottom = ''
-        sendMaxTarget.parentElement.parentElement.style.marginBottom = ''
+        console.log(editedAddress)
+        _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
       })
   }
 
   destinationAmountEdited (event) {
+    const amountTarget = event.currentTarget
+    const amount = parseFloat(amountTarget.value)
+    if (isNaN(amount) || amount <= 0) {
+      this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
+      return
+    } else {
+      this.clearDestinationFieldError(amountTarget)
+    }
     // update max send amount field if some other amount field has been updated
     const editedAmountFieldIndex = event.target.getAttribute('data-index')
     if (this.maxSendDestinationIndex !== editedAmountFieldIndex) {
@@ -276,7 +263,7 @@ export default class extends Controller {
     for (const amountTarget of this.amountTargets) {
       const amount = parseFloat(amountTarget.value)
       if (isNaN(amount) || amount <= 0) {
-        this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', true)
+        this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
         fieldsAreValid = false
       } else {
         amountTarget.classList.remove('is-invalid')
@@ -287,22 +274,70 @@ export default class extends Controller {
   }
 
   setDestinationFieldError (element, errorMessage, append) {
-    const errorElement = element.parentElement.parentElement.lastElementChild
+    const errorElement = element.parentElement.lastElementChild
     if (append && errorElement.innerText !== '') {
       errorElement.innerText += `, ${errorMessage.toLowerCase()}`
     } else {
       errorElement.innerText = errorMessage
     }
-
-    // element.classList.add('is-invalid')
+    element.classList.add('is-invalid')
     show(errorElement)
+
+    this.alignDestinationField(element)
   }
 
   clearDestinationFieldError (element) {
-    const errorElement = element.parentElement.parentElement.lastElementChild
+    const errorElement = element.parentElement.lastElementChild
     errorElement.innerText = ''
     hide(errorElement)
     element.classList.remove('is-invalid')
+
+    this.alignDestinationField(element)
+  }
+
+  alignDestinationField (element) {
+    const index = element.getAttribute('data-index')
+    let addressTarget, amountTarget, sendMaxTarget
+    this.addressTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        addressTarget = el
+      }
+    })
+    this.amountTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        amountTarget = el
+      }
+    })
+    this.maxSendAmountCheckTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        sendMaxTarget = el
+      }
+    })
+
+    const amountErr = amountTarget.parentElement.lastElementChild.innerHTML
+    const addressErr = addressTarget.parentElement.lastElementChild.innerHTML
+
+    sendMaxTarget.parentElement.parentElement.style.marginBottom = '0px'
+    amountTarget.parentElement.style.marginBottom = '0px'
+    addressTarget.parentElement.style.marginBottom = '0px'
+
+    if (amountErr === '' && addressErr === '') {
+      return
+    }
+
+    sendMaxTarget.parentElement.parentElement.style.marginBottom = '40px'
+    if (amountErr !== '' && addressErr !== '') {
+      addressTarget.parentElement.style.marginBottom = '20px'
+      return
+    }
+
+    if (amountErr !== '') {
+      addressTarget.parentElement.style.marginBottom = '40px'
+      return
+    }
+
+    amountTarget.parentElement.style.marginBottom = '20px'
+    sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
   }
 
   removeDestination (event) {
