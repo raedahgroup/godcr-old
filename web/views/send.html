@@ -87,9 +87,10 @@
                                 <div class="col-xl-10 col-md-12 destination">
                                     <div class="form-row align-items-center mb-2">
                                         <div class="form-group col-xl-5 col-md-7 col-sm-12">
-                                            <input data-target="send.address" placeholder="Address"
+                                            <input data-target="send.address" data-action="change->send#destinationAddressEdited" placeholder="Address"
                                                    type="text" class="form-control"
                                                    name="destination-address">
+                                            <div data-target="send.addressError" class="text-danger address-error"></div>
                                         </div>
 
                                         <div class="form-group col-lg-2 col-md-2 col-sm-5">

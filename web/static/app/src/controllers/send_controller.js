@@ -9,7 +9,7 @@ export default class extends Controller {
       'form',
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
+      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
       'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
@@ -75,6 +75,7 @@ export default class extends Controller {
 
     const destinationNode = destinationTemplate.firstElementChild
     const addressInput = destinationNode.querySelector('input[name="destination-address"]')
+    const addressErrorDiv = destinationNode.querySelector('div.address-error')
     const amountInput = destinationNode.querySelector('input[name="destination-amount"]')
     const sendMaxCheckbox = destinationNode.querySelector('input[type="checkbox"]')
     const removeDestinationButton = destinationNode.querySelector('button[type="button"].removeDestinationBtn')
@@ -91,6 +92,7 @@ export default class extends Controller {
 
     destinationNode.setAttribute('data-index', this.destinationIndex)
     addressInput.setAttribute('data-index', this.destinationIndex)
+    addressErrorDiv.setAttribute('data-index', this.destinationIndex)
     amountInput.setAttribute('data-index', this.destinationIndex)
     sendMaxCheckbox.setAttribute('data-index', this.destinationIndex)
     removeDestinationButton.setAttribute('data-index', this.destinationIndex)
@@ -107,6 +109,45 @@ export default class extends Controller {
         show(btn)
       })
     }
+  }
+
+  destinationAddressEdited (event) {
+    const index = event.currentTarget.getAttribute('data-index')
+    let addressErrorTarget, amountTarget, sendMaxTarget
+    this.addressErrorTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        addressErrorTarget = el
+      }
+    })
+    this.amountTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        amountTarget = el
+      }
+    })
+    this.maxSendAmountCheckTargets.forEach(el => {
+      if (el.getAttribute('data-index') === index) {
+        sendMaxTarget = el
+      }
+    })
+
+    axios.post('/validate-address?address=' + event.currentTarget.value)
+      .then((response) => {
+        let result = response.data
+        if (!result.valid) {
+          addressErrorTarget.textContent = result.error ? result.error : 'Invalid address'
+          amountTarget.parentElement.style.marginBottom = '20px'
+          sendMaxTarget.parentElement.style.marginBottom = '20px'
+          return
+        }
+        addressErrorTarget.textContent = ''
+        amountTarget.parentElement.style.marginBottom = ''
+        sendMaxTarget.parentElement.style.marginBottom = ''
+      })
+      .catch(() => {
+        addressErrorTarget.textContent = 'Cannot validate address. You can continue if you are sure'
+        amountTarget.parentElement.style.marginBottom = ''
+        sendMaxTarget.parentElement.style.marginBottom = ''
+      })
   }
 
   destinationAmountEdited (event) {

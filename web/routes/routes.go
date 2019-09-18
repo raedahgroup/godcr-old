@@ -83,6 +83,7 @@ func (routes *Routes) registerRoutesRequiringWallet(router chi.Router) {
 	router.Get("/", routes.overviewPage)
 	router.Get("/send", routes.sendPage)
 	router.Post("/send", routes.submitSendTxForm)
+	router.Post("/validate-address", routes.validateAddress)
 	router.Get("/max-send-amount", routes.maxSendAmount)
 	router.Get("/receive", routes.receivePage)
 	router.Get("/generate-address/{accountNumber}", routes.generateReceiveAddress)
