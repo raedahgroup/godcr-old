@@ -378,10 +378,7 @@ export default class extends Controller {
     })
 
     const amountErr = amountTarget.parentElement.lastElementChild.innerHTML
-    let addressErr = ''
-    if (this.sendingToAddress) {
-      addressErr = addressTarget.parentElement.lastElementChild.innerHTML
-    }
+    let addressErr = addressTarget.parentElement.lastElementChild.innerHTML
 
     sendMaxTarget.parentElement.parentElement.style.marginBottom = '0px'
     amountTarget.parentElement.style.marginBottom = '0px'
@@ -393,7 +390,7 @@ export default class extends Controller {
 
     // this is the number of char that is shown per line in the error div associated with the element
     const addressErrCharPerLine = 54
-    const amountErrCharPerLine = 20
+    const amountErrCharPerLine = 27
 
     let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
     numberOfAddressErrLines = Math.round(numberOfAddressErrLines) < numberOfAddressErrLines ? Math.round(numberOfAddressErrLines) + 1 : Math.round(numberOfAddressErrLines)
