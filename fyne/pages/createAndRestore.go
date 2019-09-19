@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"log"
 	"math"
-	"regexp"
 	"strings"
 
 	"fyne.io/fyne"
@@ -72,7 +71,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 	return widget.NewHBox(layout.NewSpacer(), page, layout.NewSpacer())
 }
 
-func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed string) fyne.CanvasObject {
+func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.CanvasObject {
 	displayError := func(err error) {
 		log.Println("could not generate seed", err.Error())
 		newWindow := fyne.CurrentApp().NewWindow(app.AppDisplayName)
@@ -89,15 +88,10 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	errorLabel.TextSize = 10
 	errorLabel.Hide()
 
-	placeholder := "Spending Password"
-	if !isPassword {
-		placeholder = "Spending PIN"
-	}
-
 	password := widget.NewPasswordEntry()
-	password.SetPlaceHolder(placeholder)
+	password.SetPlaceHolder("Spending Password")
 	confirmPassword := widget.NewPasswordEntry()
-	confirmPassword.SetPlaceHolder(fmt.Sprintf("Confirm %s", placeholder))
+	confirmPassword.SetPlaceHolder("Confirm Spending Password")
 
 	passwordLength := canvas.NewText("0", color.Black)
 	passwordLength.TextSize = 10
@@ -109,24 +103,7 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	passwordStrength := widget.NewProgressBar()
 	var createButton *widget.Button
 
-	pinExpression, err := regexp.Compile("\\D")
-	if err != nil {
-		log.Println(err)
-	}
-
 	password.OnChanged = func(val string) {
-		if !isPassword && len(val) > 0 && pinExpression.MatchString(val) {
-			if len(val) == 1 {
-				password.SetText("")
-			} else {
-				val = val[:password.CursorColumn-1] + val[password.CursorColumn:]
-				//todo: using setText, cursor column count doesnt increase or reduce. Create an issue on this
-				password.CursorColumn--
-				password.SetText(val)
-			}
-			return
-		}
-
 		// check if password and confirm password matches only when the user fills confirmPassword textbox
 		if confirmPassword.Text != "" {
 			if confirmPassword.Text != password.Text {
@@ -143,17 +120,6 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	}
 
 	confirmPassword.OnChanged = func(val string) {
-		if !isPassword && len(val) > 0 && pinExpression.MatchString(val) {
-			if len(val) == 1 {
-				confirmPassword.SetText("")
-			} else {
-				val = val[:confirmPassword.CursorColumn-1] + val[confirmPassword.CursorColumn:]
-				confirmPassword.CursorColumn--
-				confirmPassword.SetText(val)
-			}
-			return
-		}
-
 		confirmPasswordLength.Text = fmt.Sprintf("%d", len(val))
 		canvas.Refresh(confirmPasswordLength)
 		if password.Text != val {
@@ -165,6 +131,7 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	}
 
 	createButton = widget.NewButton("Create", func() {
+		var err error
 		if seed == "" {
 			seed, err = dcrlibwallet.GenerateSeed()
 			if err != nil {
@@ -221,9 +188,6 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	})
 
 	passwordStrengthLabel := widget.NewLabel("Password Strength")
-	if !isPassword {
-		passwordStrengthLabel.SetText("PIN Strength")
-	}
 
 	return widget.NewVBox(
 		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), password), passwordConceal, layout.NewSpacer()),
@@ -364,10 +328,7 @@ func (app *AppInterface) createSpendingPasswordPopup(seed string) {
 		widget.NewLabelWithStyle("Create a Spending Password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), popupContent),
 		app.Window.Canvas())
 
-	tabMenu := widget.NewTabContainer(
-		widget.NewTabItem("     Password    ", app.passwordTab(popup, true, seed)), widget.NewTabItem("          Pin             ", app.passwordTab(popup, false, seed)))
-
-	popupContent.Children = []fyne.CanvasObject{tabMenu}
+	popupContent.Children = []fyne.CanvasObject{app.passwordTab(popup, seed)}
 	widget.Refresh(popupContent)
 }
 
