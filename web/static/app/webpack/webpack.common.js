@@ -8,6 +8,11 @@ module.exports = {
   },
   externals: {
   },
+  optimization: {
+    splitChunks: {
+      chunks: 'all'
+    }
+  },
   module: {
     rules: [
       {
@@ -58,7 +63,6 @@ module.exports = {
   ],
   output: {
     filename: 'js/[name].bundle.js',
-    chunkFilename: 'js/[name].bundle.js',
     path: path.resolve(__dirname, '../../dist'),
     publicPath: '../dist/'
   }

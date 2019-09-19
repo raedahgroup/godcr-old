@@ -45,13 +45,13 @@ function buildCli() {
 interface=$1
 if [[ "$interface" = "web" ]]; then
   deployWeb
-else if [[ "$interface" = "fyne" ]]; then
+elif [[ "$interface" = "fyne" ]]; then
   buildFyne
-else if [[ "$interface" = "nuklear" ]]; then
+elif [[ "$interface" = "nuklear" ]]; then
   buildNuklear
-else if [[ "$interface" = "terminal" ]]; then
+elif [[ "$interface" = "terminal" ]]; then
   buildTerminal
-else if [[ "$interface" = "cli" ]]; then
+elif [[ "$interface" = "cli" ]]; then
   buildCli
 else
     echo "Usage: ./build.sh {interface} e.g. ./build.sh web"
