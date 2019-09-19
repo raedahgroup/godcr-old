@@ -8,7 +8,6 @@ require (
 	github.com/decred/slog v1.0.0
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/gobuffalo/logger v1.0.1 // indirect
-	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.6.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/gorilla/websocket v1.4.1

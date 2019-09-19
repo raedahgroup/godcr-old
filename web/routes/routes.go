@@ -2,7 +2,6 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"html/template"
 	"log"
 
@@ -55,7 +54,6 @@ func (routes *Routes) loadTemplates() {
 	viewContentFunc := func(template string) string {
 		viewContent, err := viewBox.FindString(template)
 		if err != nil {
-			fmt.Println(template)
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
 
@@ -63,15 +61,15 @@ func (routes *Routes) loadTemplates() {
 	}
 
 	for _, tmpl := range templates() {
-		parsedTemplate := template.New(tmpl.name).Funcs(templateFuncMap())
-
-		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(tmpl.path))
-
+		parsedTemplate := template.New(tmpl).Funcs(templateFuncMap())
+		// parse the page view file
+		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(tmpl))
+		// parse the layout file
 		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(layout))
-
+		// parse the util file
 		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(utils))
 
-		routes.templates[tmpl.name] = parsedTemplate
+		routes.templates[tmpl] = parsedTemplate
 	}
 }
 
