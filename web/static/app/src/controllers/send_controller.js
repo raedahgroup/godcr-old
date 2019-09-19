@@ -3,7 +3,7 @@ import axios from 'axios'
 import { hide, show, listenForBalanceUpdate } from '../utils'
 
 export default class extends Controller {
-  customInputPanelIsOpen
+  expandCustomInputPanel
 
   static get targets () {
     return [
@@ -11,8 +11,8 @@ export default class extends Controller {
       'form',
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
-      'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
-      'useCustom', 'toggleCustomInputPnl', 'customInputToggleButton', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
+      'destinations', 'destinationTemplate', 'address', 'amount', 'maxSendAmountCheck', 'removeDestinationBtn',
+      'useCustom', 'customInputToggleButton', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
       'errors',
@@ -32,7 +32,7 @@ export default class extends Controller {
     this.newDestination()
     let _this = this
 
-    this.customInputPanelIsOpen = true
+    this.expandCustomInputPanel = true
     // bootstrap4-toggle is not triggering stimulusjs change action directly
     this.useCustomTarget.onchange = function () {
       _this.toggleUseCustom()
@@ -59,16 +59,14 @@ export default class extends Controller {
   }
 
   toggleCustomInputPnl (event) {
-    const button = event.currentTarget
-    if (!this.customInputPanelIsOpen) {
+    this.expandCustomInputPanel = !this.expandCustomInputPanel
+    if (this.expandCustomInputPanel) {
       $('#custom-inputs').slideDown()
-      button.innerHTML = '<i class="fa fa-caret-up"></i>'
+      event.currentTarget.innerHTML = '<i class="fa fa-caret-up"></i>'
     } else {
       $('#custom-inputs').slideUp()
-      button.innerHTML = '<i class="fa fa-caret-down"></i>'
+      event.currentTarget.innerHTML = '<i class="fa fa-caret-down"></i>'
     }
-
-    this.customInputPanelIsOpen = !this.customInputPanelIsOpen
   }
 
   maxSendAmountCheckboxToggle (event) {
@@ -145,23 +143,22 @@ export default class extends Controller {
   }
 
   destinationAddressEdited (event) {
-    const editedAddress = event.currentTarget
+    const editedAddressField = event.currentTarget
     const _this = this
 
     this.updateSendButtonState()
 
-    axios.post('/validate-address?address=' + editedAddress.value)
+    axios.post('/validate-address?address=' + editedAddressField.value)
       .then((response) => {
         let result = response.data
         if (!result.valid) {
-          _this.setDestinationFieldError(editedAddress, result.error ? result.error : 'Invalid address')
+          _this.setDestinationFieldError(editedAddressField, result.error ? result.error : 'Invalid address')
           return
         }
-        _this.clearDestinationFieldError(editedAddress)
+        _this.clearDestinationFieldError(editedAddressField)
       })
       .catch(() => {
-        console.log(editedAddress)
-        _this.setDestinationFieldError(editedAddress, 'Cannot validate address. You can continue if you are sure')
+        _this.setDestinationFieldError(editedAddressField, 'Cannot validate address. You can continue if you are sure')
       })
   }
 
@@ -389,7 +386,7 @@ export default class extends Controller {
     }
 
     // this is the number of char that is shown per line in the error div associated with the element
-    const addressErrCharPerLine = 54
+    const addressErrCharPerLine = 75
     const amountErrCharPerLine = 27
 
     let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
@@ -448,7 +445,7 @@ export default class extends Controller {
 
   openCustomInputsAndChangeOutputsPanel () {
     this.resetCustomInputsAndChangeOutputs()
-    if (this.customInputPanelIsOpen) {
+    if (this.expandCustomInputPanel) {
       $('#custom-inputs').slideDown()
     }
 
