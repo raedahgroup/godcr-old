@@ -215,6 +215,8 @@ export default class extends Controller {
     const destinationNode = document.querySelector(`div.destination[data-index="${index}"]`)
     const amountField = destinationNode.querySelector('input[name="destination-amount"]')
 
+    this.clearDestinationFieldError(amountField)
+
     this.maxSendDestinationIndex = index
     const currentAmount = amountField.value
     amountField.setAttribute('readonly', 'readonly')
