@@ -35,7 +35,7 @@ export default class extends Controller {
     this.useCustomTarget.onchange = function () {
       if (firstRun) {
         show(_this.toggleCustomInputPnlLblTarget)
-        $('.toggleCustomInputPnl').bootstrapToggle({ width: 160 })
+        $('.toggleCustomInputPnl').bootstrapToggle({ width: 240 })
         firstRun = false
       }
       _this.toggleUseCustom()
