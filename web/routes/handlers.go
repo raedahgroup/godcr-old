@@ -84,6 +84,30 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 	routes.renderPage("send.html", data, res)
 }
 
+func (routes *Routes) validateAddress(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	err := req.ParseForm()
+	if err != nil {
+		data["error"] = fmt.Errorf("error in parsing request: %s", err.Error())
+		return
+	}
+
+	address := req.FormValue("address")
+	if address == "" {
+		data["error"] = "Address should not be empty"
+		return
+	}
+
+	valid, err := routes.walletMiddleware.ValidateAddress(address)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot validate address: %s", err.Error())
+		return
+	}
+	data["valid"] = valid
+}
+
 func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
@@ -113,29 +137,6 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	} else {
 		data["amount"] = dcrutil.Amount(changeAmount).ToCoin()
 	}
-}
-
-func (routes *Routes) validateAddress(res http.ResponseWriter, req *http.Request) {
-	data := map[string]interface{}{}
-	defer renderJSON(data, res)
-
-	err := req.ParseForm()
-	if err != nil {
-		data["error"] = fmt.Errorf("error in parsing request: %s", err.Error())
-	}
-
-	address := req.FormValue("address")
-	if address == "" {
-		data["error"] = "Address cannot be empty"
-		return
-	}
-
-	valid, err := routes.walletMiddleware.ValidateAddress(address)
-	if err != nil {
-		data["error"] = fmt.Sprintf("Cannot validate address: %s", err.Error())
-		return
-	}
-	data["valid"] = valid
 }
 
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
