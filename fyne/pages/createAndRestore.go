@@ -20,39 +20,54 @@ import (
 func (app *AppInterface) ShowCreateAndRestoreWalletPage() {
 	app.Window.SetContent(app.createAndRestoreWalletPage())
 	app.Window.CenterOnScreen()
-	app.Window.Resize(fyne.NewSize(500, 500))
+	app.Window.Resize(fyne.NewSize(360, 616))
 	app.Window.SetFixedSize(true)
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
 }
 
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
-	createWallet := widget.NewButtonWithIcon("Create a new Wallet", theme.ContentAddIcon(), func() {
-		app.createSpendingPasswordPopup("")
-	})
-
-	restoreWallet := widget.NewButtonWithIcon("Restore an existing wallet", theme.ContentRedoIcon(), func() {
-		app.Window.SetContent(app.restoreWalletPage())
-	})
-
-	icons, err := getIcons(decredLogo)
+	icons, err := getIcons(decredLogo, restore, createNewWallet, restoreWallet)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
 
+	createWallet := widgets.NewClickableIcon(icons[createNewWallet], nil, func() {
+		app.createSpendingPasswordPopup("")
+	})
+
+	restoreWallet := widgets.NewClickableIcon(icons[restoreWallet], nil, func() {
+		app.Window.SetContent(app.restoreWalletPage())
+	})
+
 	image := canvas.NewImageFromResource(icons[decredLogo])
 	image.FillMode = canvas.ImageFillOriginal
 
-	createAndRestoreButtons := widget.NewVBox(fyne.NewContainerWithLayout(
-		layout.NewFixedGridLayout(restoreWallet.MinSize()), createWallet),
-		restoreWallet)
+	createAndRestoreButtons := widget.NewVBox(
+		fyne.NewContainerWithLayout(
+			layout.NewFixedGridLayout(fyne.NewSize(285, 56)), createWallet),
+		widgets.NewVSpacer(5),
+		fyne.NewContainerWithLayout(
+			layout.NewFixedGridLayout(fyne.NewSize(285, 56)), restoreWallet))
+
+	// canvas doesnt support escaping characters therefore the hack
+	godcrLabel := canvas.NewText("Welcome to", color.Black)
+	godcrText := canvas.NewText("GoDCR", color.Black)
+
+	godcrText.Alignment = fyne.TextAlignLeading
+	godcrText.TextSize = 24
+	godcrLabel.Alignment = fyne.TextAlignLeading
+	godcrLabel.TextSize = 24
 
 	page := widget.NewVBox(
-		image,
-		widget.NewLabelWithStyle("Welcome to GoDCR", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widgets.NewVSpacer(24),
+		widget.NewHBox(image, layout.NewSpacer()),
+		widgets.NewVSpacer(24),
+		godcrLabel,
+		godcrText,
 		layout.NewSpacer(),
-		widget.NewHBox(layout.NewSpacer(), createAndRestoreButtons, layout.NewSpacer()),
-		widgets.NewVSpacer(10))
+		createAndRestoreButtons,
+		widgets.NewVSpacer(24))
 
 	return widget.NewHBox(layout.NewSpacer(), page, layout.NewSpacer())
 }
@@ -180,7 +195,7 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	}
 
 	var passwordConceal *widgets.ClickableIcon
-	passwordConceal = widgets.NewClickableIcon(icons[reveal], func() {
+	passwordConceal = widgets.NewClickableIcon(icons[reveal], nil, func() {
 		if password.Password {
 			passwordConceal.SetIcon(icons[conceal])
 			password.Password = false
@@ -193,7 +208,7 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, isPassword bool, seed 
 	})
 
 	var confirmPasswordConceal *widgets.ClickableIcon
-	confirmPasswordConceal = widgets.NewClickableIcon(icons[reveal], func() {
+	confirmPasswordConceal = widgets.NewClickableIcon(icons[reveal], nil, func() {
 		if confirmPassword.Password {
 			confirmPasswordConceal.SetIcon(icons[conceal])
 			confirmPassword.Password = false
@@ -225,7 +240,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		app.Window = fyne.CurrentApp().NewWindow(app.AppDisplayName)
 		app.Window.SetContent(app.createAndRestoreWalletPage())
 		app.Window.CenterOnScreen()
-		app.Window.Resize(fyne.NewSize(500, 500))
+		app.Window.Resize(fyne.NewSize(360, 616))
 		app.Window.SetFixedSize(true)
 		app.Window.Show()
 	})
@@ -281,6 +296,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		if dcrlibwallet.VerifySeed(seed) {
 			icon := canvas.NewImageFromResource(icons[checkmark])
 			icon.FillMode = canvas.ImageFillOriginal
+
 			windowContent := app.Window.Content()
 
 			if box, ok := windowContent.(*widget.Box); ok {
@@ -292,9 +308,9 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
 					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }), layout.NewSpacer()),
 					widgets.NewVSpacer(20)}
+
 				widget.Refresh(box)
 			}
-
 		} else {
 			errorLabel.Show()
 		}
