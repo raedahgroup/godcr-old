@@ -3,6 +3,8 @@ import axios from 'axios'
 import { hide, show, listenForBalanceUpdate } from '../utils'
 
 export default class extends Controller {
+  customInputPanelIsOpen
+
   static get targets () {
     return [
       'errorMessage', 'successMessage',
@@ -10,7 +12,7 @@ export default class extends Controller {
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
-      'useCustom', 'toggleCustomInputPnl', 'toggleCustomInputPnlLbl', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
+      'useCustom', 'toggleCustomInputPnl', 'customInputToggleButton', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
       'errors',
@@ -30,25 +32,10 @@ export default class extends Controller {
     this.newDestination()
     let _this = this
 
+    this.customInputPanelIsOpen = true
     // bootstrap4-toggle is not triggering stimulusjs change action directly
-    let firstRun = true
     this.useCustomTarget.onchange = function () {
-      if (firstRun) {
-        show(_this.toggleCustomInputPnlLblTarget)
-        $('.toggleCustomInputPnl').bootstrapToggle({ width: 240 })
-        firstRun = false
-      }
       _this.toggleUseCustom()
-    }
-
-    this.customInputPnlOpnen = false
-    this.toggleCustomInputPnlTarget.onchange = function () {
-      if (_this.toggleCustomInputPnlTarget.checked) {
-        $('#custom-inputs').slideDown()
-      } else {
-        $('#custom-inputs').slideUp()
-      }
-      this.customInputPnlOpnen = _this.toggleCustomInputPnlTarget.checked
     }
   }
 
@@ -60,15 +47,28 @@ export default class extends Controller {
 
   toggleUseCustom () {
     if (!this.useCustomTarget.checked) {
-      hide(this.toggleCustomInputPnlLblTarget)
+      hide(this.customInputToggleButtonTarget)
       this.resetCustomInputsAndChangeOutputs()
       return
     }
 
-    show(this.toggleCustomInputPnlLblTarget)
+    show(this.customInputToggleButtonTarget)
     this.openCustomInputsAndChangeOutputsPanel()
 
     this.updateSendButtonState()
+  }
+
+  toggleCustomInputPnl (event) {
+    const button = event.currentTarget
+    if (!this.customInputPanelIsOpen) {
+      $('#custom-inputs').slideDown()
+      button.innerHTML = '<i class="fa fa-caret-up"></i>'
+    } else {
+      $('#custom-inputs').slideUp()
+      button.innerHTML = '<i class="fa fa-caret-down"></i>'
+    }
+
+    this.customInputPanelIsOpen = !this.customInputPanelIsOpen
   }
 
   maxSendAmountCheckboxToggle (event) {
@@ -448,7 +448,7 @@ export default class extends Controller {
 
   openCustomInputsAndChangeOutputsPanel () {
     this.resetCustomInputsAndChangeOutputs()
-    if (!this.customInputPnlOpnen && this.toggleCustomInputPnlTarget.checked) {
+    if (this.customInputPanelIsOpen) {
       $('#custom-inputs').slideDown()
     }
 

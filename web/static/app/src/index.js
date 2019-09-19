@@ -6,9 +6,9 @@ import '../node_modules/bootstrap4-toggle/js/bootstrap4-toggle.js'
 import ws from './services/messagesocket_service'
 import './css/style.scss'
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
-import { faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faCopy, faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCopy)
+library.add(faCopy, faCaretDown, faCaretUp)
 dom.watch()
 
 function getSocketURI () {

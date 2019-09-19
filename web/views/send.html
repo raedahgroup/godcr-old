@@ -58,15 +58,16 @@
                             <div class="form-group mb-0">
                                 <label>
                                     <input data-target="send.useCustom"
-                                           name="use-custom" value="1"
+                                           name="use-custom"
                                            type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
                                 </label>
 
-                                <label data-target="send.toggleCustomInputPnlLbl" class="d-none">
-                                    <input data-target="send.toggleCustomInputPnl"
-                                           class="ml-2 toggleCustomInputPnl" value="1" checked
-                                           type="checkbox" data-off="Expand Custom Input Panel" data-on="Expand Custom Input Panel">
-                                </label>
+                                <button
+                                        data-target="send.customInputToggleButton"
+                                        data-action="click->send#toggleCustomInputPnl"
+                                        class="float-sm-right btn-sm btn btn-outline d-none" type="button">
+                                    <i class="fa fa-caret-up"></i>
+                                </button>
                             </div>
 
                             <div class="collapse mt-2" id="custom-inputs">
