@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-function buildFrontEnd {
+function buildWebFrontEnd {
   echo "cd web/static/app"
   cd web/static/app
   echo 'yarn install'
@@ -10,13 +10,8 @@ function buildFrontEnd {
   cd ../../../
 }
 
-function buildBackEnd {
-  echo 'go build'
-  go build
-}
-
 function deployWeb() {
-  buildFrontEnd
+  buildWebFrontEnd
   cd cmd/godcr-web
   echo 'go mod download'
   go mod download
@@ -24,10 +19,40 @@ function deployWeb() {
   packr2 build
   cd ../../
 }
-ACTION=$1
-if [[ "$ACTION" = "web" ]]; then
-  buildBackEnd
-  buildFrontEnd
-else
+
+function buildFyne() {
+    echo "packing assets with packr2"
+    (cd fyne && packr2)
+    echo "building with go build"
+    cd ../ && go build ./cmd/godcr-fyne
+}
+
+function buildNuklear() {
+    echo "building with go build"
+    cd ../ && go build ./cmd/godcr-nuklear
+}
+
+function buildTerminal() {
+    echo "building with go build"
+    cd ../ && go build ./cmd/godcr-terminal
+}
+
+function buildCli() {
+    echo "building with go build"
+    cd ../ && go build ./cmd/godcr-cli
+}
+
+interface=$1
+if [[ "$interface" = "web" ]]; then
   deployWeb
+else if [[ "$interface" = "fyne" ]]; then
+  buildFyne
+else if [[ "$interface" = "nuklear" ]]; then
+  buildNuklear
+else if [[ "$interface" = "terminal" ]]; then
+  buildTerminal
+else if [[ "$interface" = "cli" ]]; then
+  buildCli
+else
+    echo "Usage: ./build.sh {interface} e.g. ./build.sh web"
 fi
