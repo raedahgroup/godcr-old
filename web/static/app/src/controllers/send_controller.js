@@ -10,7 +10,7 @@ export default class extends Controller {
       'sourceAccount', 'sourceAccountSpan',
       'spendUnconfirmed',
       'destinations', 'destinationTemplate', 'address', 'addressError', 'amount', 'amountError', 'maxSendAmountCheck', 'removeDestinationBtn',
-      'useCustom', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
+      'useCustom', 'toggleCustomInputPnl', 'toggleCustomInputPnlLbl', 'fetchingUtxos', 'utxoSelectionProgressBar', 'customInputsTable', 'utxoCheckbox',
       'changeOutputs', 'numberOfChangeOutputs', 'useRandomChangeOutputs', 'generateOutputsButton', 'generatedChangeOutputs',
       'changeOutputTemplate', 'changeOutputPercentage', 'changeOutputAddress', 'changeOutputAmount',
       'errors',
@@ -31,8 +31,24 @@ export default class extends Controller {
     let _this = this
 
     // bootstrap4-toggle is not triggering stimulusjs change action directly
+    let firstRun = true
     this.useCustomTarget.onchange = function () {
+      if (firstRun) {
+        show(_this.toggleCustomInputPnlLblTarget)
+        $('.toggleCustomInputPnl').bootstrapToggle({ width: 160 })
+        firstRun = false
+      }
       _this.toggleUseCustom()
+    }
+
+    this.customInputPnlOpnen = false
+    this.toggleCustomInputPnlTarget.onchange = function () {
+      if (_this.toggleCustomInputPnlTarget.checked) {
+        $('#custom-inputs').slideDown()
+      } else {
+        $('#custom-inputs').slideUp()
+      }
+      this.customInputPnlOpnen = _this.toggleCustomInputPnlTarget.checked
     }
   }
 
@@ -44,11 +60,14 @@ export default class extends Controller {
 
   toggleUseCustom () {
     if (!this.useCustomTarget.checked) {
+      hide(this.toggleCustomInputPnlLblTarget)
       this.resetCustomInputsAndChangeOutputs()
       return
     }
 
+    show(this.toggleCustomInputPnlLblTarget)
     this.openCustomInputsAndChangeOutputsPanel()
+
     this.updateSendButtonState()
   }
 
@@ -151,7 +170,7 @@ export default class extends Controller {
 
     const amountTarget = event.currentTarget
     const amount = parseFloat(amountTarget.value)
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amountTarget.value) || amount <= 0) {
       this.setDestinationFieldError(amountTarget, 'Amount must be a non-zero positive number', false)
       return
     }
@@ -357,7 +376,10 @@ export default class extends Controller {
     })
 
     const amountErr = amountTarget.parentElement.lastElementChild.innerHTML
-    const addressErr = addressTarget.parentElement.lastElementChild.innerHTML
+    let addressErr = ''
+    if (this.sendingToAddress) {
+      addressErr = addressTarget.parentElement.lastElementChild.innerHTML
+    }
 
     sendMaxTarget.parentElement.parentElement.style.marginBottom = '0px'
     amountTarget.parentElement.style.marginBottom = '0px'
@@ -367,19 +389,28 @@ export default class extends Controller {
       return
     }
 
-    sendMaxTarget.parentElement.parentElement.style.marginBottom = '40px'
-    if (amountErr !== '' && addressErr !== '') {
-      addressTarget.parentElement.style.marginBottom = '20px'
-      return
+    // this is the number of char that is shown per line in the error div associated with the element
+    const addressErrCharPerLine = 54
+    const amountErrCharPerLine = 20
+
+    let numberOfAddressErrLines = addressErr.length / addressErrCharPerLine
+    numberOfAddressErrLines = Math.round(numberOfAddressErrLines) < numberOfAddressErrLines ? Math.round(numberOfAddressErrLines) + 1 : Math.round(numberOfAddressErrLines)
+    let numberOfAmountErrLines = amountErr.length / amountErrCharPerLine
+    numberOfAmountErrLines = Math.round(numberOfAmountErrLines) < numberOfAmountErrLines ? Math.round(numberOfAmountErrLines) + 1 : Math.round(numberOfAmountErrLines)
+
+    let maxLines = numberOfAmountErrLines
+    if (numberOfAddressErrLines > maxLines) {
+      maxLines = numberOfAddressErrLines
     }
 
-    if (amountErr !== '') {
-      addressTarget.parentElement.style.marginBottom = '40px'
-      return
+    if (numberOfAddressErrLines > maxLines) {
+      maxLines = numberOfAddressErrLines
     }
 
-    amountTarget.parentElement.style.marginBottom = '20px'
-    sendMaxTarget.parentElement.parentElement.style.marginBottom = '20px'
+    const pixelPerLine = 20
+    sendMaxTarget.parentElement.parentElement.style.marginBottom = `${pixelPerLine * maxLines}px`
+    addressTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAddressErrLines)}px`
+    amountTarget.parentElement.style.marginBottom = `${pixelPerLine * (maxLines - numberOfAmountErrLines)}px`
   }
 
   removeDestination (event) {
@@ -418,7 +449,9 @@ export default class extends Controller {
 
   openCustomInputsAndChangeOutputsPanel () {
     this.resetCustomInputsAndChangeOutputs()
-    $('#custom-inputs').slideDown()
+    if (!this.customInputPnlOpnen && this.toggleCustomInputPnlTarget.checked) {
+      $('#custom-inputs').slideDown()
+    }
 
     const _this = this
     const fetchUtxoSuccess = unspentOutputs => {

@@ -56,9 +56,17 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group mb-0">
-                                <input data-target="send.useCustom"
-                                       name="use-custom" value="1"
-                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                                <label>
+                                    <input data-target="send.useCustom"
+                                           name="use-custom" value="1"
+                                           type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                                </label>
+
+                                <label data-target="send.toggleCustomInputPnlLbl" class="d-none">
+                                    <input data-target="send.toggleCustomInputPnl"
+                                           class="ml-2 toggleCustomInputPnl" value="1" checked
+                                           type="checkbox" data-on="Collapse Custom Inputs" data-off="Expand Automatic Inputs">
+                                </label>
                             </div>
 
                             <div class="collapse mt-2" id="custom-inputs">
