@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/wire"
 	"github.com/decred/dcrwallet/wallet/txrules"
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
+	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 func DecimalPortion(n float64) string {

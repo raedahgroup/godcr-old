@@ -89,9 +89,10 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		exchangeRate, err := bitrex.DcrToUsd(1)
 		if err != nil {
 			weblog.LogError(fmt.Errorf("error fetching exchange rate: %s", err.Error()))
+			data["exchangeRate"] = "N/A"
+		} else {
+			data["exchangeRate"] = fmt.Sprintf("%.8f", exchangeRate)
 		}
-
-		data["exchangeRate"] = fmt.Sprintf("%.8f", exchangeRate)
 	}
 
 	routes.renderPage("send.html", data, res)
