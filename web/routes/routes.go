@@ -51,7 +51,7 @@ func (routes *Routes) loadTemplates() {
 
 	viewBox := packr.New("templates", "../../web/views")
 
-	viewContentFunc := func(template string) string {
+	extractTemplateText := func(template string) string {
 		viewContent, err := viewBox.FindString(template)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
@@ -63,11 +63,11 @@ func (routes *Routes) loadTemplates() {
 	for _, tmpl := range templates() {
 		parsedTemplate := template.New(tmpl).Funcs(templateFuncMap())
 		// parse the page view file
-		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(tmpl))
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(tmpl))
 		// parse the layout file
-		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(layout))
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(layout))
 		// parse the util file
-		parsedTemplate, _ = parsedTemplate.Parse(viewContentFunc(utils))
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(utils))
 
 		routes.templates[tmpl] = parsedTemplate
 	}

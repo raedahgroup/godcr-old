@@ -29,12 +29,12 @@ function buildFyne() {
 
 function buildNuklear() {
     echo "building with go build"
-    cd ../ && go build ./cmd/godcr-nuklear
+    cd ./cmd/godcr-nuklear && go build
 }
 
 function buildTerminal() {
     echo "building with go build"
-    cd ../ && go build ./cmd/godcr-terminal
+    cd ./cmd/godcr-terminal && go build
 }
 
 function buildCli() {
