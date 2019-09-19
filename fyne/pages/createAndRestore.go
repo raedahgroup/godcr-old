@@ -27,7 +27,7 @@ func (app *AppInterface) ShowCreateAndRestoreWalletPage() {
 }
 
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
-	icons, err := getIcons(decredLogo, restore, createNewWallet, restoreWallet)
+	icons, err := getIcons(decredLogo, createNewWallet, restoreWallet)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
@@ -303,11 +303,13 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 				box.Children = []fyne.CanvasObject{
 					layout.NewSpacer(),
 					icon,
-					layout.NewSpacer(),
+					widgets.NewVSpacer(24),
 					widget.NewLabelWithStyle("Your wallet is successfully restored", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+					widgets.NewVSpacer(16),
 					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
+					widgets.NewVSpacer(172),
 					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }), layout.NewSpacer()),
-					widgets.NewVSpacer(20)}
+					widgets.NewVSpacer(16)}
 
 				widget.Refresh(box)
 			}

@@ -15,7 +15,6 @@ const (
 	stakeIcon       = "stake.png"
 	decredLogo      = "decred.png"
 	reveal          = "reveal.png"
-	restore         = "restore.png"
 	conceal         = "conceal.png"
 	checkmark       = "checkmark.png"
 	createNewWallet = "createNewWallet.png"

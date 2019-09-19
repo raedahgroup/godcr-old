@@ -31,7 +31,7 @@ func (c *ClickableIcon) MouseIn(*desktop.MouseEvent) {
 	}
 
 	resource := c.Resource
-	c.SetResource(c.shadow.Resource)
+	c.Icon.SetResource(c.shadow.Resource)
 	c.shadow.Resource = resource
 	c.Refresh()
 }
@@ -44,7 +44,7 @@ func (c *ClickableIcon) MouseOut() {
 	}
 
 	resource := c.Resource
-	c.SetResource(c.shadow.Resource)
+	c.Icon.SetResource(c.shadow.Resource)
 	c.shadow.Resource = resource
 	c.Refresh()
 }
