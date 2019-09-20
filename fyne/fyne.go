@@ -2,7 +2,6 @@ package fyne
 
 import (
 	"fmt"
-
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/pages"
@@ -20,7 +19,9 @@ type fyneApp struct {
 }
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
-	fyne.SetCurrentApp(app.New())
+	newApp := app.New()
+	newApp.Settings().SetTheme(AppThem())
+	fyne.SetCurrentApp(newApp)
 
 	appInstance := &fyneApp{
 		window: fyne.CurrentApp().NewWindow(appDisplayName),

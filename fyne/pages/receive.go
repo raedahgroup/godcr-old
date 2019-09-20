@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -14,14 +13,35 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
+type receivePageData struct {
+	accountSelect *widget.Select
+}
+
+var receive receivePageData
+
+var accountNames = map[string]string{}
+// todo: remove this when account page is implemented
+func receivePageUpdates(wallet   *dcrlibwallet.LibWallet) {
+	accounts, _ := core.AccountsOverview(wallet, core.DefaultRequiredConfirmations)
+
+	var options []string
+	for _, account := range accounts {
+		displayText := fmt.Sprintf("%s %s", account.Name, account.Balance.String())
+		accountNames[displayText] = account.Name
+		options = append(options, displayText)
+	}
+	receive.accountSelect.Options = options
+	widget.Refresh(receive.accountSelect)
+}
+
 func ReceivePageContent(wallet   *dcrlibwallet.LibWallet, window fyne.Window) fyne.CanvasObject {
 	// if there were to be situations, wallet fails and new address cant be generated, then simply show fyne logo
 	qrImage := canvas.NewImageFromResource(theme.FyneLogo())
 	qrImage.SetMinSize(fyne.NewSize(300, 300))
 
-	label := widget.NewLabelWithStyle("Receiving Funds", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
-	info := widget.NewLabelWithStyle("Each time you request a payment, a new address is created to protect your privacy.", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Italic: true})
-	accountLabel := widget.NewLabelWithStyle("Account:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	label := widget.NewLabelWithStyle("Receive DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	info := widget.NewLabelWithStyle("The address below is for this account.", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true, Italic: true})
+	// accountLabel := widget.NewLabelWithStyle("Account:", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	var generatedAddress *widget.Label
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
@@ -36,15 +56,15 @@ func ReceivePageContent(wallet   *dcrlibwallet.LibWallet, window fyne.Window) fy
 		clipboard.SetContent(addr)
 	}))
 
-	button := widget.NewButton("Generate Address", func() {
-		name, err := wallet.AccountNumber(receive.accountSelect.Selected)
+	generateAddressButton := widget.NewButtonWithIcon("", theme.MailReplyIcon(), func() {
+		accountNumber, err := wallet.AccountNumber(accountNames[receive.accountSelect.Selected])
 		if err != nil {
-			errorLabel.SetText("error getting account name, " + err.Error())
+			errorLabel.SetText("error getting account accountNumber, " + err.Error())
 			errorLabel.Show()
 			return
 		}
 
-		addr, err = wallet.NextAddress(int32(name))
+		addr, err = wallet.NextAddress(int32(accountNumber))
 		if err != nil {
 			errorLabel.SetText("could not generate new address, " + err.Error())
 			errorLabel.Show()
@@ -62,7 +82,7 @@ func ReceivePageContent(wallet   *dcrlibwallet.LibWallet, window fyne.Window) fy
 		qrImage.Show()
 		canvas.Refresh(qrImage)
 	})
-	button.Disable()
+	generateAddressButton.Disable()
 
 	// get account and generate address on start
 	accounts, err := core.AccountsOverview(wallet, core.DefaultRequiredConfirmations)
@@ -75,16 +95,18 @@ func ReceivePageContent(wallet   *dcrlibwallet.LibWallet, window fyne.Window) fy
 
 	var options []string
 	for _, account := range accounts {
-		options = append(options, account.Name)
+		displayText := fmt.Sprintf("%s %s", account.Name, account.Balance.String())
+		accountNames[displayText] = account.Name
+		options = append(options, displayText)
 	}
 
 	receive.accountSelect = widget.NewSelect(options, func(s string) {
-		if button.Disabled() == true {
-			button.Enable()
+		if generateAddressButton.Disabled() == true {
+			generateAddressButton.Enable()
 		}
 	})
 
-	receive.accountSelect.SetSelected(accounts[0].Name)
+	receive.accountSelect.SetSelected(fmt.Sprintf("%s %s", accounts[0].Name, accounts[0].Balance.String()))
 
 	addr, err = wallet.NextAddress(0)
 	if err != nil {
@@ -100,34 +122,21 @@ func ReceivePageContent(wallet   *dcrlibwallet.LibWallet, window fyne.Window) fy
 		canvas.Refresh(qrImage)
 	}
 
+	shareButton := widget.NewButtonWithIcon("Share", theme.MailComposeIcon(), func() {
+
+	})
+	shareButton.Style = widget.PrimaryButton
+
 	output := widget.NewVBox(
-		label,
+		widget.NewHBox(label, layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(generateAddressButton.MinSize()), generateAddressButton)),
+		widget.NewGroup("Account", receive.accountSelect),
 		info,
-		widget.NewHBox(accountLabel, receive.accountSelect),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(button.MinSize()), button),
 		widgets.NewVSpacer(10),
 		widget.NewHBox(layout.NewSpacer(), qrImage, layout.NewSpacer()),
 		widget.NewHBox(layout.NewSpacer(), generatedAddress, copyToClipboard, layout.NewSpacer()),
 		errorLabel,
+		shareButton,
 	)
 
 	return widget.NewHBox(widgets.NewHSpacer(10), output)
-}
-
-type receivePageData struct {
-	accountSelect *widget.Select
-}
-
-var receive receivePageData
-
-// todo: remove this when account page is implemented
-func receivePageUpdates(wallet   *dcrlibwallet.LibWallet) {
-	accounts, _ := core.AccountsOverview(wallet, core.DefaultRequiredConfirmations)
-
-	var options []string
-	for _, account := range accounts {
-		options = append(options, account.Name)
-	}
-	receive.accountSelect.Options = options
-	widget.Refresh(receive.accountSelect)
 }
