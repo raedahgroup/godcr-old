@@ -79,7 +79,7 @@ func (app *fyneApp) setupNavigationMenu() {
 			case 2:
 				newPageContent = pages.SendPageContent()
 			case 3:
-				newPageContent = pages.ReceivePageContent()
+				newPageContent = pages.ReceivePageContent(app.dcrlw, app.window)
 			case 4:
 				newPageContent = pages.AccountsPageContent()
 			case 5:
