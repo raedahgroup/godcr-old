@@ -261,6 +261,12 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77 h1:cGSRi6zwgpXGmCYCAkEDgX6XdO4Y4MwdFa7LCKDzQ/8=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917214415-1cce5451adf1 h1:Ol5tSZXQDkTJHIVW8g/q0BY/Ad8Mv+O9KLvceZE+PgU=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917214415-1cce5451adf1/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917215025-9d96a5ccf63e h1:e7HSxAFSUC6FsaX9DmlJRiuvYkDxcAWOUOJJz+7aYKY=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917215025-9d96a5ccf63e/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917220221-47d626dfbe08 h1:HG2ekNCVdRV+fkX8wRve+tMUgx7z1EK6cK1lPa23IBM=
+github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917220221-47d626dfbe08/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
 github.com/raedahgroup/godcr v0.0.0-20190912053213-48fdd185f0dd h1:ffevmMlb1iEuWQCoV5zFbihGSi9LgOPehEZLvAHZf4Y=
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0 h1:RR9dF3JtopPvtkroDZuVD7qquD0bnHlKSqaQhgwt8yk=

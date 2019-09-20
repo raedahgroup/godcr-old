@@ -19,17 +19,17 @@ type fyneApp struct {
 	tabMenu *widget.TabContainer
 }
 
-func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
+func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	fyne.SetCurrentApp(app.New())
 
 	appInstance := &fyneApp{
 		window: fyne.CurrentApp().NewWindow(appDisplayName),
 	}
 
-	appInstance.startUp(defaultAppDataDir, netType)
+	appInstance.startUp(appDataDir, netType)
 }
 
-func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
+func (app *fyneApp) startUp(appDataDir, netType string) {
 	var err error
 	app.log, err = dcrlibwallet.RegisterLogger("FYNE")
 	if err != nil {
@@ -37,7 +37,7 @@ func (app *fyneApp) startUp(defaultAppDataDir, netType string) {
 		return
 	}
 
-	app.dcrlw, err = dcrlibwallet.NewLibWallet(defaultAppDataDir, "", netType)
+	app.dcrlw, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Initialization error: %v", err)
 		app.log.Errorf(errorMessage)
