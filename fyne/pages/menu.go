@@ -79,7 +79,7 @@ func (app *AppInterface) MenuPage() {
 			case 2:
 				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = receivePageContent()
+				newPageContent = receivePageContent(app.Dcrlw, app.Window)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
