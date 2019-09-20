@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
-
+	"github.com/decred/dcrd/wire"
+	"github.com/decred/dcrwallet/wallet/txrules"
+	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
@@ -95,4 +97,65 @@ func FetchAccounts(requiredConfirmations int32, settings *config.Settings, walle
 	}
 
 	return accounts, nil
+}
+
+func EstimateFee(numberOfInputs int, destinations []txhelper.TransactionDestination) (dcrutil.Amount, error) {
+	maxSignedSize, err := EstimateSerializeSize(numberOfInputs, destinations)
+	if err != nil {
+		return 0, err
+	}
+	relayFeePerKb := txrules.DefaultRelayFeePerKb
+	maxRequiredFee := txrules.FeeForSerializeSize(relayFeePerKb, maxSignedSize)
+
+	return maxRequiredFee, err
+}
+
+func EstimateSerializeSize(numberOfInputs int, destinations []txhelper.TransactionDestination) (int, error) {
+	outputs, err := makeTxOutputs(destinations)
+	if err != nil {
+		return 0, err
+	}
+
+	var changeAddresses []string
+	for _, destination := range destinations {
+		changeAddresses = append(changeAddresses, destination.Address)
+	}
+
+	totalChangeScriptSize, err := calculateChangeScriptSize(changeAddresses)
+	if err != nil {
+		return 0, err
+	}
+
+	scriptSizes := make([]int, numberOfInputs)
+	for i := 0; i < numberOfInputs; i++ {
+		scriptSizes[i] = txhelper.RedeemP2PKHSigScriptSize
+	}
+	maxSignedSize := txhelper.EstimateSerializeSize(scriptSizes, outputs, totalChangeScriptSize)
+
+	return maxSignedSize, nil
+}
+
+func makeTxOutputs(destinations []txhelper.TransactionDestination) (outputs []*wire.TxOut, err error) {
+	for _, destination := range destinations {
+		var output *wire.TxOut
+		output, err = txhelper.MakeTxOutput(destination)
+		if err != nil {
+			return
+		}
+
+		outputs = append(outputs, output)
+	}
+	return
+}
+
+func calculateChangeScriptSize(changeAddresses []string) (int, error) {
+	var totalChangeScriptSize int
+	for _, changeAddress := range changeAddresses {
+		changeSource, err := txhelper.MakeTxChangeSource(changeAddress)
+		if err != nil {
+			return 0, err
+		}
+		totalChangeScriptSize += changeSource.ScriptSize()
+	}
+	return totalChangeScriptSize, nil
 }

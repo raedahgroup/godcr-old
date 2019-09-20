@@ -26,7 +26,7 @@ type sendPagePayload struct {
 // retrieveSendPagePayload parses the req for the send parameters submitted;
 // the order of form fields on the front end is followed:
 // source account - spend unconfirmed - custom inputs - send destinations - custom change outputs
-func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err error) {
+func retrieveSendPagePayload(req *http.Request, addressFunc func(accountNumber uint32) (string, error)) (payload *sendPagePayload, err error) {
 	payload = new(sendPagePayload)
 
 	err = req.ParseForm()
@@ -66,6 +66,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 
 	// parse send destinations form data
 	destinationAddresses := req.Form["destination-address"]
+	destinationAccountNumbers := req.Form["destination-account-number"]
 	destinationAmounts := req.Form["destination-amount"]
 	sendMaxAmountChecks := req.Form["send-max-amount"]
 
@@ -78,7 +79,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	// if any value in the sendMaxAmountChecks slice is true, then the previous "false" value should be ignored
 	// as both values refer to the same destination
 	// at the end of the day, the number of send max amount check values should be equal to the number of destination address values
-	actualSendMaxAmountValues := make([]string, 0, len(destinationAddresses))
+	actualSendMaxAmountValues := make([]string, 0, len(destinationAmounts))
 	for _, sendMaxAmountCheckValue := range sendMaxAmountChecks {
 		if sendMaxAmountCheckValue == "true" {
 			// replace previous value in `actualSendMaxAmountValues` slice to true and ignore the previously set value
@@ -90,7 +91,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	}
 
 	payload.sendDestinations, payload.totalSendAmount, err = walletcore.BuildTxDestinations(destinationAddresses,
-		destinationAmounts, actualSendMaxAmountValues)
+		destinationAccountNumbers, destinationAmounts, actualSendMaxAmountValues, addressFunc)
 	if err != nil {
 		return nil, fmt.Errorf("error in parsing send destinations: %s", err.Error())
 	}
@@ -98,7 +99,7 @@ func retrieveSendPagePayload(req *http.Request) (payload *sendPagePayload, err e
 	// parse custom change outputs form data
 	changeOutputAddresses := req.Form["change-output-address"]
 	changeOutputAmounts := req.Form["change-output-amount"]
-	payload.changeDestinations, _, err = walletcore.BuildTxDestinations(changeOutputAddresses, changeOutputAmounts, nil)
+	payload.changeDestinations, _, err = walletcore.BuildTxDestinations(changeOutputAddresses, nil, changeOutputAmounts, nil, addressFunc)
 	if err != nil {
 		return nil, fmt.Errorf("error in parsing change destinations: %s", err.Error())
 	}

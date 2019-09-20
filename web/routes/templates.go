@@ -13,25 +13,20 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
-type templateData struct {
-	name string
-	path string
-}
-
-func templates() []templateData {
-	return []templateData{
-		{"error.html", "../../web/views/error.html"},
-		{"createwallet.html", "../../web/views/createwallet.html"},
-		{"overview.html", "../../web/views/overview.html"},
-		{"sync.html", "../../web/views/sync.html"},
-		{"send.html", "../../web/views/send.html"},
-		{"receive.html", "../../web/views/receive.html"},
-		{"history.html", "../../web/views/history.html"},
-		{"transaction_details.html", "../../web/views/transaction_details.html"},
-		{"staking.html", "../../web/views/staking.html"},
-		{"accounts.html", "../../web/views/accounts.html"},
-		{"security.html", "../../web/views/security.html"},
-		{"settings.html", "../../web/views/settings.html"},
+func templates() []string {
+	return []string{
+		"error.html",
+		"createwallet.html",
+		"overview.html",
+		"sync.html",
+		"send.html",
+		"receive.html",
+		"history.html",
+		"transaction_details.html",
+		"staking.html",
+		"accounts.html",
+		"security.html",
+		"settings.html",
 	}
 }
 

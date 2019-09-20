@@ -77,6 +77,11 @@ table td {
   padding: 0.7rem;
 }
 
+.table.borderless td,
+.table.borderless th {
+  border: none;
+}
+
 .table.inverse tbody td {
   background-color: #f5f5f5 !important;
   border-color: #fff !important;
@@ -134,15 +139,61 @@ table td {
 }
 
 .btn-primary {
-  background-color: #3d76df;
+  background-color: #2970ff;
+  border-color: #2970ff;
+}
+
+.btn-outline-primary {
+  color: #2970ff !important;
+  font-weight: bold;
+  border: none;
+}
+
+.btn-outline-primary:hover {
+  color: #fff !important;
+}
+
+.btn-primary.disabled,
+.btn-primary:disabled {
+  color: #000;
+  background: #f3f5f6 !important;
+  border-color: transparent;
 }
 
 .btn-success {
-  background-color: #78ceb5;
+  background-color: #1dc54c;
+  border-color: #1dc54c;
+}
+
+.btn-outline-success {
+  color: #1dc54c !important;
+  font-weight: bold;
+  border: none;
+}
+
+.btn-outline-success:hover {
+  color: #fff !important;
 }
 
 .btn-danger {
   background-color: #12153e;
+  border-color: #12153e;
+}
+
+.btn-outline-danger {
+  color: #12153e;
+  font-weight: bold;
+  border: none;
+}
+
+.btn-outline-danger:hover {
+  color: #fff !important;
+}
+
+.removeDestinationBtn {
+  padding: 0.25rem 0.3rem !important;
+  font-size: 0.875rem;
+  line-height: 0.5;
 }
 
 .modal-content {
@@ -395,3 +446,39 @@ label.float-icon::before {
 }
 
 /* end padding embedded in the qr image workaround */
+
+/* Tabs */
+
+.nav-tabs .nav-link {
+  border: 1px solid transparent;
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+}
+
+.nav-tabs .nav-item.show .nav-link,
+.nav-tabs .nav-link.active {
+  background-color: transparent;
+  border-color: transparent transparent #f3f3f3;
+  border-bottom: 4px solid !important;
+}
+
+/* Shadow */
+.shadow-sm {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.shadow {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.shadow-lg {
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+.shadow-none {
+  box-shadow: none !important;
+}
+
+.no-border {
+  border: none;
+}

@@ -35,17 +35,17 @@ func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
 	app.tearDown()
 }
 
-func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
+func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	fyne.SetCurrentApp(app.New())
 
 	appInstance := &fyneApp{
 		window: fyne.CurrentApp().NewWindow(appDisplayName),
 	}
 
-	appInstance.startUp(defaultAppDataDir, appDisplayName, netType)
+	appInstance.startUp(appDataDir, appDisplayName, netType)
 }
 
-func (app *fyneApp) startUp(defaultAppDataDir, appDisplayName, netType string) {
+func (app *fyneApp) startUp(appDataDir, appDisplayName, netType string) {
 	var err error
 	app.log, err = dcrlibwallet.RegisterLogger("FYNE")
 	if err != nil {
@@ -53,7 +53,7 @@ func (app *fyneApp) startUp(defaultAppDataDir, appDisplayName, netType string) {
 		return
 	}
 
-	app.dcrlw, err = dcrlibwallet.NewLibWallet(defaultAppDataDir, "", netType)
+	app.dcrlw, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Initialization error: %v", err)
 		app.log.Errorf(errorMessage)

@@ -13,6 +13,8 @@ import (
 	"github.com/raedahgroup/dcrlibwallet/txhelper"
 	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/conversion/bitrex"
+	"github.com/raedahgroup/godcr/app/utils"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/web/weblog"
 	"github.com/skip2/go-qrcode"
@@ -65,6 +67,7 @@ func (routes *Routes) overviewPage(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		data["loadTransactionErr"] = fmt.Sprintf("Error fetching recent activity: %s", err.Error())
 	}
+
 	data["transactions"] = txns
 
 	routes.renderPage("overview.html", data, res)
@@ -81,6 +84,17 @@ func (routes *Routes) sendPage(res http.ResponseWriter, req *http.Request) {
 		"accounts":              accounts,
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
+
+	if routes.settings.CurrencyConverter == "bitrex" {
+		exchangeRate, err := bitrex.DcrToUsd(1)
+		if err != nil {
+			weblog.LogError(fmt.Errorf("error fetching exchange rate: %s", err.Error()))
+			data["exchangeRate"] = "N/A"
+		} else {
+			data["exchangeRate"] = fmt.Sprintf("%.8f", exchangeRate)
+		}
+	}
+
 	routes.renderPage("send.html", data, res)
 }
 
@@ -88,7 +102,7 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = fmt.Sprintf("Cannot get max amount: %s", err.Error())
 		return
@@ -115,11 +129,75 @@ func (routes *Routes) maxSendAmount(res http.ResponseWriter, req *http.Request) 
 	}
 }
 
+func (routes *Routes) validateAddress(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	err := req.ParseForm()
+	if err != nil {
+		data["error"] = fmt.Errorf("error in parsing request: %s", err.Error())
+	}
+
+	address := req.FormValue("address")
+	if address == "" {
+		data["error"] = "Address cannot be empty"
+		return
+	}
+
+	valid, err := routes.walletMiddleware.ValidateAddress(address)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot validate address: %s", err.Error())
+		return
+	}
+
+	data["valid"] = valid
+}
+
+func (routes *Routes) getFeeAndSize(res http.ResponseWriter, req *http.Request) {
+	data := map[string]interface{}{}
+	defer renderJSON(data, res)
+
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary: %s", err.Error())
+		return
+	}
+
+	// the max amount that can be sent after subtracting total amount to send to other recipients.
+	// If inputs are selected, proceed to calculate the max amount that can be sent using the selected inputs.
+	if len(payload.utxos) == 0 {
+		// The reason we need all inputs is to properly determine the number of inputs to take into account
+		// when estimating fee and tx serialize size.
+		payload.utxos, _, err = walletcore.SumUtxosInAccount(routes.walletMiddleware,
+			payload.sourceAccount, payload.requiredConfirmations)
+
+		if err != nil {
+			data["error"] = fmt.Sprintf("Cannot get summary, trying to get unspent outputs in account failed: %s", err.Error())
+			return
+		}
+	}
+
+	fee, err := utils.EstimateFee(len(payload.utxos), payload.sendDestinations)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated fee failed: %s", err.Error())
+		return
+	}
+
+	size, err := utils.EstimateSerializeSize(len(payload.utxos), payload.sendDestinations)
+	if err != nil {
+		data["error"] = fmt.Sprintf("Cannot get summary, trying to get estimated size failed: %s", err.Error())
+		return
+	}
+
+	data["fee"] = fee.ToCoin()
+	data["size"] = size
+}
+
 func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Request) {
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -133,6 +211,7 @@ func (routes *Routes) submitSendTxForm(res http.ResponseWriter, req *http.Reques
 		txHash, err = routes.walletMiddleware.SendFromAccount(payload.sourceAccount, payload.requiredConfirmations,
 			payload.sendDestinations, payload.passphrase)
 	}
+
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -183,6 +262,7 @@ func (routes *Routes) generateAddress(data map[string]interface{}, accountNumber
 	} else {
 		address, err = routes.walletMiddleware.ReceiveAddress(accountNumber)
 	}
+
 	if err != nil {
 		data["success"] = false
 		data["errorMessage"] = err.Error()
@@ -237,7 +317,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 	data := map[string]interface{}{}
 	defer renderJSON(data, res)
 
-	payload, err := retrieveSendPagePayload(req)
+	payload, err := retrieveSendPagePayload(req, routes.walletMiddleware.GenerateNewAddress)
 	if err != nil {
 		data["error"] = err.Error()
 		return
@@ -262,6 +342,7 @@ func (routes *Routes) getRandomChangeOutputs(res http.ResponseWriter, req *http.
 		data["error"] = err.Error()
 		return
 	}
+
 	data["message"] = changeOutputDestinations
 }
 
@@ -395,6 +476,7 @@ func (routes *Routes) transactionDetailsPage(res http.ResponseWriter, req *http.
 		"tx":                  tx,
 		"outputsAccountNames": outputsAccountNames,
 	}
+
 	routes.renderPage("transaction_details.html", data, res)
 }
 
@@ -423,6 +505,7 @@ func (routes *Routes) stakingPage(res http.ResponseWriter, req *http.Request) {
 		"ticketPrice":           dcrutil.Amount(ticketPrice).ToCoin(),
 		"spendUnconfirmedFunds": routes.settings.SpendUnconfirmed,
 	}
+
 	routes.renderPage("staking.html", data, res)
 }
 
@@ -506,6 +589,7 @@ func (routes *Routes) accountsPage(res http.ResponseWriter, req *http.Request) {
 		"hiddenAccounts": routes.settings.HiddenAccounts,
 		"hdPath":         networkHDPath,
 	}
+
 	routes.renderPage("accounts.html", data, res)
 }
 
@@ -521,6 +605,7 @@ func (routes *Routes) settingsPage(res http.ResponseWriter, req *http.Request) {
 		"showNewBlockNotification":            routes.settings.ShowNewBlockNotification,
 		"currencyConverter":                   routes.settings.CurrencyConverter,
 	}
+
 	routes.renderPage("settings.html", data, res)
 }
 
@@ -566,6 +651,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.SpendUnconfirmed = spendUnconfirmed
 	}
 
@@ -583,6 +669,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.ShowIncomingTransactionNotification = showIncomingTransactionNotification
 	}
 
@@ -600,6 +687,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.ShowNewBlockNotification = showNewBlockNotification
 	}
 
@@ -611,6 +699,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.CurrencyConverter = currencyConverter
 	}
 
@@ -634,6 +723,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.DefaultAccount = defaultAccount
 		data["success"] = true
 	}
@@ -662,6 +752,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 			data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 			return
 		}
+
 		routes.settings.HiddenAccounts = hiddenAccounts
 		data["success"] = true
 	}
@@ -685,6 +776,7 @@ func (routes *Routes) updateSetting(res http.ResponseWriter, req *http.Request) 
 					data["error"] = fmt.Sprintf("Error updating settings. %s", err.Error())
 					return
 				}
+
 				routes.settings.HiddenAccounts = hiddenAccounts
 				data["success"] = true
 				return
@@ -714,5 +806,6 @@ func (routes *Routes) deleteWallet(res http.ResponseWriter, req *http.Request) {
 		data["error"] = fmt.Sprintf("Error in deleting wallet: %s", err.Error())
 		return
 	}
+	
 	data["success"] = true
 }

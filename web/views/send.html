@@ -18,18 +18,27 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12 col-md-6">
-                                    <div class="form-group mb-0">
+                                    <div class="form-group mb-0" style="font-size: 1.05rem;">
                                     {{ if eq (len .accounts) 1 }}
                                     {{ $account := index .accounts 0 }}
-                                        <input data-target="send.sourceAccount" value="{{ $account.Number }}"
+                                        <input data-target="send.sourceAccount"
+                                               data-unconfirmed-balance="{{ $account.Balance.Unconfirmed.ToCoin }}"
+                                               data-spendable-balance="{{ $account.Balance.Spendable.ToCoin }}"
+                                               data-total-balance="{{ $account.Balance.Total.ToCoin }}"
+                                               data-echange-rate="{{ .exchangeRate }}"
+                                               value="{{ $account.Number }}"
                                                type="hidden" name="source-account" id="source-account">
                                         <b>From:</b> <span data-target="send.sourceAccountSpan">{{ accountString $account }}</span>
                                     {{ else }}
                                         <label for="source-account"><b>From</b></label>
-                                        <select data-target="send.sourceAccount" class="form-control"
+                                        <select data-target="send.sourceAccount"
+                                                data-echange-rate="{{ .exchangeRate }}" class="form-control"
                                                 id="source-account" name="source-account">
                                         {{ range $account := .accounts }}
-                                            <option value="{{ $account.Number }}">{{ accountString $account }}</option>
+                                            <option data-unconfirmed-balance="{{$account.Balance.Unconfirmed.ToCoin}}"
+                                                    data-spendable-balance="{{$account.Balance.Spendable.ToCoin}}"
+                                                    data-total-balance="{{$account.Balance.Total.ToCoin}}"
+                                                    value="{{ $account.Number }}">{{ accountString $account }}</option>
                                         {{ end }}
                                         </select>
                                     {{ end }}
@@ -51,9 +60,22 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group mb-0">
-                                <input data-target="send.useCustom"
-                                       name="use-custom" value="1"
-                                       type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input data-target="send.useCustom"
+                                               name="use-custom" value="1"
+                                               type="checkbox" data-toggle="toggle" data-on="Custom Inputs" data-off="Automatic Inputs">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check ml-3 mt-2  d-none" data-action="change->send#toggleCustomInputPnlClicked">
+                                            <input data-target="send.toggleCustomInputPnl"
+                                                    checked class="form-check-input" type="checkbox" value="1" id="expandAutomaticInputs">
+                                            <label class="form-check-label" for="expandAutomaticInputs">
+                                                Expand Automatic Inputs
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="collapse mt-2" id="custom-inputs">
@@ -82,50 +104,140 @@
                     <div class="card">
                         <div class="card-body">
                             <label><b>To</b></label>
-                            <div data-target="send.destinations" id="destinations" class="row"></div>
-                            <template data-target="send.destinationTemplate">
-                                <div class="col-md-10 col-sm-12 destination">
-                                    <div class="form-row align-items-center mb-2">
-                                        <div class="form-group col-md-5 col-sm-12">
-                                            <input data-target="send.address" placeholder="Address"
-                                                   type="text" class="form-control"
-                                                   name="destination-address">
-                                        </div>
+                            <nav>
+                                <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                                    <a data-action="click->send#initializeSendToAddress"
+                                       class="nav-item nav-link active" id="nav-address-destinations-tab" data-toggle="tab" href="#address-destinations"
+                                       role="tab" aria-controls="address-destinations" aria-selected="true">Send to Address</a>
+                                    <a data-action="click->send#initializeSendToAccount" class="nav-item nav-link" id="nav-send-to-account-tab" data-toggle="tab" href="#send-to-account"
+                                       role="tab" aria-controls="send-to-account" aria-selected="false">Send to Account</a>
+                                </div>
+                            </nav>
+                            <div class="tab-content py-3 px-3 px-sm-0" id="nav-tabContent">
+                                <div class="tab-pane fade show active" id="address-destinations" role="tabpanel" aria-labelledby="nav-home-tab">
+                                    <div data-target="send.destinations" id="destinations" class="row"></div>
 
-                                        <div class="form-group col-md-3 col-sm-12">
-                                            <input data-target="send.amount"
-                                                   data-action="keyup->send#destinationAmountEdited"
-                                                   type="text" class="form-control amount"
-                                                   placeholder="Amount (DCR)"
-                                                   name="destination-amount">
-                                        </div>
+                                    <template data-target="send.destinationTemplate">
+                                        <div class="col-xl-12 col-md-12 destination">
+                                            <div class="form-row align-items-center mb-2">
+                                                <div class="form-group col-lg-4 col-md-5 col-sm-12">
+                                                    <input data-target="send.address" data-action="change->send#destinationAddressEdited" placeholder="Address"
+                                                           type="text" class="form-control"
+                                                           name="destination-address">
+                                                    <div data-target="send.addressError" class="text-danger address-error"></div>
+                                                </div>
 
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="form-group form-check d-inline-flex align-items-center">
-                                                <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
-                                                <input type="hidden" value="false" name="send-max-amount">
-                                                <input data-target="send.maxSendAmountCheck"
-                                                       data-action="click->send#maxSendAmountCheckboxToggle"
-                                                       type="checkbox" class="form-check-input mt-0"
-                                                       name="send-max-amount" value="true">
-                                                <label class="form-check-label" for="send-max-amount">Send max</label>
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                    <input data-target="send.amount"
+                                                           data-action="keyup->send#destinationAmountEdited"
+                                                           type="text" class="form-control amount"
+                                                           placeholder="Amount (DCR)"
+                                                           name="destination-amount">
+                                                    <div data-target="send.amountError" class="text-danger address-error"></div>
+                                                </div>
+
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                    <input data-target="send.amountUsd"
+                                                           data-action="keyup->send#destinationAmountUsdEdited"
+                                                           type="text" class="form-control amount-usd"
+                                                           placeholder="Amount (USD)"
+                                                           name="destination-amount-usd">
+                                                    <div data-target="send.amountError" class="text-danger address-error"></div>
+                                                </div>
+
+                                                <div class="col-lg-2 col-md-2 col-sm-4">
+                                                    <div class="form-group form-check d-inline-flex align-items-center">
+                                                        <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
+                                                        <input type="hidden" value="false" name="send-max-amount">
+                                                        <input data-target="send.maxSendAmountCheck"
+                                                               data-action="click->send#maxSendAmountCheckboxToggle"
+                                                               type="checkbox" class="form-check-input mt-0"
+                                                               style="margin-left: -0.95rem;"
+                                                               name="send-max-amount" value="true">
+                                                        <label class="form-check-label" for="send-max-amount">Send max</label>
+                                                    </div>
+                                                    &nbsp;
+                                                    <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
+                                                            class="removeDestinationBtn btn" style="background: none; border: none;"
+                                                            type="button">X</button>
+                                                </div>
+
+                                                <div class="col-sm-12 invalid-feedback d-none"></div>
                                             </div>
-                                            &nbsp;
-                                            <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
-                                                    class="btn btn-outline-secondary removeDestinationBtn"
-                                                    style="border: 1px solid #ced4da !important;" type="button">X</button>
                                         </div>
+                                    </template>
 
-                                        <div class="col-sm-12 invalid-feedback d-none"></div>
+                                    <div class="form-group mb-0">
+                                        <button type="button" data-action="click->send#newDestination"
+                                                class="btn btn-outline-primary shadow-sm">
+                                            Add another address
+                                        </button>
                                     </div>
                                 </div>
-                            </template>
-                            <div class="form-group mb-0">
-                                <button type="button" data-action="click->send#newDestination"
-                                        class="btn btn-sm btn-outline-secondary">
-                                    Add another address
-                                </button>
+
+                                <div class="tab-pane fade" id="send-to-account" role="tabpanel" aria-labelledby="nav-profile-tab">
+                                    <div data-target="send.destinationAccounts" class="row"></div>
+
+                                    <template data-target="send.destinationAccountTemplate">
+                                        <div class="col-xl-12 col-md-12 destination">
+                                            <div class="form-row align-items-center mb-2">
+                                                <div class="form-group col-lg-4 col-md-5 col-sm-12">
+                                                    <select data-target="send.destinationAccount" class="form-control"
+                                                            name="destination-account-number">
+                                                        {{ range $account := .accounts }}
+                                                            <option value="{{ $account.Number }}" data-account-name="{{ $account.Name }}">{{ accountString $account }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                </div>
+
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                    <input data-target="send.amount"
+                                                           data-action="keyup->send#destinationAmountEdited"
+                                                           type="text" class="form-control amount"
+                                                           placeholder="Amount (DCR)"
+                                                           name="destination-amount">
+                                                    <div data-target="send.amountError" class="text-danger address-error"></div>
+                                                </div>
+
+                                                <div class="form-group col-lg-2 col-md-2 col-sm-5">
+                                                    <input data-target="send.amountUsd"
+                                                           data-action="keyup->send#destinationAmountUsdEdited"
+                                                           type="text" class="form-control amount-usd"
+                                                           placeholder="Amount (USD)"
+                                                           name="destination-amount-usd">
+                                                    <div data-target="send.amountError" class="text-danger address-error"></div>
+                                                </div>
+
+                                                <div class="col-lg-2 col-md-2 col-sm-4">
+                                                    <div class="form-group form-check d-inline-flex align-items-center">
+                                                        <!-- add hidden form field because values are not submitted for unchecked checkboxes -->
+                                                        <input type="hidden" value="false" name="send-max-amount">
+                                                        <input data-target="send.maxSendAmountCheck"
+                                                               data-action="click->send#maxSendAmountCheckboxToggle"
+                                                               type="checkbox" class="form-check-input mt-0"
+                                                               style="margin-left: -0.95rem;"
+                                                               name="send-max-amount" value="true">
+                                                        <label class="form-check-label" for="send-max-amount">Send max</label>
+                                                    </div>
+                                                    &nbsp;
+                                                    <button data-target="send.removeDestinationBtn" data-action="click->send#removeDestination"
+                                                            class="removeDestinationBtn btn" style="background: none; border: none;"  type="button">X</button>
+                                                </div>
+
+                                                <div class="col-sm-12 invalid-feedback d-none"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div class="form-group mb-0">
+                                        <button type="button" data-action="click->send#newDestinationAccount"
+                                                class="btn btn-outline-primary shadow-sm">
+                                            Add another account
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -135,7 +247,7 @@
                             <div id="changeOutputs">
                                 <div class="card-header" id="headingOne">
                                     <button type="button"
-                                            class="btn btn-link mb-0"
+                                            class="btn btn-link mb-0 changeOutputsPnlButton"
                                             data-action="send#toggleCustomChangeOutputsVisibility"
                                             data-target="#changeOutputsPnl"
                                             data-toggle="collapse"
@@ -170,16 +282,16 @@
                                             <button data-target="send.generateOutputsButton"
                                                     data-action="send#generateChangeOutputs"
                                                     id="generate-outputs-btn" type="button"
-                                                    class="btn btn-sm btn-outline-secondary mt-0">
+                                                    class="btn btn-sm btn-outline-secondary mt-0 shadow-sm">
                                                 Generate Change Outputs
                                             </button>
                                         </div>
                                     </div>
                                     <div data-target="send.generatedChangeOutputs" class="row mt-3 d-none"></div>
                                     <template data-target="send.changeOutputTemplate">
-                                        <div class="col-md-8 col-sm-12">
+                                        <div class="col-xl-10 col-md-12 col-sm-12">
                                             <div class="row">
-                                                <div class="col-md-6 col-sm-12">
+                                                <div class="col-xl-5 col-md-7 col-sm-12">
                                                     <div class="form-group">
                                                         <label for="change-output-address">Change Address</label>
                                                         <input data-target="send.changeOutputAddress" type="text" class="form-control" readonly
@@ -222,11 +334,11 @@
                             <div data-target="send.errorMessage" class="alert alert-danger d-none"></div>
                             <div data-target="send.successMessage" class="alert alert-success d-none"></div>
                             <div class="errors mb-3 d-none" data-target="send.errors"></div>
-                            <button data-action="click->send#resetSendForm" class="btn btn-danger" id="reset-btn"
-                                    type="button">Reset
+                            <button data-action="click->send#clearFields" class="btn btn-danger shadow-sm" id="reset-btn"
+                                    type="button">Clear Fields
                             </button>
-                            <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit"
-                                    class="btn btn-primary" id="submit-btn" type="button">Next
+                            <button data-target="send.nextButton" data-action="click->send#getWalletPassphraseAndSubmit" disabled
+                                    class="btn btn-primary shadow-sm" id="submit-btn" type="button">Send
                             </button>
                         </div>
                     </div>
@@ -241,18 +353,35 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body">
+                            <div class="modal-body" style="margin: 0 auto;">
                                 <div data-target="send.transactionDetails"></div>
-                                <p>Enter your passphrase to continue</p>
+                                <table class="table borderless" style="width: 250px;">
+                                    <tr>
+                                        <td class="text-right">Fee: </td>
+                                        <td data-target="send.fee"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right">Estimate Size: </td>
+                                        <td data-target="send.estimateSize"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right">Exchange Rate: </td>
+                                        <td data-target="send.exchangeRate">${{ .exchangeRate }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right">Balance After: </td>
+                                        <td data-target="send.balanceAfter"></td>
+                                    </tr>
+                                </table>
+                                <p>To confirm, enter your password: </p>
                                 <div class="form-group form-inline">
-                                    <label for="passhprase">Passphrase</label>
                                     <input data-target="send.walletPassphrase" type="password" class="form-control ml-3" name="wallet-passphrase" id="wallet-passphrase" />
                                     <div data-target="send.passwordError" class="errors"></div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                <button data-action="click->send#submitForm" type="button" class="btn btn-success" id="passphrase-submit">Submit</button>
+                                <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                                <button data-action="click->send#submitForm" type="button" class="btn btn-outline-primary" id="passphrase-submit">Submit</button>
                             </div>
                         </div>
                     </div>
