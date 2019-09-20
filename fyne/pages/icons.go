@@ -19,6 +19,7 @@ const (
 	checkmark       = "checkmark.png"
 	createNewWallet = "createNewWallet.png"
 	restoreWallet   = "restoreWallet.png"
+	collapse        = "collapse.png"
 	wordlist        = "wordlist.txt"
 )
 
