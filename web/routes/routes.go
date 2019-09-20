@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/go-chi/chi"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 	"github.com/raedahgroup/godcr/app/config"
@@ -45,16 +46,30 @@ func OpenWalletAndSetupRoutes(ctx context.Context, walletMiddleware app.WalletMi
 }
 
 func (routes *Routes) loadTemplates() {
-	layout := "../../web/views/layout.html"
-	utils := "../../web/views/utils.html"
+	layout := "layout.html"
+	utils := "utils.html"
 
-	for _, tmpl := range templates() {
-		parsedTemplate, err := template.New(tmpl.name).Funcs(templateFuncMap()).ParseFiles(tmpl.path, layout, utils)
+	viewBox := packr.New("templates", "../../web/views")
+
+	extractTemplateText := func(template string) string {
+		viewContent, err := viewBox.FindString(template)
 		if err != nil {
 			log.Fatalf("error loading templates: %s", err.Error())
 		}
 
-		routes.templates[tmpl.name] = parsedTemplate
+		return viewContent
+	}
+
+	for _, tmpl := range templates() {
+		parsedTemplate := template.New(tmpl).Funcs(templateFuncMap())
+		// parse the page view file
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(tmpl))
+		// parse the layout file
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(layout))
+		// parse the util file
+		parsedTemplate, _ = parsedTemplate.Parse(extractTemplateText(utils))
+
+		routes.templates[tmpl] = parsedTemplate
 	}
 }
 

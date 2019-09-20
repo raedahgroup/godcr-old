@@ -7,6 +7,7 @@ require (
 	github.com/decred/dcrwallet/wallet v1.3.0
 	github.com/decred/slog v1.0.0
 	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/gobuffalo/packr/v2 v2.6.0
 	github.com/gorilla/websocket v1.2.0
 	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190807181808-37b6666fe764
 	github.com/raedahgroup/godcr/app v0.0.0-00010101000000-000000000000
