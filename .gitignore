@@ -5,8 +5,6 @@
 *.log
 *.bat
 vendor/
-fyne/fyne-packr.go
-fyne/packrd/
 godcr
 godcr.conf
 godcr.exe
@@ -29,4 +27,5 @@ enablegomod.bat
 web/static/app/node_modules
 web/static/dist/js/*.bundle.js
 web/static/dist/js/*.bundle.js.map
+packrd/
 *-packr.go
