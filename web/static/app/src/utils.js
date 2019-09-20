@@ -5,7 +5,7 @@ export function listenForBalanceUpdate (_this) {
   ws.registerEvtHandler('updateBalance', function (data) {
     if (_this.sourceAccountTarget.options) {
       data.accounts.forEach(account => {
-        for (let i = 0; i < _this.sourceAccountTarget.length; i++) {
+        for (let i = 0; i < _this.sourceAccountTarget.options.length; i++) {
           const opt = _this.sourceAccountTarget.options[i]
           if (parseInt(opt.value) === account.number) {
             opt.textContent = account.info
@@ -81,6 +81,10 @@ export const hide = (el) => {
 
 export const show = (el) => {
   el.classList.remove('d-none')
+}
+
+export const isHidden = (el) => {
+  return el.classList.contains('d-none') || el.classList.contains('d-hide')
 }
 
 export const truncate = (input, maxLength) => {

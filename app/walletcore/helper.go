@@ -134,12 +134,34 @@ func GetChangeDestinationsWithRandomAmounts(wallet Wallet, nChangeOutputs int, a
 	return
 }
 
-func BuildTxDestinations(destinationAddresses, destinationAmounts, sendMaxAmountValues []string) (
+func BuildTxDestinations(destinationAddresses, destinationAccounts,
+	destinationAmounts, sendMaxAmountValues []string, generateAddressFn func(accountNumber uint32) (string, error)) (
 	destinations []txhelper.TransactionDestination, totalAmount dcrutil.Amount, err error) {
 
-	for i := range destinationAddresses {
+	destinationAccountAddresses := make([]string, len(destinationAccounts))
+	for i, accountNumberStr := range destinationAccounts {
+		account, err := strconv.ParseInt(accountNumberStr, 10, 32)
+		if err != nil {
+			return nil, 0, fmt.Errorf("Invalid account number")
+		}
+		address, err := generateAddressFn(uint32(account))
+		destinationAccountAddresses[i] = address
+	}
+
+	addressLength := len(destinationAddresses)
+	if addressLength == 0 {
+		addressLength = len(destinationAccountAddresses)
+	}
+
+	for i := 0; i < addressLength; i++ {
+		var address string
+		if len(destinationAddresses) > 0 {
+			address = destinationAddresses[i]
+		} else {
+			address = destinationAccountAddresses[i]
+		}
 		destination := txhelper.TransactionDestination{
-			Address: destinationAddresses[i],
+			Address: address,
 			// only set SendMax to true if `sendMaxAmountValues` is not nil and this particular sendMaxAmountValue is "true"
 			SendMax: sendMaxAmountValues != nil && sendMaxAmountValues[i] == "true",
 		}
@@ -165,6 +187,7 @@ func BuildTxDestinations(destinationAddresses, destinationAmounts, sendMaxAmount
 
 		destinations = append(destinations, destination)
 	}
+
 	return
 }
 
