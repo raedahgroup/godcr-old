@@ -100,7 +100,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		return historyPage
 	}
 
-	if totalTxCount != 0 {
+	if totalTxCount == 0 {
 		displayMessage("No transactions yet", InfoMessage)
 		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
 		tviewApp.SetFocus(historyPage)
@@ -118,12 +118,9 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
-	// filter dropDown slection options
+	// filter dropDown selection options
 	txDropdown.AddDropDown("", transactionCountByFilter, 0, func(filterAndCount string, index int) {
-		selectedFilterAndCount := strings.Split(filterAndCount, " ")
-		lastSelectedFilter = selectedFilter
-		selectedFilter = selectedFilterAndCount[0]
-
+		selectedFilter, lastSelectedFilter := strings.Split(filterAndCount, " ")[0], selectedFilter
 		if selectedFilter == "All" {
 			if selectedFilter != lastSelectedFilter {
 				go fetchAndDisplayTransactions(0, wallet, nil, historyTable, tviewApp, displayMessage)
