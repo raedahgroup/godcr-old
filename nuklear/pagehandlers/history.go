@@ -9,6 +9,7 @@ import (
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 )
 
 type HistoryHandler struct {
