@@ -118,9 +118,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 
 	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
-	// filter dropDown selection options
+	// filter dropDown sleection options
 	txDropdown.AddDropDown("", transactionCountByFilter, 0, func(filterAndCount string, index int) {
-		selectedFilter, lastSelectedFilter := strings.Split(filterAndCount, " ")[0], selectedFilter
+		selectedFilterAndCount := strings.Split(filterAndCount, " ")
+		lastSelectedFilter = selectedFilter
+		selectedFilter = selectedFilterAndCount[0]
+
 		if selectedFilter == "All" {
 			if selectedFilter != lastSelectedFilter {
 				go fetchAndDisplayTransactions(0, wallet, nil, historyTable, tviewApp, displayMessage)
