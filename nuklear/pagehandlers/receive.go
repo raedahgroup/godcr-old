@@ -31,20 +31,21 @@ type ReceiveHandler struct {
 
 func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, nil)
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
 
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, nil)
 	handler.accounts, handler.generateAddressError = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-
-	if len(handler.accounts) == 1 {
-		handler.accountNumber = handler.accounts[0].Number
-		handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
-	} else {
-		handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
-		handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
+	
+	handler.accountNumber = handler.accounts[0].Number
+	handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
+	
+	if len(handler.accounts) > 1 {
+		handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, func(int){
+			handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
+		})
 	}
-
 	return true
 }
 
@@ -65,7 +66,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 
 		// draw account selection widget before rendering previously generated address
 		handler.accountSelectorWidget.Render(contentWindow)
-				window.Master().Changed()
+		window.Master().Changed()
 
 		// display error if there was an error the last time address generation was attempted
 		if handler.generateAddressError != nil {
