@@ -31,7 +31,7 @@ type ReceiveHandler struct {
 
 func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet)
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, nil)
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
 
