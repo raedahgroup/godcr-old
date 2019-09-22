@@ -1,5 +1,5 @@
-fyne.io/fyne v1.0.2-0.20190912194812-5b44bfe4c1aa h1:S+Oe5wSu+wdR8y8Aqxxd6Irk1OtqjznqI93EcBFS3+A=
-fyne.io/fyne v1.0.2-0.20190912194812-5b44bfe4c1aa/go.mod h1:33kcuZDAiuenHBiyYh0t9k/d75hFGQ1KXbD5RJaMpTE=
+fyne.io/fyne v1.0.2-0.20190922084351-ad3abda212bc h1:RenY6LJO/U/j7GE0htY3IXQsJDNW9UpL0Wpm7wlfKwc=
+fyne.io/fyne v1.0.2-0.20190922084351-ad3abda212bc/go.mod h1:33kcuZDAiuenHBiyYh0t9k/d75hFGQ1KXbD5RJaMpTE=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9 h1:HD8gA2tkByhMAwYaFAX9w2l7vxvBQ5NMoxDrkhqhtn4=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=

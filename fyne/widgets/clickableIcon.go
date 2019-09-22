@@ -15,6 +15,10 @@ type ClickableIcon struct {
 
 // Tapped is called when users click on the icon
 func (c *ClickableIcon) Tapped(_ *fyne.PointEvent) {
+	if c.OnTapped == nil {
+		return
+	}
+
 	c.OnTapped()
 }
 

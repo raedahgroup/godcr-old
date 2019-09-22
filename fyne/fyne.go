@@ -100,9 +100,9 @@ func (app *fyneApp) startUp(appDataDir, appDisplayName, netType string) {
 	}
 
 	menu.MenuPage()
-	menu.Window.CenterOnScreen()
-	menu.Window.Resize(fyne.NewSize(500, 500))
+	menu.Window.Resize(fyne.NewSize(1000, 500))
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
+	menu.Window.CenterOnScreen()
 	menu.Window.ShowAndRun()
 	app.tearDown()
 }

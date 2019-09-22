@@ -19,6 +19,10 @@ type AppInterface struct {
 	tabMenu *widget.TabContainer
 }
 
+const (
+	defaultRequiredConfirmations = 2
+)
+
 // DisplayLaunchErrorAndExit displays the error message to users.
 func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) fyne.CanvasObject {
 	return widget.NewVBox(
@@ -47,8 +51,6 @@ func (app *AppInterface) MenuPage() {
 		widget.NewTabItemWithIcon("Staking", icons[stakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
-
-	app.Window.SetContent(app.tabMenu)
 
 	go func() {
 		var currentTabIndex = 0
@@ -79,7 +81,7 @@ func (app *AppInterface) MenuPage() {
 			case 2:
 				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = receivePageContent(app.Dcrlw, app.Window)
+				newPageContent = receivePageContent(app.Dcrlw, app.Window, app.tabMenu)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
@@ -92,4 +94,6 @@ func (app *AppInterface) MenuPage() {
 			}
 		}
 	}()
+
+	app.Window.SetContent(app.tabMenu)
 }

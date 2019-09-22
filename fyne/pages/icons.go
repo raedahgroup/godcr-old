@@ -20,6 +20,9 @@ const (
 	createNewWallet = "createNewWallet.png"
 	restoreWallet   = "restoreWallet.png"
 	collapse        = "collapse.png"
+	receiveAccount  = "receiveAccount.png"
+	more            = "more.png"
+	info            = "info.png"
 	wordlist        = "wordlist.txt"
 )
 
