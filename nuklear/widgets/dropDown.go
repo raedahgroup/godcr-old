@@ -11,11 +11,8 @@ import (
 
 type FilterSelector struct {
 	wallet walletcore.Wallet
-
 	filters                  []string
-	filter                   string
-	txCount                  int
-	transactionCountByFilter []string
+	transactionFilter []string
 	txCountErr               error
 	selectedFilterIndex      int
 	totalTxCount             int
@@ -24,7 +21,7 @@ type FilterSelector struct {
 	changed                  bool
 	selectedFilterAndCount   string
 	txFilter                 *txindex.ReadFilter
-	selectionChanged         func(int)
+	selectionChanged         func()
 }
 
 const (
@@ -32,32 +29,29 @@ const (
 	filterSelectorHeight       = 25
 )
 
-func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func(int)) (filterSelector *FilterSelector, error error) {
+func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func()) (filterSelector *FilterSelector, error error) {
 	filterSelector = &FilterSelector{
 		selectionChanged: selectionChanged,
 	}
 
 	filterSelector.wallet = wallet
-
 	filterSelector.filters = walletcore.TransactionFilters
-
-	filterSelector.transactionCountByFilter = make([]string, len(filterSelector.filters))
+	filterSelector.transactionFilter = make([]string, len(filterSelector.filters))
 
 	for index, filter := range filterSelector.filters {
 		if filter == "All" {
-			filterSelector.filter = filter
-			filterSelector.txCount, filterSelector.txCountErr = wallet.TransactionCount(nil)
-			filterSelector.totalTxCount = filterSelector.txCount
+			txCount, txCountErr := wallet.TransactionCount(nil)
+			filterSelector.totalTxCount = txCount
+			filterSelector.txCountErr = txCountErr
 		}
 
-		filterSelector.txCount, filterSelector.txCountErr = wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
+		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
+		filterSelector.txCountErr = txCountErr
 		if filterSelector.txCountErr != nil {
 			return nil, filterSelector.txCountErr
 		}
 
-		filterSelector.filter = filter
-
-		filterSelector.transactionCountByFilter[index] = fmt.Sprintf("%s (%d)", filterSelector.filter, filterSelector.txCount)
+		filterSelector.transactionFilter[index] = fmt.Sprintf("%s (%d)", filter, txCount)
 	}
 
 	return filterSelector, nil
@@ -84,8 +78,8 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 }
 
 func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string, error) {
-	if filterSelector.selectedFilterIndex < len(filterSelector.transactionCountByFilter) {
-		selectedFilterAndCount := filterSelector.transactionCountByFilter[filterSelector.selectedFilterIndex]
+	if filterSelector.selectedFilterIndex < len(filterSelector.transactionFilter) {
+		selectedFilterAndCount := filterSelector.transactionFilter[filterSelector.selectedFilterIndex]
 
 		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
 		filterSelector.selectedFilter = selectedFilterCount[0]
@@ -111,11 +105,11 @@ func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFil
 // makeDropDown is adapted from nucular's Window.ComboSimple
 // to allow triggering a callback when dropdown selection changes.
 func (filterSelector *FilterSelector) makeDropDown(window *Window) {
-	if len(filterSelector.transactionCountByFilter) == 0 {
+	if len(filterSelector.transactionFilter) == 0 {
 		return
 	}
 
-	items := filterSelector.transactionCountByFilter
+	items := filterSelector.transactionFilter
 	itemHeight := int(float64(filterSelectorHeight) * window.Master().Style().Scaling)
 	itemPadding := window.Master().Style().Combo.ButtonPadding.Y
 	maxHeight := (len(items)+1)*itemHeight + itemPadding*3
@@ -126,7 +120,7 @@ func (filterSelector *FilterSelector) makeDropDown(window *Window) {
 			if w.MenuItem(label.TA(items[i], "LC")) {
 				filterSelector.selectedFilterIndex = i
 				if filterSelector.selectionChanged != nil {
-					filterSelector.selectionChanged(i)
+					filterSelector.selectionChanged()
 				}
 			}
 		}

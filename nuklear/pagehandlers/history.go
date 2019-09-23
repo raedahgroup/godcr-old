@@ -17,11 +17,11 @@ type HistoryHandler struct {
 	refreshWindowDisplay func()
 
 	filterSelectorWidget *widgets.FilterSelector
-	selectedFilter       string
-	filter               *txindex.ReadFilter
+	currentFilterText       string
+	selectedTxFilter               *txindex.ReadFilter
 
 	totalTxCount int
-	txCountErr               error
+	filterSelectorErr               error
 
 	currentPage            int
 	txPerPage              int
@@ -44,7 +44,9 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.fetchHistoryError = nil
 	handler.isFetchingTransactions = false
 
-	handler.filterSelectorWidget, handler.txCountErr = widgets.FilterSelectorWidget(wallet, nil)
+	handler.clearTxDetails()
+
+	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, nil)
 
 	// fetch initial table data
 	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
@@ -54,23 +56,20 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	}
 
 	// fetch filtered data
-	handler.filterSelectorWidget, handler.txCountErr = widgets.FilterSelectorWidget(wallet, func(int){
-		totalTxCount, filter, selectedFilter, err := handler.filterSelectorWidget.GetSelectedFilter()
-		handler.totalTxCount = totalTxCount
+	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func(){
+		_, selectedTxFilter, currentFilterText, err := handler.filterSelectorWidget.GetSelectedFilter()
 		if err != nil {
-			handler.fetchHistoryError = err
+			handler.filterSelectorErr = err
 			return
 		}
 
-		if selectedFilter != handler.selectedFilter {
-			handler.selectedFilter = selectedFilter
-			handler.filter = filter
+		if currentFilterText != handler.currentFilterText {
+			handler.currentFilterText = currentFilterText
+			handler.selectedTxFilter = selectedTxFilter
 			handler.transactions = nil
-			go handler.fetchTransactions(filter)
+			go handler.fetchTransactions(selectedTxFilter)
 		}
 	})
-
-	handler.clearTxDetails()
 
 	return true
 }
@@ -80,7 +79,6 @@ func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
 	handler.refreshWindowDisplay() // refresh display to show loading indicator
 
 	txHistoryOffset := 0
-
 	if handler.transactions != nil {
 		txHistoryOffset = len(handler.transactions)
 	}
@@ -105,8 +103,8 @@ func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
 		handler.filterSelectorWidget.Render(contentWindow)
 
-		if handler.txCountErr != nil {
-			contentWindow.DisplayErrorMessage("Error loading history", handler.fetchHistoryError)
+		if handler.filterSelectorErr != nil {
+			contentWindow.DisplayErrorMessage("Error with filter selector", handler.filterSelectorErr)
 		}
 
 		if len(handler.transactions) == 0 {
@@ -193,7 +191,7 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 	nextPageTxOffset := (nextPage - 1) * handler.txPerPage
 	if nextPageTxOffset >= len(handler.transactions) {
 		// we've not loaded txs for this page
-		go handler.fetchTransactions(handler.filter)
+		go handler.fetchTransactions(handler.selectedTxFilter)
 	}
 
 	handler.refreshWindowDisplay()
