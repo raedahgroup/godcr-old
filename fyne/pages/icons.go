@@ -23,6 +23,7 @@ const (
 	receiveAccount  = "receiveAccount.png"
 	more            = "more.png"
 	info            = "info.png"
+	exit            = "exit.png"
 	wordlist        = "wordlist.txt"
 )
 

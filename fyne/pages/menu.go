@@ -36,7 +36,7 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) fyne.Can
 }
 
 func (app *AppInterface) MenuPage() {
-	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon)
+	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon, exit)
 	if err != nil {
 		app.Window.SetContent(app.DisplayLaunchErrorAndExit(err.Error()))
 		return
@@ -49,6 +49,7 @@ func (app *AppInterface) MenuPage() {
 		widget.NewTabItemWithIcon("Receive", icons[receiveIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", icons[accountsIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Staking", icons[stakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Exit", icons[exit], app.exitPageContent()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
@@ -56,7 +57,7 @@ func (app *AppInterface) MenuPage() {
 		var currentTabIndex = 0
 
 		for {
-			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
+			if app.tabMenu.CurrentTabIndex() == currentTabIndex || app.tabMenu.CurrentTab().Text == "Exit" {
 				time.Sleep(50 * time.Millisecond)
 				continue
 			}
