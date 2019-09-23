@@ -27,25 +27,23 @@ type ReceiveHandler struct {
 	generatedAddress      string
 	accounts              []*walletcore.Account
 	accountNumber         uint32
+	refreshWindowDisplay func()
 }
 
 func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
+	handler.refreshWindowDisplay = refreshWindowDisplay
 
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, nil)
-	handler.accounts, handler.generateAddressError = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	
-	handler.accountNumber = handler.accounts[0].Number
-	handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
-	
-	if len(handler.accounts) > 1 {
-		handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, func(int){
-			handler.accountNumber = handler.accountSelectorWidget.GetSelectedAccountNumber()
-			handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountNumber)
-		})
-	}
+	// first setup account selector widget
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, func() {
+		handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
+		refreshWindowDisplay()
+	})
+
+	// generate address for first account in wallet
+	handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
 	return true
 }
 
@@ -59,14 +57,13 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a", widgets.LeftCenterAlign, styles.GrayColor))
 		contentWindow.AddLinkLabelsToCurrentRow(widgets.NewLinkLabelCellCell("new address.", func() {
 			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountNumber)
-			window.Master().Changed()
+			handler.refreshWindowDisplay()
 		}))
 
 		contentWindow.AddHorizontalSpace(15)
 
 		// draw account selection widget before rendering previously generated address
 		handler.accountSelectorWidget.Render(contentWindow)
-		window.Master().Changed()
 
 		// display error if there was an error the last time address generation was attempted
 		if handler.generateAddressError != nil {

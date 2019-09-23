@@ -12,7 +12,7 @@ type AccountSelector struct {
 	accountNumbers       []uint32
 	accountsFetchError   error
 	selectedAccountIndex int
-	selectionChanged     func(int)
+	selectionChanged     func()
 }
 
 const (
@@ -21,7 +21,7 @@ const (
 )
 
 func AccountSelectorWidget(prompt string, spendUnconfirmed, showBalance bool, wallet walletcore.Wallet,
-	selectionChanged func(int)) (accountSelector *AccountSelector) {
+	selectionChanged func()) (accountSelector *AccountSelector) {
 
 	accountSelector = &AccountSelector{
 		prompt: prompt,
@@ -97,7 +97,7 @@ func (accountSelector *AccountSelector) makeDropDown(window *Window) {
 			if w.MenuItem(label.TA(items[i], "LC")) {
 				accountSelector.selectedAccountIndex = i
 				if accountSelector.selectionChanged != nil {
-					accountSelector.selectionChanged(i)
+					accountSelector.selectionChanged()
 				}
 			}
 		}
