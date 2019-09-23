@@ -13,26 +13,26 @@ import (
 )
 
 type HistoryHandler struct {
-	wallet               walletcore.Wallet
-	refreshWindowDisplay func()
+	wallet               	walletcore.Wallet
+	refreshWindowDisplay 	func()
 
-	filterSelectorWidget *widgets.FilterSelector
-	currentFilterText       string
-	selectedTxFilter               *txindex.ReadFilter
+	filterSelectorWidget 	*widgets.FilterSelector
+	currentFilterText    	string
+	selectedTxFilter      	*txindex.ReadFilter
 
-	totalTxCount int
-	filterSelectorErr               error
+	totalTxCount 			int
+	filterSelectorErr       error
 
-	currentPage            int
-	txPerPage              int
-	transactions           []*walletcore.Transaction
-	fetchHistoryError      error
-	isFetchingTransactions bool
+	currentPage            	int
+	txPerPage              	int
+	transactions           	[]*walletcore.Transaction
+	fetchHistoryError      	error
+	isFetchingTransactions 	bool
 
-	selectedTxHash      string
-	selectedTxDetails   *walletcore.Transaction
-	isFetchingTxDetails bool
-	fetchTxDetailsError error
+	selectedTxHash      	string
+	selectedTxDetails   	*walletcore.Transaction
+	isFetchingTxDetails 	bool
+	fetchTxDetailsError 	error
 }
 
 func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
@@ -45,8 +45,6 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.isFetchingTransactions = false
 
 	handler.clearTxDetails()
-
-	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, nil)
 
 	// fetch initial table data
 	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
@@ -69,6 +67,8 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 			handler.transactions = nil
 			go handler.fetchTransactions(selectedTxFilter)
 		}
+
+		refreshWindowDisplay()
 	})
 
 	return true
