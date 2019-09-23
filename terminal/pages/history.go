@@ -20,11 +20,11 @@ var displayedTxHashes []string
 var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
 var totalTxCount int
 var selectedFilter, lastSelectedFilter string
-	type MessageKind string
-	const (
-		ErrorMessage MessageKind = "error"
-		InfoMessage MessageKind = "info"
-	)
+type messageKind string
+const (
+	ErrorMessage messageKind = "error"
+	InfoMessage messageKind = "info"
+)
 
 func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
 	// parent flexbox layout container to hold other primitives
@@ -41,12 +41,12 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	messageTextView := primitives.WordWrappedTextView("")
-	displayMessage := func(message string, kind MessageKind) {
+	displayMessage := func(message string, kind messageKind) {
 		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
 		tviewApp.QueueUpdateDraw(func() {
 			historyPage.RemoveItem(messageTextView)
 			if message != "" {
-				if message != "" && kind == ErrorMessage {
+				if kind == ErrorMessage {
 					messageTextView.SetTextColor(helpers.DecredOrangeColor)
 				} else {
 					messageTextView.SetTextColor(tcell.ColorWhite)
@@ -59,17 +59,15 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	}
 
 	// page title
-	historyPageTitle := "History"
-	titleTextView := primitives.NewLeftAlignedTextView(historyPageTitle)
+	titleTextView := primitives.NewLeftAlignedTextView("History")
 	historyPage.AddItem(titleTextView, 2, 0, false)
 
 	// tx filter
-	filters := walletcore.TransactionFilters
 	var transactionCountByFilter []string
 
 	var txCount int
 	var txCountErr error
-	for _, filter := range filters {
+	for _, filter := range walletcore.TransactionFilters {
 		if filter == "All" {
 			txCount, txCountErr = wallet.TransactionCount(nil)
 			if txCountErr != nil {
@@ -94,12 +92,6 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		transactionCountByFilter = append(transactionCountByFilter, fmt.Sprintf("%s (%d)", filter, txCount))
 	}
 
-	if txCountErr != nil {
-		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), ErrorMessage)
-		tviewApp.SetFocus(historyPage)
-		return historyPage
-	}
-
 	if totalTxCount == 0 {
 		displayMessage("No transactions yet", InfoMessage)
 		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
@@ -107,9 +99,9 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		return historyPage
 	}
 
-	txDropdown := primitives.NewForm(false)
-	txDropdown.SetBorderPadding(0, 0, 0, 0)
-	historyPage.AddItem(txDropdown, 2, 0, false)
+	txFilterDropdown := primitives.NewForm(false)
+	txFilterDropdown.SetBorderPadding(0, 0, 0, 0)
+	historyPage.AddItem(txFilterDropdown, 2, 0, false)
 
 	historyTable := tview.NewTable().
 		SetBorders(false).
@@ -119,9 +111,9 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	transactionDetailsTable := tview.NewTable().SetBorders(false)
 
 	// filter dropDown sleection options
-	txDropdown.AddDropDown("", transactionCountByFilter, 0, func(filterAndCount string, index int) {
-		selectedFilterAndCount := strings.Split(filterAndCount, " ")
+	txFilterDropdown.AddDropDown("", transactionCountByFilter, 0, func(filterAndCount string, index int) {
 		lastSelectedFilter = selectedFilter
+		selectedFilterAndCount := strings.Split(filterAndCount, " ")
 		selectedFilter = selectedFilterAndCount[0]
 
 		if selectedFilter == "All" {
@@ -131,9 +123,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 			return
 		}
 
-		filter := txindex.Filter()
-		filter = walletcore.BuildTransactionFilter(selectedFilter)
-
+		filter := walletcore.BuildTransactionFilter(selectedFilter)
 		totalTxCount, txCountErr = wallet.TransactionCount(filter)
 		if txCountErr != nil {
 			displayMessage(txCountErr.Error(), ErrorMessage)
@@ -148,7 +138,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	displayHistoryTable := func() {
 		historyPage.RemoveItem(transactionDetailsTable)
 
-		titleTextView.SetText(historyPageTitle)
+		titleTextView.SetText("History")
 		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn,\nENTER to view details, ESC to return to navigation menu")
 
 		historyPage.AddItem(historyTable, 0, 1, true)
@@ -178,7 +168,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 		}
 
 		historyPage.RemoveItem(historyTable)
-		historyPage.RemoveItem(txDropdown)
+		historyPage.RemoveItem(txFilterDropdown)
 
 		txHash := displayedTxHashes[row-1]
 
@@ -196,7 +186,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	// handler for returning back to history table
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
-			historyPage.AddItem(txDropdown, 2, 0, false)
+			historyPage.AddItem(txFilterDropdown, 2, 0, false)
 			displayHistoryTable()
 			return nil
 		}
@@ -205,7 +195,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 	})
 
 	// handler for switching between dropDown and table
-	txDropdown.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	txFilterDropdown.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			clearFocus()
 			return nil
@@ -225,7 +215,7 @@ func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tv
 			return nil
 		}
 		if event.Key() == tcell.KeyTab {
-			tviewApp.SetFocus(txDropdown)
+			tviewApp.SetFocus(txFilterDropdown)
 			return nil
 		}
 
@@ -250,7 +240,7 @@ func fetchAndDisplayTransactions(txOffset int,
 	filter *txindex.ReadFilter, 
 	historyTable *tview.Table, 
 	tviewApp *tview.Application, 
-	displayMessage func(string, MessageKind)) {
+	displayMessage func(string, messageKind)) {
 	// show a loading text at the bottom of the table so user knows an op is in progress
 	displayMessage("Fetching data...", InfoMessage)
 
@@ -321,7 +311,7 @@ func fetchAndDisplayTransactions(txOffset int,
 	return
 }
 
-func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, MessageKind), transactionDetailsTable *tview.Table) {
+func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, messageKind), transactionDetailsTable *tview.Table) {
 	tx, err := wallet.GetTransaction(txHash)
 	if err != nil {
 		displayError(err.Error(), ErrorMessage)
@@ -357,15 +347,15 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	}
 	maxDecimalPlacesForInputsAndOutputsAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
 
-	// now txDropdownat amount having determined the max number of decimal places
-	txDropdownatAmount := func(amount int64) string {
+	// now txFilterDropdownat amount having determined the max number of decimal places
+	txFilterDropdownatAmount := func(amount int64) string {
 		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")
 	for _, txIn := range tx.Inputs {
 		row := transactionDetailsTable.GetRowCount()
-		transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(txDropdownatAmount(txIn.Amount)).SetAlign(tview.AlignRight))
+		transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(txFilterDropdownatAmount(txIn.Amount)).SetAlign(tview.AlignRight))
 		transactionDetailsTable.SetCellSimple(row, 1, txIn.PreviousOutpoint)
 	}
 
@@ -373,7 +363,7 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	transactionDetailsTable.SetCellSimple(row, 0, "-Outputs-")
 	for _, txOut := range tx.Outputs {
 		row++
-		outputAmount := txDropdownatAmount(txOut.Amount)
+		outputAmount := txFilterDropdownatAmount(txOut.Amount)
 
 		if txOut.Address == "" {
 			transactionDetailsTable.SetCellSimple(row, 0, fmt.Sprintf("  %s (no address)", outputAmount))
