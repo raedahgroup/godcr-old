@@ -6,6 +6,7 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/aarzilli/nucular/label"
 )
 
 type FilterSelector struct {
@@ -23,6 +24,7 @@ type FilterSelector struct {
 	changed                  bool
 	selectedFilterAndCount   string
 	txFilter                 *txindex.ReadFilter
+	selectionChanged         func(int)
 }
 
 const (
@@ -30,8 +32,10 @@ const (
 	filterSelectorHeight       = 25
 )
 
-func FilterSelectorWidget(wallet walletcore.Wallet) (filterSelector *FilterSelector) {
-	filterSelector = &FilterSelector{}
+func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func(int)) (filterSelector *FilterSelector, error error) {
+	filterSelector = &FilterSelector{
+		selectionChanged: selectionChanged,
+	}
 
 	filterSelector.wallet = wallet
 
@@ -48,7 +52,7 @@ func FilterSelectorWidget(wallet walletcore.Wallet) (filterSelector *FilterSelec
 
 		filterSelector.txCount, filterSelector.txCountErr = wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		if filterSelector.txCountErr != nil {
-			return
+			return nil, filterSelector.txCountErr
 		}
 
 		filterSelector.filter = filter
@@ -56,7 +60,7 @@ func FilterSelectorWidget(wallet walletcore.Wallet) (filterSelector *FilterSelec
 		filterSelector.transactionCountByFilter[index] = fmt.Sprintf("%s (%d)", filterSelector.filter, filterSelector.txCount)
 	}
 
-	return
+	return filterSelector, nil
 }
 
 func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) {
@@ -76,8 +80,7 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 		window.DisplayErrorMessage("Fetch tx error", filterSelector.txCountErr)
 	}
 
-	filterSelector.selectedFilterIndex = window.ComboSimple(filterSelector.transactionCountByFilter,
-		filterSelector.selectedFilterIndex, filterSelectorHeight)
+	filterSelector.makeDropDown(window)
 }
 
 func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string, error) {
@@ -104,3 +107,29 @@ func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFil
 
 	return filterSelector.totalTxCount, nil, "All", nil
 }
+
+// makeDropDown is adapted from nucular's Window.ComboSimple
+// to allow triggering a callback when dropdown selection changes.
+func (filterSelector *FilterSelector) makeDropDown(window *Window) {
+	if len(filterSelector.transactionCountByFilter) == 0 {
+		return
+	}
+
+	items := filterSelector.transactionCountByFilter
+	itemHeight := int(float64(filterSelectorHeight) * window.Master().Style().Scaling)
+	itemPadding := window.Master().Style().Combo.ButtonPadding.Y
+	maxHeight := (len(items)+1)*itemHeight + itemPadding*3
+
+	if w := window.Combo(label.T(items[filterSelector.selectedFilterIndex]), maxHeight, nil); w != nil {
+		w.RowScaled(itemHeight).Dynamic(1)
+		for i := range items {
+			if w.MenuItem(label.TA(items[i], "LC")) {
+				filterSelector.selectedFilterIndex = i
+				if filterSelector.selectionChanged != nil {
+					filterSelector.selectionChanged(i)
+				}
+			}
+		}
+	}
+}
+

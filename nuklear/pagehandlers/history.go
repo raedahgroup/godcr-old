@@ -21,6 +21,7 @@ type HistoryHandler struct {
 	filter               *txindex.ReadFilter
 
 	totalTxCount int
+	txCountErr               error
 
 	currentPage            int
 	txPerPage              int
@@ -37,13 +38,37 @@ type HistoryHandler struct {
 func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
-
-	handler.filterSelectorWidget = widgets.FilterSelectorWidget(wallet)
 	handler.currentPage = 1
 	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
 	handler.transactions = nil
 	handler.fetchHistoryError = nil
 	handler.isFetchingTransactions = false
+
+	handler.filterSelectorWidget, handler.txCountErr = widgets.FilterSelectorWidget(wallet, nil)
+
+	// fetch initial table data
+	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	if handler.fetchHistoryError == nil {
+		// only fetch txs if there was no error getting tx count.
+		go handler.fetchTransactions(nil)
+	}
+
+	// fetch filtered data
+	handler.filterSelectorWidget, handler.txCountErr = widgets.FilterSelectorWidget(wallet, func(int){
+		totalTxCount, filter, selectedFilter, err := handler.filterSelectorWidget.GetSelectedFilter()
+		handler.totalTxCount = totalTxCount
+		if err != nil {
+			handler.fetchHistoryError = err
+			return
+		}
+
+		if selectedFilter != handler.selectedFilter {
+			handler.selectedFilter = selectedFilter
+			handler.filter = filter
+			handler.transactions = nil
+			go handler.fetchTransactions(filter)
+		}
+	})
 
 	handler.clearTxDetails()
 
@@ -80,20 +105,8 @@ func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
 		handler.filterSelectorWidget.Render(contentWindow)
 
-		totalTxCount, filter, selectedFilter, err := handler.filterSelectorWidget.GetSelectedFilter()
-		handler.totalTxCount = totalTxCount
-
-		if err != nil {
-			contentWindow.DisplayErrorMessage("Error loading history", err)
-			return
-		}
-
-		if selectedFilter != handler.selectedFilter {
-			handler.selectedFilter = selectedFilter
-			handler.filter = filter
-			handler.transactions = nil
-			go handler.fetchTransactions(filter)
-			window.Master().Changed()
+		if handler.txCountErr != nil {
+			contentWindow.DisplayErrorMessage("Error loading history", handler.fetchHistoryError)
 		}
 
 		if len(handler.transactions) == 0 {
