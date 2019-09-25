@@ -77,7 +77,7 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 	filterSelector.makeDropDown(window)
 }
 
-func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFilter, string, error) {
+func (filterSelector *FilterSelector) GetSelectedFilter() (string, error) {
 	if filterSelector.selectedFilterIndex < len(filterSelector.transactionFilter) {
 		selectedFilterAndCount := filterSelector.transactionFilter[filterSelector.selectedFilterIndex]
 
@@ -85,21 +85,20 @@ func (filterSelector *FilterSelector) GetSelectedFilter() (int, *txindex.ReadFil
 		filterSelector.selectedFilter = selectedFilterCount[0]
 
 		if filterSelector.selectedFilter == "All" {
-			return filterSelector.totalTxCount, nil, "All", nil
+			return "All", nil
 		}
 
-		txFilter := txindex.Filter()
-		txFilter = walletcore.BuildTransactionFilter(filterSelector.selectedFilter)
+		txFilter := walletcore.BuildTransactionFilter(filterSelector.selectedFilter)
 
 		filterSelector.totalTxCount, filterSelector.txCountErr = filterSelector.wallet.TransactionCount(txFilter)
 		if filterSelector.txCountErr != nil {
-			return filterSelector.totalTxCount, nil, " ", filterSelector.txCountErr
+			return " ", filterSelector.txCountErr
 		}
 
-		return filterSelector.totalTxCount, txFilter, filterSelector.selectedFilter, nil
+		return filterSelector.selectedFilter, nil
 	}
 
-	return filterSelector.totalTxCount, nil, "All", nil
+	return "All", nil
 }
 
 // makeDropDown is adapted from nucular's Window.ComboSimple

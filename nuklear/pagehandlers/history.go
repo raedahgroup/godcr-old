@@ -17,12 +17,10 @@ type HistoryHandler struct {
 	refreshWindowDisplay 	func()
 
 	filterSelectorWidget 	*widgets.FilterSelector
+	filterSelectorErr       error
 	currentFilterText    	string
-	selectedTxFilter      	*txindex.ReadFilter
 
 	totalTxCount 			int
-	filterSelectorErr       error
-
 	currentPage            	int
 	txPerPage              	int
 	transactions           	[]*walletcore.Transaction
@@ -53,19 +51,17 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 		go handler.fetchTransactions(nil)
 	}
 
-	// fetch filtered data
+	// sets up the filter widget
 	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func(){
-		_, selectedTxFilter, currentFilterText, err := handler.filterSelectorWidget.GetSelectedFilter()
+		currentFilterText, err := handler.filterSelectorWidget.GetSelectedFilter()
 		if err != nil {
-			handler.filterSelectorErr = err
+			handler.fetchHistoryError = err
 			return
 		}
-
 		if currentFilterText != handler.currentFilterText {
 			handler.currentFilterText = currentFilterText
-			handler.selectedTxFilter = selectedTxFilter
 			handler.transactions = nil
-			go handler.fetchTransactions(selectedTxFilter)
+			go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
 		}
 
 		refreshWindowDisplay()
@@ -101,7 +97,9 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		handler.filterSelectorWidget.Render(contentWindow)
+		if handler.fetchHistoryError == nil {
+			handler.filterSelectorWidget.Render(contentWindow)
+		}
 
 		if handler.filterSelectorErr != nil {
 			contentWindow.DisplayErrorMessage("Error with filter selector", handler.filterSelectorErr)
@@ -191,7 +189,7 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 	nextPageTxOffset := (nextPage - 1) * handler.txPerPage
 	if nextPageTxOffset >= len(handler.transactions) {
 		// we've not loaded txs for this page
-		go handler.fetchTransactions(handler.selectedTxFilter)
+		go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
 	}
 
 	handler.refreshWindowDisplay()
