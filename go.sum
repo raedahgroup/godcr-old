@@ -281,7 +281,6 @@ github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190904121310-90259892e503 h1:XEV7
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190904121310-90259892e503/go.mod h1:szxgNhCQ/GRyFpmkfYi3T3ZkXPx9Hm9j0EnjaBfJK/o=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77 h1:cGSRi6zwgpXGmCYCAkEDgX6XdO4Y4MwdFa7LCKDzQ/8=
 github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190911210329-068758c38d77/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
-github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190917220221-47d626dfbe08/go.mod h1:6AGgglq9BB0twJnZnHvfH8hIQrbw6yBJSPp9QI+hBk0=
 github.com/rivo/tview v0.0.0-20190113120821-e5e361b9d790/go.mod h1:J4W+hErFfITUbyFAEXizpmkuxX7ZN56dopxHB4XQhMw=
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0 h1:RR9dF3JtopPvtkroDZuVD7qquD0bnHlKSqaQhgwt8yk=

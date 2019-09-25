@@ -25,8 +25,6 @@ type ReceiveHandler struct {
 	accountSelectorWidget *widgets.AccountSelector
 	generateAddressError  error
 	generatedAddress      string
-	accounts              []*walletcore.Account
-	accountNumber         uint32
 	refreshWindowDisplay func()
 }
 
@@ -39,7 +37,7 @@ func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	// first setup account selector widget
 	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, func() {
 		handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
-		refreshWindowDisplay()
+		handler.refreshWindowDisplay()
 	})
 
 	// generate address for first account in wallet
@@ -56,7 +54,7 @@ func (handler *ReceiveHandler) Render(window *nucular.Window) {
 		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a"), 120)
 		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a", widgets.LeftCenterAlign, styles.GrayColor))
 		contentWindow.AddLinkLabelsToCurrentRow(widgets.NewLinkLabelCellCell("new address.", func() {
-			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountNumber)
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
 			handler.refreshWindowDisplay()
 		}))
 

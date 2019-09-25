@@ -158,3 +158,29 @@ func (window *Window) SingleLineLabelHeight() int {
 	}
 	return singleLineHeight
 }
+
+type LinkLabelCell struct {
+	text        string
+	selected    *bool
+	clickFunc   func()
+}
+
+func NewLinkLabelCellCell(text string, clickFunc func()) *LinkLabelCell {
+	selected := false
+
+	return &LinkLabelCell{
+		text:        text,
+		selected:    &selected,
+		clickFunc:   clickFunc,
+	}
+}
+
+func (link *LinkLabelCell) Render(window *Window) {
+	if window.SelectableLabel(link.text, "LC", link.selected) {
+		link.clickFunc()
+	}
+}
+
+func (link *LinkLabelCell) MinWidth(window *Window) int {
+	return window.LabelWidth(link.text)
+}
