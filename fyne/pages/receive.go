@@ -5,6 +5,6 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-func receivePageContent() fyne.CanvasObject {
+func ReceivePageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("Receive", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }

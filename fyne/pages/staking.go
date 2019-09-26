@@ -5,6 +5,6 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-func stakingPageContent() fyne.CanvasObject {
+func StakingPageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("Staking", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }

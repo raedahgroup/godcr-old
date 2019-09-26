@@ -5,6 +5,6 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-func sendPageContent() fyne.CanvasObject {
+func SendPageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("Send", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }
