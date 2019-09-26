@@ -8,5 +8,3 @@ require (
 )
 
 replace github.com/raedahgroup/godcr/terminal => ../../terminal
-
-replace github.com/raedahgroup/dcrlibwallet => ../../../dcrlibwallet

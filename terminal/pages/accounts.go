@@ -149,8 +149,8 @@ func displayWalletAcccounts(accounts []*dcrlibwallet.Account, accountsTable *tvi
 		row := accountsTable.GetRowCount()
 
 		accountsTable.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf("%-5s", account.Name)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
-		accountsTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintf("%-5s", account.Balance.Total)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
-		accountsTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("%5s", account.Balance.Spendable)).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
+		accountsTable.SetCell(row, 1, tview.NewTableCell(fmt.Sprintf("%-5s", dcrutil.Amount(account.Balance.Total))).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
+		accountsTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("%5s", dcrutil.Amount(account.Balance.Spendable))).SetAlign(tview.AlignLeft).SetMaxWidth(1).SetExpansion(1))
 	}
 }
 

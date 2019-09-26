@@ -54,7 +54,7 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 		return
 	}
 
-	var pubPass []byte = nil // todo is this initial value setting necessary?
+	var pubPass []byte
 	if tui.dcrlw.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey) {
 		// prompt user for public passphrase and assign to `pubPass`
 	}
@@ -65,7 +65,7 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 		return
 	}
 
-	err = tui.dcrlw.SpvSync("") // todo dcrlibwallet should ideally read this parameter from config
+	err = tui.dcrlw.SpvSync("")
 	if err != nil {
 		tui.log.Errorf("Spv sync attempt failed: %v", err)
 		return
@@ -81,46 +81,59 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 	// turn off all logging at this point
 	dcrlibwallet.SetLogLevels("off")
 
-	if err = tui.app.Run(); err != nil {
-		tui.log.Errorf("App exited due to error: %v", err)
+	err = tui.app.Run()
+
+	// app has exited, revert to using default log level
+	userConfiguredLogLevel := tui.dcrlw.ReadStringConfigValueForKey(dcrlibwallet.LogLevelConfigKey)
+	if userConfiguredLogLevel == "" {
+		userConfiguredLogLevel = "info"
 	}
+	dcrlibwallet.SetLogLevels(userConfiguredLogLevel)
+
+	if err != nil {
+		tui.log.Errorf("App exited due to error: %v\nShutting down wallet...", err)
+	} else {
+		tui.log.Infof("App exited. Shutting down wallet...")
+	}
+
+	tui.dcrlw.Shutdown()
 }
 
 func (tui *terminalUI) prepareMainWindow(appDisplayName string) {
 	/*
-		todo correct this drawing
-		| Godcr    |  |       <title>       |  |    |
-		|          |  |                     |  |    |
-		| nav menu |  | <main page content> |  |    |
-		| nav menu |  | <main page content> |  |    |
-		| nav menu |  | <main page content> |  |    |
-		| nav menu |  | <main page content> |  |    |
-		|          |  |       <footer>      |  |    |
+		------------------------------------
+		|          GoDCR {network}         | -> row 0
+		------------------------------------
+		| nav menu |  <main page content>  | -> row 1
+		           -------------------------
+		| nav menu |  <current page hint>  | -> row 2
+		------------------------------------
+		| ^^ col 0 |       ^^ col 1        |
 	*/
 	tui.rootGridLayout = tview.NewGrid()
-	tui.rootGridLayout.SetRows(3, 1, 0, 1, 2)  // nav menu, space, main content (max width), space, space(?)
-	tui.rootGridLayout.SetColumns(20, 2, 0, 2) // title, space, main content (max height), space
+	tui.rootGridLayout.SetRows(3, 0, 2)
+	tui.rootGridLayout.SetColumns(20, 0)
 	tui.rootGridLayout.SetBackgroundColor(tcell.ColorBlack)
 
-	// row 0, col 0, span 1 row and all (4) columns
+	// app name -> row 0 (first row), col 0 to col 1 (span 2 columns)
 	headerText := fmt.Sprintf("\n %s %s\n", appDisplayName, tui.dcrlw.NetType())
-	header := primitives.NewCenterAlignedTextView(headerText).SetBackgroundColor(helpers.DecredBlueColor)
-	tui.rootGridLayout.AddItem(header, 0, 0, 1, 4, 0, 0, false)
+	header := primitives.NewCenterAlignedTextView(headerText) /*.SetBackgroundColor(helpers.DecredBlueColor)*/
+	tui.rootGridLayout.AddItem(header, 0, 0, 1, 2, 0, 0, false)
 
-	// row 1, col 0, span 4 rows and 1 column
+	// nav menu -> row 1 to row 2 (span 2 rows), col 0 (first column)
 	tui.prepareNavigationMenu()
-	tui.rootGridLayout.AddItem(tui.navMenu, 1, 0, 4, 1, 0, 0, true)
+	tui.rootGridLayout.AddItem(tui.navMenu, 1, 0, 3, 1, 0, 0, true)
 
-	// row 1, col 1, span 3 columns and 3 rows HUH???
+	// row 1 (middle row), col 1 (second column)
 	tui.pageContentHolder = tview.NewFlex().SetDirection(tview.FlexRow)
 	tui.pageContentHolder.SetBorderColor(helpers.DecredLightBlueColor)
 	tui.pageContentHolder.SetBorderPadding(0, 0, 1, 1)
-	tui.rootGridLayout.AddItem(tui.pageContentHolder, 1, 1, 3, 3, 0, 0, true)
+	tui.rootGridLayout.AddItem(tui.pageContentHolder, 1, 1, 3, 1, 0, 0, true)
 
-	// row 4, col 1, space 3 columns
+	// row 2 (bottom row), col 1 (second column)
 	tui.hintTextView = primitives.WordWrappedTextView("")
 	tui.hintTextView.SetTextColor(helpers.HintTextColor)
-	tui.rootGridLayout.AddItem(tui.hintTextView, 4, 1, 1, 3, 0, 0, false)
+	tui.rootGridLayout.AddItem(tui.hintTextView, 2, 1, 1, 1, 0, 0, false)
 }
 
 func (tui *terminalUI) prepareNavigationMenu() {
@@ -128,19 +141,21 @@ func (tui *terminalUI) prepareNavigationMenu() {
 	tui.navMenu.SetBorderColor(helpers.DecredLightBlueColor)
 
 	for _, page := range pages.All() {
-		tui.navMenu.AddItem(page.Name, "", page.Shortcut, func() {
-			tui.clearPageContent()
-			tui.removeNavMenuFocus()
-			tui.setPageContent(page.Content())
-		})
+		tui.navMenu.AddItem(page.Name, "", page.Shortcut, tui.makePageContentLoaderFn(page.Content))
 	}
 
-	// todo escape button listener, should exit app instead
-	tui.navMenu.SetDoneFunc(func() {
+	// escape button from main menu should display exit page prompt
+	tui.navMenu.SetDoneFunc(tui.makePageContentLoaderFn(pages.ExitPage))
+}
+
+// makePageContentLoaderFn returns a func that, when triggered,
+// creates the display for a page and renders it.
+func (tui *terminalUI) makePageContentLoaderFn(pageContentFn func() tview.Primitive) func() {
+	return func() {
 		tui.clearPageContent()
-		tui.focusNavMenu()
-		tui.app.Draw()
-	})
+		tui.removeNavMenuFocus()
+		tui.setPageContent(pageContentFn())
+	}
 }
 
 func (tui *terminalUI) focusNavMenu() {
@@ -162,6 +177,7 @@ func (tui *terminalUI) clearPageContent() {
 	tui.hintTextView.SetText("")
 	tui.pageContentHolder.RemoveItem(tui.activePageContent)
 	tui.pageContentHolder.SetBorder(false)
+	tui.focusNavMenu()
 }
 
 func (tui *terminalUI) setPageContent(pageContent tview.Primitive) {

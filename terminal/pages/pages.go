@@ -33,6 +33,14 @@ func Setup(app *tview.Application, log slog.Logger, dcrlw *dcrlibwallet.LibWalle
 
 func All() []*page {
 	return []*page{
+		{Name: "Overview", Shortcut: 'o', Content: overviewPage},
+		{Name: "History", Shortcut: 'h', Content: historyPage},
+		{Name: "Send", Shortcut: 's', Content: sendPage},
+		{Name: "Receive", Shortcut: 'r', Content: receivePage},
+		{Name: "Staking", Shortcut: 'k', Content: stakingPage},
 		{Name: "Accounts", Shortcut: 'a', Content: accountsPage},
+		{Name: "Security", Shortcut: 'u', Content: securityPage},
+		{Name: "Settings", Shortcut: 't', Content: settingsPage},
+		{Name: "Exit", Shortcut: 'e', Content: ExitPage},
 	}
 }
