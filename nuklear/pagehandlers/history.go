@@ -55,16 +55,15 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func(){
 		currentFilterText, err := handler.filterSelectorWidget.GetSelectedFilter()
 		if err != nil {
-			handler.fetchHistoryError = err
+			handler.filterSelectorErr = err
 			return
 		}
+
 		if currentFilterText != handler.currentFilterText {
 			handler.currentFilterText = currentFilterText
 			handler.transactions = nil
 			go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
 		}
-
-		refreshWindowDisplay()
 	})
 
 	return true
@@ -97,7 +96,7 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		if handler.fetchHistoryError == nil {
+		if handler.filterSelectorWidget != nil {
 			handler.filterSelectorWidget.Render(contentWindow)
 		}
 
@@ -106,7 +105,7 @@ func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 		}
 
 		if len(handler.transactions) == 0 {
-			contentWindow.AddWrappedLabel("No Transactions to display yet", widgets.CenterAlign)
+			contentWindow.AddWrappedLabel("No transactions to display yet", widgets.CenterAlign)
 		} else {
 			handler.displayTransactions(contentWindow)
 		}

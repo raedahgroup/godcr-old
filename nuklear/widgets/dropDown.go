@@ -10,18 +10,17 @@ import (
 )
 
 type FilterSelector struct {
-	wallet walletcore.Wallet
-	filters                  []string
-	transactionFilter []string
-	txCountErr               error
-	selectedFilterIndex      int
-	totalTxCount             int
-	selectedFilter           string
-	lastfilter               string
-	changed                  bool
-	selectedFilterAndCount   string
-	txFilter                 *txindex.ReadFilter
-	selectionChanged         func()
+	wallet 					walletcore.Wallet
+	transactionFilters 		[]string
+	txCountErr              error
+	selectedFilterIndex     int
+	totalTxCount            int
+	selectedFilter          string
+	lastfilter              string
+	changed                 bool
+	selectedFilterAndCount  string
+	selectedTxFilter        *txindex.ReadFilter
+	selectionChanged        func()
 }
 
 const (
@@ -35,23 +34,23 @@ func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func()) (fi
 	}
 
 	filterSelector.wallet = wallet
-	filterSelector.filters = walletcore.TransactionFilters
-	filterSelector.transactionFilter = make([]string, len(filterSelector.filters))
 
-	for index, filter := range filterSelector.filters {
+	for _, filter := range walletcore.TransactionFilters {
 		if filter == "All" {
-			txCount, txCountErr := wallet.TransactionCount(nil)
-			filterSelector.totalTxCount = txCount
-			filterSelector.txCountErr = txCountErr
+			filterSelector.selectedTxFilter = nil
+		} else {
+			filterSelector.selectedTxFilter = walletcore.BuildTransactionFilter(filter)
 		}
 
-		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
-		filterSelector.txCountErr = txCountErr
-		if filterSelector.txCountErr != nil {
-			return nil, filterSelector.txCountErr
+		txCount, txCountErr := wallet.TransactionCount(filterSelector.selectedTxFilter)
+		if txCountErr != nil {
+			return nil, txCountErr
+		}
+		if txCount == 0 {
+			continue
 		}
 
-		filterSelector.transactionFilter[index] = fmt.Sprintf("%s (%d)", filter, txCount)
+		filterSelector.transactionFilters = append(filterSelector.transactionFilters, fmt.Sprintf("%s (%d)", filter, txCount))
 	}
 
 	return filterSelector, nil
@@ -61,9 +60,10 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 	filterSelectorWidth := defaultFilterSelectorWidth
 
 	// row with fixed column widths to hold account selection prompt, the account widget, and any other widgets that may be added later
-	rowColumns := make([]int, 2)
-	rowColumns[0] = window.LabelWidth("filter")
-	rowColumns[1] = filterSelectorWidth
+	rowColumns := []int {
+		window.LabelWidth("filter"),
+		filterSelectorWidth,
+	}
 	rowColumns = append(rowColumns, addColumns...)
 	window.Row(filterSelectorHeight).Static(rowColumns...)
 
@@ -78,8 +78,8 @@ func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) 
 }
 
 func (filterSelector *FilterSelector) GetSelectedFilter() (string, error) {
-	if filterSelector.selectedFilterIndex < len(filterSelector.transactionFilter) {
-		selectedFilterAndCount := filterSelector.transactionFilter[filterSelector.selectedFilterIndex]
+	if filterSelector.selectedFilterIndex < len(filterSelector.transactionFilters) {
+		selectedFilterAndCount := filterSelector.transactionFilters[filterSelector.selectedFilterIndex]
 
 		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
 		filterSelector.selectedFilter = selectedFilterCount[0]
@@ -104,11 +104,11 @@ func (filterSelector *FilterSelector) GetSelectedFilter() (string, error) {
 // makeDropDown is adapted from nucular's Window.ComboSimple
 // to allow triggering a callback when dropdown selection changes.
 func (filterSelector *FilterSelector) makeDropDown(window *Window) {
-	if len(filterSelector.transactionFilter) == 0 {
+	if len(filterSelector.transactionFilters) == 0 {
 		return
 	}
 
-	items := filterSelector.transactionFilter
+	items := filterSelector.transactionFilters
 	itemHeight := int(float64(filterSelectorHeight) * window.Master().Style().Scaling)
 	itemPadding := window.Master().Style().Combo.ButtonPadding.Y
 	maxHeight := (len(items)+1)*itemHeight + itemPadding*3
