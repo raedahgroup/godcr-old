@@ -1,6 +1,9 @@
 package helpers
 
 import (
+	"fmt"
+
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 )
@@ -17,7 +20,7 @@ func AddAccountSelectionWidgetToForm(form *primitives.Form, data *AccountSelecti
 		if data.ShowOnlyAccountName {
 			return account.Name
 		} else {
-			return account.String()
+			return fmt.Sprintf("%s [%s]", account.Name, dcrutil.Amount(account.Balance.Spendable).String())
 		}
 	}
 

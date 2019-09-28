@@ -8,7 +8,6 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
@@ -233,7 +232,7 @@ func fetchAndDisplayTransactions(txOffset int) {
 	for i, tx := range txns {
 		inputsAndOutputsAmount[i] = tx.Amount
 	}
-	maxDecimalPlacesForTxAmounts := utils.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// updating the history table from a goroutine, use tviewApp.QueueUpdateDraw
 	commonPageData.app.QueueUpdateDraw(func() {
@@ -252,7 +251,7 @@ func fetchAndDisplayTransactions(txOffset int) {
 				SetExpansion(1)
 			historyPageData.historyTable.SetCell(nextRowIndex, 1, directionCell)
 
-			formattedAmount := utils.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
+			formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
 			amountCell := tview.NewTableCell(fmt.Sprintf("%15s", formattedAmount)).
 				SetAlign(tview.AlignCenter).
 				SetMaxWidth(3).
@@ -331,11 +330,11 @@ func displayTxDetails(tx *dcrlibwallet.Transaction, transactionDetailsTable *tvi
 	for _, txOut := range tx.Outputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
 	}
-	maxDecimalPlacesForInputsAndOutputsAmounts := utils.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForInputsAndOutputsAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return utils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+		return helpers.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")

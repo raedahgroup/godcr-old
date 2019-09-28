@@ -6,7 +6,6 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/dcrlibwallet/utils"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
@@ -123,7 +122,7 @@ func renderRecentActivity(overviewPage *tview.Flex) {
 			break
 		}
 	}
-	maxDecimalPlacesForTxAmounts := utils.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	for _, tx := range txns {
 		nextRowIndex := historyTable.GetRowCount()
@@ -140,7 +139,7 @@ func renderRecentActivity(overviewPage *tview.Flex) {
 			SetExpansion(1)
 		historyTable.SetCell(nextRowIndex, 1, directionCell)
 
-		formattedAmount := utils.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
+		formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
 		amountCell := tview.NewTableCell(fmt.Sprintf("%15s", formattedAmount)).
 			SetAlign(tview.AlignCenter).
 			SetMaxWidth(3).
