@@ -76,7 +76,9 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 
 	// app is ready, pass necessary variables to pages pkg and display first page
 	pages.Setup(tui.app, tui.log, tui.dcrlw, tui.hintTextView, tui.clearPageContent)
-	tui.navMenu.SetCurrentItem(0)
+	firstPageContent := pages.All()[0].Content()
+	tui.removeNavMenuFocus()
+	tui.setPageContent(firstPageContent)
 
 	// turn off all logging at this point
 	dcrlibwallet.SetLogLevels("off")
