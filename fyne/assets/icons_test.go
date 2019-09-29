@@ -8,7 +8,7 @@ import (
 func TestGetIcons(t *testing.T) {
 	t.Run("given icons that exist in the assets directory, maps each one to a fyne static resource", func(t *testing.T) {
 		iconNames := []string{
-			AccountsIcon, HistoryIcon, OverviewIcon, ReceiveIcon, SendIcon, StakeIcon, DecredLogo, Reveal, Conceal, Checkmark, CreateNewWallet, RestoreWallet, Wordlist}
+			AccountsIcon, HistoryIcon, OverviewIcon, ReceiveIcon, SendIcon, StakingIcon}
 		icons, err := GetIcons(iconNames...)
 		if err != nil {
 			t.Errorf("getIcons returned an error for icons in the assets directory: %v", err)

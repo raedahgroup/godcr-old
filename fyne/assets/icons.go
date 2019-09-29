@@ -7,22 +7,23 @@ import (
 )
 
 const (
-	AccountsIcon    = "account.png"
-	HistoryIcon     = "history.png"
-	OverviewIcon    = "overview.png"
-	ReceiveIcon     = "receive.png"
-	SendIcon        = "send.png"
-	StakeIcon       = "stake.png"
-	DecredLogo      = "decred.png"
-	Reveal          = "reveal.png"
-	Conceal         = "conceal.png"
-	Checkmark       = "checkmark.png"
-	CreateNewWallet = "createNewWallet.png"
-	RestoreWallet   = "restoreWallet.png"
-	Wordlist        = "wordlist.txt"
+	AccountsIcon = "account.png"
+	HistoryIcon  = "history.png"
+	OverviewIcon = "overview.png"
+	ReceiveIcon  = "receive.png"
+	SendIcon     = "send.png"
+	StakingIcon  = "staking.png"
+	DecredLogo   = "decred.png"
+
+	Reveal    = "reveal.png"
+	Conceal   = "conceal.png"
+	Checkmark = "checkmark.png"
+	Restore   = "restore.png"
+	Add       = "add.png"
+	Loader    = "loader.png"
 )
 
-var imageBox = packr.New("icons", "../../fyne/assets")
+var imageBox = packr.New("icons", "../assets")
 
 // GetIcons returns a map from the names of the icons passed as arguments to
 // the icon resources that correspond to them. If an error is encountered

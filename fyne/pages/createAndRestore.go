@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"log"
-	"math"
 	"strings"
 
 	"fyne.io/fyne"
@@ -39,25 +38,42 @@ func ShowCreateAndRestoreWalletPage(dcrlw *dcrlibwallet.LibWallet, window fyne.W
 
 	app.Window.SetContent(app.createAndRestoreWalletPage())
 	app.Window.CenterOnScreen()
-	app.Window.Resize(fyne.NewSize(360, 616))
+	app.Window.Resize(fyne.NewSize(370, 616))
 	app.Window.SetFixedSize(true)
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
 }
 
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
-	icons, err := assets.GetIcons(assets.DecredLogo, assets.CreateNewWallet, assets.RestoreWallet)
+	icons, err := assets.GetIcons(assets.DecredLogo, assets.Restore, assets.Add)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
 
-	createWallet := widgets.NewClickableIcon(icons[assets.CreateNewWallet], nil, func() {
-		app.createSpendingPasswordPopup("")
-	})
+	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
+	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
 
-	restoreWallet := widgets.NewClickableIcon(icons[assets.RestoreWallet], nil, func() {
-		app.Window.SetContent(app.restoreWalletPage())
-	})
+	greenBar.SetMinSize(fyne.NewSize(312, 56))
+	blueBar.SetMinSize(fyne.NewSize(312, 56))
+
+	restoreLabel := canvas.NewText("Restore an existing wallet", color.White)
+	createLabel := canvas.NewText("Create a new wallet", color.White)
+
+	createWallet := widgets.NewClickableBox(widget.NewVBox(
+		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
+			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Add]), widgets.NewHSpacer(16), createLabel))),
+		func() {
+			app.createSpendingPasswordPopup("")
+		})
+
+	restoreWallet := widgets.NewClickableBox(widget.NewVBox(
+		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), greenBar,
+			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Restore]), widgets.NewHSpacer(16), restoreLabel))),
+		func() {
+			app.Window.SetContent(app.restoreWalletPage())
+		})
 
 	image := canvas.NewImageFromResource(icons[assets.DecredLogo])
 	image.FillMode = canvas.ImageFillOriginal
@@ -101,13 +117,13 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		app.Window.Show()
 	})
 
-	icons, err := assets.GetIcons(assets.Wordlist, assets.Checkmark)
+	icons, err := assets.GetIcons(assets.Checkmark)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
 
 	var textbox = make([]*widget.Entry, 33)
-	wordlist := strings.Split(string(icons[assets.Wordlist].StaticContent), "\n")
+	wordlist := dcrlibwallet.PGPWordList()
 	horizontalTextBoxes := widget.NewHBox()
 
 	errorLabel := canvas.NewText("Failed to restore. Please verify all words and try again.", color.RGBA{255, 0, 0, 225})
@@ -139,7 +155,8 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		}
 
 		popup = widget.NewPopUpMenu(fyne.NewMenu("", menuItem...), app.Window.Canvas())
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(textbox[textboxIndex]).Add(fyne.NewPos(0, textbox[textboxIndex].Size().Height)))
+		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(textbox[textboxIndex]).Add(
+			fyne.NewPos(0, textbox[textboxIndex].Size().Height)))
 	}
 
 	var restoreButton = widget.NewButton("Restore", func() {
@@ -164,8 +181,10 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 					widgets.NewVSpacer(16),
 					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
 					widgets.NewVSpacer(172),
-					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }), layout.NewSpacer()),
-					widgets.NewVSpacer(16)}
+					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() {
+						app.createSpendingPasswordPopup(seed)
+					}),
+						layout.NewSpacer()), widgets.NewVSpacer(16)}
 
 				widget.Refresh(box)
 			}
@@ -206,7 +225,9 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		horizontalTextBoxes.Append(vertical)
 	}
 
-	textBoxContainer := widget.NewHBox(layout.NewSpacer(), horizontalTextBoxes.Children[0], layout.NewSpacer(), horizontalTextBoxes.Children[1], layout.NewSpacer(), horizontalTextBoxes.Children[2], layout.NewSpacer())
+	textBoxContainer := widget.NewHBox(layout.NewSpacer(), horizontalTextBoxes.Children[0], layout.NewSpacer(),
+		horizontalTextBoxes.Children[1], layout.NewSpacer(), horizontalTextBoxes.Children[2], layout.NewSpacer())
+
 	buttonContainer := widget.NewHBox(layout.NewSpacer(), restoreButton, layout.NewSpacer())
 
 	return widget.NewVBox(widgets.NewVSpacer(10), errorLabel, textBoxContainer, widgets.NewVSpacer(10), buttonContainer)
@@ -217,14 +238,14 @@ func (app *AppInterface) createSpendingPasswordPopup(seed string) {
 	popupContent := widget.NewVBox()
 
 	popup = widget.NewModalPopUp(widget.NewVBox(
-		widget.NewLabelWithStyle("Create a Spending Password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), popupContent),
+		widget.NewLabelWithStyle("Create a spending password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), popupContent),
 		app.Window.Canvas())
 
-	popupContent.Children = []fyne.CanvasObject{app.passwordTab(popup, seed)}
+	popupContent.Children = []fyne.CanvasObject{app.passwordPopup(popup, seed)}
 	widget.Refresh(popupContent)
 }
 
-func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.CanvasObject {
+func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.CanvasObject {
 	displayError := func(err error) {
 		log.Println("could not generate seed", err.Error())
 		newWindow := fyne.CurrentApp().NewWindow(app.AppDisplayName)
@@ -237,7 +258,12 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 		newWindow.SetFixedSize(true)
 	}
 
-	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 225})
+	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal, assets.Loader)
+	if err != nil {
+		return app.DisplayLaunchErrorAndExit(err.Error())
+	}
+
+	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 255})
 	errorLabel.TextSize = 10
 	errorLabel.Hide()
 
@@ -263,12 +289,14 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 				errorLabel.Show()
 			} else {
 				errorLabel.Hide()
+				createButton.Enable()
 			}
 		}
 
 		passwordLength.Text = fmt.Sprintf("%d", len(val))
 		canvas.Refresh(passwordLength)
-		strength := (shannonEntropy(val) / 4.0)
+
+		strength := (dcrlibwallet.ShannonEntropy(val) / 4.0)
 		passwordStrength.SetValue(strength)
 	}
 
@@ -283,11 +311,30 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 		}
 	}
 
+	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
+	cancelLabel.TextStyle.Bold = true
+	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { popup.Hide() })
+
 	createButton = widget.NewButton("Create", func() {
+		createButton.SetText("")
+		createButton.SetIcon(icons[assets.Loader])
+		createButton.Disable()
+
+		// disable cancel OnTapped function
+		cancelButton.OnTapped = nil
+		cancelLabel.Color = color.RGBA{196, 203, 210, 255}
+		canvas.Refresh(cancelLabel)
+
+		enableCancelButton := func() {
+			cancelButton.OnTapped = nil
+			cancelLabel.Color = color.RGBA{41, 112, 255, 255}
+		}
+
 		var err error
 		if seed == "" {
 			seed, err = dcrlibwallet.GenerateSeed()
 			if err != nil {
+				enableCancelButton()
 				displayError(err)
 				return
 			}
@@ -296,6 +343,7 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 		err = app.Dcrlw.CreateWallet(password.Text, seed)
 
 		if err != nil {
+			enableCancelButton()
 			displayError(err)
 			log.Println("could not create wallet", err.Error())
 			return
@@ -314,13 +362,8 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 
 	createButton.Disable()
 
-	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal)
-	if err != nil {
-		return app.DisplayLaunchErrorAndExit(err.Error())
-	}
-
-	var passwordConceal *widgets.ClickableIcon
-	passwordConceal = widgets.NewClickableIcon(icons[assets.Reveal], nil, func() {
+	var passwordConceal *widgets.ImageButton
+	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
 		if password.Password {
 			passwordConceal.SetIcon(icons[assets.Conceal])
 			password.Password = false
@@ -332,8 +375,8 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 		password.SetText(password.Text)
 	})
 
-	var confirmPasswordConceal *widgets.ClickableIcon
-	confirmPasswordConceal = widgets.NewClickableIcon(icons[assets.Reveal], nil, func() {
+	var confirmPasswordConceal *widgets.ImageButton
+	confirmPasswordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
 		if confirmPassword.Password {
 			confirmPasswordConceal.SetIcon(icons[assets.Conceal])
 			confirmPassword.Password = false
@@ -345,31 +388,19 @@ func (app *AppInterface) passwordTab(popup *widget.PopUp, seed string) fyne.Canv
 		confirmPassword.SetText(confirmPassword.Text)
 	})
 
-	passwordStrengthLabel := widget.NewLabel("Password Strength")
-
-	return widget.NewVBox(
-		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), password), passwordConceal, layout.NewSpacer()),
-		passwordLength,
-		widget.NewHBox(passwordStrengthLabel, layout.NewSpacer(), passwordStrength),
-		widget.NewHBox(layout.NewSpacer(), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(confirmPassword.MinSize()), confirmPassword), confirmPasswordConceal, layout.NewSpacer()),
+	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(
+		widgets.NewVSpacer(10), widget.NewHBox(layout.NewSpacer(),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(264, password.MinSize().Height)), password),
+			passwordConceal, layout.NewSpacer()),
+		passwordLength, widget.NewHBox(layout.NewSpacer(),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(160, widget.NewLabel("0%").MinSize().Height)), passwordStrength)),
+		widget.NewHBox(layout.NewSpacer(),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(264, confirmPassword.MinSize().Height)), confirmPassword),
+			confirmPasswordConceal, layout.NewSpacer()),
 		confirmPasswordLength,
-		widget.NewHBox(layout.NewSpacer(), widget.NewButton("Cancel", func() { popup.Hide() }), createButton),
-		errorLabel)
-}
-
-func shannonEntropy(data string) (entropy float64) {
-	if data == "" {
-		return 0
-	}
-
-	for i := 0; i < 256; i++ {
-		px := float64(strings.Count(data, string(byte(i)))) / float64(len(data))
-		if px > 0 {
-			entropy += -px * math.Log2(px)
-		}
-	}
-
-	return entropy
+		widget.NewHBox(layout.NewSpacer(), cancelButton, widgets.NewHSpacer(24), createButton),
+		errorLabel,
+		widgets.NewVSpacer(10)), widgets.NewHSpacer(10))
 }
 
 // DisplayLaunchErrorAndExit displays the error message to users.

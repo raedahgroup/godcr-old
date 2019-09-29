@@ -7,7 +7,6 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
-	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
@@ -33,13 +32,13 @@ func (app *fyneApp) displayMainWindow() {
 	app.setupNavigationMenu()
 	app.window.SetContent(app.tabMenu)
 	app.window.CenterOnScreen()
-	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.window.ShowAndRun()
 	app.tearDown()
 }
 
 func (app *fyneApp) setupNavigationMenu() {
-	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon, assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
+		assets.ReceiveIcon, assets.AccountsIcon, assets.StakingIcon)
 	if err != nil {
 		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
@@ -51,7 +50,7 @@ func (app *fyneApp) setupNavigationMenu() {
 		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Staking", icons[assets.StakingIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
