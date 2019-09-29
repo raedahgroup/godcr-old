@@ -13,6 +13,16 @@ type ImageButton struct {
 	OnTapped func() `json:"-"`
 }
 
+func NewImageButton(res fyne.Resource, shadow fyne.Resource, OnTapped func()) *ImageButton {
+	icon := widget.NewIcon(res)
+	var shadowIcon *widget.Icon
+	if shadow != nil {
+		shadowIcon = widget.NewIcon(res)
+	}
+	clickable := &ImageButton{icon, shadowIcon, OnTapped}
+	return clickable
+}
+
 // Tapped is called when users click on the icon
 func (c *ImageButton) Tapped(_ *fyne.PointEvent) {
 	c.OnTapped()
@@ -65,14 +75,4 @@ func (c *ImageButton) SetIcon(res fyne.Resource) {
 func (c *ImageButton) Refresh() {
 	object := fyne.CurrentApp().Driver().CanvasForObject(c)
 	object.Refresh(c)
-}
-
-func NewImageButton(res fyne.Resource, shadow fyne.Resource, OnTapped func()) *ImageButton {
-	icon := widget.NewIcon(res)
-	var shadowIcon *widget.Icon
-	if shadow != nil {
-		shadowIcon = widget.NewIcon(res)
-	}
-	clickable := &ImageButton{icon, shadowIcon, OnTapped}
-	return clickable
 }
