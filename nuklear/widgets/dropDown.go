@@ -4,23 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raedahgroup/dcrlibwallet/txindex"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/aarzilli/nucular/label"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type FilterSelector struct {
-	wallet 					walletcore.Wallet
-	transactionFilters 		[]string
-	txCountErr              error
-	selectedFilterIndex     int
-	totalTxCount            int
-	selectedFilter          string
-	lastfilter              string
-	changed                 bool
-	selectedFilterAndCount  string
-	selectedTxFilter        *txindex.ReadFilter
-	selectionChanged        func()
+	wallet                 walletcore.Wallet
+	filterSelectionOptions []string
+	txCountForAllFilters   map[string]int
+	selectedFilterIndex    int
+	selectionChanged       func()
 }
 
 const (
@@ -28,87 +21,49 @@ const (
 	filterSelectorHeight       = 25
 )
 
-func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func()) (filterSelector *FilterSelector, error error) {
-	filterSelector = &FilterSelector{
-		selectionChanged: selectionChanged,
+func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func()) (*FilterSelector, error) {
+	filterSelector := &FilterSelector{
+		selectionChanged:     selectionChanged,
+		wallet:               wallet,
+		txCountForAllFilters: make(map[string]int),
 	}
 
-	filterSelector.wallet = wallet
-
 	for _, filter := range walletcore.TransactionFilters {
-		if filter == "All" {
-			filterSelector.selectedTxFilter = nil
-		} else {
-			filterSelector.selectedTxFilter = walletcore.BuildTransactionFilter(filter)
-		}
-
-		txCount, txCountErr := wallet.TransactionCount(filterSelector.selectedTxFilter)
+		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
 		if txCountErr != nil {
-			return nil, txCountErr
+			return nil, fmt.Errorf("error counting tx for filter %s: %s", filter, txCountErr.Error())
 		}
-		if txCount == 0 {
-			continue
+		if txCount > 0 {
+			filterWithCount := fmt.Sprintf("%s (%d)", filter, txCount)
+			filterSelector.filterSelectionOptions = append(filterSelector.filterSelectionOptions, filterWithCount)
+			filterSelector.txCountForAllFilters[filter] = txCount
 		}
-
-		filterSelector.transactionFilters = append(filterSelector.transactionFilters, fmt.Sprintf("%s (%d)", filter, txCount))
 	}
 
 	return filterSelector, nil
 }
 
-func (filterSelector *FilterSelector) Render(window *Window, addColumns ...int) {
-	filterSelectorWidth := defaultFilterSelectorWidth
+func (filterSelector *FilterSelector) Render(window *Window) {
+	prompt := "Filter"
 
-	// row with fixed column widths to hold account selection prompt, the account widget, and any other widgets that may be added later
-	rowColumns := []int {
-		window.LabelWidth("filter"),
-		filterSelectorWidth,
-	}
-	rowColumns = append(rowColumns, addColumns...)
-	window.Row(filterSelectorHeight).Static(rowColumns...)
+	// row with fixed column widths to hold filter selection prompt and the actual dropdown widget
+	window.Row(filterSelectorHeight).Static(window.LabelWidth(prompt), defaultFilterSelectorWidth)
 
-	// print account selection prompt / label
+	// print account selection prompt / label to first column
 	window.Label("filter", LeftCenterAlign)
 
-	if filterSelector.txCountErr != nil {
-		window.DisplayErrorMessage("Fetch tx error", filterSelector.txCountErr)
-	}
-
+	// render actual dropdown to second column
 	filterSelector.makeDropDown(window)
-}
-
-func (filterSelector *FilterSelector) GetSelectedFilter() (string, error) {
-	if filterSelector.selectedFilterIndex < len(filterSelector.transactionFilters) {
-		selectedFilterAndCount := filterSelector.transactionFilters[filterSelector.selectedFilterIndex]
-
-		selectedFilterCount := strings.Split(selectedFilterAndCount, " ")
-		filterSelector.selectedFilter = selectedFilterCount[0]
-
-		if filterSelector.selectedFilter == "All" {
-			return "All", nil
-		}
-
-		txFilter := walletcore.BuildTransactionFilter(filterSelector.selectedFilter)
-
-		filterSelector.totalTxCount, filterSelector.txCountErr = filterSelector.wallet.TransactionCount(txFilter)
-		if filterSelector.txCountErr != nil {
-			return " ", filterSelector.txCountErr
-		}
-
-		return filterSelector.selectedFilter, nil
-	}
-
-	return "All", nil
 }
 
 // makeDropDown is adapted from nucular's Window.ComboSimple
 // to allow triggering a callback when dropdown selection changes.
 func (filterSelector *FilterSelector) makeDropDown(window *Window) {
-	if len(filterSelector.transactionFilters) == 0 {
+	if len(filterSelector.filterSelectionOptions) == 0 {
 		return
 	}
 
-	items := filterSelector.transactionFilters
+	items := filterSelector.filterSelectionOptions
 	itemHeight := int(float64(filterSelectorHeight) * window.Master().Style().Scaling)
 	itemPadding := window.Master().Style().Combo.ButtonPadding.Y
 	maxHeight := (len(items)+1)*itemHeight + itemPadding*3
@@ -126,3 +81,9 @@ func (filterSelector *FilterSelector) makeDropDown(window *Window) {
 	}
 }
 
+// GetSelectedFilter returns the name of the selected filter and the tx count for the filter.
+func (filterSelector *FilterSelector) GetSelectedFilter() (string, int) {
+	selectedOption := filterSelector.filterSelectionOptions[filterSelector.selectedFilterIndex]
+	selectedFilterName := strings.Split(selectedOption, " ")[0]
+	return selectedFilterName, filterSelector.txCountForAllFilters[selectedFilterName]
+}

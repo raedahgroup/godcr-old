@@ -5,62 +5,61 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
-	"github.com/raedahgroup/dcrlibwallet/txindex"
 )
 
 type HistoryHandler struct {
-	wallet               	walletcore.Wallet
-	refreshWindowDisplay 	func()
+	wallet               walletcore.Wallet
+	refreshWindowDisplay func()
 
-	filterSelectorWidget 	*widgets.FilterSelector
-	filterSelectorErr       error
-	currentFilterText    	string
+	filterSelectorWidget *widgets.FilterSelector
+	filterSelectorErr    error
+	currentFilterText    string
 
-	totalTxCount 			int
-	currentPage            	int
-	txPerPage              	int
-	transactions           	[]*walletcore.Transaction
-	fetchHistoryError      	error
-	isFetchingTransactions 	bool
+	txCountForCurrentFilter int
+	currentPage             int
+	txPerPage               int
+	transactions            []*walletcore.Transaction
+	fetchHistoryError       error
+	isFetchingTransactions  bool
 
-	selectedTxHash      	string
-	selectedTxDetails   	*walletcore.Transaction
-	isFetchingTxDetails 	bool
-	fetchTxDetailsError 	error
+	selectedTxHash      string
+	selectedTxDetails   *walletcore.Transaction
+	isFetchingTxDetails bool
+	fetchTxDetailsError error
 }
 
 func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
+
 	handler.currentPage = 1
 	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
 	handler.transactions = nil
-	handler.fetchHistoryError = nil
 	handler.isFetchingTransactions = false
 
 	handler.clearTxDetails()
 
 	// fetch initial table data
-	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
-	if handler.fetchHistoryError == nil {
-		// only fetch txs if there was no error getting tx count.
-		go handler.fetchTransactions(nil)
+	handler.currentFilterText = "All"
+	handler.txCountForCurrentFilter, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	if handler.fetchHistoryError != nil {
+		// no need to fetch txs or setup filter widget if there was an error getting total tx count.
+		return true
 	}
 
-	// sets up the filter widget
-	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func(){
-		currentFilterText, err := handler.filterSelectorWidget.GetSelectedFilter()
-		if err != nil {
-			handler.filterSelectorErr = err
-			return
-		}
+	go handler.fetchTransactions(nil)
 
-		if currentFilterText != handler.currentFilterText {
-			handler.currentFilterText = currentFilterText
+	// set up the filter widget
+	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func() {
+		selectedFilterText, txCountForSelectedFilter := handler.filterSelectorWidget.GetSelectedFilter()
+		if selectedFilterText != handler.currentFilterText {
+			handler.currentFilterText = selectedFilterText
+			handler.txCountForCurrentFilter = txCountForSelectedFilter
 			handler.transactions = nil
 			go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
 		}
@@ -168,7 +167,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		}
 
 		// show next button only if there are more txs to be loaded
-		if handler.totalTxCount > maxTxIndexForCurrentPage {
+		if handler.txCountForCurrentFilter > maxTxIndexForCurrentPage {
 			contentWindow.AddButtonToCurrentRow("Next", func() {
 				handler.loadNextPage(contentWindow)
 			})
