@@ -145,7 +145,7 @@ func receivePage() tview.Primitive {
 		generateAdressFunc(formButton)
 
 		body.AddItem(formDropdown, 2, 0, true)
-		commonPageData.hintTextView.SetText("TIP: Select PreferredAccount and hit ENTER to generate Address, \n" +
+		commonPageData.hintTextView.SetText("TIP: Select Preferred Account and hit ENTER to generate Address, \n" +
 			"Move around with TAB, ESC to return to navigation menu")
 
 		formDropdown.GetFormItemBox(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
