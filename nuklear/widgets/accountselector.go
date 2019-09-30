@@ -1,8 +1,8 @@
 package widgets
 
 import (
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/aarzilli/nucular/label"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type AccountSelector struct {
