@@ -31,9 +31,9 @@ var historyPageData struct {
 	historyTable            *tview.Table
 	transactionDetailsTable *tview.Table
 
-	currentTxFilter              int32
-	totalTxCountForCurrentFilter int
-	displayedTxs                 []*dcrlibwallet.Transaction
+	currentTxFilter           int32
+	activeFiltersWithTxCounts map[int32]int
+	displayedTxs              []*dcrlibwallet.Transaction
 }
 
 func historyPage() tview.Primitive {
@@ -54,16 +54,20 @@ func historyPage() tview.Primitive {
 	historyPageData.messageTextView = primitives.WordWrappedTextView("")
 
 	historyPageData.txFilterDropDown = prepareTxFilterDropDown()
-	if historyPageData.txFilterDropDown == nil {
+	if historyPageData.txFilterDropDown != nil {
+		historyPageData.pageContentHolder.AddItem(historyPageData.txFilterDropDown, 2, 0, false)
+	} else {
 		commonPageData.app.SetFocus(historyPageData.pageContentHolder)
 		return historyPageData.pageContentHolder
 	}
 
 	historyPageData.historyTable = prepareHistoryTable()
+	historyPageData.pageContentHolder.AddItem(historyPageData.historyTable, 0, 1, true)
+
 	historyPageData.transactionDetailsTable = prepareTxDetailsTable()
 
 	// fetch tx to display in subroutine so the UI isn't blocked
-	go fetchAndDisplayTransactions(0)
+	go fetchAndDisplayTransactions(0, dcrlibwallet.TxFilterAll)
 
 	commonPageData.hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \n" +
 		"ENTER to view details, ESC to return to navigation menu")
@@ -73,6 +77,7 @@ func historyPage() tview.Primitive {
 }
 
 func prepareTxFilterDropDown() *primitives.Form {
+	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
 	var allTxFilters = map[string]int32{
 		"All":         dcrlibwallet.TxFilterAll,
 		"Sent":        dcrlibwallet.TxFilterSent,
@@ -82,10 +87,11 @@ func prepareTxFilterDropDown() *primitives.Form {
 		"Staking":     dcrlibwallet.TxFilterStaking,
 	}
 
-	var txFilterSelectionOptions []string
-	var activeFiltersWithTxCounts = map[int32]int{}
+	historyPageData.activeFiltersWithTxCounts = make(map[int32]int)
 
-	for filterName, filterId := range allTxFilters {
+	var txFilterSelectionOptions []string
+	for _, filterName := range allTxFilterNames {
+		filterId := allTxFilters[filterName]
 		txCountForFilter, txCountErr := commonPageData.wallet.CountTransactions(filterId)
 		if txCountErr != nil {
 			errorMessage := fmt.Sprintf("Cannot load history page. Error getting transaction count for filter %s: %s",
@@ -95,12 +101,12 @@ func prepareTxFilterDropDown() *primitives.Form {
 		}
 
 		if txCountForFilter > 0 {
-			activeFiltersWithTxCounts[filterId] = txCountForFilter
+			historyPageData.activeFiltersWithTxCounts[filterId] = txCountForFilter
 			txFilterSelectionOptions = append(txFilterSelectionOptions, fmt.Sprintf("%s (%d)", filterName, txCountForFilter))
 		}
 	}
 
-	if len(activeFiltersWithTxCounts) == 0 {
+	if len(historyPageData.activeFiltersWithTxCounts) == 0 {
 		displayMessage("No transactions yet", MessageKindInfo)
 		commonPageData.hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
 		commonPageData.app.SetFocus(historyPageData.pageContentHolder)
@@ -115,9 +121,7 @@ func prepareTxFilterDropDown() *primitives.Form {
 		selectedFilterName := strings.Split(selectedOption, " ")[0]
 		selectedFilterId := allTxFilters[selectedFilterName]
 		if selectedFilterId != historyPageData.currentTxFilter {
-			historyPageData.currentTxFilter = selectedFilterId
-			historyPageData.totalTxCountForCurrentFilter = activeFiltersWithTxCounts[selectedFilterId]
-			go fetchAndDisplayTransactions(0)
+			go fetchAndDisplayTransactions(0, selectedFilterId)
 		}
 	})
 
@@ -133,12 +137,6 @@ func prepareTxFilterDropDown() *primitives.Form {
 		}
 		return event
 	})
-
-	historyPageData.pageContentHolder.AddItem(txFilterDropDown, 2, 0, false)
-
-	historyPageData.displayedTxs = nil
-	historyPageData.currentTxFilter = dcrlibwallet.TxFilterAll
-	historyPageData.totalTxCountForCurrentFilter = activeFiltersWithTxCounts[dcrlibwallet.TxFilterAll]
 
 	return txFilterDropDown
 }
@@ -217,9 +215,17 @@ func prepareTxDetailsTable() *tview.Table {
 	return transactionDetailsTable
 }
 
-func fetchAndDisplayTransactions(txOffset int) {
+func fetchAndDisplayTransactions(txOffset int, filter int32) {
 	// show a loading text at the bottom of the table so user knows an op is in progress
 	displayMessage("Fetching data...", MessageKindInfo)
+
+	if filter != historyPageData.currentTxFilter {
+		// filter changed, reset data
+		txOffset = 0
+		historyPageData.displayedTxs = nil
+		historyPageData.currentTxFilter = filter
+		historyPageData.historyTable.Clear()
+	}
 
 	txns, err := commonPageData.wallet.GetTransactionsRaw(int32(txOffset), txPerPage, historyPageData.currentTxFilter)
 	if err != nil {
@@ -282,13 +288,14 @@ func fetchAndDisplayTransactions(txOffset int) {
 		displayMessage("", MessageKindInfo)
 	})
 
-	if len(historyPageData.displayedTxs) < historyPageData.totalTxCountForCurrentFilter {
+	totalTxCountForCurrentFilter := historyPageData.activeFiltersWithTxCounts[historyPageData.currentTxFilter]
+	if len(historyPageData.displayedTxs) < totalTxCountForCurrentFilter {
 		// set or reset selection changed listener to load more data when the table is almost scrolled to the end
 		nextOffset := txOffset + len(txns)
 		historyPageData.historyTable.SetSelectionChangedFunc(func(row, column int) {
 			if row >= historyPageData.historyTable.GetRowCount()-10 {
 				historyPageData.historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
-				fetchAndDisplayTransactions(nextOffset)
+				fetchAndDisplayTransactions(nextOffset, historyPageData.currentTxFilter)
 			}
 		})
 	}
