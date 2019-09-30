@@ -45,7 +45,7 @@ func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	}()
 
 	handler.spendUnconfirmed = false // todo should use the value in settings
-	handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet)
+	handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet, nil)
 	handler.numTicketsInput = &nucular.TextEditor{}
 	handler.numTicketsInput.Flags = nucular.EditClipboard | nucular.EditSimple
 
@@ -118,7 +118,7 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.
 	contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
 		// reload account balance and refresh display
 		handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-			true, handler.wallet)
+			true, handler.wallet, nil)
 		handler.accountSelector.Render(contentWindow)
 		contentWindow.Master().Changed()
 	})
