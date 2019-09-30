@@ -1,15 +1,17 @@
 package widgets
 
 import (
+	"fmt"
+
 	"github.com/aarzilli/nucular/label"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 type AccountSelector struct {
 	prompt               string
-	accounts             []*walletcore.Account
 	accountNames         []string
-	accountNumbers       []uint32
+	accountNumbers       []int32
 	accountsFetchError   error
 	selectedAccountIndex int
 	selectionChanged     func()
@@ -20,42 +22,44 @@ const (
 	accountSelectorHeight       = 25
 )
 
-func AccountSelectorWidget(prompt string, spendUnconfirmed, showBalance bool, wallet walletcore.Wallet,
-	selectionChanged func()) (accountSelector *AccountSelector) {
+func AccountSelectorWidget(prompt string, wallet *dcrlibwallet.LibWallet, spendUnconfirmed, showBalance bool,
+	selectionChanged func()) *AccountSelector {
 
-	accountSelector = &AccountSelector{
+	accountSelector := &AccountSelector{
 		prompt: prompt,
 		selectionChanged: selectionChanged,
 	}
 
-	var confirmations int32 = walletcore.DefaultRequiredConfirmations
+	var confirmations int32 = dcrlibwallet.DefaultRequiredConfirmations
 	if spendUnconfirmed {
 		confirmations = 0
 	}
 
-	accountSelector.accounts, accountSelector.accountsFetchError = wallet.AccountsOverview(confirmations)
-	if accountSelector.accountsFetchError != nil {
-		return
+	getAccountsResp, err := wallet.GetAccountsRaw(confirmations)
+	if err != nil {
+		accountSelector.accountsFetchError = err
+		return accountSelector
 	}
 
-	accountSelector.accountNames = make([]string, len(accountSelector.accounts))
-	accountSelector.accountNumbers = make([]uint32, len(accountSelector.accounts))
+	accountSelector.accountNames = make([]string, len(getAccountsResp.Acc))
+	accountSelector.accountNumbers = make([]int32, len(getAccountsResp.Acc))
 
-	for i, account := range accountSelector.accounts {
+	for i, account := range getAccountsResp.Acc {
 		if showBalance {
-			accountSelector.accountNames[i] = account.String()
+			accountNameWithBalance := fmt.Sprintf("%s [%s]", account.Name, dcrutil.Amount(account.Balance.Spendable).String())
+			accountSelector.accountNames[i] = accountNameWithBalance
 		} else {
 			accountSelector.accountNames[i] = account.Name
 		}
 		accountSelector.accountNumbers[i] = account.Number
 	}
 
-	return
+	return accountSelector
 }
 
 func (accountSelector *AccountSelector) Render(window *Window, addColumns ...int) {
 	accountSelectorWidth := defaultAccountSelectorWidth
-	if len(accountSelector.accounts) == 1 {
+	if len(accountSelector.accountNames) == 1 {
 		accountSelectorWidth = window.LabelWidth(accountSelector.accountNames[0])
 	}
 
@@ -71,7 +75,7 @@ func (accountSelector *AccountSelector) Render(window *Window, addColumns ...int
 
 	if accountSelector.accountsFetchError != nil {
 		window.DisplayErrorMessage("Fetch accounts error", accountSelector.accountsFetchError)
-	} else if len(accountSelector.accounts) == 1 {
+	} else if len(accountSelector.accountNames) == 1 {
 		accountSelector.selectedAccountIndex = 0
 		window.Label(accountSelector.accountNames[0], LeftCenterAlign)
 	} else {
@@ -104,7 +108,7 @@ func (accountSelector *AccountSelector) makeDropDown(window *Window) {
 	}
 }
 
-func (accountSelector *AccountSelector) GetSelectedAccountNumber() uint32 {
+func (accountSelector *AccountSelector) GetSelectedAccountNumber() int32 {
 	if accountSelector.selectedAccountIndex < len(accountSelector.accountNumbers) {
 		return accountSelector.accountNumbers[accountSelector.selectedAccountIndex]
 	}
@@ -112,7 +116,5 @@ func (accountSelector *AccountSelector) GetSelectedAccountNumber() uint32 {
 }
 
 func (accountSelector *AccountSelector) Reset() {
-	if len(accountSelector.accounts) > 1 {
-		accountSelector.selectedAccountIndex = 0
-	}
+	accountSelector.selectedAccountIndex = 0
 }

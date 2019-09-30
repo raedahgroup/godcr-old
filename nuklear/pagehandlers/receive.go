@@ -7,8 +7,7 @@ import (
 	"github.com/aarzilli/nucular"
 	"github.com/aarzilli/nucular/rect"
 	"github.com/atotto/clipboard"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/nuklear/nuklog"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
@@ -18,43 +17,44 @@ import (
 const (
 	qrCodeImageSize                      = 300
 	qrCodeAddressHolderHorizontalPadding = 40
+
+	receivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
 )
 
 type ReceiveHandler struct {
-	wallet                walletcore.Wallet
+	wallet                *dcrlibwallet.LibWallet
 	accountSelectorWidget *widgets.AccountSelector
 	generateAddressError  error
 	generatedAddress      string
 	refreshWindowDisplay func()
 }
 
-func (handler *ReceiveHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
+func (handler *ReceiveHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, refreshWindowDisplay func()) {
 	handler.wallet = wallet
 	handler.generateAddressError = nil
 	handler.generatedAddress = ""
 	handler.refreshWindowDisplay = refreshWindowDisplay
 
 	// first setup account selector widget
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", false, false, wallet, func() {
-		handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("Account:", wallet, false, false, func() {
+		handler.generatedAddress, handler.generateAddressError = handler.wallet.CurrentAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
 		handler.refreshWindowDisplay()
 	})
 
 	// generate address for first account in wallet
-	handler.generatedAddress, handler.generateAddressError = handler.wallet.ReceiveAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
-	return true
+	handler.generatedAddress, handler.generateAddressError = handler.wallet.CurrentAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
 }
 
 func (handler *ReceiveHandler) Render(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("Receiving Decred", window, func(contentWindow *widgets.Window) {
-		contentWindow.AddWrappedLabelWithColor(walletcore.ReceivingDecredHint, widgets.LeftCenterAlign, styles.GrayColor)
+		contentWindow.AddWrappedLabelWithColor(receivingDecredHint, widgets.LeftCenterAlign, styles.GrayColor)
 
 		contentWindow.AddHorizontalSpace(1)
 
 		contentWindow.Row(widgets.EditorHeight).Static(contentWindow.LabelWidth("You can also manually generate a"), 120)
 		contentWindow.AddLabelsToCurrentRow(widgets.NewColoredLabelTableCell("You can also manually generate a", widgets.LeftCenterAlign, styles.GrayColor))
 		contentWindow.AddLinkLabelsToCurrentRow(widgets.NewLinkLabelCellCell("new address.", func() {
-			handler.generatedAddress, handler.generateAddressError = handler.wallet.GenerateNewAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
+			handler.generatedAddress, handler.generateAddressError = handler.wallet.NextAddress(handler.accountSelectorWidget.GetSelectedAccountNumber())
 			handler.refreshWindowDisplay()
 		}))
 
@@ -85,7 +85,7 @@ func (handler *ReceiveHandler) RenderAddress(window *widgets.Window) {
 	qrCode, err := qrcode.New(handler.generatedAddress, qrcode.Medium)
 	if err != nil {
 		// todo logs need to accept message to accompany errors
-		nuklog.LogError(err)
+		nuklog.Log.Errorf("Error generating qr code: %v", err)
 		window.DisplayErrorMessage("Error generating qr code", err)
 		window.AddLabel(handler.generatedAddress, widgets.LeftCenterAlign)
 	} else {

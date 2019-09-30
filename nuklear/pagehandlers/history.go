@@ -5,70 +5,68 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet/txindex"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
+const txPerPage int32 = 25
+
 type HistoryHandler struct {
-	wallet               walletcore.Wallet
+	wallet               *dcrlibwallet.LibWallet
 	refreshWindowDisplay func()
 
 	filterSelectorWidget *widgets.FilterSelector
 	filterSelectorErr    error
-	currentFilterText    string
+	currentFilter        int32
 
 	txCountForCurrentFilter int
 	currentPage             int
-	txPerPage               int
-	transactions            []*walletcore.Transaction
+	transactions            []*dcrlibwallet.Transaction
 	fetchHistoryError       error
 	isFetchingTransactions  bool
 
 	selectedTxHash      string
-	selectedTxDetails   *walletcore.Transaction
+	selectedTxDetails   *dcrlibwallet.Transaction
 	isFetchingTxDetails bool
 	fetchTxDetailsError error
 }
 
-func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
+func (handler *HistoryHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, refreshWindowDisplay func()) {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
 
 	handler.currentPage = 1
-	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
 	handler.transactions = nil
 	handler.isFetchingTransactions = false
 
 	handler.clearTxDetails()
 
 	// fetch initial table data
-	handler.currentFilterText = "All"
-	handler.txCountForCurrentFilter, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	handler.txCountForCurrentFilter, handler.fetchHistoryError = wallet.CountTransactions(dcrlibwallet.TxFilterAll)
 	if handler.fetchHistoryError != nil {
 		// no need to fetch txs or setup filter widget if there was an error getting total tx count.
-		return true
+		return
 	}
 
-	go handler.fetchTransactions(nil)
+	handler.currentFilter = dcrlibwallet.TxFilterAll
+	go handler.fetchTransactions()
 
 	// set up the filter widget
 	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func() {
-		selectedFilterText, txCountForSelectedFilter := handler.filterSelectorWidget.GetSelectedFilter()
-		if selectedFilterText != handler.currentFilterText {
-			handler.currentFilterText = selectedFilterText
+		selectedFilter, txCountForSelectedFilter := handler.filterSelectorWidget.GetSelectedFilter()
+		if selectedFilter != handler.currentFilter {
 			handler.txCountForCurrentFilter = txCountForSelectedFilter
+			handler.currentFilter = selectedFilter
 			handler.transactions = nil
-			go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
+			go handler.fetchTransactions()
 		}
 	})
 
-	return true
+	return
 }
 
-func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
+func (handler *HistoryHandler) fetchTransactions() {
 	handler.isFetchingTransactions = true
 	handler.refreshWindowDisplay() // refresh display to show loading indicator
 
@@ -77,7 +75,7 @@ func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
 		txHistoryOffset = len(handler.transactions)
 	}
 
-	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), filter)
+	transactions, err := handler.wallet.GetTransactionsRaw(int32(txHistoryOffset), txPerPage, handler.currentFilter)
 	handler.fetchHistoryError = err
 	handler.transactions = append(handler.transactions, transactions...)
 
@@ -134,8 +132,8 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		widgets.NewLabelTableCell("Hash", "LC"),
 	)
 
-	pageTxOffset := (handler.currentPage - 1) * handler.txPerPage
-	maxTxIndexForCurrentPage := pageTxOffset + handler.txPerPage
+	pageTxOffset := (handler.currentPage - 1) * int(txPerPage)
+	maxTxIndexForCurrentPage := pageTxOffset + int(txPerPage)
 	for currentTxIndex, tx := range handler.transactions {
 		if currentTxIndex < pageTxOffset {
 			continue // skip txs not belonging to this page
@@ -146,8 +144,8 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 
 		historyTable.AddRow(
 			widgets.NewLabelTableCell(fmt.Sprintf("%d", currentTxIndex+1), "LC"),
-			widgets.NewLabelTableCell(tx.ShortTime, "LC"),
-			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
+			widgets.NewLabelTableCell(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), "LC"),
+			widgets.NewLabelTableCell(dcrlibwallet.TransactionDirectionName(tx.Direction), "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(tx.Amount).String(), "RC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(tx.Fee).String(), "RC"),
 			widgets.NewLabelTableCell(tx.Type, "LC"),
@@ -184,10 +182,10 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 	nextPage := handler.currentPage + 1
 	handler.currentPage = nextPage
 
-	nextPageTxOffset := (nextPage - 1) * handler.txPerPage
+	nextPageTxOffset := (nextPage - 1) * int(txPerPage)
 	if nextPageTxOffset >= len(handler.transactions) {
 		// we've not loaded txs for this page
-		go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
+		go handler.fetchTransactions()
 	}
 
 	handler.refreshWindowDisplay()
