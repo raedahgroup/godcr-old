@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/atotto/clipboard v0.1.2
 	github.com/decred/dcrd/dcrutil v1.2.0
+	github.com/decred/slog v1.0.0
 	github.com/gdamore/tcell v1.1.1
 	github.com/raedahgroup/dcrlibwallet v1.0.1-0.20190807181808-37b6666fe764
 	github.com/raedahgroup/godcr/app v0.0.0-00010101000000-000000000000
