@@ -24,7 +24,7 @@ type terminalUI struct {
 	dcrlw             *dcrlibwallet.LibWallet
 }
 
-func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
+func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	logger, err := dcrlibwallet.RegisterLogger("TUI")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Launch error - cannot register logger: %v", err)
@@ -36,7 +36,7 @@ func LaunchUserInterface(appDisplayName, defaultAppDataDir, netType string) {
 		log: logger,
 	}
 
-	tui.dcrlw, err = dcrlibwallet.NewLibWallet(defaultAppDataDir, "", netType)
+	tui.dcrlw, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
 	if err != nil {
 		tui.log.Errorf("Initialization error: %v", err)
 		return
