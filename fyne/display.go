@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/pages"
+	"github.com/raedahgroup/godcr/fyne/utils"
 )
 
 func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
@@ -36,17 +37,17 @@ func (app *fyneApp) displayMainWindow() {
 }
 
 func (app *fyneApp) setupNavigationMenu() {
-	icons, err := getIcons(overviewIcon, historyIcon, sendIcon, receiveIcon, accountsIcon, stakeIcon)
+	icons, err := utils.GetIcons(utils.OverviewIcon, utils.HistoryIcon, utils.SendIcon, utils.ReceiveIcon, utils.AccountsIcon, utils.StakeIcon)
 	if err != nil {
 		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 	}
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[overviewIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("History", icons[historyIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Send", icons[sendIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Receive", icons[receiveIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Accounts", icons[accountsIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", icons[stakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Overview", icons[utils.OverviewIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("History", icons[utils.HistoryIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Send", icons[utils.SendIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Receive", icons[utils.ReceiveIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Accounts", icons[utils.AccountsIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Staking", icons[utils.StakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
@@ -79,7 +80,7 @@ func (app *fyneApp) setupNavigationMenu() {
 			case 2:
 				newPageContent = pages.SendPageContent()
 			case 3:
-				newPageContent = pages.ReceivePageContent()
+				newPageContent = pages.ReceivePageContent(app.dcrlw, app.window, app.tabMenu)
 			case 4:
 				newPageContent = pages.AccountsPageContent()
 			case 5:
