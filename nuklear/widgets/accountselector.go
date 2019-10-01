@@ -26,7 +26,7 @@ func AccountSelectorWidget(prompt string, wallet *dcrlibwallet.LibWallet, spendU
 	selectionChanged func()) *AccountSelector {
 
 	accountSelector := &AccountSelector{
-		prompt: prompt,
+		prompt:           prompt,
 		selectionChanged: selectionChanged,
 	}
 

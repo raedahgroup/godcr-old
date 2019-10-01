@@ -18,8 +18,8 @@ function buildFyne() {
 }
 
 function buildNuklear() {
-    echo "building with go build"
-    (cd ./cmd/godcr-nuklear && go build)
+    echo "building with packr2"
+    (cd ./cmd/godcr-nuklear && packr2 build)
     mv ./cmd/godcr-nuklear/godcr-nuklear ./godcr-nuklear
     echo "binary saved to ./godcr-nuklear"
 }

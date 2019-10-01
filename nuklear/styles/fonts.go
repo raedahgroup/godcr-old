@@ -1,45 +1,34 @@
 package styles
 
 import (
-	"io/ioutil"
-
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/raedahgroup/godcr/nuklear/assets"
 	"golang.org/x/image/font"
 )
 
 var (
-	NavFont                  font.Face
-	PageHeaderFont           font.Face
-	PageContentFont          font.Face
-	BoldPageContentFont      font.Face
-	SmallBoldPageContentFont font.Face
-	LightPageContentFont     font.Face
+	NavFont             font.Face
+	PageHeaderFont      font.Face
+	PageContentFont     font.Face
+	BoldPageContentFont font.Face
 )
 
 const (
 	pageHeaderFontSize  = 18
 	pageContentFontSize = 16
 	navFontSize         = 16
-	SmallFontSize       = 13
 )
 
-// todo fix font file paths
 func InitFonts() error {
-	boldItalicsFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-SemiboldIt.ttf")
+	fontsBytes, err := assets.GetFonts(assets.SourceSansProRegular, assets.SourceSansProSemibold, assets.SourceSansProSemiboldIt)
 	if err != nil {
 		return err
 	}
 
-	semiBoldFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-Semibold.ttf")
-	if err != nil {
-		return err
-	}
-
-	regularFontBytes, err := ioutil.ReadFile("../../nuklear/assets/font/SourceSansPro-Regular.ttf")
-	if err != nil {
-		return err
-	}
+	regularFontBytes := fontsBytes[assets.SourceSansProRegular]
+	semiBoldFontBytes := fontsBytes[assets.SourceSansProSemibold]
+	boldItalicsFontBytes := fontsBytes[assets.SourceSansProSemiboldIt]
 
 	NavFont, err = getFont(navFontSize, regularFontBytes)
 	if err != nil {
@@ -57,11 +46,6 @@ func InitFonts() error {
 	}
 
 	BoldPageContentFont, err = getFont(pageContentFontSize, semiBoldFontBytes)
-	if err != nil {
-		return err
-	}
-
-	SmallBoldPageContentFont, err = getFont(SmallFontSize, semiBoldFontBytes)
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,7 @@ type ReceiveHandler struct {
 	accountSelectorWidget *widgets.AccountSelector
 	generateAddressError  error
 	generatedAddress      string
-	refreshWindowDisplay func()
+	refreshWindowDisplay  func()
 }
 
 func (handler *ReceiveHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, refreshWindowDisplay func()) {

@@ -160,18 +160,18 @@ func (window *Window) SingleLineLabelHeight() int {
 }
 
 type LinkLabelCell struct {
-	text        string
-	selected    *bool
-	clickFunc   func()
+	text      string
+	selected  *bool
+	clickFunc func()
 }
 
 func NewLinkLabelCellCell(text string, clickFunc func()) *LinkLabelCell {
 	selected := false
 
 	return &LinkLabelCell{
-		text:        text,
-		selected:    &selected,
-		clickFunc:   clickFunc,
+		text:      text,
+		selected:  &selected,
+		clickFunc: clickFunc,
 	}
 }
 

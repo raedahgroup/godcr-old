@@ -22,6 +22,7 @@ const (
 type nuklearApp struct {
 	appDisplayName string
 	wallet         *dcrlibwallet.LibWallet
+	syncer         *Syncer
 	navPages       map[string]navPageHandler
 	currentPage    string
 	nextPage       string
@@ -41,12 +42,14 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 
 	app.wallet, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
 	if err != nil {
+		// todo display pre-launch error on UI
 		nuklog.Log.Errorf("Initialization error: %v", err)
 		return
 	}
 
 	walletExists, err := app.wallet.WalletExists()
 	if err != nil {
+		// todo display pre-launch error on UI
 		nuklog.Log.Errorf("Error checking if wallet db exists: %v", err)
 		return
 	}
@@ -64,13 +67,23 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 
 	err = app.wallet.OpenWallet(pubPass)
 	if err != nil {
+		// todo display pre-launch error on UI
 		nuklog.Log.Errorf("Error opening wallet db: %v", err)
 		return
 	}
 
 	err = app.wallet.SpvSync("")
 	if err != nil {
+		// todo display pre-launch error on UI
 		nuklog.Log.Errorf("Spv sync attempt failed: %v", err)
+		return
+	}
+
+	// initialize fonts for later use
+	err = styles.InitFonts()
+	if err != nil {
+		// todo display pre-launch error on UI
+		nuklog.Log.Errorf("Error initializing app fonts: %v", err)
 		return
 	}
 
@@ -79,13 +92,6 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	masterWindow := nucular.NewMasterWindowSize(nucular.WindowNoScrollbar, appDisplayName, windowSize, app.render)
 	masterWindow.SetStyle(styles.MasterWindowStyle())
 
-	// initialize fonts for later use
-	err = styles.InitFonts()
-	if err != nil {
-		nuklog.Log.Errorf("Error initializing app fonts: %v", err)
-		return
-	}
-
 	// register nav page handlers
 	navPages := getNavPages()
 	app.navPages = make(map[string]navPageHandler, len(navPages))
@@ -93,8 +99,8 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		app.navPages[page.name] = page.handler
 	}
 
-	// todo: start sync progress listener in background and update current page display as appropriate
-	//go app.syncer.startSyncing(walletMiddleware, masterWindow)
+	app.syncer = NewSyncer(app.wallet, masterWindow.Changed)
+	app.wallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
 
 	app.currentPage = "overview"
 	app.pageChanged = true
@@ -103,11 +109,11 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	masterWindow.Main()
 }
 
-func (desktop *nuklearApp) render(window *nucular.Window) {
-	if _, isNavPage := desktop.navPages[desktop.currentPage]; isNavPage {
-		desktop.renderNavPage(window)
+func (app *nuklearApp) render(window *nucular.Window) {
+	if _, isNavPage := app.navPages[app.currentPage]; isNavPage {
+		app.renderNavPage(window)
 	} else {
-		errorMessage := fmt.Sprintf("Page not properly set up: %s", desktop.currentPage)
+		errorMessage := fmt.Sprintf("Page not properly set up: %s", app.currentPage)
 		nuklog.Log.Errorf(errorMessage)
 
 		w := &widgets.Window{window}
@@ -115,16 +121,16 @@ func (desktop *nuklearApp) render(window *nucular.Window) {
 	}
 }
 
-func (desktop *nuklearApp) renderNavPage(window *nucular.Window) {
+func (app *nuklearApp) renderNavPage(window *nucular.Window) {
 	// this creates the space on the window that will hold 2 widgets
 	// the navigation section on the window and the main page content
 	entireWindow := window.Row(0).SpaceBegin(2)
 
-	desktop.renderNavWindow(window, entireWindow.H)
-	desktop.renderPageContentWindow(window, entireWindow.W, entireWindow.H)
+	app.renderNavWindow(window, entireWindow.H)
+	app.renderPageContentWindow(window, entireWindow.W, entireWindow.H)
 }
 
-func (desktop *nuklearApp) renderNavWindow(window *nucular.Window, maxHeight int) {
+func (app *nuklearApp) renderNavWindow(window *nucular.Window, maxHeight int) {
 	navSectionRect := rect.Rect{
 		X: 0,
 		Y: 0,
@@ -139,18 +145,18 @@ func (desktop *nuklearApp) renderNavWindow(window *nucular.Window, maxHeight int
 	// create window and draw nav menu
 	widgets.NoScrollGroupWindow("nav-group-window", window, func(navGroupWindow *widgets.Window) {
 		navGroupWindow.AddHorizontalSpace(10)
-		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", desktop.appDisplayName, desktop.wallet.NetType()),
+		navGroupWindow.AddColoredLabel(fmt.Sprintf("%s %s", app.appDisplayName, app.wallet.NetType()),
 			styles.DecredLightBlueColor, widgets.CenterAlign)
 		navGroupWindow.AddHorizontalSpace(10)
 
 		for _, page := range getNavPages() {
-			if desktop.currentPage == page.name {
+			if app.currentPage == page.name {
 				navGroupWindow.AddCurrentNavButton(page.label, func() {
-					desktop.changePage(window, page.name)
+					app.changePage(window, page.name)
 				})
 			} else {
 				navGroupWindow.AddBigButton(page.label, func() {
-					desktop.changePage(window, page.name)
+					app.changePage(window, page.name)
 				})
 			}
 		}
@@ -162,7 +168,7 @@ func (desktop *nuklearApp) renderNavWindow(window *nucular.Window, maxHeight int
 	})
 }
 
-func (desktop *nuklearApp) renderPageContentWindow(window *nucular.Window, maxWidth, maxHeight int) {
+func (app *nuklearApp) renderPageContentWindow(window *nucular.Window, maxWidth, maxHeight int) {
 	pageSectionRect := rect.Rect{
 		X: navWidth,
 		Y: 0,
@@ -174,19 +180,23 @@ func (desktop *nuklearApp) renderPageContentWindow(window *nucular.Window, maxWi
 	styles.SetPageStyle(window.Master())
 	window.LayoutSpacePushScaled(pageSectionRect)
 
-	handler := desktop.navPages[desktop.currentPage]
-	// ensure that the handler's BeforeRender function is called only once per page call
-	// as it initializes page variables
-	if desktop.pageChanged {
-		handler.BeforeRender(desktop.wallet, window.Master().Changed)
-		desktop.pageChanged = false
+	if app.wallet.IsSyncing() {
+		app.syncer.Render(window)
+	} else {
+		handler := app.navPages[app.currentPage]
+		// ensure that the handler's BeforeRender function is called only once per page call
+		// as it initializes page variables
+		if app.pageChanged {
+			handler.BeforeRender(app.wallet, window.Master().Changed)
+			app.pageChanged = false
+		}
+		handler.Render(window)
 	}
-	handler.Render(window)
 }
 
-func (desktop *nuklearApp) changePage(window *nucular.Window, newPage string) {
-	desktop.nextPage = newPage
-	desktop.currentPage = newPage
-	desktop.pageChanged = true
+func (app *nuklearApp) changePage(window *nucular.Window, newPage string) {
+	app.nextPage = newPage
+	app.currentPage = newPage
+	app.pageChanged = true
 	window.Master().Changed()
 }
