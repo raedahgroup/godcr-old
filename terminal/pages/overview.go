@@ -260,27 +260,31 @@ func (listener *syncProgressListener) OnHeadersRescanProgress(headersRescanProgr
 
 func (listener *syncProgressListener) OnSyncCompleted() {
 	// remove previous update views and error view
-	for _, view := range listener.updateViews {
-		listener.overviewPage.RemoveItem(view)
-	}
-	listener.overviewPage.RemoveItem(listener.peerCountTextView)
-	listener.overviewPage.RemoveItem(listener.errorTextView)
+	commonPageData.app.QueueUpdateDraw(func() {
+		for _, view := range listener.updateViews {
+			listener.overviewPage.RemoveItem(view)
+		}
+		listener.overviewPage.RemoveItem(listener.peerCountTextView)
+		listener.overviewPage.RemoveItem(listener.errorTextView)
 
-	listener.overviewPage.AddItem(primitives.NewCenterAlignedTextView("Wallet is synced."), 1, 0, false)
+		listener.overviewPage.AddItem(primitives.NewCenterAlignedTextView("Wallet is synced."), 1, 0, false)
+	})
 }
 
 func (listener *syncProgressListener) OnSyncCanceled(willRestart bool) {}
 
 func (listener *syncProgressListener) OnSyncEndedWithError(err error) {
-	// remove previous update views and error view
-	for _, view := range listener.updateViews {
-		listener.overviewPage.RemoveItem(view)
-	}
-	listener.overviewPage.RemoveItem(listener.peerCountTextView)
-	listener.overviewPage.RemoveItem(listener.errorTextView)
+	commonPageData.app.QueueUpdateDraw(func() {
+		// remove previous update views and error view
+		for _, view := range listener.updateViews {
+			listener.overviewPage.RemoveItem(view)
+		}
+		listener.overviewPage.RemoveItem(listener.peerCountTextView)
+		listener.overviewPage.RemoveItem(listener.errorTextView)
 
-	listener.overviewPage.AddItem(listener.errorTextView, 1, 0, false)
-	listener.errorTextView.SetText(fmt.Sprintf("Sync error: %v", err))
+		listener.overviewPage.AddItem(listener.errorTextView, 1, 0, false)
+		listener.errorTextView.SetText(fmt.Sprintf("Sync error: %v", err))
+	})
 }
 
 func (listener *syncProgressListener) Debug(debugInfo *dcrlibwallet.DebugInfo) {}
