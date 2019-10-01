@@ -8,13 +8,12 @@ import (
 	"strings"
 
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func stakingPage() tview.Primitive {
 	// parent flexbox layout container to hold other primitives
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
@@ -37,7 +36,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(messageTextView, 2, 0, false)
 	}
 
-	stakeInfo, err := stakeInfoFlex(wallet)
+	stakeInfo, err := stakeInfoFlex()
 	if err != nil {
 		errorText := fmt.Sprintf("Error fetching stake info: %s", err.Error())
 		displayMessage(errorText, true)
@@ -46,7 +45,7 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	body.AddItem(tview.NewTextView().SetText("-Purchase Ticket-").SetTextColor(helpers.DecredLightBlueColor), 2, 0, false)
-	purchaseTicket, err := purchaseTicketForm(wallet, displayMessage, clearMessage, setFocus, clearFocus)
+	purchaseTicket, err := purchaseTicketForm(displayMessage, clearMessage)
 	if err != nil {
 		errorText := fmt.Sprintf("Error setting up purchase form: %s", err.Error())
 		displayMessage(errorText, true)
@@ -54,15 +53,15 @@ func stakingPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(purchaseTicket, 0, 1, true)
 	}
 
-	setFocus(body)
+	commonPageData.app.SetFocus(body)
 
-	hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
+	commonPageData.hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
 
 	return body
 }
 
-func stakeInfoFlex(wallet walletcore.Wallet) (*primitives.TextView, error) {
-	stakeInfo, err := wallet.StakeInfo(context.Background())
+func stakeInfoFlex() (*primitives.TextView, error) {
+	stakeInfo, err := commonPageData.wallet.StakeInfo()
 	if err != nil {
 		return nil, err
 	} else if stakeInfo == nil {
@@ -73,12 +72,10 @@ func stakeInfoFlex(wallet walletcore.Wallet) (*primitives.TextView, error) {
 	return primitives.NewLeftAlignedTextView(stakingReport), nil
 }
 
-func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message string, error bool), clearMessage func(),
-	setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) (*tview.Pages, error) {
-
+func purchaseTicketForm(displayMessage func(message string, error bool), clearMessage func()) (*tview.Pages, error) {
 	pages := tview.NewPages()
 
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	getAccountsResp, err := commonPageData.wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +86,7 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
 		Label:    "From:",
-		Accounts: accounts,
+		Accounts: getAccountsResp.Acc,
 	}
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
@@ -110,10 +107,10 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		}
 
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
-			setFocus(form)
+			commonPageData.app.SetFocus(form)
 
 			accountNumber := accountSelectionWidgetData.SelectedAccountNumber
-			ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNumber, spendUnconfirmed, wallet)
+			ticketHashes, err := purchaseTickets(passphrase, numTickets, accountNumber, spendUnconfirmed)
 			if err != nil {
 				displayMessage(err.Error(), true)
 				return
@@ -124,9 +121,9 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 
 			// reset form
 			form.ClearFields()
-			setFocus(form.GetFormItem(0))
+			commonPageData.app.SetFocus(form.GetFormItem(0))
 		}, func() {
-			setFocus(form)
+			commonPageData.app.SetFocus(form)
 		})
 	})
 
@@ -135,30 +132,30 @@ func purchaseTicketForm(wallet walletcore.Wallet, displayMessage func(message st
 		clearMessage()
 	})
 
-	form.SetCancelFunc(clearFocus)
+	form.SetCancelFunc(commonPageData.clearAllPageContent)
 
 	return pages, nil
 }
 
-func purchaseTickets(passphrase, numTickets string, accountNum uint32, spendUnconfirmed bool, wallet walletcore.Wallet) ([]string, error) {
+func purchaseTickets(passphrase, numTickets string, accountNum int32, spendUnconfirmed bool) ([]string, error) {
 	nTickets, err := strconv.ParseUint(string(numTickets), 10, 32)
 	if err != nil {
 		return nil, err
 	}
 
-	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+	requiredConfirmations := dcrlibwallet.DefaultRequiredConfirmations
 	if spendUnconfirmed {
 		requiredConfirmations = 0
 	}
 
-	request := dcrlibwallet.PurchaseTicketsRequest{
+	request := &dcrlibwallet.PurchaseTicketsRequest{
 		RequiredConfirmations: uint32(requiredConfirmations),
 		Passphrase:            []byte(passphrase),
 		NumTickets:            uint32(nTickets),
-		Account:               accountNum,
+		Account:               uint32(accountNum),
 	}
 
-	ticketHashes, err := wallet.PurchaseTicket(context.Background(), request)
+	ticketHashes, err := commonPageData.wallet.PurchaseTickets(context.Background(), request)
 	if err != nil {
 		return nil, err
 	}

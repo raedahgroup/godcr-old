@@ -1,22 +1,19 @@
 package pages
 
-import (
-	"github.com/raedahgroup/godcr/app"
-	"github.com/rivo/tview"
-)
+import "github.com/rivo/tview"
 
-func exitPage(walletMiddleware app.WalletMiddleware, tviewApp *tview.Application, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func ExitPage() tview.Primitive {
 	body := tview.NewModal().
 		SetText("Do you want to quit Terminal application?").
 		AddButtons([]string{"Quit", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Quit" {
-				tviewApp.Stop()
+				commonPageData.app.Stop()
 			} else {
-				clearFocus()
+				commonPageData.clearAllPageContent()
 			}
 		})
 
-	setFocus(body)
+	commonPageData.app.SetFocus(body)
 	return body
 }

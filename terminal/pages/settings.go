@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func settingsPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func settingsPage() tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Settings"), 2, 1, false)
@@ -16,13 +16,13 @@ func settingsPage(setFocus func(p tview.Primitive) *tview.Application, clearFocu
 
 	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			clearFocus()
+			commonPageData.clearAllPageContent()
 			return nil
 		}
 
 		return event
 	})
 
-	setFocus(body)
+	commonPageData.app.SetFocus(body)
 	return body
 }

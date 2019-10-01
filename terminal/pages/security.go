@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func securityPage(setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func securityPage() tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Security"), 2, 1, false)
@@ -16,13 +16,13 @@ func securityPage(setFocus func(p tview.Primitive) *tview.Application, clearFocu
 
 	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			clearFocus()
+			commonPageData.clearAllPageContent()
 			return nil
 		}
 
 		return event
 	})
 
-	setFocus(body)
+	commonPageData.app.SetFocus(body)
 	return body
 }
