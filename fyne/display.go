@@ -8,8 +8,8 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
-	"github.com/raedahgroup/godcr/fyne/pages"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages"
 )
 
 func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {

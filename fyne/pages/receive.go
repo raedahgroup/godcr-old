@@ -1,34 +1,34 @@
 package pages
 
 import (
+	"fmt"
 	"image/color"
 	"time"
-	"fmt"
 
 	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
+	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/fyne/widgets"
-	"github.com/skip2/go-qrcode"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/widgets"
+	"github.com/skip2/go-qrcode"
 )
 
 const receivingDecredHint = "Each time you request a\npayment, a new address is\ncreated to protect your privacy."
 
 var receiveHandler struct {
-	generatedReceiveAddress      string
-	recieveAddressError error
+	generatedReceiveAddress string
+	recieveAddressError     error
 
 	generatedQrCode []byte
-	qrcodeError error
-	
-	wallet             *dcrlibwallet.LibWallet
-	accountNumber uint32
+	qrcodeError     error
+
+	wallet              *dcrlibwallet.LibWallet
+	accountNumber       uint32
 	selectedAccountName string
 }
 
@@ -130,7 +130,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	account := accounts.Acc[0]
 	receiveHandler.selectedAccountName = account.Name
 	generateAddress(false)
-	
+
 	selectedAccountLabel := widget.NewLabel(receiveHandler.selectedAccountName)
 	selectedAccountBalanceLabel := widget.NewLabel(dcrutil.Amount(account.TotalBalance).String())
 
