@@ -1,4 +1,4 @@
-package utils
+package assets
 
 import (
 	"github.com/gobuffalo/packr/v2"
@@ -13,10 +13,10 @@ const (
 	ReceiveIcon  = "receive.png"
 	SendIcon     = "send.png"
 	StakeIcon    = "stake.png"
-	Collapse        = "collapse.png"
-	ReceiveAccount  = "receiveAccount.png"
-	More            = "more.png"
-	Info            = "info.png"
+	CollapseIcon        = "collapse.png"
+	ReceiveAccountIcon  = "receiveAccount.png"
+	MoreIcon            = "more.png"
+	InfoIcon            = "info.png"
 	Wordlist        = "wordlist.txt"
 )
 

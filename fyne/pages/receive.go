@@ -3,6 +3,7 @@ package pages
 import (
 	"image/color"
 	"time"
+	"fmt"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
@@ -14,68 +15,86 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 	"github.com/skip2/go-qrcode"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/utils"
+	"github.com/raedahgroup/godcr/fyne/assets"
 )
 
-const (
-	defaultRequiredConfirmations = 2
-)
+const receivingDecredHint = "Each time you request a\npayment, a new address is\ncreated to protect your privacy."
+
+var receiveHandler struct {
+	generatedReceiveAddress      string
+	recieveAddressError error
+
+	generatedQrCode []byte
+	qrcodeError error
+	
+	wallet             *dcrlibwallet.LibWallet
+	accountNumber uint32
+	selectedAccountName string
+}
+
 func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
-	icons, err := utils.GetIcons(utils.Collapse, utils.ReceiveAccount, utils.More, utils.Info)
+	receiveHandler.wallet = dcrlw
+
+	icons, err := assets.GetIcons(assets.CollapseIcon, assets.ReceiveAccountIcon, assets.MoreIcon, assets.InfoIcon)
 	qrImage := widget.NewIcon(theme.FyneLogo())
 
 	accountCopiedLabel := widget.NewLabelWithStyle("Address copied", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	widget.Refresh(accountCopiedLabel)
 	accountCopiedLabel.Hide()
 
-	label := widget.NewLabelWithStyle("Receive", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	label := widget.NewLabelWithStyle("Receiving Decred", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 	generatedAddress := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	errorLabel.Hide()
 
-	var addr string
+	accounts, err := receiveHandler.wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+	if err != nil {
+		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
+	}
 
 	errorHandler := func(err string) {
-		errorLabel.SetText("error getting account name, " + err)
+		errorLabel.SetText(err)
 		errorLabel.Show()
 	}
 
-	var accountSelected string
-
-	generateNewAddress := func() {
-		name, err := dcrlw.AccountNumber(accountSelected)
+	generateAddress := func(generateNewAddress bool) {
+		accountNumber, err := receiveHandler.wallet.AccountNumber(receiveHandler.selectedAccountName)
 		if err != nil {
-			errorHandler(err.Error())
+			errorHandler(fmt.Sprintf("Error: %s", err.Error()))
 			return
 		}
+		receiveHandler.accountNumber = accountNumber
 
-		addr, err = dcrlw.NextAddress(int32(name))
-		if err != nil {
-			errorHandler(err.Error())
+		if generateNewAddress {
+			generateNewAddressAndQrCode()
+		} else {
+			generateAddressAndQrCode()
+		}
+
+		if receiveHandler.recieveAddressError != nil {
+			errorHandler(fmt.Sprintf("Error: %s", receiveHandler.recieveAddressError.Error()))
+			return
+		}
+		if receiveHandler.qrcodeError != nil {
+			errorHandler(fmt.Sprintf("Error: %s", receiveHandler.qrcodeError.Error()))
 			return
 		}
 
 		widget.Refresh(generatedAddress)
-		generatedAddress.SetText(addr)
-
-		png, err := qrcode.Encode(addr, qrcode.High, 256)
-		if err != nil {
-			errorHandler(err.Error())
-			return
-		}
+		generatedAddress.SetText(receiveHandler.generatedReceiveAddress)
 
 		// If there was a rectified error and user clicks the generate address button again, this hides the error text.
 		if !errorLabel.Hidden {
 			errorLabel.Hide()
 		}
 
-		qrImage.SetResource(fyne.NewStaticResource("", png))
+		qrImage.SetResource(fyne.NewStaticResource("", receiveHandler.generatedQrCode))
 	}
 
+	// receiving decred hint-text pop-up
 	var clickableInfoIcon *widgets.ClickableIcon
-
-	clickableInfoIcon = widgets.NewClickableIcon(icons[utils.Info], nil, func() {
-		label := widget.NewLabelWithStyle("Each time you request a\npayment, a new address is\ncreated to protect your privacy.", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
+	clickableInfoIcon = widgets.NewClickableIcon(icons[assets.InfoIcon], nil, func() {
+		label := widget.NewLabelWithStyle(receivingDecredHint, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
 		gotItLabel := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
 		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
 		gotItLabel.TextSize = 16
@@ -83,7 +102,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(widget.NewVBox(
 			widgets.NewVSpacer(24),
-			widget.NewHBox(widgets.NewHSpacer(24), widget.NewLabelWithStyle("Receive DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
+			widget.NewHBox(widgets.NewHSpacer(24), widget.NewLabelWithStyle("Receiving Decred", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 			widgets.NewVSpacer(10),
 			widget.NewHBox(widgets.NewHSpacer(24), label),
 			widgets.NewVSpacer(10),
@@ -94,12 +113,12 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
 	})
 
+	// generate new address pop-up
 	var clickableMoreIcon *widgets.ClickableIcon
-
-	clickableMoreIcon = widgets.NewClickableIcon(icons[utils.More], nil, func() {
+	clickableMoreIcon = widgets.NewClickableIcon(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(widgets.NewClickableBox(widget.NewHBox(widget.NewLabel("Generate new address")), func() {
-			generateNewAddress()
+			generateAddress(true)
 			popup.Hide()
 		}), window.Canvas())
 
@@ -107,17 +126,13 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		popup.Show()
 	})
 
-	accounts, err := dcrlw.GetAccountsRaw(defaultRequiredConfirmations)
-	if err != nil {
-		return widget.NewLabel("error getting account name " + err.Error())
-	}
-
 	// automatically generate address for first account
 	account := accounts.Acc[0]
-	accountSelected = account.Name
-	accountSelectedLabel := widget.NewLabel(accountSelected)
-	accountSelectedBalanceLabel := widget.NewLabel(dcrutil.Amount(account.TotalBalance).String())
-	generateNewAddress()
+	receiveHandler.selectedAccountName = account.Name
+	generateAddress(false)
+	
+	selectedAccountLabel := widget.NewLabel(receiveHandler.selectedAccountName)
+	selectedAccountBalanceLabel := widget.NewLabel(dcrutil.Amount(account.TotalBalance).String())
 
 	var accountSelectionPopup *widget.PopUp
 	accountsBox := widget.NewVBox()
@@ -131,9 +146,9 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		var balance = dcrutil.Amount(account.Balance.Total).String()
 
 		accountProperties := widget.NewHBox()
-		accountProperties.Append(widgets.NewHSpacer(17))
-		accountProperties.Append(widget.NewIcon(icons[utils.ReceiveAccount]))
-		accountProperties.Append(widgets.NewHSpacer(18))
+		accountProperties.Append(widgets.NewHSpacer(15))
+		accountProperties.Append(widget.NewIcon(icons[assets.ReceiveAccountIcon]))
+		accountProperties.Append(widgets.NewHSpacer(15))
 
 		spendableLabel := canvas.NewText("Spendable", color.Black)
 		spendableLabel.TextSize = 12
@@ -157,7 +172,6 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		accountProperties.Append(widgets.NewHSpacer(8))
 
 		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
-
 		if i != 0 {
 			checkmarkIcon.Hide()
 		}
@@ -182,11 +196,11 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 				}
 			}
 
-			checkmarkIcon.Show()
-			accountSelectedLabel.SetText(accountName)
-			accountSelectedBalanceLabel.SetText(balance)
-			accountSelected = accountName
-			generateNewAddress()
+			// checkmarkIcon.Show()
+			selectedAccountLabel.SetText(accountName)
+			selectedAccountBalanceLabel.SetText(balance)
+			receiveHandler.selectedAccountName = accountName
+			generateAddress(false)
 			accountSelectionPopup.Hide()
 		}))
 	}
@@ -195,15 +209,15 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		widgets.NewClickableIcon(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
 		widgets.NewHSpacer(16), widget.NewLabelWithStyle("Receiving account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer())
 
-	// create a popup that has account names with spendable amount
+	// accountSelectionPopup create a popup that has account names with spendable amount
 	accountSelectionPopup = widget.NewPopUp(widget.NewVBox(
 		widgets.NewVSpacer(5), hidePopUp, widgets.NewVSpacer(5), canvas.NewLine(color.Black), accountsBox),
 		window.Canvas())
 	accountSelectionPopup.Hide()
 
 	// accountTab shows the selected account
-	accountTab := widget.NewHBox(widget.NewIcon(icons[utils.ReceiveAccount]), widgets.NewHSpacer(16),
-		accountSelectedLabel, widgets.NewHSpacer(76), accountSelectedBalanceLabel, widgets.NewHSpacer(8), widget.NewIcon(icons[utils.Collapse]))
+	accountTab := widget.NewHBox(widget.NewIcon(icons[assets.ReceiveAccountIcon]), widgets.NewHSpacer(16),
+		selectedAccountLabel, widgets.NewHSpacer(76), selectedAccountBalanceLabel, widgets.NewHSpacer(8), widget.NewIcon(icons[assets.CollapseIcon]))
 
 	var accountDropdown *widgets.ClickableBox
 	accountDropdown = widgets.NewClickableBox(accountTab, func() {
@@ -212,10 +226,11 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		accountSelectionPopup.Show()
 	})
 
+	// copyAddressAction enables address copying
 	copyAddressAction := widgets.NewClickableBox(widget.NewVBox(widget.NewLabelWithStyle("(Tap to copy)", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})),
 		func() {
 			clipboard := window.Clipboard()
-			clipboard.SetContent(addr)
+			clipboard.SetContent(receiveHandler.generatedReceiveAddress)
 
 			accountCopiedLabel.Show()
 			// only hide accountCopiedLabel text if user is currently on the page after 5secs
@@ -244,4 +259,24 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	)
 
 	return widget.NewHBox(widgets.NewHSpacer(18), output)
+}
+
+func generateAddressAndQrCode() {
+	receiveHandler.generatedReceiveAddress, receiveHandler.recieveAddressError = receiveHandler.wallet.CurrentAddress(int32(receiveHandler.accountNumber))
+	receiveHandler.generatedQrCode, receiveHandler.qrcodeError = generateQrcode(receiveHandler.generatedReceiveAddress)
+}
+
+func generateNewAddressAndQrCode() {
+	receiveHandler.generatedReceiveAddress, receiveHandler.recieveAddressError = receiveHandler.wallet.NextAddress(int32(receiveHandler.accountNumber))
+	receiveHandler.generatedQrCode, receiveHandler.qrcodeError = generateQrcode(receiveHandler.generatedReceiveAddress)
+}
+
+func generateQrcode(generatedReceiveAddress string) ([]byte, error) {
+	// generate qrcode
+	png, err := qrcode.Encode(generatedReceiveAddress, qrcode.High, 256)
+	if err != nil {
+		return nil, err
+	}
+
+	return png, nil
 }
