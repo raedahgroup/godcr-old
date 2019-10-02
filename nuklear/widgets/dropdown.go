@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/aarzilli/nucular/label"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 type FilterSelector struct {
-	wallet                 walletcore.Wallet
+	wallet                 *dcrlibwallet.LibWallet
 	filterSelectionOptions []string
 	txCountForAllFilters   map[string]int
 	selectedFilterIndex    int
@@ -21,22 +21,33 @@ const (
 	filterSelectorHeight       = 25
 )
 
-func FilterSelectorWidget(wallet walletcore.Wallet, selectionChanged func()) (*FilterSelector, error) {
+var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
+var allTxFilters = map[string]int32{
+	"All":         dcrlibwallet.TxFilterAll,
+	"Sent":        dcrlibwallet.TxFilterSent,
+	"Received":    dcrlibwallet.TxFilterReceived,
+	"Transferred": dcrlibwallet.TxFilterTransferred,
+	"Coinbase":    dcrlibwallet.TxFilterCoinBase,
+	"Staking":     dcrlibwallet.TxFilterStaking,
+}
+
+func FilterSelectorWidget(wallet *dcrlibwallet.LibWallet, selectionChanged func()) (*FilterSelector, error) {
 	filterSelector := &FilterSelector{
 		selectionChanged:     selectionChanged,
 		wallet:               wallet,
 		txCountForAllFilters: make(map[string]int),
 	}
 
-	for _, filter := range walletcore.TransactionFilters {
-		txCount, txCountErr := wallet.TransactionCount(walletcore.BuildTransactionFilter(filter))
+	for _, filterName := range allTxFilterNames {
+		filterId := allTxFilters[filterName]
+		txCountForFilter, txCountErr := wallet.CountTransactions(filterId)
 		if txCountErr != nil {
-			return nil, fmt.Errorf("error counting tx for filter %s: %s", filter, txCountErr.Error())
+			return nil, fmt.Errorf("error counting tx for filter %s: %s", filterName, txCountErr.Error())
 		}
-		if txCount > 0 {
-			filterWithCount := fmt.Sprintf("%s (%d)", filter, txCount)
+		if txCountForFilter > 0 {
+			filterWithCount := fmt.Sprintf("%s (%d)", filterName, txCountForFilter)
 			filterSelector.filterSelectionOptions = append(filterSelector.filterSelectionOptions, filterWithCount)
-			filterSelector.txCountForAllFilters[filter] = txCount
+			filterSelector.txCountForAllFilters[filterName] = txCountForFilter
 		}
 	}
 
@@ -81,9 +92,9 @@ func (filterSelector *FilterSelector) makeDropDown(window *Window) {
 	}
 }
 
-// GetSelectedFilter returns the name of the selected filter and the tx count for the filter.
-func (filterSelector *FilterSelector) GetSelectedFilter() (string, int) {
+// GetSelectedFilter returns the id of the selected filter and the tx count for the filter.
+func (filterSelector *FilterSelector) GetSelectedFilter() (int32, int) {
 	selectedOption := filterSelector.filterSelectionOptions[filterSelector.selectedFilterIndex]
 	selectedFilterName := strings.Split(selectedOption, " ")[0]
-	return selectedFilterName, filterSelector.txCountForAllFilters[selectedFilterName]
+	return allTxFilters[selectedFilterName], filterSelector.txCountForAllFilters[selectedFilterName]
 }

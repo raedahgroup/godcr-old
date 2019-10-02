@@ -7,9 +7,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -21,7 +19,7 @@ const (
 )
 
 type SendHandler struct {
-	wallet               walletcore.Wallet
+	wallet               *dcrlibwallet.LibWallet
 	refreshWindowDisplay func()
 
 	spendUnconfirmed      bool
@@ -42,7 +40,7 @@ type SendHandler struct {
 
 type utxoSelection struct {
 	selected bool
-	utxo     *walletcore.UnspentOutput
+	utxo     *dcrlibwallet.UnspentOutput
 }
 
 type sendDestination struct {
@@ -52,12 +50,13 @@ type sendDestination struct {
 	amountErr  string
 }
 
-func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
+func (handler *SendHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, refreshWindowDisplay func()) {
 	handler.wallet = wallet
 	handler.refreshWindowDisplay = refreshWindowDisplay
 
-	handler.spendUnconfirmed = false // todo should use the value in settings
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet, nil)
+	handler.spendUnconfirmed = handler.wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.wallet,
+		handler.spendUnconfirmed, true, nil)
 
 	handler.selectCustomInputs = false
 	handler.isFetchingUTXOS = false
@@ -71,8 +70,6 @@ func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, settings *con
 	handler.isSubmitting = false
 	handler.sendErr = nil
 	handler.successHash = ""
-
-	return true
 }
 
 func (handler *SendHandler) Render(window *nucular.Window) {
@@ -80,8 +77,8 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 		handler.accountSelectorWidget.Render(contentWindow)
 		contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
 			// reload account balance and refresh display
-			handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-				true, handler.wallet, nil)
+			handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.wallet,
+				handler.spendUnconfirmed, true, nil)
 			handler.accountSelectorWidget.Render(contentWindow)
 			handler.refreshWindowDisplay()
 
@@ -117,7 +114,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 				utxosTable.AddRow(
 					widgets.NewCheckboxTableCell("", &utxo.selected, handler.calculateInputsPercentage),
 					widgets.NewLabelTableCell(utxo.utxo.Address, widgets.LeftCenterAlign),
-					widgets.NewLabelTableCell(utxo.utxo.Amount.String(), widgets.LeftCenterAlign),
+					widgets.NewLabelTableCell(dcrutil.Amount(utxo.utxo.Amount).String(), widgets.LeftCenterAlign),
 					widgets.NewLabelTableCell(receiveTime, widgets.LeftCenterAlign),
 					widgets.NewLabelTableCell(confirmations, widgets.LeftCenterAlign),
 				)
@@ -248,13 +245,13 @@ func (handler *SendHandler) fetchCustomInputs() {
 		handler.refreshWindowDisplay()
 	}()
 
-	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+	var requiredConfirmations int32 = dcrlibwallet.DefaultRequiredConfirmations
 	if handler.spendUnconfirmed {
 		requiredConfirmations = 0
 	}
 
 	accountNumber := handler.accountSelectorWidget.GetSelectedAccountNumber()
-	utxos, err := handler.wallet.UnspentOutputs(accountNumber, 0, requiredConfirmations)
+	utxos, err := handler.wallet.AllUnspentOutputs(accountNumber, requiredConfirmations)
 	if err != nil {
 		handler.utxosFetchError = err
 		return
@@ -292,13 +289,8 @@ func (handler *SendHandler) validateForm() bool {
 		address := string(destination.address.Buffer)
 		if address == "" {
 			destination.addressErr = "This address field is required"
-		} else {
-			isValid, err := handler.wallet.ValidateAddress(address)
-			if err != nil {
-				destination.addressErr = fmt.Sprintf("Error checking destination address: %s", err.Error())
-			} else if !isValid {
-				destination.addressErr = "Invalid address"
-			}
+		} else if !handler.wallet.IsAddressValid(address) {
+			destination.addressErr = "Invalid address"
 		}
 
 		amountStr := string(destination.amount.Buffer)
@@ -325,7 +317,7 @@ func (handler *SendHandler) validateForm() bool {
 		totalSelectedUtxoAmount := 0.0
 		for _, utxo := range handler.utxos {
 			if utxo.selected {
-				totalSelectedUtxoAmount += utxo.utxo.Amount.ToCoin()
+				totalSelectedUtxoAmount += dcrutil.Amount(utxo.utxo.Amount).ToCoin()
 			}
 		}
 
@@ -370,52 +362,39 @@ func (handler *SendHandler) submit(passphrase string, window *widgets.Window) {
 		handler.refreshWindowDisplay()
 	}()
 
-	sendDestinations := make([]txhelper.TransactionDestination, len(handler.sendDestinations))
-	for index := range handler.sendDestinations {
-		amount, err := strconv.ParseFloat(string(handler.sendDestinations[index].amount.Buffer), 64)
-		if err != nil {
-			handler.sendErr = err
-			return
-		}
-
-		sendDestinations[index] = txhelper.TransactionDestination{
-			Address: string(handler.sendDestinations[index].address.Buffer),
-			Amount:  amount,
-		}
-	}
-
-	accountNumber := handler.accountSelectorWidget.GetSelectedAccountNumber()
-	var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+	var requiredConfirmations int32 = dcrlibwallet.DefaultRequiredConfirmations
 	if handler.spendUnconfirmed {
 		requiredConfirmations = 0
 	}
 
-	if handler.selectCustomInputs {
-		utxos, totalInputAmount := handler.getUTXOSAndSelectedAmount()
-
-		changeAddress, err := handler.wallet.GenerateNewAddress(accountNumber)
+	newTx := handler.wallet.NewUnsignedTx(handler.accountSelectorWidget.GetSelectedAccountNumber(), requiredConfirmations)
+	for index := range handler.sendDestinations {
+		amount, err := strconv.ParseFloat(string(handler.sendDestinations[index].amount.Buffer), 64)
 		if err != nil {
-			handler.sendErr = err
+			handler.sendErr = fmt.Errorf("invalid amount: %v", err)
 			return
 		}
 
-		changeAmount, err := txhelper.EstimateChange(len(handler.utxos), int64(totalInputAmount), sendDestinations, []string{changeAddress})
+		amountAtom, err := dcrutil.NewAmount(amount)
 		if err != nil {
-			handler.sendErr = err
+			handler.sendErr = fmt.Errorf("invalid amount: %v", err)
 			return
 		}
 
-		changeDestinations := []txhelper.TransactionDestination{{
-			Amount:  dcrutil.Amount(changeAmount).ToCoin(),
-			Address: changeAddress,
-		}}
-
-		handler.successHash, handler.sendErr = handler.wallet.SendFromUTXOs(accountNumber, requiredConfirmations, utxos,
-			sendDestinations, changeDestinations, passphrase)
-	} else {
-		handler.successHash, handler.sendErr = handler.wallet.SendFromAccount(accountNumber, requiredConfirmations,
-			sendDestinations, passphrase)
+		newTx.AddSendDestination(string(handler.sendDestinations[index].address.Buffer), int64(amountAtom), false)
 	}
+
+	if handler.selectCustomInputs {
+		var selectedUtxos []string
+		for _, utxo := range handler.utxos {
+			if utxo.selected {
+				selectedUtxos = append(selectedUtxos, utxo.utxo.OutputKey)
+			}
+		}
+		newTx.UseInputs(selectedUtxos)
+	}
+
+	handler.successHash, handler.sendErr = newTx.Broadcast([]byte(passphrase))
 
 	if handler.successHash != "" {
 		handler.resetForm(window)
@@ -424,20 +403,10 @@ func (handler *SendHandler) submit(passphrase string, window *widgets.Window) {
 	}
 }
 
-func (handler *SendHandler) getUTXOSAndSelectedAmount() (utxos []string, totalInputAmount dcrutil.Amount) {
-	for _, utxo := range handler.utxos {
-		if utxo.selected {
-			totalInputAmount += utxo.utxo.Amount
-			utxos = append(utxos, utxo.utxo.OutputKey)
-		}
-	}
-	return
-}
-
 func (handler *SendHandler) resetForm(window *widgets.Window) {
-	handler.spendUnconfirmed = false // todo should use the value in settings
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-		true, handler.wallet, nil)
+	handler.spendUnconfirmed = handler.wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.wallet,
+		handler.spendUnconfirmed, true, nil)
 	handler.accountSelectorWidget.Render(window)
 
 	handler.selectCustomInputs = false

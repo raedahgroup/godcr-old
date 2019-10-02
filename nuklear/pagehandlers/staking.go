@@ -7,9 +7,8 @@ import (
 	"strconv"
 
 	"github.com/aarzilli/nucular"
+	"github.com/decred/dcrwallet/wallet"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -17,10 +16,10 @@ import (
 const numTicketsInputWidth = 50
 
 type StakingHandler struct {
-	wallet walletcore.Wallet
+	wallet *dcrlibwallet.LibWallet
 
 	stakeInfoFetchError error
-	stakeInfo           *walletcore.StakeInfo
+	stakeInfo           *wallet.StakeInfoData
 
 	spendUnconfirmed      bool
 	accountSelector       *widgets.AccountSelector
@@ -32,7 +31,7 @@ type StakingHandler struct {
 	purchaseTicketsError   error
 }
 
-func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, refreshWindowDisplay func()) bool {
+func (handler *StakingHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, refreshWindowDisplay func()) {
 	handler.wallet = wallet
 
 	handler.stakeInfoFetchError = nil
@@ -40,12 +39,12 @@ func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, settings *
 
 	// fetch stake info data in background as it could take long for wallets with much txs
 	go func() {
-		handler.stakeInfo, handler.stakeInfoFetchError = wallet.StakeInfo(context.Background())
+		handler.stakeInfo, handler.stakeInfoFetchError = wallet.StakeInfo()
 		refreshWindowDisplay()
 	}()
 
-	handler.spendUnconfirmed = false // todo should use the value in settings
-	handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet, nil)
+	handler.spendUnconfirmed = handler.wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
+	handler.accountSelector = widgets.AccountSelectorWidget("From:", wallet, handler.spendUnconfirmed, true, nil)
 	handler.numTicketsInput = &nucular.TextEditor{}
 	handler.numTicketsInput.Flags = nucular.EditClipboard | nucular.EditSimple
 
@@ -54,8 +53,6 @@ func (handler *StakingHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.purchaseTicketsError = nil
 
 	handler.resetPurchaseTicketsForm()
-
-	return true
 }
 
 func (handler *StakingHandler) Render(window *nucular.Window) {
@@ -103,7 +100,7 @@ func (handler *StakingHandler) displayStakeInfo(contentWindow *widgets.Window) {
 				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.PoolSize)), widgets.LeftCenterAlign),
 				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Missed)), widgets.LeftCenterAlign),
 				widgets.NewLabelTableCell(strconv.Itoa(int(handler.stakeInfo.Voted)), widgets.LeftCenterAlign),
-				widgets.NewLabelTableCell(handler.stakeInfo.TotalSubsidy, widgets.LeftCenterAlign),
+				widgets.NewLabelTableCell(handler.stakeInfo.TotalSubsidy.String(), widgets.LeftCenterAlign),
 			)
 		}
 
@@ -117,8 +114,8 @@ func (handler *StakingHandler) displayPurchaseTicketForm(contentWindow *widgets.
 	handler.accountSelector.Render(contentWindow)
 	contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
 		// reload account balance and refresh display
-		handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-			true, handler.wallet, nil)
+		handler.accountSelector = widgets.AccountSelectorWidget("From:", handler.wallet,
+			handler.spendUnconfirmed, true, nil)
 		handler.accountSelector.Render(contentWindow)
 		contentWindow.Master().Changed()
 	})
@@ -195,19 +192,19 @@ func (handler *StakingHandler) submit(passphrase string, window *nucular.Window)
 
 	sourceAccount := handler.accountSelector.GetSelectedAccountNumber()
 
-	requiredConfirmations := walletcore.DefaultRequiredConfirmations
+	requiredConfirmations := dcrlibwallet.DefaultRequiredConfirmations
 	if handler.spendUnconfirmed {
 		requiredConfirmations = 0
 	}
 
-	request := dcrlibwallet.PurchaseTicketsRequest{
+	request := &dcrlibwallet.PurchaseTicketsRequest{
 		RequiredConfirmations: uint32(requiredConfirmations),
 		Passphrase:            []byte(passphrase),
 		NumTickets:            uint32(numTickets),
 		Account:               uint32(sourceAccount),
 	}
 
-	ticketHashes, sendErr := handler.wallet.PurchaseTicket(context.Background(), request)
+	ticketHashes, sendErr := handler.wallet.PurchaseTickets(context.Background(), request)
 	if sendErr != nil {
 		handler.purchaseTicketsError = sendErr
 		return

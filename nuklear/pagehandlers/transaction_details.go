@@ -6,7 +6,9 @@ import (
 	"strconv"
 
 	"github.com/aarzilli/nucular"
+	"github.com/decred/dcrd/chaincfg/chainhash"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
@@ -31,7 +33,8 @@ func (handler *HistoryHandler) renderTransactionDetailsPage(window *nucular.Wind
 	if handler.selectedTxDetails == nil {
 		handler.isFetchingTxDetails = true
 		go func() {
-			handler.selectedTxDetails, handler.fetchTxDetailsError = handler.wallet.GetTransaction(handler.selectedTxHash)
+			hash, _ := chainhash.NewHashFromStr(handler.selectedTxHash)
+			handler.selectedTxDetails, handler.fetchTxDetailsError = handler.wallet.GetTransactionRaw(hash[:])
 			handler.isFetchingTxDetails = false
 			window.Master().Changed()
 		}()
@@ -53,10 +56,20 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 		return
 	}
 
+	var confirmations int32 = 0
+	if handler.selectedTxDetails.BlockHeight != -1 {
+		confirmations = handler.wallet.GetBestBlock() - handler.selectedTxDetails.BlockHeight + 1
+	}
+
+	var spendUnconfirmed = handler.wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
+
+	var status string
 	var statusColor color.RGBA
-	if handler.selectedTxDetails.Status == "Confirmed" {
+	if spendUnconfirmed || confirmations > dcrlibwallet.DefaultRequiredConfirmations {
+		status = "Confirmed"
 		statusColor = styles.DecredGreenColor
 	} else {
+		status = "Pending"
 		statusColor = styles.DecredOrangeColor
 	}
 
@@ -64,7 +77,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	txDetailsTable := widgets.NewTable()
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Confirmations", "LC"),
-		widgets.NewLabelTableCell(strconv.Itoa(int(handler.selectedTxDetails.Confirmations)), "LC"),
+		widgets.NewLabelTableCell(strconv.Itoa(int(confirmations)), "LC"),
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Hash", "LC"),
@@ -76,7 +89,7 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Direction", "LC"),
-		widgets.NewLabelTableCell(handler.selectedTxDetails.Direction.String(), "LC"),
+		widgets.NewLabelTableCell(dcrlibwallet.TransactionDirectionName(handler.selectedTxDetails.Direction), "LC"),
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Type", "LC"),
@@ -100,11 +113,11 @@ func (handler *HistoryHandler) displayTransactionDetails(contentWindow *widgets.
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Status", "LC"),
-		widgets.NewColoredLabelTableCell(handler.selectedTxDetails.Status, "LC", statusColor),
+		widgets.NewColoredLabelTableCell(status, "LC", statusColor),
 	)
 	txDetailsTable.AddRow(
 		widgets.NewLabelTableCell("Date", "LC"),
-		widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", handler.selectedTxDetails.LongTime), "LC"),
+		widgets.NewLabelTableCell(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(handler.selectedTxDetails.Timestamp)), "LC"),
 	)
 
 	txInputsTable := widgets.NewTable()

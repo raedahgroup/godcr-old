@@ -1,24 +1,29 @@
 package pagehandlers
 
 import (
+	"fmt"
+
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/nuklear/styles"
 	"github.com/raedahgroup/godcr/nuklear/widgets"
 )
 
 type OverviewHandler struct {
 	err      error
-	accounts []*walletcore.Account
-	wallet   walletcore.Wallet
+	accounts []*dcrlibwallet.Account
+	wallet   *dcrlibwallet.LibWallet
 }
 
-func (handler *OverviewHandler) BeforeRender(wallet walletcore.Wallet, settings *config.Settings, _ func()) bool {
+func (handler *OverviewHandler) BeforeRender(wallet *dcrlibwallet.LibWallet, _ func()) {
 	handler.wallet = wallet
-	handler.accounts, handler.err = wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
-	return true
+	getAccountResp, err := wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+	if err != nil {
+		handler.err = err
+	} else {
+		handler.accounts = getAccountResp.Acc
+	}
 }
 
 func (handler *OverviewHandler) Render(window *nucular.Window) {
@@ -27,18 +32,32 @@ func (handler *OverviewHandler) Render(window *nucular.Window) {
 
 		if handler.err != nil {
 			contentWindow.DisplayErrorMessage("Error fetching accounts balance", handler.err)
-		} else {
-			contentWindow.AddLabel(walletcore.WalletBalance(handler.accounts), widgets.LeftCenterAlign)
-			contentWindow.AddHorizontalSpace(20)
-			handler.displayRecentActivities(contentWindow)
+			return
 		}
+
+		var totalBalance, spendableBalance dcrutil.Amount
+		for _, account := range handler.accounts {
+			totalBalance += dcrutil.Amount(account.Balance.Total)
+			spendableBalance += dcrutil.Amount(account.Balance.Total)
+		}
+
+		var balance string
+		if totalBalance != spendableBalance {
+			balance = fmt.Sprintf("Total %s (Spendable %s)", totalBalance.String(), spendableBalance.String())
+		} else {
+			balance = totalBalance.String()
+		}
+		contentWindow.AddLabel(balance, widgets.LeftCenterAlign)
+
+		contentWindow.AddHorizontalSpace(20)
+		handler.displayRecentActivities(contentWindow)
 	})
 }
 
 func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.Window) {
 	contentWindow.AddLabelWithFont("Recent Activity", widgets.LeftCenterAlign, styles.BoldPageContentFont)
 
-	txns, err := handler.wallet.TransactionHistory(0, 5, nil)
+	txns, err := handler.wallet.GetTransactionsRaw(0, 5, dcrlibwallet.TxFilterAll)
 	if err != nil {
 		handler.err = err
 	}
@@ -63,8 +82,8 @@ func (handler *OverviewHandler) displayRecentActivities(contentWindow *widgets.W
 
 	for _, tx := range txns {
 		historyTable.AddRow(
-			widgets.NewLabelTableCell(tx.ShortTime, "LC"),
-			widgets.NewLabelTableCell(tx.Direction.String(), "LC"),
+			widgets.NewLabelTableCell(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), "LC"),
+			widgets.NewLabelTableCell(dcrlibwallet.TransactionDirectionName(tx.Direction), "LC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(tx.Amount).String(), "RC"),
 			widgets.NewLabelTableCell(dcrutil.Amount(tx.Fee).String(), "RC"),
 			widgets.NewLabelTableCell(tx.Type, "LC"),
