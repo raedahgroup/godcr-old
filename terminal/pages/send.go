@@ -85,7 +85,7 @@ func sendPage() tview.Primitive {
 				return
 			}
 
-			body.AddItem(primitives.WordWrappedTextView("Sent txid "+dcrlibwallet.EncodeHex(txHash)), 2, 0, false)
+			body.AddItem(primitives.WordWrappedTextView("Sent txid "+txHash), 2, 0, false)
 
 			// reset form
 			form.ClearFields()
