@@ -171,22 +171,17 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 			icon := canvas.NewImageFromResource(icons[assets.Checkmark])
 			icon.FillMode = canvas.ImageFillOriginal
 
-			windowContent := app.Window.Content()
+			app.Window.SetContent(widget.NewVBox(
+				layout.NewSpacer(),
+				icon,
+				widgets.NewVSpacer(24),
+				widget.NewLabelWithStyle("Your wallet is successfully restored", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+				widgets.NewVSpacer(16),
+				widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
+				widgets.NewVSpacer(172),
+				widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }),
+					layout.NewSpacer()), widgets.NewVSpacer(16)))
 
-			if box, ok := windowContent.(*widget.Box); ok {
-				box.Children = []fyne.CanvasObject{
-					layout.NewSpacer(),
-					icon,
-					widgets.NewVSpacer(24),
-					widget.NewLabelWithStyle("Your wallet is successfully restored", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-					widgets.NewVSpacer(16),
-					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
-					widgets.NewVSpacer(172),
-					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }),
-						layout.NewSpacer()), widgets.NewVSpacer(16)}
-
-				widget.Refresh(box)
-			}
 		} else {
 			errorLabel.Show()
 		}
@@ -203,7 +198,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		textbox[textboxIndex].OnChanged = func(word string) {
 			var allCompleted = true
 			wordlistDropdown(0, len(wordlist), textboxIndex, word)
-			
+
 			for j := 0; j < 33; j++ {
 				if textbox[j].Text == "" {
 					allCompleted = false
