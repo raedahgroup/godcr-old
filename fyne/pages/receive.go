@@ -42,7 +42,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	widget.Refresh(accountCopiedLabel)
 	accountCopiedLabel.Hide()
 
-	label := widget.NewLabelWithStyle("Receiving Decred", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	label := widget.NewLabelWithStyle("Receive DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 	generatedAddress := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	errorLabel.Hide()
@@ -102,7 +102,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(widget.NewVBox(
 			widgets.NewVSpacer(24),
-			widget.NewHBox(widgets.NewHSpacer(24), widget.NewLabelWithStyle("Receiving Decred", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
+			widget.NewHBox(widgets.NewHSpacer(24), widget.NewLabelWithStyle("Receive DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 			widgets.NewVSpacer(10),
 			widget.NewHBox(widgets.NewHSpacer(24), label),
 			widgets.NewVSpacer(10),
