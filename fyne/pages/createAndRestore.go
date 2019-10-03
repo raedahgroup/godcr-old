@@ -103,7 +103,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		createAndRestoreButtons,
 		widgets.NewVSpacer(24))
 
-	return widget.NewHBox(widgets.NewHSpacer(24), page) //, layout.NewSpacer())
+	return widget.NewHBox(widgets.NewHSpacer(24), page)
 }
 
 func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
