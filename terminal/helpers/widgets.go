@@ -1,23 +1,26 @@
 package helpers
 
 import (
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"fmt"
+
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 )
 
 type AccountSelectionWidgetData struct {
 	Label                 string
-	Accounts              []*walletcore.Account
+	Accounts              []*dcrlibwallet.Account
 	ShowOnlyAccountName   bool
-	SelectedAccountNumber uint32
+	SelectedAccountNumber int32
 }
 
 func AddAccountSelectionWidgetToForm(form *primitives.Form, data *AccountSelectionWidgetData) {
-	accountText := func(account *walletcore.Account) string {
+	accountText := func(account *dcrlibwallet.Account) string {
 		if data.ShowOnlyAccountName {
 			return account.Name
 		} else {
-			return account.String()
+			return fmt.Sprintf("%s [%s]", account.Name, dcrutil.Amount(account.Balance.Spendable).String())
 		}
 	}
 
@@ -37,7 +40,7 @@ func AddAccountSelectionWidgetToForm(form *primitives.Form, data *AccountSelecti
 	}
 
 	accountNames := make([]string, len(data.Accounts))
-	accountNumbers := make([]uint32, len(data.Accounts))
+	accountNumbers := make([]int32, len(data.Accounts))
 	for index, account := range data.Accounts {
 		accountNames[index] = accountText(account)
 		accountNumbers[index] = account.Number

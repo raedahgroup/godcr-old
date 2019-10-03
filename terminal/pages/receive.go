@@ -4,18 +4,20 @@ import (
 	"fmt"
 
 	"github.com/gdamore/tcell"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
-	qrcode "github.com/skip2/go-qrcode"
+	"github.com/skip2/go-qrcode"
 )
 
-func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+const receivingDecredHint = "Each time you request payment, a new address is generated to protect your privacy."
+
+func receivePage() tview.Primitive {
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Receiving Decred"), 1, 1, false)
-	receivingDecredHintTextView := primitives.NewLeftAlignedTextView(walletcore.ReceivingDecredHint).
+	receivingDecredHintTextView := primitives.NewLeftAlignedTextView(receivingDecredHint).
 		SetTextColor(helpers.HintTextColor)
 	body.AddItem(receivingDecredHintTextView, 2, 1, false)
 
@@ -26,7 +28,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(newAddressFlex, 3, 1, false)
 	}
 
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	accounts, err := commonPageData.wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(primitives.NewLeftAlignedTextView(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
@@ -44,7 +46,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	addressTextView := primitives.NewCenterAlignedTextView("").
 		SetTextColor(helpers.DecredLightBlueColor)
 
-	generateAndDisplayAddress := func(accountNumber uint32, newAddress bool) {
+	generateAndDisplayAddress := func(accountNumber int32, newAddress bool) {
 		// clear previously generated address or displayed error before generating new one
 		body.RemoveItem(qrCodeTextView)
 		body.RemoveItem(addressTextView)
@@ -55,9 +57,9 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		var err error
 
 		if newAddress {
-			address, qr, err = generateNewAddressAndQrCode(wallet, accountNumber)
+			address, qr, err = generateNewAddressAndQrCode(accountNumber)
 		} else {
-			address, qr, err = generateAddressAndQrCode(wallet, accountNumber)
+			address, qr, err = generateAddressAndQrCode(accountNumber)
 		}
 
 		if err != nil {
@@ -73,27 +75,27 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		body.AddItem(qrCodeTextView, 0, 1, true)
 	}
 
-	accountNumbers := make([]uint32, len(accounts))
-	accountNames := make([]string, len(accounts))
-	for index, account := range accounts {
+	accountNumbers := make([]int32, len(accounts.Acc))
+	accountNames := make([]string, len(accounts.Acc))
+	for index, account := range accounts.Acc {
 		accountNames[index] = account.Name
 		accountNumbers[index] = account.Number
 	}
 
 	formButton := primitives.NewForm(false)
 	formButton.SetBorderPadding(0, 0, 0, 0)
-	formButton.SetCancelFunc(clearFocus)
+	formButton.SetCancelFunc(commonPageData.clearAllPageContent)
 
-	if len(accounts) == 1 {
-		singleAccountTextView := primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts[0].Name))
+	if len(accounts.Acc) == 1 {
+		singleAccountTextView := primitives.NewLeftAlignedTextView(fmt.Sprintf("Source Account: %s", accounts.Acc[0].Name))
 		singleAccountTextView.SetTextColor(helpers.DecredLightBlueColor)
 		singleAccountTextView.SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
-				clearFocus()
+				commonPageData.clearAllPageContent()
 			}
 		})
-		formButton.AddButton("NEW ADDRESS.", func() {
-			generateAndDisplayAddress(accounts[0].Number, true)
+		formButton.AddButton("new address.", func() {
+			generateAndDisplayAddress(accounts.Acc[0].Number, true)
 		})
 
 		generateAdressFunc(formButton)
@@ -101,27 +103,26 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 		singleAccountTextView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyTab {
-				setFocus(formButton)
+				commonPageData.app.SetFocus(formButton)
 				return nil
 			}
-
 			return event
 		})
 
 		formButton.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyTab {
-				setFocus(singleAccountTextView)
+				commonPageData.app.SetFocus(singleAccountTextView)
 				return nil
 			}
 
 			return event
 		})
 
-		hintTextView.SetText("TIP: Move around with TAB. ESC to return to navigation menu")
+		commonPageData.hintTextView.SetText("TIP: Move around with TAB. ESC to return to navigation menu")
 	} else {
-		accountNumbers := make([]uint32, len(accounts))
-		accountNames := make([]string, len(accounts))
-		for index, account := range accounts {
+		accountNumbers := make([]int32, len(accounts.Acc))
+		accountNames := make([]string, len(accounts.Acc))
+		for index, account := range accounts.Acc {
 			accountNames[index] = account.Name
 			accountNumbers[index] = account.Number
 		}
@@ -129,26 +130,27 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 		formDropdown := primitives.NewForm(false)
 		formDropdown.SetBorderPadding(0, 0, 0, 0)
 		formDropdown.SetLabelColor(helpers.DecredLightBlueColor)
-		formDropdown.SetCancelFunc(clearFocus)
+		formDropdown.SetCancelFunc(commonPageData.clearAllPageContent)
 
-		var accountNumber uint32
+		var accountNumber int32
 		formDropdown.AddDropDown("Source Account: ", accountNames, 0, func(option string, optionIndex int) {
 			accountNumber = accountNumbers[optionIndex]
 			generateAndDisplayAddress(accountNumber, false)
 		})
 
-		formButton.AddButton("NEW ADDRESS.", func() {
+		formButton.AddButton("new address.", func() {
 			generateAndDisplayAddress(accountNumber, true)
 		})
 
 		generateAdressFunc(formButton)
 
 		body.AddItem(formDropdown, 2, 0, true)
-		hintTextView.SetText("TIP: Select Prefered Account and hit ENTER to generate Address, \nMove around with TAB, ESC to return to navigation menu")
+		commonPageData.hintTextView.SetText("TIP: Select Preferred Account and hit ENTER to generate Address, \n" +
+			"Move around with TAB, ESC to return to navigation menu")
 
 		formDropdown.GetFormItemBox(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyTab {
-				setFocus(formButton)
+				commonPageData.app.SetFocus(formButton)
 				return nil
 			}
 
@@ -157,7 +159,7 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 
 		formButton.GetButton(0).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			if event.Key() == tcell.KeyTab {
-				setFocus(formDropdown)
+				commonPageData.app.SetFocus(formDropdown)
 				return nil
 			}
 
@@ -166,14 +168,14 @@ func receivePage(wallet walletcore.Wallet, hintTextView *primitives.TextView, se
 	}
 
 	// always generate and display address for the first account, even if there are multiple accounts
-	generateAndDisplayAddress(accounts[0].Number, false)
+	generateAndDisplayAddress(accounts.Acc[0].Number, false)
 
-	setFocus(body)
+	commonPageData.app.SetFocus(body)
 	return body
 }
 
-func generateAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (string, *qrcode.QRCode, error) {
-	generatedAddress, err := wallet.ReceiveAddress(accountNumber)
+func generateAddressAndQrCode(accountNumber int32) (string, *qrcode.QRCode, error) {
+	generatedAddress, err := commonPageData.wallet.CurrentAddress(accountNumber)
 	if err != nil {
 		return "", nil, err
 	}
@@ -186,8 +188,8 @@ func generateAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (s
 	return generatedAddress, qrCode, nil
 }
 
-func generateNewAddressAndQrCode(wallet walletcore.Wallet, accountNumber uint32) (string, *qrcode.QRCode, error) {
-	generatedAddress, err := wallet.GenerateNewAddress(accountNumber)
+func generateNewAddressAndQrCode(accountNumber int32) (string, *qrcode.QRCode, error) {
+	generatedAddress, err := commonPageData.wallet.NextAddress(accountNumber)
 	if err != nil {
 		return "", nil, err
 	}

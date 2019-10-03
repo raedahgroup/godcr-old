@@ -26,6 +26,7 @@ const (
 	MainnetHDPath       = "m / 44' / 42' / "
 	LegacyMainnetHDPath = "m / 44' / 20' / "
 
+	TransactionFilterAll      = "All"
 	TransactionFilterSent     = "Sent"
 	TransactionFilterReceived = "Received"
 	TransactionFilterYourself = "Yourself"
@@ -34,6 +35,7 @@ const (
 )
 
 var TransactionFilters = []string{
+	TransactionFilterAll,
 	TransactionFilterSent,
 	TransactionFilterReceived,
 	TransactionFilterYourself,
@@ -60,7 +62,6 @@ func BuildTransactionFilter(filters ...string) *txindex.ReadFilter {
 			break
 		case TransactionFilterYourself:
 			txFilter = txFilter.AndForDirections(txhelper.TransactionDirectionYourself).AndNotWithTxTypes(stakingTxTypes...)
-
 			break
 		case TransactionFilterCoinbase:
 			txFilter = txFilter.AndWithTxTypes(txhelper.FormatTransactionType(wallet.TransactionTypeCoinbase))

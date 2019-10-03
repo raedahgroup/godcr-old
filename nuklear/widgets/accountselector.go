@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"github.com/aarzilli/nucular/label"
 	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
@@ -11,6 +12,7 @@ type AccountSelector struct {
 	accountNumbers       []uint32
 	accountsFetchError   error
 	selectedAccountIndex int
+	selectionChanged     func()
 }
 
 const (
@@ -18,9 +20,12 @@ const (
 	accountSelectorHeight       = 25
 )
 
-func AccountSelectorWidget(prompt string, spendUnconfirmed, showBalance bool, wallet walletcore.Wallet) (accountSelector *AccountSelector) {
+func AccountSelectorWidget(prompt string, spendUnconfirmed, showBalance bool, wallet walletcore.Wallet,
+	selectionChanged func()) (accountSelector *AccountSelector) {
+
 	accountSelector = &AccountSelector{
 		prompt: prompt,
+		selectionChanged: selectionChanged,
 	}
 
 	var confirmations int32 = walletcore.DefaultRequiredConfirmations
@@ -70,8 +75,32 @@ func (accountSelector *AccountSelector) Render(window *Window, addColumns ...int
 		accountSelector.selectedAccountIndex = 0
 		window.Label(accountSelector.accountNames[0], LeftCenterAlign)
 	} else {
-		accountSelector.selectedAccountIndex = window.ComboSimple(accountSelector.accountNames,
-			accountSelector.selectedAccountIndex, accountSelectorHeight)
+		accountSelector.makeDropDown(window)
+	}
+}
+
+// makeDropDown is adapted from nucular's Window.ComboSimple
+// to allow triggering a callback when dropdown selection changes.
+func (accountSelector *AccountSelector) makeDropDown(window *Window) {
+	if len(accountSelector.accountNames) == 0 {
+		return
+	}
+
+	items := accountSelector.accountNames
+	itemHeight := int(float64(accountSelectorHeight) * window.Master().Style().Scaling)
+	itemPadding := window.Master().Style().Combo.ButtonPadding.Y
+	maxHeight := (len(items)+1)*itemHeight + itemPadding*3
+
+	if w := window.Combo(label.T(items[accountSelector.selectedAccountIndex]), maxHeight, nil); w != nil {
+		w.RowScaled(itemHeight).Dynamic(1)
+		for i := range items {
+			if w.MenuItem(label.TA(items[i], "LC")) {
+				accountSelector.selectedAccountIndex = i
+				if accountSelector.selectionChanged != nil {
+					accountSelector.selectionChanged()
+				}
+			}
+		}
 	}
 }
 

@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/raedahgroup/dcrlibwallet/txhelper"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFocus func(p tview.Primitive) *tview.Application, clearFocus func()) tview.Primitive {
+func sendPage() tview.Primitive {
 	pages := tview.NewPages()
 
 	body := tview.NewFlex().SetDirection(tview.FlexRow)
@@ -19,7 +18,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	body.AddItem(primitives.NewLeftAlignedTextView("Sending Decred"), 2, 0, false)
 
-	accounts, err := wallet.AccountsOverview(walletcore.DefaultRequiredConfirmations)
+	getAccountsResp, err := commonPageData.wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return body.AddItem(tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(fmt.Sprintf("Error: %s", err.Error())), 0, 1, false)
 	}
@@ -40,7 +39,7 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 
 	accountSelectionWidgetData := &helpers.AccountSelectionWidgetData{
 		Label:    "From:",
-		Accounts: accounts,
+		Accounts: getAccountsResp.Acc,
 	}
 	helpers.AddAccountSelectionWidgetToForm(form, accountSelectionWidgetData)
 
@@ -67,34 +66,32 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 			return
 		}
 
-		sendDestination := make([]txhelper.TransactionDestination, 1)
-		sendDestination[0] = txhelper.TransactionDestination{
-			Address: destination,
-			Amount:  amount,
-		}
-
-		var requiredConfirmations int32 = walletcore.DefaultRequiredConfirmations
+		var requiredConfirmations int32 = dcrlibwallet.DefaultRequiredConfirmations
 		if spendUnconfirmed {
 			requiredConfirmations = 0
 		}
 
 		helpers.RequestSpendingPassphrase(pages, func(passphrase string) {
-			setFocus(form)
+			// return focus to the form
+			commonPageData.app.SetFocus(form)
 
-			accountNumber := accountSelectionWidgetData.SelectedAccountNumber
-			txHash, err := wallet.SendFromAccount(accountNumber, requiredConfirmations, sendDestination, passphrase)
+			// create and broadcast new tx
+			newTx := commonPageData.wallet.NewUnsignedTx(accountSelectionWidgetData.SelectedAccountNumber, requiredConfirmations)
+			newTx.AddSendDestination(destination, dcrlibwallet.AmountAtom(amount), false)
+
+			txHash, err := newTx.Broadcast([]byte(passphrase))
 			if err != nil {
 				displayErrorMessage(err.Error())
 				return
 			}
 
-			body.AddItem(primitives.WordWrappedTextView("Sent txid "+txHash), 2, 0, false)
+			body.AddItem(primitives.WordWrappedTextView("Sent txid "+dcrlibwallet.EncodeHex(txHash)), 2, 0, false)
 
 			// reset form
 			form.ClearFields()
-			setFocus(form.GetFormItem(0))
+			commonPageData.app.SetFocus(form.GetFormItem(0))
 		}, func() {
-			setFocus(form)
+			commonPageData.app.SetFocus(form)
 		})
 	})
 
@@ -103,15 +100,15 @@ func sendPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, setFo
 		body.RemoveItem(errorTextView)
 	})
 
-	form.SetCancelFunc(clearFocus)
+	form.SetCancelFunc(commonPageData.clearAllPageContent)
 
-	if len(accounts) <= 1 {
-		hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
+	if len(getAccountsResp.Acc) <= 1 {
+		commonPageData.hintTextView.SetText("TIP: Move around with TAB and SHIFT+TAB. ESC to return to navigation menu")
 	} else {
-		hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB. ESC to return to navigation menu")
+		commonPageData.hintTextView.SetText("TIP: Select source account with ARROW DOWN and ENTER. Move around with TAB. ESC to return to navigation menu")
 	}
 
-	setFocus(pages)
+	commonPageData.app.SetFocus(pages)
 
 	return pages
 }

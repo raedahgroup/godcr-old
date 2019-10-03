@@ -3,161 +3,233 @@ package pages
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/gdamore/tcell"
-	"github.com/raedahgroup/dcrlibwallet/utils"
-	godcrUtils "github.com/raedahgroup/godcr/app/utils"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/terminal/helpers"
 	"github.com/raedahgroup/godcr/terminal/primitives"
 	"github.com/rivo/tview"
 )
 
-var displayedTxHashes []string
-var txPerPage int32 = walletcore.TransactionHistoryCountPerPage
-var totalTxCount int
+type messageKind uint32
 
-func historyPage(wallet walletcore.Wallet, hintTextView *primitives.TextView, tviewApp *tview.Application, clearFocus func()) tview.Primitive {
+const (
+	MessageKindError messageKind = iota
+	MessageKindInfo
+)
+
+const txPerPage int32 = 25
+
+var historyPageData struct {
+	pageContentHolder *tview.Flex
+	titleTextView     *primitives.TextView
+	messageTextView   *primitives.TextView
+
+	txFilterDropDown        *primitives.Form
+	historyTable            *tview.Table
+	transactionDetailsTable *tview.Table
+
+	currentTxFilter           int32
+	activeFiltersWithTxCounts map[int32]int
+	displayedTxs              []*dcrlibwallet.Transaction
+}
+
+func historyPage() tview.Primitive {
 	// parent flexbox layout container to hold other primitives
-	body := tview.NewFlex().SetDirection(tview.FlexRow)
-
+	historyPageData.pageContentHolder = tview.NewFlex().SetDirection(tview.FlexRow)
 	// handler for returning back to menu column
-	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	historyPageData.pageContentHolder.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
-			clearFocus()
+			commonPageData.clearAllPageContent()
 			return nil
 		}
-
 		return event
 	})
 
-	messageTextView := primitives.WordWrappedTextView("")
-	displayMessage := func(message string, error bool) {
-		// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
-		tviewApp.QueueUpdateDraw(func() {
-			body.RemoveItem(messageTextView)
-			if message != "" {
-				if error {
-					messageTextView.SetTextColor(helpers.DecredOrangeColor)
-				} else {
-					messageTextView.SetTextColor(tcell.ColorWhite)
-				}
+	historyPageData.titleTextView = primitives.NewLeftAlignedTextView("History")
+	historyPageData.pageContentHolder.AddItem(historyPageData.titleTextView, 2, 0, false)
 
-				messageTextView.SetText(message)
-				body.AddItem(messageTextView, 2, 0, false)
-			}
-		})
+	historyPageData.messageTextView = primitives.WordWrappedTextView("")
+
+	historyPageData.txFilterDropDown = prepareTxFilterDropDown()
+	if historyPageData.txFilterDropDown != nil {
+		historyPageData.pageContentHolder.AddItem(historyPageData.txFilterDropDown, 2, 0, false)
+	} else {
+		commonPageData.app.SetFocus(historyPageData.pageContentHolder)
+		return historyPageData.pageContentHolder
 	}
 
-	// get total tx count early on, so as to display on history header
-	txCount, txCountErr := wallet.TransactionCount(nil)
-	totalTxCount = txCount
+	historyPageData.historyTable = prepareHistoryTable()
+	historyPageData.pageContentHolder.AddItem(historyPageData.historyTable, 0, 1, true)
 
-	// page title
-	historyPageTitle := fmt.Sprintf("History (%d transactions)", txCount)
-	titleTextView := primitives.NewLeftAlignedTextView(historyPageTitle)
-	body.AddItem(titleTextView, 2, 0, false)
+	historyPageData.transactionDetailsTable = prepareTxDetailsTable()
 
-	if txCountErr != nil {
-		displayMessage(fmt.Sprintf("Cannot load history. Get total tx count error: %s", txCountErr.Error()), true)
-		tviewApp.SetFocus(body)
-		return body
+	// fetch tx to display in subroutine so the UI isn't blocked
+	go fetchAndDisplayTransactions(0, dcrlibwallet.TxFilterAll)
+
+	commonPageData.hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \n" +
+		"ENTER to view details, ESC to return to navigation menu")
+	commonPageData.app.SetFocus(historyPageData.pageContentHolder)
+
+	return historyPageData.pageContentHolder
+}
+
+func prepareTxFilterDropDown() *primitives.Form {
+	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
+	var allTxFilters = map[string]int32{
+		"All":         dcrlibwallet.TxFilterAll,
+		"Sent":        dcrlibwallet.TxFilterSent,
+		"Received":    dcrlibwallet.TxFilterReceived,
+		"Transferred": dcrlibwallet.TxFilterTransferred,
+		"Coinbase":    dcrlibwallet.TxFilterCoinBase,
+		"Staking":     dcrlibwallet.TxFilterStaking,
 	}
 
-	historyTable := tview.NewTable().
-		SetBorders(false).
-		SetFixed(1, 0).
-		SetSelectable(true, false)
+	historyPageData.activeFiltersWithTxCounts = make(map[int32]int)
 
-	transactionDetailsTable := tview.NewTable().SetBorders(false)
+	var txFilterSelectionOptions []string
+	for _, filterName := range allTxFilterNames {
+		filterId := allTxFilters[filterName]
+		txCountForFilter, txCountErr := commonPageData.wallet.CountTransactions(filterId)
+		if txCountErr != nil {
+			errorMessage := fmt.Sprintf("Cannot load history page. Error getting transaction count for filter %s: %s",
+				filterName, txCountErr.Error())
+			displayMessage(errorMessage, MessageKindError)
+			return nil
+		}
 
-	displayHistoryTable := func() {
-		body.RemoveItem(transactionDetailsTable)
-
-		titleTextView.SetText(historyPageTitle)
-		hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn,\nENTER to view details, ESC to return to navigation menu")
-
-		body.AddItem(historyTable, 0, 1, true)
-		tviewApp.SetFocus(historyTable)
+		if txCountForFilter > 0 {
+			historyPageData.activeFiltersWithTxCounts[filterId] = txCountForFilter
+			txFilterSelectionOptions = append(txFilterSelectionOptions, fmt.Sprintf("%s (%d)", filterName, txCountForFilter))
+		}
 	}
 
-	if txCount == 0 {
-		displayMessage("No transactions yet", false)
-		hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
-		tviewApp.SetFocus(body)
-		return body
+	if len(historyPageData.activeFiltersWithTxCounts) == 0 {
+		displayMessage("No transactions yet", MessageKindInfo)
+		commonPageData.hintTextView.SetText("TIP: ESC or BACKSPACE to return to navigation menu")
+		commonPageData.app.SetFocus(historyPageData.pageContentHolder)
+		return nil
 	}
 
-	historyTable.SetDoneFunc(func(key tcell.Key) {
-		if key == tcell.KeyEscape {
-			clearFocus()
+	txFilterDropDown := primitives.NewForm(false)
+	txFilterDropDown.SetBorderPadding(0, 0, 0, 0)
+
+	// dropDown selection change listener
+	txFilterDropDown.AddDropDown("", txFilterSelectionOptions, 0, func(selectedOption string, index int) {
+		selectedFilterName := strings.Split(selectedOption, " ")[0]
+		selectedFilterId := allTxFilters[selectedFilterName]
+		if selectedFilterId != historyPageData.currentTxFilter {
+			go fetchAndDisplayTransactions(0, selectedFilterId)
 		}
 	})
 
-	displayedTxHashes = []string{}
+	// handler for switching between dropDown and table
+	txFilterDropDown.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			commonPageData.clearAllPageContent()
+			return nil
+		}
+		if event.Key() == tcell.KeyTab {
+			commonPageData.app.SetFocus(historyPageData.historyTable)
+			return nil
+		}
+		return event
+	})
+
+	return txFilterDropDown
+}
+
+func prepareHistoryTable() *tview.Table {
+	historyTable := tview.NewTable().
+		SetBorders(false).
+		SetFixed(1, 0). // keep first row (column headers) fixed during scroll
+		SetSelectable(true, false)
+
+	historyTable.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEscape {
+			commonPageData.clearAllPageContent()
+		}
+	})
+
+	// handler for switching between dropDown and table
+	historyTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
+			commonPageData.clearAllPageContent()
+			return nil
+		}
+		if event.Key() == tcell.KeyTab {
+			commonPageData.app.SetFocus(historyPageData.txFilterDropDown)
+			return nil
+		}
+		return event
+	})
 
 	// method for getting transaction details when a tx is selected from the history table
 	historyTable.SetSelectedFunc(func(row, column int) {
-		if row >= len(displayedTxHashes) {
+		if row >= len(historyPageData.displayedTxs) {
 			// ignore selected func call for table header
 			return
 		}
 
-		body.RemoveItem(historyTable)
-		txHash := displayedTxHashes[row-1]
+		historyPageData.pageContentHolder.RemoveItem(historyTable)
+		historyPageData.pageContentHolder.RemoveItem(historyPageData.txFilterDropDown)
 
-		titleTextView.SetText("Transaction Details")
-		hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to view History page, ESC to return to navigation menu")
+		historyPageData.titleTextView.SetText("Transaction Details")
+		commonPageData.hintTextView.SetText("TIP: Use ARROW UP/DOWN to scroll, \nBACKSPACE to view History page, ESC to return to navigation menu")
 
-		transactionDetailsTable.Clear()
-		body.AddItem(transactionDetailsTable, 0, 1, true)
+		historyPageData.transactionDetailsTable.Clear()
+		historyPageData.pageContentHolder.AddItem(historyPageData.transactionDetailsTable, 0, 1, true)
+		commonPageData.app.SetFocus(historyPageData.transactionDetailsTable)
 
-		tviewApp.SetFocus(transactionDetailsTable)
-
-		displayTxDetails(txHash, wallet, displayMessage, transactionDetailsTable)
+		selectedTx := historyPageData.displayedTxs[row-1]
+		displayTxDetails(selectedTx, historyPageData.transactionDetailsTable)
 	})
 
-	// handler for returning back to history table
+	return historyTable
+}
+
+func prepareTxDetailsTable() *tview.Table {
+	transactionDetailsTable := tview.NewTable().SetBorders(false)
+
+	// handler for returning back to history table from tx details table
 	transactionDetailsTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape || event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
-			displayHistoryTable()
+			historyPageData.pageContentHolder.AddItem(historyPageData.txFilterDropDown, 2, 0, false)
+
+			historyPageData.pageContentHolder.RemoveItem(historyPageData.transactionDetailsTable)
+
+			historyPageData.titleTextView.SetText("History")
+			commonPageData.hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn,\nENTER to view details, " +
+				"ESC to return to navigation menu")
+
+			historyPageData.pageContentHolder.AddItem(historyPageData.historyTable, 0, 1, true)
+			commonPageData.app.SetFocus(historyPageData.historyTable)
+
 			return nil
 		}
-
 		return event
 	})
 
-	tableHeaderCell := func(text string) *tview.TableCell {
-		return tview.NewTableCell(text).SetAlign(tview.AlignCenter).SetSelectable(false).SetMaxWidth(1).SetExpansion(1)
-	}
-
-	// history table header
-	historyTable.SetCell(0, 0, tableHeaderCell("Date (UTC)"))
-	historyTable.SetCell(0, 1, tableHeaderCell(fmt.Sprintf("%10s", "Direction")))
-	historyTable.SetCell(0, 2, tableHeaderCell(fmt.Sprintf("%8s", "Amount")))
-	historyTable.SetCell(0, 3, tableHeaderCell(fmt.Sprintf("%5s", "Status")))
-	historyTable.SetCell(0, 4, tableHeaderCell(fmt.Sprintf("%-5s", "Type")))
-
-	displayHistoryTable()
-
-	// fetch tx to display in subroutine so the UI isn't blocked
-	go fetchAndDisplayTransactions(0, wallet, historyTable, tviewApp, displayMessage)
-
-	hintTextView.SetText("TIP: Use ARROW UP/DOWN to select txn, \nENTER to view details, ESC to return to navigation menu")
-
-	tviewApp.SetFocus(body)
-
-	return body
+	return transactionDetailsTable
 }
 
-func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, historyTable *tview.Table, tviewApp *tview.Application, displayMessage func(string, bool)) {
+func fetchAndDisplayTransactions(txOffset int, filter int32) {
 	// show a loading text at the bottom of the table so user knows an op is in progress
-	displayMessage("Fetching data...", false)
+	displayMessage("Fetching data...", MessageKindInfo)
 
-	txns, err := wallet.TransactionHistory(int32(txOffset), txPerPage, nil)
+	if filter != historyPageData.currentTxFilter {
+		// filter changed, reset data
+		txOffset = 0
+		historyPageData.displayedTxs = nil
+		historyPageData.currentTxFilter = filter
+		historyPageData.historyTable.Clear()
+	}
+
+	txns, err := commonPageData.wallet.GetTransactionsRaw(int32(txOffset), txPerPage, historyPageData.currentTxFilter)
 	if err != nil {
-		displayMessage(err.Error(), true)
+		displayMessage(err.Error(), MessageKindError)
 		return
 	}
 
@@ -166,38 +238,64 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 	for i, tx := range txns {
 		inputsAndOutputsAmount[i] = tx.Amount
 	}
-	maxDecimalPlacesForTxAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
-
-	// now format amount having determined the max number of decimal places
-	formatAmount := func(amount int64) string {
-		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForTxAmounts)
-	}
+	maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// updating the history table from a goroutine, use tviewApp.QueueUpdateDraw
-	tviewApp.QueueUpdateDraw(func() {
+	commonPageData.app.QueueUpdateDraw(func() {
 		for _, tx := range txns {
-			nextRowIndex := historyTable.GetRowCount()
+			nextRowIndex := historyPageData.historyTable.GetRowCount()
 
-			historyTable.SetCell(nextRowIndex, 0, tview.NewTableCell(fmt.Sprintf("%-10s", utils.ExtractDateOrTime(tx.Timestamp))).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 1, tview.NewTableCell(fmt.Sprintf("%-10s", tx.Direction.String())).SetAlign(tview.AlignCenter).SetMaxWidth(2).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 2, tview.NewTableCell(fmt.Sprintf("%15s", formatAmount(tx.Amount))).SetAlign(tview.AlignCenter).SetMaxWidth(3).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 3, tview.NewTableCell(fmt.Sprintf("%12s", tx.Status)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
-			historyTable.SetCell(nextRowIndex, 4, tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).SetAlign(tview.AlignCenter).SetMaxWidth(1).SetExpansion(1))
+			dateCell := tview.NewTableCell(fmt.Sprintf("%-10s", dcrlibwallet.ExtractDateOrTime(tx.Timestamp))).
+				SetAlign(tview.AlignCenter).
+				SetMaxWidth(1).
+				SetExpansion(1)
+			historyPageData.historyTable.SetCell(nextRowIndex, 0, dateCell)
 
-			displayedTxHashes = append(displayedTxHashes, tx.Hash)
+			directionCell := tview.NewTableCell(fmt.Sprintf("%-10s", dcrlibwallet.TransactionDirectionName(tx.Direction))).
+				SetAlign(tview.AlignCenter).
+				SetMaxWidth(2).
+				SetExpansion(1)
+			historyPageData.historyTable.SetCell(nextRowIndex, 1, directionCell)
+
+			formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
+			amountCell := tview.NewTableCell(fmt.Sprintf("%15s", formattedAmount)).
+				SetAlign(tview.AlignCenter).
+				SetMaxWidth(3).
+				SetExpansion(1)
+			historyPageData.historyTable.SetCell(nextRowIndex, 2, amountCell)
+
+			status := "Pending"
+			confirmations := commonPageData.wallet.GetBestBlock() - tx.BlockHeight + 1
+			if tx.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
+				status = "Confirmed"
+			}
+			statusCell := tview.NewTableCell(fmt.Sprintf("%12s", status)).
+				SetAlign(tview.AlignCenter).
+				SetMaxWidth(1).
+				SetExpansion(1)
+			historyPageData.historyTable.SetCell(nextRowIndex, 3, statusCell)
+
+			typeCell := tview.NewTableCell(fmt.Sprintf("%-8s", tx.Type)).
+				SetAlign(tview.AlignCenter).
+				SetMaxWidth(1).
+				SetExpansion(1)
+			historyPageData.historyTable.SetCell(nextRowIndex, 4, typeCell)
+
+			historyPageData.displayedTxs = append(historyPageData.displayedTxs, tx)
 		}
 
 		// clear loading message text
-		displayMessage("", false)
+		displayMessage("", MessageKindInfo)
 	})
 
-	if len(displayedTxHashes) < totalTxCount {
+	totalTxCountForCurrentFilter := historyPageData.activeFiltersWithTxCounts[historyPageData.currentTxFilter]
+	if len(historyPageData.displayedTxs) < totalTxCountForCurrentFilter {
 		// set or reset selection changed listener to load more data when the table is almost scrolled to the end
 		nextOffset := txOffset + len(txns)
-		historyTable.SetSelectionChangedFunc(func(row, column int) {
-			if row >= historyTable.GetRowCount()-10 {
-				historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
-				fetchAndDisplayTransactions(nextOffset, wallet, historyTable, tviewApp, displayMessage)
+		historyPageData.historyTable.SetSelectionChangedFunc(func(row, column int) {
+			if row >= historyPageData.historyTable.GetRowCount()-10 {
+				historyPageData.historyTable.SetSelectionChangedFunc(nil) // unset selection change listener until table is populated
+				fetchAndDisplayTransactions(nextOffset, historyPageData.currentTxFilter)
 			}
 		})
 	}
@@ -205,12 +303,7 @@ func fetchAndDisplayTransactions(txOffset int, wallet walletcore.Wallet, history
 	return
 }
 
-func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func(string, bool), transactionDetailsTable *tview.Table) {
-	tx, err := wallet.GetTransaction(txHash)
-	if err != nil {
-		displayError(err.Error(), true)
-	}
-
+func displayTxDetails(tx *dcrlibwallet.Transaction, transactionDetailsTable *tview.Table) {
 	transactionDetailsTable.SetCellSimple(0, 0, "Hash")
 	transactionDetailsTable.SetCellSimple(1, 0, "Confirmations")
 	transactionDetailsTable.SetCellSimple(2, 0, "Included in block")
@@ -221,13 +314,18 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	transactionDetailsTable.SetCellSimple(7, 0, "Fee")
 	transactionDetailsTable.SetCellSimple(8, 0, "Fee Rate")
 
+	var confirmations int32 = 0
+	if tx.BlockHeight != -1 {
+		confirmations = commonPageData.wallet.GetBestBlock() - tx.BlockHeight + 1
+	}
+
 	transactionDetailsTable.SetCellSimple(0, 1, tx.Hash)
-	transactionDetailsTable.SetCellSimple(1, 1, strconv.Itoa(int(tx.Confirmations)))
+	transactionDetailsTable.SetCellSimple(1, 1, strconv.Itoa(int(confirmations)))
 	transactionDetailsTable.SetCellSimple(2, 1, strconv.Itoa(int(tx.BlockHeight)))
 	transactionDetailsTable.SetCellSimple(3, 1, tx.Type)
 	transactionDetailsTable.SetCellSimple(4, 1, dcrutil.Amount(tx.Amount).String())
-	transactionDetailsTable.SetCellSimple(5, 1, fmt.Sprintf("%s UTC", tx.LongTime))
-	transactionDetailsTable.SetCellSimple(6, 1, tx.Direction.String())
+	transactionDetailsTable.SetCellSimple(5, 1, fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(tx.Timestamp)))
+	transactionDetailsTable.SetCellSimple(6, 1, dcrlibwallet.TransactionDirectionName(tx.Direction))
 	transactionDetailsTable.SetCellSimple(7, 1, dcrutil.Amount(tx.Fee).String())
 	transactionDetailsTable.SetCellSimple(8, 1, fmt.Sprintf("%s/kB", dcrutil.Amount(tx.FeeRate)))
 
@@ -239,11 +337,11 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 	for _, txOut := range tx.Outputs {
 		inputsAndOutputsAmount = append(inputsAndOutputsAmount, txOut.Amount)
 	}
-	maxDecimalPlacesForInputsAndOutputsAmounts := godcrUtils.MaxDecimalPlaces(inputsAndOutputsAmount)
+	maxDecimalPlacesForInputsAndOutputsAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
 	// now format amount having determined the max number of decimal places
 	formatAmount := func(amount int64) string {
-		return godcrUtils.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
+		return helpers.FormatAmountDisplay(amount, maxDecimalPlacesForInputsAndOutputsAmounts)
 	}
 
 	transactionDetailsTable.SetCellSimple(9, 0, "-Inputs-")
@@ -267,4 +365,21 @@ func displayTxDetails(txHash string, wallet walletcore.Wallet, displayError func
 		transactionDetailsTable.SetCell(row, 0, tview.NewTableCell(outputAmount).SetAlign(tview.AlignRight))
 		transactionDetailsTable.SetCellSimple(row, 1, fmt.Sprintf("%s (%s)", txOut.Address, txOut.AccountName))
 	}
+}
+
+func displayMessage(message string, kind messageKind) {
+	// this function may be called from a goroutine, use tviewApp.QueueUpdateDraw
+	commonPageData.app.QueueUpdateDraw(func() {
+		historyPageData.pageContentHolder.RemoveItem(historyPageData.messageTextView)
+		if message != "" {
+			if kind == MessageKindError {
+				historyPageData.messageTextView.SetTextColor(helpers.DecredOrangeColor)
+			} else {
+				historyPageData.messageTextView.SetTextColor(tcell.ColorWhite)
+			}
+
+			historyPageData.messageTextView.SetText(message)
+			historyPageData.pageContentHolder.AddItem(historyPageData.messageTextView, 2, 0, false)
+		}
+	})
 }

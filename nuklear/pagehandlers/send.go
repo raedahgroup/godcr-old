@@ -57,7 +57,7 @@ func (handler *SendHandler) BeforeRender(wallet walletcore.Wallet, settings *con
 	handler.refreshWindowDisplay = refreshWindowDisplay
 
 	handler.spendUnconfirmed = false // todo should use the value in settings
-	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet)
+	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed, true, wallet, nil)
 
 	handler.selectCustomInputs = false
 	handler.isFetchingUTXOS = false
@@ -81,7 +81,7 @@ func (handler *SendHandler) Render(window *nucular.Window) {
 		contentWindow.AddCheckbox("Spend Unconfirmed", &handler.spendUnconfirmed, func() {
 			// reload account balance and refresh display
 			handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-				true, handler.wallet)
+				true, handler.wallet, nil)
 			handler.accountSelectorWidget.Render(contentWindow)
 			handler.refreshWindowDisplay()
 
@@ -437,7 +437,7 @@ func (handler *SendHandler) getUTXOSAndSelectedAmount() (utxos []string, totalIn
 func (handler *SendHandler) resetForm(window *widgets.Window) {
 	handler.spendUnconfirmed = false // todo should use the value in settings
 	handler.accountSelectorWidget = widgets.AccountSelectorWidget("From:", handler.spendUnconfirmed,
-		true, handler.wallet)
+		true, handler.wallet, nil)
 	handler.accountSelectorWidget.Render(window)
 
 	handler.selectCustomInputs = false

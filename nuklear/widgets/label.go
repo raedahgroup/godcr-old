@@ -136,6 +136,17 @@ func (window *Window) AddLabelsToCurrentRow(labels ...*LabelTableCell) {
 	}
 }
 
+func (window *Window) AddLinkLabelsToCurrentRow(labels ...*LinkLabelCell) {
+	for _, labelCell := range labels {
+		if labelCell == nil {
+			// need to fill this column with empty space so the next cell is added to the next column instead of this column
+			window.Spacing(1)
+		} else {
+			labelCell.Render(window)
+		}
+	}
+}
+
 func (window *Window) LabelWidth(text string) int {
 	return nucular.FontWidth(window.Font(), text) + 8 // add 8 to text width to avoid text being cut off in label
 }
@@ -146,4 +157,30 @@ func (window *Window) SingleLineLabelHeight() int {
 		singleLineHeight = 20 // seems labels will not be drawn if row height is less than 20
 	}
 	return singleLineHeight
+}
+
+type LinkLabelCell struct {
+	text        string
+	selected    *bool
+	clickFunc   func()
+}
+
+func NewLinkLabelCellCell(text string, clickFunc func()) *LinkLabelCell {
+	selected := false
+
+	return &LinkLabelCell{
+		text:        text,
+		selected:    &selected,
+		clickFunc:   clickFunc,
+	}
+}
+
+func (link *LinkLabelCell) Render(window *Window) {
+	if window.SelectableLabel(link.text, "LC", link.selected) {
+		link.clickFunc()
+	}
+}
+
+func (link *LinkLabelCell) MinWidth(window *Window) int {
+	return window.LabelWidth(link.text)
 }

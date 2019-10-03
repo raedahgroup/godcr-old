@@ -5,6 +5,7 @@ import (
 
 	"github.com/aarzilli/nucular"
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet/txindex"
 	"github.com/raedahgroup/godcr/app/config"
 	"github.com/raedahgroup/godcr/app/walletcore"
 	"github.com/raedahgroup/godcr/nuklear/styles"
@@ -15,13 +16,16 @@ type HistoryHandler struct {
 	wallet               walletcore.Wallet
 	refreshWindowDisplay func()
 
-	totalTxCount int
+	filterSelectorWidget *widgets.FilterSelector
+	filterSelectorErr    error
+	currentFilterText    string
 
-	currentPage            int
-	txPerPage              int
-	transactions           []*walletcore.Transaction
-	fetchHistoryError      error
-	isFetchingTransactions bool
+	txCountForCurrentFilter int
+	currentPage             int
+	txPerPage               int
+	transactions            []*walletcore.Transaction
+	fetchHistoryError       error
+	isFetchingTransactions  bool
 
 	selectedTxHash      string
 	selectedTxDetails   *walletcore.Transaction
@@ -36,21 +40,35 @@ func (handler *HistoryHandler) BeforeRender(wallet walletcore.Wallet, settings *
 	handler.currentPage = 1
 	handler.txPerPage = walletcore.TransactionHistoryCountPerPage
 	handler.transactions = nil
-	handler.fetchHistoryError = nil
 	handler.isFetchingTransactions = false
 
 	handler.clearTxDetails()
 
-	handler.totalTxCount, handler.fetchHistoryError = wallet.TransactionCount(nil)
-	if handler.fetchHistoryError == nil {
-		// only fetch txs if there was no error getting tx count.
-		go handler.fetchTransactions()
+	// fetch initial table data
+	handler.currentFilterText = "All"
+	handler.txCountForCurrentFilter, handler.fetchHistoryError = wallet.TransactionCount(nil)
+	if handler.fetchHistoryError != nil {
+		// no need to fetch txs or setup filter widget if there was an error getting total tx count.
+		return true
 	}
+
+	go handler.fetchTransactions(nil)
+
+	// set up the filter widget
+	handler.filterSelectorWidget, handler.filterSelectorErr = widgets.FilterSelectorWidget(wallet, func() {
+		selectedFilterText, txCountForSelectedFilter := handler.filterSelectorWidget.GetSelectedFilter()
+		if selectedFilterText != handler.currentFilterText {
+			handler.currentFilterText = selectedFilterText
+			handler.txCountForCurrentFilter = txCountForSelectedFilter
+			handler.transactions = nil
+			go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
+		}
+	})
 
 	return true
 }
 
-func (handler *HistoryHandler) fetchTransactions() {
+func (handler *HistoryHandler) fetchTransactions(filter *txindex.ReadFilter) {
 	handler.isFetchingTransactions = true
 	handler.refreshWindowDisplay() // refresh display to show loading indicator
 
@@ -58,8 +76,8 @@ func (handler *HistoryHandler) fetchTransactions() {
 	if handler.transactions != nil {
 		txHistoryOffset = len(handler.transactions)
 	}
-	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), nil)
 
+	transactions, err := handler.wallet.TransactionHistory(int32(txHistoryOffset), int32(handler.txPerPage), filter)
 	handler.fetchHistoryError = err
 	handler.transactions = append(handler.transactions, transactions...)
 
@@ -77,10 +95,20 @@ func (handler *HistoryHandler) Render(window *nucular.Window) {
 
 func (handler *HistoryHandler) renderHistoryPage(window *nucular.Window) {
 	widgets.PageContentWindowDefaultPadding("History", window, func(contentWindow *widgets.Window) {
-		// show transactions first, if any
-		if len(handler.transactions) > 0 {
+		if handler.filterSelectorWidget != nil {
+			handler.filterSelectorWidget.Render(contentWindow)
+		}
+
+		if handler.filterSelectorErr != nil {
+			contentWindow.DisplayErrorMessage("Error with filter selector", handler.filterSelectorErr)
+		}
+
+		if len(handler.transactions) == 0 {
+			contentWindow.AddWrappedLabel("No transactions to display yet", widgets.CenterAlign)
+		} else {
 			handler.displayTransactions(contentWindow)
 		}
+
 		// show fetch error if any
 		if handler.fetchHistoryError != nil {
 			contentWindow.DisplayErrorMessage("Error loading history", handler.fetchHistoryError)
@@ -139,7 +167,7 @@ func (handler *HistoryHandler) displayTransactions(contentWindow *widgets.Window
 		}
 
 		// show next button only if there are more txs to be loaded
-		if handler.totalTxCount > maxTxIndexForCurrentPage {
+		if handler.txCountForCurrentFilter > maxTxIndexForCurrentPage {
 			contentWindow.AddButtonToCurrentRow("Next", func() {
 				handler.loadNextPage(contentWindow)
 			})
@@ -159,7 +187,7 @@ func (handler *HistoryHandler) loadNextPage(window *widgets.Window) {
 	nextPageTxOffset := (nextPage - 1) * handler.txPerPage
 	if nextPageTxOffset >= len(handler.transactions) {
 		// we've not loaded txs for this page
-		go handler.fetchTransactions()
+		go handler.fetchTransactions(walletcore.BuildTransactionFilter(handler.currentFilterText))
 	}
 
 	handler.refreshWindowDisplay()
