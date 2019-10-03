@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"strings"
 
 	"fyne.io/fyne"
@@ -38,14 +37,14 @@ func ShowCreateAndRestoreWalletPage(dcrlw *dcrlibwallet.LibWallet, window fyne.W
 
 	app.Window.SetContent(app.createAndRestoreWalletPage())
 	app.Window.CenterOnScreen()
-	app.Window.Resize(fyne.NewSize(370, 616))
+	app.Window.Resize(fyne.NewSize(370, 626))
 	app.Window.SetFixedSize(true)
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
 }
 
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
-	icons, err := assets.GetIcons(assets.DecredLogo, assets.Restore, assets.Add)
+	icons, err := assets.Get(assets.DecredLogo, assets.Restore, assets.Add)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
@@ -80,10 +79,10 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 
 	createAndRestoreButtons := widget.NewVBox(
 		fyne.NewContainerWithLayout(
-			layout.NewFixedGridLayout(fyne.NewSize(285, 56)), createWallet),
+			layout.NewFixedGridLayout(fyne.NewSize(308, 56)), createWallet),
 		widgets.NewVSpacer(5),
 		fyne.NewContainerWithLayout(
-			layout.NewFixedGridLayout(fyne.NewSize(285, 56)), restoreWallet))
+			layout.NewFixedGridLayout(fyne.NewSize(308, 56)), restoreWallet))
 
 	// canvas doesnt support escaping characters therefore the hack
 	godcrLabel := canvas.NewText("Welcome to", color.Black)
@@ -104,7 +103,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		createAndRestoreButtons,
 		widgets.NewVSpacer(24))
 
-	return widget.NewHBox(layout.NewSpacer(), page, layout.NewSpacer())
+	return widget.NewHBox(widgets.NewHSpacer(24), page) //, layout.NewSpacer())
 }
 
 func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
@@ -117,12 +116,13 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		app.Window.Show()
 	})
 
-	icons, err := assets.GetIcons(assets.Checkmark)
+	icons, err := assets.Get(assets.Checkmark, assets.Back)
 	if err != nil {
 		return app.DisplayLaunchErrorAndExit(err.Error())
 	}
 
 	var textbox = make([]*widget.Entry, 33)
+	var layouts = make([]*fyne.Container, 33)
 	wordlist := dcrlibwallet.PGPWordList()
 	horizontalTextBoxes := widget.NewHBox()
 
@@ -134,8 +134,9 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		if len(val) <= 1 {
 			return
 		}
-		var popup *widget.PopUp
+
 		var menuItem []*fyne.MenuItem
+		var popup *widget.PopUp
 
 		for i := start; i < stop; i++ {
 			index := i
@@ -181,9 +182,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 					widgets.NewVSpacer(16),
 					widget.NewLabelWithStyle("Now create a spending password to protect your funds.", fyne.TextAlignCenter, fyne.TextStyle{}),
 					widgets.NewVSpacer(172),
-					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() {
-						app.createSpendingPasswordPopup(seed)
-					}),
+					widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }),
 						layout.NewSpacer()), widgets.NewVSpacer(16)}
 
 				widget.Refresh(box)
@@ -198,11 +197,13 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 	for i := 0; i < 33; i++ {
 		textboxIndex := i
 		textbox[textboxIndex] = widget.NewEntry()
-		textbox[textboxIndex].SetPlaceHolder(fmt.Sprintf("Word %d", i+1))
+		maxTextboxSize := fyne.NewSize(110, textbox[textboxIndex].MinSize().Height)
+		layouts[textboxIndex] = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(maxTextboxSize), textbox[textboxIndex])
 
 		textbox[textboxIndex].OnChanged = func(word string) {
-			wordlistDropdown(0, len(wordlist), textboxIndex, word)
 			var allCompleted = true
+			wordlistDropdown(0, len(wordlist), textboxIndex, word)
+			
 			for j := 0; j < 33; j++ {
 				if textbox[j].Text == "" {
 					allCompleted = false
@@ -217,189 +218,42 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		}
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 33; i += 11 {
 		vertical := widget.NewVBox()
-		for k := i; k < 33; k += 3 {
-			vertical.Append(textbox[k])
+		for k := i; k < i+11; k++ {
+			number := widget.NewLabel(fmt.Sprintf("%d.", k+1))
+			if k+1 > 9 {
+				vertical.Append(widget.NewHBox(number, layouts[k]))
+			} else {
+				vertical.Append(widget.NewHBox(widgets.NewHSpacer(5), number, layouts[k]))
+			}
 		}
 		horizontalTextBoxes.Append(vertical)
 	}
 
-	textBoxContainer := widget.NewHBox(layout.NewSpacer(), horizontalTextBoxes.Children[0], layout.NewSpacer(),
-		horizontalTextBoxes.Children[1], layout.NewSpacer(), horizontalTextBoxes.Children[2], layout.NewSpacer())
+	backButton := widgets.NewImageButton(icons[assets.Back], nil, func() {
+		app.Window.SetOnClosed(nil)
+		app.Window.SetContent(app.createAndRestoreWalletPage())
+		app.Window.Resize(fyne.NewSize(370, 626))
+	})
+
+	textBoxContainer := widget.NewHBox(
+		horizontalTextBoxes.Children[0], layout.NewSpacer(),
+		horizontalTextBoxes.Children[1], layout.NewSpacer(),
+		horizontalTextBoxes.Children[2])
 
 	buttonContainer := widget.NewHBox(layout.NewSpacer(), restoreButton, layout.NewSpacer())
 
-	return widget.NewVBox(widgets.NewVSpacer(10), errorLabel, textBoxContainer, widgets.NewVSpacer(10), buttonContainer)
-}
-
-func (app *AppInterface) createSpendingPasswordPopup(seed string) {
-	var popup *widget.PopUp
-	popupContent := widget.NewVBox()
-
-	popup = widget.NewModalPopUp(widget.NewVBox(
-		widget.NewLabelWithStyle("Create a spending password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), popupContent),
-		app.Window.Canvas())
-
-	popupContent.Children = []fyne.CanvasObject{app.passwordPopup(popup, seed)}
-	widget.Refresh(popupContent)
-}
-
-func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.CanvasObject {
-	displayError := func(err error) {
-		log.Println("could not generate seed", err.Error())
-		newWindow := fyne.CurrentApp().NewWindow(app.AppDisplayName)
-		newWindow.SetContent(widget.NewVBox(
-			widget.NewLabelWithStyle(fmt.Sprintf("Could not generate seed, %s", err.Error()), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewHBox(layout.NewSpacer(), widget.NewButton("Close", func() { newWindow.Close() }), layout.NewSpacer())))
-
-		newWindow.CenterOnScreen()
-		newWindow.Show()
-		newWindow.SetFixedSize(true)
-	}
-
-	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal, assets.Loader)
-	if err != nil {
-		return app.DisplayLaunchErrorAndExit(err.Error())
-	}
-
-	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 255})
-	errorLabel.TextSize = 10
-	errorLabel.Hide()
-
-	password := widget.NewPasswordEntry()
-	password.SetPlaceHolder("Spending Password")
-	confirmPassword := widget.NewPasswordEntry()
-	confirmPassword.SetPlaceHolder("Confirm Spending Password")
-
-	passwordLength := canvas.NewText("0", color.Black)
-	passwordLength.TextSize = 10
-	passwordLength.Alignment = fyne.TextAlignTrailing
-	confirmPasswordLength := canvas.NewText("0", color.Black)
-	confirmPasswordLength.TextSize = 10
-	confirmPasswordLength.Alignment = fyne.TextAlignTrailing
-
-	passwordStrength := widget.NewProgressBar()
-	var createButton *widget.Button
-
-	password.OnChanged = func(val string) {
-		// check if password and confirm password matches only when the user fills confirmPassword textbox
-		if confirmPassword.Text != "" {
-			if confirmPassword.Text != password.Text {
-				errorLabel.Show()
-			} else {
-				errorLabel.Hide()
-				createButton.Enable()
-			}
-		}
-
-		passwordLength.Text = fmt.Sprintf("%d", len(val))
-		canvas.Refresh(passwordLength)
-
-		strength := (dcrlibwallet.ShannonEntropy(val) / 4.0)
-		passwordStrength.SetValue(strength)
-	}
-
-	confirmPassword.OnChanged = func(val string) {
-		confirmPasswordLength.Text = fmt.Sprintf("%d", len(val))
-		canvas.Refresh(confirmPasswordLength)
-		if password.Text != val {
-			errorLabel.Show()
-		} else if password.Text != "" && password.Text == confirmPassword.Text {
-			errorLabel.Hide()
-			createButton.Enable()
-		}
-	}
-
-	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
-	cancelLabel.TextStyle.Bold = true
-	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { popup.Hide() })
-
-	createButton = widget.NewButton("Create", func() {
-		createButton.SetText("")
-		createButton.SetIcon(icons[assets.Loader])
-		createButton.Disable()
-
-		// disable cancel OnTapped function
-		cancelButton.OnTapped = nil
-		cancelLabel.Color = color.RGBA{196, 203, 210, 255}
-		canvas.Refresh(cancelLabel)
-
-		enableCancelButton := func() {
-			cancelButton.OnTapped = nil
-			cancelLabel.Color = color.RGBA{41, 112, 255, 255}
-		}
-
-		var err error
-		if seed == "" {
-			seed, err = dcrlibwallet.GenerateSeed()
-			if err != nil {
-				enableCancelButton()
-				displayError(err)
-				return
-			}
-		}
-
-		err = app.Dcrlw.CreateWallet(password.Text, seed)
-
-		if err != nil {
-			enableCancelButton()
-			displayError(err)
-			log.Println("could not create wallet", err.Error())
-			return
-		}
-
-		popup.Hide()
-		app.Window.SetFixedSize(false)
-		app.Window.SetOnClosed(nil)
-		app.Window.SetContent(app.tabMenu)
-		app.tabMenu.CreateRenderer().ApplyTheme()
-		// apparently tabMenu was initialized in fyne.go line 57,
-		// this sets theme of tabmenu to default black
-		// resetting theme to light theme when tabmenu is in view fixes the font.
-		fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
-	})
-
-	createButton.Disable()
-
-	var passwordConceal *widgets.ImageButton
-	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if password.Password {
-			passwordConceal.SetIcon(icons[assets.Conceal])
-			password.Password = false
-		} else {
-			passwordConceal.SetIcon(icons[assets.Reveal])
-			password.Password = true
-		}
-		// reveal texts
-		password.SetText(password.Text)
-	})
-
-	var confirmPasswordConceal *widgets.ImageButton
-	confirmPasswordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if confirmPassword.Password {
-			confirmPasswordConceal.SetIcon(icons[assets.Conceal])
-			confirmPassword.Password = false
-		} else {
-			confirmPasswordConceal.SetIcon(icons[assets.Reveal])
-			confirmPassword.Password = true
-		}
-		// reveal texts
-		confirmPassword.SetText(confirmPassword.Text)
-	})
-
 	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(
-		widgets.NewVSpacer(10), widget.NewHBox(layout.NewSpacer(),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(264, password.MinSize().Height)), password),
-			passwordConceal, layout.NewSpacer()),
-		passwordLength, widget.NewHBox(layout.NewSpacer(),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(160, widget.NewLabel("0%").MinSize().Height)), passwordStrength)),
-		widget.NewHBox(layout.NewSpacer(),
-			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(264, confirmPassword.MinSize().Height)), confirmPassword),
-			confirmPasswordConceal, layout.NewSpacer()),
-		confirmPasswordLength,
-		widget.NewHBox(layout.NewSpacer(), cancelButton, widgets.NewHSpacer(24), createButton),
+		widgets.NewVSpacer(10),
+		widget.NewHBox(backButton, widgets.NewHSpacer(16), widget.NewLabel("Restore from seed phrase")),
+		widgets.NewVSpacer(18),
+		widget.NewLabelWithStyle("Enter your seed phrase in the correct order.", fyne.TextAlignCenter, fyne.TextStyle{Monospace: true}),
+		widgets.NewVSpacer(15),
 		errorLabel,
+		textBoxContainer,
+		widgets.NewVSpacer(10),
+		buttonContainer,
 		widgets.NewVSpacer(10)), widgets.NewHSpacer(10))
 }
 

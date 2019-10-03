@@ -21,14 +21,15 @@ const (
 	Restore   = "restore.png"
 	Add       = "add.png"
 	Loader    = "loader.png"
+	Back      = "back.png"
 )
 
 var imageBox = packr.New("icons", "../assets")
 
-// GetIcons returns a map from the names of the icons passed as arguments to
+// Get returns a map from the names of the icons passed as arguments to
 // the icon resources that correspond to them. If an error is encountered
 // while loading any of the icons, the error is returned immediately.
-func GetIcons(names ...string) (map[string]*fyne.StaticResource, error) {
+func Get(names ...string) (map[string]*fyne.StaticResource, error) {
 
 	icons := make(map[string]*fyne.StaticResource, len(names))
 	for _, name := range names {

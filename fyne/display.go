@@ -37,7 +37,7 @@ func (app *fyneApp) displayMainWindow() {
 }
 
 func (app *fyneApp) setupNavigationMenu() {
-	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
+	icons, err := assets.Get(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
 		assets.ReceiveIcon, assets.AccountsIcon, assets.StakingIcon)
 	if err != nil {
 		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
