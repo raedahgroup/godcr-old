@@ -20,6 +20,7 @@ import (
 
 const receivingDecredHint = "Each time you request a payment, a new \naddress is created to protect your privacy."
 const pageTitleText = "Receive DCR"
+
 var receiveHandler struct {
 	generatedReceiveAddress string
 	recieveAddressError     error
@@ -27,8 +28,8 @@ var receiveHandler struct {
 	generatedQrCode []byte
 	qrcodeError     error
 
-	wallet              *dcrlibwallet.LibWallet
-	accountNumberError     error
+	wallet             *dcrlibwallet.LibWallet
+	accountNumberError error
 
 	accountNumber       uint32
 	selectedAccountName string
@@ -37,7 +38,7 @@ var receiveHandler struct {
 func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
 	receiveHandler.wallet = dcrlw
 
-	// error handler 
+	// error handler
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	errorLabel.Hide()
 	errorHandler := func(err string) {
@@ -95,7 +96,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 
 		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
 	})
-	
+
 	// generate new address pop-up
 	var clickableMoreIcon *widgets.ClickableIcon
 	clickableMoreIcon = widgets.NewClickableIcon(icons[assets.MoreIcon], nil, func() {
@@ -239,7 +240,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		widgets.NewVSpacer(5),
 		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(110), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon),
 		accountDropdown,
-		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(70), accountCopiedLabel,layout.NewSpacer()),
+		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(70), accountCopiedLabel, layout.NewSpacer()),
 		// due to original width content on page being small layout spacing isn't efficient
 		// therefore requiring an additional spacing by a 100 width
 		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(70), fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(300, 300)), qrImage), layout.NewSpacer()),
@@ -253,12 +254,12 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 
 func generateAddressAndQrCode(generateNewAddress bool) error {
 	if generateNewAddress {
-		generatedReceiveAddress, err :=  receiveHandler.wallet.NextAddress(int32(receiveHandler.accountNumber))
+		generatedReceiveAddress, err := receiveHandler.wallet.NextAddress(int32(receiveHandler.accountNumber))
 		if err != nil {
 			return err
 		}
 		receiveHandler.generatedReceiveAddress = generatedReceiveAddress
-	}else{
+	} else {
 		generatedReceiveAddress, err := receiveHandler.wallet.CurrentAddress(int32(receiveHandler.accountNumber))
 		if err != nil {
 			return err
@@ -274,7 +275,6 @@ func generateAddressAndQrCode(generateNewAddress bool) error {
 	receiveHandler.generatedQrCode = generatedQrCode
 	return nil
 }
-
 
 func generateQrcode(generatedReceiveAddress string) ([]byte, error) {
 	// generate qrcode
