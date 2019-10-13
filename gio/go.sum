@@ -10,6 +10,7 @@ gioui.org/ui v0.0.0-20190924202410-3944ef4b2e46/go.mod h1:PssKPKlqVIeyaed+0w492X
 gioui.org/ui v0.0.0-20190926171558-ce74bc0cbaea h1:rv21Wx1Inf27NY453rrrP6tuEG65PyWPhnP2Jx+Qb8k=
 gioui.org/ui v0.0.0-20190926171558-ce74bc0cbaea/go.mod h1:PssKPKlqVIeyaed+0w492Xc2NgX5M3n6oZKOAj5rxoE=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=

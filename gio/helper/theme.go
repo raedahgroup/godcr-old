@@ -12,6 +12,7 @@ import (
 
 type Theme struct {
 	*material.Theme
+	Shaper *text.Shaper
 }
 
 const (
@@ -31,13 +32,14 @@ func NewTheme() *Theme {
 
 	th := material.NewTheme(shaper)
 	th.Color.Primary =  DecredDarkBlueColor
-	th.Color.Text =  GrayColor
+	th.Color.Text =  WhiteColor
 	th.Color.Hint =  DecredOrangeColor
 	
 	th.TextSize = unit.Sp(fontSize)
 	
 	return &Theme{
 		th,
+		shaper,
 	}
 }
 

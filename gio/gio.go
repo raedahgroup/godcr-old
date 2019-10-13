@@ -11,6 +11,8 @@ import (
 	//"gioui.org/widget"
 
 	"github.com/raedahgroup/godcr/gio/helper"
+	"github.com/raedahgroup/godcr/gio/widgets"
+	
 	
 )
 
@@ -27,8 +29,8 @@ type (
 
 const (
 	appName      = "GoDcr"
-	windowWidth  = 450
-	windowHeight = 350
+	windowWidth  = 550
+	windowHeight = 450
 
 	navSectionWidth = 120
 )
@@ -42,7 +44,7 @@ func LaunchApp() {
 
 	go func() {
 		desktop.window = gioapp.NewWindow(
-			gioapp.Size(unit.Sp(windowWidth), unit.Sp(windowHeight)),
+			gioapp.Size(unit.Px(windowWidth), unit.Px(windowHeight)),
 			gioapp.Title("GoDcr"),
 		)
 
@@ -105,51 +107,112 @@ func (d *Desktop) renderLoop() error {
 }
 
 func (d *Desktop) render(ctx *layout.Context) {
-	inset := layout.Inset{
-		Top: unit.Dp(0), 
-		Left: unit.Dp(0),
+	ctx.Constraints.Width.Min = 0
+	ctx.Constraints.Height.Min = 0
+	
+	flex := layout.Flex{
+		Axis: layout.Horizontal,
 	}
 
-	inset.Layout(ctx, func(){
-		flex := layout.Flex{
-			Axis: layout.Horizontal,
-		}
-
-		navChild := flex.Rigid(ctx, func(){
-			d.renderNavSection(ctx)
-		})
-
-		contentChild := flex.Rigid(ctx, func(){
-			inset := layout.Inset{
-				Left: unit.Sp(navSectionWidth - 103),
-				Top: unit.Dp(0),
-			}
-	
-			inset.Layout(ctx, func() {
-				d.renderContentSection(ctx)
-			})
-		})
-		flex.Layout(ctx, navChild, contentChild)
+	navChild := flex.Rigid(ctx, func(){
+		d.renderNavSection(ctx)
 	})
+
+	contentChild := flex.Rigid(ctx, func(){
+
+	})
+
+	flex.Layout(ctx, navChild, contentChild)
 }
 
 func (d *Desktop) renderNavSection(ctx *layout.Context) {
-	var stack layout.Stack 
-
 	navAreaBounds := image.Point{
 		X: navSectionWidth,
 		Y: windowHeight * 2,
 	}
-
 	helper.PaintArea(ctx, helper.DecredDarkBlueColor, navAreaBounds)
 
+
+	inset := layout.Inset{
+		Top: unit.Sp(0),
+		Left: unit.Sp(0),
+		Right: unit.Px(navSectionWidth),
+		Bottom: unit.Px(0),
+	}
+	inset.Layout(ctx, func(){
+		var stack layout.Stack 
+		children := make([]layout.StackChild, len(d.pages))
+
+		currentPositionTop := float32(0)
+		navButtonHeight := float32(30)
+
+		
+		for index, page := range d.pages {
+			children[index] = stack.Rigid(ctx, func(){
+				inset := layout.Inset{
+					Top: unit.Sp(currentPositionTop),
+					Right: unit.Dp(navSectionWidth),
+				}	
+
+				c := ctx.Constraints 
+				ctx.Constraints.Width.Min = 270 
+				ctx.Constraints.Width.Max = 270
+
+				inset.Layout(ctx, func(){
+					for page.button.Clicked(ctx) {
+						d.changePage(page.name)
+					}
+					widgets.LayoutNavButton(page.button, page.label, d.theme, ctx)
+				})
+				ctx.Constraints = c
+			})
+			currentPositionTop += navButtonHeight
+		}
+		
+		stack.Layout(ctx, children...)
+	})
+
+
+
+	
+
+	/**var stack layout.Stack 
+	children := make([]layout.StackChild, len(d.pages))
+
+	currentPositionTop := float32(0)
+	for index, page := range d.pages {
+		children[index] = stack.Expand(ctx, func(){
+			inset := layout.Inset{
+				Top: unit.Sp(currentPositionTop),
+			}
+	
+			inset.Layout(ctx, func(){
+				for page.button.Clicked(ctx) {
+					d.changePage(page.name)
+				}
+				d.theme.Button(page.label).Layout(ctx, page.button)
+			})
+		})
+		currentPositionTop += 32
+	}
+
+	stack.Layout(ctx, children...)
+
+	//d.theme.Button(d.pages[0].label).Layout(ctx, d.pages[0].button)
+	
+
+	/**var stack layout.Stack 
 	navArea := stack.Rigid(ctx, func(){
-		inset := layout.Inset{}
+		inset := layout.Inset{
+			Top: unit.Sp(0),
+			Left: unit.Sp(0),
+		}
 		inset.Layout(ctx, func(){
 			currentPositionTop := float32(0)
 			for _, page := range d.pages {
 				inset := layout.Inset{
 					Top: unit.Sp(currentPositionTop),
+					Left: unit.Sp(0),
 				}
 				inset.Layout(ctx, func(){
 					for page.button.Clicked(ctx) {
@@ -161,7 +224,7 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 			}
 		})
 	})
-	stack.Layout(ctx, navArea)
+	stack.Layout(ctx, navArea)**/
 }
 
 func (d *Desktop) renderContentSection(ctx *layout.Context) {
@@ -172,12 +235,12 @@ func (d *Desktop) renderContentSection(ctx *layout.Context) {
 
 	var stack layout.Stack 
 
-	contentAreaBounds := image.Point{
+	/**contentAreaBounds := image.Point{
 		X: windowWidth * 2,
 		Y: windowHeight * 2,
 	}
 
-	helper.PaintArea(ctx, helper.BackgroundColor, contentAreaBounds)
+	helper.PaintArea(ctx, helper.BackgroundColor, contentAreaBounds)**/
 	
 	
 
