@@ -38,6 +38,13 @@ function buildCli() {
     echo "binary saved to ./godcr-cli"
 }
 
+function buildGio() {
+    echo "building with go build"
+    (cd ./cmd/godcr-gio && go build)
+    mv ./cmd/godcr-gio/godcr-gio ./godcr-gio
+    echo "binary saved to ./godcr-gio"
+}
+
 interface=$1
 if [[ "$interface" = "web" ]]; then
     deployWeb
@@ -49,6 +56,8 @@ elif [[ "$interface" = "terminal" ]]; then
     buildTerminal
 elif [[ "$interface" = "cli" ]]; then
     buildCli
+elif [[ "$interface" == "gio" ]]; then 
+    buildGio
 else
     echo "Usage: ./build.sh {interface} e.g. ./build.sh web"
 fi
