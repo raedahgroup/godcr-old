@@ -4,9 +4,9 @@ import (
 	"image"
 	"image/color"
 
-	"gioui.org/ui/f32"
-	"gioui.org/ui/paint"
-	"gioui.org/ui"
+	"gioui.org/f32"
+	"gioui.org/op/paint"
+	"gioui.org/layout"
 )
 
 var (
@@ -22,10 +22,16 @@ var (
 
 	DecredOrangeColor = color.RGBA{237, 109, 71, 255}
 	DecredGreenColor  = color.RGBA{65, 191, 83, 255}
+
+	BackgroundColor = color.RGBA{243, 245, 246, 255}
 )
 
-func PaintArea(material ui.MacroOp, bounds image.Point, ops *ui.Ops) {
-	material.Add(ops)
+func PaintArea(ctx *layout.Context, color color.RGBA, bounds image.Point) {
+	paint.ColorOp{
+		Color: color,
+	}.Add(ctx.Ops)
+	
+	
 	paint.PaintOp{
 		Rect: f32.Rectangle{
 			Max: f32.Point{
@@ -33,5 +39,5 @@ func PaintArea(material ui.MacroOp, bounds image.Point, ops *ui.Ops) {
 				Y: float32(bounds.Y),
 			},
 		},
-	}.Add(ops)
+	}.Add(ctx.Ops)
 }

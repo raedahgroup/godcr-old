@@ -2,7 +2,8 @@ package gio
 
 import (
 	"github.com/raedahgroup/godcr/gio/handlers"
-	"github.com/raedahgroup/godcr/gio/widget"
+	"gioui.org/widget"
+
 )
 
 type handler interface {
@@ -13,7 +14,7 @@ type handler interface {
 type page struct {
 	name    string
 	label   string
-	clicker int
+	button *widget.Button
 	handler handler
 }
 
@@ -22,43 +23,43 @@ func getPages() []page {
 		{
 			name:    "overview",
 			label:   "Overview",
-			clicker: widget.OverviewNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "history",
 			label:   "History",
-			clicker: widget.HistoryNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "send",
 			label:   "Send",
-			clicker: widget.SendNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "receive",
 			label:   "Receive",
-			clicker: widget.ReceiveNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "staking",
 			label:   "Staking",
-			clicker: widget.StakingNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "security",
 			label:   "Security",
-			clicker: widget.SecurityNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "settings",
 			label:   "Settings",
-			clicker: widget.SettingsNavClicker,
+			button: new(widget.Button),
 			handler: handlers.NewOverviewHandler(),
 		},
 	}

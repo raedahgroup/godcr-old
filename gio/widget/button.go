@@ -1,37 +1,18 @@
 package widget
 
 import (
-	"image"
 
-	_ "image/jpeg"
-	_ "image/png"
 
-	_ "net/http/pprof"
-
-	"gioui.org/ui"
-	"gioui.org/ui/f32"
-	"gioui.org/ui/gesture"
-	"gioui.org/ui/layout"
-	"gioui.org/ui/paint"
-	"gioui.org/ui/pointer"
-	"github.com/raedahgroup/godcr/gio/helper"
+	"gioui.org/widget"
 )
 
-var (
-	clickers []gesture.Click
-)
 
-const (
-	OverviewNavClicker = iota
-	HistoryNavClicker
-	SendNavClicker
-	ReceiveNavClicker
-	StakingNavClicker
-	SecurityNavClicker
-	SettingsNavClicker
-	DummyClicker
-)
+func NewButton() *widget.Button {
+	return new(widget.Button)
+}
 
+
+/**
 func Init() {
 	clickers = make([]gesture.Click, DummyClicker+1)
 }
@@ -115,7 +96,7 @@ func ConfirmButton(ctx *layout.Context, text, key string, handler func()) {
 		}
 	}
 
-	click.Add(ctx.Ops)**/
+	click.Add(ctx.Ops)
 }
 
 func toRectF(r image.Rectangle) f32.Rectangle {
@@ -123,4 +104,4 @@ func toRectF(r image.Rectangle) f32.Rectangle {
 		Min: f32.Point{X: float32(r.Min.X), Y: float32(r.Min.Y)},
 		Max: f32.Point{X: float32(r.Max.X), Y: float32(r.Max.Y)},
 	}
-}
+}**/
