@@ -3,17 +3,16 @@ package gio
 import (
 	"image"
 	"log"
-	
+
 	//"gioui.org/ui"
 	gioapp "gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/unit"
+
 	//"gioui.org/widget"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
-	
-	
 )
 
 type (
@@ -40,7 +39,6 @@ func LaunchApp() {
 		theme: helper.NewTheme(),
 	}
 	desktop.prepareHandlers()
-	
 
 	go func() {
 		desktop.window = gioapp.NewWindow(
@@ -109,16 +107,16 @@ func (d *Desktop) renderLoop() error {
 func (d *Desktop) render(ctx *layout.Context) {
 	ctx.Constraints.Width.Min = 0
 	ctx.Constraints.Height.Min = 0
-	
+
 	flex := layout.Flex{
 		Axis: layout.Horizontal,
 	}
 
-	navChild := flex.Rigid(ctx, func(){
+	navChild := flex.Rigid(ctx, func() {
 		d.renderNavSection(ctx)
 	})
 
-	contentChild := flex.Rigid(ctx, func(){
+	contentChild := flex.Rigid(ctx, func() {
 
 	})
 
@@ -132,33 +130,31 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 	}
 	helper.PaintArea(ctx, helper.DecredDarkBlueColor, navAreaBounds)
 
-
 	inset := layout.Inset{
-		Top: unit.Sp(0),
-		Left: unit.Sp(0),
-		Right: unit.Px(navSectionWidth),
+		Top:    unit.Sp(0),
+		Left:   unit.Sp(0),
+		Right:  unit.Px(navSectionWidth),
 		Bottom: unit.Px(0),
 	}
-	inset.Layout(ctx, func(){
-		var stack layout.Stack 
+	inset.Layout(ctx, func() {
+		var stack layout.Stack
 		children := make([]layout.StackChild, len(d.pages))
 
 		currentPositionTop := float32(0)
 		navButtonHeight := float32(30)
 
-		
 		for index, page := range d.pages {
-			children[index] = stack.Rigid(ctx, func(){
+			children[index] = stack.Rigid(ctx, func() {
 				inset := layout.Inset{
-					Top: unit.Sp(currentPositionTop),
+					Top:   unit.Sp(currentPositionTop),
 					Right: unit.Dp(navSectionWidth),
-				}	
+				}
 
-				c := ctx.Constraints 
-				ctx.Constraints.Width.Min = 270 
+				c := ctx.Constraints
+				ctx.Constraints.Width.Min = 270
 				ctx.Constraints.Width.Max = 270
 
-				inset.Layout(ctx, func(){
+				inset.Layout(ctx, func() {
 					for page.button.Clicked(ctx) {
 						d.changePage(page.name)
 					}
@@ -168,63 +164,9 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 			})
 			currentPositionTop += navButtonHeight
 		}
-		
+
 		stack.Layout(ctx, children...)
 	})
-
-
-
-	
-
-	/**var stack layout.Stack 
-	children := make([]layout.StackChild, len(d.pages))
-
-	currentPositionTop := float32(0)
-	for index, page := range d.pages {
-		children[index] = stack.Expand(ctx, func(){
-			inset := layout.Inset{
-				Top: unit.Sp(currentPositionTop),
-			}
-	
-			inset.Layout(ctx, func(){
-				for page.button.Clicked(ctx) {
-					d.changePage(page.name)
-				}
-				d.theme.Button(page.label).Layout(ctx, page.button)
-			})
-		})
-		currentPositionTop += 32
-	}
-
-	stack.Layout(ctx, children...)
-
-	//d.theme.Button(d.pages[0].label).Layout(ctx, d.pages[0].button)
-	
-
-	/**var stack layout.Stack 
-	navArea := stack.Rigid(ctx, func(){
-		inset := layout.Inset{
-			Top: unit.Sp(0),
-			Left: unit.Sp(0),
-		}
-		inset.Layout(ctx, func(){
-			currentPositionTop := float32(0)
-			for _, page := range d.pages {
-				inset := layout.Inset{
-					Top: unit.Sp(currentPositionTop),
-					Left: unit.Sp(0),
-				}
-				inset.Layout(ctx, func(){
-					for page.button.Clicked(ctx) {
-						d.changePage(page.name)
-					}
-					d.theme.Button(page.label).Layout(ctx, page.button)
-				})
-				currentPositionTop += 32
-			}
-		})
-	})
-	stack.Layout(ctx, navArea)**/
 }
 
 func (d *Desktop) renderContentSection(ctx *layout.Context) {
@@ -233,46 +175,15 @@ func (d *Desktop) renderContentSection(ctx *layout.Context) {
 		d.currentPage.handler.BeforeRender()
 	}
 
-	var stack layout.Stack 
+	var stack layout.Stack
 
-	/**contentAreaBounds := image.Point{
-		X: windowWidth * 2,
-		Y: windowHeight * 2,
+	inset := layout.Inset{
+		Left: unit.Px(navSectionWidth),
 	}
 
-	helper.PaintArea(ctx, helper.BackgroundColor, contentAreaBounds)**/
-	
-	
+	inset.Layout(ctx, func() {
+		d.currentPage.handler.Render()
+	})
 
 	stack.Layout(ctx)
-
-	/**
-	stack := (&layout.Stack{})
-
-	header := stack.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Top:  unit.Dp(0),
-			Left: unit.Dp(0),
-		}
-		inset.Layout(ctx, func() {
-			//widget.HeadingText(d.currentPage.label, widget.TextAlignLeft, ctx)
-		})
-	})
-
-	headerLine := stack.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Top: unit.Dp(28),
-			Left: unit.Dp(0),
-		}
-
-		inset.Layout(ctx, func(){
-			/**bounds := image.Point{
-				X: windowWidth - 30,
-				Y: 1,
-			}
-			helper.PaintArea(helper.Theme.Brand, bounds, ctx.Ops)*
-		})
-	})
-
-	stack.Layout(ctx, header, headerLine)**/
 }
