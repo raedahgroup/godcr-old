@@ -23,16 +23,10 @@ const pageTitleText = "Receive DCR"
 
 var receiveHandler struct {
 	generatedReceiveAddress string
-	recieveAddressError     error
-
-	generatedQrCode []byte
-	qrcodeError     error
-
-	wallet             *dcrlibwallet.LibWallet
-	accountNumberError error
-
-	accountNumber       uint32
-	selectedAccountName string
+	wallet                  *dcrlibwallet.LibWallet
+	generatedQrCode         []byte
+	accountNumber           uint32
+	selectedAccountName     string
 }
 
 func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
@@ -49,13 +43,14 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	qrImage := widget.NewIcon(theme.FyneLogo())
 	generatedAddressLabel := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	generateAddress := func(generateNewAddress bool) {
-		receiveHandler.accountNumber, receiveHandler.accountNumberError = receiveHandler.wallet.AccountNumber(receiveHandler.selectedAccountName)
-		if receiveHandler.accountNumberError != nil {
-			errorHandler(fmt.Sprintf("Error: %s", receiveHandler.accountNumberError.Error()))
+		accountNumber, err := receiveHandler.wallet.AccountNumber(receiveHandler.selectedAccountName)
+		if err != nil {
+			errorHandler(fmt.Sprintf("Error: %s", err.Error()))
 			return
 		}
 
-		err := generateAddressAndQrCode(generateNewAddress)
+		receiveHandler.accountNumber = accountNumber
+		err = generateAddressAndQrCode(generateNewAddress)
 		if err != nil {
 			errorHandler(fmt.Sprintf("Error: %s", err.Error()))
 			return
@@ -150,7 +145,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			spendableAmountLabel,
 		)
 
-		accountViews := widget.NewHBox(
+		accountsView := widget.NewHBox(
 			widgets.NewHSpacer(15),
 			widget.NewIcon(icons[assets.ReceiveAccountIcon]),
 			widgets.NewHSpacer(15),
@@ -160,7 +155,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			widgets.NewHSpacer(15),
 		)
 
-		accountWidget := widgets.NewClickableBox(accountViews, func() {
+		accountWidget := widgets.NewClickableBox(accountsView, func() {
 			selectedAccountLabel.SetText(accountName)
 			selectedAccountBalanceLabel.SetText(accountBalance)
 			receiveHandler.selectedAccountName = accountName
@@ -264,21 +259,21 @@ func generateAddressAndQrCode(generateNewAddress bool) error {
 		receiveHandler.generatedReceiveAddress = generatedReceiveAddress
 	}
 
-	generatedQrCode, err := generateQrcode(receiveHandler.generatedReceiveAddress)
+	err := generateQrcode()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateQrcode() error {
+	// generate qrcode
+	generatedQrCode, err := qrcode.Encode(receiveHandler.generatedReceiveAddress, qrcode.High, 256)
 	if err != nil {
 		return err
 	}
 
 	receiveHandler.generatedQrCode = generatedQrCode
 	return nil
-}
-
-func generateQrcode(generatedReceiveAddress string) ([]byte, error) {
-	// generate qrcode
-	png, err := qrcode.Encode(generatedReceiveAddress, qrcode.High, 256)
-	if err != nil {
-		return nil, err
-	}
-
-	return png, nil
 }
