@@ -259,21 +259,12 @@ func generateAddressAndQrCode(generateNewAddress bool) error {
 		receiveHandler.generatedReceiveAddress = generatedReceiveAddress
 	}
 
-	err := generateQrcode()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateQrcode() error {
-	// generate qrcode
 	generatedQrCode, err := qrcode.Encode(receiveHandler.generatedReceiveAddress, qrcode.High, 256)
 	if err != nil {
 		return err
 	}
 
 	receiveHandler.generatedQrCode = generatedQrCode
+
 	return nil
 }
