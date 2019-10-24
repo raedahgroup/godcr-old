@@ -150,9 +150,9 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			spendableAmountLabel,
 		)
 
-		var checkmarkIcon fyne.Resource
+		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
 		if index == 0 {
-			checkmarkIcon = theme.ConfirmIcon()
+			checkmarkIcon.Hide()
 		}
 
 		accountViews := widget.NewHBox(
@@ -177,13 +177,15 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 						continue
 					}
 
-					if box.Children[7].(*widget.Icon).Resource != nil {
-						box.Children[7].(*widget.Icon).Resource = nil
+					if icon, ok := box.Children[7].(*widget.Icon); !ok {
+						continue
+					} else {
+						icon.Hide()
 					}
-					fmt.Println(box.Children[7].(*widget.Icon).Resource)
 				}
 			}
 
+			checkmarkIcon.Show()
 			selectedAccountLabel.SetText(accountName)
 			selectedAccountBalanceLabel.SetText(accountBalance)
 			receiveHandler.selectedAccountName = accountName
@@ -289,39 +291,3 @@ func generateQrcode(generatedReceiveAddress string) ([]byte, error) {
 
 	return png, nil
 }
-
-// spendableLabel := canvas.NewText("Spendable", color.Black)
-// 		spendableLabel.TextSize = 12
-// 		spendableLabel.Alignment = fyne.TextAlignLeading
-
-// 		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.Black)
-// 		spendableAmountLabel.TextSize = 12
-// 		spendableAmountLabel.Alignment = fyne.TextAlignCenter
-
-// 		accountName := account.Name
-// 		accountNameBox := widget.NewVBox(
-// 			widget.NewLabel(accountName),
-// 			spendableLabel,
-// 		)
-
-// 		accountBalance := dcrutil.Amount(account.Balance.Total).String()
-// 		accountBalanceBox := widget.NewVBox(
-// 			widget.NewLabel(accountBalance),
-// 			spendableAmountLabel,
-// 		)
-
-// 		var checkmarkIcon fyne.Resource
-// 		if index == 0 {
-// 			checkmarkIcon = theme.ConfirmIcon()
-// 		}
-// 		accountViews := widget.NewHBox(
-// 			widgets.NewHSpacer(15),
-// 			widget.NewIcon(icons[assets.ReceiveAccountIcon]),
-// 			widgets.NewHSpacer(15),
-// 			accountNameBox,
-// 			widgets.NewHSpacer(15),
-// 			accountBalanceBox,
-// 			widgets.NewHSpacer(15),
-// 			widget.NewIcon(checkmarkIcon),
-// 			widgets.NewHSpacer(15),
-// 		)
