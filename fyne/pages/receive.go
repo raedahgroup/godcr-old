@@ -163,7 +163,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			widgets.NewHSpacer(15),
 			accountBalanceBox,
 			widgets.NewHSpacer(15),
-			widget.NewIcon(checkmarkIcon),
+			checkmarkIcon,
 			widgets.NewHSpacer(15),
 		)
 
