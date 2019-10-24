@@ -125,7 +125,7 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	var accountSelectionPopup *widget.PopUp
 	accountsBox := widget.NewVBox()
 
-	for index, account := range accounts.Acc {
+	for _, account := range accounts.Acc {
 		if account.Name == "imported" {
 			continue
 		}
@@ -150,11 +150,6 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			spendableAmountLabel,
 		)
 
-		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
-		if index == 0 {
-			checkmarkIcon.Hide()
-		}
-
 		accountViews := widget.NewHBox(
 			widgets.NewHSpacer(15),
 			widget.NewIcon(icons[assets.ReceiveAccountIcon]),
@@ -163,53 +158,49 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 			widgets.NewHSpacer(15),
 			accountBalanceBox,
 			widgets.NewHSpacer(15),
-			checkmarkIcon,
-			widgets.NewHSpacer(15),
 		)
 
 		accountWidget := widgets.NewClickableBox(accountViews, func() {
-			// hide checkmark icon of other accounts
-			for _, children := range accountsBox.Children {
-				if box, ok := children.(*widgets.ClickableBox); !ok {
-					continue
-				} else {
-					if len(box.Children) != 8 {
-						continue
-					}
-
-					if icon, ok := box.Children[7].(*widget.Icon); !ok {
-						continue
-					} else {
-						icon.Hide()
-					}
-				}
-			}
-
-			checkmarkIcon.Show()
 			selectedAccountLabel.SetText(accountName)
 			selectedAccountBalanceLabel.SetText(accountBalance)
 			receiveHandler.selectedAccountName = accountName
 			generateAddress(false)
-			widget.Refresh(accountViews)
 			accountSelectionPopup.Hide()
 		})
 
 		accountsBox.Append(accountWidget)
 	}
 
-	hidePopUp := widget.NewHBox(widgets.NewHSpacer(16),
+	hidePopUp := widget.NewHBox(
+		widgets.NewHSpacer(16),
 		widgets.NewClickableIcon(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
-		widgets.NewHSpacer(16), widget.NewLabelWithStyle("Receiving account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer())
+		widgets.NewHSpacer(16),
+		widget.NewLabelWithStyle("Receiving account", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		layout.NewSpacer(),
+	)
 
 	// accountSelectionPopup create a popup that has account names with spendable amount
-	accountSelectionPopup = widget.NewPopUp(widget.NewVBox(
-		widgets.NewVSpacer(5), hidePopUp, widgets.NewVSpacer(5), canvas.NewLine(color.Black), accountsBox),
-		window.Canvas())
+	accountSelectionPopup = widget.NewPopUp(
+		widget.NewVBox(
+			widgets.NewVSpacer(5),
+			hidePopUp,
+			widgets.NewVSpacer(5),
+			canvas.NewLine(color.Black),
+			accountsBox,
+		), window.Canvas(),
+	)
 	accountSelectionPopup.Hide()
 
 	// accountTab shows the selected account
-	accountTab := widget.NewHBox(widget.NewIcon(icons[assets.ReceiveAccountIcon]), widgets.NewHSpacer(16),
-		selectedAccountLabel, widgets.NewHSpacer(76), selectedAccountBalanceLabel, widgets.NewHSpacer(8), widget.NewIcon(icons[assets.CollapseIcon]))
+	accountTab := widget.NewHBox(
+		widget.NewIcon(icons[assets.ReceiveAccountIcon]),
+		widgets.NewHSpacer(16),
+		selectedAccountLabel,
+		widgets.NewHSpacer(76),
+		selectedAccountBalanceLabel,
+		widgets.NewHSpacer(8),
+		widget.NewIcon(icons[assets.CollapseIcon]),
+	)
 
 	var accountDropdown *widgets.ClickableBox
 	accountDropdown = widgets.NewClickableBox(accountTab, func() {
