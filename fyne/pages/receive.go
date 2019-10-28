@@ -52,31 +52,31 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
 		gotItLabel.TextSize = 16
 
-		var popup *widget.PopUp
-		popup = widget.NewPopUp(widget.NewVBox(
+		var receivingDecredHintLabelPopUp *widget.PopUp
+		receivingDecredHintLabelPopUp = widget.NewPopUp(widget.NewVBox(
 			widgets.NewVSpacer(14),
 			widget.NewHBox(widgets.NewHSpacer(14), widget.NewLabelWithStyle(pageTitleText, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 			widgets.NewVSpacer(5),
 			widget.NewHBox(widgets.NewHSpacer(14), receivingDecredHintLabel, widgets.NewHSpacer(14)),
 			widgets.NewVSpacer(10),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { popup.Hide() }), widgets.NewHSpacer(14)),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { receivingDecredHintLabelPopUp.Hide() }), widgets.NewHSpacer(14)),
 			widgets.NewVSpacer(14),
 		), window.Canvas())
 
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
+		receivingDecredHintLabelPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
 	})
 
 	// generate new address pop-up
 	var clickableMoreIcon *widgets.ClickableIcon
 	clickableMoreIcon = widgets.NewClickableIcon(icons[assets.MoreIcon], nil, func() {
-		var popup *widget.PopUp
-		popup = widget.NewPopUp(widgets.NewClickableBox(widget.NewHBox(widget.NewLabel("Generate new address")), func() {
+		var generateNewAddressPopup *widget.PopUp
+		generateNewAddressPopup = widget.NewPopUp(widgets.NewClickableBox(widget.NewHBox(widget.NewLabel("Generate new address")), func() {
 			generateAddressAndQrCode(true)
-			popup.Hide()
+			generateNewAddressPopup.Hide()
 		}), window.Canvas())
 
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableMoreIcon).Add(fyne.NewPos(0, clickableMoreIcon.Size().Height)))
-		popup.Show()
+		generateNewAddressPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableMoreIcon).Add(fyne.NewPos(0, clickableMoreIcon.Size().Height)))
+		generateNewAddressPopup.Show()
 	})
 
 	// get user accounts
@@ -162,9 +162,9 @@ func ReceivePageContent(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabme
 	// accountTab shows the selected account
 	accountTab := widget.NewHBox(
 		widget.NewIcon(icons[assets.ReceiveAccountIcon]),
-		widgets.NewHSpacer(16),
+		widgets.NewHSpacer(15),
 		selectedAccountLabel,
-		widgets.NewHSpacer(76),
+		widgets.NewHSpacer(30),
 		selectedAccountBalanceLabel,
 		widgets.NewHSpacer(8),
 		widget.NewIcon(icons[assets.CollapseIcon]),
