@@ -11,30 +11,12 @@ import (
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
-	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-type AppInterface struct {
-	Log            slog.Logger
-	Dcrlw          *dcrlibwallet.LibWallet
-	Window         fyne.Window
-	AppDisplayName string
-
-	tabMenu *widget.TabContainer
-}
-
-func ShowCreateAndRestoreWalletPage(dcrlw *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer, log slog.Logger) {
-	var app = AppInterface{
-		Log:            log,
-		Dcrlw:          dcrlw,
-		Window:         window,
-		AppDisplayName: "GoDCR",
-		tabMenu:        tabmenu,
-	}
-
+func (app *AppInterface) ShowCreateAndRestoreWalletPage() {
 	app.Window.SetContent(app.createAndRestoreWalletPage())
 	app.Window.CenterOnScreen()
 	app.Window.Resize(fyne.NewSize(370, 626))
@@ -46,7 +28,7 @@ func ShowCreateAndRestoreWalletPage(dcrlw *dcrlibwallet.LibWallet, window fyne.W
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 	icons, err := assets.Get(assets.DecredLogo, assets.Restore, assets.Add)
 	if err != nil {
-		return app.DisplayLaunchErrorAndExit(err.Error())
+		return app.displayErrorPage(err.Error())
 	}
 
 	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
@@ -118,7 +100,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 
 	icons, err := assets.Get(assets.Checkmark, assets.Back)
 	if err != nil {
-		return app.DisplayLaunchErrorAndExit(err.Error())
+		return app.displayErrorPage(err.Error())
 	}
 
 	var textbox = make([]*widget.Entry, 33)
@@ -250,16 +232,4 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		widgets.NewVSpacer(10),
 		buttonContainer,
 		widgets.NewVSpacer(10)), widgets.NewHSpacer(10))
-}
-
-// DisplayLaunchErrorAndExit displays the error message to users.
-func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) fyne.CanvasObject {
-	return widget.NewVBox(
-		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
-
-		widget.NewHBox(
-			layout.NewSpacer(),
-			widget.NewButton("Exit", app.Window.Close), // closing the window will trigger app.tearDown()
-			layout.NewSpacer(),
-		))
 }

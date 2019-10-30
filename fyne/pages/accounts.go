@@ -5,6 +5,6 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-func AccountsPageContent() fyne.CanvasObject {
+func accountsPageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("Accounts", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }

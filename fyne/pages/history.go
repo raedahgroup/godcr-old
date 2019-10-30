@@ -5,6 +5,6 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-func HistoryPageContent() fyne.CanvasObject {
+func historyPageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("History", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }
