@@ -5,16 +5,15 @@ import (
 	"image/color"
 	"log"
 
+	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
-	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (app *AppInterface) createSpendingPasswordPopup(seed string) {
@@ -47,7 +46,7 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 
 	icons, err := assets.Get(assets.Reveal, assets.Conceal, assets.Loader)
 	if err != nil {
-		return app.DisplayLaunchErrorAndExit(err.Error())
+		return app.displayErrorPage(err.Error())
 	}
 
 	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 255})
@@ -139,12 +138,8 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 		popup.Hide()
 		app.Window.SetFixedSize(false)
 		app.Window.SetOnClosed(nil)
+		app.setupNavigationMenu()
 		app.Window.SetContent(app.tabMenu)
-		app.tabMenu.CreateRenderer().ApplyTheme()
-		// apparently tabMenu was initialized in fyne.go line 57,
-		// this sets theme of tabmenu to default black
-		// resetting theme to light theme when tabmenu is in view fixes the font.
-		fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	})
 
 	createButton.Disable()

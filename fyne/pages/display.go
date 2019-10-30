@@ -1,4 +1,4 @@
-package fyne
+package pages
 
 import (
 	"fmt"
@@ -9,38 +9,64 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
+	"github.com/decred/slog"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages"
 )
 
-func (app *fyneApp) displayLaunchErrorAndExit(errorMessage string) {
-	app.window.SetContent(widget.NewVBox(
+type AppInterface struct {
+	Log            slog.Logger
+	Dcrlw          *dcrlibwallet.LibWallet
+	Window         fyne.Window
+	AppDisplayName string
+
+	tabMenu *widget.TabContainer
+}
+
+// DisplayLaunchErrorAndExit should only be used if ShowAndRun has already been called and it is not been return to a tabitem.
+func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
+	app.Window.SetContent(widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
 
 		widget.NewHBox(
 			layout.NewSpacer(),
-			widget.NewButton("Exit", app.window.Close), // closing the window will trigger app.tearDown()
+			widget.NewButton("Exit", app.tearDown), // closing the window will trigger app.tearDown()
 			layout.NewSpacer(),
 		),
 	))
-	app.window.ShowAndRun()
+	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
 }
 
-func (app *fyneApp) displayMainWindow() {
+func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject {
+	return widget.NewVBox(
+		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
+
+		widget.NewHBox(
+			layout.NewSpacer(),
+			widget.NewButton("Exit", func() {
+				app.tearDown()
+				os.Exit(1)
+			}),
+			layout.NewSpacer(),
+		),
+	)
+}
+
+func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
-	app.window.SetContent(app.tabMenu)
-	app.window.CenterOnScreen()
-	app.window.ShowAndRun()
+	app.Window.SetContent(app.tabMenu)
+	app.Window.CenterOnScreen()
+	app.Window.ShowAndRun()
 	app.tearDown()
 }
 
-func (app *fyneApp) setupNavigationMenu() {
+func (app *AppInterface) setupNavigationMenu() {
 	icons, err := assets.Get(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
 		assets.ReceiveIcon, assets.AccountsIcon, assets.StakingIcon)
 	if err != nil {
-		app.displayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
+		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
 	}
 
@@ -77,17 +103,17 @@ func (app *fyneApp) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = pages.OverviewPageContent()
+				newPageContent = overviewPageContent()
 			case 1:
-				newPageContent = pages.HistoryPageContent()
+				newPageContent = historyPageContent()
 			case 2:
-				newPageContent = pages.SendPageContent()
+				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = pages.ReceivePageContent()
+				newPageContent = receivePageContent()
 			case 4:
-				newPageContent = pages.AccountsPageContent()
+				newPageContent = accountsPageContent()
 			case 5:
-				newPageContent = pages.StakingPageContent()
+				newPageContent = stakingPageContent()
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
@@ -96,4 +122,19 @@ func (app *fyneApp) setupNavigationMenu() {
 			}
 		}
 	}()
+
+	err = app.Dcrlw.SpvSync("") // todo dcrlibwallet should ideally read this parameter from config
+	if err != nil {
+		errorMessage := fmt.Sprintf("Spv sync attempt failed: %v", err)
+		app.Log.Errorf(errorMessage)
+		app.DisplayLaunchErrorAndExit(errorMessage)
+		return
+	}
+}
+
+func (app *AppInterface) tearDown() {
+	if app.Dcrlw != nil {
+		app.Dcrlw.Shutdown()
+	}
+	fyne.CurrentApp().Quit()
 }
