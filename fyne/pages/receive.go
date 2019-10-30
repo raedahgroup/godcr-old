@@ -18,20 +18,9 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-// var receivePageDataHandler struct {
-// selectedAccountName     string
-// generatedReceiveAddress string
-// receiveAddressError     error
-// wallet                  *dcrlibwallet.LibWallet
-// generatedAddressLabel   *widget.Label
-// errorLabel              *widget.Label
-// qrImage                 *widget.Icon
-// }
 var generatedReceiveAddress string
 
 func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
-	// receivePageDataHandler.wallet = wallet
-
 	// error handler
 	var errorLabel *widget.Label
 	errorLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -193,7 +182,6 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 			clipboard.SetContent(generatedReceiveAddress)
 
 			accountCopiedLabel.Show()
-			widget.Refresh(accountCopiedLabel)
 
 			// only hide accountCopiedLabel text if user is currently on the page after 2secs
 			if accountCopiedLabel.Hidden == false {
