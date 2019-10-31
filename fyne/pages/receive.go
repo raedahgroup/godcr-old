@@ -18,8 +18,6 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-var generatedReceiveAddress string
-
 func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
 	// error handler
 	var errorLabel *widget.Label
@@ -60,13 +58,15 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 		receivingDecredHintLabelPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
 	})
 
-	// generate new address pop-up
 	var selectedAccountName string
+	var generatedReceiveAddress string
+
+	// generate new address pop-up
 	var clickableMoreIcon *widgets.ClickableIcon
 	clickableMoreIcon = widgets.NewClickableIcon(icons[assets.MoreIcon], nil, func() {
 		var generateNewAddressPopup *widget.PopUp
 		generateNewAddressPopup = widget.NewPopUp(widgets.NewClickableBox(widget.NewHBox(widget.NewLabel("Generate new address")), func() {
-			generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, true)
+			generatedReceiveAddress = generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, true)
 			generateNewAddressPopup.Hide()
 		}), window.Canvas())
 
@@ -84,12 +84,12 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	selectedAccountName = accounts.Acc[0].Name
 	selectedAccountLabel := widget.NewLabel(selectedAccountName)
 	selectedAccountBalanceLabel := widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
-	generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
+	generatedReceiveAddress = generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
 
 	var accountSelectionPopup *widget.PopUp
 	accountListWidget := widget.NewVBox()
 
-	for _, account := range accounts.Acc {
+	for i, account := range accounts.Acc {
 		if account.Name == "imported" {
 			continue
 		}
@@ -114,6 +114,11 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 			spendableAmountLabel,
 		)
 
+		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
+		if i != 0 {
+			checkmarkIcon.Hide()
+		}
+
 		accountsView := widget.NewHBox(
 			widgets.NewHSpacer(15),
 			widget.NewIcon(icons[assets.ReceiveAccountIcon]),
@@ -122,13 +127,33 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 			widgets.NewHSpacer(20),
 			accountBalanceBox,
 			widgets.NewHSpacer(15),
+			checkmarkIcon,
+			widgets.NewHSpacer(15),
 		)
 
 		accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
+			// hide checkmark icon of other accounts
+			for _, children := range accountListWidget.Children {
+				if box, ok := children.(*widgets.ClickableBox); !ok {
+					continue
+				} else {
+					if len(box.Children) != 9 {
+						continue
+					}
+
+					if icon, ok := box.Children[7].(*widget.Icon); !ok {
+						continue
+					} else {
+						icon.Hide()
+					}
+				}
+			}
+
+			checkmarkIcon.Show()
 			selectedAccountLabel.SetText(accountName)
 			selectedAccountBalanceLabel.SetText(accountBalance)
 			selectedAccountName = accountName
-			generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
+			generatedReceiveAddress = generateAddressAndQrCode(wallet, qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
 			accountSelectionPopup.Hide()
 		}))
 	}
@@ -211,33 +236,36 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	return widget.NewHBox(widgets.NewHSpacer(18), output)
 }
 
-func generateAddressAndQrCode(wallet *dcrlibwallet.LibWallet, qrImage *widget.Icon, selectedAccountName string, generatedAddressLabel, errorLabel *widget.Label, generateNewAddress bool) {
+func generateAddressAndQrCode(wallet *dcrlibwallet.LibWallet, qrImage *widget.Icon, selectedAccountName string, generatedAddressLabel, errorLabel *widget.Label, generateNewAddress bool) string {
 	accountNumber, err := wallet.AccountNumber(selectedAccountName)
 	if err != nil {
 		errorHandler(fmt.Sprintf("Error: %s", err.Error()), errorLabel)
-		return
+		return ""
 	}
 
 	var receiveAddressError error
+	var generatedAddress string
 	if generateNewAddress {
-		generatedReceiveAddress, receiveAddressError = wallet.NextAddress(int32(accountNumber))
+		generatedAddress, receiveAddressError = wallet.NextAddress(int32(accountNumber))
 	} else {
-		generatedReceiveAddress, receiveAddressError = wallet.CurrentAddress(int32(accountNumber))
+		generatedAddress, receiveAddressError = wallet.CurrentAddress(int32(accountNumber))
 	}
 
 	if receiveAddressError != nil {
 		errorHandler(fmt.Sprintf("Error: %s", receiveAddressError.Error()), errorLabel)
-		return
+		return ""
 	}
 
 	widget.Refresh(generatedAddressLabel)
-	generateQrCode(qrImage, errorLabel, generatedReceiveAddress)
-	generatedAddressLabel.SetText(generatedReceiveAddress)
+	generateQrCode(qrImage, errorLabel, generatedAddress)
+	generatedAddressLabel.SetText(generatedAddress)
 
 	// If there was a rectified error and user clicks the generate address button again, this hides the error text.
 	if !errorLabel.Hidden {
 		errorLabel.Hide()
 	}
+
+	return generatedAddress
 }
 
 func generateQrCode(qrImage *widget.Icon, errorLabel *widget.Label, generatedAddress string) {
