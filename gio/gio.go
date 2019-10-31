@@ -1,6 +1,7 @@
 package gio
 
 import (
+	"context"
 	"image"
 	"log"
 
@@ -9,7 +10,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/unit"
 
-	//"gioui.org/widget"
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
@@ -19,10 +21,15 @@ type (
 	Desktop struct {
 		window      *gioapp.Window
 		pages       []page
-		currentPage *page
+		currentPage string
 		pageChanged bool
 
 		theme *helper.Theme
+
+		syncer *Syncer
+
+		walletMiddleware app.WalletMiddleware
+		settings         *config.Settings
 	}
 )
 
@@ -34,9 +41,15 @@ const (
 	navSectionWidth = 120
 )
 
-func LaunchApp() {
+func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) {
+	theme := helper.NewTheme()
+
 	desktop := &Desktop{
-		theme: helper.NewTheme(),
+		theme:            theme,
+		walletMiddleware: walletMiddleware,
+		settings:         settings,
+		syncer:           NewSyncer(theme),
+		currentPage:      "overview",
 	}
 	desktop.prepareHandlers()
 
@@ -50,6 +63,9 @@ func LaunchApp() {
 			log.Fatal(err)
 		}
 	}()
+
+	// start syncing in background
+	go desktop.syncer.startSyncing(walletMiddleware, desktop.refreshWindow)
 
 	gioapp.Main()
 }
@@ -68,17 +84,13 @@ func (d *Desktop) prepareHandlers() {
 }
 
 func (d *Desktop) changePage(pageName string) {
-	if d.currentPage != nil && d.currentPage.name == pageName {
-		return
-	}
-
-	if d.currentPage != nil && d.currentPage.name == pageName {
+	if d.currentPage == pageName {
 		return
 	}
 
 	for _, page := range d.pages {
 		if page.name == pageName {
-			d.currentPage = &page
+			d.currentPage = page.name
 			d.pageChanged = true
 			break
 		}
@@ -105,9 +117,27 @@ func (d *Desktop) renderLoop() error {
 }
 
 func (d *Desktop) render(ctx *layout.Context) {
-	ctx.Constraints.Width.Min = 0
-	ctx.Constraints.Height.Min = 0
+	var page page
+	for i := range d.pages {
+		if d.pages[i].name == d.currentPage {
+			page = d.pages[i]
+			break
+		}
+	}
 
+	if d.pageChanged {
+		d.pageChanged = false
+		page.handler.BeforeRender(d.walletMiddleware, d.settings)
+	}
+
+	if page.isNavPage {
+		d.renderNavPage(page, ctx)
+	} else {
+		d.renderStandalonePage(page, ctx)
+	}
+}
+
+func (d *Desktop) renderNavPage(page page, ctx *layout.Context) {
 	flex := layout.Flex{
 		Axis: layout.Horizontal,
 	}
@@ -117,10 +147,14 @@ func (d *Desktop) render(ctx *layout.Context) {
 	})
 
 	contentChild := flex.Rigid(ctx, func() {
-
+		d.renderContentSection(page, ctx)
 	})
 
 	flex.Layout(ctx, navChild, contentChild)
+}
+
+func (d *Desktop) renderStandalonePage(page page, ctx *layout.Context) {
+	page.handler.Render(ctx, d.refreshWindow)
 }
 
 func (d *Desktop) renderNavSection(ctx *layout.Context) {
@@ -131,10 +165,8 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 	helper.PaintArea(ctx, helper.DecredDarkBlueColor, navAreaBounds)
 
 	inset := layout.Inset{
-		Top:    unit.Sp(0),
-		Left:   unit.Sp(0),
-		Right:  unit.Px(navSectionWidth),
-		Bottom: unit.Px(0),
+		Top:  unit.Sp(0),
+		Left: unit.Sp(0),
 	}
 	inset.Layout(ctx, func() {
 		var stack layout.Stack
@@ -169,21 +201,21 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 	})
 }
 
-func (d *Desktop) renderContentSection(ctx *layout.Context) {
-	if d.pageChanged {
-		d.pageChanged = false
-		d.currentPage.handler.BeforeRender()
-	}
-
-	var stack layout.Stack
-
+func (d *Desktop) renderContentSection(page page, ctx *layout.Context) {
 	inset := layout.Inset{
-		Left: unit.Px(navSectionWidth),
+		Left: unit.Dp(-113),
+		Top:  unit.Dp(7),
 	}
 
 	inset.Layout(ctx, func() {
-		d.currentPage.handler.Render()
+		if d.syncer.isDoneSyncing() {
+			page.handler.Render(ctx, d.refreshWindow)
+		} else {
+			d.syncer.Render(ctx)
+		}
 	})
+}
 
-	stack.Layout(ctx)
+func (d *Desktop) refreshWindow() {
+	d.window.Invalidate()
 }

@@ -2,22 +2,24 @@ package gio
 
 import (
 	"github.com/raedahgroup/godcr/gio/handlers"
-	//"github.com/raedahgroup/godcr/gio/helper"
 	"gioui.org/widget"
+	"gioui.org/layout"
 	
-
+	"github.com/raedahgroup/godcr/app"
+	"github.com/raedahgroup/godcr/app/config"
 )
 
 type handler interface {
-	BeforeRender()
-	Render()
+	BeforeRender(app.WalletMiddleware, *config.Settings)
+	Render(ctx *layout.Context, refreshWindowFunc func())
 }
 
 type page struct {
-	name    string
-	label   string
-	button *widget.Button
-	handler handler
+	name     string
+	label    string
+	button   *widget.Button
+	isNavPage bool
+	handler   handler
 }
 
 func getPages() []page {
@@ -25,43 +27,50 @@ func getPages() []page {
 		{
 			name:    "overview",
 			label:   "Overview",
-			button: new(widget.Button),
+			button:   new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "history",
 			label:   "History",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "send",
 			label:   "Send",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "receive",
 			label:   "Receive",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "staking",
 			label:   "Staking",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "security",
 			label:   "Security",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 		{
 			name:    "settings",
 			label:   "Settings",
 			button: new(widget.Button),
+			isNavPage: true,
 			handler: handlers.NewOverviewHandler(),
 		},
 	}
