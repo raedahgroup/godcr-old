@@ -33,7 +33,7 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	generatedAddressLabel = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
 	const pageTitleText = "Receive DCR"
-	const receivingDecredHint = "Each time you request a payment, a new \naddress is created to protect your privacy."
+	const receivingDecredHint = "Each time you request a \npayment, a new address is \ncreated to protect your \nprivacy."
 
 	// get icons used on the page.
 	icons, err := assets.GetIcons(assets.CollapseIcon, assets.ReceiveAccountIcon, assets.MoreIcon, assets.InfoIcon)
