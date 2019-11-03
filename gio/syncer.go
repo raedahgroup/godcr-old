@@ -2,14 +2,15 @@ package gio
 
 import (
 	"fmt"
+
 	"gioui.org/layout"
 	"gioui.org/unit"
 
 	"github.com/raedahgroup/dcrlibwallet/defaultsynclistener"
 	"github.com/raedahgroup/godcr/app"
 
-	"github.com/raedahgroup/godcr/gio/widgets"
 	"github.com/raedahgroup/godcr/gio/helper"
+	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type Syncer struct {
@@ -19,6 +20,8 @@ type Syncer struct {
 	showDetails        bool
 	status             defaultsynclistener.SyncStatus
 	syncError          error
+
+	informationLabel *widgets.ClickableLabel
 
 	theme *helper.Theme
 }
@@ -30,8 +33,9 @@ func NewSyncer(theme *helper.Theme) *Syncer {
 		report: []string{
 			"Starting...",
 		},
-		showDetails: false,
-		theme: theme,
+		showDetails:      false,
+		theme:            theme,
+		informationLabel: widgets.NewClickableLabel("Tap to view information", widgets.AlignMiddle, theme),
 	}
 }
 
@@ -92,41 +96,52 @@ func (s *Syncer) startSyncing(walletMiddleware app.WalletMiddleware, refreshWind
 	})
 }
 
-
 func (s *Syncer) isDoneSyncing() bool {
 	return s.status == defaultsynclistener.SyncStatusSuccess
-	//return true
 }
 
 func (s *Syncer) Render(ctx *layout.Context) {
-	if s.err != nil {
-		widgets.DisplayErrorText(fmt.Sprintf("Sync failed to start: %s", s.err.Error()), s.theme, ctx)
-	} else {
-		widgets.NewProgressBar(&s.percentageProgress, s.theme, ctx)
+	inset := layout.UniformInset(unit.Dp(10))
+	inset.Layout(ctx, func() {
+		if s.err != nil {
+			widgets.DisplayErrorText(fmt.Sprintf("Sync failed to start: %s", s.err.Error()), s.theme, ctx)
+		} else {
+			widgets.NewProgressBar(&s.percentageProgress, s.theme, ctx)
 
-		if s.showDetails {
-			topInset := float32(27)
-			for _, report := range s.report {
-				inset := layout.Inset{
-					Top: unit.Dp(topInset),
-					Left: unit.Dp(0),
-					Right: unit.Dp(200),
+			nextTopInset := float32(22)
+			if s.showDetails {
+				for _, report := range s.report {
+					inset := layout.Inset{
+						Top: unit.Dp(nextTopInset),
+					}
+
+					inset.Layout(ctx, func() {
+						widgets.CenteredLabel(report, s.theme, ctx)
+					})
+					nextTopInset += float32(widgets.NormalLabelHeight)
+					return
 				}
-
-				inset.Layout(ctx, func(){
-					widgets.AddCenteredLabel(report, s.theme, ctx)
-				})
-				topInset += float32(15)
 			}
-		}
-	}
 
-	if s.syncError != nil {
-		inset := layout.Inset{
-			Top: unit.Dp(30),
+			inset := layout.Inset{
+				Top: unit.Dp(nextTopInset),
+			}
+
+			inset.Layout(ctx, func() {
+				clickFunc := func() {
+					s.showDetails = !s.showDetails
+				}
+				s.informationLabel.Display(clickFunc, ctx)
+			})
 		}
-		inset.Layout(ctx, func(){
-			widgets.DisplayErrorText(fmt.Sprintf("Sync error: %s", s.syncError.Error()), s.theme, ctx)
-		})
-	}
+
+		if s.syncError != nil {
+			inset := layout.Inset{
+				Top: unit.Dp(22),
+			}
+			inset.Layout(ctx, func() {
+				widgets.DisplayErrorText(fmt.Sprintf("Sync error: %s", s.syncError.Error()), s.theme, ctx)
+			})
+		}
+	})
 }

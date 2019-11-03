@@ -1,23 +1,22 @@
 package gio
 
 import (
-	"github.com/raedahgroup/godcr/gio/handlers"
-	"gioui.org/widget"
 	"gioui.org/layout"
-	
-	"github.com/raedahgroup/godcr/app"
+	"gioui.org/widget"
+
 	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/godcr/app/walletcore"
 )
 
 type handler interface {
-	BeforeRender(app.WalletMiddleware, *config.Settings)
+	BeforeRender(walletcore.Wallet, *config.Settings)
 	Render(ctx *layout.Context, refreshWindowFunc func())
 }
 
 type page struct {
-	name     string
-	label    string
-	button   *widget.Button
+	name      string
+	label     string
+	button    *widget.Button
 	isNavPage bool
 	handler   handler
 }
@@ -25,53 +24,65 @@ type page struct {
 func getPages() []page {
 	return []page{
 		{
-			name:    "overview",
-			label:   "Overview",
-			button:   new(widget.Button),
+			name:      "overview",
+			label:     "Overview",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Overview"},
 		},
 		{
-			name:    "history",
-			label:   "History",
-			button: new(widget.Button),
+			name:      "history",
+			label:     "History",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"History"},
 		},
 		{
-			name:    "send",
-			label:   "Send",
-			button: new(widget.Button),
+			name:      "send",
+			label:     "Send",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Send"},
 		},
 		{
-			name:    "receive",
-			label:   "Receive",
-			button: new(widget.Button),
+			name:      "receive",
+			label:     "Receive",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Receive"},
 		},
 		{
-			name:    "staking",
-			label:   "Staking",
-			button: new(widget.Button),
+			name:      "staking",
+			label:     "Staking",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Staking"},
 		},
 		{
-			name:    "security",
-			label:   "Security",
-			button: new(widget.Button),
+			name:      "security",
+			label:     "Security",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Security"},
 		},
 		{
-			name:    "settings",
-			label:   "Settings",
-			button: new(widget.Button),
+			name:      "settings",
+			label:     "Settings",
+			button:    new(widget.Button),
 			isNavPage: true,
-			handler: handlers.NewOverviewHandler(),
+			handler:   &notImplementedNavPageHandler{"Settings"},
 		},
 	}
+}
+
+type notImplementedNavPageHandler struct {
+	pageTitle string
+}
+
+func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ *config.Settings) {
+
+}
+
+func (p *notImplementedNavPageHandler) Render(_ *layout.Context, _ func()) {
+
 }

@@ -19,22 +19,18 @@ import (
 
 type (
 	Desktop struct {
-		window      *gioapp.Window
-		pages       []page
-		currentPage string
-		pageChanged bool
-
-		theme *helper.Theme
-
-		syncer *Syncer
-
+		window           *gioapp.Window
+		pages            []page
+		currentPage      string
+		pageChanged      bool
+		theme            *helper.Theme
+		syncer           *Syncer
 		walletMiddleware app.WalletMiddleware
 		settings         *config.Settings
 	}
 )
 
 const (
-	appName      = "GoDcr"
 	windowWidth  = 550
 	windowHeight = 450
 
@@ -56,7 +52,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, setti
 	go func() {
 		desktop.window = gioapp.NewWindow(
 			gioapp.Size(unit.Px(windowWidth), unit.Px(windowHeight)),
-			gioapp.Title("GoDcr"),
+			gioapp.Title(app.DisplayName),
 		)
 
 		if err := desktop.renderLoop(); err != nil {
@@ -67,6 +63,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, setti
 	// start syncing in background
 	go desktop.syncer.startSyncing(walletMiddleware, desktop.refreshWindow)
 
+	// run app
 	gioapp.Main()
 }
 
@@ -203,8 +200,9 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 
 func (d *Desktop) renderContentSection(page page, ctx *layout.Context) {
 	inset := layout.Inset{
-		Left: unit.Dp(-113),
-		Top:  unit.Dp(7),
+		Left:  unit.Dp(-113),
+		Right: unit.Dp(10),
+		Top:   unit.Dp(8),
 	}
 
 	inset.Layout(ctx, func() {
