@@ -1,4 +1,4 @@
-package fyne
+package assets
 
 import (
 	"math/rand"
@@ -8,8 +8,8 @@ import (
 func TestGetIcons(t *testing.T) {
 	t.Run("given icons that exist in the assets directory, maps each one to a fyne static resource", func(t *testing.T) {
 		iconNames := []string{
-			accountsIcon, historyIcon, overviewIcon, receiveIcon, sendIcon, stakeIcon}
-		icons, err := getIcons(iconNames...)
+			AccountsIcon, HistoryIcon, OverviewIcon, ReceiveIcon, SendIcon, StakeIcon}
+		icons, err := GetIcons(iconNames...)
 		if err != nil {
 			t.Errorf("getIcons returned an error for icons in the assets directory: %v", err)
 			t.FailNow()
@@ -26,7 +26,7 @@ func TestGetIcons(t *testing.T) {
 	})
 	t.Run("returns an error for icons that do not exist in the assets directory", func(t *testing.T) {
 		iconNames := []string{"not_existing.png", "deleted.png"}
-		_, err := getIcons(iconNames...)
+		_, err := GetIcons(iconNames...)
 		if err == nil {
 			t.Errorf("expected an error for icon names %v, got nil", iconNames)
 		}
