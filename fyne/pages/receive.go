@@ -89,33 +89,37 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	var accountSelectionPopup *widget.PopUp
 	accountListWidget := widget.NewVBox()
 
-	for i, account := range accounts.Acc {
+	for index, account := range accounts.Acc {
 		if account.Name == "imported" {
 			continue
 		}
 
 		spendableLabel := canvas.NewText("Spendable", color.White)
 		spendableLabel.TextSize = 10
-		spendableLabel.Alignment = fyne.TextAlignCenter
+		spendableLabel.Alignment = fyne.TextAlignLeading
 
 		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.White)
 		spendableAmountLabel.TextSize = 10
-		spendableAmountLabel.Alignment = fyne.TextAlignCenter
+		spendableAmountLabel.Alignment = fyne.TextAlignTrailing
 
 		accountName := account.Name
+		accountNameLabel := widget.NewLabel(accountName)
+		accountNameLabel.Alignment = fyne.TextAlignLeading
 		accountNameBox := widget.NewVBox(
-			widget.NewLabel(accountName),
+			accountNameLabel,
 			spendableLabel,
 		)
 
 		accountBalance := dcrutil.Amount(account.Balance.Total).String()
+		accountBalanceLabel := widget.NewLabel(accountBalance)
+		accountBalanceLabel.Alignment = fyne.TextAlignTrailing
 		accountBalanceBox := widget.NewVBox(
-			widget.NewLabel(accountBalance),
+			accountBalanceLabel,
 			spendableAmountLabel,
 		)
 
 		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
-		if i != 0 {
+		if index != 0 {
 			checkmarkIcon.Hide()
 		}
 
@@ -126,7 +130,7 @@ func ReceivePageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 			accountNameBox,
 			widgets.NewHSpacer(20),
 			accountBalanceBox,
-			widgets.NewHSpacer(15),
+			widgets.NewHSpacer(30),
 			checkmarkIcon,
 			widgets.NewHSpacer(15),
 		)
