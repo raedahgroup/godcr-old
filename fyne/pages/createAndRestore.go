@@ -33,60 +33,60 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 	}
 
 	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
-	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
-
 	greenBar.SetMinSize(fyne.NewSize(312, 56))
+
+	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
 	blueBar.SetMinSize(fyne.NewSize(312, 56))
 
-	restoreLabel := canvas.NewText("Restore an existing wallet", color.White)
-	createLabel := canvas.NewText("Create a new wallet", color.White)
+	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)
+	createWalletLabel := canvas.NewText("Create a new wallet", color.White)
 
-	createWallet := widgets.NewClickableBox(widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Add]), widgets.NewHSpacer(16), createLabel))),
+	createWalletWidget := widgets.NewClickableBox(
+		widget.NewVBox(
+			fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
+				fyne.NewContainerWithLayout(
+					layout.NewHBoxLayout(),
+					widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Add]), widgets.NewHSpacer(16), createWalletLabel))),
 		func() {
 			app.createSpendingPasswordPopup("")
 		})
 
-	restoreWallet := widgets.NewClickableBox(widget.NewVBox(
+	restoreWalletWidget := widgets.NewClickableBox(widget.NewVBox(
 		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), greenBar,
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Restore]), widgets.NewHSpacer(16), restoreLabel))),
+				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Restore]), widgets.NewHSpacer(16), restoreWalletLabel))),
 		func() {
 			app.Window.SetContent(app.restoreWalletPage())
 		})
 
-	image := canvas.NewImageFromResource(icons[assets.DecredLogo])
-	image.FillMode = canvas.ImageFillOriginal
+	decredLogo := canvas.NewImageFromResource(icons[assets.DecredLogo])
+	decredLogo.FillMode = canvas.ImageFillOriginal
 
 	createAndRestoreButtons := widget.NewVBox(
-		fyne.NewContainerWithLayout(
-			layout.NewFixedGridLayout(fyne.NewSize(308, 56)), createWallet),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(308, 56)), createWalletWidget),
 		widgets.NewVSpacer(5),
-		fyne.NewContainerWithLayout(
-			layout.NewFixedGridLayout(fyne.NewSize(308, 56)), restoreWallet))
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(308, 56)), restoreWalletWidget))
 
 	// canvas doesnt support escaping characters therefore the hack
-	godcrLabel := canvas.NewText("Welcome to", color.Black)
-	godcrText := canvas.NewText("GoDCR", color.Black)
+	welcomeLabel := canvas.NewText("Welcome to", color.Black)
+	welcomeLabel.Alignment = fyne.TextAlignLeading
+	welcomeLabel.TextSize = 24
 
-	godcrText.Alignment = fyne.TextAlignLeading
-	godcrText.TextSize = 24
+	godcrLabel := canvas.NewText("GoDCR", color.Black)
 	godcrLabel.Alignment = fyne.TextAlignLeading
 	godcrLabel.TextSize = 24
 
-	page := widget.NewVBox(
+	createRestorePage := widget.NewVBox(
 		widgets.NewVSpacer(24),
-		widget.NewHBox(image, layout.NewSpacer()),
+		widget.NewHBox(decredLogo, layout.NewSpacer()),
 		widgets.NewVSpacer(24),
+		welcomeLabel,
 		godcrLabel,
-		godcrText,
 		layout.NewSpacer(),
 		createAndRestoreButtons,
 		widgets.NewVSpacer(24))
 
-	return widget.NewHBox(widgets.NewHSpacer(24), page)
+	return widget.NewHBox(widgets.NewHSpacer(24), createRestorePage)
 }
 
 func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
@@ -164,7 +164,6 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 				widgets.NewVSpacer(172),
 				widget.NewHBox(layout.NewSpacer(), widget.NewButton("Create a spending password", func() { app.createSpendingPasswordPopup(seed) }),
 					layout.NewSpacer()), widgets.NewVSpacer(16)))
-
 		} else {
 			errorLabel.Show()
 		}
@@ -197,16 +196,17 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 	}
 
 	for i := 0; i < 33; i += 11 {
-		vertical := widget.NewVBox()
+		verticalTextBoxes := widget.NewVBox()
 		for k := i; k < i+11; k++ {
 			number := widget.NewLabel(fmt.Sprintf("%d.", k+1))
 			if k+1 > 9 {
-				vertical.Append(widget.NewHBox(number, layouts[k]))
+				verticalTextBoxes.Append(widget.NewHBox(number, layouts[k]))
 			} else {
-				vertical.Append(widget.NewHBox(widgets.NewHSpacer(5), number, layouts[k]))
+				verticalTextBoxes.Append(widget.NewHBox(widgets.NewHSpacer(5), number, layouts[k]))
 			}
 		}
-		horizontalTextBoxes.Append(vertical)
+
+		horizontalTextBoxes.Append(verticalTextBoxes)
 	}
 
 	backButton := widgets.NewImageButton(icons[assets.Back], nil, func() {

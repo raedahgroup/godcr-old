@@ -27,13 +27,13 @@ type AppInterface struct {
 func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 	app.Window.SetContent(widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
-
 		widget.NewHBox(
 			layout.NewSpacer(),
-			widget.NewButton("Exit", app.tearDown), // closing the window will trigger app.tearDown()
+			widget.NewButton("Exit", app.Window.Close), // closing the window will trigger app.tearDown()
 			layout.NewSpacer(),
 		),
 	))
+
 	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
@@ -42,13 +42,9 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject {
 	return widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
-
 		widget.NewHBox(
 			layout.NewSpacer(),
-			widget.NewButton("Exit", func() {
-				app.tearDown()
-				os.Exit(1)
-			}),
+			widget.NewButton("Exit", app.Window.Close), // closing the window will trigger app.tearDown()
 			layout.NewSpacer(),
 		),
 	)
@@ -65,6 +61,7 @@ func (app *AppInterface) DisplayMainWindow() {
 func (app *AppInterface) setupNavigationMenu() {
 	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
 		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
