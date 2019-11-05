@@ -540,3 +540,93 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		window.Canvas())
 	txDetailsPopUp.Show()
 }
+
+func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window) *widgets.ClickableBox {
+	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
+	var allTxFilters = map[string]int32{
+		"All":         dcrlibwallet.TxFilterAll,
+		"Sent":        dcrlibwallet.TxFilterSent,
+		"Received":    dcrlibwallet.TxFilterReceived,
+		"Transferred": dcrlibwallet.TxFilterTransferred,
+		"Coinbase":    dcrlibwallet.TxFilterCoinBase,
+		"Staking":     dcrlibwallet.TxFilterStaking,
+	}
+
+	txCountForFilter, _ := wallet.CountTransactions(allTxFilters["All"])
+	selectedAccountLabel := widget.NewLabel(fmt.Sprintf("%s (%d)", "All", txCountForFilter))
+
+	activeFiltersWithTxCounts := make(map[int32]int)
+
+	var accountSelectionPopup *widget.PopUp
+	accountListWidget := widget.NewVBox()
+	for _, filterName := range allTxFilterNames {
+		filterId := allTxFilters[filterName]
+		txCountForFilter, _ := wallet.CountTransactions(filterId)
+		// if txCountErr != nil {
+		// 	errorMessage := fmt.Sprintf("Cannot load history page. Error getting transaction count for filter %s: %s",
+		// 		filterName, txCountErr.Error())
+		// 	displayMessage(errorMessage, MessageKindError)
+		// 	return nil
+		// }
+
+		if txCountForFilter > 0 {
+			activeFiltersWithTxCounts[filterId] = txCountForFilter
+			accountsView := widget.NewHBox(
+				widgets.NewHSpacer(5),
+				widget.NewLabel(fmt.Sprintf("%s (%d)", filterName, txCountForFilter)),
+				widgets.NewHSpacer(5),
+			)
+
+			accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
+				selectedAccountLabel.SetText(fmt.Sprintf("%s (%d)", filterName, txCountForFilter))
+				accountSelectionPopup.Hide()
+			}))
+		}
+	}
+
+	// if len(activeFiltersWithTxCounts) == 0 {
+	// 	displayMessage("No transactions yet", MessageKindInfo)
+	// 	return nil
+	// }
+
+	// accountSelectionPopup create a popup that has account names with spendable amount
+	accountSelectionPopup = widget.NewPopUp(
+		widget.NewVBox(
+			accountListWidget,
+		), window.Canvas(),
+	)
+	accountSelectionPopup.Hide()
+
+
+
+	// // dropDown selection change listener
+	// txFilterDropDown.AddDropDown("", txFilterSelectionOptions, 0, func(selectedOption string, index int) {
+	// 	selectedFilterName := strings.Split(selectedOption, " ")[0]
+	// 	selectedFilterId := allTxFilters[selectedFilterName]
+	// 	if selectedFilterId != historyPageData.currentTxFilter {
+	// 		go fetchAndDisplayTransactions(0, selectedFilterId)
+	// 	}
+	// })
+
+	// accountTab shows the selected account
+	icons, _ := assets.GetIcons(assets.CollapseIcon)
+	accountTab := widget.NewHBox(
+		selectedAccountLabel,
+		widgets.NewHSpacer(8),
+		widget.NewIcon(icons[assets.CollapseIcon]),
+	)
+
+	var accountDropdown *widgets.ClickableBox
+	accountDropdown = widgets.NewClickableBox(accountTab, func() {
+		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			accountDropdown).Add(fyne.NewPos(0, accountDropdown.Size().Height)))
+		accountSelectionPopup.Show()
+	})
+
+	return accountDropdown
+}
+
+// func errorHandler(err string, errorLabel *widget.Label) {
+// 	errorLabel.SetText(err)
+// 	errorLabel.Show()
+// }
