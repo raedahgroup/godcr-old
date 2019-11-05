@@ -14,38 +14,39 @@ type listener struct {
 
 func (test *listener) OnTransaction(transaction string) {
 	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page data here
+		// place overview page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
 		// place send page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
-
+		// place account page dynamic data here
 	}
-
 }
+
 func (test *listener) OnTransactionConfirmed(hash string, height int32) {
 	fmt.Println("working OnTransactionConfirmed", hash, height)
 	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page data here
+		// place overview page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
 		// place send page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
-
+		// place account page dynamic data here
 	}
 }
+
 func (test *listener) OnBlockAttached(height int32, timestamp int64) {
 	fmt.Println("working OnBlockAttached", height, timestamp)
 	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page data here
+		// place overview page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
 		// place send page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
-
+		// place account page dynamic data here
 	}
 }
 
