@@ -44,7 +44,7 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 		newWindow.SetFixedSize(true)
 	}
 
-	icons, err := assets.Get(assets.Reveal, assets.Conceal, assets.Loader)
+	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal, assets.Loader)
 	if err != nil {
 		return app.displayErrorPage(err.Error())
 	}
