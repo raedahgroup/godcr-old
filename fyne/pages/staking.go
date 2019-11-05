@@ -126,6 +126,9 @@ func accountSelectionWidget(dcrlw *dcrlibwallet.LibWallet) *widget.Select {
 
 	var options []string
 	for _, account := range accounts.Acc {
+		if account.Name == "imported" {
+			continue
+		}
 		options = append(options, account.Name)
 	}
 
