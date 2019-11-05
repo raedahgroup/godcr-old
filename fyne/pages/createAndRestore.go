@@ -34,10 +34,13 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 
 	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
 	greenBar.SetMinSize(fyne.NewSize(312, 56))
+
 	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
 	blueBar.SetMinSize(fyne.NewSize(312, 56))
 
+	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)
 	createWalletLabel := canvas.NewText("Create a new wallet", color.White)
+
 	createWalletWidget := widgets.NewClickableBox(
 		widget.NewVBox(
 			fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
@@ -48,7 +51,6 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 			app.createSpendingPasswordPopup("")
 		})
 
-	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)
 	restoreWalletWidget := widgets.NewClickableBox(widget.NewVBox(
 		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), greenBar,
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
@@ -66,9 +68,9 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(308, 56)), restoreWalletWidget))
 
 	// canvas doesnt support escaping characters therefore the hack
-	welcomeTextLabel := canvas.NewText("Welcome to", color.Black)
-	welcomeTextLabel.Alignment = fyne.TextAlignLeading
-	welcomeTextLabel.TextSize = 24
+	welcomeLabel := canvas.NewText("Welcome to", color.Black)
+	welcomeLabel.Alignment = fyne.TextAlignLeading
+	welcomeLabel.TextSize = 24
 
 	godcrLabel := canvas.NewText("GoDCR", color.Black)
 	godcrLabel.Alignment = fyne.TextAlignLeading
@@ -78,7 +80,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		widgets.NewVSpacer(24),
 		widget.NewHBox(decredLogo, layout.NewSpacer()),
 		widgets.NewVSpacer(24),
-		welcomeTextLabel,
+		welcomeLabel,
 		godcrLabel,
 		layout.NewSpacer(),
 		createAndRestoreButtons,

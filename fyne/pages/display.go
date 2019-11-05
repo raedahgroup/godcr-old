@@ -33,7 +33,6 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 			layout.NewSpacer(),
 		),
 	))
-	app.Window.FixedSize()
 	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
