@@ -27,7 +27,7 @@ func (app *AppInterface) ShowCreateAndRestoreWalletPage() {
 }
 
 func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
-	icons, err := assets.Get(assets.DecredLogo, assets.Restore, assets.Add)
+	icons, err := assets.GetIcons(assets.DecredLogo, assets.Restore, assets.Add)
 	if err != nil {
 		return app.displayErrorPage(err.Error())
 	}
@@ -99,7 +99,7 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		app.Window.Show()
 	})
 
-	icons, err := assets.Get(assets.Checkmark, assets.Back)
+	icons, err := assets.GetIcons(assets.Checkmark, assets.Back)
 	if err != nil {
 		return app.displayErrorPage(err.Error())
 	}

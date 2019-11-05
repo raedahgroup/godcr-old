@@ -63,8 +63,8 @@ func (app *AppInterface) DisplayMainWindow() {
 }
 
 func (app *AppInterface) setupNavigationMenu() {
-	icons, err := assets.Get(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
-		assets.ReceiveIcon, assets.AccountsIcon, assets.StakingIcon)
+	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
+		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
@@ -76,7 +76,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", icons[assets.StakingIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
@@ -109,7 +109,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 2:
 				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = receivePageContent()
+				newPageContent = receivePageContent(app.Dcrlw, app.Window, app.tabMenu)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:

@@ -12,7 +12,7 @@ const (
 	OverviewIcon = "overview.png"
 	ReceiveIcon  = "receive.png"
 	SendIcon     = "send.png"
-	StakingIcon  = "staking.png"
+	StakeIcon    = "staking.png"
 	DecredLogo   = "decred.png"
 
 	Reveal    = "reveal.png"
@@ -22,6 +22,11 @@ const (
 	Add       = "add.png"
 	Loader    = "loader.png"
 	Back      = "back.png"
+
+	CollapseIcon       = "collapse.png"
+	MoreIcon           = "more.png"
+	InfoIcon           = "info.png"
+	ReceiveAccountIcon = "receiveAccount.png"
 )
 
 var imageBox = packr.New("icons", "../assets")
@@ -29,7 +34,7 @@ var imageBox = packr.New("icons", "../assets")
 // Get returns a map from the names of the icons passed as arguments to
 // the icon resources that correspond to them. If an error is encountered
 // while loading any of the icons, the error is returned immediately.
-func Get(names ...string) (map[string]*fyne.StaticResource, error) {
+func GetIcons(names ...string) (map[string]*fyne.StaticResource, error) {
 
 	icons := make(map[string]*fyne.StaticResource, len(names))
 	for _, name := range names {
