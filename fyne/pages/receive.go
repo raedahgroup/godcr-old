@@ -38,6 +38,9 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 
 	// get icons used on the page.
 	icons, err := assets.GetIcons(assets.CollapseIcon, assets.ReceiveAccountIcon, assets.MoreIcon, assets.InfoIcon)
+	if err != nil {
+		return widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	}
 
 	// clickableInfoIcon holds receiving decred hint-text pop-up
 	var clickableInfoIcon *widgets.ImageButton
@@ -251,7 +254,7 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 	pageTitleLabel := widget.NewLabelWithStyle(pageTitleText, fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 	output := widget.NewVBox(
 		widgets.NewVSpacer(5),
-		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(110), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon),
+		widget.NewHBox(pageTitleLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon),
 		accountDropdown,
 		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(70), accountCopiedLabel, layout.NewSpacer()),
 		// due to original width content on page being small layout spacing isn't efficient
