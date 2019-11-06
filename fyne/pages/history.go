@@ -541,7 +541,7 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	txDetailsPopUp.Show()
 }
 
-func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window) *widgets.ClickableBox {
+func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label) *widgets.ClickableBox {
 	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
 	var allTxFilters = map[string]int32{
 		"All":         dcrlibwallet.TxFilterAll,
@@ -558,36 +558,35 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window)
 	activeFiltersWithTxCounts := make(map[int32]int)
 
 	var accountSelectionPopup *widget.PopUp
+	var accountsView *widget.Box
 	accountListWidget := widget.NewVBox()
 	for _, filterName := range allTxFilterNames {
 		filterId := allTxFilters[filterName]
-		txCountForFilter, _ := wallet.CountTransactions(filterId)
-		// if txCountErr != nil {
-		// 	errorMessage := fmt.Sprintf("Cannot load history page. Error getting transaction count for filter %s: %s",
-		// 		filterName, txCountErr.Error())
-		// 	displayMessage(errorMessage, MessageKindError)
-		// 	return nil
-		// }
+		txCountForFilter, txCountErr := wallet.CountTransactions(filterId)
+		if txCountErr != nil {
+			errorMessage := fmt.Sprintf("Cannot load history page. Error getting transaction count for filter %s: %s",
+				filterName, txCountErr.Error())
+			errorHandler(errorMessage, errorLabel)
+			return nil
+		}
 
 		if txCountForFilter > 0 {
 			activeFiltersWithTxCounts[filterId] = txCountForFilter
-			accountsView := widget.NewHBox(
+			filter := fmt.Sprintf("%s (%d)", filterName, txCountForFilter)
+			accountsView = widget.NewHBox(
 				widgets.NewHSpacer(5),
-				widget.NewLabel(fmt.Sprintf("%s (%d)", filterName, txCountForFilter)),
+				widget.NewLabel(filter),
 				widgets.NewHSpacer(5),
 			)
 
-			accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
-				selectedAccountLabel.SetText(fmt.Sprintf("%s (%d)", filterName, txCountForFilter))
-				accountSelectionPopup.Hide()
-			}))
+				accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
+		selectedAccountLabel.SetText(filter)
+		accountSelectionPopup.Hide()
+	}))
 		}
 	}
 
-	// if len(activeFiltersWithTxCounts) == 0 {
-	// 	displayMessage("No transactions yet", MessageKindInfo)
-	// 	return nil
-	// }
+
 
 	// accountSelectionPopup create a popup that has account names with spendable amount
 	accountSelectionPopup = widget.NewPopUp(
