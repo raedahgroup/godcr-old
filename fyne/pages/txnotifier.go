@@ -26,8 +26,15 @@ func (test *listener) OnTransaction(transaction string) {
 		balance, err := test.dcrlw.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		sendPage.receivingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(balance.Total).String())
 
+		accountNumber, err = test.dcrlw.AccountNumber(sendPage.sendingSelectedAccountLabel.Text)
+		if err != nil {
+			return
+		}
+		balance, err = test.dcrlw.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
+		sendPage.sendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(balance.Total).String())
+
 		accounts, _ := test.dcrlw.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
-		updateAccountBoxContent(sendPage.receivingAccount, accounts)
+		updateAccountDropdownContent(sendPage.sendingAccountDropdownContent, accounts)
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
@@ -43,7 +50,7 @@ func (test *listener) OnTransactionConfirmed(hash string, height int32) {
 		// place send page dynamic data here
 
 		accounts, _ := test.dcrlw.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
-		updateAccountBoxContent(sendPage.receivingAccount, accounts)
+		updateAccountDropdownContent(sendPage.receivingAccountDropdownContent, accounts)
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {

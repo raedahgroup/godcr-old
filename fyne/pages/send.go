@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/raedahgroup/dcrlibwallet"
@@ -17,8 +18,8 @@ import (
 
 type sendPageDynamicData struct {
 	// houses all clickable box
-	receivingAccount *widget.Box
-	sendingAccount   *widget.Box
+	receivingAccountDropdownContent *widget.Box
+	sendingAccountDropdownContent   *widget.Box
 
 	errorLabel                           *widget.Label
 	sendingSelectedAccountLabel          *widget.Label
@@ -59,34 +60,9 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 		return widget.NewLabelWithStyle("could not retrieve account, "+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	}
 
-	sendPage.receivingSelectedAccountLabel = widget.NewLabel(accounts.Acc[0].Name)
-	sendPage.receivingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
-	sendPage.receivingAccount = widget.NewVBox()
-
-	receivingAccountBox := widget.NewHBox(
-		widgets.NewHSpacer(15),
-		widget.NewIcon(icons[assets.ReceiveAccountIcon]),
-		widgets.NewHSpacer(20),
-		sendPage.receivingSelectedAccountLabel,
-		widgets.NewHSpacer(30),
-		sendPage.receivingSelectedAccountBalanceLabel,
-		widgets.NewHSpacer(8),
-		widget.NewIcon(icons[assets.CollapseIcon]),
-	)
-
-	receivingAccountSelectionPopup := widget.NewPopUp(sendPage.receivingAccount, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
-	getAccountInBox(sendPage.receivingAccount, sendPage.receivingSelectedAccountLabel, sendPage.receivingSelectedAccountBalanceLabel,
-		accounts, icons[assets.ReceiveAccountIcon], receivingAccountSelectionPopup)
-	receivingAccountSelectionPopup.Hide()
-
-	var receivingAccountClickableBox *widgets.ClickableBox
-	receivingAccountClickableBox = widgets.NewClickableBox(receivingAccountBox, func() {
-		receivingAccountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			receivingAccountClickableBox).Add(fyne.NewPos(0, receivingAccountClickableBox.Size().Height)))
-		receivingAccountSelectionPopup.Show()
-	})
-
 	// // make receivingAccountTab a clickable box thereby showing the popup
+	receivingAccountClickableBox := createAccountDropdown(icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], accounts, sendPage.receivingAccountDropdownContent, sendPage.receivingSelectedAccountLabel, sendPage.receivingSelectedAccountBalanceLabel)
+	sendingAccountClickableBox := createAccountDropdown(icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], accounts, sendPage.sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
 
 	receivingAccountGroup := widget.NewGroup("To", receivingAccountClickableBox)
 
@@ -101,10 +77,44 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	// 	accountSelectionPopup.Show()
 	// })
 
-	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(baseWidgets, receivingAccountGroup))
+	submit := widget.NewButton("Submut", func() {
+		fmt.Println(sendPage.receivingSelectedAccountLabel.Text, sendPage.receivingSelectedAccountBalanceLabel.Text)
+	})
+
+	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(baseWidgets, widget.NewVBox(receivingAccountGroup, sendingAccountClickableBox, submit)))
 }
 
-func getAccountInBox(dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label, accounts *dcrlibwallet.Accounts, receiveIcon fyne.Resource, popup *widget.PopUp) {
+func createAccountDropdown(receiveAccountIcon, collapseIcon fyne.Resource, accounts *dcrlibwallet.Accounts, dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
+	selectedAccountLabel = widget.NewLabel(accounts.Acc[0].Name)
+	selectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
+	dropdownContent = widget.NewVBox()
+
+	receivingAccountBox := widget.NewHBox(
+		widgets.NewHSpacer(15),
+		widget.NewIcon(receiveAccountIcon),
+		widgets.NewHSpacer(20),
+		selectedAccountLabel,
+		widgets.NewHSpacer(30),
+		selectedAccountBalanceLabel,
+		widgets.NewHSpacer(8),
+		widget.NewIcon(collapseIcon),
+	)
+
+	receivingAccountSelectionPopup := widget.NewPopUp(dropdownContent, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
+	getAccountInBox(dropdownContent, selectedAccountLabel, selectedAccountBalanceLabel,
+		accounts, receiveAccountIcon, receivingAccountSelectionPopup)
+	receivingAccountSelectionPopup.Hide()
+
+	accountClickableBox = widgets.NewClickableBox(receivingAccountBox, func() {
+		receivingAccountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
+		receivingAccountSelectionPopup.Show()
+	})
+
+	return
+}
+
+func getAccountInBox(dropdownContent *widget.Box, selectedAccountLabel, selectedAccountBalanceLabel *widget.Label, accounts *dcrlibwallet.Accounts, receiveIcon fyne.Resource, popup *widget.PopUp) {
 	for index, account := range accounts.Acc {
 		if account.Name == "imported" {
 			continue
@@ -158,7 +168,6 @@ func getAccountInBox(dropdownContent *widget.Box, selectedAccountLabel *widget.L
 		)
 
 		dropdownContent.Append(widgets.NewClickableBox(accountsView, func() {
-			// hide checkmark icon of other accounts
 			for _, children := range dropdownContent.Children {
 				if box, ok := children.(*widgets.ClickableBox); !ok {
 					continue
@@ -202,7 +211,7 @@ func getAccountInBox(dropdownContent *widget.Box, selectedAccountLabel *widget.L
 	}
 }
 
-func updateAccountBoxContent(accountBox *widget.Box, account *dcrlibwallet.Accounts) {
+func updateAccountDropdownContent(accountBox *widget.Box, account *dcrlibwallet.Accounts) {
 	for index, boxContent := range accountBox.Children {
 		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Acc[index].Balance.Spendable).String(), color.White)
 		spendableAmountLabel.TextSize = 10
@@ -220,6 +229,7 @@ func updateAccountBoxContent(accountBox *widget.Box, account *dcrlibwallet.Accou
 		accountBalance = dcrutil.Amount(account.Acc[index].Balance.Total).String()
 
 		if content, ok := boxContent.(*widgets.ClickableBox); ok {
+			fmt.Println("worksss")
 			content.Box.Children[6] = accountBalanceBox
 			widget.Refresh(content.Box)
 			widget.Refresh(content)
