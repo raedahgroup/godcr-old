@@ -75,3 +75,4 @@ func (table *Table) Refresh() {
 	table.Container.Content = widget.NewScrollContainer(table.Result).Content
 	widget.Refresh(table.Result)
 }
+

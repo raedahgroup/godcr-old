@@ -11,7 +11,9 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	// "github.com/raedahgroup/godcr/fyne/helpers"
 )
+const txPerPage int32 = 25
 
 
 func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
@@ -22,12 +24,14 @@ func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 	
+	tx := fetchAndDisplayTransactions(wallet, 0, dcrlibwallet.TxFilterAll)
 	t := prepareTxFilterDropDown(wallet, window, errorLabel)
 	output := widget.NewVBox(
 		widgets.NewVSpacer(5),
 		widget.NewHBox(pageTitleLabel),
 		widgets.NewVSpacer(5),
 		t,
+		tx,
 		errorLabel,
 	)	
 
@@ -72,14 +76,18 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window,
 				widgets.NewHSpacer(5),
 			)
 
-				accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
-		selectedAccountLabel.SetText(filter)
-		accountSelectionPopup.Hide()
-	}))
+			accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
+				// selectedFilterName := strings.Split(filter, " ")[0]
+				// selectedFilterId := allTxFilters[selectedFilterName]
+				// if selectedFilterId != historyPageData.currentTxFilter {
+				// 	go fetchAndDisplayTransactions(0, selectedFilterId)
+				// }
+
+				selectedAccountLabel.SetText(filter)
+				accountSelectionPopup.Hide()
+			}))
 		}
 	}
-
-
 
 	// accountSelectionPopup create a popup that has account names with spendable amount
 	accountSelectionPopup = widget.NewPopUp(
@@ -88,17 +96,6 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window,
 		), window.Canvas(),
 	)
 	accountSelectionPopup.Hide()
-
-
-
-	// // dropDown selection change listener
-	// txFilterDropDown.AddDropDown("", txFilterSelectionOptions, 0, func(selectedOption string, index int) {
-	// 	selectedFilterName := strings.Split(selectedOption, " ")[0]
-	// 	selectedFilterId := allTxFilters[selectedFilterName]
-	// 	if selectedFilterId != historyPageData.currentTxFilter {
-	// 		go fetchAndDisplayTransactions(0, selectedFilterId)
-	// 	}
-	// })
 
 	// accountTab shows the selected account
 	icons, _ := assets.GetIcons(assets.CollapseIcon)
@@ -118,7 +115,52 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window,
 	return accountDropdown
 }
 
-// func errorHandler(err string, errorLabel *widget.Label) {
-// 	errorLabel.SetText(err)
-// 	errorLabel.Show()
-// }
+func fetchAndDisplayTransactions(wallet *dcrlibwallet.LibWallet, txOffset int, filter int32) *widget.Box {
+	tableHeading := widget.NewHBox(
+		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+
+
+	// txns, err := wallet.GetTransactionsRaw(int32(txOffset), txPerPage, dcrlibwallet.TxFilterAll)
+	// if err != nil {
+	// 	// displayMessage(err.Error(), MessageKindError)
+	// 	// return
+	// }
+
+	// // calculate max number of digits after decimal point for all tx amounts
+	// inputsAndOutputsAmount := make([]int64, len(txns))
+	// for i, tx := range txns {
+	// 	inputsAndOutputsAmount[i] = tx.Amount
+	// }
+	// maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
+
+	// var hBox []*widget.Box
+	// for i, tx := range txns {
+	// 	status := "Pending"
+	// 	confirmations := wallet.GetBestBlock() - tx.BlockHeight + 1
+	// 	if tx.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
+	// 		status = "Confirmed"
+	// 	}
+
+	// 	formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
+	// 	trimmedHash := txns[i].Hash[:25] + "..."
+	// 	hBox = append(hBox, widget.NewHBox(
+	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.ExtractDateOrTime(tx.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.TransactionDirectionName(tx.Direction)), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// 		widget.NewLabelWithStyle(fmt.Sprintf("%12s", status), fyne.TextAlignLeading, fyne.TextStyle{}),
+	// 		widget.NewLabelWithStyle(fmt.Sprintf("%15s", formattedAmount), fyne.TextAlignTrailing, fyne.TextStyle{}),
+	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-8s", tx.Type), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// 		widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}),
+	// 	))
+	// }
+
+	h := widgets.NewTable(tableHeading, nil)
+	// txTable.Refresh()
+
+	return h
+}
