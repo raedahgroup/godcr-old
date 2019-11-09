@@ -34,7 +34,11 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	// acct, _ := dcrlw.AccountNumber("default")
 	// txauthor := dcrlw.NewUnsignedTx(int32(acct), 0)
 	// txauthor.AddSendDestination("TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd", dcrlibwallet.AmountAtom(10), false)
-	// fmt.Println(txauthor.EstimateMaxSendAmount())
+	// amnt, err := txauthor.EstimateMaxSendAmount()
+	// fmt.Println(amnt.DcrValue, err)
+	// fee, _ := txauthor.EstimateFeeAndSize()
+	// fmt.Println(fee.Fee.DcrValue, fee.EstimatedSignedSize)
+
 	// hash, err := txauthor.Broadcast([]byte("admin"))
 	// fmt.Println(hash, err)
 	// fmt.Println(chainhash.NewHash(hash))
@@ -60,11 +64,19 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 		return widget.NewLabelWithStyle("could not retrieve account, "+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	}
 
-	// // make receivingAccountTab a clickable box thereby showing the popup
+	sendPage.receivingSelectedAccountLabel = widget.NewLabel(accounts.Acc[0].Name)
+	sendPage.receivingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
+	sendPage.receivingAccountDropdownContent = widget.NewVBox()
 	receivingAccountClickableBox := createAccountDropdown(icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], accounts, sendPage.receivingAccountDropdownContent, sendPage.receivingSelectedAccountLabel, sendPage.receivingSelectedAccountBalanceLabel)
-	sendingAccountClickableBox := createAccountDropdown(icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], accounts, sendPage.sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
 
-	receivingAccountGroup := widget.NewGroup("To", receivingAccountClickableBox)
+	receivingAccountGroup := widget.NewGroup("From", receivingAccountClickableBox)
+
+	sendPage.sendingSelectedAccountLabel = widget.NewLabel(accounts.Acc[0].Name)
+	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
+	sendPage.sendingAccountDropdownContent = widget.NewVBox()
+	sendingToAccountClickableBox := createAccountDropdown(icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], accounts, sendPage.sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
+
+	// destinationAddress := widget.NewEntry()
 
 	// sendingAccountsDropdown := widgets.NewClickableBox(receivingAccountTab, func() {
 
@@ -77,18 +89,39 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	// 	accountSelectionPopup.Show()
 	// })
 
-	submit := widget.NewButton("Submut", func() {
+	destinationAddressEntry := widget.NewEntry()
+	destinationAddressEntry.SetPlaceHolder("Destination Address")
+
+	sendingToAccountGroup := widget.NewGroup("To", sendingToAccountClickableBox) //sendingToAccountClickableBox)
+	sendingToAccountGroup.Hide()
+	destinationAddressEntryGroup := widget.NewGroup("To", fyne.NewContainerWithLayout(layout.NewFixedGridLayout(widget.NewLabel("TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd").MinSize()), destinationAddressEntry))
+
+	sendToAccountLabel := canvas.NewText("Send to account", color.RGBA{R: 41, G: 112, B: 255, A: 0})
+	sendToAccountLabel.TextSize = 14
+	sendToAccount := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
+		if sendToAccountLabel.Text == "Send to account" {
+			sendToAccountLabel.Text = "Send to address"
+			canvas.Refresh(sendToAccountLabel)
+			sendingToAccountGroup.Show()
+			destinationAddressEntryGroup.Hide()
+		} else {
+			sendToAccountLabel.Text = "Send to account"
+			canvas.Refresh(sendToAccountLabel)
+			destinationAddressEntryGroup.Show()
+			sendingToAccountGroup.Hide()
+		}
+	})
+
+	//amountEntryGroup:=widget.NewGroup("Amount", )
+
+	submit := widget.NewButton("Submit", func() {
 		fmt.Println(sendPage.receivingSelectedAccountLabel.Text, sendPage.receivingSelectedAccountBalanceLabel.Text)
 	})
 
-	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(baseWidgets, widget.NewVBox(receivingAccountGroup, sendingAccountClickableBox, submit)))
+	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(baseWidgets, widget.NewVBox(receivingAccountGroup, widget.NewHBox(sendingToAccountGroup, destinationAddressEntryGroup, sendToAccount), widgets.NewVSpacer(10), submit)))
 }
 
 func createAccountDropdown(receiveAccountIcon, collapseIcon fyne.Resource, accounts *dcrlibwallet.Accounts, dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
-	selectedAccountLabel = widget.NewLabel(accounts.Acc[0].Name)
-	selectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
-	dropdownContent = widget.NewVBox()
-
 	receivingAccountBox := widget.NewHBox(
 		widgets.NewHSpacer(15),
 		widget.NewIcon(receiveAccountIcon),

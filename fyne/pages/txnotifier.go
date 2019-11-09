@@ -16,6 +16,7 @@ type listener struct {
 }
 
 func (test *listener) OnTransaction(transaction string) {
+	fmt.Println("There's a new transaction")
 	if test.tabMenu.CurrentTabIndex() == 0 {
 		// place overview page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 { // place send page dynamic data here
@@ -48,7 +49,6 @@ func (test *listener) OnTransactionConfirmed(hash string, height int32) {
 		// place overview page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
 		// place send page dynamic data here
-
 		accounts, _ := test.dcrlw.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 		updateAccountDropdownContent(sendPage.receivingAccountDropdownContent, accounts)
 	} else if test.tabMenu.CurrentTabIndex() == 3 {

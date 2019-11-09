@@ -1,5 +1,9 @@
-cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-fyne.io/fyne v1.1.0/go.mod h1:mz0CvQX1ACEjiDGpSH3D8Qf9yHq8dfYA039kG7p8ZhQ=
+fyne.io/fyne v1.0.2-0.20190912194812-5b44bfe4c1aa h1:S+Oe5wSu+wdR8y8Aqxxd6Irk1OtqjznqI93EcBFS3+A=
+fyne.io/fyne v1.0.2-0.20190912194812-5b44bfe4c1aa/go.mod h1:33kcuZDAiuenHBiyYh0t9k/d75hFGQ1KXbD5RJaMpTE=
+fyne.io/fyne v1.1.3-0.20191104221827-e8f6795efa08 h1:io8pkG6pP1FjpSDoj+OMowNPylACUqWc+Cwc7DHFmZs=
+fyne.io/fyne v1.1.3-0.20191104221827-e8f6795efa08/go.mod h1:QKalFvMg5T4bJYGoygqrz662GbMymGEGR5gDqcoO9CM=
+fyne.io/fyne v1.1.3-0.20191105230429-790ec3d460be h1:idvVpsW8VVEZc91jTmmwXTuA4uZxFv0DReWazw9hILU=
+fyne.io/fyne v1.1.3-0.20191105230429-790ec3d460be/go.mod h1:QKalFvMg5T4bJYGoygqrz662GbMymGEGR5gDqcoO9CM=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9 h1:HD8gA2tkByhMAwYaFAX9w2l7vxvBQ5NMoxDrkhqhtn4=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
