@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -36,6 +37,8 @@ func (test *listener) OnTransaction(transaction string) {
 
 		accounts, _ := test.dcrlw.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 		updateAccountDropdownContent(sendPage.sendingAccountDropdownContent, accounts)
+		sendPage.spendableLabel.Text = "Spendable: " + sendPage.receivingSelectedAccountBalanceLabel.Text
+		canvas.Refresh(sendPage.spendableLabel)
 	} else if test.tabMenu.CurrentTabIndex() == 3 {
 		// place receive page dynamic data here
 	} else if test.tabMenu.CurrentTabIndex() == 2 {
