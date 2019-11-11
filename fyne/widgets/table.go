@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"fyne.io/fyne/widget"
 )
 
@@ -17,6 +18,7 @@ func (table *Table) NewTable(heading *widget.Box, data ...*widget.Box) {
 	table.tableData = []*widget.Box{heading}
 	table.tableData = append(table.tableData, data...)
 	table.Result = widget.NewHBox()
+	// fmt.Println(data)
 	table.Refresh()
 }
 
@@ -60,6 +62,8 @@ func (table *Table) Pop() {
 
 func (table *Table) Refresh() {
 	var container = widget.NewHBox()
+	fmt.Println(container)
+	fmt.Println(table.heading.Children)
 
 	// get horizontals apart from heading
 	for i := 0; i < len(table.heading.Children); i++ {
