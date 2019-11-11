@@ -620,53 +620,54 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window,
 	return accountDropdown
 }
 
-func fetchAndDisplayTransactions(wallet *dcrlibwallet.LibWallet, txOffset int, filter int32) *widget.Box {
+func fetchAndDisplayTransactions(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, txOffset int, filter int32) {
 	tableHeading := widget.NewHBox(
 		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),		
 		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+	)
 
 
-	// txns, err := wallet.GetTransactionsRaw(int32(txOffset), txPerPage, dcrlibwallet.TxFilterAll)
-	// if err != nil {
-	// 	// displayMessage(err.Error(), MessageKindError)
-	// 	// return
-	// }
+	txns, err := wallet.GetTransactionsRaw(int32(txOffset), txPerPage, dcrlibwallet.TxFilterAll)
+	if err != nil {
+		// displayMessage(err.Error(), MessageKindError)
+		// return
+	}
 
-	// // calculate max number of digits after decimal point for all tx amounts
-	// inputsAndOutputsAmount := make([]int64, len(txns))
-	// for i, tx := range txns {
-	// 	inputsAndOutputsAmount[i] = tx.Amount
-	// }
-	// maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
+	// calculate max number of digits after decimal point for all tx amounts
+	inputsAndOutputsAmount := make([]int64, len(txns))
+	for i, tx := range txns {
+		inputsAndOutputsAmount[i] = tx.Amount
+	}
+	maxDecimalPlacesForTxAmounts := helpers.MaxDecimalPlaces(inputsAndOutputsAmount)
 
-	// var hBox []*widget.Box
-	// for i, tx := range txns {
-	// 	status := "Pending"
-	// 	confirmations := wallet.GetBestBlock() - tx.BlockHeight + 1
-	// 	if tx.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
-	// 		status = "Confirmed"
-	// 	}
+	var hBox []*widget.Box
+	for _, tx := range txns {
+		status := "Pending"
+		confirmations := wallet.GetBestBlock() - tx.BlockHeight + 1
+		if tx.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
+			status = "Confirmed"
+		}
 
-	// 	formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
-	// 	trimmedHash := txns[i].Hash[:25] + "..."
-	// 	hBox = append(hBox, widget.NewHBox(
-	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.ExtractDateOrTime(tx.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
-	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.TransactionDirectionName(tx.Direction)), fyne.TextAlignCenter, fyne.TextStyle{}),
-	// 		widget.NewLabelWithStyle(fmt.Sprintf("%12s", status), fyne.TextAlignLeading, fyne.TextStyle{}),
-	// 		widget.NewLabelWithStyle(fmt.Sprintf("%15s", formattedAmount), fyne.TextAlignTrailing, fyne.TextStyle{}),
-	// 		widget.NewLabelWithStyle(fmt.Sprintf("%-8s", tx.Type), fyne.TextAlignCenter, fyne.TextStyle{}),
-	// 		widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}),
-	// 	))
-	// }
+		formattedAmount := helpers.FormatAmountDisplay(tx.Amount, maxDecimalPlacesForTxAmounts)
+		trimmedHash := tx.Hash[:25] + "..."
 
-	h := widgets.NewTable(tableHeading, nil)
-	// txTable.Refresh()
+		hBox = append(hBox, widget.NewHBox(
+			widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.ExtractDateOrTime(tx.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(fmt.Sprintf("%-10s", dcrlibwallet.TransactionDirectionName(tx.Direction)), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(fmt.Sprintf("%12s", status), fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(fmt.Sprintf("%15s", formattedAmount), fyne.TextAlignTrailing, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(fmt.Sprintf("%-8s", tx.Type), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignLeading, fyne.TextStyle{}),
+		))
+	}
 
-	return h
+	txTable.NewTable(tableHeading, hBox...)
+	txTable.Refresh()
+
+	return
 }
 
