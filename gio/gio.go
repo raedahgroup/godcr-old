@@ -31,8 +31,8 @@ type (
 )
 
 const (
-	windowWidth  = 550
-	windowHeight = 450
+	windowWidth  = 450
+	windowHeight = 350
 
 	navSectionWidth = 120
 )
@@ -51,7 +51,7 @@ func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, setti
 
 	go func() {
 		desktop.window = gioapp.NewWindow(
-			gioapp.Size(unit.Px(windowWidth), unit.Px(windowHeight)),
+			gioapp.Size(unit.Dp(windowWidth), unit.Dp(windowHeight)),
 			gioapp.Title(app.DisplayName),
 		)
 
@@ -162,8 +162,8 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 	helper.PaintArea(ctx, helper.DecredDarkBlueColor, navAreaBounds)
 
 	inset := layout.Inset{
-		Top:  unit.Sp(0),
-		Left: unit.Sp(0),
+		Top:  unit.Dp(0),
+		Left: unit.Dp(0),
 	}
 	inset.Layout(ctx, func() {
 		var stack layout.Stack
@@ -175,7 +175,7 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 		for index, page := range d.pages {
 			children[index] = stack.Rigid(ctx, func() {
 				inset := layout.Inset{
-					Top:   unit.Sp(currentPositionTop),
+					Top:   unit.Dp(currentPositionTop),
 					Right: unit.Dp(navSectionWidth),
 				}
 
