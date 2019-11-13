@@ -4,7 +4,6 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
-
 type Table struct {
 	tableData []*widget.Box
 	heading   *widget.Box
