@@ -159,7 +159,7 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	amountEntry := widget.NewEntry()
 	amountEntry.SetPlaceHolder("0 DCR")
 
-	transactionFeeLabel := widget.NewLabel("Transaction fee                - DCR")
+	transactionFeeLabel := widget.NewLabel("- DCR")
 	transactionSize := widget.NewLabelWithStyle("0 bytes", fyne.TextAlignLeading, fyne.TextStyle{})
 	form := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
 	form.AddObject(fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewLabel("Processing time"), widgets.NewHSpacer(46), layout.NewSpacer(), widget.NewLabelWithStyle("Approx. 10 mins (2 blocks)", fyne.TextAlignLeading, fyne.TextStyle{})))
@@ -170,15 +170,17 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	paintedForm.Hide()
 
 	var transactionSizeDropdown *widgets.ClickableBox
-	transactionSizeDropdown = widgets.NewClickableBox(widget.NewVBox(widget.NewIcon(icons[assets.ExpandDropdown])), func() {
+	transactionSizeDropdown = widgets.NewClickableBox(widget.NewHBox(widget.NewIcon(icons[assets.ExpandDropdown])), func() {
 		if paintedForm.Hidden {
 			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.CollapseDropdown])
 			canvas.Refresh(transactionSizeDropdown.Box.Children[0])
 			paintedForm.Show()
+			canvas.Refresh(paintedForm)
 		} else {
 			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.ExpandDropdown])
 			canvas.Refresh(transactionSizeDropdown.Box.Children[0])
 			paintedForm.Hide()
+			canvas.Refresh(paintedForm)
 		}
 	})
 
@@ -194,7 +196,7 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	amountErrorLabel.Hide()
 
 	amountEntryGroup := widget.NewGroup("Amount", fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
-		fyne.NewSize(widget.NewLabel("12345678.12345678").MinSize().Width, amountEntry.MinSize().Height)), amountEntry), amountErrorLabel, widgets.NewVSpacer(4), widget.NewHBox(transactionFeeLabel, transactionSizeDropdown), paintedForm)
+		fyne.NewSize(widget.NewLabel("12345678.12345678").MinSize().Width, amountEntry.MinSize().Height)), amountEntry), amountErrorLabel, widgets.NewVSpacer(4), widget.NewHBox(widget.NewLabel("Transaction fee"), widgets.NewHSpacer(149), transactionFeeLabel, transactionSizeDropdown), paintedForm)
 
 	// amount entry accepts only floats
 	amountEntryExpression, err := regexp.Compile("^\\d*\\.?\\d*$")
@@ -233,7 +235,7 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 		}
 
 		if amountInFloat == 0.0 {
-			transactionFeeLabel.SetText(fmt.Sprintf("Transaction fee                - DCR"))
+			transactionFeeLabel.SetText(fmt.Sprintf("- DCR"))
 			totalCostLabel.SetText("- DCR")
 			balanceAfterSendLabel.SetText("- DCR")
 			transactionSize.SetText("0 bytes")
@@ -283,11 +285,14 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 			canvas.Refresh(amountErrorLabel)
 		}
 
-		transactionFeeLabel.SetText(fmt.Sprintf("Transaction fee                %f DCR", feeAndSize.Fee.DcrValue))
+		transactionFeeLabel.SetText(fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue))
 		totalCost := feeAndSize.Fee.DcrValue + amountInFloat
 		totalCostLabel.SetText(fmt.Sprintf("%f DCR", totalCost))
 		balanceAfterSendLabel.SetText(fmt.Sprintf("%f DCR", amountInAccount-totalCost))
 		transactionSize.SetText(fmt.Sprintf("%d bytes", feeAndSize.EstimatedSignedSize))
+
+		widget.Refresh(amountEntryGroup)
+		canvas.Refresh(paintedForm)
 
 		// transactionAuthor.AddSendDestination("TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd", dcrlibwallet.AmountAtom(10), false)
 		// amnt, err := transactionAuthor.EstimateMaxSendAmount()
