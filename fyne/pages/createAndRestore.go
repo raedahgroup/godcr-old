@@ -34,13 +34,10 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 
 	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
 	greenBar.SetMinSize(fyne.NewSize(312, 56))
-
 	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
 	blueBar.SetMinSize(fyne.NewSize(312, 56))
 
-	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)
 	createWalletLabel := canvas.NewText("Create a new wallet", color.White)
-
 	createWalletWidget := widgets.NewClickableBox(
 		widget.NewVBox(
 			fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
@@ -51,6 +48,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 			app.createSpendingPasswordPopup("")
 		})
 
+	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)
 	restoreWalletWidget := widgets.NewClickableBox(widget.NewVBox(
 		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), greenBar,
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
@@ -68,9 +66,9 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(308, 56)), restoreWalletWidget))
 
 	// canvas doesnt support escaping characters therefore the hack
-	welcomeLabel := canvas.NewText("Welcome to", color.Black)
-	welcomeLabel.Alignment = fyne.TextAlignLeading
-	welcomeLabel.TextSize = 24
+	welcomeTextLabel := canvas.NewText("Welcome to", color.Black)
+	welcomeTextLabel.Alignment = fyne.TextAlignLeading
+	welcomeTextLabel.TextSize = 24
 
 	godcrLabel := canvas.NewText("GoDCR", color.Black)
 	godcrLabel.Alignment = fyne.TextAlignLeading
@@ -80,7 +78,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		widgets.NewVSpacer(24),
 		widget.NewHBox(decredLogo, layout.NewSpacer()),
 		widgets.NewVSpacer(24),
-		welcomeLabel,
+		welcomeTextLabel,
 		godcrLabel,
 		layout.NewSpacer(),
 		createAndRestoreButtons,
@@ -113,33 +111,33 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 	errorLabel.Alignment = fyne.TextAlignCenter
 	errorLabel.Hide()
 
-	wordlistDropdown := func(start, stop, textboxIndex int, val string) {
-		if len(val) <= 1 {
+	wordlistDropdown := func(start, stop, textboxIndex int, wordText string) {
+		if len(wordText) <= 1 {
 			return
 		}
 
 		var menuItem []*fyne.MenuItem
-		var popup *widget.PopUp
+		var wordlistPopup *widget.PopUp
 
 		for i := start; i < stop; i++ {
 			index := i
 			toLowerWordList := strings.ToLower(wordlist[i])
-			toLowerVal := strings.ToLower(val)
+			toLowerVal := strings.ToLower(wordText)
 			if strings.HasPrefix(toLowerWordList, toLowerVal) {
 				menuItem = append(menuItem, fyne.NewMenuItem(wordlist[i], func() {
 					textbox[textboxIndex].SetText(wordlist[index])
-					popup.Hide()
+					wordlistPopup.Hide()
 				}))
 			}
 		}
 
-		// do not show popup if there's no text to display
+		// do not show wordlistPopup if there's no text to display
 		if len(menuItem) == 0 {
 			return
 		}
 
-		popup = widget.NewPopUpMenu(fyne.NewMenu("", menuItem...), app.Window.Canvas())
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(textbox[textboxIndex]).Add(
+		wordlistPopup = widget.NewPopUpMenu(fyne.NewMenu("", menuItem...), app.Window.Canvas())
+		wordlistPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(textbox[textboxIndex]).Add(
 			fyne.NewPos(0, textbox[textboxIndex].Size().Height)))
 	}
 
@@ -177,9 +175,9 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 		maxTextboxSize := fyne.NewSize(110, textbox[textboxIndex].MinSize().Height)
 		layouts[textboxIndex] = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(maxTextboxSize), textbox[textboxIndex])
 
-		textbox[textboxIndex].OnChanged = func(word string) {
+		textbox[textboxIndex].OnChanged = func(wordText string) {
 			var allCompleted = true
-			wordlistDropdown(0, len(wordlist), textboxIndex, word)
+			wordlistDropdown(0, len(wordlist), textboxIndex, wordText)
 
 			for j := 0; j < 33; j++ {
 				if textbox[j].Text == "" {

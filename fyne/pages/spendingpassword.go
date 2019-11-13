@@ -17,23 +17,23 @@ import (
 )
 
 func (app *AppInterface) createSpendingPasswordPopup(seed string) {
-	var popup *widget.PopUp
+	var passwordPopup *widget.PopUp
 	popupContent := widget.NewVBox()
 
-	popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(10),
+	passwordPopup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(10),
 		widget.NewVBox(widgets.NewVSpacer(10),
 			widget.NewLabelWithStyle("Create a spending password", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			popupContent, widgets.NewVSpacer(10)),
 		widgets.NewHSpacer(10)),
 		app.Window.Canvas())
 
-	popupContent.Children = []fyne.CanvasObject{app.passwordPopup(popup, seed)}
+	popupContent.Children = []fyne.CanvasObject{app.passwordPopup(passwordPopup, seed)}
 	widget.Refresh(popupContent)
 }
 
-func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.CanvasObject {
+func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string) fyne.CanvasObject {
 	displayError := func(err error) {
-		log.Println("could not generate seed", err.Error())
+		log.Println("Could not generate seed", err.Error())
 		newWindow := fyne.CurrentApp().NewWindow(app.AppDisplayName)
 		newWindow.SetContent(widget.NewVBox(
 			widget.NewLabelWithStyle(fmt.Sprintf("Could not generate seed, %s", err.Error()), fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -105,7 +105,7 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 
 	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
 	cancelLabel.TextStyle.Bold = true
-	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { popup.Hide() })
+	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { passwordPopup.Hide() })
 
 	createButton = widget.NewButton("Create", func() {
 		createButton.SetText("")
@@ -137,11 +137,11 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 		if err != nil {
 			enableCancelButton()
 			displayError(err)
-			log.Println("could not create wallet", err.Error())
+			log.Println("Could not create wallet", err.Error())
 			return
 		}
 
-		popup.Hide()
+		passwordPopup.Hide()
 		app.Window.SetFixedSize(false)
 		app.Window.SetOnClosed(nil)
 		app.setupNavigationMenu()
