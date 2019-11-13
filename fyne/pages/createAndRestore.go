@@ -224,9 +224,9 @@ func (app *AppInterface) restoreWalletPage() fyne.CanvasObject {
 
 	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewVBox(
 		widgets.NewVSpacer(10),
-		widget.NewHBox(backButton, widgets.NewHSpacer(16), widget.NewLabel("Restore from seed phrase")),
+		widget.NewHBox(backButton, widgets.NewHSpacer(16), widget.NewLabelWithStyle("Restore from seed phrase", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})),
 		widgets.NewVSpacer(18),
-		widget.NewLabelWithStyle("Enter your seed phrase in the correct order.", fyne.TextAlignCenter, fyne.TextStyle{Monospace: true}),
+		widget.NewLabelWithStyle("Enter your seed phrase in the correct order.", fyne.TextAlignCenter, fyne.TextStyle{}),
 		widgets.NewVSpacer(15),
 		errorLabel,
 		textBoxContainer,

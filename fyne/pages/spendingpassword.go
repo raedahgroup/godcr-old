@@ -73,6 +73,9 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 		if confirmPassword.Text != "" {
 			if confirmPassword.Text != password.Text {
 				errorLabel.Show()
+				if !createButton.Disabled() {
+					createButton.Disable()
+				}
 			} else {
 				errorLabel.Hide()
 				createButton.Enable()
@@ -91,6 +94,9 @@ func (app *AppInterface) passwordPopup(popup *widget.PopUp, seed string) fyne.Ca
 		canvas.Refresh(confirmPasswordLength)
 		if password.Text != val {
 			errorLabel.Show()
+			if !createButton.Disabled() {
+				createButton.Disable()
+			}
 		} else if password.Text != "" && password.Text == confirmPassword.Text {
 			errorLabel.Hide()
 			createButton.Enable()
