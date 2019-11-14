@@ -95,7 +95,6 @@ func (app *AppInterface) setupNavigationMenu() {
 					widget.Refresh(previousPageBox)
 				}
 			}
-
 			currentTabIndex = app.tabMenu.CurrentTabIndex()
 			var newPageContent fyne.CanvasObject
 

@@ -25,6 +25,7 @@ func (test *listener) OnTransaction(transaction string) {
 		if err != nil {
 			return
 		}
+
 		balance, err := test.dcrlw.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		sendPage.receivingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(balance.Total).String())
 

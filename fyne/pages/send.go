@@ -59,7 +59,7 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 		return widget.NewLabelWithStyle("could not retrieve account, "+err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	}
 
-	sendPage.spendableLabel = canvas.NewText("Spendable: "+dcrutil.Amount(accounts.Acc[0].TotalBalance).String(), color.White)
+	sendPage.spendableLabel = canvas.NewText("Spendable: "+dcrutil.Amount(accounts.Acc[0].Balance.Spendable).String(), color.Black)
 	sendPage.spendableLabel.TextSize = 12
 
 	accountNumber, err := dcrlw.AccountNumber("default")
@@ -125,6 +125,8 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	destinationAddressErrorLabel.TextSize = 12
 	destinationAddressErrorLabel.Hide()
 
+	var nextButton *widget.Button
+
 	destinationAddressEntry.OnChanged = func(address string) {
 		_, err := dcrutil.DecodeAddress(address)
 		if err != nil {
@@ -141,22 +143,41 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 		destinationAddressErrorLabel)
 
 	sendToAccountLabel := canvas.NewText("Send to account", color.RGBA{R: 41, G: 112, B: 255, A: 255})
-	sendToAccountLabel.TextSize = 14
-	sendToAccount := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
+	sendToAccountLabel.TextSize = 12
+
+	var sendToAccount *widgets.ClickableBox
+	var amountEntry *widget.Entry
+	var amountErrorLabel *canvas.Text
+
+	sendToAccount = widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
 		if sendToAccountLabel.Text == "Send to account" {
 			sendToAccountLabel.Text = "Send to address"
 			canvas.Refresh(sendToAccountLabel)
+			widget.Refresh(sendToAccount)
 			sendingToAccountGroup.Show()
 			destinationAddressEntryGroup.Hide()
+
+			if amountEntry.Text == "" || !amountErrorLabel.Hidden {
+				nextButton.Disable()
+			} else {
+				nextButton.Enable()
+			}
 		} else {
 			sendToAccountLabel.Text = "Send to account"
 			canvas.Refresh(sendToAccountLabel)
+			widget.Refresh(sendToAccount)
 			destinationAddressEntryGroup.Show()
 			sendingToAccountGroup.Hide()
+
+			if destinationAddressEntry.Text == "" || !destinationAddressErrorLabel.Hidden || amountEntry.Text == "" || !amountErrorLabel.Hidden {
+				nextButton.Disable()
+			} else {
+				nextButton.Enable()
+			}
 		}
 	})
 
-	amountEntry := widget.NewEntry()
+	amountEntry = widget.NewEntry()
 	amountEntry.SetPlaceHolder("0 DCR")
 
 	transactionFeeLabel := widget.NewLabel("- DCR")
@@ -173,14 +194,14 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	transactionSizeDropdown = widgets.NewClickableBox(widget.NewHBox(widget.NewIcon(icons[assets.ExpandDropdown])), func() {
 		if paintedForm.Hidden {
 			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.CollapseDropdown])
-			canvas.Refresh(transactionSizeDropdown.Box.Children[0])
 			paintedForm.Show()
 			canvas.Refresh(paintedForm)
+			canvas.Refresh(transactionSizeDropdown)
 		} else {
 			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.ExpandDropdown])
-			canvas.Refresh(transactionSizeDropdown.Box.Children[0])
 			paintedForm.Hide()
 			canvas.Refresh(paintedForm)
+			canvas.Refresh(transactionSizeDropdown)
 		}
 	})
 
@@ -191,8 +212,8 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Balance after send"), layout.NewSpacer(), balanceAfterSendLabel))
 	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
 
-	amountErrorLabel := canvas.NewText("", color.RGBA{237, 109, 71, 255})
-	amountErrorLabel.TextSize = 12
+	amountErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
+	amountErrorLabel.TextSize = 14
 	amountErrorLabel.Hide()
 
 	amountEntryGroup := widget.NewGroup("Amount", fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
@@ -211,7 +232,7 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 			} else {
 				value = value[:amountEntry.CursorColumn-1] + value[amountEntry.CursorColumn:]
 				//todo: using setText, cursor column count doesnt increase or reduce. Create an issue on this
-				amountEntry.CursorColumn--
+				//amountEntry.CursorColumn--
 				amountEntry.SetText(value)
 			}
 			return
@@ -303,17 +324,17 @@ func sendPageContent(dcrlw *dcrlibwallet.LibWallet) fyne.CanvasObject {
 
 	//amountEntryGroup:=widget.NewGroup("Amount", )
 
-	submit := widget.NewButton("Next", func() {
+	nextButton = widget.NewButton("Next", func() {
 		fmt.Println(sendPage.receivingSelectedAccountLabel.Text, sendPage.receivingSelectedAccountBalanceLabel.Text)
 	})
-	submit.Disable()
+	nextButton.Disable()
 
 	sendPageContents := widget.NewVBox(baseWidgets, receivingAccountGroup,
 		widgets.NewVSpacer(8),
-		widget.NewHBox(sendingToAccountGroup, destinationAddressEntryGroup, sendToAccount),
+		widget.NewHBox(destinationAddressEntryGroup, sendingToAccountGroup, widget.NewVBox(sendToAccount)), // this is an hack to center mouse inputs
 		widgets.NewVSpacer(8),
 		widget.NewHBox(amountEntryGroup, widget.NewVBox(sendPage.spendableLabel)),
-		widgets.NewVSpacer(12), costAndBalanceAfterSendContainer, widgets.NewVSpacer(16), submit)
+		widgets.NewVSpacer(12), costAndBalanceAfterSendContainer, widgets.NewVSpacer(16), nextButton)
 
 	return widget.NewHBox(widgets.NewHSpacer(10), sendPageContents)
 }
@@ -350,7 +371,7 @@ func getAccountInBox(initFunction func(), dropdownContent *widget.Box, selectedA
 			continue
 		}
 
-		spendableLabel := canvas.NewText("Spendable", color.White)
+		spendableLabel := canvas.NewText("Spendable", color.Black)
 		spendableLabel.TextSize = 10
 
 		accountName := account.Name
@@ -361,7 +382,7 @@ func getAccountInBox(initFunction func(), dropdownContent *widget.Box, selectedA
 			widget.NewHBox(widgets.NewHSpacer(1), spendableLabel),
 		)
 
-		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.White)
+		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.Black)
 		spendableAmountLabel.TextSize = 10
 		spendableAmountLabel.Alignment = fyne.TextAlignTrailing
 
@@ -436,7 +457,9 @@ func getAccountInBox(initFunction func(), dropdownContent *widget.Box, selectedA
 				}
 			}
 			selectedAccountLabel.SetText(accountName)
-			initFunction()
+			if initFunction != nil {
+				initFunction()
+			}
 			popup.Hide()
 		}))
 	}
