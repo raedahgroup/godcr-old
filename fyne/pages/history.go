@@ -17,38 +17,41 @@ import (
 )
 
 const txPerPage int32 = 25
-	var txTable widgets.Table
+// overviewPageData contains widgets that needs to be updated realtime
+type overviewPageData struct {
+	txTable         widgets.Table
+}
+var overview overviewPageData
 
 
 func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
-
-		// error handler
+	// error handler
 	var errorLabel *widget.Label
 	errorLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	errorLabel.Hide()
 
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 	
-	t := prepareTxFilterDropDown(wallet, &txTable, window, errorLabel)
+	t := prepareTxFilterDropDown(wallet, window, errorLabel)
 
-	fetchAndDisplayTransactions(wallet, &txTable, 0, dcrlibwallet.TxFilterAll)
-	txTable.Result.Children = txTable.Result.Children
-	widget.Refresh(txTable.Result)
-	fmt.Println(txTable.Result)
+	fetchAndDisplayTransactions(wallet, &overview.txTable, 0, dcrlibwallet.TxFilterAll)
+
 	output := widget.NewVBox(
 		widgets.NewVSpacer(5),
 		widget.NewHBox(pageTitleLabel),
 		widgets.NewVSpacer(5),
 		t,
 		widgets.NewVSpacer(5),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txTable.Container.MinSize().Width, txTable.Container.MinSize().Height+200)), txTable.Container),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(overview.txTable.Container.MinSize().Width, overview.txTable.Container.MinSize().Height+200)), overview.txTable.Container),
 		errorLabel,
 	)
 
 	return widget.NewHBox(widgets.NewHSpacer(18), output)
 }
 
-func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, window fyne.Window, errorLabel *widget.Label) *widgets.ClickableBox {
+func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label) *widgets.ClickableBox {
+	var txTable widgets.Table
+
 	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
 	var allTxFilters = map[string]int32{
 		"All":         dcrlibwallet.TxFilterAll,
@@ -91,7 +94,9 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, txTable *widgets.Ta
 				selectedFilterId := allTxFilters[selectedFilterName]
 
 				// if selectedFilterId != historyPageData.currentTxFilter {
-				fetchAndDisplayTransactions(wallet, txTable, 0, selectedFilterId)
+				fetchAndDisplayTransactions(wallet, &txTable, 0, selectedFilterId)
+				overview.txTable.Result.Children = txTable.Result.Children
+				widget.Refresh(overview.txTable.Result)
 
 				selectedAccountLabel.SetText(filter)
 				accountSelectionPopup.Hide()
@@ -173,11 +178,6 @@ func fetchAndDisplayTransactions(wallet *dcrlibwallet.LibWallet, txTable *widget
 
 	txTable.NewTable(tableHeading, hBox...)
 	txTable.Refresh()
-	// fmt.Println("new line")
-	// fmt.Println(txTable.Result.Children)
-
-	// txTable.Result.Children = txTable.Result.Children
-	// widget.Refresh(txTable.Result)
 	return
 }
 
