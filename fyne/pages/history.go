@@ -2,15 +2,10 @@ package pages
 
 import (
 	"fmt"
-<<<<<<< HEAD
 	"image/color"
 	"strconv"
 	"strings"
 	"time"
-=======
-	"strings"
-	// "image/color"
->>>>>>> bug fix with tablefilter
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -26,10 +21,6 @@ import (
 )
 
 const txPerPage int32 = 25
-	var txTable widgets.Table
-
-<<<<<<< HEAD
-const txPerPage int32 = 25
 
 type txHistoryPageData struct {
 	txTable          widgets.Table
@@ -40,17 +31,12 @@ type txHistoryPageData struct {
 }
 
 var txHistory txHistoryPageData
-=======
-func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
->>>>>>> bug fix with tablefilter
-
 
 func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
 	txHistory.errorLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	txHistory.errorLabel.Hide()
 
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
-<<<<<<< HEAD
 
 	txHistoryPageOutput := widget.NewVBox(
 		widgets.NewVSpacer(5),
@@ -547,23 +533,6 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		widgets.NewHSpacer(10),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
 		widgets.NewHSpacer(10),
-=======
-	
-	t := prepareTxFilterDropDown(wallet, &txTable, window, errorLabel)
-
-	fetchAndDisplayTransactions(wallet, &txTable, 0, dcrlibwallet.TxFilterAll)
-	txTable.Result.Children = txTable.Result.Children
-	widget.Refresh(txTable.Result)
-	fmt.Println(txTable.Result)
-	output := widget.NewVBox(
-		widgets.NewVSpacer(5),
-		widget.NewHBox(pageTitleLabel),
-		widgets.NewVSpacer(5),
-		t,
-		widgets.NewVSpacer(5),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txTable.Container.MinSize().Width, txTable.Container.MinSize().Height+200)), txTable.Container),
-		errorLabel,
->>>>>>> bug fix with tablefilter
 	)
 
 	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)),
@@ -571,7 +540,9 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	txDetailsPopUp.Show()
 }
 
-func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, window fyne.Window, errorLabel *widget.Label) *widgets.ClickableBox {
+func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label) *widgets.ClickableBox {
+	var txTable widgets.Table
+
 	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
 	var allTxFilters = map[string]int32{
 		"All":         dcrlibwallet.TxFilterAll,
@@ -614,7 +585,9 @@ func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, txTable *widgets.Ta
 				selectedFilterId := allTxFilters[selectedFilterName]
 
 				// if selectedFilterId != historyPageData.currentTxFilter {
-				fetchAndDisplayTransactions(wallet, txTable, 0, selectedFilterId)
+				fetchAndDisplayTransactions(wallet, &txTable, 0, selectedFilterId)
+				overview.txTable.Result.Children = txTable.Result.Children
+				widget.Refresh(overview.txTable.Result)
 
 				selectedAccountLabel.SetText(filter)
 				accountSelectionPopup.Hide()
@@ -696,11 +669,6 @@ func fetchAndDisplayTransactions(wallet *dcrlibwallet.LibWallet, txTable *widget
 
 	txTable.NewTable(tableHeading, hBox...)
 	txTable.Refresh()
-	// fmt.Println("new line")
-	// fmt.Println(txTable.Result.Children)
-
-	// txTable.Result.Children = txTable.Result.Children
-	// widget.Refresh(txTable.Result)
 	return
 }
 
