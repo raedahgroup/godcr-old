@@ -1,9 +1,7 @@
 package widgets
 
-import (
-	// "fmt"
-	"fyne.io/fyne/widget"
-)
+import	"fyne.io/fyne/widget"
+
 type Table struct {
 	tableData []*widget.Box
 	heading   *widget.Box
