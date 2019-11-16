@@ -4,12 +4,11 @@ import (
 	"gioui.org/layout"
 	"gioui.org/widget"
 
-	"github.com/raedahgroup/godcr/app/config"
-	"github.com/raedahgroup/godcr/app/walletcore"
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 type handler interface {
-	BeforeRender(walletcore.Wallet, *config.Settings)
+	BeforeRender(*dcrlibwallet.LibWallet)
 	Render(ctx *layout.Context, refreshWindowFunc func())
 }
 
@@ -79,7 +78,7 @@ type notImplementedNavPageHandler struct {
 	pageTitle string
 }
 
-func (_ *notImplementedNavPageHandler) BeforeRender(_ walletcore.Wallet, _ *config.Settings) {
+func (_ *notImplementedNavPageHandler) BeforeRender(_ *dcrlibwallet.LibWallet) {
 
 }
 

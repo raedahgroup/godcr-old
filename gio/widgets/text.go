@@ -7,8 +7,6 @@ import (
 	"gioui.org/layout"
 	"gioui.org/text"
 
-	//"gioui.org/unit"
-
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
@@ -44,6 +42,14 @@ func CenteredLabel(txt string, theme *helper.Theme, ctx *layout.Context) {
 	label.Layout(ctx)
 }
 
+func BoldCenteredLabel(txt string, theme *helper.Theme, ctx *layout.Context) {
+	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+
+	label := theme.H4(txt)
+	label.Alignment = text.Middle
+	label.Layout(ctx)
+}
+
 func NewClickableLabel(txt string, alignment int, theme *helper.Theme) *ClickableLabel {
 	return &ClickableLabel{
 		text:      txt,
@@ -51,6 +57,10 @@ func NewClickableLabel(txt string, alignment int, theme *helper.Theme) *Clickabl
 		theme:     theme,
 		clicker:   helper.NewClicker(),
 	}
+}
+
+func (c *ClickableLabel) SetText(txt string) {
+	c.text = txt
 }
 
 func (c *ClickableLabel) Display(onClick func(), ctx *layout.Context) {

@@ -1,32 +1,33 @@
 package gio
 
 import (
-	"context"
+	"fmt"
 	"image"
 	"log"
+	"os"
 
-	//"gioui.org/ui"
 	gioapp "gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/unit"
 
-	"github.com/raedahgroup/godcr/app"
-	"github.com/raedahgroup/godcr/app/config"
+	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/gio/giolog"
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type (
-	Desktop struct {
-		window           *gioapp.Window
-		pages            []page
-		currentPage      string
-		pageChanged      bool
-		theme            *helper.Theme
-		syncer           *Syncer
-		walletMiddleware app.WalletMiddleware
-		settings         *config.Settings
+	desktop struct {
+		window         *gioapp.Window
+		displayName    string
+		pages          []page
+		currentPage    string
+		pageChanged    bool
+		theme          *helper.Theme
+		appDisplayName string
+		wallet         *dcrlibwallet.LibWallet
+		syncer         *Syncer
 	}
 )
 
@@ -37,37 +38,80 @@ const (
 	navSectionWidth = 120
 )
 
-func LaunchApp(ctx context.Context, walletMiddleware app.WalletMiddleware, settings *config.Settings) {
-	theme := helper.NewTheme()
-
-	desktop := &Desktop{
-		theme:            theme,
-		walletMiddleware: walletMiddleware,
-		settings:         settings,
-		syncer:           NewSyncer(theme),
-		currentPage:      "overview",
+func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
+	logger, err := dcrlibwallet.RegisterLogger("GIOL")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Launch error - cannot register logger: %v", err)
+		return
 	}
-	desktop.prepareHandlers()
 
+	giolog.UseLogger(logger)
+
+	theme := helper.NewTheme()
+	app := &desktop{
+		theme:       theme,
+		currentPage: "overview",
+	}
+
+	app.wallet, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
+	if err != nil {
+		// todo display pre-launch error on UI
+		giolog.Log.Errorf("Initialization error: %v", err)
+		return
+	}
+
+	walletExists, err := app.wallet.WalletExists()
+	if err != nil {
+		// todo display pre-launch error on UI
+		giolog.Log.Errorf("Error checking if wallet db exists: %v", err)
+		return
+	}
+
+	if !walletExists {
+		// todo show create wallet page
+		giolog.Log.Infof("Wallet does not exist in app directory. Need to create one.")
+		return
+	}
+
+	var pubPass []byte
+	if app.wallet.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey) {
+		// prompt user for public passphrase and assign to `pubPass`
+	}
+
+	err = app.wallet.OpenWallet(pubPass)
+	if err != nil {
+		// todo display pre-launch error on UI
+		giolog.Log.Errorf("Error opening wallet db: %v", err)
+		return
+	}
+
+	err = app.wallet.SpvSync("")
+	if err != nil {
+		// todo display pre-launch error on UI
+		giolog.Log.Errorf("Spv sync attempt failed: %v", err)
+		return
+	}
+
+	app.syncer = NewSyncer(theme, app.wallet, app.refreshWindow)
+	app.wallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
+
+	app.prepareHandlers()
 	go func() {
-		desktop.window = gioapp.NewWindow(
+		app.window = gioapp.NewWindow(
 			gioapp.Size(unit.Dp(windowWidth), unit.Dp(windowHeight)),
-			gioapp.Title(app.DisplayName),
+			gioapp.Title(app.displayName),
 		)
 
-		if err := desktop.renderLoop(); err != nil {
+		if err := app.renderLoop(); err != nil {
 			log.Fatal(err)
 		}
 	}()
-
-	// start syncing in background
-	go desktop.syncer.startSyncing(walletMiddleware, desktop.refreshWindow)
 
 	// run app
 	gioapp.Main()
 }
 
-func (d *Desktop) prepareHandlers() {
+func (d *desktop) prepareHandlers() {
 	pages := getPages()
 	d.pages = make([]page, len(pages))
 
@@ -80,7 +124,7 @@ func (d *Desktop) prepareHandlers() {
 	}
 }
 
-func (d *Desktop) changePage(pageName string) {
+func (d *desktop) changePage(pageName string) {
 	if d.currentPage == pageName {
 		return
 	}
@@ -95,7 +139,7 @@ func (d *Desktop) changePage(pageName string) {
 
 }
 
-func (d *Desktop) renderLoop() error {
+func (d *desktop) renderLoop() error {
 	ctx := &layout.Context{
 		Queue: d.window.Queue(),
 	}
@@ -113,7 +157,7 @@ func (d *Desktop) renderLoop() error {
 	}
 }
 
-func (d *Desktop) render(ctx *layout.Context) {
+func (d *desktop) render(ctx *layout.Context) {
 	var page page
 	for i := range d.pages {
 		if d.pages[i].name == d.currentPage {
@@ -124,7 +168,7 @@ func (d *Desktop) render(ctx *layout.Context) {
 
 	if d.pageChanged {
 		d.pageChanged = false
-		page.handler.BeforeRender(d.walletMiddleware, d.settings)
+		page.handler.BeforeRender(d.wallet)
 	}
 
 	if page.isNavPage {
@@ -134,7 +178,7 @@ func (d *Desktop) render(ctx *layout.Context) {
 	}
 }
 
-func (d *Desktop) renderNavPage(page page, ctx *layout.Context) {
+func (d *desktop) renderNavPage(page page, ctx *layout.Context) {
 	flex := layout.Flex{
 		Axis: layout.Horizontal,
 	}
@@ -150,11 +194,11 @@ func (d *Desktop) renderNavPage(page page, ctx *layout.Context) {
 	flex.Layout(ctx, navChild, contentChild)
 }
 
-func (d *Desktop) renderStandalonePage(page page, ctx *layout.Context) {
+func (d *desktop) renderStandalonePage(page page, ctx *layout.Context) {
 	page.handler.Render(ctx, d.refreshWindow)
 }
 
-func (d *Desktop) renderNavSection(ctx *layout.Context) {
+func (d *desktop) renderNavSection(ctx *layout.Context) {
 	navAreaBounds := image.Point{
 		X: navSectionWidth,
 		Y: windowHeight * 2,
@@ -180,16 +224,15 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 				}
 
 				c := ctx.Constraints
-				ctx.Constraints.Width.Min = 270
-				ctx.Constraints.Width.Max = 270
-
 				inset.Layout(ctx, func() {
+					ctx.Constraints.Width.Min = navAreaBounds.X
+
 					for page.button.Clicked(ctx) {
 						d.changePage(page.name)
 					}
 					widgets.LayoutNavButton(page.button, page.label, d.theme, ctx)
+					ctx.Constraints = c
 				})
-				ctx.Constraints = c
 			})
 			currentPositionTop += navButtonHeight
 		}
@@ -198,22 +241,22 @@ func (d *Desktop) renderNavSection(ctx *layout.Context) {
 	})
 }
 
-func (d *Desktop) renderContentSection(page page, ctx *layout.Context) {
+func (d *desktop) renderContentSection(page page, ctx *layout.Context) {
 	inset := layout.Inset{
 		Left:  unit.Dp(-113),
 		Right: unit.Dp(10),
-		Top:   unit.Dp(8),
+		Top:   unit.Dp(4),
 	}
 
 	inset.Layout(ctx, func() {
-		if d.syncer.isDoneSyncing() {
-			page.handler.Render(ctx, d.refreshWindow)
-		} else {
+		if d.wallet.IsSyncing() {
 			d.syncer.Render(ctx)
+		} else {
+			page.handler.Render(ctx, d.refreshWindow)
 		}
 	})
 }
 
-func (d *Desktop) refreshWindow() {
+func (d *desktop) refreshWindow() {
 	d.window.Invalidate()
 }
