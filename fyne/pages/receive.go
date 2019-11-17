@@ -21,7 +21,7 @@ import (
 
 func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
 	walletsID := multiWallet.OpenedWalletIDsRaw()
-	if walletsID == nil {
+	if len(walletsID) == 0 {
 		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	}
 	sort.Ints(walletsID)
