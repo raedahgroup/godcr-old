@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/decred/slog"
@@ -16,7 +17,8 @@ import (
 
 type AppInterface struct {
 	Log            slog.Logger
-	Dcrlw          *dcrlibwallet.LibWallet
+	MultiWallet    *dcrlibwallet.MultiWallet
+	Wallets        []*dcrlibwallet.Wallet
 	Window         fyne.Window
 	AppDisplayName string
 
@@ -54,6 +56,7 @@ func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
 	app.Window.SetContent(app.tabMenu)
 	app.Window.CenterOnScreen()
+	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
 	app.tearDown()
 }
@@ -106,7 +109,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 2:
 				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = receivePageContent(app.Dcrlw, app.Window, app.tabMenu)
+				newPageContent = receivePageContent(app.Wallets, app.Window, app.tabMenu)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
@@ -120,7 +123,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		}
 	}()
 
-	err = app.Dcrlw.SpvSync("") // todo dcrlibwallet should ideally read this parameter from config
+	err = app.MultiWallet.SpvSync() // todo dcrlibwallet should ideally read this parameter from config
 	if err != nil {
 		errorMessage := fmt.Sprintf("Spv sync attempt failed: %v", err)
 		app.Log.Errorf(errorMessage)
@@ -130,8 +133,8 @@ func (app *AppInterface) setupNavigationMenu() {
 }
 
 func (app *AppInterface) tearDown() {
-	if app.Dcrlw != nil {
-		app.Dcrlw.Shutdown()
+	if app.MultiWallet != nil {
+		app.MultiWallet.Shutdown()
 	}
 	fyne.CurrentApp().Quit()
 }

@@ -123,23 +123,31 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		}
 
 		var err error
+		var wallet *dcrlibwallet.Wallet
 		if seed == "" {
-			seed, err = dcrlibwallet.GenerateSeed()
+			wallet, err = app.MultiWallet.CreateNewWallet(password.Text, 0)
 			if err != nil {
 				enableCancelButton()
 				displayError(err)
+				log.Println("Could not create wallet", err.Error())
 				return
+			}
+		} else {
+			wallet, err = app.MultiWallet.RestoreWallet(seed, password.Text, 0)
+			if err != nil {
+				enableCancelButton()
+				displayError(err)
+				log.Println("Could not create wallet", err.Error())
+				return
+			}
+
+			err = wallet.UnlockWallet([]byte(password.Text))
+			if err != nil {
+				log.Println("could not unlock wallet to discover account")
 			}
 		}
 
-		err = app.Dcrlw.CreateWallet(password.Text, seed)
-
-		if err != nil {
-			enableCancelButton()
-			displayError(err)
-			log.Println("Could not create wallet", err.Error())
-			return
-		}
+		app.Wallets = append(app.Wallets, wallet)
 
 		passwordPopup.Hide()
 		app.Window.SetFixedSize(false)

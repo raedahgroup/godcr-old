@@ -2,12 +2,13 @@ package fyne
 
 import (
 	"fmt"
-
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/pages"
+	"sort"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
+
+	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/fyne/pages"
 )
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
@@ -25,7 +26,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		return
 	}
 
-	app.Dcrlw, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
+	app.MultiWallet, err = dcrlibwallet.NewMultiWallet(appDataDir, "", netType)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Initialization error: %v", err)
 		app.Log.Errorf(errorMessage)
@@ -33,27 +34,28 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		return
 	}
 
-	walletExists, err := app.Dcrlw.WalletExists()
-	if err != nil {
-		errorMessage := fmt.Sprintf("Error checking if wallet db exists: %v", err)
-		app.Log.Errorf(errorMessage)
-		app.DisplayLaunchErrorAndExit(errorMessage)
-		return
-	}
+	walletCount := app.MultiWallet.LoadedWalletsCount()
 
-	if !walletExists {
+	if walletCount == 0 {
 		app.ShowCreateAndRestoreWalletPage()
 		return
 	}
 
 	// todo check settings.db to see if pub pass is configured and request from user
 	// pass nil to use default pub pass
-	err = app.Dcrlw.OpenWallet(nil)
+	err = app.MultiWallet.OpenWallets(nil)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error opening wallet db: %v", err)
 		app.Log.Errorf(errorMessage)
 		app.DisplayLaunchErrorAndExit(errorMessage)
 		return
+	}
+
+	app.Wallets = make([]*dcrlibwallet.Wallet, walletCount)
+	openedWallets := app.MultiWallet.OpenedWalletIDsRaw()
+	sort.Ints(openedWallets)
+	for walletIndex, walletID := range openedWallets {
+		app.Wallets[walletIndex] = app.MultiWallet.WalletWithID(walletID)
 	}
 
 	app.DisplayMainWindow()
