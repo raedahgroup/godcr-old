@@ -18,7 +18,6 @@ import (
 type AppInterface struct {
 	Log            slog.Logger
 	MultiWallet    *dcrlibwallet.MultiWallet
-	Wallets        []*dcrlibwallet.Wallet
 	Window         fyne.Window
 	AppDisplayName string
 
@@ -109,7 +108,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 2:
 				newPageContent = sendPageContent()
 			case 3:
-				newPageContent = receivePageContent(app.Wallets, app.Window, app.tabMenu)
+				newPageContent = receivePageContent(app.MultiWallet, app.Window, app.tabMenu)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
@@ -123,7 +122,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		}
 	}()
 
-	err = app.MultiWallet.SpvSync() // todo dcrlibwallet should ideally read this parameter from config
+	err = app.MultiWallet.SpvSync()
 	if err != nil {
 		errorMessage := fmt.Sprintf("Spv sync attempt failed: %v", err)
 		app.Log.Errorf(errorMessage)

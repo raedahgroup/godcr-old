@@ -2,7 +2,6 @@ package fyne
 
 import (
 	"fmt"
-	"sort"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -49,13 +48,6 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		app.Log.Errorf(errorMessage)
 		app.DisplayLaunchErrorAndExit(errorMessage)
 		return
-	}
-
-	app.Wallets = make([]*dcrlibwallet.Wallet, walletCount)
-	openedWallets := app.MultiWallet.OpenedWalletIDsRaw()
-	sort.Ints(openedWallets)
-	for walletIndex, walletID := range openedWallets {
-		app.Wallets[walletIndex] = app.MultiWallet.WalletWithID(walletID)
 	}
 
 	app.DisplayMainWindow()

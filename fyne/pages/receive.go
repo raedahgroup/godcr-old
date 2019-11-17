@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"image/color"
+	"sort"
 	"time"
 
 	"fyne.io/fyne"
@@ -18,7 +19,13 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
+func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabmenu *widget.TabContainer) fyne.CanvasObject {
+	walletsID := multiWallet.OpenedWalletIDsRaw()
+	if walletsID == nil {
+		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+	}
+	sort.Ints(walletsID)
+
 	// error handler
 	errorLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	errorLabel.Hide()
@@ -56,14 +63,14 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 
 	var selectedAccountName string
 	var generatedReceiveAddress string
-	var selectedWalletNumber = 0
+	var selectedWalletID = walletsID[0]
 
 	// generate new address pop-up
 	var clickableMoreIcon *widgets.ImageButton
 	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var generateNewAddressPopup *widget.PopUp
 		generateNewAddressPopup = widget.NewPopUp(widgets.NewClickableBox(widget.NewHBox(widget.NewLabel("Generate new address")), func() {
-			generatedReceiveAddress = generateAddressAndQrCode(wallets[selectedWalletNumber], qrImage, selectedAccountName, generatedAddressLabel, errorLabel, true)
+			generatedReceiveAddress = generateAddressAndQrCode(multiWallet.WalletWithID(selectedWalletID), qrImage, selectedAccountName, generatedAddressLabel, errorLabel, true)
 			generateNewAddressPopup.Hide()
 		}), window.Canvas())
 
@@ -72,7 +79,7 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 	})
 
 	// get user accounts
-	accounts, err := wallets[0].GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+	accounts, err := multiWallet.WalletWithID(selectedWalletID).GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
 	}
@@ -81,18 +88,23 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 	selectedAccountName = accounts.Acc[0].Name
 	selectedAccountLabel := widget.NewLabel(selectedAccountName)
 
-	selectedWalletLabel := canvas.NewText(wallets[0].Name, color.Black)
+	selectedWalletLabel := canvas.NewText(multiWallet.WalletWithID(selectedWalletID).Name, color.Black)
 	selectedWalletLabel.TextSize = 10
 
 	selectedAccountBalanceLabel := widget.NewLabel(dcrutil.Amount(accounts.Acc[0].TotalBalance).String())
-	generatedReceiveAddress = generateAddressAndQrCode(wallets[0], qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
+	generatedReceiveAddress = generateAddressAndQrCode(multiWallet.WalletWithID(selectedWalletID), qrImage, selectedAccountName, generatedAddressLabel, errorLabel, false)
 
 	accountListWidget := widget.NewVBox()
 
 	var accountSelectionPopup *widget.PopUp
 
-	for walletIndex, wallet := range wallets {
-		accountListWidget.Append(widget.NewHBox(widgets.NewHSpacer(8), widget.NewLabel(wallets[walletIndex].Name)))
+	for _, walletID := range walletsID {
+		wallet := multiWallet.WalletWithID(walletID)
+		if wallet == nil {
+			continue
+		}
+
+		accountListWidget.Append(widget.NewHBox(widgets.NewHSpacer(8), widget.NewLabel(wallet.Name)))
 		accountListWidget.Append(widgets.NewVSpacer(8))
 
 		accounts, err = wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
@@ -126,7 +138,7 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 			)
 
 			checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
-			if index != 0 || walletIndex != 0 {
+			if index != 0 || walletID != walletsID[0] {
 				checkmarkIcon.Hide()
 			}
 
@@ -142,7 +154,7 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 				widgets.NewHSpacer(15),
 			)
 
-			selectedWallet := walletIndex
+			currentWallet := walletID
 
 			accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
 				// hide checkmark icon of other accounts
@@ -162,13 +174,13 @@ func receivePageContent(wallets []*dcrlibwallet.Wallet, window fyne.Window, tabm
 					}
 				}
 
-				selectedWalletNumber = selectedWallet
+				selectedWalletID = currentWallet
 				checkmarkIcon.Show()
 				selectedAccountLabel.SetText(accountName)
-				selectedWalletLabel.Text = wallets[selectedWallet].Name
+				selectedWalletLabel.Text = wallet.Name
 				canvas.Refresh(selectedWalletLabel)
 				selectedAccountBalanceLabel.SetText(accountBalance)
-				generatedReceiveAddress = generateAddressAndQrCode(wallets[selectedWalletNumber], qrImage, accountName, generatedAddressLabel, errorLabel, false)
+				generatedReceiveAddress = generateAddressAndQrCode(wallet, qrImage, accountName, generatedAddressLabel, errorLabel, false)
 				accountSelectionPopup.Hide()
 			}))
 		}

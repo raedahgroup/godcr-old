@@ -147,8 +147,6 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 			}
 		}
 
-		app.Wallets = append(app.Wallets, wallet)
-
 		passwordPopup.Hide()
 		app.Window.SetFixedSize(false)
 		app.Window.SetOnClosed(nil)
