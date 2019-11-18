@@ -1,10 +1,14 @@
 package pages
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"strconv"
 
 	"fyne.io/fyne/widget"
 
+	"github.com/gen2brain/beeep"
 	"github.com/raedahgroup/dcrlibwallet"
 )
 
@@ -50,6 +54,38 @@ func (app *multiWalletTxListener) Debug(debugInfo *dcrlibwallet.DebugInfo) {
 }
 
 func (app *multiWalletTxListener) OnTransaction(transaction string) {
+	var currentTransaction map[string]interface{}
+	err := json.Unmarshal([]byte(transaction), &currentTransaction)
+	if err != nil {
+		log.Println("could read transaction to json")
+		return
+	}
+
+	var amount, walletID float64
+	var ok bool
+	var walletName string
+
+	if walletID, ok = currentTransaction["walletID"].(float64); ok {
+		wallet := app.multiWallet.WalletWithID(int(walletID))
+		if wallet == nil {
+			return
+		}
+		walletName = wallet.Name
+
+	} else {
+		return
+	}
+
+	if amount, ok = currentTransaction["amount"].(float64); ok {
+		err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("You have received %s DCR in wallet %s", strconv.FormatFloat(amount/100000000, 'f', -1, 64), walletName), "assets/information.png")
+		if err != nil {
+			log.Println("could not start desktop notification")
+		}
+
+	} else {
+		return
+	}
+
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
