@@ -163,20 +163,20 @@ func (ic *Icon) image(sz int) paint.ImageOp {
 }
 
 func LayoutNavButton(button *widget.Button, txt string, theme *helper.Theme, gtx *layout.Context) {
-	col := helper.WhiteColor
+	col :=  helper.WhiteColor
 	bgcol := helper.DecredDarkBlueColor
 	if !button.Active() {
-		col = color.RGBA{255, 255, 255, 255}
+		col = helper.WhiteColor
 		bgcol = helper.DecredDarkBlueColor
 	}
-	st := layout.Stack{Alignment: layout.Center}
+	st := layout.Stack{}
 	hmin := gtx.Constraints.Width.Min
-	//vmin := gtx.Constraints.Height.Min
+	vmin := gtx.Constraints.Height.Min
 	lbl := st.Rigid(gtx, func() {
 		gtx.Constraints.Width.Min = hmin
-		gtx.Constraints.Height.Min = 30
+		gtx.Constraints.Height.Min = vmin
 		layout.Align(layout.Center).Layout(gtx, func() {
-			layout.UniformInset(unit.Dp(10)).Layout(gtx, func() {
+			layout.UniformInset(unit.Dp(8)).Layout(gtx, func() {
 				paint.ColorOp{Color: col}.Add(gtx.Ops)
 				widget.Label{Alignment: text.Middle}.Layout(gtx, theme.Shaper, helper.GetNavFont(), txt)
 			})
@@ -185,7 +185,7 @@ func LayoutNavButton(button *widget.Button, txt string, theme *helper.Theme, gtx
 		button.Layout(gtx)
 	})
 	bg := st.Expand(gtx, func() {
-		rr := float32(gtx.Px(unit.Dp(0)))
+		rr := float32(gtx.Px(unit.Dp(4)))
 		rrect(gtx.Ops,
 			float32(gtx.Constraints.Width.Min),
 			float32(gtx.Constraints.Height.Min),

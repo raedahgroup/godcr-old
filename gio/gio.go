@@ -7,9 +7,9 @@ import (
 	"os"
 
 	gioapp "gioui.org/app"
+	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"gioui.org/io/system"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -22,7 +22,8 @@ type (
 	desktop struct {
 		window         *gioapp.Window
 		displayName    string
-		pages          []page
+		pages          []navPage
+		standalonePages map[string]standalonePageHandler
 		currentPage    string
 		pageChanged    bool
 		theme          *helper.Theme
@@ -54,37 +55,18 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		currentPage: "overview",
 	}
 
-	app.multiWallet, err = dcrlibwallet.NewMultiWallet(appDataDir, "", netType)
+	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := LoadWallet(appDataDir, netType) 
 	if err != nil {
-		// todo display pre-launch error on UI
-		giolog.Log.Errorf("Initialization error: %v", err)
+		// todo show error in UI
+		giolog.Log.Errorf(err.Error())
 		return
 	}
 
-	walletCount := app.multiWallet.LoadedWalletsCount()
-	if walletCount == 0 {
-		// todo show createand restore wallet page
-		giolog.Log.Infof("Wallet does not exist in app directory. Need to create one.")
-		return
-	}
-
-	var pubPass []byte
-	if app.multiWallet.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey, true) {
-		// prompt user for public passphrase and assign to `pubPass`
-	}
-
-	err = app.multiWallet.OpenWallets(pubPass)
-	if err != nil {
-		// todo display pre-launch error on UI
-		giolog.Log.Errorf("Error opening wallet db: %v", err)
-		return
-	}
-
-	err = app.multiWallet.SpvSync()
-	if err != nil {
-		// todo display pre-launch error on UI
-		giolog.Log.Errorf("Spv sync attempt failed: %v", err)
-		return
+	app.multiWallet = multiWallet 
+	if shouldCreateOrRestoreWallet {
+		app.currentPage = "welcome"
+	} else if shouldPromptForPass {
+		app.currentPage = "passphrase"
 	}
 
 	app.syncer = NewSyncer(theme, app.multiWallet, app.refreshWindow)
@@ -107,15 +89,13 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 }
 
 func (d *desktop) prepareHandlers() {
-	pages := getPages()
-	d.pages = make([]page, len(pages))
+	// set standalone page
+	d.standalonePages = getStandalonePages(d.multiWallet, d.theme)
 
-	for index, page := range pages {
-		d.pages[index] = page
-
-		if index == 0 {
-			d.changePage(page.name)
-		}
+	// set navPages
+	d.pages = getNavPages()
+	if len(d.pages) > 0 && d.currentPage == "" {
+		d.changePage(d.pages[0].name)
 	}
 }
 
@@ -131,7 +111,6 @@ func (d *desktop) changePage(pageName string) {
 			break
 		}
 	}
-
 }
 
 func (d *desktop) renderLoop() error {
@@ -153,27 +132,28 @@ func (d *desktop) renderLoop() error {
 }
 
 func (d *desktop) render(ctx *layout.Context) {
-	var page page
-	for i := range d.pages {
-		if d.pages[i].name == d.currentPage {
-			page = d.pages[i]
-			break
-		}
-	}
-
-	if d.pageChanged {
-		d.pageChanged = false
-		page.handler.BeforeRender(d.multiWallet)
-	}
-
-	if page.isNavPage {
-		d.renderNavPage(page, ctx)
-	} else {
+	// first check if current page is standalone and render 
+	if page, ok := d.standalonePages[d.currentPage]; ok {
 		d.renderStandalonePage(page, ctx)
+	} else {
+		var page navPage
+		for i := range d.pages {
+			if d.pages[i].name == d.currentPage {
+				page = d.pages[i]
+				break
+			}
+		}
+
+		if d.pageChanged {
+			d.pageChanged = false
+			page.handler.BeforeRender(d.multiWallet)
+		}
+
+		d.renderNavPage(page, ctx)
 	}
 }
 
-func (d *desktop) renderNavPage(page page, ctx *layout.Context) {
+func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 	flex := layout.Flex{
 		Axis: layout.Horizontal,
 	}
@@ -183,14 +163,24 @@ func (d *desktop) renderNavPage(page page, ctx *layout.Context) {
 	})
 
 	contentChild := flex.Rigid(ctx, func() {
-		d.renderContentSection(page, ctx)
+		inset := layout.Inset{
+			Left: unit.Dp(-353),
+		}
+		inset.Layout(ctx, func(){
+			d.renderContentSection(page, ctx)
+		})
 	})
 
 	flex.Layout(ctx, navChild, contentChild)
 }
 
-func (d *desktop) renderStandalonePage(page page, ctx *layout.Context) {
-	page.handler.Render(ctx, d.refreshWindow)
+func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
+	gioapp.Size(unit.Dp(200), unit.Dp(windowHeight))
+	
+	inset := layout.UniformInset(unit.Dp(10))
+	inset.Layout(ctx, func(){
+		page.Render(ctx, d.refreshWindow, d.changePage)
+	})
 }
 
 func (d *desktop) renderNavSection(ctx *layout.Context) {
@@ -203,6 +193,7 @@ func (d *desktop) renderNavSection(ctx *layout.Context) {
 	inset := layout.Inset{
 		Top:  unit.Dp(0),
 		Left: unit.Dp(0),
+		Right: unit.Dp(float32(navAreaBounds.X)),
 	}
 	inset.Layout(ctx, func() {
 		var stack layout.Stack
@@ -215,41 +206,32 @@ func (d *desktop) renderNavSection(ctx *layout.Context) {
 			children[index] = stack.Rigid(ctx, func() {
 				inset := layout.Inset{
 					Top:   unit.Dp(currentPositionTop),
-					Right: unit.Dp(navSectionWidth),
 				}
 
 				c := ctx.Constraints
 				inset.Layout(ctx, func() {
 					ctx.Constraints.Width.Min = navAreaBounds.X
-
+					
 					for page.button.Clicked(ctx) {
 						d.changePage(page.name)
 					}
+
 					widgets.LayoutNavButton(page.button, page.label, d.theme, ctx)
-					ctx.Constraints = c
 				})
+				ctx.Constraints = c
 			})
 			currentPositionTop += navButtonHeight
 		}
-
 		stack.Layout(ctx, children...)
 	})
 }
 
-func (d *desktop) renderContentSection(page page, ctx *layout.Context) {
-	inset := layout.Inset{
-		Left:  unit.Dp(-113),
-		Right: unit.Dp(10),
-		Top:   unit.Dp(4),
+func (d *desktop) renderContentSection(page navPage, ctx *layout.Context) {
+	if d.multiWallet.IsSyncing() {
+		d.syncer.Render(ctx)
+	} else {
+		page.handler.Render(ctx, d.refreshWindow)
 	}
-
-	inset.Layout(ctx, func() {
-		if d.multiWallet.IsSyncing() {
-			d.syncer.Render(ctx)
-		} else {
-			page.handler.Render(ctx, d.refreshWindow)
-		}
-	})
 }
 
 func (d *desktop) refreshWindow() {

@@ -50,6 +50,13 @@ func BoldCenteredLabel(txt string, theme *helper.Theme, ctx *layout.Context) {
 	label.Layout(ctx)
 }
 
+func BoldText(txt string, theme *helper.Theme, ctx *layout.Context) {
+	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+
+	label := theme.H4(txt)
+	label.Layout(ctx)
+}
+
 func NewClickableLabel(txt string, alignment int, theme *helper.Theme) *ClickableLabel {
 	return &ClickableLabel{
 		text:      txt,
@@ -82,8 +89,9 @@ func (c *ClickableLabel) Display(onClick func(), ctx *layout.Context) {
 			alignment = text.Start
 		}
 
-		label := c.theme.H6(c.text)
+		label := c.theme.Body2(c.text)
 		label.Alignment = alignment
+		label.Color = helper.DecredDarkBlueColor
 		label.Layout(ctx)
 
 		pointer.RectAreaOp{Rect: image.Rectangle{Max: ctx.Dimensions.Size}}.Add(ctx.Ops)

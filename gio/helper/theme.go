@@ -27,9 +27,9 @@ func NewTheme() *Theme {
 	}
 
 	mt.Color.Primary = DecredDarkBlueColor
-	mt.Color.Text = DecredDarkBlueColor
+	mt.Color.Text = BlackColor
 	mt.Color.Hint = GrayColor
-	mt.TextSize = unit.Px(fontSize)
+	mt.TextSize = unit.Dp(fontSize)
 
 	return &Theme{
 		&mt,
@@ -39,12 +39,12 @@ func NewTheme() *Theme {
 
 func GetFont() text.Font {
 	return text.Font{
-		Size: unit.Px(fontSize),
+		Size: unit.Dp(fontSize),
 	}
 }
 
 func GetNavFont() text.Font {
 	return text.Font{
-		Size: unit.Dp(11),
+		Size: unit.Dp(10),
 	}
 }
