@@ -8,7 +8,7 @@ import (
 )
 
 type handler interface {
-	BeforeRender(*dcrlibwallet.LibWallet)
+	BeforeRender(*dcrlibwallet.MultiWallet)
 	Render(ctx *layout.Context, refreshWindowFunc func())
 }
 
@@ -78,7 +78,7 @@ type notImplementedNavPageHandler struct {
 	pageTitle string
 }
 
-func (_ *notImplementedNavPageHandler) BeforeRender(_ *dcrlibwallet.LibWallet) {
+func (_ *notImplementedNavPageHandler) BeforeRender(_ *dcrlibwallet.MultiWallet) {
 
 }
 

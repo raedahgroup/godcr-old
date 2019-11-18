@@ -7,13 +7,18 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"github.com/raedahgroup/godcr/gio/helper"
+	"golang.org/x/exp/shiny/iconvg"
 
 	"image"
 	"image/color"
+	"image/draw"
+
+	"gioui.org/font"
 
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/op/paint"
+	"gioui.org/widget/material"
 )
 
 func NewButton() *widget.Button {
@@ -138,6 +143,24 @@ func (b IconButton) Layout(gtx *layout.Context, button *widget.Button) {
 	pointer.RectAreaOp{Rect: image.Rectangle{Max: gtx.Dimensions.Size}}.Add(gtx.Ops)
 	st.Layout(gtx, bg, ico)
 }
+func (ic *Icon) image(sz int) paint.ImageOp {
+	if sz == ic.imgSize {
+		return ic.op
+	}
+	m, _ := iconvg.DecodeMetadata(ic.src)
+	dx, dy := m.ViewBox.AspectRatio()
+	img := image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
+	var ico iconvg.Rasterizer
+	ico.SetDstImage(img, img.Bounds(), draw.Src)
+	// Use white for icons.
+	m.Palette[0] = color.RGBA{A: 0xff, R: 0xff, G: 0xff, B: 0xff}
+	iconvg.Decode(&ico, ic.src, &iconvg.DecodeOptions{
+		Palette: &m.Palette,
+	})
+	ic.op = paint.NewImageOp(img)
+	ic.imgSize = sz
+	return ic.op
+}
 
 func LayoutNavButton(button *widget.Button, txt string, theme *helper.Theme, gtx *layout.Context) {
 	col := helper.WhiteColor
@@ -227,13 +250,4 @@ func rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
 	b.Line(f32.Point{X: w - ne - nw, Y: 0})
 	b.Cube(f32.Point{X: ne * c, Y: 0}, f32.Point{X: ne, Y: ne - ne*c}, f32.Point{X: ne, Y: ne}) // NE
 	b.End().Add(ops)
-}
-
-func NewIcon(data []byte) (*Icon, error) {
-	_, err := iconvg.DecodeMetadata(data)
-
-	if err != nil {
-		return nil, err
-	}
-	return &Icon{src: data}, nil
 }

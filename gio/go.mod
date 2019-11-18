@@ -4,8 +4,13 @@ go 1.12
 
 require (
 	gioui.org v0.0.0-20191023081811-143d2aae95dd
+	github.com/decred/dcrd/dcrutil v1.4.0
 	github.com/decred/slog v1.0.0
-	github.com/decred/dcrd/dcrutil v1.2.0
-	github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190928085114-bcc6e6b7769a
+	github.com/raedahgroup/dcrlibwallet v0.0.0-00010101000000-000000000000
 	golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3
+	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 )
+
+replace github.com/raedahgroup/dcrlibwallet => github.com/C-ollins/mobilewallet v0.0.0-20191116012520-cf18a67c7aa6
+
+replace github.com/raedahgroup/dcrlibwallet/spv => github.com/C-ollins/mobilewallet/spv v0.0.0-20191116012520-cf18a67c7aa6

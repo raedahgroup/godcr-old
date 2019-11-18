@@ -9,6 +9,7 @@ import (
 	gioapp "gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/unit"
+	"gioui.org/io/system"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -26,7 +27,7 @@ type (
 		pageChanged    bool
 		theme          *helper.Theme
 		appDisplayName string
-		wallet         *dcrlibwallet.LibWallet
+		multiWallet    *dcrlibwallet.MultiWallet
 		syncer         *Syncer
 	}
 )
@@ -53,47 +54,41 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		currentPage: "overview",
 	}
 
-	app.wallet, err = dcrlibwallet.NewLibWallet(appDataDir, "", netType)
+	app.multiWallet, err = dcrlibwallet.NewMultiWallet(appDataDir, "", netType)
 	if err != nil {
 		// todo display pre-launch error on UI
 		giolog.Log.Errorf("Initialization error: %v", err)
 		return
 	}
 
-	walletExists, err := app.wallet.WalletExists()
-	if err != nil {
-		// todo display pre-launch error on UI
-		giolog.Log.Errorf("Error checking if wallet db exists: %v", err)
-		return
-	}
-
-	if !walletExists {
-		// todo show create wallet page
+	walletCount := app.multiWallet.LoadedWalletsCount()
+	if walletCount == 0 {
+		// todo show createand restore wallet page
 		giolog.Log.Infof("Wallet does not exist in app directory. Need to create one.")
 		return
 	}
 
 	var pubPass []byte
-	if app.wallet.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey) {
+	if app.multiWallet.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey, true) {
 		// prompt user for public passphrase and assign to `pubPass`
 	}
 
-	err = app.wallet.OpenWallet(pubPass)
+	err = app.multiWallet.OpenWallets(pubPass)
 	if err != nil {
 		// todo display pre-launch error on UI
 		giolog.Log.Errorf("Error opening wallet db: %v", err)
 		return
 	}
 
-	err = app.wallet.SpvSync("")
+	err = app.multiWallet.SpvSync()
 	if err != nil {
 		// todo display pre-launch error on UI
 		giolog.Log.Errorf("Spv sync attempt failed: %v", err)
 		return
 	}
 
-	app.syncer = NewSyncer(theme, app.wallet, app.refreshWindow)
-	app.wallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
+	app.syncer = NewSyncer(theme, app.multiWallet, app.refreshWindow)
+	app.multiWallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
 
 	app.prepareHandlers()
 	go func() {
@@ -147,10 +142,10 @@ func (d *desktop) renderLoop() error {
 	for {
 		e := <-d.window.Events()
 		switch e := e.(type) {
-		case gioapp.DestroyEvent:
+		case system.DestroyEvent:
 			return e.Err
-		case gioapp.FrameEvent:
-			ctx.Reset(&e.Config, e.Size)
+		case system.FrameEvent:
+			ctx.Reset(e.Config, e.Size)
 			d.render(ctx)
 			e.Frame(ctx.Ops)
 		}
@@ -168,7 +163,7 @@ func (d *desktop) render(ctx *layout.Context) {
 
 	if d.pageChanged {
 		d.pageChanged = false
-		page.handler.BeforeRender(d.wallet)
+		page.handler.BeforeRender(d.multiWallet)
 	}
 
 	if page.isNavPage {
@@ -249,7 +244,7 @@ func (d *desktop) renderContentSection(page page, ctx *layout.Context) {
 	}
 
 	inset.Layout(ctx, func() {
-		if d.wallet.IsSyncing() {
+		if d.multiWallet.IsSyncing() {
 			d.syncer.Render(ctx)
 		} else {
 			page.handler.Render(ctx, d.refreshWindow)

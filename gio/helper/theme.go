@@ -2,12 +2,11 @@ package helper
 
 import (
 	"gioui.org/text"
-	"gioui.org/text/opentype"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 
-	"golang.org/x/image/font/gofont/goitalic"
-	"golang.org/x/image/font/gofont/goregular"
+	"gioui.org/font"
+	"gioui.org/font/gofont"
 )
 
 type Theme struct {
