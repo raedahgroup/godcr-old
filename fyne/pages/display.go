@@ -104,7 +104,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 1:
 				newPageContent = historyPageContent()
 			case 2:
-				newPageContent = sendPageContent(app.Dcrlw)
+				newPageContent = sendPageContent(app.MultiWallet)
 			case 3:
 				newPageContent = receivePageContent(app.MultiWallet, app.Window, app.tabMenu)
 			case 4:
