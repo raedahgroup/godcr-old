@@ -6,30 +6,36 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-type ClickableIcon struct {
+type ImageButton struct {
 	*widget.Icon
 
 	shadow   *widget.Icon
 	OnTapped func() `json:"-"`
 }
 
-// Tapped is called when users click on the icon
-func (c *ClickableIcon) Tapped(_ *fyne.PointEvent) {
-	if c.OnTapped == nil {
-		return
+func NewImageButton(res fyne.Resource, shadow fyne.Resource, OnTapped func()) *ImageButton {
+	icon := widget.NewIcon(res)
+	var shadowIcon *widget.Icon
+	if shadow != nil {
+		shadowIcon = widget.NewIcon(res)
 	}
+	clickable := &ImageButton{icon, shadowIcon, OnTapped}
+	return clickable
+}
 
+// Tapped is called when users click on the icon
+func (c *ImageButton) Tapped(_ *fyne.PointEvent) {
 	c.OnTapped()
 }
 
 // TappedSecondary is called when users right click on the icon
-func (c *ClickableIcon) TappedSecondary(_ *fyne.PointEvent) {
+func (c *ImageButton) TappedSecondary(_ *fyne.PointEvent) {
 	// handle secondary tapped (right click)
 }
 
 // MouseIn is called when a desktop pointer enters the widget
 // when mouse is hovering clickable icon, shadowed image should be shown
-func (c *ClickableIcon) MouseIn(*desktop.MouseEvent) {
+func (c *ImageButton) MouseIn(*desktop.MouseEvent) {
 	if c.shadow == nil {
 		return
 	}
@@ -42,7 +48,7 @@ func (c *ClickableIcon) MouseIn(*desktop.MouseEvent) {
 
 // MouseOut is called when a desktop pointer exits the widget
 // When mouse isn't hovering clickable icon, shadowed image wont be shown
-func (c *ClickableIcon) MouseOut() {
+func (c *ImageButton) MouseOut() {
 	if c.shadow == nil {
 		return
 	}
@@ -54,29 +60,19 @@ func (c *ClickableIcon) MouseOut() {
 }
 
 // MouseMoved is called when a desktop pointer hovers over the widget
-func (c *ClickableIcon) MouseMoved(*desktop.MouseEvent) {
+func (c *ImageButton) MouseMoved(*desktop.MouseEvent) {
 }
 
-func (c *ClickableIcon) CreateRenderer() fyne.WidgetRenderer {
+func (c *ImageButton) CreateRenderer() fyne.WidgetRenderer {
 	return widget.Renderer(c.Icon)
 }
 
-func (c *ClickableIcon) SetIcon(res fyne.Resource) {
+func (c *ImageButton) SetIcon(res fyne.Resource) {
 	c.Icon.SetResource(res)
 	c.Refresh()
 }
 
-func (c *ClickableIcon) Refresh() {
+func (c *ImageButton) Refresh() {
 	object := fyne.CurrentApp().Driver().CanvasForObject(c)
 	object.Refresh(c)
-}
-
-func NewClickableIcon(res fyne.Resource, shadow fyne.Resource, OnTapped func()) *ClickableIcon {
-	icon := widget.NewIcon(res)
-	var shadowIcon *widget.Icon
-	if shadow != nil {
-		shadowIcon = widget.NewIcon(res)
-	}
-	clickable := &ClickableIcon{icon, shadowIcon, OnTapped}
-	return clickable
 }

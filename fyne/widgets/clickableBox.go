@@ -11,6 +11,13 @@ type ClickableBox struct {
 	OnTapped func() `json:"-"`
 }
 
+func NewClickableBox(box *widget.Box, OnTapped func()) *ClickableBox {
+	icon := box
+
+	clickable := &ClickableBox{icon, OnTapped}
+	return clickable
+}
+
 // Tapped is called when users click on the icon
 func (c *ClickableBox) Tapped(_ *fyne.PointEvent) {
 	if c.OnTapped == nil {
@@ -32,11 +39,4 @@ func (c *ClickableBox) CreateRenderer() fyne.WidgetRenderer {
 func (c *ClickableBox) Refresh() {
 	object := fyne.CurrentApp().Driver().CanvasForObject(c)
 	object.Refresh(c)
-}
-
-func NewClickableBox(box *widget.Box, OnTapped func()) *ClickableBox {
-	icon := box
-
-	clickable := &ClickableBox{icon, OnTapped}
-	return clickable
 }

@@ -7,17 +7,26 @@ import (
 )
 
 const (
-	AccountsIcon       = "account.png"
-	HistoryIcon        = "history.png"
-	OverviewIcon       = "overview.png"
-	ReceiveIcon        = "receive.png"
-	SendIcon           = "send.png"
-	StakeIcon          = "stake.png"
+	AccountsIcon = "account.png"
+	HistoryIcon  = "history.png"
+	OverviewIcon = "overview.png"
+	ReceiveIcon  = "receive.png"
+	SendIcon     = "send.png"
+	StakeIcon    = "staking.png"
+	DecredLogo   = "decred.png"
+
+	Reveal    = "reveal.png"
+	Conceal   = "conceal.png"
+	Checkmark = "checkmark.png"
+	Restore   = "restore.png"
+	Add       = "add.png"
+	Loader    = "loader.png"
+	Back      = "back.png"
+
 	CollapseIcon       = "collapse.png"
-	ReceiveAccountIcon = "receiveAccount.png"
 	MoreIcon           = "more.png"
 	InfoIcon           = "info.png"
-	Wordlist           = "wordlist.txt"
+	ReceiveAccountIcon = "receiveAccount.png"
 )
 
 var imageBox = packr.New("icons", "../assets")
