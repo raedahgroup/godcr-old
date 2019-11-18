@@ -1,57 +1,100 @@
 package pages
 
 import (
-	"fmt"
+	"log"
 
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
-type listener struct {
-	tabMenu *widget.TabContainer
-	// Place widgets that should be dynamically updated on fyne.
-	// Only update currently viewed tab and only update widget children.
+type multiWalletTxListener struct {
+	tabMenu     *widget.TabContainer
+	multiWallet *dcrlibwallet.MultiWallet
 }
 
-func (test *listener) OnTransaction(transaction string) {
-	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place send page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 3 {
-		// place receive page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place account page dynamic data here
+func (app *multiWalletTxListener) OnSyncStarted() {
+
+}
+
+func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnectedPeers int32) {
+
+}
+
+func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
+
+}
+
+func (app *multiWalletTxListener) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
+
+}
+
+func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress *dcrlibwallet.HeadersRescanProgressReport) {
+
+}
+
+func (app *multiWalletTxListener) OnSyncCompleted() {
+
+}
+
+func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
+
+}
+
+func (app *multiWalletTxListener) OnSyncEndedWithError(err error) {
+
+}
+
+func (app *multiWalletTxListener) Debug(debugInfo *dcrlibwallet.DebugInfo) {
+
+}
+
+func (app *multiWalletTxListener) OnTransaction(transaction string) {
+	// place all dynamic widgets here to be updated only when tabmenu is in view.
+	if app.tabMenu.CurrentTabIndex() == 0 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 3 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
 	}
 }
 
-func (test *listener) OnTransactionConfirmed(hash string, height int32) {
-	fmt.Println("working OnTransactionConfirmed", hash, height)
-	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place send page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 3 {
-		// place receive page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place account page dynamic data here
+func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash string, blockHeight int32) {
+	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
+	if app.tabMenu.CurrentTabIndex() == 0 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 3 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
 	}
 }
 
-func (test *listener) OnBlockAttached(height int32, timestamp int64) {
-	fmt.Println("working OnBlockAttached", height, timestamp)
-	if test.tabMenu.CurrentTabIndex() == 0 {
-		// place overview page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place send page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 3 {
-		// place receive page dynamic data here
-	} else if test.tabMenu.CurrentTabIndex() == 2 {
-		// place account page dynamic data here
+func (app *multiWalletTxListener) OnBlockAttached(walletID int, blockHeight int32) {
+	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
+	if app.tabMenu.CurrentTabIndex() == 0 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 3 {
+
+	} else if app.tabMenu.CurrentTabIndex() == 2 {
+
 	}
 }
 
-func (app *AppInterface) walletNotificationListener(dcrlistener *listener) {
-	// pass dynamic variables.
-	dcrlistener.tabMenu = app.tabMenu
-	app.Dcrlw.TransactionNotification(dcrlistener)
+func (app *AppInterface) walletNotificationListener() {
+	var dcrListener multiWalletTxListener
+	dcrListener.tabMenu = app.tabMenu
+	dcrListener.multiWallet = app.MultiWallet
+
+	err := app.MultiWallet.AddSyncProgressListener(&dcrListener, "")
+	if err != nil {
+		log.Fatalln("could not start progress multiWalletTxListener")
+	}
 }

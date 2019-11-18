@@ -129,7 +129,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		return
 	}
 
-	app.walletNotificationListener(&listener{})
+	app.walletNotificationListener()
 }
 
 func (app *AppInterface) tearDown() {
