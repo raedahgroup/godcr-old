@@ -33,7 +33,7 @@ func NewSyncer(wallet *dcrlibwallet.MultiWallet, refreshDisplay func()) *Syncer 
 			"Starting...",
 		},
 		showDetails:      false,
-		informationLabel: widgets.NewClickableLabel("Tap to view information", widgets.AlignMiddle),
+		informationLabel: widgets.NewClickableLabel("Tap to view information"),
 	}
 }
 

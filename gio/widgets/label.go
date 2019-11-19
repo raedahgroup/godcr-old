@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -8,8 +9,10 @@ import (
 	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
+	"gioui.org/f32"
 	"gioui.org/widget/material"
 	"github.com/raedahgroup/godcr/gio/helper"
+	"golang.org/x/image/math/fixed"
 )
 
 type (
@@ -17,10 +20,12 @@ type (
 		material.Label
 		size int
 	}
+
+	Alignment int
 )
 
 const (
-	AlignLeft = iota
+	AlignLeft Alignment = iota
 	AlignMiddle
 	AlignRight
 )
@@ -75,7 +80,7 @@ func (l *Label) SetColor(color color.RGBA) *Label {
 	return l
 }
 
-func (l *Label) Draw(ctx *layout.Context, alignment int) {
+func (l *Label) Draw(ctx *layout.Context, alignment Alignment) {
 	l.Label.Alignment = getTextAlignment(alignment)
 	l.Label.Layout(ctx)
 }
@@ -84,6 +89,7 @@ func (l *Label) Draw(ctx *layout.Context, alignment int) {
 type ClickableLabel struct {
 	label *Label 
 	clicker helper.Clicker
+	width  int
 }
 
 func NewClickableLabel(txt string, size ...int) *ClickableLabel {
@@ -124,14 +130,24 @@ func (c *ClickableLabel) SetColor(color color.RGBA) *ClickableLabel {
 	return c
 }
 
-func (c *ClickableLabel) Draw(ctx *layout.Context, alignment int, onClick func()) {
+func (c *ClickableLabel) SetWidth(width int) *ClickableLabel {
+	c.width = width 
+	return c
+}
+
+func (c *ClickableLabel) Draw(ctx *layout.Context, alignment Alignment, onClick func()) {
 	for c.clicker.Clicked(ctx) {
 		onClick()
 	}
 
 	stack := layout.Stack{}
-	child := stack.Rigid(ctx, func(){
-		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+	child := stack.Expand(ctx, func(){
+		if c.width == 0 {
+			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+		} else {
+			ctx.Constraints.Width.Min =  c.width
+		}
+		
 
 		c.label.Draw(ctx, alignment)
 		pointer.RectAreaOp{Rect: image.Rectangle{Max: ctx.Dimensions.Size}}.Add(ctx.Ops)
@@ -141,7 +157,7 @@ func (c *ClickableLabel) Draw(ctx *layout.Context, alignment int, onClick func()
 }
 
 
-func getTextAlignment(alignment int) text.Alignment {
+func getTextAlignment(alignment Alignment) text.Alignment {
 	switch alignment {
 	case AlignMiddle:
 		return text.Middle
@@ -152,7 +168,7 @@ func getTextAlignment(alignment int) text.Alignment {
 	}
 }
 
-func getLayoutAlignment(alignment int) layout.Alignment {
+func getLayoutAlignment(alignment Alignment) layout.Alignment {
 	switch alignment {
 	case AlignMiddle:
 		return layout.Middle
@@ -189,3 +205,74 @@ func getLabelWithSize(txt string, size int) material.Label {
 		return theme.Body1(txt)
 	}
 }	
+
+
+func TextPadding(lines []text.Line) (padding image.Rectangle) {
+	if len(lines) == 0 {
+		return
+	}
+	first := lines[0]
+	if d := first.Ascent + first.Bounds.Min.Y; d < 0 {
+		padding.Min.Y = d.Ceil()
+	}
+	last := lines[len(lines)-1]
+	if d := last.Bounds.Max.Y - last.Descent; d > 0 {
+		padding.Max.Y = d.Ceil()
+	}
+	if d := first.Bounds.Min.X; d < 0 {
+		padding.Min.X = d.Ceil()
+	}
+	if d := first.Bounds.Max.X - first.Width; d > 0 {
+		padding.Max.X = d.Ceil()
+	}
+	return
+}
+
+func LinesDimens(lines []text.Line) layout.Dimensions {
+	var width fixed.Int26_6
+	var h int
+	var baseline int
+	if len(lines) > 0 {
+		baseline = lines[0].Ascent.Ceil()
+		var prevDesc fixed.Int26_6
+		for _, l := range lines {
+			h += (prevDesc + l.Ascent).Ceil()
+			prevDesc = l.Descent
+			if l.Width > width {
+				width = l.Width
+			}
+		}
+		h += lines[len(lines)-1].Descent.Ceil()
+	}
+	w := width.Ceil()
+	return layout.Dimensions{
+		Size: image.Point{
+			X: w,
+			Y: h,
+		},
+		Baseline: h - baseline,
+	}
+}
+
+
+func Align(align text.Alignment, width fixed.Int26_6, maxWidth int) fixed.Int26_6 {
+	mw := fixed.I(maxWidth)
+	switch align {
+	case text.Middle:
+		return fixed.I(((mw - width) / 2).Floor())
+	case text.End:
+		return fixed.I((mw - width).Floor())
+	case text.Start:
+		return 0
+	default:
+		panic(fmt.Errorf("unknown alignment %v", align))
+	}
+}
+
+
+func ToRectF(r image.Rectangle) f32.Rectangle {
+	return f32.Rectangle{
+		Min: f32.Point{X: float32(r.Min.X), Y: float32(r.Min.Y)},
+		Max: f32.Point{X: float32(r.Max.X), Y: float32(r.Max.Y)},
+	}
+}

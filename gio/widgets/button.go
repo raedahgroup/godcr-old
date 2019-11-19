@@ -99,7 +99,7 @@ func (b *Button) SetColor(color color.RGBA) *Button {
 	return b
 }
 
-func (b *Button) Draw(ctx *layout.Context, alignment int, onClick func()) {
+func (b *Button) Draw(ctx *layout.Context, alignment Alignment, onClick func()) {
 	for b.button.Clicked(ctx) {
 		onClick()
 	}
@@ -147,7 +147,7 @@ func (b *Button) Draw(ctx *layout.Context, alignment int, onClick func()) {
 	st.Layout(ctx, bg, lbl)
 }
 
-func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme, alignment int) {
+func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme, alignment Alignment) {
 	col   := b.Color 
 	bgcol := b.Background 
 	if !b.button.Active() {
