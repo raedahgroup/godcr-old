@@ -18,10 +18,10 @@ var (
 	SuccessColor = color.RGBA{227, 98, 9, 255}
 
 	DecredDarkBlueColor  = color.RGBA{9, 20, 64, 255}
-	DecredLightBlueColor = color.RGBA{112, 203, 255, 255}
+	DecredLightBlueColor = color.RGBA{41, 112, 255, 255}
 
 	DecredOrangeColor = color.RGBA{237, 109, 71, 255}
-	DecredGreenColor  = color.RGBA{65, 191, 83, 255}
+	DecredGreenColor  = color.RGBA{46, 214, 161, 255} //color.RGBA{65, 191, 83, 255}
 
 	BackgroundColor = color.RGBA{243, 245, 246, 255}
 )

@@ -3,6 +3,7 @@ package gio
 import (
 	"fmt"
 	"image"
+	_ "image/png"
 	"log"
 	"os"
 
@@ -10,6 +11,9 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/unit"
+	"gioui.org/op/paint"
+	"gioui.org/widget/material"
+	
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -26,10 +30,11 @@ type (
 		standalonePages map[string]standalonePageHandler
 		currentPage    string
 		pageChanged    bool
-		theme          *helper.Theme
 		appDisplayName string
 		multiWallet    *dcrlibwallet.MultiWallet
 		syncer         *Syncer
+
+		logo           material.Image
 	}
 )
 
@@ -38,6 +43,8 @@ const (
 	windowHeight = 350
 
 	navSectionWidth = 120
+
+	logoPath = "../../gio/assets/decred.png"
 )
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
@@ -46,14 +53,23 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		fmt.Fprintf(os.Stderr, "Launch error - cannot register logger: %v", err)
 		return
 	}
-
 	giolog.UseLogger(logger)
 
-	theme := helper.NewTheme()
+	// initialize theme 
+	helper.Initialize()
+
 	app := &desktop{
-		theme:       theme,
 		currentPage: "overview",
 	}
+
+	theme := helper.GetTheme()
+	imageOp, err := app.loadLogo()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Launch error - cannot load logo: %v", err)
+		return
+	}
+	app.logo = theme.Image(imageOp)
+	app.logo.Scale = 0.95
 
 	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := LoadWallet(appDataDir, netType) 
 	if err != nil {
@@ -69,7 +85,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		app.currentPage = "passphrase"
 	}
 
-	app.syncer = NewSyncer(theme, app.multiWallet, app.refreshWindow)
+	app.syncer = NewSyncer(app.multiWallet, app.refreshWindow)
 	app.multiWallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
 
 	app.prepareHandlers()
@@ -88,9 +104,23 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	gioapp.Main()
 }
 
+func (d *desktop) loadLogo() (paint.ImageOp, error) {
+	logoByte, err := os.Open(logoPath)
+	if err != nil {
+		return paint.ImageOp{}, err
+	}
+
+	src, _, err := image.Decode(logoByte) 
+	if err != nil {
+		return paint.ImageOp{}, err
+	}
+
+	return paint.NewImageOp(src), nil
+}
+
 func (d *desktop) prepareHandlers() {
 	// set standalone page
-	d.standalonePages = getStandalonePages(d.multiWallet, d.theme)
+	d.standalonePages = getStandalonePages(d.multiWallet)
 
 	// set navPages
 	d.pages = getNavPages()
@@ -104,13 +134,8 @@ func (d *desktop) changePage(pageName string) {
 		return
 	}
 
-	for _, page := range d.pages {
-		if page.name == pageName {
-			d.currentPage = page.name
-			d.pageChanged = true
-			break
-		}
-	}
+	d.currentPage = pageName
+	d.pageChanged = true
 }
 
 func (d *desktop) renderLoop() error {
@@ -148,9 +173,9 @@ func (d *desktop) render(ctx *layout.Context) {
 			d.pageChanged = false
 			page.handler.BeforeRender(d.multiWallet)
 		}
-
 		d.renderNavPage(page, ctx)
 	}
+	d.refreshWindow()
 }
 
 func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
@@ -175,9 +200,22 @@ func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 }
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
-	gioapp.Size(unit.Dp(200), unit.Dp(windowHeight))
-	
-	inset := layout.UniformInset(unit.Dp(10))
+	windowBounds := image.Point{
+		X: windowWidth * 2,
+		Y: windowHeight * 2,
+	}
+	helper.PaintArea(ctx, helper.BackgroundColor, windowBounds)
+
+	inset := layout.UniformInset(unit.Dp(25))
+	inset.Layout(ctx, func(){
+		d.logo.Layout(ctx)
+	})
+
+	inset = layout.Inset{
+		Top: unit.Dp(65),
+		Left: unit.Dp(25),
+		Right: unit.Dp(25),
+	}
 	inset.Layout(ctx, func(){
 		page.Render(ctx, d.refreshWindow, d.changePage)
 	})
@@ -211,12 +249,9 @@ func (d *desktop) renderNavSection(ctx *layout.Context) {
 				c := ctx.Constraints
 				inset.Layout(ctx, func() {
 					ctx.Constraints.Width.Min = navAreaBounds.X
-					
-					for page.button.Clicked(ctx) {
+					page.button.Draw(ctx, widgets.AlignMiddle, func(){
 						d.changePage(page.name)
-					}
-
-					widgets.LayoutNavButton(page.button, page.label, d.theme, ctx)
+					})
 				})
 				ctx.Constraints = c
 			})

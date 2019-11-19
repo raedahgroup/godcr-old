@@ -9,42 +9,75 @@ import (
 	"gioui.org/font/gofont"
 )
 
-type Theme struct {
-	*material.Theme
-	*text.Shaper
-}
-
-const (
-	fontSize = 10
+type (
+	Fonts struct {
+		Regular       text.Font 
+		Bold          text.Font
+		RegularItalic text.Font 
+		BoldItalic    text.Font
+	}
+	Theme struct {
+		*material.Theme 
+		*text.Shaper
+		Fonts *Fonts
+	}
 )
 
-func NewTheme() *Theme {
+const (
+	regularFontSize = 12 
+)
+
+
+var (
+	theme *Theme 
+)
+
+func Initialize() {
+	if theme == nil {
+		theme = newTheme()
+	}
+}
+
+func newTheme() *Theme {
 	gofont.Register()
 
-	shaper := font.Default()
-	mt := material.Theme{
-		Shaper: shaper,
+	materialTheme := &material.Theme{
+		Shaper: font.Default(),
 	}
 
-	mt.Color.Primary = DecredDarkBlueColor
-	mt.Color.Text = BlackColor
-	mt.Color.Hint = GrayColor
-	mt.TextSize = unit.Dp(fontSize)
+	materialTheme.Color.Primary = DecredDarkBlueColor
+	materialTheme.Color.Text = BlackColor
+	materialTheme.Color.Hint = GrayColor
+	materialTheme.TextSize = unit.Dp(10)
 
 	return &Theme{
-		&mt,
-		shaper,
+		Theme: materialTheme,
+		Shaper: materialTheme.Shaper,
+		Fonts: getFonts(),
 	}
 }
 
-func GetFont() text.Font {
-	return text.Font{
-		Size: unit.Dp(fontSize),
+func getFonts() *Fonts {
+	return &Fonts{
+		Regular: text.Font{
+			Size: unit.Dp(regularFontSize),
+		},
+		Bold: text.Font{
+			Size: unit.Dp(regularFontSize),
+			Weight: text.Bold,
+		},
+		RegularItalic: text.Font{
+			Size: unit.Dp(regularFontSize),
+			Style: text.Italic,
+		},
+		BoldItalic: text.Font{
+			Size: unit.Dp(regularFontSize),
+			Weight: text.Bold,
+			Style: text.Italic,
+		},
 	}
 }
 
-func GetNavFont() text.Font {
-	return text.Font{
-		Size: unit.Dp(10),
-	}
+func GetTheme() *Theme {
+	return theme
 }

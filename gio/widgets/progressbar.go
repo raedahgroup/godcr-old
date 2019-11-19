@@ -5,7 +5,6 @@ import (
 
 	"gioui.org/layout"
 	"gioui.org/unit"
-
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
@@ -13,7 +12,7 @@ const (
 	progressBarHeight = 20
 )
 
-func NewProgressBar(progress *int, theme *helper.Theme, ctx *layout.Context) {
+func NewProgressBar(ctx *layout.Context, progress *int) {
 	stack := layout.Stack{}
 
 	container := stack.Rigid(ctx, func() {

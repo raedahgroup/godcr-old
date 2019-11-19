@@ -8,7 +8,7 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/gio/helper"
+	//"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
@@ -20,12 +20,10 @@ type Syncer struct {
 	wallet             *dcrlibwallet.MultiWallet
 	refreshDisplay     func()
 	syncError          error
-	theme              *helper.Theme
-
 	informationLabel *widgets.ClickableLabel
 }
 
-func NewSyncer(theme *helper.Theme, wallet *dcrlibwallet.MultiWallet, refreshDisplay func()) *Syncer {
+func NewSyncer(wallet *dcrlibwallet.MultiWallet, refreshDisplay func()) *Syncer {
 	return &Syncer{
 		wallet:             wallet,
 		refreshDisplay:     refreshDisplay,
@@ -35,8 +33,7 @@ func NewSyncer(theme *helper.Theme, wallet *dcrlibwallet.MultiWallet, refreshDis
 			"Starting...",
 		},
 		showDetails:      false,
-		theme:            theme,
-		informationLabel: widgets.NewClickableLabel("Tap to view information", widgets.AlignMiddle, theme),
+		informationLabel: widgets.NewClickableLabel("Tap to view information", widgets.AlignMiddle),
 	}
 }
 
@@ -124,20 +121,20 @@ func (s *Syncer) Render(ctx *layout.Context) {
 	inset := layout.UniformInset(unit.Dp(3))
 	inset.Layout(ctx, func() {
 		if s.err != nil {
-			widgets.DisplayErrorText(fmt.Sprintf("Sync failed to start: %s", s.err.Error()), s.theme, ctx)
+			widgets.NewErrorLabel(fmt.Sprintf("Sync failed to start: %s", s.err.Error())).Draw(ctx, widgets.AlignMiddle)
 		} else {
 			inset := layout.Inset{
 				Top: unit.Dp(5),
 			}
 			inset.Layout(ctx, func() {
-				widgets.BoldCenteredLabel("Synchronizing", s.theme, ctx)
+				widgets.NewLabel("Synchronizing", 4).Draw(ctx, widgets.AlignMiddle)
 			})
 
 			inset = layout.Inset{
 				Top: unit.Dp(30),
 			}
 			inset.Layout(ctx, func() {
-				widgets.NewProgressBar(&s.percentageProgress, s.theme, ctx)
+				//s.widgets.ProgressBar(ctx, &s.percentageProgress)
 			})
 
 			nextTopInset := float32(47)
@@ -147,7 +144,7 @@ func (s *Syncer) Render(ctx *layout.Context) {
 						Top: unit.Dp(nextTopInset),
 					}
 					inset.Layout(ctx, func() {
-						widgets.CenteredLabel(report, s.theme, ctx)
+						widgets.NewLabel(report).Draw(ctx, widgets.AlignMiddle)
 					})
 					nextTopInset += float32(widgets.NormalLabelHeight)
 				}
@@ -164,9 +161,8 @@ func (s *Syncer) Render(ctx *layout.Context) {
 					Top: unit.Dp(nextTopInset),
 				}
 				inset.Layout(ctx, func() {
-					widgets.CenteredLabel(connectedPeersInfo, s.theme, ctx)
+					widgets.NewLabel(connectedPeersInfo).Draw(ctx, widgets.AlignMiddle)
 				})
-
 				nextTopInset += float32(widgets.NormalLabelHeight)
 				s.informationLabel.SetText("Tap to hide details")
 			} else {
@@ -180,7 +176,7 @@ func (s *Syncer) Render(ctx *layout.Context) {
 				clickFunc := func() {
 					s.showDetails = !s.showDetails
 				}
-				s.informationLabel.Display(clickFunc, ctx)
+				s.informationLabel.Draw(ctx, widgets.AlignMiddle, clickFunc)
 			})
 		}
 
@@ -189,7 +185,7 @@ func (s *Syncer) Render(ctx *layout.Context) {
 				Top: unit.Dp(22),
 			}
 			inset.Layout(ctx, func() {
-				widgets.DisplayErrorText(fmt.Sprintf("Sync error: %s", s.syncError.Error()), s.theme, ctx)
+					widgets.NewErrorLabel(fmt.Sprintf("Sync error: %s", s.syncError.Error())).Draw(ctx, widgets.AlignMiddle)
 			})
 		}
 	})

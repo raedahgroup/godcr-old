@@ -1,148 +1,229 @@
-package widgets
+package widgets 
 
 import (
-	"gioui.org/layout"
-	"gioui.org/op"
-	"gioui.org/text"
-	"gioui.org/unit"
-	"gioui.org/widget"
-	"github.com/raedahgroup/godcr/gio/helper"
-	"golang.org/x/exp/shiny/iconvg"
-
+	//"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 
-	"gioui.org/font"
-
 	"gioui.org/f32"
-	"gioui.org/io/pointer"
+	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/paint"
+	"gioui.org/text"
+	"gioui.org/unit"
+	"gioui.org/io/pointer"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/raedahgroup/godcr/gio/helper"
+	"golang.org/x/exp/shiny/iconvg"
 )
 
-func NewButton() *widget.Button {
-	return new(widget.Button)
-}
+type (
+	Button struct {
+		button *widget.Button 
+		icon   *Icon
+		padding unit.Value 
+		size 	unit.Value
 
-type IconButton struct {
-	Text       string
-	Background color.RGBA
-	Icon       *Icon
-	Size       unit.Value
-	Padding    unit.Value
-	Font       text.Font
-	Color      color.RGBA
-	Alignment  layout.Axis
+		text 	   string
 
-	shaper *text.Shaper
-}
-
-type Icon struct {
-	imgSize int
-	img     image.Image
-	src     []byte
-
-	op paint.ImageOp
-	material.Icon
-}
-
-type Themes struct {
-	material.Theme
-}
-
-// Todo: depending on dark/white theme this should vary
-func NewTheme() *Themes {
-	t := &Themes{
-		Theme: material.Theme{Shaper: font.Default()},
-	}
-	t.Color.Primary = color.RGBA{63, 81, 181, 255}
-	t.Color.Text = color.RGBA{0, 0, 0, 255}
-	t.Color.Hint = color.RGBA{187, 187, 187, 255}
-	t.TextSize = unit.Sp(16)
-	return t
-}
-
-func (t *Themes) Button(icon *Icon, colors color.RGBA, texts string, Alignment layout.Axis, tabContainer bool) IconButton {
-	var padding int
-	if !tabContainer {
-		padding = 20
+		Color      color.RGBA
+		Background color.RGBA
 	}
 
-	return IconButton{
-		Background: t.Color.Primary,
-		Icon:       icon,
-		Size:       unit.Dp(56),
-		Padding:    unit.Dp(float32(padding)),
-		Text:       texts,
-		Color:      t.Color.Text,
-		Alignment:  Alignment,
+	Icon struct {
+		imgSize int 
+		img 	image.Image 
+		src 	[]byte 
 
-		Font:   text.Font{Size: t.TextSize.Scale(14.0 / 16.0)},
-		shaper: t.Shaper,
+		op paint.ImageOp 
+		material.Icon
 	}
+)
+
+const (
+	defaultButtonPadding = 10
+)
+
+
+// NewIcon returns a new Icon from IconVG data.
+func NewIcon(data []byte) (*Icon, error) {
+	_, err := iconvg.DecodeMetadata(data)
+	if err != nil {
+		return nil, err
+	}
+	return &Icon{src: data}, nil
 }
 
-func toPointF(p image.Point) f32.Point {
-	return f32.Point{X: float32(p.X), Y: float32(p.Y)}
+func NewButton(txt string, icon *Icon) *Button {
+	theme := helper.GetTheme()
+
+	btn := &Button{
+		button : new(widget.Button),
+		icon   : icon,
+		text   :  txt,
+		padding: unit.Dp(defaultButtonPadding),
+		Background: helper.DecredDarkBlueColor,
+		Color: helper.WhiteColor,
+	}
+
+	if icon != nil {
+		btn.padding = unit.Dp(13)
+		btn.size = unit.Dp(46)
+	}
+
+	btn.Background = theme.Color.Primary 
+	btn.Color      = helper.WhiteColor
+
+	return btn
 }
 
-func (b IconButton) Layout(gtx *layout.Context, button *widget.Button) {
+func (b *Button) SetPadding(padding int)  *Button {
+	b.padding = unit.Dp(float32(padding))
+	return b
+}
+
+func (b *Button) SetSize(size int) *Button {
+	b.size = unit.Dp(float32(size))
+	return b
+}
+
+func (b *Button) SetBackgroundColor(color color.RGBA) *Button {
+	b.Background = color 
+	return b
+}
+
+func (b *Button) SetColor(color color.RGBA) *Button {
+	b.Color = color 
+	return b
+}
+
+func (b *Button) Draw(ctx *layout.Context, alignment int, onClick func()) {
+	for b.button.Clicked(ctx) {
+		onClick()
+	}
+
+	theme := helper.GetTheme()
+	
+	if b.icon != nil {
+		b.drawIconButton(ctx, theme, alignment)
+		return
+	}
+
 	col := b.Color
 	bgcol := b.Background
-	if !button.Active() {
-		col.A = 0xaa
-		bgcol.A = 0xaa
+	if !b.button.Active() {
+		//col = helper.WhiteColor
+		//bgcol = helper.DecredDarkBlueColor
 	}
-
 	st := layout.Stack{}
-	ico := st.Rigid(gtx, func() {
-		iconAndLabel := layout.Flex{Axis: b.Alignment, Alignment: layout.Middle}
-
-		icon := iconAndLabel.Rigid(gtx, func() {
-			layout.UniformInset(b.Padding).Layout(gtx, func() {
-				size := gtx.Px(b.Size) - 2*gtx.Px(b.Padding)
-				if b.Icon != nil {
-					ico := b.Icon.image(size)
-					ico.Add(gtx.Ops)
-					paint.PaintOp{
-						Rect: f32.Rectangle{Max: toPointF(ico.Size())}, //toRectF(ico.Bounds()),
-					}.Add(gtx.Ops)
-				}
-
-				gtx.Dimensions = layout.Dimensions{
-					Size: image.Point{X: size, Y: size},
-				}
+	hmin := ctx.Constraints.Width.Min
+	vmin := ctx.Constraints.Height.Min
+	lbl := st.Rigid(ctx, func() {
+		ctx.Constraints.Width.Min = hmin
+		ctx.Constraints.Height.Min = vmin
+		layout.Align(layout.Center).Layout(ctx, func() {
+			layout.UniformInset(b.padding).Layout(ctx, func() {
+				paint.ColorOp{Color: col}.Add(ctx.Ops)
+				widget.Label{Alignment: text.Middle}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
 			})
-			button.Layout(gtx)
 		})
-
-		label := iconAndLabel.Rigid(gtx, func() {
-			layout.UniformInset(unit.Dp(8)).Layout(gtx, func() {
-				paint.ColorOp{Color: col}.Add(gtx.Ops)
-				widget.Label{Alignment: text.Middle}.Layout(gtx, b.shaper, b.Font, b.Text)
-			})
-			button.Layout(gtx)
-
-		})
-		iconAndLabel.Layout(gtx, icon, label)
+		pointer.RectAreaOp{Rect: image.Rectangle{Max: ctx.Dimensions.Size}}.Add(ctx.Ops)
+		b.button.Layout(ctx)
 	})
-
-	bg := st.Expand(gtx, func() {
-		rr := float32(gtx.Px(unit.Dp(4)))
-		rrect(gtx.Ops,
-			float32(gtx.Constraints.Width.Min), float32(gtx.Constraints.Height.Min),
+	bg := st.Expand(ctx, func() {
+		rr := float32(ctx.Px(unit.Dp(4)))
+		rrect(ctx.Ops,
+			float32(ctx.Constraints.Width.Min),
+			float32(ctx.Constraints.Height.Min),
 			rr, rr, rr, rr,
 		)
-		fill(gtx, bgcol)
-		for _, c := range button.History() {
-			drawInk(gtx, c)
+		fill(ctx, bgcol)
+		for _, c := range b.button.History() {
+			drawInk(ctx, c)
 		}
 	})
-
-	pointer.RectAreaOp{Rect: image.Rectangle{Max: gtx.Dimensions.Size}}.Add(gtx.Ops)
-	st.Layout(gtx, bg, ico)
+	st.Layout(ctx, bg, lbl)
 }
+
+func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme, alignment int) {
+	col   := b.Color 
+	bgcol := b.Background 
+	if !b.button.Active() {
+		//col.A = 0xaa
+		//bgcol.A = 0xaa
+	}
+
+	stack := layout.Stack{}
+	
+	lbl := stack.Rigid(ctx, func(){
+		alignment := getLayoutAlignment(alignment)
+		layout.Align(alignment).Layout(ctx, func(){
+			stack := layout.Stack{}
+			child := stack.Expand(ctx, func(){
+				flex := layout.Flex{}
+
+				iconColumn := flex.Rigid(ctx, func(){
+					iconSize := ctx.Px(b.size) - 2*ctx.Px(b.padding)
+					topInset :=	(float32(iconSize) - 2*b.padding.V) / 2.0
+
+					inset := layout.Inset{
+						Right: b.padding,
+						Left: unit.Dp(b.padding.V * 1.2),
+						Top: unit.Dp(-topInset+10.0),
+					}
+					inset.Layout(ctx, func(){
+						ico := b.icon.image(iconSize)
+						ico.Add(ctx.Ops)
+						paint.PaintOp{
+							Rect: f32.Rectangle{Max: toPointF(ico.Size())}, //toRectF(ico.Bounds()),
+						}.Add(ctx.Ops)
+					})
+				})
+
+				textColumn := flex.Rigid(ctx, func(){
+					inset := layout.Inset{
+						Left: unit.Dp(b.padding.V + 7.0),
+						Top: b.padding,
+						Bottom: b.padding,
+					}
+					inset.Layout(ctx, func(){
+						paint.ColorOp{Color: col}.Add(ctx.Ops)
+						widget.Label{Alignment: text.Middle}.Layout(ctx, theme.Shaper, theme.Fonts.Regular, b.text)
+					})
+				})
+				flex.Layout(ctx, iconColumn, textColumn)
+			})
+			stack.Layout(ctx, child)
+		})
+	})
+
+	clickDimensionSize := ctx.Dimensions.Size 
+	
+
+	bg := stack.Expand(ctx, func(){
+		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+		rr := float32(ctx.Px(unit.Dp(4)))
+		rrect(ctx.Ops,
+			float32(ctx.Constraints.Width.Min),
+			float32(ctx.Constraints.Height.Min),
+			rr, rr, rr, rr,
+		)
+		fill(ctx, bgcol)
+
+		clickDimensionSize.X = ctx.Dimensions.Size.X
+		pointer.RectAreaOp{Rect: image.Rectangle{Max: clickDimensionSize}}.Add(ctx.Ops)
+		b.button.Layout(ctx)
+
+		for _, c := range b.button.History() {
+			drawInk(ctx, c)
+		}
+	})
+	stack.Layout(ctx, bg, lbl)
+}
+
+
 func (ic *Icon) image(sz int) paint.ImageOp {
 	if sz == ic.imgSize {
 		return ic.op
@@ -162,45 +243,13 @@ func (ic *Icon) image(sz int) paint.ImageOp {
 	return ic.op
 }
 
-func LayoutNavButton(button *widget.Button, txt string, theme *helper.Theme, gtx *layout.Context) {
-	col :=  helper.WhiteColor
-	bgcol := helper.DecredDarkBlueColor
-	if !button.Active() {
-		col = helper.WhiteColor
-		bgcol = helper.DecredDarkBlueColor
-	}
-	st := layout.Stack{}
-	hmin := gtx.Constraints.Width.Min
-	vmin := gtx.Constraints.Height.Min
-	lbl := st.Rigid(gtx, func() {
-		gtx.Constraints.Width.Min = hmin
-		gtx.Constraints.Height.Min = vmin
-		layout.Align(layout.Center).Layout(gtx, func() {
-			layout.UniformInset(unit.Dp(8)).Layout(gtx, func() {
-				paint.ColorOp{Color: col}.Add(gtx.Ops)
-				widget.Label{Alignment: text.Middle}.Layout(gtx, theme.Shaper, helper.GetNavFont(), txt)
-			})
-		})
-		pointer.RectAreaOp{Rect: image.Rectangle{Max: gtx.Dimensions.Size}}.Add(gtx.Ops)
-		button.Layout(gtx)
-	})
-	bg := st.Expand(gtx, func() {
-		rr := float32(gtx.Px(unit.Dp(4)))
-		rrect(gtx.Ops,
-			float32(gtx.Constraints.Width.Min),
-			float32(gtx.Constraints.Height.Min),
-			rr, rr, rr, rr,
-		)
-		fill(gtx, bgcol)
-		for _, c := range button.History() {
-			drawInk(gtx, c)
-		}
-	})
-	st.Layout(gtx, bg, lbl)
+
+func toPointF(p image.Point) f32.Point {
+	return f32.Point{X: float32(p.X), Y: float32(p.Y)}
 }
 
-func drawInk(gtx *layout.Context, c widget.Click) {
-	d := gtx.Now().Sub(c.Time)
+func drawInk(ctx *layout.Context, c widget.Click) {
+	d := ctx.Now().Sub(c.Time)
 	t := float32(d.Seconds())
 	const duration = 0.5
 	if t > duration {
@@ -208,31 +257,31 @@ func drawInk(gtx *layout.Context, c widget.Click) {
 	}
 	t = t / duration
 	var stack op.StackOp
-	stack.Push(gtx.Ops)
-	size := float32(gtx.Px(unit.Dp(700))) * t
+	stack.Push(ctx.Ops)
+	size := float32(ctx.Px(unit.Dp(700))) * t
 	rr := size * .5
 	col := byte(0xaa * (1 - t*t))
 	ink := paint.ColorOp{Color: color.RGBA{A: col, R: col, G: col, B: col}}
-	ink.Add(gtx.Ops)
+	ink.Add(ctx.Ops)
 	op.TransformOp{}.Offset(c.Position).Offset(f32.Point{
 		X: -rr,
 		Y: -rr,
-	}).Add(gtx.Ops)
-	rrect(gtx.Ops, float32(size), float32(size), rr, rr, rr, rr)
-	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(size), Y: float32(size)}}}.Add(gtx.Ops)
+	}).Add(ctx.Ops)
+	rrect(ctx.Ops, float32(size), float32(size), rr, rr, rr, rr)
+	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(size), Y: float32(size)}}}.Add(ctx.Ops)
 	stack.Pop()
-	op.InvalidateOp{}.Add(gtx.Ops)
+	op.InvalidateOp{}.Add(ctx.Ops)
 }
 
-func fill(gtx *layout.Context, col color.RGBA) {
-	cs := gtx.Constraints
+func fill(ctx *layout.Context, col color.RGBA) {
+	cs := ctx.Constraints
 	d := image.Point{X: cs.Width.Max, Y: cs.Height.Max}
 	dr := f32.Rectangle{
 		Max: f32.Point{X: float32(d.X), Y: float32(d.Y)},
 	}
-	paint.ColorOp{Color: col}.Add(gtx.Ops)
-	paint.PaintOp{Rect: dr}.Add(gtx.Ops)
-	gtx.Dimensions = layout.Dimensions{Size: d, Baseline: d.Y}
+	paint.ColorOp{Color: col}.Add(ctx.Ops)
+	paint.PaintOp{Rect: dr}.Add(ctx.Ops)
+	ctx.Dimensions = layout.Dimensions{Size: d, Baseline: d.Y}
 }
 
 // https://pomax.github.io/bezierinfo/#circles_cubic.

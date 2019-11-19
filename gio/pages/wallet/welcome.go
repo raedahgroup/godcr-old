@@ -1,93 +1,70 @@
 package wallet
 
 import (
-	"github.com/raedahgroup/dcrlibwallet"
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"gioui.org/widget"
-	"gioui.org/text"
+	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/gio/widgets"
 	"github.com/raedahgroup/godcr/gio/helper"
+	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type (
 	WelcomePage struct {
 		multiWallet *dcrlibwallet.MultiWallet
-		theme *helper.Theme
-
-		createWalletButton *widget.Button 
-		restoreWalletButton *widget.Button
+		createWalletButton *widgets.Button 
+		restoreWalletButton *widgets.Button
 	}
 )
 
-func NewWelcomePage(multiWallet *dcrlibwallet.MultiWallet, theme *helper.Theme) *WelcomePage {
+func NewWelcomePage(multiWallet *dcrlibwallet.MultiWallet) *WelcomePage {
 	return &WelcomePage{
-		multiWallet: multiWallet,
-		theme: theme,
-		createWalletButton: new(widget.Button),
-		restoreWalletButton: new(widget.Button),
+		multiWallet        :  multiWallet,
+		createWalletButton :  widgets.NewButton("Create a new wallet", widgets.AddIcon).SetBackgroundColor(helper.DecredLightBlueColor),
+		restoreWalletButton:  widgets.NewButton("Restore an existing wallet", widgets.ReturnIcon).SetBackgroundColor(helper.DecredGreenColor),
 	}
 }
 
 func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
 	stack := layout.Stack{}
 
-	welcomeTextSection := stack.Rigid(ctx, func(){
+	welcomeTextSection := stack.Rigid(ctx, func() {
 		inset := layout.Inset{
 			Top: unit.Dp(0),
 		}
-		inset.Layout(ctx, func(){
-			widgets.BoldText("Welcome to Decred Wallet", w.theme, ctx)
+		inset.Layout(ctx, func() {
+			widgets.NewLabel("Welcome to", 6).Draw(ctx, widgets.AlignLeft)
+		})
+
+		inset = layout.Inset{
+			Top: unit.Dp(29),
+		}
+		inset.Layout(ctx, func() {
+			widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx, widgets.AlignLeft)
 		})
 	})
 
-	createButtonSection := stack.Rigid(ctx, func(){
+	createButtonSection := stack.Rigid(ctx, func() {
 		inset := layout.Inset{
-			Top: unit.Dp(220),
+			Top: unit.Dp(160),
 		}
-		c := ctx.Constraints
-		inset.Layout(ctx, func(){
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-
-			btn := w.theme.Button("Create a new wallet")
-			btn.Font = text.Font{
-				Size: unit.Dp(14),
-			}
-			btn.Background = helper.DecredLightBlueColor
-
-			for w.createWalletButton.Clicked(ctx) {
+		inset.Layout(ctx, func() {
+			w.createWalletButton.Draw(ctx, widgets.AlignLeft, func(){
 				changePageFunc("createwallet")
-			}
-
-			btn.Layout(ctx, w.createWalletButton)
+			})
 		})
-		ctx.Constraints = c
 	})
 
-	restoreButtonSection := stack.Rigid(ctx, func(){
+	restoreButtonSection := stack.Rigid(ctx, func() {
 		inset := layout.Inset{
-			Top: unit.Dp(273),
+			Top: unit.Dp(210),
 		}
-		c := ctx.Constraints
-		inset.Layout(ctx, func(){
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			
-			btn := w.theme.Button("Restore an existing wallet")
-			btn.Font = text.Font{
-				Size: unit.Dp(14),
-			}
-			btn.Background = helper.DecredGreenColor
-
-			for w.restoreWalletButton.Clicked(ctx) {
+		inset.Layout(ctx, func() {
+			w.restoreWalletButton.Draw(ctx, widgets.AlignLeft, func(){
 				changePageFunc("restorewallet")
-			}
-
-			btn.Layout(ctx, w.restoreWalletButton)
+			})
 		})
-		ctx.Constraints = c
 	})
-
 
 	stack.Layout(ctx, welcomeTextSection, createButtonSection, restoreButtonSection)
 }

@@ -2,15 +2,13 @@ package gio
 
 import (
 	"gioui.org/layout"
-	"gioui.org/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/gio/helper"
+	"github.com/raedahgroup/godcr/gio/widgets"
 	"github.com/raedahgroup/godcr/gio/pages/wallet"
 )
 
 type standalonePageHandler interface {
-	//BeforeRender(*dcrlibwallet.MultiWallet)
 	Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string))
 }
 
@@ -22,13 +20,15 @@ type navPageHandler interface {
 type navPage struct {
 	name      string
 	label     string
-	button    *widget.Button
+	button    *widgets.Button
 	handler   navPageHandler
 }
 
-func getStandalonePages(multiWallet *dcrlibwallet.MultiWallet, theme *helper.Theme) map[string]standalonePageHandler {
+func getStandalonePages(multiWallet *dcrlibwallet.MultiWallet) map[string]standalonePageHandler {
 	return map[string]standalonePageHandler{
-		"welcome": wallet.NewWelcomePage(multiWallet, theme),
+		"welcome"      : wallet.NewWelcomePage(multiWallet),
+		"createwallet" : wallet.NewCreateWalletPage(multiWallet),
+		"restorewallet": wallet.NewRestoreWalletPage(multiWallet),
 	}
 }
 
@@ -37,43 +37,43 @@ func getNavPages() []navPage {
 		{
 			name:      "overview",
 			label:     "Overview",
-			button:    new(widget.Button),
+			button:     widgets.NewButton("Overview", nil),
 			handler:   &notImplementedNavPageHandler{"Overview"},
 		},
 		{
 			name:      "history",
 			label:     "History",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("History", nil),
 			handler:   &notImplementedNavPageHandler{"History"},
 		},
 		{
 			name:      "send",
 			label:     "Send",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("Send", nil),
 			handler:   &notImplementedNavPageHandler{"Send"},
 		},
 		{
 			name:      "receive",
 			label:     "Receive",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("Receive", nil),
 			handler:   &notImplementedNavPageHandler{"Receive"},
 		},
 		{
 			name:      "staking",
 			label:     "Staking",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("Staking",  nil),
 			handler:   &notImplementedNavPageHandler{"Staking"},
 		},
 		{
 			name:      "security",
 			label:     "Security",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("Security", nil),
 			handler:   &notImplementedNavPageHandler{"Security"},
 		},
 		{
 			name:      "settings",
 			label:     "Settings",
-			button:    new(widget.Button),
+			button:   	widgets.NewButton("Settings", nil),
 			handler:   &notImplementedNavPageHandler{"Settings"},
 		},
 	}
