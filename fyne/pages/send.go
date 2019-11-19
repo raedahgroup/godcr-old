@@ -271,6 +271,11 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 			totalCostLabel.SetText("- DCR")
 			balanceAfterSendLabel.SetText("- DCR")
 			transactionSize.SetText("0 bytes")
+			nextButton.Disable()
+			amountErrorLabel.Text = "Invalid amount"
+			amountErrorLabel.Show()
+			canvas.Refresh(amountErrorLabel)
+			return
 		}
 
 		if destinationAddressEntry.Hidden {
@@ -293,8 +298,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 				if destinationAddressErrorLabel.Hidden {
 					transactionAuthor.UpdateSendDestination(0, destinationAddressEntry.Text, dcrlibwallet.AmountAtom(amountInFloat), false)
 				} else {
-					// return is address in entry is incorrect
-					return
+					// use temporary address if address in entry is incorrect
+					transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
 				}
 			}
 		}
