@@ -149,8 +149,6 @@ func (table *Table) Delete(from, to int) {
 
 func (table *Table) set() {
 	var container = widget.NewHBox()
-	fmt.Println(container)
-	fmt.Println(table.heading.Children)
 
 	// Get horizontals apart from heading.
 	for i := 0; i < len(table.heading.Children); i++ {
@@ -160,7 +158,6 @@ func (table *Table) set() {
 			if len(table.heading.Children) > len(data.Children) && i > len(data.Children)-1 {
 				continue
 			}
-
 			getVerticals.Append(data.Children[i])
 		}
 		container.Append(getVerticals)
