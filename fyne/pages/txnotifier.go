@@ -63,7 +63,23 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 
 	amount := dcrlibwallet.AmountCoin(currentTransaction.Amount)
 	// remove trailing zeros from amount
-	err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("You have received %s DCR", strconv.FormatFloat(amount, 'f', -1, 64)), "assets/information.png")
+	if app.multiWallet.OpenedWalletsCount() > 1 {
+		wallet := app.multiWallet.WalletWithID(currentTransaction.WalletID)
+		if wallet == nil {
+			return
+		}
+
+		err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("[%s] You have received %s DCR", wallet.Name, strconv.FormatFloat(amount, 'f', -1, 64)), "assets/information.png")
+		if err != nil {
+			log.Println("could not initiate desktop notification, reason:", err.Error())
+		}
+	} else {
+
+		err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("You have received %s DCR", strconv.FormatFloat(amount, 'f', -1, 64)), "assets/information.png")
+		if err != nil {
+			log.Println("could not initiate desktop notification, reason:", err.Error())
+		}
+	}
 
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
