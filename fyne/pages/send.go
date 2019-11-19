@@ -116,13 +116,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	sendPage.receivingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.receivingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 	sendPage.receivingAccountDropdownContent = widget.NewVBox()
-	receivingAccountClickableBox := createAccountDropdown(onAccountChange, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, sendPage.receivingAccountDropdownContent, sendPage.receivingSelectedAccountLabel, sendPage.receivingSelectedAccountBalanceLabel)
+	receivingAccountClickableBox := createAccountDropdown(onAccountChange, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &selectedWalletID, sendPage.receivingAccountDropdownContent, sendPage.receivingSelectedAccountLabel, sendPage.receivingSelectedAccountBalanceLabel)
 	receivingAccountGroup := widget.NewGroup("From", receivingAccountClickableBox)
 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 	sendPage.sendingAccountDropdownContent = widget.NewVBox()
-	sendingToAccountClickableBox := createAccountDropdown(nil, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, sendPage.sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
+	sendingToAccountClickableBox := createAccountDropdown(nil, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &selectedWalletID, sendPage.sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
 	sendingToAccountGroup := widget.NewGroup("To", sendingToAccountClickableBox) //sendingToAccountClickableBox)
 	sendingToAccountGroup.Hide()
 
@@ -348,7 +348,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(10), sendPageContents)
 }
 
-func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon fyne.Resource, multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
+func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon fyne.Resource, multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, selectedWalletID *int, dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
 	receivingAccountBox := widget.NewHBox(
 		widgets.NewHSpacer(15),
 		widget.NewIcon(receiveAccountIcon),
@@ -361,10 +361,14 @@ func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon
 	)
 
 	receivingAccountSelectionPopup := widget.NewPopUp(dropdownContent, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
+	accountBoxes := make([]*widget.Box, len(walletIDs))
 
-	for _, walletID := range walletIDs {
+	// we cant access the children of group widget, proposed hack is to
+	// create a vertical box array where all accounts would be placed,
+	// then when we want to hide checkmarks we call all children of accountbox and hide checkmark icon except selected
+	for walletIndex, walletID := range walletIDs {
 		getAllWalletAccountsInBox(initFunction, dropdownContent, selectedAccountLabel, selectedAccountBalanceLabel,
-			multiWallet.WalletWithID(walletID), receiveAccountIcon, receivingAccountSelectionPopup)
+			multiWallet.WalletWithID(walletID), walletIndex, selectedWalletID, accountBoxes, receiveAccountIcon, receivingAccountSelectionPopup)
 	}
 	receivingAccountSelectionPopup.Hide()
 
@@ -377,13 +381,15 @@ func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon
 	return
 }
 
-func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box, selectedAccountLabel, selectedAccountBalanceLabel *widget.Label, wallet *dcrlibwallet.Wallet, receiveIcon fyne.Resource, popup *widget.PopUp) {
+func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box, selectedAccountLabel, selectedAccountBalanceLabel *widget.Label, wallet *dcrlibwallet.Wallet, walletIndex int, selectedWalletID *int, accountsBoxes []*widget.Box, receiveIcon fyne.Resource, popup *widget.PopUp) {
 	accounts, err := wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return
 	}
 
 	var groupedWalletsAccounts = widget.NewGroup(wallet.Name)
+	// we cant access children of a group so a box is used
+	accountsBox := widget.NewVBox()
 
 	for index, account := range accounts.Acc {
 		if account.Name == "imported" {
@@ -417,7 +423,7 @@ func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box,
 
 		checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
 		var spacing fyne.CanvasObject
-		if index != 0 {
+		if index != 0 || walletIndex != 0 {
 			checkmarkIcon.Hide()
 			spacing = widgets.NewHSpacer(35)
 		} else {
@@ -437,28 +443,31 @@ func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box,
 			spacing,
 		)
 
-		groupedWalletsAccounts.Append(widgets.NewClickableBox(accountsView, func() {
-			for _, children := range dropdownContent.Children {
-				if box, ok := children.(*widgets.ClickableBox); !ok {
-					continue
-				} else {
-					if len(box.Children) != 10 {
+		accountsBox.Append(widgets.NewClickableBox(accountsView, func() {
+			for _, boxes := range accountsBoxes {
+				for _, objectsChild := range boxes.Children {
+					if box, ok := objectsChild.(*widgets.ClickableBox); !ok {
 						continue
+					} else {
+						if len(box.Children) != 10 {
+							continue
+						}
+
+						if icon, ok := box.Children[8].(*widget.Icon); !ok {
+							continue
+						} else {
+							icon.Hide()
+						}
+						if spacing, ok := box.Children[9].(*fyne.Container); !ok {
+							continue
+						} else {
+							spacing.Layout = layout.NewFixedGridLayout(fyne.NewSize(35, 0))
+							canvas.Refresh(spacing)
+						}
 					}
 
-					if icon, ok := box.Children[8].(*widget.Icon); !ok {
-						continue
-					} else {
-						icon.Hide()
-					}
-					if spacing, ok := box.Children[9].(*fyne.Container); !ok {
-						continue
-					} else {
-						spacing.Layout = layout.NewFixedGridLayout(fyne.NewSize(35, 0))
-						canvas.Refresh(spacing)
-					}
+					canvas.Refresh(objectsChild)
 				}
-				canvas.Refresh(children)
 			}
 
 			checkmarkIcon.Show()
@@ -483,6 +492,8 @@ func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box,
 			popup.Hide()
 		}))
 	}
+	accountsBoxes[walletIndex] = accountsBox
+	groupedWalletsAccounts.Append(accountsBoxes[walletIndex])
 	dropdownContent.Append(groupedWalletsAccounts)
 }
 
