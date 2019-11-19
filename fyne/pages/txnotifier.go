@@ -57,23 +57,24 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 	var currentTransaction dcrlibwallet.Transaction
 	err := json.Unmarshal([]byte(transaction), &currentTransaction)
 	if err != nil {
-		log.Println("could read transaction to json")
+		log.Println("could not read transaction to json")
 		return
 	}
 
 	amount := dcrlibwallet.AmountCoin(currentTransaction.Amount)
-	// remove trailing zeros from amount
+	var notification string
+
 	if app.multiWallet.OpenedWalletsCount() > 1 {
 		wallet := app.multiWallet.WalletWithID(currentTransaction.WalletID)
 		if wallet == nil {
 			return
 		}
-		err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("[%s] You have received %s DCR", wallet.Name, strconv.FormatFloat(amount, 'f', -1, 64)), "assets/information.png")
-
+		notification = fmt.Sprintf("[%s] You have received %s DCR", wallet.Name, strconv.FormatFloat(amount, 'f', -1, 64)) // remove trailing zeros
 	} else {
-		err = beeep.Notify("Decred Fyne Wallet", fmt.Sprintf("You have received %s DCR", strconv.FormatFloat(amount, 'f', -1, 64)), "assets/information.png")
+		notification = fmt.Sprintf("You have received %s DCR", strconv.FormatFloat(amount, 'f', -1, 64))
 	}
 
+	err = beeep.Notify("Decred Fyne Wallet", notification, "assets/information.png")
 	if err != nil {
 		log.Println("could not initiate desktop notification, reason:", err.Error())
 	}
