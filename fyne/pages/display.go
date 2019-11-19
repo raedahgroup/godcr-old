@@ -24,7 +24,6 @@ type AppInterface struct {
 	tabMenu *widget.TabContainer
 }
 
-// DisplayLaunchErrorAndExit should only be used if ShowAndRun has already been called and it is not been return to a tabitem.
 func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 	app.Window.SetContent(widget.NewVBox(
 		widget.NewLabelWithStyle(errorMessage, fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -129,6 +128,8 @@ func (app *AppInterface) setupNavigationMenu() {
 		app.DisplayLaunchErrorAndExit(errorMessage)
 		return
 	}
+
+	app.walletNotificationListener()
 }
 
 func (app *AppInterface) tearDown() {
