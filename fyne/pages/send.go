@@ -46,7 +46,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 		return widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	}
 
-	sendPage.errorLabel = canvas.NewText("", color.RGBA{255, 0, 0, 0})
+	sendPage.errorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
 
 	// define base widget consisting of label, more icon and info button
 	sendLabel := widget.NewLabelWithStyle("Send DCR", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true, Italic: true})
@@ -88,12 +88,18 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	transactionAuthor := selectedWallet.NewUnsignedTx(selectedWalletAccounts.Acc[0].Number, dcrlibwallet.DefaultRequiredConfirmations)
 	transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
 
+	var sendToAccount *widgets.ClickableBox
+	var amountEntry *widget.Entry
+	var amountErrorLabel *canvas.Text
+
 	// this function is called when the sending wallet account is changed.
 	onSendingAccountChange := func() {
 		selectedWallet = multiWallet.WalletWithID(sendingSelectedWalletID)
 		accountNumber, err := selectedWallet.AccountNumber(sendPage.sendingSelectedAccountLabel.Text)
 		if err != nil {
 			sendPage.errorLabel.Text = "Could not get account, " + err.Error()
+			sendPage.errorLabel.Show()
+			canvas.Refresh(sendPage.errorLabel)
 		}
 
 		transactionAuthor = selectedWallet.NewUnsignedTx(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
@@ -115,6 +121,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 			return
 		}
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
+		// reset amount entry
+		amountEntry.OnChanged(amountEntry.Text)
 	}
 
 	// we still need a suitable name for this
@@ -142,10 +150,17 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	var nextButton *widget.Button
 
 	destinationAddressEntry.OnChanged = func(address string) {
+		if destinationAddressEntry.Text == "" {
+			destinationAddressErrorLabel.Hide()
+			canvas.Refresh(destinationAddressErrorLabel)
+			return
+		}
+
 		_, err := dcrutil.DecodeAddress(address)
 		if err != nil {
 			destinationAddressErrorLabel.Text = "Invalid address"
 			destinationAddressErrorLabel.Show()
+			nextButton.Disable()
 		} else {
 			destinationAddressErrorLabel.Hide()
 		}
@@ -160,10 +175,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	sendToAccountLabel := canvas.NewText("Send to account", color.RGBA{R: 41, G: 112, B: 255, A: 255})
 	sendToAccountLabel.TextSize = 12
 
-	var sendToAccount *widgets.ClickableBox
-	var amountEntry *widget.Entry
-	var amountErrorLabel *canvas.Text
-
 	sendToAccount = widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
 		if sendToAccountLabel.Text == "Send to account" {
 			sendToAccountLabel.Text = "Send to address"
@@ -177,6 +188,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 			} else {
 				nextButton.Enable()
 			}
+
 		} else {
 			sendToAccountLabel.Text = "Send to account"
 			canvas.Refresh(sendToAccountLabel)
@@ -190,6 +202,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 				nextButton.Enable()
 			}
 		}
+		widget.Refresh(nextButton)
 	})
 
 	amountEntry = widget.NewEntry()
@@ -258,6 +271,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 				sendPage.errorLabel.Text = "Amount has more than 8 decimal places"
 				sendPage.errorLabel.Show()
 				canvas.Refresh(sendPage.errorLabel)
+				nextButton.Disable()
+				widget.Refresh(nextButton)
 				return
 			}
 		}
@@ -267,6 +282,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 			sendPage.errorLabel.Text = "Could not parse float"
 			sendPage.errorLabel.Show()
 			canvas.Refresh(sendPage.errorLabel)
+			nextButton.Disable()
+			widget.Refresh(nextButton)
 			return
 		}
 
@@ -276,6 +293,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 			balanceAfterSendLabel.SetText("- DCR")
 			transactionSize.SetText("0 bytes")
 			nextButton.Disable()
+			widget.Refresh(nextButton)
 			return
 		}
 
@@ -289,7 +307,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 					log.Println("Could not get account", sendPage.sendingSelectedAccountLabel.Text)
 					return
 				}
-				temporaryAddress, err := selectedWallet.CurrentAddress(int32(accountNumber))
+				temporaryAddress, err = selectedWallet.CurrentAddress(int32(accountNumber))
 				if err != nil {
 					log.Println("Could not get account", sendPage.sendingSelectedAccountLabel.Text)
 					return
@@ -312,9 +330,22 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 				amountErrorLabel.Text = "Insufficient balance"
 				amountErrorLabel.Show()
 				canvas.Refresh(amountErrorLabel)
+
 			} else {
+				sendPage.errorLabel.Text = "could not retrieve transaction fee and size"
+				sendPage.errorLabel.Show()
+				canvas.Refresh(sendPage.errorLabel)
+
 				log.Println(fmt.Sprintf("could not retrieve transaction fee and size %s", err.Error()))
 			}
+
+			transactionFeeLabel.SetText(fmt.Sprintf("- DCR"))
+			totalCostLabel.SetText("- DCR")
+			balanceAfterSendLabel.SetText("- DCR")
+			transactionSize.SetText("0 bytes")
+
+			nextButton.Disable()
+			widget.Refresh(nextButton)
 			return
 		}
 
@@ -334,7 +365,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 
 		// if sending to self
 		if destinationAddressEntryGroup.Hidden {
-
+			nextButton.Enable()
 		} else if destinationAddressEntry.Text != "" && destinationAddressErrorLabel.Hidden {
 			nextButton.Enable()
 		}
@@ -351,6 +382,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 	nextButton = widget.NewButton("Next", func() {
 		fmt.Println(sendPage.sendingSelectedAccountLabel.Text, sendPage.sendingSelectedAccountBalanceLabel.Text)
 	})
+	nextButton.HideShadow = false
 	nextButton.Disable()
 
 	sendPageContents := widget.NewVBox(baseWidgets, sendingAccountGroup,
@@ -358,7 +390,11 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) fyne.CanvasObject {
 		widget.NewHBox(destinationAddressEntryGroup, selfSendingToAccountGroup, widget.NewVBox(sendToAccount)), // this is an hack to center mouse inputs
 		widgets.NewVSpacer(8),
 		widget.NewHBox(amountEntryGroup, widget.NewVBox(sendPage.spendableLabel)),
-		widgets.NewVSpacer(12), costAndBalanceAfterSendContainer, widgets.NewVSpacer(16), nextButton)
+		sendPage.errorLabel,
+		widgets.NewVSpacer(12),
+		costAndBalanceAfterSendContainer,
+		widgets.NewVSpacer(16),
+		widget.NewHBox(layout.NewSpacer(), nextButton, layout.NewSpacer()))
 
 	return widget.NewHBox(widgets.NewHSpacer(10), sendPageContents)
 }
