@@ -50,6 +50,36 @@ func (app *multiWalletTxListener) Debug(debugInfo *dcrlibwallet.DebugInfo) {
 }
 
 func (app *multiWalletTxListener) OnTransaction(transaction string) {
+	var currentTransaction dcrlibwallet.Transaction
+	err := json.Unmarshal([]byte(transaction), &currentTransaction)
+	if err != nil {
+		log.Println("could read transaction to json")
+		return
+	}
+
+	amount := dcrlibwallet.AmountCoin(currentTransaction.Amount)
+	// remove trailing zeros from amount
+	if currentTransaction.Direction == 1 {
+		var notification string
+
+		if app.multiWallet.OpenedWalletsCount() > 1 {
+			wallet := app.multiWallet.WalletWithID(currentTransaction.WalletID)
+			if wallet == nil {
+				return
+			}
+
+			notification = fmt.Sprintf("[%s] You have received %s DCR", wallet.Name, strconv.FormatFloat(amount, 'f', -1, 64))
+		} else {
+
+			notification = fmt.Sprintf("You have received %s DCR", strconv.FormatFloat(amount, 'f', -1, 64))
+		}
+
+		err = beeep.Notify("Decred Fyne Wallet", notification, "assets/information.png")
+		if err != nil {
+			log.Println("could not initiate desktop notification, reason:", err.Error())
+		}
+	}
+
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
