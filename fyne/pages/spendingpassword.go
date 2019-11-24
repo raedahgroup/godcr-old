@@ -125,7 +125,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		var err error
 		var wallet *dcrlibwallet.Wallet
 		if seed == "" {
-			wallet, err = app.MultiWallet.CreateNewWallet(password.Text, 0)
+			wallet, err = app.MultiWallet.CreateNewWallet("", password.Text, 0)
 			if err != nil {
 				enableCancelButton()
 				displayError(err)
@@ -133,7 +133,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 				return
 			}
 		} else {
-			wallet, err = app.MultiWallet.RestoreWallet(seed, password.Text, 0)
+			wallet, err = app.MultiWallet.RestoreWallet(seed, "", password.Text, 0)
 			if err != nil {
 				enableCancelButton()
 				displayError(err)

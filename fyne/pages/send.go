@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"github.com/raedahgroup/godcr/fyne/layouts"
 	"image/color"
 	"log"
 	"regexp"
@@ -9,14 +10,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/raedahgroup/dcrlibwallet"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+
 	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -29,18 +31,16 @@ type sendPageDynamicData struct {
 	errorLabel     *canvas.Text
 	spendableLabel *canvas.Text
 
-	selfSendingSelectedAccountWalletLable  *canvas.Text
 	selfSendingSelectedAccountLabel        *widget.Label
 	selfSendingSelectedAccountBalanceLabel *widget.Label
 
-	sendingSelectedWalletLabel         *canvas.Text
 	sendingSelectedAccountLabel        *widget.Label
 	sendingSelectedAccountBalanceLabel *widget.Label
 }
 
 var sendPage sendPageDynamicData
 
-func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.CanvasObject) {
+func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) (pageContent fyne.CanvasObject) {
 	icons, err := assets.GetIcons(assets.InfoIcon, assets.MoreIcon, assets.ReceiveAccountIcon, assets.CollapseIcon, assets.CollapseDropdown, assets.ExpandDropdown)
 	if err != nil {
 		return widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -85,11 +85,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 	}
 	amountInAccount := dcrlibwallet.AmountCoin(selectedWalletAccounts.Acc[0].TotalBalance)
 
-	transactionAuthor := selectedWallet.NewUnsignedTx(selectedWalletAccounts.Acc[0].Number, dcrlibwallet.DefaultRequiredConfirmations)
+	transactionAuthor := selectedWallet.NewUnsignedTx(0, dcrlibwallet.DefaultRequiredConfirmations)
 	transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
 
 	var sendToAccount *widgets.ClickableBox
 	var amountEntry *widget.Entry
+	var amountErrorLabel *canvas.Text
 
 	var transactionFeeLabel *widget.Label
 	var totalCostLabel *widget.Label
@@ -112,7 +113,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
 
 		sendPage.spendableLabel.Text = "Spendable: " + sendPage.sendingSelectedAccountBalanceLabel.Text
-		canvas.Refresh(sendPage.spendableLabel)
 
 		balance, err := selectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		if err != nil {
@@ -122,26 +122,29 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
 		// reset amount entry
 		amountEntry.OnChanged(amountEntry.Text)
+
 		canvas.Refresh(form)
-		widget.Refresh(transactionFeeLabel)
-		widget.Refresh(totalCostLabel)
-		widget.Refresh(balanceAfterSendLabel)
-		widget.Refresh(transactionSize)
+		canvas.Refresh(transactionFeeLabel)
+		canvas.Refresh(totalCostLabel)
+		canvas.Refresh(balanceAfterSendLabel)
+		canvas.Refresh(transactionSize)
 		canvas.Refresh(sendPage.errorLabel)
-		canvas.Refresh(pageContent)
+		canvas.Refresh(sendPage.spendableLabel)
 	}
 
 	// we still need a suitable name for this
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+
 	sendingAccountDropdownContent := widget.NewVBox()
-	sendingAccountClickableBox := createAccountDropdown(onSendingAccountChange, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendingSelectedWalletID, sendPage.sendingAccountBoxes, sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
+	sendingAccountClickableBox := createAccountDropdown(onSendingAccountChange, "Sending account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendingSelectedWalletID, sendPage.sendingAccountBoxes, sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel)
 	sendingAccountGroup := widget.NewGroup("From", sendingAccountClickableBox)
 
 	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+
 	selfSendingAccountDropdownContent := widget.NewVBox()
-	selfSendingToAccountClickableBox := createAccountDropdown(nil, icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendingToSelfSelectedWalletID, sendPage.selfSendingAccountBoxes, selfSendingAccountDropdownContent, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel)
+	selfSendingToAccountClickableBox := createAccountDropdown(nil, "Receiving account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendingToSelfSelectedWalletID, sendPage.selfSendingAccountBoxes, selfSendingAccountDropdownContent, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel)
 	selfSendingToAccountGroup := widget.NewGroup("To", selfSendingToAccountClickableBox) //sendingToAccountClickableBox)
 	selfSendingToAccountGroup.Hide()
 
@@ -156,6 +159,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 	var nextButton *widget.Button
 
 	destinationAddressEntry.OnChanged = func(address string) {
+		nextButton.Disable()
+
 		if destinationAddressEntry.Text == "" {
 			destinationAddressErrorLabel.Hide()
 			canvas.Refresh(destinationAddressErrorLabel)
@@ -166,13 +171,14 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		if err != nil {
 			destinationAddressErrorLabel.Text = "Invalid address"
 			destinationAddressErrorLabel.Show()
-			nextButton.Disable()
 		} else {
 			destinationAddressErrorLabel.Hide()
 		}
-
+		if amountEntry.Text != "" && amountErrorLabel.Hidden && destinationAddressErrorLabel.Hidden {
+			nextButton.Enable()
+			widget.Refresh(nextButton)
+		}
 		canvas.Refresh(destinationAddressErrorLabel)
-		amountEntry.OnChanged(amountEntry.Text)
 	}
 
 	destinationAddressEntryGroup := widget.NewGroup("To", fyne.NewContainerWithLayout(
@@ -228,7 +234,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		}
 	})
 
-	amountErrorLabel := canvas.NewText("", color.RGBA{237, 109, 71, 255})
+	amountErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
 	amountErrorLabel.TextSize = 14
 	amountErrorLabel.Hide()
 
@@ -244,7 +250,19 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		log.Println(err)
 	}
 
+	var transactionFee string
+	var totalCost string
+	var balanceAfterSend string
+
 	amountEntry.OnChanged = func(value string) {
+		// accountNumber, err := selectedWallet.AccountNumber(sendPage.sendingSelectedAccountLabel.Text)
+		// if err != nil {
+		// 	sendPage.errorLabel.Text = "Could not get account, " + err.Error()
+		// 	sendPage.errorLabel.Show()
+		// 	canvas.Refresh(sendPage.errorLabel)
+		// 	return
+		// }
+
 		if len(value) > 0 && !amountEntryExpression.MatchString(value) {
 			if len(value) == 1 {
 				amountEntry.SetText("")
@@ -288,24 +306,35 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 			return
 		}
 
-		// sending to self?
-		if destinationAddressEntryGroup.Hidden {
-			fmt.Println("sending account for sending dropdown is", sendPage.selfSendingSelectedAccountLabel.Text)
-			transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
-		} else {
-			if destinationAddressEntry.Text == "" {
-				transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
-			} else {
-				if destinationAddressErrorLabel.Hidden {
-					transactionAuthor.UpdateSendDestination(0, destinationAddressEntry.Text, dcrlibwallet.AmountAtom(amountInFloat), false)
-				} else {
-					// use temporary address if address in entry is incorrect
-					transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
-				}
-			}
-		}
+		transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
+		// this should be used only when users click the next button
+		// // sending to self?
+		// if destinationAddressEntry.Hidden {
+		// 	fmt.Println("sending account for sending dropdown is", sendPage.sendingSelectedAccountLabel.Text)
+		// 	transactionAuthor.UpdateSendDestination(0, sendPage.sendingSelectedAccountLabel.Text, dcrlibwallet.AmountAtom(amountInFloat), false)
+		// } else {
+		// 	if destinationAddressEntry.Text == "" {
+		// 		accountNumber, err = selectedWallet.AccountNumber(sendPage.sendingSelectedAccountLabel.Text)
+		// 		if err != nil {
+		// 			log.Println("Could not get account", sendPage.sendingSelectedAccountLabel.Text)
+		// 			return
+		// 		}
+		// 		temporaryAddress, err := selectedWallet.CurrentAddress(int32(accountNumber))
+		// 		if err != nil {
+		// 			log.Println("Could not get account", sendPage.sendingSelectedAccountLabel.Text)
+		// 			return
+		// 		}
+		// 		transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
+		// 	} else {
+		// 		if destinationAddressErrorLabel.Hidden {
+		// 			transactionAuthor.UpdateSendDestination(0, destinationAddressEntry.Text, dcrlibwallet.AmountAtom(amountInFloat), false)
+		// 		} else {
+		// 			// return is address in entry is incorrect
+		// 			return
+		// 		}
+		// 	}
+		// }
 
-		// error was not handled as users might decide not to input address
 		feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
 		if err != nil {
 			if err.Error() == "insufficient_balance" {
@@ -334,23 +363,25 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 			canvas.Refresh(amountErrorLabel)
 		}
 
-		transactionFeeLabel.SetText(fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue))
-		totalCost := feeAndSize.Fee.DcrValue + amountInFloat
-		totalCostLabel.SetText(fmt.Sprintf("%f DCR", totalCost))
-		balanceAfterSendLabel.SetText(fmt.Sprintf("%f DCR", amountInAccount-totalCost))
+		transactionFee = fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue)
+		transactionFeeLabel.SetText(transactionFee)
+
+		totalCost = fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue+amountInFloat)
+		totalCostLabel.SetText(totalCost)
+
+		balanceAfterSend = fmt.Sprintf("%f DCR", amountInAccount-(feeAndSize.Fee.DcrValue+amountInFloat))
+		balanceAfterSendLabel.SetText(balanceAfterSend)
 		transactionSize.SetText(fmt.Sprintf("%d bytes", feeAndSize.EstimatedSignedSize))
 
 		widget.Refresh(amountEntryGroup)
 		canvas.Refresh(paintedForm)
 
-		// if sending to self
-		if destinationAddressEntryGroup.Hidden {
+		if destinationAddressEntry.Text != "" && destinationAddressErrorLabel.Hidden || destinationAddressEntryGroup.Hidden {
 			nextButton.Enable()
-		} else if destinationAddressEntry.Text != "" && destinationAddressErrorLabel.Hidden {
-			nextButton.Enable()
+			widget.Refresh(nextButton)
 		}
-		sendPage.errorLabel.Hide()
 
+		sendPage.errorLabel.Hide()
 		canvas.Refresh(sendPage.errorLabel)
 
 		// transactionAuthor.AddSendDestination("TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd", dcrlibwallet.AmountAtom(10), false)
@@ -367,12 +398,77 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Balance after send"), layout.NewSpacer(), balanceAfterSendLabel))
 	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
 
-	// amountEntryGroup:=widget.NewGroup("Amount", )
-
 	nextButton = widget.NewButton("Next", func() {
-		fmt.Println(sendPage.sendingSelectedAccountLabel.Text, sendPage.sendingSelectedAccountBalanceLabel.Text)
+		var confirmationPagePopup *widget.PopUp
+
+		initiateAfterPopupClose := func() {
+			confirmationPagePopup.Hide()
+		}
+
+		confirmLabel := canvas.NewText("Confirm to send", color.Black)
+		confirmLabel.TextStyle.Bold = true
+		confirmLabel.TextSize = 20
+
+		accountSelectionPopupHeader := widget.NewHBox(
+			widgets.NewHSpacer(16),
+			widgets.NewImageButton(theme.CancelIcon(), nil, initiateAfterPopupClose),
+			widgets.NewHSpacer(16),
+			confirmLabel,
+			widgets.NewHSpacer(170),
+		)
+		sendingSelectedAccountLabel := widget.NewLabelWithStyle(sendPage.sendingSelectedAccountLabel.Text, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+		sendingSelectedWalletLabel := widget.NewLabelWithStyle(fmt.Sprintf("(%s)", multiWallet.WalletWithID(sendingToSelfSelectedWalletID).Name), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+
+		trailingDotForAmount := strings.Split(amountEntry.Text, ".")
+		// if amount is a float
+		amountLabelBox := fyne.NewContainerWithLayout(layouts.NewHBox(0))
+		if len(trailingDotForAmount) > 1 && len(trailingDotForAmount[1]) > 2 {
+			trailingAmountLabel := canvas.NewText(trailingDotForAmount[1][2:]+"  DCR", color.Black)
+			trailingAmountLabel.TextStyle = fyne.TextStyle{Bold: true} //, Monospace: true}
+			trailingAmountLabel.TextSize = 15
+
+			//trailingAmountContainer := fyne.NewContainerWithLayout(layouts.NewVBox(0), widget.NewLabel(""), trailingAmountLabel) //, widgets.NewHSpacer(10), DCRLabel)
+
+			leadingAmountLabel := canvas.NewText(trailingDotForAmount[0]+"."+trailingDotForAmount[1][:2], color.Black)
+			leadingAmountLabel.TextStyle = fyne.TextStyle{Bold: true} //, Monospace: true}
+			leadingAmountLabel.TextSize = 20
+
+			amountLabelBox.AddObject(leadingAmountLabel)
+			amountLabelBox.AddObject(trailingAmountLabel)
+		} else {
+			amountLabel := canvas.NewText(amountEntry.Text, color.Black)
+			amountLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
+			amountLabel.TextSize = 20
+
+			DCRLabel := canvas.NewText("DCR", color.Black)
+			DCRLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
+			DCRLabel.TextSize = 15
+
+			amountLabelBox.Layout = layouts.NewHBox(5)
+			amountLabelBox.AddObject(amountLabel)
+			//amountLabelBox.AddObject(widget.NewLabel(""))
+			amountLabelBox.AddObject(DCRLabel)
+		}
+
+		// toDestination := "To destination address"
+		// destinationAddress := destinationAddressEntry.Text
+
+		// if destinationAddressEntryGroup.Hidden {
+		// 	toDestination = "To self"
+		// 	destinationAddress = sendPage.selfSendingSelectedAccountLabel.Text + "(" + multiWallet.WalletWithID(sendingToSelfSelectedWalletID).Name + ")"
+		// }
+		confirmationPageContent := widget.NewVBox(
+			widgets.NewVSpacer(18),
+			accountSelectionPopupHeader,
+			canvas.NewLine(color.Black),
+			widgets.NewVSpacer(24),
+			widget.NewHBox(layout.NewSpacer(), widget.NewLabel("Sending from "), sendingSelectedAccountLabel, sendingSelectedWalletLabel, layout.NewSpacer()),
+			widget.NewHBox(layout.NewSpacer(), amountLabelBox, layout.NewSpacer()),
+		)
+
+		confirmationPagePopup = widget.NewModalPopUp(confirmationPageContent, window.Canvas())
+		confirmationPagePopup.Show()
 	})
-	nextButton.HideShadow = false
 	nextButton.Disable()
 
 	sendPageContents := widget.NewVBox(baseWidgets, sendingAccountGroup,
@@ -380,17 +476,22 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet) (pageContent fyne.Ca
 		widget.NewHBox(destinationAddressEntryGroup, selfSendingToAccountGroup, widget.NewVBox(sendToAccount)), // this is an hack to center mouse inputs
 		widgets.NewVSpacer(8),
 		widget.NewHBox(amountEntryGroup, widget.NewVBox(sendPage.spendableLabel)),
-		sendPage.errorLabel,
 		widgets.NewVSpacer(12),
 		costAndBalanceAfterSendContainer,
 		widgets.NewVSpacer(16),
-		widget.NewHBox(layout.NewSpacer(), nextButton, layout.NewSpacer()))
+		sendPage.errorLabel,
+		widgets.NewVSpacer(10),
+		nextButton)
 
 	pageContent = widget.NewHBox(widgets.NewHSpacer(10), sendPageContents)
 	return
 }
 
-func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon fyne.Resource, multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, sendingSelectedWalletID *int, accountBoxes []*widget.Box, dropdownContent *widget.Box, selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
+func createAccountDropdown(initFunction func(), accountLabel string, receiveAccountIcon, collapseIcon fyne.Resource,
+	multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, sendingSelectedWalletID *int,
+	accountBoxes []*widget.Box, dropdownContent *widget.Box, selectedAccountLabel *widget.Label,
+	selectedAccountBalanceLabel *widget.Label) (accountClickableBox *widgets.ClickableBox) {
+
 	selectAccountBox := widget.NewHBox(
 		widgets.NewHSpacer(15),
 		widget.NewIcon(receiveAccountIcon),
@@ -402,27 +503,46 @@ func createAccountDropdown(initFunction func(), receiveAccountIcon, collapseIcon
 		widget.NewIcon(collapseIcon),
 	)
 
-	receivingAccountSelectionPopup := widget.NewPopUp(dropdownContent, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
+	// TODO make wallets and account in a scrollabel container
+	accountSelectionPopup := widget.NewPopUp(dropdownContent, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
 	accountBoxes = make([]*widget.Box, len(walletIDs))
+
+	accountSelectionPopupHeader := widget.NewHBox(
+		widgets.NewHSpacer(16),
+		widgets.NewImageButton(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
+		widgets.NewHSpacer(16),
+		widget.NewLabelWithStyle(accountLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		layout.NewSpacer(),
+	)
+
+	dropdownContent.Append(widget.NewVBox(
+		widgets.NewVSpacer(5),
+		accountSelectionPopupHeader,
+		widgets.NewVSpacer(5),
+		canvas.NewLine(color.Black),
+	))
 
 	// we cant access the children of group widget, proposed hack is to
 	// create a vertical box array where all accounts would be placed,
 	// then when we want to hide checkmarks we call all children of accountbox and hide checkmark icon except selected
 	for walletIndex, walletID := range walletIDs {
 		getAllWalletAccountsInBox(initFunction, dropdownContent, selectedAccountLabel, selectedAccountBalanceLabel,
-			multiWallet.WalletWithID(walletID), walletIndex, walletID, sendingSelectedWalletID, accountBoxes, receiveAccountIcon, receivingAccountSelectionPopup)
+			multiWallet.WalletWithID(walletID), walletIndex, walletID, sendingSelectedWalletID, accountBoxes, receiveAccountIcon, accountSelectionPopup)
 	}
-	receivingAccountSelectionPopup.Hide()
+	accountSelectionPopup.Hide()
 
 	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
-		receivingAccountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
-		receivingAccountSelectionPopup.Show()
+		accountSelectionPopup.Show()
 	})
 	return
 }
 
-func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box, selectedAccountLabel, selectedAccountBalanceLabel *widget.Label, wallet *dcrlibwallet.Wallet, walletIndex, walletID int, sendingSelectedWalletID *int, accountsBoxes []*widget.Box, receiveIcon fyne.Resource, popup *widget.PopUp) {
+func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box, selectedAccountLabel,
+	selectedAccountBalanceLabel *widget.Label, wallet *dcrlibwallet.Wallet, walletIndex, walletID int,
+	sendingSelectedWalletID *int, accountsBoxes []*widget.Box, receiveIcon fyne.Resource, popup *widget.PopUp) {
+
 	accounts, err := wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		return

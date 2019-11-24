@@ -8,6 +8,10 @@ type passwordLayout struct {
 
 // Layout places the icon in the password entry. password should be the first index
 func (c *passwordLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+	if len(objects) < 1 {
+		return
+	}
+	
 	password := objects[0]
 	icon := objects[1]
 
