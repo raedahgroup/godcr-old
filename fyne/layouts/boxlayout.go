@@ -13,8 +13,8 @@ func (c *boxLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	if len(objects) < 1 {
 		return
 	}
-	objects[0].Resize(objects[0].MinSize())
 	objects[0].Move(fyne.NewPos(0, 0))
+	objects[0].Resize(objects[0].MinSize())
 
 	for index, object := range objects {
 		if index == 0 {
@@ -22,11 +22,15 @@ func (c *boxLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 		}
 
 		if c.horizontal {
+			redH := objects[index-1].MinSize().Height - object.MinSize().Height
+			if redH < 0 {
+				redH = 0
+			}
+			object.Move(fyne.NewPos(objects[index-1].Position().X+objects[index-1].MinSize().Width+c.spacer, objects[index-1].Position().Y+redH-1)) //, objects[index-1].Position().Y+object.MinSize().Height)))
 			object.Resize(object.MinSize())
-			object.Move(fyne.NewPos(objects[index-1].Position().X+object.MinSize().Width+c.spacer, objects[index-1].Position().Y+5))
 		} else {
+			object.Move(fyne.NewPos(objects[index-1].Position().X+5, objects[index-1].Position().Y+object.MinSize().Height+c.spacer-10))
 			object.Resize(object.MinSize())
-			object.Move(fyne.NewPos(objects[index-1].Position().X+5, objects[index-1].Position().Y+object.MinSize().Height+c.spacer))
 		}
 	}
 }
@@ -35,15 +39,9 @@ func (c *boxLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 func (c *boxLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	var minSize fyne.Size
 
-	if c.horizontal {
-		minSize = minSize.Add(fyne.NewSize(6-c.spacer, 0))
-	} else {
-		minSize = minSize.Add(fyne.NewSize(0, 6-c.spacer))
-	}
-
 	for _, child := range objects {
 		if c.horizontal {
-			minSize = minSize.Add(fyne.NewSize(child.MinSize().Width+c.spacer-6, 0-5))
+			minSize = minSize.Add(fyne.NewSize(child.MinSize().Width+c.spacer, 0))
 			minSize.Height = fyne.Max(child.MinSize().Height, minSize.Height)
 		} else {
 			minSize = minSize.Add(fyne.NewSize(0-5, child.MinSize().Height+c.spacer-6))

@@ -22,6 +22,8 @@ const (
 	Add       = "add.png"
 	Loader    = "loader.png"
 	Back      = "back.png"
+	DownArrow = "downArrow.png"
+	Alert     = "alert.png"
 
 	CollapseIcon       = "collapse.png"
 	MoreIcon           = "more.png"
