@@ -69,7 +69,7 @@ func (app *AppInterface) setupNavigationMenu() {
 	}
 
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent(app)),
 		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
@@ -79,7 +79,7 @@ func (app *AppInterface) setupNavigationMenu() {
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
 	go func() {
-		var currentTabIndex = -1
+		var currentTabIndex = 0
 
 		for {
 			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
@@ -101,7 +101,7 @@ func (app *AppInterface) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = overviewPageContent()
+				newPageContent = overviewPageContent(app)
 			case 1:
 				newPageContent = historyPageContent()
 			case 2:
