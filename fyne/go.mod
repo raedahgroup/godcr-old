@@ -5,6 +5,7 @@ go 1.13
 require (
 	fyne.io/fyne v1.2.0
 	github.com/decred/dcrd/dcrutil v1.4.0
+	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/slog v1.0.0
 	github.com/gen2brain/beeep v0.0.0-20190719094215-ece0cb67ca77
 	github.com/gobuffalo/packr/v2 v2.6.0
