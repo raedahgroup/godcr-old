@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	fyne.io/fyne v1.2.0
+	fyne.io/fyne v1.1.3-0.20191104221827-e8f6795efa08
 	github.com/decred/dcrd/dcrutil v1.4.0
 	github.com/decred/dcrd/chaincfg/chainhash v1.0.1
 	github.com/decred/slog v1.0.0
