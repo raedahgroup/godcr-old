@@ -59,7 +59,7 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 
 	amount := dcrlibwallet.AmountCoin(currentTransaction.Amount)
 	// remove trailing zeros from amount
-	if currentTransaction.Direction == 1 {
+	if currentTransaction.Direction >= 1 {
 		var notification string
 
 		if app.multiWallet.OpenedWalletsCount() > 1 {

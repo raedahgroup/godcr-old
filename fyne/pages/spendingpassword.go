@@ -5,15 +5,16 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/layouts"
-	"github.com/raedahgroup/godcr/fyne/widgets"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/dcrlibwallet"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (app *AppInterface) createSpendingPasswordPopup(seed string) {
