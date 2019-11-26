@@ -89,6 +89,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.sendingSelectedWalletID = openedWalletIDs[0]
 	sendPage.selfSendingSelectedWalletID = openedWalletIDs[0]
 
+	sendPage.selfSendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
+	sendPage.sendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
+
 	var selectedWallet = multiWallet.WalletWithID(sendPage.sendingSelectedWalletID)
 
 	selectedWalletAccounts, err := selectedWallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
@@ -156,15 +159,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 
-	sendingAccountDropdownContent := widget.NewVBox()
-	sendingAccountClickableBox := createAccountDropdown(onSendingAccountChange, "Sending account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.sendingSelectedWalletID, sendPage.sendingAccountBoxes, sendingAccountDropdownContent, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel, sendingSelectedWalletLabel)
+	sendingAccountClickableBox := createAccountDropdown(onSendingAccountChange, "Sending account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.sendingSelectedWalletID, sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel, sendingSelectedWalletLabel)
 	sendingAccountGroup := widget.NewGroup("From", sendingAccountClickableBox)
 
 	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 
-	selfSendingAccountDropdownContent := widget.NewVBox()
-	selfSendingToAccountClickableBox := createAccountDropdown(nil, "Receiving account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.selfSendingSelectedWalletID, sendPage.selfSendingAccountBoxes, selfSendingAccountDropdownContent, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel, selfSendingSelectedWalletLabel)
+	selfSendingToAccountClickableBox := createAccountDropdown(nil, "Receiving account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.selfSendingSelectedWalletID, sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel, selfSendingSelectedWalletLabel)
 	selfSendingToAccountGroup := widget.NewGroup("To", selfSendingToAccountClickableBox)
 	selfSendingToAccountGroup.Hide()
 
@@ -640,7 +641,7 @@ func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 
 		widget.NewHBox(layout.NewSpacer(),
-			widget.NewIcon(alert), widget.NewLabelWithStyle("Your DCR will be send and CANNOT be undone.", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
+			widget.NewIcon(alert), widget.NewLabelWithStyle("Your DCR will be sent and CANNOT be undone.", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
 		sendButton.Container,
 		widgets.NewVSpacer(18),
 	)
@@ -654,8 +655,10 @@ func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 
 func createAccountDropdown(initFunction func(), accountLabel string, receiveAccountIcon, collapseIcon fyne.Resource,
 	multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, sendingSelectedWalletID *int,
-	accountBoxes []*widget.Box, dropdownContent *widget.Box, selectedAccountLabel *widget.Label,
+	accountBoxes []*widget.Box, selectedAccountLabel *widget.Label,
 	selectedAccountBalanceLabel *widget.Label, selectedWalletLabel *canvas.Text) (accountClickableBox *widgets.ClickableBox) {
+
+	dropdownContent := widget.NewVBox()
 
 	selectAccountBox := widget.NewHBox(
 		widgets.NewHSpacer(15),
@@ -669,8 +672,8 @@ func createAccountDropdown(initFunction func(), accountLabel string, receiveAcco
 	)
 
 	// TODO make wallets and account in a scrollabel container
-	accountSelectionPopup := widget.NewPopUp(dropdownContent, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
-	accountBoxes = make([]*widget.Box, len(walletIDs))
+	dropdownContentWithScroller := widget.NewScrollContainer(dropdownContent)
+	accountSelectionPopup := widget.NewPopUp(dropdownContentWithScroller, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
 
 	accountSelectionPopupHeader := widget.NewHBox(
 		widgets.NewHSpacer(16),
@@ -696,17 +699,14 @@ func createAccountDropdown(initFunction func(), accountLabel string, receiveAcco
 	}
 	accountSelectionPopup.Hide()
 
-	var resize int
 	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
 		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
 
-		// resize selector box
-		selectAccountBox.Children[4] = widgets.NewHSpacer(resize)
+		accountSelectionPopup.Resize(fyne.NewSize(dropdownContent.MinSize().Width+10, fyne.Max(dropdownContent.MinSize().Height, 60)))
 		widget.Refresh(selectAccountBox)
 		accountSelectionPopup.Show()
 	})
-	resize = accountSelectionPopup.MinSize().Width - selectAccountBox.MinSize().Width
 
 	return
 }
@@ -830,33 +830,78 @@ func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box,
 			popup.Hide()
 		}))
 	}
+
 	accountsBoxes[walletIndex] = accountsBox
 	groupedWalletsAccounts.Append(accountsBoxes[walletIndex])
 	dropdownContent.Append(groupedWalletsAccounts)
 }
 
-func updateAccountDropdownContent(accountBox *widget.Box, account *dcrlibwallet.Accounts) {
-	for index, boxContent := range accountBox.Children {
-		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Acc[index].Balance.Spendable).String(), color.White)
-		spendableAmountLabel.TextSize = 10
-		spendableAmountLabel.Alignment = fyne.TextAlignTrailing
+func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel *widget.Label, selfSendingSelectedAccountBalanceLabel *widget.Label, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID int) {
+	selectedWalletIDs := multiWallet.OpenedWalletIDsRaw()
+	sort.Ints(selectedWalletIDs)
+	if len(selectedWalletIDs) != len(accountBoxes) {
+		fmt.Println("Not working")
+		return
+	}
 
-		accountBalance := dcrutil.Amount(account.Acc[index].Balance.Total).String()
-		accountBalanceLabel := widget.NewLabel(accountBalance)
-		accountBalanceLabel.Alignment = fyne.TextAlignTrailing
+	for walletIndex, accountBox := range accountBoxes {
+		wallet := multiWallet.WalletWithID(selectedWalletIDs[walletIndex])
+		if wallet == nil {
+			return
+		}
 
-		accountBalanceBox := widget.NewVBox(
-			accountBalanceLabel,
-			spendableAmountLabel,
-		)
+		account, err := wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+		if err != nil {
+			log.Println("could not retrieve accounts on transaction notification")
+			continue
+		}
 
-		accountBalance = dcrutil.Amount(account.Acc[index].Balance.Total).String()
+		if len(accountBox.Children) != len(account.Acc) {
+			continue
+		}
 
-		if content, ok := boxContent.(*widgets.ClickableBox); ok {
-			fmt.Println("worksss")
-			content.Box.Children[6] = accountBalanceBox
-			widget.Refresh(content.Box)
-			widget.Refresh(content)
+		for index, boxContent := range accountBox.Children {
+			spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Acc[index].Balance.Spendable).String(), color.White)
+			spendableAmountLabel.TextSize = 10
+			spendableAmountLabel.Alignment = fyne.TextAlignTrailing
+
+			accountBalance := dcrutil.Amount(account.Acc[index].Balance.Total).String()
+			accountBalanceLabel := widget.NewLabel(accountBalance)
+			accountBalanceLabel.Alignment = fyne.TextAlignTrailing
+
+			accountBalanceBox := widget.NewVBox(
+				accountBalanceLabel,
+				spendableAmountLabel,
+			)
+
+			accountBalance = dcrutil.Amount(account.Acc[index].Balance.Total).String()
+
+			if content, ok := boxContent.(*widgets.ClickableBox); ok {
+				fmt.Println("worksss")
+				content.Box.Children[6] = accountBalanceBox
+				widget.Refresh(content.Box)
+				widget.Refresh(content)
+			}
 		}
 	}
+
+	wallet := multiWallet.WalletWithID(selectedWalletID)
+	if wallet == nil {
+		log.Println("could not retrieve selected wallet on transaction notification")
+		return
+	}
+
+	accountNumber, err := wallet.AccountNumber(sendingSelectedAccountLabel.Text)
+	if err != nil {
+		log.Println("could not retrieve selected account number on transaction notification")
+		return
+	}
+
+	account, err := wallet.GetAccount(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
+	if err != nil {
+		log.Println("could not retrieve selected account on transaction notification")
+		return
+	}
+
+	selfSendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
 }
