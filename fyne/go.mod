@@ -3,7 +3,7 @@ module github.com/raedahgroup/godcr/fyne
 go 1.13
 
 require (
-	fyne.io/fyne v1.1.3-0.20191104221827-e8f6795efa08
+	fyne.io/fyne v1.1.3-0.20191126142316-5ce499317159
 	github.com/decred/dcrd/dcrutil v1.4.0
 	github.com/decred/slog v1.0.0
 	github.com/gen2brain/beeep v0.0.0-20190719094215-ece0cb67ca77
