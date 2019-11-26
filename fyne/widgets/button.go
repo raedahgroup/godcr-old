@@ -20,10 +20,7 @@ type Button struct {
 }
 
 func (b *Button) MinSize() fyne.Size {
-	x := fyne.Max(b.bar.MinSize().Width, b.canvasText.MinSize().Width)
-	y := fyne.Max(b.bar.MinSize().Height, b.canvasText.MinSize().Height)
-
-	return fyne.NewSize(x, y)
+	return b.canvasText.MinSize()
 }
 
 func (b *Button) SetMinSize(size fyne.Size) {
@@ -64,6 +61,8 @@ func (b *Button) SetText(text string) {
 	canvas.Refresh(b.Container)
 }
 
+// NewButton implements a custom button widget with varied size and OnTapped ability.
+// To use NewButton as a fyne widget Container field should be passed.
 func NewButton(fillColor color.RGBA, text string, OnTapped func()) *Button {
 	var button Button
 
