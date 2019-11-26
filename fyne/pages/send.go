@@ -155,7 +155,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		widget.Refresh(sendPageContents)
 	}
 
-	// we still need a suitable name for this
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 
@@ -671,24 +670,19 @@ func createAccountDropdown(initFunction func(), accountLabel string, receiveAcco
 		widget.NewVBox(widgets.NewVSpacer(6), widget.NewIcon(collapseIcon)),
 	)
 
-	// TODO make wallets and account in a scrollabel container
-	dropdownContentWithScroller := widget.NewScrollContainer(dropdownContent)
-	accountSelectionPopup := widget.NewPopUp(dropdownContentWithScroller, fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
-
-	accountSelectionPopupHeader := widget.NewHBox(
-		widgets.NewHSpacer(16),
-		widgets.NewImageButton(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
-		widgets.NewHSpacer(16),
-		widget.NewLabelWithStyle(accountLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		layout.NewSpacer(),
-	)
-
-	dropdownContent.Append(widget.NewVBox(
+	var accountSelectionPopup *widget.PopUp
+	accountSelectionPopupHeader := widget.NewVBox(
 		widgets.NewVSpacer(5),
-		accountSelectionPopupHeader,
+		widget.NewHBox(
+			widgets.NewHSpacer(16),
+			widgets.NewImageButton(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
+			widgets.NewHSpacer(16),
+			widget.NewLabelWithStyle(accountLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+		),
 		widgets.NewVSpacer(5),
 		canvas.NewLine(color.Black),
-	))
+	)
 
 	// we cant access the children of group widget, proposed hack is to
 	// create a vertical box array where all accounts would be placed,
@@ -697,15 +691,20 @@ func createAccountDropdown(initFunction func(), accountLabel string, receiveAcco
 		getAllWalletAccountsInBox(initFunction, dropdownContent, selectedAccountLabel, selectedAccountBalanceLabel, selectedWalletLabel,
 			multiWallet.WalletWithID(walletID), walletIndex, walletID, sendingSelectedWalletID, accountBoxes, receiveAccountIcon, accountSelectionPopup)
 	}
+
+	dropdownContentWithScroller := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(dropdownContent.MinSize().Width+5, fyne.Min(dropdownContent.MinSize().Height, 100))), widget.NewScrollContainer(dropdownContent))
+
+	accountSelectionPopup = widget.NewPopUp(widget.NewVBox(accountSelectionPopupHeader, dropdownContentWithScroller), fyne.CurrentApp().Driver().AllWindows()[0].Canvas())
 	accountSelectionPopup.Hide()
 
 	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
 		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
 
-		accountSelectionPopup.Resize(fyne.NewSize(dropdownContent.MinSize().Width+10, fyne.Max(dropdownContent.MinSize().Height, 60)))
-		widget.Refresh(selectAccountBox)
+		fmt.Println(dropdownContent.MinSize().Height + accountSelectionPopupHeader.MinSize().Height)
 		accountSelectionPopup.Show()
+		accountSelectionPopup.Resize(dropdownContentWithScroller.Size().Add(fyne.NewSize(10, accountSelectionPopupHeader.MinSize().Height))) //fyne.NewSize(dropdownContent.MinSize().Width+10, fyne.Min(dropdownContent.MinSize().Height+accountSelectionPopupHeader.MinSize().Height, 140)))
+		widget.Refresh(selectAccountBox)
 	})
 
 	return
