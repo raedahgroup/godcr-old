@@ -51,7 +51,8 @@ func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject
 
 func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
-	// app.Window.SetContent(app.tabMenu)
+	app.Window.SetContent(app.tabMenu)
+	app.Window.Resize(fyne.NewSize(1000, 600))
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
