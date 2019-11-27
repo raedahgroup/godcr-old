@@ -61,13 +61,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		sendPage.errorLabel.SetText(value)
 		sendPage.errorLabel.SetMinSize(sendPage.errorLabel.MinSize().Add(fyne.NewSize(20, 8)))
 		sendPage.errorLabel.Container.Show()
+		widget.Refresh(sendPage.Contents)
 
 		time.AfterFunc(time.Second*5, func() {
 			sendPage.errorLabel.Container.Hide()
 			widget.Refresh(sendPage.Contents)
 		})
-
-		widget.Refresh(sendPage.Contents)
 	}
 
 	successLabelContainer := widgets.NewButton(color.RGBA{65, 190, 83, 255}, "Transaction sent", nil)
@@ -127,8 +126,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		transactionAuthor = selectedWallet.NewUnsignedTx(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
 
-		sendPage.spendableLabel.Text = "Spendable: " + sendPage.sendingSelectedAccountBalanceLabel.Text
-
 		balance, err := selectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		if err != nil {
 			showErrorLabel("could not retrieve account balance")
@@ -136,11 +133,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			return
 		}
 
+		sendPage.spendableLabel.Text = "Spendable: " + dcrutil.Amount(balance.Spendable).String()
+
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
+
 		widget.Refresh(sendPage.Contents)
 		// reset amount entry
 		amountEntry.OnChanged(amountEntry.Text)
-
 	}
 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
@@ -177,7 +176,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	destinationAddressEntry.OnChanged = func(address string) {
 		if destinationAddressEntry.Text == "" {
 			destinationAddressErrorLabel.Hide()
-			canvas.Refresh(destinationAddressErrorLabel)
 			widget.Refresh(sendPage.Contents)
 			return
 		}
@@ -195,6 +193,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		} else {
 			nextButton.Disable()
 		}
+
 		widget.Refresh(sendPage.Contents)
 	}
 
@@ -233,6 +232,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		}
 
 		amountEntry.OnChanged(amountEntry.Text)
+		widget.Refresh(sendPage.Contents)
 	})
 
 	destinationBox.Append(widget.NewVBox(sendToAccount)) // placed it in a VBox so as to center object
@@ -273,7 +273,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	})
 
 	amountErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
-	amountErrorLabel.TextSize = 14
+	amountErrorLabel.TextSize = 12
 	amountErrorLabel.Hide()
 
 	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, "MAX", func() {
@@ -281,11 +281,16 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
 			amountErrorLabel.Text = "Not enough funds (or not connected)."
+			amountErrorLabel.Show()
 			widget.Refresh(sendPage.Contents)
 			return
 		}
+
+		amountErrorLabel.Hide()
+		widget.Refresh(sendPage.Contents)
 		amountEntry.SetText(fmt.Sprintf("%f", maxAmount.DcrValue-0.000012))
 	})
+
 	maxButton.SetTextSize(9)
 	maxButton.SetMinSize(maxButton.MinSize().Add(fyne.NewSize(8, 8)))
 
@@ -341,7 +346,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		}
 
 		if amountInFloat == 0.0 {
-			transactionFeeLabel.SetText(fmt.Sprintf("- DCR"))
+			transactionFeeLabel.SetText("- DCR")
 			totalCostLabel.SetText("- DCR")
 			balanceAfterSendLabel.SetText("- DCR")
 			transactionSize.SetText("0 bytes")
@@ -357,11 +362,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			if err.Error() == "insufficient_balance" {
 				amountErrorLabel.Text = "Insufficient balance"
 				amountErrorLabel.Show()
-				canvas.Refresh(amountErrorLabel)
-
 			} else {
 				showErrorLabel("Could not retrieve transaction fee and size")
-
 				log.Println(fmt.Sprintf("could not retrieve transaction fee and size %s", err.Error()))
 			}
 
@@ -965,6 +967,7 @@ func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAcco
 
 	if spendableLabel != nil {
 		spendableLabel.Text = "Spendable: " + dcrutil.Amount(account.Balance.Spendable).String()
+		canvas.Refresh(spendableLabel)
 	}
 
 	widget.Refresh(contents)
