@@ -250,6 +250,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			paintedtransactionInfoform.Hide()
 		}
 
+		widget.Refresh(sendPage.Contents)
 	})
 
 	amountErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
@@ -260,7 +261,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		transactionAuthor.UpdateSendDestination(0, temporaryAddress, 0, true)
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
-			showErrorLabel("Could not determine max amount")
+			amountErrorLabel.Text = "Not enough funds (or not connected)."
+			widget.Refresh(sendPage.Contents)
 			return
 		}
 		amountEntry.SetText(fmt.Sprintf("%f", maxAmount.DcrValue-0.000012))
@@ -431,7 +433,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	// define base widget consisting of label, more icon and info button
 	sendLabel := widget.NewLabelWithStyle("Send DCR", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true, Italic: true})
 
-	dialogLabel := widget.NewLabelWithStyle("Input or scan the destination \nwallet address and the amount in \nDCR to send funds.", fyne.TextAlignLeading, fyne.TextStyle{})
+	dialogLabel := widget.NewLabelWithStyle("Input the destination \nwallet address and the amount in \nDCR to send funds.", fyne.TextAlignLeading, fyne.TextStyle{})
 
 	var clickabelInfoIcon *widgets.ImageButton
 	clickabelInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
@@ -864,7 +866,7 @@ func getAllWalletAccountsInBox(initFunction func(), dropdownContent *widget.Box,
 	dropdownContent.Append(groupedWalletsAccounts)
 }
 
-func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel *widget.Label, selfSendingSelectedAccountBalanceLabel *widget.Label, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID int, contents *widget.Box) {
+func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel, sendingSelectedAccountBalanceLabel *widget.Label, spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID int, contents *widget.Box) {
 	if contents == nil {
 		return
 	}
@@ -931,6 +933,11 @@ func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAcco
 		return
 	}
 
-	selfSendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
+	sendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
+
+	if spendableLabel != nil {
+		spendableLabel.Text = "Spendable: " + dcrutil.Amount(account.Balance.Spendable).String()
+	}
+
 	widget.Refresh(contents)
 }
