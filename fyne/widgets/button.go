@@ -11,7 +11,7 @@ import (
 
 type Button struct {
 	bar        *canvas.Rectangle
-	fillColor  color.RGBA
+	fillColor  color.Color
 	canvasText *canvas.Text
 
 	Size      fyne.Size
@@ -63,10 +63,13 @@ func (b *Button) SetText(text string) {
 
 // NewButton implements a custom button widget with varied size and OnTapped ability.
 // To use NewButton as a fyne widget Container field should be passed.
-func NewButton(fillColor color.RGBA, text string, OnTapped func()) *Button {
+func NewButton(fillColor color.Color, text string, OnTapped func()) *Button {
 	var button Button
 
 	button.canvasText = canvas.NewText(text, color.White)
+	if fillColor == color.White {
+		button.canvasText = canvas.NewText(text, color.Black)
+	}
 	button.canvasText.Alignment = fyne.TextAlignCenter
 
 	button.bar = canvas.NewRectangle(fillColor)
