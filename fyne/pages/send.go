@@ -129,6 +129,11 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
 
+	transactionFeeLabel := widget.NewLabel("- DCR")
+	transactionSize := widget.NewLabel("0 bytes")
+
+	var transactionFeeBox *widget.Box
+
 	// this function is called when the sending wallet account is changed.
 	onSendingAccountChange := func() {
 		selectedWallet = multiWallet.WalletWithID(sendPage.sendingSelectedWalletID)
@@ -156,6 +161,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 		// reset amount entry
 		costAndBalanceAfterSendContainer.Refresh()
+		transactionFeeLabel.Refresh()
+		transactionSize.Refresh()
+		transactionFeeBox.Refresh()
 		sendPage.Contents.Refresh()
 		amountEntry.OnChanged(amountEntry.Text)
 	}
@@ -258,9 +266,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	amountEntry = widget.NewEntry()
 	amountEntry.SetPlaceHolder("0 DCR")
 
-	transactionFeeLabel := widget.NewLabel("- DCR")
-	transactionSize := widget.NewLabel("0 bytes")
-
 	transactionInfoform := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
 
 	transactionInfoform.AddObject(fyne.NewContainerWithLayout(
@@ -316,7 +321,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	maxButton.SetTextSize(9)
 	maxButton.SetMinSize(maxButton.MinSize().Add(fyne.NewSize(8, 8)))
 
-	transactionFeeBox := widget.NewHBox(widget.NewLabel("Transaction fee"), widgets.NewHSpacer(149), transactionFeeLabel, transactionSizeDropdown)
+	transactionFeeBox = widget.NewHBox(widget.NewLabel("Transaction fee"), widgets.NewHSpacer(149), transactionFeeLabel, transactionSizeDropdown)
 
 	amountEntryGroup = widget.NewGroup("Amount", fyne.NewContainerWithLayout(
 		layouts.NewPasswordLayout(
