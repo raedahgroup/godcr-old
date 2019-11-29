@@ -45,39 +45,39 @@ func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 
 	filterDropdown := txFilterDropDown(wallet, window, tabmenu)
 
-	// get icons used on the page.
-	icons, err := assets.GetIcons(assets.InfoIcon)
-	if err != nil {
-		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
-	}
+	// // get icons used on the page.
+	// icons, err := assets.GetIcons(assets.InfoIcon)
+	// if err != nil {
+	// 	return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
+	// }
 
 	txTableHeader(wallet, &history.txTable, window)
 	addToHistoryTable(&history.txTable, 0, dcrlibwallet.TxFilterAll, wallet, window, false, tabmenu)
 
 
 	// clickableInfoIcon holds receiving decred hint-text pop-up
-	var clickableInfoIcon *widgets.ClickableIcon
-	clickableInfoIcon = widgets.NewClickableIcon(icons[assets.InfoIcon], nil, func() {
-		txHintLabel := widget.NewLabelWithStyle("Click on the blue text to copy", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
-		gotItLabel := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
-		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
-		gotItLabel.TextSize = 16
+	// var clickableInfoIcon *widgets.ClickableIcon
+	// clickableInfoIcon = widgets.NewClickableIcon(icons[assets.InfoIcon], nil, func() {
+	// 	txHintLabel := widget.NewLabelWithStyle("Click on the blue text to copy", fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
+	// 	gotItLabel := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
+	// 	gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
+	// 	gotItLabel.TextSize = 16
 
-		var txHintLabelPopUp *widget.PopUp
-		txHintLabelPopUp = widget.NewPopUp(widget.NewVBox(
-			widgets.NewVSpacer(14),
-			widget.NewHBox(widgets.NewHSpacer(14), txHintLabel, widgets.NewHSpacer(14)),
-			widgets.NewVSpacer(10),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { txHintLabelPopUp.Hide() }), widgets.NewHSpacer(14)),
-			widgets.NewVSpacer(14),
-		), window.Canvas())
+	// 	var txHintLabelPopUp *widget.PopUp
+	// 	txHintLabelPopUp = widget.NewPopUp(widget.NewVBox(
+	// 		widgets.NewVSpacer(14),
+	// 		widget.NewHBox(widgets.NewHSpacer(14), txHintLabel, widgets.NewHSpacer(14)),
+	// 		widgets.NewVSpacer(10),
+	// 		widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { txHintLabelPopUp.Hide() }), widgets.NewHSpacer(14)),
+	// 		widgets.NewVSpacer(14),
+	// 	), window.Canvas())
 
-		txHintLabelPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
-	})
+	// 	txHintLabelPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableInfoIcon).Add(fyne.NewPos(0, clickableInfoIcon.Size().Height)))
+	// })
 
 	output := widget.NewVBox(
 		widgets.NewVSpacer(5),
-		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(100), clickableInfoIcon),
+		widget.NewHBox(pageTitleLabel),
 		widgets.NewVSpacer(5),
 		filterDropdown,
 		widgets.NewVSpacer(5),
@@ -206,6 +206,7 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 		txOffset = 0
 		history.txns = nil
 		history.selectedFilterId = filter
+		history.txTable.Container.Offset.Y = 0
 	}
 
 	txns, err := wallet.GetTransactionsRaw(txOffset, txPerPage, filter)
@@ -228,9 +229,9 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 		if tx.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
 			status = "Confirmed"
 		}
-				fmt.Println(tx.Hash)
 
-		// trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
+		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
+		txForTrimmedHash := tx.Hash
 		hBox = append(hBox, widget.NewHBox(
 			widget.NewLabelWithStyle(fmt.Sprintf("%d", currentTxIndex+1), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -239,13 +240,8 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-			// widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(tx.Hash, fyne.TextAlignLeading, fyne.TextStyle{Italic: true})), func() {
-			// 	fmt.Println(tx.Hash)
-			// 	fetchTxDetails(tx.Hash, wallet, window, history.errorLabel, tabmenu)
-			// }),
-			widget.NewButton(tx.Hash, func(){
-				fmt.Println(tx.Hash)			
-				fetchTxDetails(tx.Hash, wallet, window, history.errorLabel, tabmenu)
+			widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})), func() {
+				fetchTxDetails(txForTrimmedHash, wallet, window, history.errorLabel, tabmenu)
 			}),
 		))
 	}
@@ -256,8 +252,15 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 		history.txTable.Append(hBox...)
 	}
 	history.errorLabel.Hide()
-}
 
+	y := txTable.Container.Scrolled(txTable.Container.Content.Size().Height - txTable.Container.Size().Height)
+	fmt.Println(y)
+
+	size := txTable.Container.Content.Size().Height - txTable.Container.Size().Height
+	scrollPosition := float64(history.txTable.Container.Offset.Y) / float64(size)
+	fmt.Println(size)
+	fmt.Println(scrollPosition)
+}
 
 func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label, tabmenu *widget.TabContainer) {
 	var confirmations int32 = 0
@@ -267,7 +270,7 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 
 	messageLabel := widget.NewLabelWithStyle("Fetching data..", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	if messageLabel.Hidden == false {
-		time.AfterFunc(time.Millisecond*120, func() {
+		time.AfterFunc(time.Millisecond*200, func() {
 			if tabmenu.CurrentTabIndex() == 1 {
 				messageLabel.Hide()
 			}
@@ -443,4 +446,54 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		window.Canvas())
 	popUp.Show()
 }
+
+// func updateTx (){
+// 	size := history.txTable.Container.Content.Size().Height - history.txTable.Container.Size().Height
+// 	scrollPosition := float64(history.txTable.Container.Offset.Y) / float64(size)
+
+// 	splittedWord := strings.Split(history.txFilters.Selected, " ")
+// 	var found int32
+// 	if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
+// 		found = int32(txCountByFilter[splittedWord[0]]) - history.currentTxCount
+// 		history.txFilters.Selected = splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")"
+// 		widget.Refresh(history.txFilters)
+// 	}
+
+// 	// Append to table when scrollbar is at 90% of the scrollbar.
+// 	if scrollPosition == 0.9 {
+// 		if history.totalTxOnTable == int32(count)-found {
+// 			return
+// 		}
+// 		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, window, false)
+// 		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
+// 			history.totalTxOnTable = history.totalTxOnTable + 20
+// 		} else {
+// 			history.totalTxOnTable = int32(txCountByFilter[splittedWord[0]])
+// 		}
+// 		// Delete from table if rows exceeds 90.
+// 		if history.txTable.NumberOfColumns() >= 90 {
+// 			history.txTable.Delete(0, 20)
+// 			history.offset = history.offset + 20
+// 		}
+
+// 	} else if history.txTable.Container.Offset.Y == 0 {
+// 		// If the scroll bar is at the begining, then fetch 1st 50 tx
+// 		if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
+// 			history.txFilters.SetSelected(splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")")
+// 		}
+// 	} else if scrollPosition < 0.2 {
+// 		// Return if there's no currently deleted table.
+// 		if history.offset == 0 {
+// 			return
+// 		}
+// 		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, window, true)
+// 		history.offset = history.offset - 20
+
+// 		rowNo := history.txTable.NumberOfColumns()
+// 		if rowNo >= 90 {
+// 			history.txTable.Delete(rowNo-20, rowNo)
+// 			history.totalTxOnTable = int32(rowNo) + history.offset
+// 		}
+// 	}
+// }
 
