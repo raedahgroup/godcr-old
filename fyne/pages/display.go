@@ -52,7 +52,7 @@ func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject
 
 func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
-	app.Window.SetContent(app.tabMenu)
+	// app.Window.SetContent(app.tabMenu)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
@@ -70,14 +70,15 @@ func (app *AppInterface) setupNavigationMenu() {
 
 	app.tabMenu = widget.NewTabContainer(
 		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent(app)),
-		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewLabel("")),
+		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewLabel("")),
+		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewLabel("")),
+		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewLabel("")),
+		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewLabel("")),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
+	app.Window.SetContent(app.tabMenu)
 	go func() {
 		var currentTabIndex = 0
 

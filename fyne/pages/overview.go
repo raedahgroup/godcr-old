@@ -1,16 +1,12 @@
 package pages
 
 import (
-	"fmt"
 	"fyne.io/fyne"
-	"github.com/raedahgroup/godcr/fyne/assets"
 	"image/color"
 
-	// "fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/widgets"
-	// "image/color"
 )
 
 const PageTitle = "Overview"
@@ -45,27 +41,27 @@ func balance () fyne.CanvasObject {
 }
 
 func pageBoxes() (object fyne.CanvasObject) {
-	return widget.NewHBox(widgets.NewHSpacer(18), fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	return fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widgets.NewHSpacer(18), fyne.NewContainerWithLayout(layout.NewGridLayout(2),
 		recentTransactionBox(),
 		blockStatusBox(),
 		))
 }
 
 func recentTransactionBox () (object fyne.CanvasObject) {
-	icons, err := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
-	if err != nil {
-		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
-		return
-	}
-	return widgets.NewOverviewBox(
-		widgets.NewTransactionList(
-			widgets.TransactionLister{"4.08",  "298071 DCR", "Pending", icons[assets.ReceiveIcon]}, func(){}),
-		widgets.NewTransactionList(
-			widgets.TransactionLister{"34.17", "458878 DCR", "Friday", icons[assets.ReceiveIcon]}, func(){}),
-		widgets.NewTransactionList(
-			widgets.TransactionLister{"134.17", "018472 DCR", "Jan 20", icons[assets.SendIcon]}, func(){}),
-		widgets.NewVSpacer(10),
-		widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{}),
+	//icons, err := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
+	//if err != nil {
+	//	app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
+	//	return
+	//}
+	return widget.NewVBox(
+
+		widget.NewVBox(
+			NewTransactionColumn("amount", "fee", "date", "direction"),
+			NewTransactionColumn("32.0932334", "0.0000004", "08-11-2019", "yourself"),
+			NewTransactionColumn("32.0932334", "0.0000004", "08-11-2019", "yourself"),
+			NewTransactionColumn("32.0932334", "0.0000004", "08-11-2019", "yourself"),
+			NewTransactionColumn("32.0932334", "0.0000004", "08-11-2019", "yourself"),
+		),
 	)
 }
 
@@ -77,3 +73,20 @@ func transactionList () {
 
 }
 
+func NewTransactionColumn (amount, fee, date, direction string) fyne.CanvasObject {
+	amountLabel := widget.NewLabel(amount)
+	feeLabel := widget.NewLabel(fee)
+	dateLabel := widget.NewLabel(date)
+	directionLabel := widget.NewLabel(direction)
+	column := widget.NewHBox(amountLabel, feeLabel, directionLabel, dateLabel)
+	column.Resize(fyne.Size{Width:30, Height:10})
+	return column
+}
+
+func TransactionColumnHeader() fyne.CanvasObject {
+	amount := widget.NewLabelWithStyle("amount", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	fee := widget.NewLabelWithStyle("fee", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	direction := widget.NewLabelWithStyle("direction", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	date := widget.NewLabelWithStyle("date", fyne.TextAlignLeading, fyne.TextStyle{Bold:true})
+	return widget.NewHBox(amount, fee, direction, date)
+}
