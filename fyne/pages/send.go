@@ -296,6 +296,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			paintedtransactionInfoform.Hide()
 		}
 
+		transactionFeeBox.Refresh()
+		transactionSizeDropdown.Refresh()
+		paintedtransactionInfoform.Refresh()
 		sendPage.Contents.Refresh()
 	})
 
