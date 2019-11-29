@@ -61,12 +61,18 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		sendPage.errorLabel.SetText(value)
 		sendPage.errorLabel.SetMinSize(sendPage.errorLabel.MinSize().Add(fyne.NewSize(20, 8)))
 		sendPage.errorLabel.Container.Show()
-		widget.Refresh(sendPage.Contents)
+		sendPage.Contents.Refresh()
 
 		time.AfterFunc(time.Second*5, func() {
 			sendPage.errorLabel.Container.Hide()
-			widget.Refresh(sendPage.Contents)
+			sendPage.Contents.Refresh()
 		})
+	}
+
+	refresher := func(objects ...fyne.Widget) {
+		for _, object := range objects {
+			object.Refresh()
+		}
 	}
 
 	successLabelContainer := widgets.NewButton(color.RGBA{65, 190, 83, 255}, "Transaction sent", nil)
@@ -113,6 +119,16 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	var amountEntry *widget.Entry
 	var amountErrorLabel *canvas.Text
 
+	costAndBalanceAfterSendBox := widget.NewVBox()
+
+	totalCostLabel := widget.NewLabel("- DCR")
+	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Total cost"), layout.NewSpacer(), totalCostLabel))
+
+	balanceAfterSendLabel := widget.NewLabel("- DCR")
+	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Balance after send"), layout.NewSpacer(), balanceAfterSendLabel))
+
+	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
+
 	// this function is called when the sending wallet account is changed.
 	onSendingAccountChange := func() {
 		selectedWallet = multiWallet.WalletWithID(sendPage.sendingSelectedWalletID)
@@ -134,11 +150,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		}
 
 		sendPage.spendableLabel.Text = "Spendable: " + dcrutil.Amount(balance.Spendable).String()
+		sendPage.spendableLabel.Refresh()
 
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
 
-		widget.Refresh(sendPage.Contents)
 		// reset amount entry
+		costAndBalanceAfterSendContainer.Refresh()
+		sendPage.Contents.Refresh()
 		amountEntry.OnChanged(amountEntry.Text)
 	}
 
@@ -176,7 +194,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	destinationAddressEntry.OnChanged = func(address string) {
 		if destinationAddressEntry.Text == "" {
 			destinationAddressErrorLabel.Hide()
-			widget.Refresh(sendPage.Contents)
+			sendPage.Contents.Refresh()
 			return
 		}
 
@@ -194,7 +212,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			nextButton.Disable()
 		}
 
-		widget.Refresh(sendPage.Contents)
+		sendPage.Contents.Refresh()
 	}
 
 	destinationAddressEntryGroup := widget.NewGroup("To", fyne.NewContainerWithLayout(
@@ -231,8 +249,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			}
 		}
 
+		sendPage.Contents.Refresh()
 		amountEntry.OnChanged(amountEntry.Text)
-		widget.Refresh(sendPage.Contents)
 	})
 
 	destinationBox.Append(widget.NewVBox(sendToAccount)) // placed it in a VBox so as to center object
@@ -241,14 +259,18 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	amountEntry.SetPlaceHolder("0 DCR")
 
 	transactionFeeLabel := widget.NewLabel("- DCR")
-	transactionSize := widget.NewLabelWithStyle("0 bytes", fyne.TextAlignLeading, fyne.TextStyle{})
+	transactionSize := widget.NewLabel("0 bytes")
+
 	transactionInfoform := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
+
 	transactionInfoform.AddObject(fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(), widget.NewLabel("Processing time"), widgets.NewHSpacer(46),
 		layout.NewSpacer(), widget.NewLabelWithStyle("Approx. 10 mins (2 blocks)", fyne.TextAlignLeading, fyne.TextStyle{})))
+
 	transactionInfoform.AddObject(fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(), widget.NewLabel("Fee rate"), layout.NewSpacer(),
 		widget.NewLabelWithStyle("0.0001 DCR/byte", fyne.TextAlignLeading, fyne.TextStyle{})))
+
 	transactionInfoform.AddObject(fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 		widget.NewLabel("Transaction size"), layout.NewSpacer(), transactionSize))
 
@@ -269,7 +291,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			paintedtransactionInfoform.Hide()
 		}
 
-		widget.Refresh(sendPage.Contents)
+		sendPage.Contents.Refresh()
 	})
 
 	amountErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
@@ -282,12 +304,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		if err != nil {
 			amountErrorLabel.Text = "Not enough funds (or not connected)."
 			amountErrorLabel.Show()
-			widget.Refresh(sendPage.Contents)
+			sendPage.Contents.Refresh()
 			return
 		}
 
 		amountErrorLabel.Hide()
-		widget.Refresh(sendPage.Contents)
+		sendPage.Contents.Refresh()
 		amountEntry.SetText(fmt.Sprintf("%f", maxAmount.DcrValue-0.000012))
 	})
 
@@ -310,13 +332,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		log.Println(err)
 	}
 
-	costAndBalanceAfterSendBox := widget.NewVBox()
-	totalCostLabel := widget.NewLabelWithStyle("- DCR", fyne.TextAlignLeading, fyne.TextStyle{})
-	balanceAfterSendLabel := widget.NewLabelWithStyle("- DCR", fyne.TextAlignLeading, fyne.TextStyle{})
-	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Total cost"), layout.NewSpacer(), totalCostLabel))
-	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Balance after send"), layout.NewSpacer(), balanceAfterSendLabel))
-	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
-
 	amountEntry.OnChanged = func(value string) {
 		if len(value) > 0 && !amountEntryExpression.MatchString(value) {
 			if len(value) == 1 {
@@ -328,7 +343,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 				amountEntry.CursorColumn--
 				amountEntry.SetText(value)
 			}
-
 			return
 		}
 
@@ -350,9 +364,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			totalCostLabel.SetText("- DCR")
 			balanceAfterSendLabel.SetText("- DCR")
 			transactionSize.SetText("0 bytes")
+			amountErrorLabel.Hide()
 
 			nextButton.Disable()
-			widget.Refresh(sendPage.Contents)
+			refresher(costAndBalanceAfterSendBox, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSize)
+			paintedtransactionInfoform.Refresh()
+			sendPage.Contents.Refresh()
 			return
 		}
 
@@ -373,7 +390,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			transactionSize.SetText("0 bytes")
 
 			nextButton.Disable()
-			widget.Refresh(sendPage.Contents)
+			paintedtransactionInfoform.Refresh()
+			refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSize, costAndBalanceAfterSendBox)
+			sendPage.Contents.Refresh()
 			return
 		}
 
@@ -393,7 +412,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		}
 
 		sendPage.errorLabel.Container.Hide()
-		widget.Refresh(sendPage.Contents)
+		paintedtransactionInfoform.Refresh()
+		refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSize, costAndBalanceAfterSendBox)
+		sendPage.Contents.Refresh()
 	}
 
 	nextButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Next", func() {
@@ -478,12 +499,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	var clickabelMoreIcon *widgets.ImageButton
 	clickabelMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
-		popup = widget.NewPopUpAtPosition(widgets.NewButton(color.White, "Clear all fields", func() {
+		popup = widget.NewPopUp(widgets.NewButton(color.White, "Clear all fields", func() {
 			amountEntry.SetText("")
 			destinationAddressEntry.SetText("")
 			popup.Hide()
 
-		}).Container, window.Canvas(), fyne.CurrentApp().Driver().AbsolutePositionForObject(
+		}).Container, window.Canvas())
+		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			clickabelMoreIcon).Add(fyne.NewPos(clickabelMoreIcon.MinSize().Width, clickabelMoreIcon.MinSize().Height)))
 	})
 
@@ -607,7 +629,7 @@ func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 				if err.Error() == "invalid_passphrase" {
 					errorLabel.Show()
 					// this is an hack as selective refresh to errorLabel doesn't work
-					widget.Refresh(popupContent)
+					popupContent.Refresh()
 					confirmButton.Enable()
 					cancelButton.Disable()
 				} else {
@@ -623,13 +645,13 @@ func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 			amountEntry.SetText("")
 
 			showSuccess.Container.Show()
-			widget.Refresh(contents)
+			contents.Refresh()
 
 			sendingPasswordPopup.Hide()
 
 			time.AfterFunc(time.Second*5, func() {
 				showSuccess.Container.Hide()
-				widget.Refresh(contents)
+				contents.Refresh()
 			})
 		})
 		confirmButton.SetMinSize(fyne.NewSize(91, 40))
@@ -763,7 +785,7 @@ func createAccountDropdown(initFunction func(), accountLabel string, receiveAcco
 
 		accountSelectionPopup.Show()
 		accountSelectionPopup.Resize(dropdownContentWithScroller.Size().Add(fyne.NewSize(10, accountSelectionPopupHeader.MinSize().Height)))
-		widget.Refresh(contents)
+		contents.Refresh()
 	})
 
 	return
@@ -939,8 +961,8 @@ func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAcco
 
 			if content, ok := boxContent.(*widgets.ClickableBox); ok {
 				content.Box.Children[6] = accountBalanceBox
-				widget.Refresh(content.Box)
-				widget.Refresh(content)
+				content.Box.Refresh()
+				content.Refresh()
 			}
 		}
 	}
@@ -970,5 +992,5 @@ func updateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAcco
 		canvas.Refresh(spendableLabel)
 	}
 
-	widget.Refresh(contents)
+	contents.Refresh()
 }
