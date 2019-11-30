@@ -231,7 +231,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendToAccountLabel := canvas.NewText("Send to account", color.RGBA{R: 41, G: 112, B: 255, A: 255})
 	sendToAccountLabel.TextSize = 12
 
-	destinationBox := widget.NewHBox(destinationAddressEntryGroup, selfSendingToAccountGroup)
+	destinationBox := widget.NewHBox(destinationAddressEntryGroup, selfSendingToAccountGroup, layout.NewSpacer())
 
 	// This hides self sending account dropdown or destination address entry.
 	sendToAccount := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
@@ -519,6 +519,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	baseWidgets := widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, clickabelMoreIcon)
 
+	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(baseWidgets)
 	sendPage.Contents.Append(widget.NewHBox(layout.NewSpacer(), successLabelContainer.Container, sendPage.errorLabel.Container, layout.NewSpacer()))
 	sendPage.Contents.Append(sendingAccountGroup)
@@ -531,7 +532,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.Contents.Append(widgets.NewVSpacer(15))
 	sendPage.Contents.Append(nextButton.Container)
 
-	return widget.NewHBox(widgets.NewHSpacer(10), sendPage.Contents)
+	return widget.NewHBox(widgets.NewHSpacer(15), sendPage.Contents)
 }
 
 func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, downArrow, alert, reveal, conceal fyne.Resource, window fyne.Window,
