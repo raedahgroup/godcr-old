@@ -46,6 +46,7 @@ func balance () fyne.CanvasObject {
 func pageBoxes() (object fyne.CanvasObject) {
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		blockStatusBox(),
+		widgets.NewVSpacer(20),
 		recentTransactionBox(),
 		)
 }
@@ -106,16 +107,14 @@ func walletSyncBox (name, status, headerFetched, progress string) fyne.CanvasObj
 	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), nameText, layout.NewSpacer(), statusText)
 	middle := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), headerFetchedTitleText, layout.NewSpacer(), headerFetchedText)
 	bottom := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), progressTitleText, layout.NewSpacer(), progressText)
-	//middle := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, headerFetchedTitleLabel, headerFetchedLabel),
-	//	nameLabel, statusLabel)
-	//bottom := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, progressTitleLabel, progressLabel),
-	//	nameLabel, statusLabel)
 	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
-			top,
-			layout.NewSpacer(),
-			middle,
-			layout.NewSpacer(),
-			bottom,
+			fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+				top,
+				layout.NewSpacer(),
+				middle,
+				layout.NewSpacer(),
+				bottom,
+				),
 	)
 }
 
@@ -166,9 +165,6 @@ func (tb *Overview) addHeader () {
 	statusLabel := widget.NewLabelWithStyle("status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	dateLabel := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	header := fyne.NewContainerWithLayout(layout.NewGridLayout(6), spacer, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
-	//for _, child := range header.Children {
-	//	child.Resize(fyne.NewSize(100, 100))
-	//}
 	tb.transactionBox.Children = append(tb.transactionBox.Children, header)
 }
 
