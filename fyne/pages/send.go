@@ -113,8 +113,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	amountInAccount := dcrlibwallet.AmountCoin(selectedWalletAccounts.Acc[0].TotalBalance)
 
-	transactionAuthor := selectedWallet.NewUnsignedTx(0, dcrlibwallet.DefaultRequiredConfirmations)
-	transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
+	var transactionAuthor *dcrlibwallet.TxAuthor
+	initiateTxAuthor := func(accountNumber int32) {
+		transactionAuthor = selectedWallet.NewUnsignedTx(accountNumber, dcrlibwallet.DefaultRequiredConfirmations)
+		transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
+	}
+	initiateTxAuthor(0)
 
 	var amountEntry *widget.Entry
 	var amountErrorLabel *canvas.Text
@@ -137,15 +141,14 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	// this function is called when the sending wallet account is changed.
 	onSendingAccountChange := func() {
 		selectedWallet = multiWallet.WalletWithID(sendPage.sendingSelectedWalletID)
+
 		accountNumber, err := selectedWallet.AccountNumber(sendPage.sendingSelectedAccountLabel.Text)
 		if err != nil {
 			showErrorLabel("Could not get accounts")
 			log.Println("could not get accounts on account change, reason:", err.Error())
 			return
 		}
-
-		transactionAuthor = selectedWallet.NewUnsignedTx(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
-		transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
+		initiateTxAuthor(int32(accountNumber))
 
 		balance, err := selectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 		if err != nil {
@@ -181,7 +184,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 
-	selfSendingToAccountClickableBox := createAccountDropdown(nil, "Receiving account",
+	selfSendingToAccountClickableBox := createAccountDropdown(sendPage.Contents.Refresh, "Receiving account",
 		icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.selfSendingSelectedWalletID,
 		sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel,
 		selfSendingSelectedWalletLabel, sendPage.Contents)
@@ -235,7 +238,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	// This hides self sending account dropdown or destination address entry.
 	sendToAccount := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
-		if sendToAccountLabel.Text == "Send to account" {
+		if selfSendingToAccountGroup.Hidden {
 			sendToAccountLabel.Text = "Send to address"
 			selfSendingToAccountGroup.Show()
 			destinationAddressEntryGroup.Hide()
@@ -308,12 +311,19 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, "MAX", func() {
 		transactionAuthor.UpdateSendDestination(0, temporaryAddress, 0, true)
+
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
-			amountErrorLabel.Text = "Not enough funds (or not connected)."
-			amountErrorLabel.Show()
-			sendPage.Contents.Refresh()
-			return
+			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
+				amountErrorLabel.Text = "Not enough funds"
+				if !multiWallet.IsSynced() {
+					amountErrorLabel.Text = "Not enough funds (or not connected)."
+				}
+
+				amountErrorLabel.Show()
+				sendPage.Contents.Refresh()
+				return
+			}
 		}
 
 		amountErrorLabel.Hide()
@@ -384,7 +394,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		transactionAuthor.UpdateSendDestination(0, temporaryAddress, dcrlibwallet.AmountAtom(amountInFloat), false)
 		feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
 		if err != nil {
-			if err.Error() == "insufficient_balance" {
+			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
 				amountErrorLabel.Text = "Insufficient balance"
 				amountErrorLabel.Show()
 			} else {
@@ -635,7 +645,7 @@ func confirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 			_, err := transactionAuthor.Broadcast([]byte(walletPassword.Text))
 			if err != nil {
 				// do not exit password popup on invalid passphrase
-				if err.Error() == "invalid_passphrase" {
+				if err.Error() == dcrlibwallet.ErrInvalidPassphrase {
 					errorLabel.Show()
 					// this is an hack as selective refresh to errorLabel doesn't work
 					popupContent.Refresh()

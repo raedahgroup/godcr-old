@@ -54,11 +54,5 @@ func (c *ClickableBox) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (c *ClickableBox) Refresh() {
-	object := fyne.CurrentApp().Driver().CanvasForObject(c)
-
-	if object == nil {
-		return
-	}
-
-	object.Refresh(c)
+	c.Box.Refresh()
 }
