@@ -41,6 +41,7 @@ func (t *TransactionList) CreateRenderer () fyne.WidgetRenderer {
 	var img *canvas.Image
 	if t.icon != nil {
 		img = canvas.NewImageFromResource(t.icon)
+		img = canvas.NewImageFromResource(t.icon)
 		objects = append(objects, img)
 	}
 	text := canvas.NewText(t.amount, color.Black)
