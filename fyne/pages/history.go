@@ -41,6 +41,8 @@ func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	history.selectedFilterId = dcrlibwallet.TxFilterAll
 
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	
+	txFilterDropDown := prepareTxFilterDropDown(wallet, window, tabmenu)
 
 	txHistoryPageOutput := widget.NewVBox(
 		widgets.NewVSpacer(5),
@@ -545,7 +547,7 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	txDetailsPopUp.Show()
 }
 
-func txFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) *widgets.ClickableBox {
+func prepareTxFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *widget.TabContainer) *widgets.ClickableBox {
 	var txTable widgets.Table
 
 	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
@@ -564,12 +566,12 @@ func txFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmen
 		errorHandler(errorMessage, history.errorLabel)
 		return nil
 	}
+	history.allTxCount = txCountForFilter
 
-	selectedAccountLabel := widget.NewLabel(fmt.Sprintf("%s (%d)", "All", txCountForFilter))
-	history.selectedFilterCount = txCountForFilter
+	selectedTxFilterLabel := widget.NewLabel(fmt.Sprintf("%s (%d)", "All", txCountForFilter))
 
-	var accountSelectionPopup *widget.PopUp
-	accountListWidget := widget.NewVBox()
+	var txFilterSelectionPopup *widget.PopUp
+	txFilterListWidget := widget.NewVBox()
 	for _, filterName := range allTxFilterNames {
 		filterId := allTxFilters[filterName]
 		txCountForFilter, err := wallet.CountTransactions(filterId)
@@ -582,63 +584,64 @@ func txFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmen
 
 		if txCountForFilter > 0 {
 			filter := fmt.Sprintf("%s (%d)", filterName, txCountForFilter)
-			accountsView := widget.NewHBox(
+			txFilterView := widget.NewHBox(
 				widgets.NewHSpacer(5),
 				widget.NewLabel(filter),
 				widgets.NewHSpacer(5),
 			)
 
-			accountListWidget.Append(widgets.NewClickableBox(accountsView, func() {
+			txFilterListWidget.Append(widgets.NewClickableBox(txFilterView, func() {
 				selectedFilterName := strings.Split(filter, " ")[0]
 				selectedFilterId := allTxFilters[selectedFilterName]
-				history.selectedFilterCount, _ = strconv.Atoi(strings.Split(filter, " ")[1])
 
 				if selectedFilterId != history.selectedFilterId {
-					txTableHeader(wallet, &txTable, window)
+					// txTableHeader(wallet, &txTable, window)
+					fetchTx(&txTable, 0, selectedFilterId, wallet, window, false, tabmenu)
 					history.txTable.Result.Children = txTable.Result.Children
-					addToHistoryTable(&txTable, 0, selectedFilterId, wallet, window, false, tabmenu)
 					widget.Refresh(history.txTable.Result)
 
-					selectedAccountLabel.SetText(filter)
+					selectedTxFilterLabel.SetText(filter)
 				}
-				accountSelectionPopup.Hide()
+
+				txFilterSelectionPopup.Hide()
 			}))
 		}
 	}
 
-	// accountSelectionPopup create a popup that has account names with spendable amount
-	accountSelectionPopup = widget.NewPopUp(
-		widget.NewVBox(
-			accountListWidget,
-		), window.Canvas(),
-	)
-	accountSelectionPopup.Hide()
+	// txFilterSelectionPopup create a popup that has tx filter name and tx count
+	txFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txFilterListWidget), window.Canvas())
+	txFilterSelectionPopup.Hide()
 
-	// accountTab shows the selected account
 	icons, err := assets.GetIcons(assets.CollapseIcon)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %s",err.Error())
 		errorHandler(errorMessage, history.errorLabel)
 		return nil
 	}
-	accountTab := widget.NewHBox(
-		selectedAccountLabel,
+
+	txFilterTab := widget.NewHBox(
+		selectedTxFilterLabel,
 		widgets.NewHSpacer(50),
 		widget.NewIcon(icons[assets.CollapseIcon]),
 	)
 
-	var accountDropdown *widgets.ClickableBox
-	accountDropdown = widgets.NewClickableBox(accountTab, func() {
-		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			accountDropdown).Add(fyne.NewPos(0, accountDropdown.Size().Height)))
-		accountSelectionPopup.Show()
+	var txFilterDropDown *widgets.ClickableBox
+	txFilterDropDown = widgets.NewClickableBox(txFilterTab, func() {
+		txFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			txFilterDropDown).Add(fyne.NewPos(0, txFilterDropDown.Size().Height)))
+		txFilterSelectionPopup.Show()
 	})
 
-	return accountDropdown
+	return txFilterDropDown
 }
 
-func txTableHeader(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, window fyne.Window) {
-	tableHeading := widget.NewHBox(
+func fetchTx(txTable *widgets.Table, txOffset, filter int32, wallet *dcrlibwallet.LibWallet, window fyne.Window, prepend bool, tabmenu *widget.TabContainer) {
+	if filter != history.selectedFilterId {
+		txOffset = 0
+		history.selectedFilterId = filter
+	}
+	
+	tableColumnLabels := widget.NewHBox(
 		widget.NewLabelWithStyle("#", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -648,22 +651,6 @@ func txTableHeader(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, windo
 		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 	)
-
-	var hBox []*widget.Box
-
-	txTable.NewTable(tableHeading, hBox...)
-
-	return
-}
-
-func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *dcrlibwallet.LibWallet, window fyne.Window, prepend bool, tabmenu *widget.TabContainer) {
-	if filter != history.selectedFilterId {
-		// filter changed, reset data
-		txOffset = 0
-		history.txns = nil
-		history.selectedFilterId = filter
-		history.txTable.Container.Offset.Y = 0
-	}
 
 	txns, err := wallet.GetTransactionsRaw(txOffset, txPerPage, filter)
 	if err != nil {
@@ -676,9 +663,7 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 		return
 	}
 
-	history.txns = append(history.txns, txns...)
-
-	var hBox []*widget.Box
+	var txBox []*widget.Box
 	for currentTxIndex, tx := range txns {
 		status := "Pending"
 		confirmations := wallet.GetBestBlock() - tx.BlockHeight + 1
@@ -688,7 +673,7 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 
 		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
 		txForTrimmedHash := tx.Hash
-		hBox = append(hBox, widget.NewHBox(
+		txBox = append(txBox, widget.NewHBox(
 			widget.NewLabelWithStyle(fmt.Sprintf("%d", currentTxIndex+1), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -702,28 +687,12 @@ func addToHistoryTable(txTable *widgets.Table, txOffset, filter int32, wallet *d
 		))
 	}
 
-	if prepend {
-		history.txTable.Prepend(hBox...)
-	} else {
-		history.txTable.Append(hBox...)
-	}
+	txTable.NewTable(tableColumnLabels, txBox...)
+
 	history.errorLabel.Hide()
-
-	y := txTable.Container.Scrolled(txTable.Container.Content.Size().Height - txTable.Container.Size().Height)
-	fmt.Println(y)
-
-	size := txTable.Container.Content.Size().Height - txTable.Container.Size().Height
-	scrollPosition := float64(history.txTable.Container.Offset.Y) / float64(size)
-	fmt.Println(size)
-	fmt.Println(scrollPosition)
 }
 
 func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label, tabmenu *widget.TabContainer) {
-	var confirmations int32 = 0
-	// if txDetails.BlockHeight != -1 {
-	// 	confirmations = wallet.GetBestBlock() - txDetails.BlockHeight + 1
-	// }
-
 	messageLabel := widget.NewLabelWithStyle("Fetching data..", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	if messageLabel.Hidden == false {
 		time.AfterFunc(time.Millisecond*200, func() {
@@ -733,22 +702,29 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		})
 	}
 
-	newHash, _ := chainhash.NewHashFromStr(hash)
-	txDetails, err := wallet.GetTransactionRaw(newHash[:])
+	chainHash, err := chainhash.NewHashFromStr(hash)
+	if err != nil {
+		errorHandler(fmt.Sprintf("Error: %s", err.Error()), history.errorLabel)
+		return
+	}
+
+	txDetails, err := wallet.GetTransactionRaw(chainHash[:])
 	if err != nil {
 		errorHandler(fmt.Sprintf("Error fetching transaction details for %s: %s", hash, err.Error()), history.errorLabel)
 		return
 	}
 
-	var spendUnconfirmed = wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
+	var confirmations int32 = 0
+	if txDetails.BlockHeight != -1 {
+		confirmations = wallet.GetBestBlock() - txDetails.BlockHeight + 1
+	}
+
 	var status string
-	// var statusColor color.RGBA
+	var spendUnconfirmed = wallet.ReadBoolConfigValueForKey(dcrlibwallet.SpendUnconfirmedConfigKey)
 	if spendUnconfirmed || confirmations > dcrlibwallet.DefaultRequiredConfirmations {
 		status = "Confirmed"
-		// statusColor = styles.DecredGreenColor
 	} else {
 		status = "Pending"
-		// statusColor = styles.DecredOrangeColor
 	}
 	
 	tableConfirmations := widget.NewHBox(
@@ -756,20 +732,21 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		widget.NewLabelWithStyle(strconv.Itoa(int(confirmations)), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 
-	copyAbleText := func(textToCopy string, copyAble bool) *widgets.ClickableBox {
-		var t *canvas.Text
+	copyAbleText := func(text string, copyAble bool) *widgets.ClickableBox {
+		var textToCopy *canvas.Text
 		if copyAble {
-			t = canvas.NewText(textToCopy, color.RGBA{0, 255, 255, 1})
+			textToCopy = canvas.NewText(text, color.RGBA{0, 255, 255, 1})
 		} else {
-			t = canvas.NewText(textToCopy, color.RGBA{255, 255, 255, 1})
+			textToCopy = canvas.NewText(text, color.RGBA{255, 255, 255, 1})
 		}
-		t.TextSize = 14
-		t.Alignment = fyne.TextAlignTrailing
-		return widgets.NewClickableBox(widget.NewHBox(t),
+		textToCopy.TextSize = 14
+		textToCopy.Alignment = fyne.TextAlignTrailing
+
+		return widgets.NewClickableBox(widget.NewHBox(textToCopy),
 			func() {
 				messageLabel.SetText("Data Copied")
 				clipboard := window.Clipboard()
-				clipboard.SetContent(textToCopy)
+				clipboard.SetContent(text)
 				messageLabel.Show()
 
 				// only hide accountCopiedLabel text if user is currently on the page after 2secs
@@ -841,7 +818,7 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	)
 
 	var txInput widgets.Table
-	heading := widget.NewHBox(
+	inputTableColumnLabels := widget.NewHBox(
 		widget.NewLabelWithStyle("Previous Outpoint", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
@@ -854,10 +831,10 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 			copyAbleText(dcrutil.Amount(txDetails.Inputs[i].Amount).String(), false),
 		))
 	}
-	txInput.NewTable(heading, inputBox...)
+	txInput.NewTable(inputTableColumnLabels, inputBox...)
 
 	var txOutput widgets.Table
-	heading = widget.NewHBox(
+	outputTableColumnLabels := widget.NewHBox(
 		widget.NewLabelWithStyle("Address", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Value", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -872,10 +849,10 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 			copyAbleText(txDetails.Outputs[i].ScriptType, false),
 		))
 	}
-	txOutput.NewTable(heading, outputBox...)
+	txOutput.NewTable(outputTableColumnLabels, outputBox...)
 
-	label := widget.NewLabelWithStyle("Transaction Details", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
-	v := widget.NewVBox(
+	txDetailslabel := widget.NewLabelWithStyle("Transaction Details", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	txDetailsData := widget.NewVBox(
 		widgets.NewHSpacer(10),
 		tableData,
 		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
@@ -886,70 +863,26 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 		widgets.NewHSpacer(10),
 	)
 
-	var popUp *widget.PopUp 
-	scrollContainer := widget.NewScrollContainer(v)
-	minimizeIcon :=	widgets.NewClickableIcon(theme.CancelIcon(), nil, func() { popUp.Hide() })
+	var txDetailsPopUp *widget.PopUp 
+	txDetailsScrollContainer := widget.NewScrollContainer(txDetailsData)
+	minimizeIcon :=	widgets.NewClickableIcon(theme.CancelIcon(), nil, func() { txDetailsPopUp.Hide() })
 
-	output := widget.NewVBox(
+	txDetailsOutput := widget.NewVBox(
 		widgets.NewHSpacer(10),
-		widget.NewHBox(label, widgets.NewHSpacer(150), messageLabel, layout.NewSpacer(), minimizeIcon, widgets.NewHSpacer(30)), 
+		widget.NewHBox(
+			txDetailslabel, 
+			widgets.NewHSpacer(150), 
+			messageLabel, 
+			layout.NewSpacer(), 
+			minimizeIcon, 
+			widgets.NewHSpacer(30),
+		), 
 		widgets.NewHSpacer(10),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(scrollContainer.MinSize().Width+10, scrollContainer.MinSize().Height+400)), scrollContainer),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
 		widgets.NewHSpacer(10),
 	)
 
-	popUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(output)),
+	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)),
 		window.Canvas())
-	popUp.Show()
+	txDetailsPopUp.Show()
 }
-
-// func updateTx (){
-// 	size := history.txTable.Container.Content.Size().Height - history.txTable.Container.Size().Height
-// 	scrollPosition := float64(history.txTable.Container.Offset.Y) / float64(size)
-
-// 	splittedWord := strings.Split(history.txFilters.Selected, " ")
-// 	var found int32
-// 	if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
-// 		found = int32(txCountByFilter[splittedWord[0]]) - history.currentTxCount
-// 		history.txFilters.Selected = splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")"
-// 		widget.Refresh(history.txFilters)
-// 	}
-
-// 	// Append to table when scrollbar is at 90% of the scrollbar.
-// 	if scrollPosition == 0.9 {
-// 		if history.totalTxOnTable == int32(count)-found {
-// 			return
-// 		}
-// 		addToHistoryTable(&history.txTable, history.totalTxOnTable+found, 20, wallet, window, false)
-// 		if txCountByFilter[splittedWord[0]] > int(history.totalTxOnTable+20) {
-// 			history.totalTxOnTable = history.totalTxOnTable + 20
-// 		} else {
-// 			history.totalTxOnTable = int32(txCountByFilter[splittedWord[0]])
-// 		}
-// 		// Delete from table if rows exceeds 90.
-// 		if history.txTable.NumberOfColumns() >= 90 {
-// 			history.txTable.Delete(0, 20)
-// 			history.offset = history.offset + 20
-// 		}
-
-// 	} else if history.txTable.Container.Offset.Y == 0 {
-// 		// If the scroll bar is at the begining, then fetch 1st 50 tx
-// 		if int32(txCountByFilter[splittedWord[0]]) > history.currentTxCount {
-// 			history.txFilters.SetSelected(splittedWord[0] + " (" + strconv.Itoa(txCountByFilter[splittedWord[0]]) + ")")
-// 		}
-// 	} else if scrollPosition < 0.2 {
-// 		// Return if there's no currently deleted table.
-// 		if history.offset == 0 {
-// 			return
-// 		}
-// 		addToHistoryTable(&history.txTable, history.offset+found-20, 20+found, wallet, window, true)
-// 		history.offset = history.offset - 20
-
-// 		rowNo := history.txTable.NumberOfColumns()
-// 		if rowNo >= 90 {
-// 			history.txTable.Delete(rowNo-20, rowNo)
-// 			history.totalTxOnTable = int32(rowNo) + history.offset
-// 		}
-// 	}
-// }
-
