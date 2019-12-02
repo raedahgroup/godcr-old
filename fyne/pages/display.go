@@ -33,7 +33,7 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 			layout.NewSpacer(),
 		),
 	))
-
+	app.Window.FixedSize()
 	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
@@ -52,7 +52,7 @@ func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject
 
 func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
-	app.Window.SetContent(app.tabMenu)
+	// app.Window.SetContent(app.tabMenu)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
@@ -69,7 +69,7 @@ func (app *AppInterface) setupNavigationMenu() {
 	}
 
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent(app)),
 		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
@@ -78,8 +78,9 @@ func (app *AppInterface) setupNavigationMenu() {
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
+	app.Window.SetContent(app.tabMenu)
 	go func() {
-		var currentTabIndex = -1
+		var currentTabIndex = 0
 
 		for {
 			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
@@ -101,7 +102,7 @@ func (app *AppInterface) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = overviewPageContent()
+				newPageContent = overviewPageContent(app)
 			case 1:
 				newPageContent = historyPageContent()
 			case 2:
