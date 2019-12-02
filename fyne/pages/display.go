@@ -33,7 +33,7 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 			layout.NewSpacer(),
 		),
 	))
-
+	app.Window.FixedSize()
 	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
@@ -69,12 +69,12 @@ func (app *AppInterface) setupNavigationMenu() {
 	}
 
 	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent()),
-		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewLabel("")),
-		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewLabel("")),
-		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewLabel("")),
-		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewLabel("")),
-		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewLabel("")),
+		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent(app)),
+		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
@@ -102,7 +102,7 @@ func (app *AppInterface) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = overviewPageContent()
+				newPageContent = overviewPageContent(app)
 			case 1:
 				newPageContent = historyPageContent()
 			case 2:

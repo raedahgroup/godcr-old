@@ -18,7 +18,8 @@ type Overview struct {
 
 // todo: display overview page (include sync progress UI elements)
 // todo: register sync progress listener on overview page to update sync progress views
-func overviewPageContent() fyne.CanvasObject {
+func overviewPageContent(app *AppInterface) fyne.CanvasObject {
+		app.Window.Resize(fyne.NewSize(650, 650))
 		return widget.NewHBox(widgets.NewHSpacer(18), container())
 }
 
@@ -46,20 +47,40 @@ func balance () fyne.CanvasObject {
 func pageBoxes() (object fyne.CanvasObject) {
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		blockStatusBox(),
-		widgets.NewVSpacer(20),
+		widgets.NewVSpacer(15),
 		recentTransactionBox(),
 		)
 }
 
 func recentTransactionBox () fyne.CanvasObject {
 	table := &widgets.Table{}
-	table.NewTable(transactionColumnHeader(),
-		newTransactionColumn(assets.ReceiveIcon,"0.0000004 DCR", "0.0000004 DCR", "yourself", "confirmed", "08-11-2019" ),
-		newTransactionColumn(assets.SendIcon,"0.0000004 DCR", "0.0000004 DCR", "yourself", "confirmed", "08-11-2019" ),
-		newTransactionColumn(assets.ReceiveIcon,"0.0000004 DCR", "0.0000004 DCR", "yourself", "confirmed", "08-11-2019" ),
-		newTransactionColumn(assets.SendIcon,"0.0000004 DCR", "0.0000004 DCR", "yourself", "confirmed", "08-11-2019" ),
+	// add a maximum of 5 rows to the recent transaction box
+	table.NewTable(transactionRowHeader(),
+		newTransactionRow(assets.ReceiveIcon,"0.0000004 DCR", "0.0000004 DCR",
+			"yourself", "confirmed", "08-11-2019"),
+		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
+			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
+		newTransactionRow(assets.ReceiveIcon,"0.0000004 DCR",
+			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
+		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
+			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
+		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
+			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
 	)
-	return table.Result
+
+	return widget.NewVBox(
+		table.Result,
+		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+			layout.NewSpacer(),
+			widgets.NewClickableBox(
+				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{Italic:true})),
+				func(){
+					// todo
+				},
+			),
+			layout.NewSpacer(),
+		),
+	)
 }
 
 func blockStatusBox() fyne.CanvasObject {
@@ -83,8 +104,9 @@ func blockStatusBox() fyne.CanvasObject {
 
 	bottom := fyne.NewContainerWithLayout(layout.NewGridLayout(2),
 		walletSyncBox("Default", "waiting for other wallets", "6000 of 164864", "220 days behind"),
-		walletSyncBox("Default", "waiting for other wallets", "6000 of 164864", "220 days behind"),
+		walletSyncBox("Wallet 2", "Syncing", "100 of 164864", "320 days behind"),
 		)
+
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		widgets.NewVSpacer(5),
 		top,
@@ -104,21 +126,40 @@ func walletSyncBox (name, status, headerFetched, progress string) fyne.CanvasObj
 	headerFetchedText := widgets.NewTextWithSize(headerFetched, blackColor, 10)
 	progressTitleText := widgets.NewTextWithSize("Syncing progress", blackColor, 12)
 	progressText := widgets.NewTextWithSize(progress, blackColor, 10)
-	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), nameText, layout.NewSpacer(), statusText)
-	middle := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), headerFetchedTitleText, layout.NewSpacer(), headerFetchedText)
-	bottom := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), progressTitleText, layout.NewSpacer(), progressText)
+	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		nameText, layout.NewSpacer(),
+		statusText,
+		widgets.NewHSpacer(2))
+	middle := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		headerFetchedTitleText,
+		layout.NewSpacer(),
+		headerFetchedText,
+		widgets.NewHSpacer(2),
+		)
+	bottom := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		progressTitleText,
+		layout.NewSpacer(),
+		progressText,
+		widgets.NewHSpacer(2),
+		)
+	background := canvas.NewRectangle(color.RGBA{0, 0, 0, 7})
+	background.SetMinSize(fyne.NewSize(250, 70))
+	walletSyncContent := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
+		fyne.NewContainerWithLayout(layout.NewVBoxLayout(), top, layout.NewSpacer(), middle, layout.NewSpacer(), bottom),
+	)
+
 	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
-			fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
-				top,
-				layout.NewSpacer(),
-				middle,
-				layout.NewSpacer(),
-				bottom,
+			fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil,),
+				background,
+				walletSyncContent,
 				),
 	)
 }
 
-func newTransactionColumn (transactionType, amount, fee, direction, status, date string) *widget.Box {
+func newTransactionRow(transactionType, amount, fee, direction, status, date string) *widget.Box {
 	icons, _ := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
 	icon := canvas.NewImageFromResource(icons[transactionType])
 	// spacer := widgets.NewHSpacer(10)
@@ -133,21 +174,7 @@ func newTransactionColumn (transactionType, amount, fee, direction, status, date
 	return column
 }
 
-//func newTransactionColumn (transactionType, amount, fee, direction, status, date string) fyne.CanvasObject {
-//	icons, _ := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
-//	icon := canvas.NewImageFromResource(icons[transactionType])
-//	// spacer := widgets.NewHSpacer(5)
-//	amountLabel := widget.NewLabel(amount)
-//	feeLabel := widget.NewLabel(fee)
-//	dateLabel := widget.NewLabel(date)
-//	statusLabel := widget.NewLabel(status)
-//	directionLabel := widget.NewLabel(direction)
-//	column := fyne.NewContainerWithLayout(layout.NewGridLayout(6), icon, amountLabel, feeLabel, directionLabel, statusLabel,  dateLabel)
-//	return column
-//}
-
-func transactionColumnHeader() *widget.Box {
-	// spacer := widgets.NewHSpacer(20)
+func transactionRowHeader() *widget.Box {
 	hash := widget.NewLabelWithStyle("#", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	amount := widget.NewLabelWithStyle("amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	fee := widget.NewLabelWithStyle("fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -155,25 +182,4 @@ func transactionColumnHeader() *widget.Box {
 	status := widget.NewLabelWithStyle("status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	date := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
-}
-
-func (tb *Overview) addHeader () {
-	spacer := widgets.NewHSpacer(10)
-	amountLabel := widget.NewLabelWithStyle("amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	feeLabel := widget.NewLabelWithStyle("fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	directionLabel := widget.NewLabelWithStyle("direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	statusLabel := widget.NewLabelWithStyle("status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	dateLabel := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	header := fyne.NewContainerWithLayout(layout.NewGridLayout(6), spacer, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
-	tb.transactionBox.Children = append(tb.transactionBox.Children, header)
-}
-
-func (tb *Overview) addTransactionColumn (transactionType, amount, fee, direction, status, date string) {
-	transactionBox := tb.transactionBox
-	if len(transactionBox.Children) > 0 {
-		transactionBox.Children = append(transactionBox.Children, newTransactionColumn(transactionType, amount, fee, direction, status, date))
-	} else {
-		tb.addHeader()
-		transactionBox.Children = append(transactionBox.Children, newTransactionColumn(transactionType, amount, fee, direction, status, date))
-	}
 }
