@@ -6,6 +6,8 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
+
+	"github.com/raedahgroup/godcr/fyne/pages/sendpagehandler"
 )
 
 type multiWalletTxListener struct {
@@ -62,10 +64,10 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
-		updateContentOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
+		sendpagehandler.UpdateContentOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
 			sendPage.sendingSelectedAccountBalanceLabel, sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.Contents)
 
-		updateContentOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
+		sendpagehandler.UpdateContentOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
 			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
@@ -80,10 +82,10 @@ func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash stri
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
-		updateContentOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
+		sendpagehandler.UpdateContentOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
 			sendPage.sendingSelectedAccountBalanceLabel, sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.Contents)
 
-		updateContentOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
+		sendpagehandler.UpdateContentOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
 			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
 
