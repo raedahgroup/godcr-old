@@ -7,9 +7,9 @@ import (
 	"fyne.io/fyne/canvas"
 )
 
-// ImplementBorder gets minimum size of all objects.
+// NewBorder gets minimum size of all objects.
 // Note: this doesnt consider objects that have been resized.
-func ImplementBorder(color color.Color, padding fyne.Size, objects ...fyne.CanvasObject) *canvas.Rectangle {
+func NewBorder(color color.Color, padding fyne.Size, objects ...fyne.CanvasObject) *canvas.Rectangle {
 	border := canvas.NewRectangle(color) //theme.BackgroundColor())
 	border.StrokeColor = color
 
