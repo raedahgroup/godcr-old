@@ -175,12 +175,10 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
 
-	sendingAccountClickableBox := sendpagehandler.CreateAccountSelector(onSendingAccountChange, "Sending account",
+	fromAccountSelector := sendpagehandler.FromAccountSelector(onSendingAccountChange, "Sending account",
 		icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.sendingSelectedWalletID,
 		sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel, sendPage.sendingSelectedAccountBalanceLabel,
 		sendingSelectedWalletLabel, sendPage.Contents)
-
-	sendingAccountGroup := widget.NewGroup("From", sendingAccountClickableBox)
 
 	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
@@ -532,8 +530,9 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(baseWidgets)
+	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(widget.NewHBox(layout.NewSpacer(), successLabelContainer.Container, sendPage.errorLabel.Container, layout.NewSpacer()))
-	sendPage.Contents.Append(sendingAccountGroup)
+	sendPage.Contents.Append(fromAccountSelector)
 	sendPage.Contents.Append(widgets.NewVSpacer(8))
 	sendPage.Contents.Append(destinationBox)
 	sendPage.Contents.Append(widgets.NewVSpacer(8))
