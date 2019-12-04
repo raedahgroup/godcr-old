@@ -46,7 +46,13 @@ func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	)
 
 	txFilterDropDown, errorMessage := txFilterDropDown(wallet, window, tabmenu)
-	fmt.Println(errorMessage)
+	if errorMessage != "" {
+		errorHandler(errorMessage, txHistory.errorLabel)
+		txHistoryPageOutput.Append(txHistory.errorLabel)
+		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
+	}
+
+	txSortFilterDropDown, errorMessage := txSortDropDown(window)
 	if errorMessage != "" {
 		errorHandler(errorMessage, txHistory.errorLabel)
 		txHistoryPageOutput.Append(txHistory.errorLabel)
@@ -56,7 +62,7 @@ func HistoryPageContent(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabm
 	txTableHeader(wallet, &txHistory.txTable, window)
 	fetchTx(&txHistory.txTable, 0, dcrlibwallet.TxFilterAll, wallet, window, false, tabmenu)
 
-	txHistoryPageOutput.Append(txFilterDropDown)
+	txHistoryPageOutput.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	txHistoryPageOutput.Append(txHistory.errorLabel)
 	txHistoryPageOutput.Append(widgets.NewVSpacer(5))
 	txHistoryPageOutput.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txHistory.txTable.Container.MinSize().Width, txHistory.txTable.Container.MinSize().Height+450)), txHistory.txTable.Container))
@@ -152,6 +158,59 @@ func txFilterDropDown(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmen
 	return txFilterDropDown, ""
 }
 
+func txSortDropDown(window fyne.Window) (*widgets.ClickableBox, string) {
+	var allTxSortNames = []string{"Newest", "Oldest"}
+	var allTxSortFilters = map[string]int32{
+		"Newest": 0,
+		"Oldest": 1,
+	}
+
+	selectedTxSortFilterLabel := widget.NewLabel("Newest")
+
+	var txSortFilterSelectionPopup *widget.PopUp
+	txSortFilterListWidget := widget.NewVBox()
+	for _, sortName := range allTxSortNames {
+		sortId := allTxSortFilters[sortName]
+		fmt.Println(sortId)
+
+		txSortView := widget.NewHBox(
+			widgets.NewHSpacer(5),
+			widget.NewLabel(sortName),
+			widgets.NewHSpacer(5),
+		)
+
+		txSortFilterListWidget.Append(widgets.NewClickableBox(txSortView, func() {
+			selectedTxSortFilterLabel.SetText(sortName)
+			txSortFilterSelectionPopup.Hide()
+		}))
+	}
+
+	// txSortFilterSelectionPopup create a popup that has tx filter name and tx count
+	txSortFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txSortFilterListWidget), window.Canvas())
+	txSortFilterSelectionPopup.Hide()
+
+	icons, err := assets.GetIcons(assets.CollapseIcon)
+	if err != nil {
+		errorMessage := fmt.Sprintf("Error: %s", err.Error())
+		return nil, errorMessage
+	}
+
+	txSortFilterTab := widget.NewHBox(
+		selectedTxSortFilterLabel,
+		widgets.NewHSpacer(10),
+		widget.NewIcon(icons[assets.CollapseIcon]),
+	)
+
+	var txSortFilterDropDown *widgets.ClickableBox
+	txSortFilterDropDown = widgets.NewClickableBox(txSortFilterTab, func() {
+		txSortFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			txSortFilterDropDown).Add(fyne.NewPos(0, txSortFilterDropDown.Size().Height)))
+		txSortFilterSelectionPopup.Show()
+	})
+
+	return txSortFilterDropDown, ""
+}
+
 func txTableHeader(wallet *dcrlibwallet.LibWallet, txTable *widgets.Table, window fyne.Window) {
 	tableHeading := widget.NewHBox(
 		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -180,6 +239,7 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, wallet *dcrlibwalle
 	txns, err := wallet.GetTransactionsRaw(txOffset, txPerPage, filter)
 	if err != nil {
 		errorHandler(fmt.Sprintf("Error getting transaction for Filter: %s", err.Error()), txHistory.errorLabel)
+		txHistory.txTable.Container.Hide()
 		return
 	}
 	if len(txns) == 0 {
