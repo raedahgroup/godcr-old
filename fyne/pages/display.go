@@ -12,6 +12,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/assets"
 )
 
@@ -52,7 +53,7 @@ func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject
 func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
 	app.Window.SetContent(app.tabMenu)
-	app.Window.Resize(fyne.NewSize(1000, 700))
+	app.Window.Resize(fyne.NewSize(700, 700))
 	app.Window.SetFixedSize(true)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())

@@ -24,6 +24,9 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 	destinationAddressEntryText *string, isDestinationAddressEntryHidden, isDestinationAddressErrorLabelHidden *bool,
 	contents *widget.Box, nextButton *widgets.Button, spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet) (*fyne.Container, *widget.Entry, bool) {
 
+	amountLabel := canvas.NewText("Amount", color.RGBA{61, 88, 115, 255})
+	amountLabel.TextStyle.Bold = true
+
 	// amount entry accepts only floats
 	amountEntryExpression, err := regexp.Compile("^\\d*\\.?\\d*$")
 	if err != nil {
@@ -123,9 +126,6 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 	}
 
 	maxButton := maxButton(temporaryAddress, amountErrorLabel, amountEntry, transactionAuthor, multiWallet, contents)
-
-	amountLabel := canvas.NewText("Amount", color.RGBA{61, 88, 115, 255})
-	amountLabel.TextStyle.Bold = true
 
 	amountEntryComponents := widget.NewVBox(
 		widget.NewHBox(amountLabel, layout.NewSpacer(), spendableLabel),

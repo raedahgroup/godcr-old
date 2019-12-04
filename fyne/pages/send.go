@@ -82,16 +82,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	transactionAuthor := selectedWallet.NewUnsignedTx(0, dcrlibwallet.DefaultRequiredConfirmations)
 	transactionAuthor.AddSendDestination(temporaryAddress, 0, true)
 
-	costAndBalanceAfterSendBox := widget.NewVBox()
-
 	totalCostLabel := widget.NewLabel("- DCR")
-	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Total cost"), layout.NewSpacer(), totalCostLabel))
-
 	balanceAfterSendLabel := widget.NewLabel("- DCR")
-	costAndBalanceAfterSendBox.Append(widget.NewHBox(widget.NewLabel("Balance after send"), layout.NewSpacer(), balanceAfterSendLabel))
-
-	costAndBalanceAfterSendContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(328, 48)), costAndBalanceAfterSendBox)
-
 	transactionFeeLabel := widget.NewLabel("- DCR")
 	transactionSizeLabel := widget.NewLabel("0 bytes")
 
@@ -133,7 +125,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
 
 		// reset amount entry
-		costAndBalanceAfterSendContainer.Refresh()
+		//costAndBalanceAfterSendContainer.Refresh()
 		transactionFeeLabel.Refresh()
 		transactionSizeLabel.Refresh()
 		//transactionFeeBox.Refresh()
@@ -151,23 +143,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel,
 		selfSendingSelectedWalletLabel, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel, amountEntry, &isAmountErrorLabelHidden, sendPage.Contents, nextButton)
 
-	//var transactionSizeDropdown *widgets.ClickableBox
-	//var amountEntryGroup *widget.Group
-
-	// transactionSizeDropdown = widgets.NewClickableBox(widget.NewHBox(widget.NewIcon(icons[assets.ExpandDropdown])), func() {
-	// 	if paintedtransactionInfoform.Hidden {
-	// 		transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.CollapseDropdown])
-	// 		paintedtransactionInfoform.Show()
-	// 	} else {
-	// 		transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.ExpandDropdown])
-	// 		paintedtransactionInfoform.Hide()
-	// 	}
-
-	// 	transactionFeeBox.Refresh()
-	// 	transactionSizeDropdown.Refresh()
-	// 	paintedtransactionInfoform.Refresh()
-	// 	sendPage.Contents.Refresh()
-	//})
+	transactionInfoContainer := sendpagehandler.TransactionDetails(icons[assets.CollapseDropdown], icons[assets.ExpandDropdown],
+		transactionFeeLabel, transactionSizeLabel, totalCostLabel, balanceAfterSendLabel, sendPage.Contents)
 
 	nextButton.Container.OnTapped = func() {
 		if multiWallet.ConnectedPeers() <= 0 {
@@ -261,7 +238,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			clickabelMoreIcon).Add(fyne.NewPos(clickabelMoreIcon.MinSize().Width, clickabelMoreIcon.MinSize().Height)))
 	})
 
-	baseWidgets := widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, clickabelMoreIcon)
+	baseWidgets := widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, widgets.NewHSpacer(26), clickabelMoreIcon)
 
 	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(baseWidgets)
@@ -273,7 +250,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(amountEntryContainer)
 	sendPage.Contents.Append(widgets.NewVSpacer(12))
-	sendPage.Contents.Append(costAndBalanceAfterSendContainer)
+	sendPage.Contents.Append(transactionInfoContainer)
 	sendPage.Contents.Append(widgets.NewVSpacer(15))
 	sendPage.Contents.Append(nextButton.Container)
 
