@@ -663,6 +663,7 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, wallet *dcrlibwalle
 	txns, err := wallet.GetTransactionsRaw(txOffset, txPerPage, filter)
 	if err != nil {
 		errorHandler(fmt.Sprintf("Error getting transaction for Filter: %s", err.Error()), txHistory.errorLabel)
+		txHistory.txTable.Container.Hide()
 		return
 	}
 	if len(txns) == 0 {
