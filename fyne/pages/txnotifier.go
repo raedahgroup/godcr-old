@@ -1,10 +1,14 @@
 package pages
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"strconv"
 
 	"fyne.io/fyne/widget"
 
+	"github.com/gen2brain/beeep"
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/sendpagehandler"

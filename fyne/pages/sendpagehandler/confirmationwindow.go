@@ -143,7 +143,7 @@ func ConfirmationWindow(amountEntry, destinationAddressEntry *widget.Entry, down
 			layout.NewSpacer(), widget.NewLabelWithStyle(balanceAfterSendText, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 		widget.NewHBox(layout.NewSpacer(),
-			widget.NewIcon(alert), widget.NewLabelWithStyle("Your DCR will be sent and CANNOT be undone.", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
+			widget.NewIcon(alert), widget.NewLabelWithStyle(sendingDcrWarning, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
 		sendButton.Container,
 		widgets.NewVSpacer(18),
 	)

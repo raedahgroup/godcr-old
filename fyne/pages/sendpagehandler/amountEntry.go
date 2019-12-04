@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	"fyne.io/fyne/layout"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -34,7 +34,7 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 	}
 
 	amountEntry := widget.NewEntry()
-	amountEntry.SetPlaceHolder("0 DCR")
+	amountEntry.SetPlaceHolder(ZeroAmount)
 
 	amountErrorLabel := canvas.NewText("", color.RGBA{237, 109, 71, 255})
 	amountErrorLabel.TextSize = 12
@@ -68,16 +68,11 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 		}
 
 		if amountInFloat == 0.0 {
-			transactionFeeLabel.SetText("- DCR")
-			totalCostLabel.SetText("- DCR")
-			balanceAfterSendLabel.SetText("- DCR")
-			transactionSizeLabel.SetText("0 bytes")
-			amountErrorLabel.Hide()
+			setLabelText(NilAmount, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel)
+			transactionSizeLabel.SetText(ZeroByte)
 
 			nextButton.Disable()
 			widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel)
-			// paintedtransactionInfoform.Refresh()
-			//contents.Refresh()
 			return
 		}
 
@@ -85,21 +80,18 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 		feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
 		if err != nil {
 			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				amountErrorLabel.Text = "Insufficient balance"
+				amountErrorLabel.Text = errInsufficientBalance
 				amountErrorLabel.Show()
 			} else {
 				showErrorLabel("Could not retrieve transaction fee and size")
 				log.Println(fmt.Sprintf("could not retrieve transaction fee and size %s", err.Error()))
 			}
 
-			transactionFeeLabel.SetText(fmt.Sprintf("- DCR"))
-			totalCostLabel.SetText("- DCR")
-			balanceAfterSendLabel.SetText("- DCR")
-			transactionSizeLabel.SetText("0 bytes")
+			setLabelText(NilAmount, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel)
+			transactionSizeLabel.SetText(ZeroByte)
 
 			nextButton.Disable()
-			//paintedtransactionInfoform.Refresh()
-			widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel) //, costAndBalanceAfterSendBox)
+			widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel)
 			contents.Refresh()
 			return
 		}
@@ -120,7 +112,6 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 		}
 
 		errorLabel.Container.Hide()
-		//paintedtransactionInfoform.Refresh()
 		widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel) //, costAndBalanceAfterSendBox)
 		contents.Refresh()
 	}
@@ -133,12 +124,14 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 
 		fyne.NewContainerWithLayout(
 			layouts.NewPasswordLayout(
-				fyne.NewSize(widget.NewLabel("12345678.12345678").MinSize().Width+maxButton.MinSize().Width, amountEntry.MinSize().Height)),
+				fyne.NewSize(widget.NewLabel(maxAmountInDCR).MinSize().Width+maxButton.MinSize().Width, amountEntry.MinSize().Height)),
 			amountEntry, maxButton.Container),
 
 		amountErrorLabel)
 
-	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(fyne.Max(amountEntryComponents.MinSize().Width, 312), amountEntryComponents.MinSize().Height)), amountEntryComponents), amountEntry, amountErrorLabel.Hidden
+	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(
+		fyne.Max(amountEntryComponents.MinSize().Width, 312), amountEntryComponents.MinSize().Height)),
+		amountEntryComponents), amountEntry, amountErrorLabel.Hidden
 }
 
 func maxButton(temporaryAddress *string, amountErrorLabel *canvas.Text, amountEntry *widget.Entry,
@@ -150,9 +143,9 @@ func maxButton(temporaryAddress *string, amountErrorLabel *canvas.Text, amountEn
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
 			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				amountErrorLabel.Text = "Not enough funds"
+				amountErrorLabel.Text = noFunds
 				if !multiWallet.IsSynced() {
-					amountErrorLabel.Text = "Not enough funds (or not connected)."
+					amountErrorLabel.Text = noFundsOrNotConnected
 				}
 
 				amountErrorLabel.Show()

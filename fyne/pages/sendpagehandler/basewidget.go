@@ -12,9 +12,9 @@ import (
 
 func BaseWidgets(infoIcon, moreIcon *fyne.StaticResource, amountEntry, destinationAddressEntry *widget.Entry, window fyne.Window) *widget.Box {
 	// define base widget consisting of label, more icon and info button
-	sendLabel := widget.NewLabelWithStyle("Send DCR", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true, Italic: true})
+	sendLabel := widget.NewLabelWithStyle(sendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
 
-	dialogLabel := widget.NewLabelWithStyle("Input the destination \nwallet address and the amount in \nDCR to send funds.", fyne.TextAlignLeading, fyne.TextStyle{})
+	dialogLabel := widget.NewLabelWithStyle(sendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
 
 	var clickabelInfoIcon *widgets.ImageButton
 	clickabelInfoIcon = widgets.NewImageButton(infoIcon, nil, func() {
@@ -24,7 +24,7 @@ func BaseWidgets(infoIcon, moreIcon *fyne.StaticResource, amountEntry, destinati
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(12),
-			widget.NewLabelWithStyle("Send DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(sendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(30),
 			dialogLabel,
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),

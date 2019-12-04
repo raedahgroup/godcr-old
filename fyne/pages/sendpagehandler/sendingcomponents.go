@@ -38,7 +38,7 @@ func SendingDestinationComponents(destinationAddressEntry *widget.Entry, destina
 	sendToAccountLabel.TextSize = 12
 
 	destinationAddressContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
-		fyne.NewSize(widget.NewLabel("TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd").MinSize().Width, destinationAddressEntry.MinSize().Height)), destinationAddressEntry)
+		fyne.NewSize(widget.NewLabel(testAddress).MinSize().Width, destinationAddressEntry.MinSize().Height)), destinationAddressEntry)
 
 	spacer := widgets.NewVSpacer(10)
 
@@ -107,8 +107,8 @@ func destinationAddressEntryComponent(destinationAddressEntry *widget.Entry, des
 		if err != nil {
 			destinationAddressErrorLabel.Text = invalidAddress
 			destinationAddressErrorLabel.Show()
-			setLabelText(nilAmount, transactionFee, transactionCost, balance)
-			setLabelText(nilByte, size)
+			setLabelText(NilAmount, transactionFee, transactionCost, balance)
+			setLabelText(ZeroByte, size)
 
 		} else {
 			destinationAddressErrorLabel.Hide()
