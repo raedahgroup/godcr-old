@@ -88,7 +88,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	transactionSizeLabel := widget.NewLabel("0 bytes")
 
 	nextButton := widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Next", nil)
-
 	initDynamicContent(openedWalletIDs, selectedWalletAccounts)
 
 	destinationAddressEntry, destinationAddressEntryErrorLabel := widget.NewEntry(), canvas.NewText("", color.RGBA{237, 109, 71, 255})
@@ -125,10 +124,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		amountInAccount = dcrlibwallet.AmountCoin(balance.Total)
 
 		// reset amount entry
-		//costAndBalanceAfterSendContainer.Refresh()
 		transactionFeeLabel.Refresh()
 		transactionSizeLabel.Refresh()
-		//transactionFeeBox.Refresh()
 		sendPage.Contents.Refresh()
 		amountEntry.OnChanged(amountEntry.Text)
 	}
@@ -149,7 +146,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	nextButton.Container.OnTapped = func() {
 		if multiWallet.ConnectedPeers() <= 0 {
 			showErrorLabel("Not Connected To Decred Network")
-
 			return
 		}
 
@@ -177,7 +173,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			if err != nil {
 				showErrorLabel("Could not get self sending account")
 				log.Println("could not get self sending account, reason: ", err.Error())
-
 				return
 			}
 
@@ -185,10 +180,8 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 			if err != nil {
 				showErrorLabel("could not get self sending account")
 				log.Println("could not get self sending account reason:", err.Error())
-
 				return
 			}
-
 		} else {
 			sendingAddress = destinationAddressEntry.Text
 		}
@@ -203,42 +196,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	nextButton.SetMinSize(nextButton.MinSize().Add(fyne.NewSize(0, 20)))
 	nextButton.Disable()
 
-	// define base widget consisting of label, more icon and info button
-	sendLabel := widget.NewLabelWithStyle("Send DCR", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true, Italic: true})
-
-	dialogLabel := widget.NewLabelWithStyle("Input the destination \nwallet address and the amount in \nDCR to send funds.", fyne.TextAlignLeading, fyne.TextStyle{})
-
-	var clickabelInfoIcon *widgets.ImageButton
-	clickabelInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
-		var popup *widget.PopUp
-		confirmationText := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
-		confirmationText.TextStyle.Bold = true
-
-		dialog := widget.NewVBox(
-			widgets.NewVSpacer(12),
-			widget.NewLabelWithStyle("Send DCR", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(30),
-			dialogLabel,
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
-			widgets.NewVSpacer(10))
-
-		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), window.Canvas())
-	})
-
-	var clickabelMoreIcon *widgets.ImageButton
-	clickabelMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
-		var popup *widget.PopUp
-		popup = widget.NewPopUp(widgets.NewButton(color.White, "Clear all fields", func() {
-			amountEntry.SetText("")
-			destinationAddressEntry.SetText("")
-			popup.Hide()
-
-		}).Container, window.Canvas())
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			clickabelMoreIcon).Add(fyne.NewPos(clickabelMoreIcon.MinSize().Width, clickabelMoreIcon.MinSize().Height)))
-	})
-
-	baseWidgets := widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, widgets.NewHSpacer(26), clickabelMoreIcon)
+	baseWidgets := sendpagehandler.BaseWidgets(icons[assets.InfoIcon], icons[assets.MoreIcon], amountEntry, destinationAddressEntry, window)
 
 	sendPage.Contents.Append(widgets.NewVSpacer(10))
 	sendPage.Contents.Append(baseWidgets)
