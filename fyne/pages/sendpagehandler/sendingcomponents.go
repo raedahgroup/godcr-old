@@ -14,11 +14,12 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func SendingDestinationComponents(onAccountChange func(), accountLabel string, receiveAccountIcon, collapseIcon fyne.Resource,
+func SendingDestinationComponents(destinationAddressEntry *widget.Entry, destinationAddressErrorLabel *canvas.Text, onAccountChange func(),
+	accountLabel string, receiveAccountIcon, collapseIcon fyne.Resource,
 	multiWallet *dcrlibwallet.MultiWallet, walletIDs []int, sendingSelectedWalletID *int, accountBoxes []*widget.Box,
 	selectedAccountLabel *widget.Label, selectedAccountBalanceLabel *widget.Label, selectedWalletLabel *canvas.Text,
-	transactionFee, transactionCost, balance, size *widget.Label, amountEntry *widget.Entry, amountErrorLabel *canvas.Text,
-	contents *widget.Box, nextButton *widgets.Button) (container *fyne.Container, destinationAddressEntry *widget.Entry, destinationAddressErrorLabel *canvas.Text) {
+	transactionFee, transactionCost, balance, size *widget.Label, amountEntry *widget.Entry, isAmountErrorLabelHidden *bool,
+	contents *widget.Box, nextButton *widgets.Button) (container *fyne.Container) {
 
 	fromLabel := canvas.NewText("To", color.RGBA{61, 88, 115, 255})
 	fromLabel.TextStyle.Bold = true
@@ -28,12 +29,12 @@ func SendingDestinationComponents(onAccountChange func(), accountLabel string, r
 
 	accountBox.Hide()
 
-	destinationAddressEntry, destinationAddressErrorLabel = destinationAddressEntryComponent(transactionFee, transactionCost, balance, size,
-		amountEntry, amountErrorLabel, contents, nextButton)
+	destinationAddressEntryComponent(destinationAddressEntry, destinationAddressErrorLabel, transactionFee, transactionCost, balance, size,
+		amountEntry, isAmountErrorLabelHidden, contents, nextButton)
 
 	destinationAddressErrorLabel.Hide()
 
-	sendToAccountLabel := canvas.NewText("Send to account", color.RGBA{R: 41, G: 112, B: 255, A: 255})
+	sendToAccountLabel := canvas.NewText(switchToSendToAccount, color.RGBA{R: 41, G: 112, B: 255, A: 255})
 	sendToAccountLabel.TextSize = 12
 
 	destinationAddressContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
@@ -45,6 +46,7 @@ func SendingDestinationComponents(onAccountChange func(), accountLabel string, r
 		if accountBox.Hidden {
 			sendToAccountLabel.Text = switchToSendToAddress
 			accountBox.Show()
+			destinationAddressEntry.Hide()
 			destinationAddressContainer.Hide()
 			destinationAddressErrorLabel.Hide()
 			spacer.Hide()
@@ -57,10 +59,12 @@ func SendingDestinationComponents(onAccountChange func(), accountLabel string, r
 
 		} else {
 			sendToAccountLabel.Text = switchToSendToAccount
+			destinationAddressEntry.Show()
 			destinationAddressContainer.Show()
 			accountBox.Hide()
 			spacer.Show()
 
+			destinationAddressEntry.OnChanged(destinationAddressEntry.Text)
 			if amountEntry.Text != "" && destinationAddressEntry.Text != "" && destinationAddressErrorLabel.Hidden {
 				nextButton.Enable()
 			} else {
@@ -84,14 +88,12 @@ func SendingDestinationComponents(onAccountChange func(), accountLabel string, r
 	return
 }
 
-func destinationAddressEntryComponent(transactionFee, transactionCost, balance, size *widget.Label, amountEntry *widget.Entry, amountErrorLabel *canvas.Text,
-	contents *widget.Box, nextButton *widgets.Button) (destinationAddressEntry *widget.Entry, destinationAddressErrorLabel *canvas.Text) {
+func destinationAddressEntryComponent(destinationAddressEntry *widget.Entry, destinationAddressErrorLabel *canvas.Text, transactionFee, transactionCost, balance, size *widget.Label, amountEntry *widget.Entry, isAmountErrorLabelHidden *bool,
+	contents *widget.Box, nextButton *widgets.Button) {
 
-	destinationAddressErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
 	destinationAddressErrorLabel.TextSize = 12
 	destinationAddressErrorLabel.Hide()
 
-	destinationAddressEntry = widget.NewEntry()
 	destinationAddressEntry.SetPlaceHolder(destinationAddressPlaceHolder)
 
 	destinationAddressEntry.OnChanged = func(address string) {
@@ -112,7 +114,7 @@ func destinationAddressEntryComponent(transactionFee, transactionCost, balance, 
 			destinationAddressErrorLabel.Hide()
 		}
 
-		if amountEntry.Text != "" && amountErrorLabel.Hidden && destinationAddressErrorLabel.Hidden {
+		if amountEntry.Text != "" && *isAmountErrorLabelHidden && destinationAddressErrorLabel.Hidden {
 			nextButton.Enable()
 		} else {
 			nextButton.Disable()

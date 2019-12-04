@@ -16,7 +16,6 @@ type Button struct {
 
 	Size      fyne.Size
 	Container *ClickableBox
-	OnTapped  func()
 }
 
 func (b *Button) MinSize() fyne.Size {

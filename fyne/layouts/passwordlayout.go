@@ -11,14 +11,14 @@ func (c *passwordLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	if len(objects) < 1 {
 		return
 	}
-	
+
 	password := objects[0]
 	icon := objects[1]
 
 	password.Move(fyne.NewPos(0, 0))
 	password.Resize(c.passwordSize)
 
-	icon.Move(fyne.NewPos(password.Position().X+c.passwordSize.Width-icon.MinSize().Width, password.Position().Y))
+	icon.Move(fyne.NewPos(password.Position().X+c.passwordSize.Width-icon.MinSize().Width, password.Position().Y+8))
 	icon.Resize(icon.MinSize())
 }
 
