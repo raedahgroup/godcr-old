@@ -783,8 +783,8 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	}
 
 	chainHash, err := chainhash.NewHashFromStr(hash)
-	if err == nil {
-		errorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, "err.Error()"), errorMessageLabel)
+	if err != nil {
+		errorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
 		txDetailsErrorMethod()
 		return
 	}
