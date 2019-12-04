@@ -748,9 +748,9 @@ func updateTable(wallet *dcrlibwallet.LibWallet, window fyne.Window, tabmenu *wi
 }
 
 func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Window, errorLabel *widget.Label, tabmenu *widget.TabContainer) {
-	messageLabel := widget.NewLabelWithStyle("Fetching data..", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	messageLabel := widget.NewLabelWithStyle("Fetching data..", fyne.TextAlignCenter, fyne.TextStyle{})
 	if messageLabel.Hidden == false {
-		time.AfterFunc(time.Millisecond*200, func() {
+		time.AfterFunc(time.Millisecond*300, func() {
 			if tabmenu.CurrentTabIndex() == 1 {
 				messageLabel.Hide()
 			}
@@ -764,30 +764,27 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 	minimizeIcon := widgets.NewClickableIcon(theme.CancelIcon(), nil, func() { txDetailsPopUp.Hide() })
 	errorMessageLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	txDetailsOutput := widget.NewVBox(
-		widgets.NewHSpacer(10),
-		widget.NewHBox(
-			txDetailslabel,
-			widgets.NewHSpacer(150),
-			messageLabel,
-			layout.NewSpacer(),
-			minimizeIcon,
-			widgets.NewHSpacer(20),
-		),
-		widgets.NewVSpacer(10),
-	)
-	txDetailsOutput.Resize(fyne.NewSize(600, 150))
-
 	txDetailsErrorMethod := func() {
-		txDetailsOutput.Append(errorMessageLabel)
-		txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)),
+		txErrorDetailsOutput := widget.NewVBox(
+			widgets.NewHSpacer(10),
+			widget.NewHBox(
+				txDetailslabel,
+				widgets.NewHSpacer(150),
+				messageLabel,
+				layout.NewSpacer(),
+				minimizeIcon,
+				widgets.NewHSpacer(30),
+			),
+			errorMessageLabel,
+		)
+		txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txErrorDetailsOutput)),
 			window.Canvas())
 		txDetailsPopUp.Show()
 	}
 
 	chainHash, err := chainhash.NewHashFromStr(hash)
-	if err != nil {
-		errorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
+	if err == nil {
+		errorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, "err.Error()"), errorMessageLabel)
 		txDetailsErrorMethod()
 		return
 	}
@@ -948,9 +945,20 @@ func fetchTxDetails(hash string, wallet *dcrlibwallet.LibWallet, window fyne.Win
 
 	txDetailsScrollContainer := widget.NewScrollContainer(txDetailsData)
 
-	txDetailsOutput.Append(widgets.NewHSpacer(10))
-	txDetailsOutput.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer))
-	txDetailsOutput.Append(widgets.NewHSpacer(10))
+	txDetailsOutput := widget.NewVBox(
+		widgets.NewHSpacer(10),
+		widget.NewHBox(
+			txDetailslabel,
+			widgets.NewHSpacer(150),
+			messageLabel,
+			layout.NewSpacer(),
+			minimizeIcon,
+			widgets.NewHSpacer(30),
+		),
+		widgets.NewHSpacer(10),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
+		widgets.NewHSpacer(10),
+	)
 
 	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)),
 		window.Canvas())
