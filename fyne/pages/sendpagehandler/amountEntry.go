@@ -21,7 +21,7 @@ import (
 
 func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(string), temporaryAddress *string, amountInAccount *float64,
 	transactionAuthor *dcrlibwallet.TxAuthor, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel *widget.Label,
-	destinationAddressEntryText *string, isDestinationAddressEntryHidden, isDestinationAddressErrorLabelHidden *bool,
+	destinationAddressEntryText *string, isDestinationAddressEntryHidden, isDestinationAddressErrorLabelHidden *bool, container *fyne.Container,
 	contents *widget.Box, nextButton *widgets.Button, spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet) (*fyne.Container, *widget.Entry, bool) {
 
 	amountLabel := canvas.NewText("Amount", color.RGBA{61, 88, 115, 255})
@@ -73,6 +73,7 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 
 			nextButton.Disable()
 			widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel)
+			container.Refresh()
 			return
 		}
 
@@ -92,6 +93,7 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 
 			nextButton.Disable()
 			widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel)
+			container.Refresh()
 			contents.Refresh()
 			return
 		}
@@ -112,11 +114,12 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 		}
 
 		errorLabel.Container.Hide()
-		widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel) //, costAndBalanceAfterSendBox)
+		widgets.Refresher(transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel)
+		container.Refresh()
 		contents.Refresh()
 	}
 
-	maxButton := maxButton(temporaryAddress, amountErrorLabel, amountEntry, transactionAuthor, multiWallet, contents)
+	maxButton := maxButton(temporaryAddress, amountErrorLabel, amountEntry, transactionAuthor, multiWallet, contents, container)
 
 	amountEntryComponents := widget.NewVBox(
 		widget.NewHBox(amountLabel, layout.NewSpacer(), spendableLabel),
@@ -135,7 +138,7 @@ func AmountEntryComponents(errorLabel *widgets.Button, showErrorLabel func(strin
 }
 
 func maxButton(temporaryAddress *string, amountErrorLabel *canvas.Text, amountEntry *widget.Entry,
-	transactionAuthor *dcrlibwallet.TxAuthor, multiWallet *dcrlibwallet.MultiWallet, contents *widget.Box) *widgets.Button {
+	transactionAuthor *dcrlibwallet.TxAuthor, multiWallet *dcrlibwallet.MultiWallet, contents *widget.Box, container *fyne.Container) *widgets.Button {
 
 	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, "MAX", func() {
 		transactionAuthor.UpdateSendDestination(0, *temporaryAddress, 0, true)
@@ -149,6 +152,7 @@ func maxButton(temporaryAddress *string, amountErrorLabel *canvas.Text, amountEn
 				}
 
 				amountErrorLabel.Show()
+				container.Refresh()
 				contents.Refresh()
 				return
 			}

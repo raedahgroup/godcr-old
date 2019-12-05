@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"sort"
@@ -64,7 +63,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	selectedWalletAccounts, err := selectedWallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		log.Println(fmt.Sprintf("Error while getting accounts for wallet %s", err.Error()))
+		log.Println("Error while getting accounts for wallet", err.Error())
 		return widget.NewLabel("Error while getting accounts for wallet")
 	}
 
@@ -92,9 +91,12 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	destinationAddressEntry, destinationAddressEntryErrorLabel := widget.NewEntry(), canvas.NewText("", color.RGBA{237, 109, 71, 255})
 
+	transactionInfoContainer := sendpagehandler.TransactionDetails(icons[assets.CollapseDropdown], icons[assets.ExpandDropdown],
+		transactionFeeLabel, transactionSizeLabel, totalCostLabel, balanceAfterSendLabel, sendPage.Contents)
+
 	amountEntryContainer, amountEntry, isAmountErrorLabelHidden := sendpagehandler.AmountEntryComponents(sendPage.errorLabel, showErrorLabel, &temporaryAddress, &amountInAccount, transactionAuthor,
 		transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel, &destinationAddressEntry.Text, &destinationAddressEntry.Hidden,
-		&destinationAddressEntryErrorLabel.Hidden, sendPage.Contents, nextButton, sendPage.spendableLabel, multiWallet)
+		&destinationAddressEntryErrorLabel.Hidden, transactionInfoContainer, sendPage.Contents, nextButton, sendPage.spendableLabel, multiWallet)
 
 	// this function is called when the sending wallet account is changed.
 	onSendingAccountChange := func() {
@@ -139,9 +141,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		"Receiving account", icons[assets.ReceiveAccountIcon], icons[assets.CollapseIcon], multiWallet, openedWalletIDs, &sendPage.selfSendingSelectedWalletID,
 		sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel, sendPage.selfSendingSelectedAccountBalanceLabel,
 		selfSendingSelectedWalletLabel, transactionFeeLabel, totalCostLabel, balanceAfterSendLabel, transactionSizeLabel, amountEntry, &isAmountErrorLabelHidden, sendPage.Contents, nextButton)
-
-	transactionInfoContainer := sendpagehandler.TransactionDetails(icons[assets.CollapseDropdown], icons[assets.ExpandDropdown],
-		transactionFeeLabel, transactionSizeLabel, totalCostLabel, balanceAfterSendLabel, sendPage.Contents)
 
 	nextButton.Container.OnTapped = func() {
 		if multiWallet.ConnectedPeers() <= 0 {

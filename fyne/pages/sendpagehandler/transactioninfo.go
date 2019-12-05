@@ -32,7 +32,7 @@ func transactionInfoWithBorder(transactionSizeLabel *widget.Label) *fyne.Contain
 func TransactionDetails(collapseDropdown, expandDropdown *fyne.StaticResource, transactionFeeLabel,
 	transactionSizeLabel, totalCostLabel, balanceAfterSendLabel *widget.Label, contents *widget.Box) (container *fyne.Container) {
 
-	paintedtransactionInfoform := transactionInfoWithBorder(transactionSizeLabel) // widget.NewHBox(layout.NewSpacer(), transactionInfoWithBorder(transactionSizeLabel), layout.NewSpacer())
+	paintedtransactionInfoform := transactionInfoWithBorder(transactionSizeLabel)
 	paintedtransactionInfoform.Hide()
 
 	var transactionFeeBox *widget.Box
