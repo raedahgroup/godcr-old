@@ -166,4 +166,3 @@ func (table *Table) set() {
 	table.Result.Children = container.Children
 	widget.Refresh(table.Result)
 }
-
