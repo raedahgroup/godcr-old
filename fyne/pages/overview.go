@@ -1,32 +1,47 @@
 package pages
 
 import (
+	"fmt"
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 	"image/color"
+	"sort"
+	"strings"
 )
 
 const PageTitle = "Overview"
 
 type Overview struct {
 	transactionBox *widget.Box
+	multiWallet *dcrlibwallet.MultiWallet
+	walletIds []int
 }
+
 
 // todo: display overview page (include sync progress UI elements)
 // todo: register sync progress listener on overview page to update sync progress views
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
+		ov := &Overview{}
 		app.Window.Resize(fyne.NewSize(650, 650))
-		return widget.NewHBox(widgets.NewHSpacer(18), container())
+		ov.multiWallet = app.MultiWallet
+		ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
+		if len(ov.walletIds) == 0 {
+			return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		}
+		sort.Ints(ov.walletIds)
+		return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
 }
 
-func container () fyne.CanvasObject {
+func (ov *Overview) container () fyne.CanvasObject {
 	return widget.NewVBox(
 		title(),
-		balance(),
+		ov.balance(),
 		widgets.NewVSpacer(50),
 		pageBoxes(),
 		)
@@ -37,9 +52,14 @@ func title () fyne.CanvasObject {
 	return widget.NewHBox(titleWidget)
 }
 
-func balance () fyne.CanvasObject {
-	dcrBalance := widgets.NewLargeText("315.08", color.Black)
-	dcrDecimals := widgets.NewSmallText("193725 DCR", color.Black)
+func (ov *Overview) balance () fyne.CanvasObject {
+	tb, err := totalBalance(ov)
+	if err != nil {
+		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
+	}
+	mainBalance, subBalance := breakBalance(tb)
+	dcrBalance := widgets.NewLargeText(mainBalance, color.Black)
+	dcrDecimals := widgets.NewSmallText(subBalance, color.Black)
 	decimalsBox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(6),dcrDecimals)
 	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
 }
@@ -182,4 +202,42 @@ func transactionRowHeader() *widget.Box {
 	status := widget.NewLabelWithStyle("status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	date := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
+}
+
+func totalBalance (overview *Overview) (balance string, err error) {
+	var totalWalletBalance int64
+	mw := overview.multiWallet
+	for _, id := range overview.walletIds {
+		accounts, err  := mw.WalletWithID(id).GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+		if err != nil {
+			return "", err
+		}
+		for _, acc := range accounts.Acc {
+			totalWalletBalance += acc.TotalBalance
+		}
+	}
+	balance = dcrutil.Amount(totalWalletBalance).String()
+	return
+}
+
+func breakBalance (balance string) (b1, b2 string){
+	balanceParts := strings.Split(balance, ".")
+	b1 = balanceParts[0]
+	b2 = balanceParts[1]
+	b1 = b1 + "." + b2[:3]
+	b2 = b2[2:]
+	return
+}
+
+func recentTransactions (overview *Overview) error {
+	var transactions []dcrlibwallet.Transaction
+	mw := overview.multiWallet
+	for _, id := range overview.walletIds {
+		txns, err  := mw.WalletWithID(id).GetTransactionsRaw(0, 10, 0, true)
+		transactions = append(transactions, txns...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
