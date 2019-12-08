@@ -6,10 +6,10 @@ require (
 	github.com/decred/slog v1.0.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jrick/logrotate v1.0.0
+	github.com/raedahgroup/dcrlibwallet v1.1.1-0.20190928085114-bcc6e6b7769a // indirect
 	github.com/raedahgroup/godcr/app v0.0.0-00010101000000-000000000000
 	github.com/raedahgroup/godcr/cli v0.0.0-00010101000000-000000000000
 	github.com/raedahgroup/godcr/nuklear v0.0.0-00010101000000-000000000000
-	github.com/raedahgroup/godcr/terminal v0.0.0-00010101000000-000000000000 // indirect
 	github.com/raedahgroup/godcr/web v0.0.0-00010101000000-000000000000
 )
 

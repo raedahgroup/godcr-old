@@ -11,7 +11,7 @@ type overviewBox struct {
 	*widget.Box
 
 	position fyne.Position
-	size fyne.Size
+	size     fyne.Size
 }
 
 type overviewBoxRenderer struct {
@@ -19,26 +19,26 @@ type overviewBoxRenderer struct {
 	box     *overviewBox
 }
 
-func (b *overviewBox) CreateRenderer () fyne.WidgetRenderer {
+func (b *overviewBox) CreateRenderer() fyne.WidgetRenderer {
 	var objects []fyne.CanvasObject
 	objects = append(objects, b.Box)
 
 	return &overviewBoxRenderer{objects: objects, box: b}
 }
 
-func (r *overviewBoxRenderer) MinSize () fyne.Size {
-	return fyne.NewSize(theme.Padding()*2 + 300, theme.Padding()*2 + 150)
+func (r *overviewBoxRenderer) MinSize() fyne.Size {
+	return fyne.NewSize(theme.Padding()*2+300, theme.Padding()*2+150)
 }
 
-func (r *overviewBoxRenderer) ApplyTheme () {
-
-}
-
-func (r *overviewBoxRenderer) Layout (size fyne.Size) {
+func (r *overviewBoxRenderer) ApplyTheme() {
 
 }
 
-func (r *overviewBoxRenderer) BackgroundColor () color.Color {
+func (r *overviewBoxRenderer) Layout(size fyne.Size) {
+
+}
+
+func (r *overviewBoxRenderer) BackgroundColor() color.Color {
 	return color.RGBA{242, 241, 239, 1}
 }
 
@@ -53,7 +53,7 @@ func (r *overviewBoxRenderer) Objects() []fyne.CanvasObject {
 func (r *overviewBoxRenderer) Destroy() {
 }
 
-func (b *overviewBox) Size () fyne.Size {
+func (b *overviewBox) Size() fyne.Size {
 	return b.size
 }
 
