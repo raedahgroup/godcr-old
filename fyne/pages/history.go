@@ -95,13 +95,41 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 			continue
 		}
 
-		walletView := widget.NewHBox(
+		selectedWalletLine := canvas.NewLine(color.RGBA{0xbd, 0xbd, 0xbd, 0xff})
+		selectedWalletLine.StrokeWidth = 1.5
+		if walletID != walletsID[0] {
+			selectedWalletLine.Hide()
+		}
+
+		walletContainer := widget.NewVBox(
 			widget.NewLabel(wallet.Name),
+			selectedWalletLine,
+		)
+
+		walletView := widget.NewHBox(
+			walletContainer,
 			widgets.NewHSpacer(5),
 		)
+
 		individualWalletID := walletID
 
+		// working on hiding line
 		walletListWidget.Append(widgets.NewClickableBox(walletView, func() {
+			for _, children := range walletView.Children {
+				if box, ok := children.(*widget.Box); !ok {
+					continue
+				} else {
+					if len(box.Children) != 2 {
+						continue
+					}
+					if line, ok := box.Children[1].(*canvas.Line); !ok {
+						continue
+					} else {
+						line.Hide()
+					}
+				}
+			}
+
 			txHistory.selectedWalletID = individualWalletID
 		}))
 		walletListWidget.Append(widgets.NewHSpacer(8))
