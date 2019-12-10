@@ -14,9 +14,10 @@ const (
 	sendPageInfo                  = "Input the destination \nwallet address and the amount in \nDCR to send funds."
 	sendDcr                       = "Send DCR"
 	maxAmountInDCR                = "12345678.12345678"
-	testAddress                   = "TsfDLrRkk9ciUuwfp2b8PawwnukYD7yAjGd"
+	testAddress                   = "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" // max width for a 35 alphabeth
 
 	// confirmation window
 	sendingDcrWarning      = "Your DCR will be sent and CANNOT be undone."
 	errInsufficientBalance = "Insufficient balance"
+	failedToSend           = "Failed to send. Please try again."
 )

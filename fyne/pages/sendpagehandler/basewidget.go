@@ -1,7 +1,10 @@
 package sendpagehandler
 
 import (
+	"errors"
 	"image/color"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -10,14 +13,18 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func BaseWidgets(infoIcon, moreIcon *fyne.StaticResource, amountEntry, destinationAddressEntry *widget.Entry, window fyne.Window) *widget.Box {
+func (sendPage *SendPageObjects) initBaseObjects() error {
+	icons, err := assets.GetIcons(assets.InfoIcon, assets.MoreIcon)
+	if err != nil {
+		return errors.New("Could not load base object icons")
+	}
 	// define base widget consisting of label, more icon and info button
 	sendLabel := widget.NewLabelWithStyle(sendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
 
 	dialogLabel := widget.NewLabelWithStyle(sendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
 
 	var clickabelInfoIcon *widgets.ImageButton
-	clickabelInfoIcon = widgets.NewImageButton(infoIcon, nil, func() {
+	clickabelInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
 		confirmationText := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
 		confirmationText.TextStyle.Bold = true
@@ -30,21 +37,22 @@ func BaseWidgets(infoIcon, moreIcon *fyne.StaticResource, amountEntry, destinati
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(10))
 
-		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), window.Canvas())
+		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
 	})
 
 	var clickabelMoreIcon *widgets.ImageButton
-	clickabelMoreIcon = widgets.NewImageButton(moreIcon, nil, func() {
+	clickabelMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(widgets.NewButton(color.White, "Clear all fields", func() {
-			amountEntry.SetText("")
-			destinationAddressEntry.SetText("")
+			sendPage.amountEntry.SetText("")
+			sendPage.destinationAddressEntry.SetText("")
 			popup.Hide()
 
-		}).Container, window.Canvas())
+		}).Container, sendPage.Window.Canvas())
 		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			clickabelMoreIcon).Add(fyne.NewPos(clickabelMoreIcon.MinSize().Width, clickabelMoreIcon.MinSize().Height)))
 	})
 
-	return widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, widgets.NewHSpacer(26), clickabelMoreIcon)
+	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, widgets.NewHSpacer(26), clickabelMoreIcon))
+	return err
 }

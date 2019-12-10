@@ -52,8 +52,8 @@ func NewTextWithStyle(text string, textColor color.Color, style fyne.TextStyle, 
 	return &canvas.Text{
 		Color:     textColor,
 		Text:      text,
-		TextSize:  textSize,
 		Alignment: alignment,
 		TextStyle: style,
+		TextSize:  textSize,
 	}
 }

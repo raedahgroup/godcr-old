@@ -1,8 +1,11 @@
 package sendpagehandler
 
 import (
+	"errors"
 	"image/color"
 	"log"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -15,9 +18,22 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func PasswordPopUp(initOnConfirmation func(string) error, initOnCancel, onError, extraCalls func(), conceal, reveal fyne.Resource, window fyne.Window) {
+type PasswordPopUpObjects struct {
+	InitOnConfirmation        func(string) error
+	InitOnCancel, InitOnError func()
+	ExtraCalls                func() // ExtraCalls is called when InitOnConfirmation is called and doesnt throw an error
+
+	Window fyne.Window
+}
+
+func (objects *PasswordPopUpObjects) PasswordPopUp() error {
+	icons, err := assets.GetIcons(assets.Conceal, assets.Reveal)
+	if err != nil {
+		return errors.New("Unable to load icons")
+	}
+
 	errorLabel := canvas.NewText("Wrong spending password. Please try again.", color.RGBA{237, 109, 71, 255})
-	errorLabel.Alignment = fyne.TextAlignCenter
+	errorLabel.Alignment = fyne.TextAlignLeading
 	errorLabel.TextSize = 12
 	errorLabel.Hide()
 
@@ -41,7 +57,7 @@ func PasswordPopUp(initOnConfirmation func(string) error, initOnCancel, onError,
 
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() {
 		sendingPasswordPopup.Hide()
-		initOnCancel()
+		objects.InitOnCancel()
 	})
 
 	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Confirm", func() {
@@ -49,8 +65,8 @@ func PasswordPopUp(initOnConfirmation func(string) error, initOnCancel, onError,
 		cancelButton.Disable()
 
 		var err error
-		if initOnConfirmation != nil {
-			err = initOnConfirmation(walletPassword.Text)
+		if objects.InitOnConfirmation != nil {
+			err = objects.InitOnConfirmation(walletPassword.Text)
 		}
 
 		if err != nil {
@@ -64,27 +80,27 @@ func PasswordPopUp(initOnConfirmation func(string) error, initOnCancel, onError,
 			} else {
 				log.Println(err)
 				sendingPasswordPopup.Hide()
-				if onError != nil {
-					onError()
+				if objects.InitOnError != nil {
+					objects.InitOnError()
 				}
 			}
 
 			return
 		}
 
-		extraCalls()
+		objects.ExtraCalls()
 		sendingPasswordPopup.Hide()
 	})
 	confirmButton.SetMinSize(fyne.NewSize(91, 40))
 	confirmButton.Disable()
 
 	var passwordConceal *widgets.ImageButton
-	passwordConceal = widgets.NewImageButton(reveal, nil, func() {
+	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
 		if walletPassword.Password {
-			passwordConceal.SetIcon(conceal)
+			passwordConceal.SetIcon(icons[assets.Conceal])
 			walletPassword.Password = false
 		} else {
-			passwordConceal.SetIcon(reveal)
+			passwordConceal.SetIcon(icons[assets.Reveal])
 			walletPassword.Password = true
 		}
 		// reveal texts
@@ -106,5 +122,6 @@ func PasswordPopUp(initOnConfirmation func(string) error, initOnCancel, onError,
 		widgets.NewHSpacer(24),
 	)
 
-	sendingPasswordPopup = widget.NewModalPopUp(popupContent, window.Canvas())
+	sendingPasswordPopup = widget.NewModalPopUp(popupContent, objects.Window.Canvas())
+	return nil
 }
