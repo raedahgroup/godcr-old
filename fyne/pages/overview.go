@@ -16,9 +16,12 @@ import (
 	"time"
 )
 
+const overviewPageIndex = 0
+const historyPageIndex = 1
 const PageTitle = "Overview"
 
 type Overview struct {
+	app *AppInterface
 	transactionBox *widget.Box
 	multiWallet *dcrlibwallet.MultiWallet
 	walletIds []int
@@ -30,6 +33,7 @@ type Overview struct {
 // todo: register sync progress listener on overview page to update sync progress views
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 		ov := &Overview{}
+		ov.app = app
 		app.Window.Resize(fyne.NewSize(650, 650))
 		ov.multiWallet = app.MultiWallet
 		ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
@@ -99,7 +103,7 @@ func (ov *Overview) recentTransactionBox () fyne.CanvasObject {
 			widgets.NewClickableBox(
 				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{Italic:true})),
 				func(){
-					// todo
+					ov.app.tabMenu.SelectTabIndex(historyPageIndex)
 				},
 			),
 			layout.NewSpacer(),
