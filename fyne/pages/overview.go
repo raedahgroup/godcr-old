@@ -13,6 +13,7 @@ import (
 	"image/color"
 	"sort"
 	"strings"
+	"time"
 )
 
 const PageTitle = "Overview"
@@ -21,6 +22,7 @@ type Overview struct {
 	transactionBox *widget.Box
 	multiWallet *dcrlibwallet.MultiWallet
 	walletIds []int
+	transactions []dcrlibwallet.Transaction
 }
 
 
@@ -43,7 +45,7 @@ func (ov *Overview) container () fyne.CanvasObject {
 		title(),
 		ov.balance(),
 		widgets.NewVSpacer(50),
-		pageBoxes(),
+		ov.pageBoxes(),
 		)
 }
 
@@ -64,29 +66,31 @@ func (ov *Overview) balance () fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
 }
 
-func pageBoxes() (object fyne.CanvasObject) {
+func (ov *Overview) pageBoxes() (object fyne.CanvasObject) {
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		blockStatusBox(),
 		widgets.NewVSpacer(15),
-		recentTransactionBox(),
+		ov.recentTransactionBox(),
 		)
 }
 
-func recentTransactionBox () fyne.CanvasObject {
+func (ov *Overview) recentTransactionBox () fyne.CanvasObject {
+	var err error
+	ov.transactions, err = recentTransactions(ov)
+	if err != nil {
+		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+	}
+
 	table := &widgets.Table{}
-	// add a maximum of 5 rows to the recent transaction box
-	table.NewTable(transactionRowHeader(),
-		newTransactionRow(assets.ReceiveIcon,"0.0000004 DCR", "0.0000004 DCR",
-			"yourself", "confirmed", "08-11-2019"),
-		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
-			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
-		newTransactionRow(assets.ReceiveIcon,"0.0000004 DCR",
-			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
-		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
-			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
-		newTransactionRow(assets.SendIcon,"0.0000004 DCR",
-			"0.0000004 DCR", "yourself", "confirmed", "08-11-2019"),
-	)
+	table.NewTable(transactionRowHeader())
+	for _, txn := range ov.transactions {
+		amount := dcrutil.Amount(txn.Amount).String()
+		fee := dcrutil.Amount(txn.Fee).String()
+		timeDate := time.Unix(txn.Timestamp, 0).Format("2006-01-02")
+		status := transactionStatus(ov, txn)
+		table.Append(newTransactionRow(transactionIcon(txn.Direction), amount, fee,
+			transactionDirection(txn.Direction), status, timeDate))
+	}
 
 	return widget.NewVBox(
 		table.Result,
@@ -229,15 +233,60 @@ func breakBalance (balance string) (b1, b2 string){
 	return
 }
 
-func recentTransactions (overview *Overview) error {
-	var transactions []dcrlibwallet.Transaction
+func recentTransactions (overview *Overview) (transactions []dcrlibwallet.Transaction, err error) {
 	mw := overview.multiWallet
+
+	// add recent transactions of all wallets to a single slice
 	for _, id := range overview.walletIds {
 		txns, err  := mw.WalletWithID(id).GetTransactionsRaw(0, 10, 0, true)
 		transactions = append(transactions, txns...)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	sort.SliceStable(transactions, func(i, j int) bool{
+		backTime := time.Unix(transactions[j].Timestamp, 0)
+		frontTime := time.Unix(transactions[i].Timestamp, 0)
+		return backTime.Before(frontTime)
+	})
+	if len(transactions) > 5 {
+		transactions = transactions[:5]
+	}
+	return
+}
+
+func transactionDirection (direction int32) string {
+	switch direction {
+	case -1:
+		return "invalid"
+	case 0:
+		return "sent"
+	case 1:
+		return "received"
+	case 2:
+		return "transferred"
+	default:
+		return "unknown"
+	}
+}
+
+func transactionIcon (direction int32) string {
+	switch direction {
+	case 0:
+		return assets.SendIcon
+	case 1:
+		return assets.ReceiveIcon
+	case 2:
+		return assets.ReceiveIcon
+	default:
+		return assets.InfoIcon
+	}
+}
+
+func transactionStatus (overview *Overview, txn dcrlibwallet.Transaction) string {
+	confirmations := overview.multiWallet.GetBestBlock().Height - txn.BlockHeight + 1
+	if txn.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
+		return "confirmed"
+	}
+	return "pending"
 }
