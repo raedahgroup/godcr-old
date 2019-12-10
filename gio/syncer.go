@@ -185,7 +185,7 @@ func (s *Syncer) Render(ctx *layout.Context) {
 				Top: unit.Dp(22),
 			}
 			inset.Layout(ctx, func() {
-					widgets.NewErrorLabel(fmt.Sprintf("Sync error: %s", s.syncError.Error())).Draw(ctx, widgets.AlignMiddle)
+				widgets.NewErrorLabel(fmt.Sprintf("Sync error: %s", s.syncError.Error())).Draw(ctx, widgets.AlignMiddle)
 			})
 		}
 	})

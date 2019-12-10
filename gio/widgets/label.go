@@ -8,7 +8,6 @@ import (
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/text"
-	"gioui.org/unit"
 	"gioui.org/f32"
 	"gioui.org/widget/material"
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -61,7 +60,8 @@ func (l *Label) SetText(txt string) *Label {
 }
 
 func (l *Label) SetSize(size int) *Label {
-	l.Font.Size = unit.Dp(float32(size))
+	l.Label = getLabelWithSize(l.Text, size)
+	l.size = size
 	return l
 }
 

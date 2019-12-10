@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	AddIcon *Icon
-	ReturnIcon *Icon
+	AddIcon             *Icon
+	ReturnIcon          *Icon
+	NavigationCheckIcon *Icon
 )
 
 func init()  {
@@ -19,6 +20,11 @@ func init()  {
 	}
 
 	ReturnIcon, err = NewIcon(icons.ContentReply)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	NavigationCheckIcon, err = NewIcon(icons.NavigationCheck)
 	if err != nil {
 		log.Fatal(err)
 	}

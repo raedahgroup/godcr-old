@@ -4,6 +4,7 @@ import (
 	"image"
 	"math"
 	"time"
+	"strconv"
 	"unicode/utf8"
 
 	"gioui.org/f32"
@@ -51,6 +52,7 @@ type Editor struct {
 	caretScroll  bool
 
 	char         string
+	isNumeric    bool
 
 	// carXOff is the offset to the current caret
 	// position when moving between lines.
@@ -96,6 +98,11 @@ func NewEditor() *Editor {
 
 func (e *Editor) setMask(char string) *Editor {
 	e.char = char
+	return e
+}
+
+func (e *Editor) numeric() *Editor {
+	e.isNumeric = true 
 	return e
 }
 
@@ -178,7 +185,7 @@ func (e *Editor) processKey(ctx *layout.Context) {
 			e.scroller.Stop()
 			e.append(ke.Text)
 		}
-		if e.rr.Changed() {
+		if e.realText.Changed() {
 			e.events = append(e.events, ChangeEvent{})
 		}
 	}
@@ -347,6 +354,13 @@ func (e *Editor) Text() string {
 func (e *Editor) SetText(s string) {
 	e.rr, e.realText = editBuffer{}, editBuffer{}
 	e.carXOff = 0
+
+	// return if it's a numeric input but a string is entered
+	if e.isNumeric {
+		if _, err := strconv.Atoi(s); err != nil {
+			return 
+		}
+	}
 	
 	str := s 
 	if e.char != "" {
@@ -354,6 +368,10 @@ func (e *Editor) SetText(s string) {
 	}
 	e.prepend(str)
 	e.prependRealText(s)
+}
+
+func (e *Editor) Clear() {
+	e.rr, e.realText = editBuffer{}, editBuffer{}
 }
 
 func (e *Editor) scrollBounds() image.Rectangle {
@@ -484,23 +502,29 @@ func (e *Editor) append(s string) {
 		return
 	}
 
-	str := s 
+	// return if it's a numeric input but a string is entered
+	if e.isNumeric {
+		if _, err := strconv.Atoi(s); err != nil {
+			return 
+		}
+	}
+	
+
+	/**str := s 
 	if e.char != "" {
 		str = e.char 
 	}
-
-	e.prepend(str)
-	e.prependRealText(s)
+*/
+	e.prepend(s)
 	e.rr.caret += len(s)
 	e.realText.caret += len(s)
 }
 
-func (e *Editor) prepend(s string) {
+func (e *Editor) prepend(s string) {	
 	str := s 
 	if e.char != "" {
 		str = e.char 
 	}
-
 	
 	e.rr.prepend(str)
 	e.prependRealText(s)

@@ -13,7 +13,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/op/paint"
 	"gioui.org/widget/material"
-	
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -39,8 +38,8 @@ type (
 )
 
 const (
-	windowWidth  = 450
-	windowHeight = 350
+	windowWidth  = 520
+	windowHeight = 500
 
 	navSectionWidth = 120
 

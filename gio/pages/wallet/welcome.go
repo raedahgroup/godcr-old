@@ -46,7 +46,7 @@ func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), chan
 
 	createButtonSection := stack.Rigid(ctx, func() {
 		inset := layout.Inset{
-			Top: unit.Dp(160),
+			Top: unit.Dp(280),
 		}
 		inset.Layout(ctx, func() {
 			w.createWalletButton.Draw(ctx, widgets.AlignLeft, func(){
@@ -57,7 +57,7 @@ func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), chan
 
 	restoreButtonSection := stack.Rigid(ctx, func() {
 		inset := layout.Inset{
-			Top: unit.Dp(210),
+			Top: unit.Dp(330),
 		}
 		inset.Layout(ctx, func() {
 			w.restoreWalletButton.Draw(ctx, widgets.AlignLeft, func(){

@@ -134,12 +134,12 @@ func (b *Button) Draw(ctx *layout.Context, alignment Alignment, onClick func()) 
 	})
 	bg := st.Expand(ctx, func() {
 		rr := float32(ctx.Px(unit.Dp(4)))
-		rrect(ctx.Ops,
+		Rrect(ctx.Ops,
 			float32(ctx.Constraints.Width.Min),
 			float32(ctx.Constraints.Height.Min),
 			rr, rr, rr, rr,
 		)
-		fill(ctx, bgcol)
+		Fill(ctx, bgcol)
 		for _, c := range b.button.History() {
 			drawInk(ctx, c)
 		}
@@ -205,12 +205,12 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme, alignm
 	bg := stack.Expand(ctx, func(){
 		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 		rr := float32(ctx.Px(unit.Dp(4)))
-		rrect(ctx.Ops,
+		Rrect(ctx.Ops,
 			float32(ctx.Constraints.Width.Min),
 			float32(ctx.Constraints.Height.Min),
 			rr, rr, rr, rr,
 		)
-		fill(ctx, bgcol)
+		Fill(ctx, bgcol)
 
 		clickDimensionSize.X = ctx.Dimensions.Size.X
 		pointer.RectAreaOp{Rect: image.Rectangle{Max: clickDimensionSize}}.Add(ctx.Ops)
@@ -267,13 +267,13 @@ func drawInk(ctx *layout.Context, c widget.Click) {
 		X: -rr,
 		Y: -rr,
 	}).Add(ctx.Ops)
-	rrect(ctx.Ops, float32(size), float32(size), rr, rr, rr, rr)
+	Rrect(ctx.Ops, float32(size), float32(size), rr, rr, rr, rr)
 	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(size), Y: float32(size)}}}.Add(ctx.Ops)
 	stack.Pop()
 	op.InvalidateOp{}.Add(ctx.Ops)
 }
 
-func fill(ctx *layout.Context, col color.RGBA) {
+func Fill(ctx *layout.Context, col color.RGBA) {
 	cs := ctx.Constraints
 	d := image.Point{X: cs.Width.Max, Y: cs.Height.Max}
 	dr := f32.Rectangle{
@@ -285,7 +285,7 @@ func fill(ctx *layout.Context, col color.RGBA) {
 }
 
 // https://pomax.github.io/bezierinfo/#circles_cubic.
-func rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
+func Rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
 	w, h := float32(width), float32(height)
 	const c = 0.55228475 // 4*(sqrt(2)-1)/3
 	var b paint.Path
