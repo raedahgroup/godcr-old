@@ -212,9 +212,13 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 
 	var txFilterDropDown *widgets.ClickableBox
 	txFilterDropDown = widgets.NewClickableBox(txFilterTab, func() {
-		txFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			txFilterDropDown).Add(fyne.NewPos(0, txFilterDropDown.Size().Height)))
-		txFilterSelectionPopup.Show()
+		if len(txFilterListWidget.Children) == 0 {
+			txFilterSelectionPopup.Hide()
+		} else {
+			txFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+				txFilterDropDown).Add(fyne.NewPos(0, txFilterDropDown.Size().Height)))
+			txFilterSelectionPopup.Show()
+		}
 	})
 
 	return walletListWidget, txFilterDropDown, ""
