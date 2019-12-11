@@ -16,25 +16,25 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
-	amountLabel := canvas.NewText("Amount", color.RGBA{61, 88, 115, 255})
+	amountLabel := canvas.NewText(constantvalues.Amount, color.RGBA{61, 88, 115, 255})
 	amountLabel.TextStyle.Bold = true
 
 	// amount entry accepts only floats
-	amountEntryExpression, err := regexp.Compile("^\\d*\\.?\\d*$")
+	amountEntryExpression, err := regexp.Compile(constantvalues.AmountRegExp)
 	if err != nil {
 		log.Println(err)
 	}
 
 	sendPage.amountEntry = widget.NewEntry()
-	sendPage.amountEntry.SetPlaceHolder(ZeroAmount)
+	sendPage.amountEntry.SetPlaceHolder(constantvalues.ZeroAmount)
 
-	sendPage.amountEntryErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
-	sendPage.amountEntryErrorLabel.TextSize = 12
+	sendPage.amountEntryErrorLabel = widgets.NewTextWithSize("", color.RGBA{237, 109, 71, 255}, constantvalues.DefaultErrTextSize)
 	sendPage.amountEntryErrorLabel.Hide()
 
 	var container *fyne.Container
@@ -55,20 +55,20 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		if numbers := strings.Split(value, "."); len(numbers) == 2 {
 			if len(numbers[1]) > 8 {
-				sendPage.showErrorLabel("Amount has more than 8 decimal places.")
+				sendPage.showErrorLabel(constantvalues.AmountDecimalPlaceErr)
 				return
 			}
 		}
 
 		amountInFloat, err := strconv.ParseFloat(value, 64)
 		if err != nil && value != "" {
-			sendPage.showErrorLabel("Could not parse float")
+			sendPage.showErrorLabel(constantvalues.ParseFloatErr)
 			return
 		}
 
 		if amountInFloat == 0.0 {
-			setLabelText(NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			sendPage.transactionSizeLabel.SetText(ZeroByte)
+			setLabelText(constantvalues.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+			sendPage.transactionSizeLabel.SetText(constantvalues.ZeroByte)
 
 			sendPage.nextButton.Disable()
 			widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
@@ -79,7 +79,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		transactionAuthor, amountInAccount := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, "")
 		if transactionAuthor == nil {
-			sendPage.showErrorLabel("unable to initialize TxAuthor")
+			sendPage.showErrorLabel(constantvalues.InitTxAuthorErr)
 
 			return
 		}
@@ -87,15 +87,14 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 		feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
 		if err != nil {
 			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				sendPage.amountEntryErrorLabel.Text = errInsufficientBalance
+				sendPage.amountEntryErrorLabel.Text = constantvalues.InsufficientBalanceErr
 				sendPage.amountEntryErrorLabel.Show()
 			} else {
-				sendPage.showErrorLabel("Could not retrieve transaction fee and size")
-				log.Println(fmt.Sprintf("could not retrieve transaction fee and size %s", err.Error()))
+				sendPage.showErrorLabel(constantvalues.TransactionFeeSizeErr)
 			}
 
-			setLabelText(NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			sendPage.transactionSizeLabel.SetText(ZeroByte)
+			setLabelText(constantvalues.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+			sendPage.transactionSizeLabel.SetText(constantvalues.ZeroByte)
 
 			sendPage.nextButton.Disable()
 			widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
@@ -109,10 +108,10 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 			sendPage.amountEntryErrorLabel.Hide()
 		}
 
-		sendPage.transactionFeeLabel.SetText(fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue))
-		sendPage.totalCostLabel.SetText(fmt.Sprintf("%f DCR", feeAndSize.Fee.DcrValue+amountInFloat))
-		sendPage.balanceAfterSendLabel.SetText(fmt.Sprintf("%f DCR", amountInAccount-(feeAndSize.Fee.DcrValue+amountInFloat)))
-		sendPage.transactionSizeLabel.SetText(fmt.Sprintf("%d bytes", feeAndSize.EstimatedSignedSize))
+		sendPage.transactionFeeLabel.SetText(fmt.Sprintf("%f %s", feeAndSize.Fee.DcrValue, constantvalues.DCR))
+		sendPage.totalCostLabel.SetText(fmt.Sprintf("%f %s", feeAndSize.Fee.DcrValue+amountInFloat, constantvalues.DCR))
+		sendPage.balanceAfterSendLabel.SetText(fmt.Sprintf("%f %s", amountInAccount-(feeAndSize.Fee.DcrValue+amountInFloat), constantvalues.DCR))
+		sendPage.transactionSizeLabel.SetText(fmt.Sprintf("%d %s", feeAndSize.EstimatedSignedSize, constantvalues.Bytes))
 
 		if sendPage.destinationAddressEntry.Text != "" && sendPage.destinationAddressErrorLabel.Hidden || sendPage.destinationAddressEntry.Hidden {
 			sendPage.nextButton.Enable()
@@ -134,7 +133,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		fyne.NewContainerWithLayout(
 			layouts.NewPasswordLayout(
-				fyne.NewSize(widget.NewLabel(maxAmountInDCR).MinSize().Width+maxButton.MinSize().Width, sendPage.amountEntry.MinSize().Height)),
+				fyne.NewSize(widget.NewLabel(constantvalues.MaxAmountAllowedInDCR).MinSize().Width+maxButton.MinSize().Width, sendPage.amountEntry.MinSize().Height)),
 			sendPage.amountEntry, maxButton.Container),
 		sendPage.amountEntryErrorLabel)
 
@@ -146,14 +145,14 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 }
 
 func (sendPage *SendPageObjects) maxButton() *widgets.Button {
-	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, "MAX", func() {
+	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, constantvalues.Max, func() {
 		transactionAuthor, _ := sendPage.initTxAuthorAndGetAmountInWalletAccount(0, "")
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
 			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				sendPage.amountEntryErrorLabel.Text = noFunds
+				sendPage.amountEntryErrorLabel.Text = constantvalues.NoFunds
 				if !sendPage.MultiWallet.IsSynced() {
-					sendPage.amountEntryErrorLabel.Text = noFundsOrNotConnected
+					sendPage.amountEntryErrorLabel.Text = constantvalues.NoFundsOrNotConnected
 				}
 
 				sendPage.amountEntryErrorLabel.Show()
@@ -175,25 +174,25 @@ func (sendPage *SendPageObjects) maxButton() *widgets.Button {
 }
 
 func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount float64, address string) (*dcrlibwallet.TxAuthor, float64) {
-	accNo, err := sendPage.Sending.selectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
+	accNo, err := sendPage.Sending.SelectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
 	if err != nil {
-		sendPage.showErrorLabel("could not retrieve account number")
+		sendPage.showErrorLabel(constantvalues.AccountNumberErr)
 		return nil, 0
 	}
 
-	transactionAuthor := sendPage.Sending.selectedWallet.NewUnsignedTx(int32(accNo), dcrlibwallet.DefaultRequiredConfirmations)
+	transactionAuthor := sendPage.Sending.SelectedWallet.NewUnsignedTx(int32(accNo), dcrlibwallet.DefaultRequiredConfirmations)
 
 	if address == "" {
-		address, err = sendPage.Sending.selectedWallet.CurrentAddress(int32(accNo))
+		address, err = sendPage.Sending.SelectedWallet.CurrentAddress(int32(accNo))
 		if err != nil {
-			sendPage.showErrorLabel("could not get temporary account for send destination")
+			sendPage.showErrorLabel(constantvalues.GettingAddressToSelfSendErr)
 			return nil, 0
 		}
 	}
 
-	accountBalance, err := sendPage.Sending.selectedWallet.GetAccountBalance(int32(accNo), dcrlibwallet.DefaultRequiredConfirmations)
+	accountBalance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(accNo), dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		sendPage.showErrorLabel("could not get account balace for send destination")
+		sendPage.showErrorLabel(constantvalues.GettingAccountBalanceErr)
 		return nil, 0
 	}
 

@@ -11,6 +11,8 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -32,8 +34,8 @@ type SendPageObjects struct {
 
 	nextButton *widgets.Button
 
-	Sending     AccountSelectorStruct
-	SelfSending AccountSelectorStruct
+	Sending     multipagecomponents.AccountSelectorStruct
+	SelfSending multipagecomponents.AccountSelectorStruct
 
 	SendPageContents *widget.Box
 
@@ -53,7 +55,7 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.SendPageContents.Append(widgets.NewVSpacer(10))
 
-	sendPage.successLabel = widgets.NewBorderedText("Transaction sent", fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
+	sendPage.successLabel = widgets.NewBorderedText(constantvalues.SuccessText, fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
 	sendPage.successLabel.Container.Hide()
 
 	sendPage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})

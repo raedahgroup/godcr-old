@@ -1,11 +1,9 @@
-package sendpagehandler
+package multipagecomponents
 
 import (
 	"errors"
 	"image/color"
 	"log"
-
-	"github.com/raedahgroup/godcr/fyne/assets"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -14,7 +12,9 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -29,10 +29,10 @@ type PasswordPopUpObjects struct {
 func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 	icons, err := assets.GetIcons(assets.Conceal, assets.Reveal)
 	if err != nil {
-		return errors.New("Unable to load icons")
+		return errors.New(constantvalues.PasswordPopupIconsErr)
 	}
 
-	errorLabel := canvas.NewText("Wrong spending password. Please try again.", color.RGBA{237, 109, 71, 255})
+	errorLabel := canvas.NewText(constantvalues.WrongPasswordErr, color.RGBA{237, 109, 71, 255})
 	errorLabel.Alignment = fyne.TextAlignLeading
 	errorLabel.TextSize = 12
 	errorLabel.Hide()
@@ -40,7 +40,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 	var confirmButton *widgets.Button
 
 	walletPassword := widget.NewPasswordEntry()
-	walletPassword.SetPlaceHolder("Spending Password")
+	walletPassword.SetPlaceHolder(constantvalues.SpendingPasswordText)
 	walletPassword.OnChanged = func(value string) {
 		if value == "" {
 			confirmButton.Disable()
@@ -52,7 +52,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 	var sendingPasswordPopup *widget.PopUp
 	var popupContent *widget.Box
 
-	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
+	cancelLabel := canvas.NewText(constantvalues.Cancel, color.RGBA{41, 112, 255, 255})
 	cancelLabel.TextStyle.Bold = true
 
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() {
@@ -60,7 +60,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 		objects.InitOnCancel()
 	})
 
-	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Confirm", func() {
+	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, constantvalues.Confirm, func() {
 		confirmButton.Disable()
 		cancelButton.Disable()
 
@@ -73,10 +73,9 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 			// do not exit password popup on invalid passphrase
 			if err.Error() == dcrlibwallet.ErrInvalidPassphrase {
 				errorLabel.Show()
-				// this is an hack as selective refresh to errorLabel doesn't work
 				popupContent.Refresh()
 				confirmButton.Enable()
-				cancelButton.Disable()
+				cancelButton.Enable()
 			} else {
 				log.Println(err)
 				sendingPasswordPopup.Hide()
@@ -111,7 +110,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 		widgets.NewHSpacer(24),
 		widget.NewVBox(
 			widgets.NewVSpacer(24),
-			widget.NewLabelWithStyle("Confirm to send", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(constantvalues.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(40),
 			fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, walletPassword.MinSize().Height)), walletPassword, passwordConceal),
 			errorLabel,

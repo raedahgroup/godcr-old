@@ -1,4 +1,4 @@
-package sendpagehandler
+package multipagecomponents
 
 import (
 	"errors"
@@ -16,11 +16,12 @@ import (
 
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 type AccountSelectorStruct struct {
-	onAccountChange         func()
+	OnAccountChange         func()
 	SendingSelectedWalletID *int
 	WalletIDs               []int
 
@@ -28,11 +29,11 @@ type AccountSelectorStruct struct {
 
 	SelectedAccountLabel        *widget.Label
 	SelectedAccountBalanceLabel *widget.Label
-	selectedWalletLabel         *canvas.Text
+	SelectedWalletLabel         *canvas.Text
 
 	PageContents *widget.Box
 
-	selectedWallet *dcrlibwallet.Wallet
+	SelectedWallet *dcrlibwallet.Wallet
 	MultiWallet    *dcrlibwallet.MultiWallet
 
 	Window fyne.Window
@@ -41,11 +42,11 @@ type AccountSelectorStruct struct {
 func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel string) (*widgets.ClickableBox, error) {
 	icons, err := assets.GetIcons(assets.ReceiveAccountIcon, assets.CollapseIcon)
 	if err != nil {
-		return nil, errors.New("Unable to load account selector icons")
+		return nil, errors.New(constantvalues.AccountSelectorIconErr)
 	}
 
-	accountSelector.selectedWallet = accountSelector.MultiWallet.WalletWithID(accountSelector.WalletIDs[0])
-	accountSelector.selectedWalletLabel = canvas.NewText(accountSelector.selectedWallet.Name, color.RGBA{137, 151, 165, 255})
+	accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(accountSelector.WalletIDs[0])
+	accountSelector.SelectedWalletLabel = canvas.NewText(accountSelector.SelectedWallet.Name, color.RGBA{137, 151, 165, 255})
 
 	dropdownContent := widget.NewVBox()
 
@@ -53,7 +54,7 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 		widgets.NewHSpacer(15),
 		widget.NewVBox(widgets.NewVSpacer(10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
 		widgets.NewHSpacer(20),
-		fyne.NewContainerWithLayout(layouts.NewVBox(12), accountSelector.SelectedAccountLabel, accountSelector.selectedWalletLabel),
+		fyne.NewContainerWithLayout(layouts.NewVBox(12), accountSelector.SelectedAccountLabel, accountSelector.SelectedWalletLabel),
 		widgets.NewHSpacer(30),
 		widget.NewVBox(widgets.NewVSpacer(4), accountSelector.SelectedAccountBalanceLabel),
 		widgets.NewHSpacer(8),
@@ -117,11 +118,11 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 	accountsBox := widget.NewVBox()
 
 	for index, account := range accounts.Acc {
-		if account.Name == "imported" {
+		if account.Name == constantvalues.Imported {
 			continue
 		}
 
-		spendableLabel := canvas.NewText("Spendable", color.Black)
+		spendableLabel := canvas.NewText(constantvalues.Spendable, color.Black)
 		spendableLabel.TextSize = 10
 
 		accountName := account.Name
@@ -170,7 +171,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 
 		accountsBox.Append(widgets.NewClickableBox(accountsView, func() {
 			*accountSelector.SendingSelectedWalletID = walletID
-			accountSelector.selectedWallet = accountSelector.MultiWallet.WalletWithID(walletID)
+			accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(walletID)
 			for _, boxes := range accountSelector.AccountBoxes {
 				for _, objectsChild := range boxes.Children {
 					if box, ok := objectsChild.(*widgets.ClickableBox); !ok {
@@ -214,11 +215,11 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			}
 
 			accountSelector.SelectedAccountLabel.SetText(accountName)
-			accountSelector.selectedWalletLabel.Text = wallet.Name
-			accountSelector.selectedWalletLabel.Refresh()
+			accountSelector.SelectedWalletLabel.Text = wallet.Name
+			accountSelector.SelectedWalletLabel.Refresh()
 
-			if accountSelector.onAccountChange != nil {
-				accountSelector.onAccountChange()
+			if accountSelector.OnAccountChange != nil {
+				accountSelector.OnAccountChange()
 			}
 			popup.Hide()
 		}))

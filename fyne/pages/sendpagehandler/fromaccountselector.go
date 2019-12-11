@@ -2,22 +2,24 @@ package sendpagehandler
 
 import (
 	"image/color"
-	"log"
+
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initFromAccountSelector() error {
-	fromLabel := widgets.NewTextWithStyle("From", color.RGBA{61, 88, 115, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 14)
+	fromLabel := widgets.NewTextWithStyle(constantvalues.FromText, color.RGBA{61, 88, 115, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)
 
-	sendPage.Sending.onAccountChange = sendPage.onAccountChange
+	sendPage.Sending.OnAccountChange = sendPage.onAccountChange
 
-	accountBox, err := sendPage.Sending.CreateAccountSelector("Sending account")
+	accountBox, err := sendPage.Sending.CreateAccountSelector(constantvalues.FromAccountSelectorPopUpHeaderLabel)
 	if err != nil { // return err if icons in account selector dont load
 		return err
 	}
@@ -29,20 +31,19 @@ func (sendPage *SendPageObjects) initFromAccountSelector() error {
 }
 
 func (sendPage *SendPageObjects) onAccountChange() {
-	accountNumber, err := sendPage.Sending.selectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
+	accountNumber, err := sendPage.Sending.SelectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
 	if err != nil {
-		sendPage.showErrorLabel("Could not get accounts")
-		log.Println("could not get accounts on account change, reason:", err.Error())
+		sendPage.showErrorLabel(constantvalues.AccountDetailsErr)
 		return
 	}
 
-	balance, err := sendPage.Sending.selectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
+	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		sendPage.showErrorLabel("could not retrieve account balance")
-		log.Println("could not retrieve account balance on account change, reason:", err.Error())
+		sendPage.showErrorLabel(constantvalues.AccountBalanceErr)
 		return
 	}
-	sendPage.SpendableLabel.Text = "Spendable: " + dcrutil.Amount(balance.Spendable).String()
+
+	sendPage.SpendableLabel.Text = constantvalues.SpendableAmountLabel + dcrutil.Amount(balance.Spendable).String()
 	sendPage.SpendableLabel.Refresh()
 
 	sendPage.transactionFeeLabel.Refresh()

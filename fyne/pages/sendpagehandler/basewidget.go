@@ -4,6 +4,8 @@ import (
 	"errors"
 	"image/color"
 
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+
 	"github.com/raedahgroup/godcr/fyne/assets"
 
 	"fyne.io/fyne"
@@ -16,22 +18,22 @@ import (
 func (sendPage *SendPageObjects) initBaseObjects() error {
 	icons, err := assets.GetIcons(assets.InfoIcon, assets.MoreIcon)
 	if err != nil {
-		return errors.New("Could not load base object icons")
+		return errors.New(constantvalues.BaseObjectsIconErr)
 	}
 	// define base widget consisting of label, more icon and info button
-	sendLabel := widget.NewLabelWithStyle(sendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+	sendLabel := widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
 
-	dialogLabel := widget.NewLabelWithStyle(sendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
+	dialogLabel := widget.NewLabelWithStyle(constantvalues.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
 
 	var clickabelInfoIcon *widgets.ImageButton
 	clickabelInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
-		confirmationText := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
+		confirmationText := canvas.NewText(constantvalues.GotIt, color.RGBA{41, 112, 255, 255})
 		confirmationText.TextStyle.Bold = true
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(12),
-			widget.NewLabelWithStyle(sendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(30),
 			dialogLabel,
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
@@ -43,7 +45,7 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 	var clickabelMoreIcon *widgets.ImageButton
 	clickabelMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
-		popup = widget.NewPopUp(widgets.NewButton(color.White, "Clear all fields", func() {
+		popup = widget.NewPopUp(widgets.NewButton(color.White, constantvalues.ClearField, func() {
 			sendPage.amountEntry.SetText("")
 			sendPage.destinationAddressEntry.SetText("")
 			popup.Hide()

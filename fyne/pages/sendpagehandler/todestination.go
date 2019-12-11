@@ -3,6 +3,8 @@ package sendpagehandler
 import (
 	"image/color"
 
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+
 	"github.com/decred/dcrd/dcrutil"
 
 	"fyne.io/fyne"
@@ -27,18 +29,18 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 	sendPage.destinationAddressEntryComponent()
 
-	sendToAccountLabel := canvas.NewText(switchToSendToAccount, color.RGBA{R: 41, G: 112, B: 255, A: 255})
+	sendToAccountLabel := canvas.NewText(constantvalues.SwitchToSendToAccount, color.RGBA{R: 41, G: 112, B: 255, A: 255})
 	sendToAccountLabel.TextSize = 12
 
 	destinationAddressContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
-		fyne.NewSize(widget.NewLabel(testAddress).MinSize().Width, sendPage.destinationAddressEntry.MinSize().Height)), sendPage.destinationAddressEntry)
+		fyne.NewSize(widget.NewLabel(constantvalues.TestAddress).MinSize().Width, sendPage.destinationAddressEntry.MinSize().Height)), sendPage.destinationAddressEntry)
 
 	spacer := widgets.NewVSpacer(10)
 
 	var container *fyne.Container
 	switchingComponentButton := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
 		if accountBox.Hidden {
-			sendToAccountLabel.Text = switchToSendToAddress
+			sendToAccountLabel.Text = constantvalues.SwitchToSendToAddress
 			accountBox.Show()
 			sendPage.destinationAddressEntry.Hide()
 			destinationAddressContainer.Hide()
@@ -52,7 +54,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 			}
 
 		} else {
-			sendToAccountLabel.Text = switchToSendToAccount
+			sendToAccountLabel.Text = constantvalues.SwitchToSendToAccount
 			sendPage.destinationAddressEntry.Show()
 			destinationAddressContainer.Show()
 			accountBox.Hide()
@@ -92,7 +94,7 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 	sendPage.destinationAddressErrorLabel.Hide()
 
 	sendPage.destinationAddressEntry = widget.NewEntry()
-	sendPage.destinationAddressEntry.SetPlaceHolder(destinationAddressPlaceHolder)
+	sendPage.destinationAddressEntry.SetPlaceHolder(constantvalues.DestinationAddressPlaceHolder)
 
 	sendPage.destinationAddressEntry.OnChanged = func(address string) {
 		if sendPage.destinationAddressEntry.Text == "" {
@@ -103,10 +105,10 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 
 		_, err := dcrutil.DecodeAddress(address)
 		if err != nil {
-			sendPage.destinationAddressErrorLabel.Text = invalidAddress
+			sendPage.destinationAddressErrorLabel.Text = constantvalues.InvalidAddress
 			sendPage.destinationAddressErrorLabel.Show()
-			setLabelText(NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			setLabelText(ZeroByte, sendPage.transactionSizeLabel)
+			setLabelText(constantvalues.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+			setLabelText(constantvalues.ZeroByte, sendPage.transactionSizeLabel)
 
 		} else {
 			sendPage.destinationAddressErrorLabel.Hide()

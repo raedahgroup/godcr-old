@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raedahgroup/godcr/fyne/assets"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
+	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -25,17 +26,15 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 
 	icons, err := assets.GetIcons(assets.CollapseDropdown, assets.ExpandDropdown, assets.DownArrow, assets.Alert, assets.Reveal)
 	if err != nil {
-		return errors.New("Unable to load icons")
+		return errors.New(constantvalues.ConfirmationWindowIconsErr)
 	}
 
 	var confirmationPagePopup *widget.PopUp
 
-	confirmLabel := canvas.NewText("Confirm to send", color.Black)
-	confirmLabel.TextStyle.Bold = true
-	confirmLabel.TextSize = 20
+	confirmLabel := widgets.NewTextWithStyle(constantvalues.ConfirmToSend, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 20)
 
 	// check if truly it shows without passing widget renderer
-	errorLabelContainer := widgets.NewBorderedText(failedToSend, fyne.NewSize(20, 16), color.RGBA{237, 109, 71, 255})
+	errorLabelContainer := widgets.NewBorderedText(constantvalues.FailedToSend, fyne.NewSize(20, 16), color.RGBA{237, 109, 71, 255})
 	errorLabelContainer.Container.Hide()
 
 	accountSelectionPopupHeader := widget.NewHBox(
@@ -45,19 +44,14 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		widgets.NewHSpacer(170),
 	)
 	sendingSelectedWalletLabel := widget.NewLabelWithStyle(fmt.Sprintf("%s (%s)",
-		sendPage.Sending.SelectedAccountLabel.Text, sendPage.Sending.selectedWalletLabel.Text), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+		sendPage.Sending.SelectedAccountLabel.Text, sendPage.Sending.SelectedWalletLabel.Text), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
 
 	trailingDotForAmount := strings.Split(sendPage.amountEntry.Text, ".")
 	// if amount is a float
 	amountLabelBox := fyne.NewContainerWithLayout(layouts.NewHBox(0))
 	if len(trailingDotForAmount) > 1 && len(trailingDotForAmount[1]) > 2 {
-		trailingAmountLabel := canvas.NewText(trailingDotForAmount[1][2:]+" DCR", color.Black)
-		trailingAmountLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
-		trailingAmountLabel.TextSize = 15
-
-		leadingAmountLabel := canvas.NewText(trailingDotForAmount[0]+"."+trailingDotForAmount[1][:2], color.Black)
-		leadingAmountLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
-		leadingAmountLabel.TextSize = 20
+		trailingAmountLabel := widgets.NewTextWithStyle(fmt.Sprintf("%s %s", trailingDotForAmount[1][2:], constantvalues.DCR), color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 15)
+		leadingAmountLabel := widgets.NewTextWithStyle(trailingDotForAmount[0]+"."+trailingDotForAmount[1][:2], color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 20)
 
 		amountLabelBox.AddObject(leadingAmountLabel)
 		amountLabelBox.AddObject(trailingAmountLabel)
@@ -67,7 +61,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		amountLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
 		amountLabel.TextSize = 20
 
-		DCRLabel := canvas.NewText("DCR", color.Black)
+		DCRLabel := canvas.NewText(constantvalues.DCR, color.Black)
 		DCRLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
 		DCRLabel.TextSize = 15
 
@@ -76,32 +70,32 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		amountLabelBox.AddObject(DCRLabel)
 	}
 
-	toDestination := "To destination address"
+	toDestination := constantvalues.ToDesinationAddress
 	destination := sendPage.destinationAddressEntry.Text
 	destinationAddress := sendPage.destinationAddressEntry.Text
 
 	if sendPage.destinationAddressEntry.Hidden {
-		toDestination = "To self"
-		destination = sendPage.SelfSending.SelectedAccountLabel.Text + " (" + sendPage.SelfSending.selectedWalletLabel.Text + ")"
+		toDestination = constantvalues.ToSelf
+		destination = sendPage.SelfSending.SelectedAccountLabel.Text + " (" + sendPage.SelfSending.SelectedWalletLabel.Text + ")"
 
-		accNo, err := sendPage.SelfSending.selectedWallet.AccountNumber(sendPage.SelfSending.SelectedAccountLabel.Text)
+		accNo, err := sendPage.SelfSending.SelectedWallet.AccountNumber(sendPage.SelfSending.SelectedAccountLabel.Text)
 		if err != nil {
-			sendPage.showErrorLabel("Could not retrieve account number")
+			sendPage.showErrorLabel(constantvalues.AccountNumberErr)
 			return err
 		}
 
-		destinationAddress, err = sendPage.SelfSending.selectedWallet.CurrentAddress(int32(accNo))
+		destinationAddress, err = sendPage.SelfSending.SelectedWallet.CurrentAddress(int32(accNo))
 		if err != nil {
-			sendPage.showErrorLabel("Could not generate address to self send")
+			sendPage.showErrorLabel(constantvalues.GettingAddressToSelfSendErr)
 			return err
 		}
 	}
 
-	sendButton := widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Send "+sendPage.amountEntry.Text+" DCR", func() {
+	sendButton := widgets.NewButton(color.RGBA{41, 112, 255, 255}, fmt.Sprintf("%s %s %s", constantvalues.Send, sendPage.amountEntry.Text, constantvalues.DCR), func() {
 		onConfirm := func(password string) error {
 			amountInFloat, err := strconv.ParseFloat(sendPage.amountEntry.Text, 64)
 			if err != nil {
-				sendPage.showErrorLabel("Could not parse float")
+				sendPage.showErrorLabel(constantvalues.ParseFloatErr)
 				return err
 			}
 
@@ -132,7 +126,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 			})
 		}
 
-		passwordPopUp := PasswordPopUpObjects{
+		passwordPopUp := multipagecomponents.PasswordPopUpObjects{
 			onConfirm, onCancel, onError, extraCalls, sendPage.Window,
 		}
 
@@ -153,7 +147,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		widgets.NewVSpacer(8),
 		widget.NewHBox(layout.NewSpacer(), errorLabelContainer.Container, layout.NewSpacer()),
 		widgets.NewVSpacer(16),
-		widget.NewHBox(layout.NewSpacer(), widget.NewLabel("Sending from"), sendingSelectedWalletLabel, layout.NewSpacer()),
+		widget.NewHBox(layout.NewSpacer(), widget.NewLabel(constantvalues.SendingFrom), sendingSelectedWalletLabel, layout.NewSpacer()),
 		widget.NewHBox(layout.NewSpacer(), amountLabelBox, layout.NewSpacer()),
 		widgets.NewVSpacer(10),
 		widget.NewHBox(layout.NewSpacer(), widget.NewIcon(icons[assets.DownArrow]), layout.NewSpacer()),
@@ -162,16 +156,16 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		widget.NewLabelWithStyle(destination, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widgets.NewVSpacer(8),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
-		widget.NewHBox(canvas.NewText("Transaction fee", color.RGBA{89, 109, 129, 255}),
+		widget.NewHBox(canvas.NewText(constantvalues.TransactionFee, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.transactionFeeLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
-		widget.NewHBox(canvas.NewText("Total cost", color.RGBA{89, 109, 129, 255}),
+		widget.NewHBox(canvas.NewText(constantvalues.TotalCost, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.totalCostLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
-		widget.NewHBox(canvas.NewText("Balance after send", color.RGBA{89, 109, 129, 255}),
+		widget.NewHBox(canvas.NewText(constantvalues.BalanceAfterSend, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.balanceAfterSendLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 		widget.NewHBox(layout.NewSpacer(),
-			widget.NewIcon(icons[assets.Alert]), widget.NewLabelWithStyle(sendingDcrWarning, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
+			widget.NewIcon(icons[assets.Alert]), widget.NewLabelWithStyle(constantvalues.SendingDcrWarning, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
 		sendButton.Container,
 		widgets.NewVSpacer(18),
 	)

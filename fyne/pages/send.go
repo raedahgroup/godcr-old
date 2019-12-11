@@ -5,6 +5,8 @@ import (
 	"log"
 	"sort"
 
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
@@ -12,6 +14,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
 	"github.com/raedahgroup/godcr/fyne/pages/sendpagehandler"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -56,7 +59,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	initDynamicContent(openedWalletIDs, selectedWalletAccounts)
 
-	sendingFromAccountSelectorObjects := sendpagehandler.AccountSelectorStruct{
+	sendingFromAccountSelectorObjects := multipagecomponents.AccountSelectorStruct{
 		MultiWallet:             multiWallet,
 		WalletIDs:               openedWalletIDs,
 		SendingSelectedWalletID: &sendPage.sendingSelectedWalletID,
@@ -69,7 +72,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		Window:       window,
 	}
 
-	sendingToAccountSelectorObjects := sendpagehandler.AccountSelectorStruct{
+	sendingToAccountSelectorObjects := multipagecomponents.AccountSelectorStruct{
 		MultiWallet:             multiWallet,
 		WalletIDs:               openedWalletIDs,
 		SendingSelectedWalletID: &sendPage.selfSendingSelectedWalletID,
@@ -107,7 +110,7 @@ func initDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwal
 	sendPage.selfSendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 	sendPage.sendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
-	sendPage.spendableLabel = canvas.NewText("Spendable: "+dcrutil.Amount(selectedWalletAccounts.Acc[0].Balance.Spendable).String(), color.Black)
+	sendPage.spendableLabel = canvas.NewText(constantvalues.SpendableAmountLabel+dcrutil.Amount(selectedWalletAccounts.Acc[0].Balance.Spendable).String(), color.Black)
 	sendPage.spendableLabel.TextSize = 12
 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)

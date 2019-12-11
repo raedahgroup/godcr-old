@@ -5,6 +5,8 @@ import (
 	"log"
 	"sort"
 
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
@@ -87,7 +89,7 @@ func UpdateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAcco
 	sendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
 
 	if spendableLabel != nil {
-		spendableLabel.Text = "Spendable: " + dcrutil.Amount(account.Balance.Spendable).String()
+		spendableLabel.Text = constantvalues.SpendableAmountLabel + dcrutil.Amount(account.Balance.Spendable).String()
 		canvas.Refresh(spendableLabel)
 	}
 
