@@ -153,6 +153,7 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 		errorMessage := fmt.Sprintf("Cannot load txHistory page. Error getting transaction count for filter All: %s", err.Error())
 		return nil, nil, errorMessage
 	}
+
 	txHistory.allTxCount = txCountForFilter
 
 	selectedTxFilterLabel := widget.NewLabel(fmt.Sprintf("%s (%d)", "All", txCountForFilter))
@@ -165,7 +166,6 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 				filterName, err.Error())
 			return nil, nil, errorMessage
 		}
-
 		if txCountForFilter > 0 {
 			filter := fmt.Sprintf("%s (%d)", filterName, txCountForFilter)
 			txFilterView := widget.NewHBox(
@@ -388,13 +388,11 @@ func updateTable(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabM
 
 func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, errorLabel *widget.Label, tabMenu *widget.TabContainer) {
 	messageLabel := widget.NewLabelWithStyle("Fetching data..", fyne.TextAlignCenter, fyne.TextStyle{})
-	if messageLabel.Hidden == false {
-		time.AfterFunc(time.Millisecond*300, func() {
-			if tabMenu.CurrentTabIndex() == 1 {
-				messageLabel.Hide()
-			}
-		})
-	}
+	time.AfterFunc(time.Millisecond*300, func() {
+		if tabMenu.CurrentTabIndex() == 1 {
+			messageLabel.SetText("")
+		}
+	})
 
 	var txDetailsPopUp *widget.PopUp
 
@@ -408,11 +406,8 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 			widgets.NewHSpacer(10),
 			widget.NewHBox(
 				txDetailslabel,
-				widgets.NewHSpacer(150),
-				messageLabel,
-				layout.NewSpacer(),
+				widgets.NewHSpacer(txDetailslabel.MinSize().Width+180),
 				minimizeIcon,
-				widgets.NewHSpacer(30),
 			),
 			errorMessageLabel,
 		)
@@ -456,9 +451,9 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	copyAbleText := func(text string, copyAble bool) *widgets.ClickableBox {
 		var textToCopy *canvas.Text
 		if copyAble {
-			textToCopy = canvas.NewText(text, color.RGBA{0, 255, 255, 1})
+			textToCopy = canvas.NewText(text, color.RGBA{0x44, 0x8a, 0xff, 0xff})
 		} else {
-			textToCopy = canvas.NewText(text, color.RGBA{255, 255, 255, 1})
+			textToCopy = canvas.NewText(text, color.RGBA{0x00, 0x00, 0x00, 0xff})
 		}
 		textToCopy.TextSize = 14
 		textToCopy.Alignment = fyne.TextAlignTrailing
@@ -468,15 +463,12 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 				messageLabel.SetText("Data Copied")
 				clipboard := window.Clipboard()
 				clipboard.SetContent(text)
-				messageLabel.Show()
 
-				if messageLabel.Hidden == false {
-					time.AfterFunc(time.Second*2, func() {
-						if tabMenu.CurrentTabIndex() == 1 {
-							messageLabel.Hide()
-						}
-					})
-				}
+				time.AfterFunc(time.Second*2, func() {
+					if tabMenu.CurrentTabIndex() == 1 {
+						messageLabel.SetText("")
+					}
+				})
 			},
 		)
 	}
@@ -583,23 +575,18 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	)
 
 	txDetailsScrollContainer := widget.NewScrollContainer(txDetailsData)
-
+	//fixing exit icon
 	txDetailsOutput := widget.NewVBox(
 		widgets.NewHSpacer(10),
 		widget.NewHBox(
 			txDetailslabel,
-			widgets.NewHSpacer(150),
-			messageLabel,
-			layout.NewSpacer(),
+			widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width-txDetailslabel.MinSize().Width-30),
 			minimizeIcon,
-			widgets.NewHSpacer(30),
 		),
-		widgets.NewHSpacer(10),
+		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width/2-30), messageLabel),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
-		widgets.NewHSpacer(10),
+		widgets.NewVSpacer(10),
 	)
 
-	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)),
-		window.Canvas())
-	txDetailsPopUp.Show()
+	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)), window.Canvas())
 }
