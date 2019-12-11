@@ -232,7 +232,7 @@ func breakBalance (balance string) (b1, b2 string){
 	balanceParts := strings.Split(balance, ".")
 	b1 = balanceParts[0]
 	b2 = balanceParts[1]
-	b1 = b1 + "." + b2[:3]
+	b1 = b1 + "." + b2[:2]
 	b2 = b2[2:]
 	return
 }
