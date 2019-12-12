@@ -16,7 +16,7 @@ import (
 
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

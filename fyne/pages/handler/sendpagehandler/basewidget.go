@@ -4,14 +4,13 @@ import (
 	"errors"
 	"image/color"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-
-	"github.com/raedahgroup/godcr/fyne/assets"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

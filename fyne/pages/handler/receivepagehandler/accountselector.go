@@ -5,7 +5,7 @@ import (
 
 	"fyne.io/fyne"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

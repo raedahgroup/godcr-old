@@ -3,16 +3,15 @@ package sendpagehandler
 import (
 	"image/color"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-
-	"github.com/decred/dcrd/dcrutil"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
+	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/fyne/widgets"
+
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 )
 
 // sendingToDestinationComponents constitutes all components that composes sending coins to users or self.

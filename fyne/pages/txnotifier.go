@@ -11,7 +11,7 @@ import (
 	"github.com/gen2brain/beeep"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
 )
 
 type multiWalletTxListener struct {

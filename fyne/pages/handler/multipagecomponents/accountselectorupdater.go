@@ -5,8 +5,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
@@ -14,6 +12,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

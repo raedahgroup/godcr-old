@@ -86,8 +86,12 @@ const (
 	ParseFloatErr               = "Could not parse float"
 	PasswordPopupIconsErr       = "Unable to load password popup icons"
 	QrEncodeErr                 = "Could not generate encoded QR Image"
+	ReceivePageLoadErr          = "Unable to load Receive Page components"
 	SelectedWalletInvalidErr    = "Selected self sending wallet is invalid"
+	SendPageLoadErr             = "Unable to load Send Page components"
 	TransactionFeeSizeErr       = "Could not retrieve transaction fee and size"
 	TransactionDetailsIconErr   = "Could not load transaction details icons"
 	WrongPasswordErr            = "Wrong spending password. Please try again"
+	WalletsErr                  = "Could not retrieve wallets"
+	LoadMultiWalletErr          = "Unable to load MultiWallet"
 )

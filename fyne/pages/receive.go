@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"log"
 	"sort"
 
 	"fyne.io/fyne"
@@ -10,8 +9,9 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
-	"github.com/raedahgroup/godcr/fyne/pages/receivepagehandler"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/receivepagehandler"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -28,19 +28,18 @@ var receivePage receivePageDynamicData
 func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) fyne.CanvasObject {
 	openedWalletIDs := multiWallet.OpenedWalletIDsRaw()
 	if len(openedWalletIDs) == 0 {
-		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(constantvalues.WalletsErr, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	}
 	sort.Ints(openedWalletIDs)
 
 	var selectedWallet = multiWallet.WalletWithID(openedWalletIDs[0])
 	if selectedWallet == nil {
-		return widget.NewLabelWithStyle("Unable to load MultiWallet", fyne.TextAlignLeading, fyne.TextStyle{})
+		return widget.NewLabelWithStyle(constantvalues.LoadMultiWalletErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
 	selectedWalletAccounts, err := selectedWallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		log.Println("Error while getting accounts for wallet", err.Error())
-		return widget.NewLabel("Error while getting accounts for wallet")
+		return widget.NewLabel(constantvalues.AccountDetailsErr)
 	}
 
 	initReceivePageDynamicContent(openedWalletIDs, selectedWalletAccounts)
@@ -67,7 +66,7 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 
 	err = initReceivePage.InitReceivePage()
 	if err != nil {
-		return widget.NewLabelWithStyle("Unable to load Receive Page components, "+err.Error(), fyne.TextAlignLeading, fyne.TextStyle{})
+		return widget.NewLabelWithStyle(constantvalues.ReceivePageLoadErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
 	return widget.NewHBox(widgets.NewHSpacer(20), receivePage.Contents)

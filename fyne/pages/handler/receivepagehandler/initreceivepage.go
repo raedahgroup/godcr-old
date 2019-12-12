@@ -11,8 +11,8 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/skip2/go-qrcode"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

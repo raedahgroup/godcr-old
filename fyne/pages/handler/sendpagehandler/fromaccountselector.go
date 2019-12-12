@@ -3,14 +3,13 @@ package sendpagehandler
 import (
 	"image/color"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
+	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
