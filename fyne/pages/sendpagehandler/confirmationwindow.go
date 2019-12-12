@@ -17,7 +17,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

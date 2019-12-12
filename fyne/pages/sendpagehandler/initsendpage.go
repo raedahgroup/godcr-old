@@ -12,7 +12,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

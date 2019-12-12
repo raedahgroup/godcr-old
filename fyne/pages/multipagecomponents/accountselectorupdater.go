@@ -1,4 +1,4 @@
-package sendpagehandler
+package multipagecomponents
 
 import (
 	"image/color"
@@ -17,7 +17,7 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func UpdateContentOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel, sendingSelectedAccountBalanceLabel *widget.Label,
+func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel, sendingSelectedAccountBalanceLabel *widget.Label,
 	spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID int, contents *widget.Box) {
 
 	if contents == nil {

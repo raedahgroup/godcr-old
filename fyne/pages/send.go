@@ -5,8 +5,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
@@ -14,7 +12,8 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents.go"
+	"github.com/raedahgroup/godcr/fyne/pages/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
 	"github.com/raedahgroup/godcr/fyne/pages/sendpagehandler"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -57,7 +56,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 		return widget.NewLabel("Error while getting accounts for wallet")
 	}
 
-	initDynamicContent(openedWalletIDs, selectedWalletAccounts)
+	initSendPageDynamicContent(openedWalletIDs, selectedWalletAccounts)
 
 	sendingFromAccountSelectorObjects := multipagecomponents.AccountSelectorStruct{
 		MultiWallet:             multiWallet,
@@ -95,13 +94,13 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	}
 	err = initSendPage.InitAllSendPageComponents()
 	if err != nil {
-		return widget.NewLabelWithStyle("Unable to load Send page components, "+err.Error(), fyne.TextAlignLeading, fyne.TextStyle{})
+		return widget.NewLabelWithStyle("Unable to load Send Page components, "+err.Error(), fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
 	return widget.NewHBox(widgets.NewHSpacer(30), initSendPage.SendPageContents)
 }
 
-func initDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
+func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
 	sendPage.Contents = widget.NewVBox()
 
 	sendPage.sendingSelectedWalletID = openedWalletIDs[0]

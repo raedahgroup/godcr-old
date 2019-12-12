@@ -61,6 +61,13 @@ const (
 	Confirm              = "Confirm"
 	SpendingPasswordText = "Spending Password"
 
+	// Receive Page
+	ReceivePageLabel      = "Receive DCR"
+	ReceivingAccountLabel = "Receiving account"
+	TapToCopy             = "(Tap to copy)"
+	GenerateNewAddress    = "Generate new address"
+	ReceivePageInfo       = "Each time you request a \npayment, a new address is \ncreated to protect your privacy."
+
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
 	AccountSelectorIconErr      = "Could not retrieve account selector icons"
@@ -71,12 +78,14 @@ const (
 	ConfirmationWindowIconsErr  = "Could not retrieve confirmation window icons"
 	ConfirmationWindowErr       = "Could not view confirmation window"
 	GettingAccountBalanceErr    = "Could not retrieve account balace for send destination"
+	GettingAddress              = "Could not generate address"
 	GettingAddressToSelfSendErr = "Could not generate address to send to self"
 	InsufficientBalanceErr      = "Insufficient balance"
 	InitTxAuthorErr             = "unable to initialize TxAuthor"
 	NotConnectedErr             = "Not Connected To Decred Network"
 	ParseFloatErr               = "Could not parse float"
 	PasswordPopupIconsErr       = "Unable to load password popup icons"
+	QrEncodeErr                 = "Could not generate encoded QR Image"
 	SelectedWalletInvalidErr    = "Selected self sending wallet is invalid"
 	TransactionFeeSizeErr       = "Could not retrieve transaction fee and size"
 	TransactionDetailsIconErr   = "Could not load transaction details icons"

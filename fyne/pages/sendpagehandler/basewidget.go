@@ -23,11 +23,11 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 	// define base widget consisting of label, more icon and info button
 	sendLabel := widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
 
-	dialogLabel := widget.NewLabelWithStyle(constantvalues.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-
-	var clickabelInfoIcon *widgets.ImageButton
-	clickabelInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
+	var clickableInfoIcon *widgets.ImageButton
+	clickableInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
+
+		dialogLabel := widget.NewLabelWithStyle(constantvalues.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
 		confirmationText := canvas.NewText(constantvalues.GotIt, color.RGBA{41, 112, 255, 255})
 		confirmationText.TextStyle.Bold = true
 
@@ -42,19 +42,20 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
 	})
 
-	var clickabelMoreIcon *widgets.ImageButton
-	clickabelMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
+	var clickableMoreIcon *widgets.ImageButton
+	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
-		popup = widget.NewPopUp(widgets.NewButton(color.White, constantvalues.ClearField, func() {
-			sendPage.amountEntry.SetText("")
-			sendPage.destinationAddressEntry.SetText("")
-			popup.Hide()
+		popup = widget.NewPopUpAtPosition(
+			widgets.NewButton(color.White, constantvalues.ClearField, func() {
+				sendPage.amountEntry.SetText("")
+				sendPage.destinationAddressEntry.SetText("")
+				popup.Hide()
 
-		}).Container, sendPage.Window.Canvas())
-		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			clickabelMoreIcon).Add(fyne.NewPos(clickabelMoreIcon.MinSize().Width, clickabelMoreIcon.MinSize().Height)))
+			}).Container, sendPage.Window.Canvas(), fyne.CurrentApp().Driver().AbsolutePositionForObject(
+				clickableMoreIcon).Add(fyne.NewPos(clickableMoreIcon.MinSize().Width, clickableMoreIcon.MinSize().Height)))
+
 	})
 
-	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickabelInfoIcon, widgets.NewHSpacer(26), clickabelMoreIcon))
+	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon))
 	return err
 }
