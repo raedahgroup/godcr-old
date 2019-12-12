@@ -101,8 +101,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 }
 
 func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
-	sendPage.Contents = widget.NewVBox()
-
 	sendPage.sendingSelectedWalletID = openedWalletIDs[0]
 	sendPage.selfSendingSelectedWalletID = openedWalletIDs[0]
 
@@ -117,4 +115,6 @@ func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *d
 
 	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
 	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+
+	sendPage.Contents = widget.NewVBox()
 }

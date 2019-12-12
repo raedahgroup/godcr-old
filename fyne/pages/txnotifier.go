@@ -75,7 +75,8 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
-
+		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountLabel,
+			receivePage.selectedAccountBalanceLabel, nil, app.multiWallet, receivePage.selectedWalletID, receivePage.Contents)
 	} else if app.tabMenu.CurrentTabIndex() == 4 {
 
 	}
@@ -91,7 +92,10 @@ func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash stri
 
 		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
 			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
+
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
+		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountLabel,
+			receivePage.selectedAccountBalanceLabel, nil, app.multiWallet, receivePage.selectedWalletID, receivePage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 4 {
 
