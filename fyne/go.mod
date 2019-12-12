@@ -15,7 +15,6 @@ require (
 	github.com/raedahgroup/dcrlibwallet v0.0.0-00010101000000-000000000000
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/tadvi/systray v0.0.0-20190226123456-11a2b8fa57af // indirect
-	golang.org/x/text v0.3.2
 	gopkg.in/toast.v1 v1.0.0-20180812000517-0a84660828b2 // indirect
 )
 

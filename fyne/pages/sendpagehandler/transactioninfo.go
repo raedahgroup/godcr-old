@@ -32,15 +32,15 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 	var transactionFeeBox *widget.Box
 
 	costAndBalanceAfterSendBox := widget.NewVBox()
-	var transactionSizeDropdown *widgets.ClickableBox
+	var transactionSizeDropdown *widgets.ImageButton
 	var container *fyne.Container
 
-	transactionSizeDropdown = widgets.NewClickableBox(widget.NewHBox(widget.NewIcon(icons[assets.ExpandDropdown])), func() {
+	transactionSizeDropdown = widgets.NewImageButton(icons[assets.ExpandDropdown], nil, func() {
 		if paintedtransactionInfoform.Hidden {
-			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.CollapseDropdown])
+			transactionSizeDropdown.SetIcon(icons[assets.CollapseDropdown])
 			paintedtransactionInfoform.Show()
 		} else {
-			transactionSizeDropdown.Box.Children[0] = widget.NewIcon(icons[assets.ExpandDropdown])
+			transactionSizeDropdown.SetIcon(icons[assets.ExpandDropdown])
 			paintedtransactionInfoform.Hide()
 		}
 

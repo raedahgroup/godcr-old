@@ -20,7 +20,7 @@ type ReceivePageObjects struct {
 	Accounts    multipagecomponents.AccountSelectorStruct
 	MultiWallet *dcrlibwallet.MultiWallet
 
-	qrImage             *canvas.Image
+	qrImage             *widget.Icon
 	address             *canvas.Text
 	addressCopiedLabel  *widgets.BorderedText
 	errorLabel          *widgets.BorderedText
@@ -42,7 +42,7 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 	receivePage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})
 	receivePage.errorLabel.Container.Hide()
 
-	receivePage.addressCopiedLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})
+	receivePage.addressCopiedLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
 	receivePage.addressCopiedLabel.Container.Hide()
 
 	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.errorLabel.Container, layout.NewSpacer()))
@@ -51,6 +51,8 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 	if err != nil {
 		return err
 	}
+
+	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.addressCopiedLabel.Container, layout.NewSpacer()))
 
 	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(10))
 	receivePage.initQrImageAndAddress()
@@ -81,7 +83,9 @@ func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 		}
 	}
 
+	receivePage.address.Refresh()
 	receivePage.address.Text = addr
+	receivePage.address.Refresh()
 
 	imgBytes, err := qrcode.Encode(addr, qrcode.High, 256)
 	if err != nil {
@@ -89,9 +93,7 @@ func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 		return
 	}
 
-	receivePage.qrImage.Resource = fyne.NewStaticResource("", imgBytes)
+	receivePage.qrImage.SetResource(fyne.NewStaticResource("Text", imgBytes))
 
-	receivePage.qrImage.Refresh()
-	receivePage.address.Refresh()
 	receivePage.ReceivePageContents.Refresh()
 }
