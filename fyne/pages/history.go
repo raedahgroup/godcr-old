@@ -56,7 +56,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 	}
 
-	txSortFilterDropDown, errorMessage := txSortDropDown(app.Window)
+	txSortFilterDropDown, errorMessage := txSortDropDown(app.MultiWallet, app.Window, app.tabMenu)
 	if errorMessage != "" {
 		errorHandler(errorMessage, txHistory.errorLabel)
 		txHistoryPageOutput.Append(txHistory.errorLabel)
@@ -224,7 +224,8 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 	return walletListWidget, txFilterDropDown, ""
 }
 
-func txSortDropDown(window fyne.Window) (*widgets.ClickableBox, string) {
+func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) (*widgets.ClickableBox, string) {
+	var txTable widgets.Table
 	var allTxSortNames = []string{"Newest", "Oldest"}
 	var allTxSortFilters = map[string]bool{
 		"Newest": true,
@@ -248,6 +249,11 @@ func txSortDropDown(window fyne.Window) (*widgets.ClickableBox, string) {
 		txSortFilterListWidget.Append(widgets.NewClickableBox(txSortView, func() {
 			selectedTxSortFilterLabel.SetText(newSortName)
 			txHistory.selectedtxSort = txSort
+
+			txTableHeader(multiWallet, &txTable, window)
+			txHistory.txTable.Result.Children = txTable.Result.Children
+			fetchTx(&txTable, 0, txHistory.selectedFilterId, multiWallet, window, tabMenu, false)
+			widget.Refresh(txHistory.txTable.Result)
 			txSortFilterSelectionPopup.Hide()
 		}))
 	}
