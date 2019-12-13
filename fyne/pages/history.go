@@ -31,6 +31,7 @@ type txHistoryPageData struct {
 	TotalTxFetched   int32
 	selectedWalletID int
 	selectedtxSort   bool
+	icons            map[string]*fyne.StaticResource
 }
 
 var txHistory txHistoryPageData
@@ -41,19 +42,20 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 
 	txHistory.selectedFilterId = dcrlibwallet.TxFilterAll
 
-	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon)
+	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %s", err.Error())
 		errorHandler(errorMessage, txHistory.errorLabel)
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistory.errorLabel)
 	}
+	txHistory.icons = icons
 
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 
-	// infoIcon holds receiving decred hint-text pop-up
+	// infoIcon holds receiving decred hint-text
 	var infoIcon *widgets.ImageButton
 	info := "- Tap Hash to view Transaction details.\n\n- Tap Blue Text to Copy."
-	infoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
+	infoIcon = widgets.NewImageButton(txHistory.icons[assets.InfoIcon], nil, func() {
 		infoLabel := widget.NewLabelWithStyle(info, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
 		gotItLabel := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
 		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
@@ -71,21 +73,20 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 		infoPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(infoIcon).Add(fyne.NewPos(0, infoIcon.Size().Height)))
 	})
 
-	/// added info popup and cleaned up code.
 	txHistoryPageOutput := widget.NewVBox(
 		widgets.NewVSpacer(5),
 		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(110), infoIcon),
 		widgets.NewVSpacer(5),
 	)
 
-	walletList, txFilterDropDown, errorMessage := txFilterDropDown(app.MultiWallet, app.Window, app.tabMenu, icons)
+	walletList, txFilterDropDown, errorMessage := txFilterDropDown(app.MultiWallet, app.Window, app.tabMenu)
 	if errorMessage != "" {
 		errorHandler(errorMessage, txHistory.errorLabel)
 		txHistoryPageOutput.Append(txHistory.errorLabel)
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 	}
 
-	txSortFilterDropDown, errorMessage := txSortDropDown(app.MultiWallet, app.Window, app.tabMenu, icons)
+	txSortFilterDropDown, errorMessage := txSortDropDown(app.MultiWallet, app.Window, app.tabMenu)
 	if errorMessage != "" {
 		errorHandler(errorMessage, txHistory.errorLabel)
 		txHistoryPageOutput.Append(txHistory.errorLabel)
@@ -105,7 +106,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 }
 
-func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer, icons map[string]*fyne.StaticResource) (*widget.Box, *widgets.ClickableBox, string) {
+func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) (*widget.Box, *widgets.ClickableBox, string) {
 	var txTable widgets.Table
 
 	walletsID := multiWallet.OpenedWalletIDsRaw()
@@ -227,16 +228,10 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 	txFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txFilterListWidget), window.Canvas())
 	txFilterSelectionPopup.Hide()
 
-	// icons, err := assets.GetIcons(assets.CollapseIcon)
-	// if err != nil {
-	// 	errorMessage := fmt.Sprintf("Error: %s", err.Error())
-	// 	return nil, nil, errorMessage
-	// }
-
 	txFilterTab := widget.NewHBox(
 		selectedTxFilterLabel,
 		widgets.NewHSpacer(60),
-		widget.NewIcon(icons[assets.CollapseIcon]),
+		widget.NewIcon(txHistory.icons[assets.CollapseIcon]),
 	)
 
 	var txFilterDropDown *widgets.ClickableBox
@@ -253,7 +248,7 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 	return walletListWidget, txFilterDropDown, ""
 }
 
-func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer, icons map[string]*fyne.StaticResource) (*widgets.ClickableBox, string) {
+func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) (*widgets.ClickableBox, string) {
 	var txTable widgets.Table
 	var allTxSortNames = []string{"Newest", "Oldest"}
 	var allTxSortFilters = map[string]bool{
@@ -291,16 +286,10 @@ func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, t
 	txSortFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txSortFilterListWidget), window.Canvas())
 	txSortFilterSelectionPopup.Hide()
 
-	// icons, err := assets.GetIcons(assets.CollapseIcon)
-	// if err != nil {
-	// 	errorMessage := fmt.Sprintf("Error: %s", err.Error())
-	// 	return nil, errorMessage
-	// }
-
 	txSortFilterTab := widget.NewHBox(
 		selectedTxSortFilterLabel,
 		widgets.NewHSpacer(10),
-		widget.NewIcon(icons[assets.CollapseIcon]),
+		widget.NewIcon(txHistory.icons[assets.CollapseIcon]),
 	)
 
 	var txSortFilterDropDown *widgets.ClickableBox
@@ -362,9 +351,11 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, multiWallet *dcrlib
 
 		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
 		txForTrimmedHash := tx.Hash
+		txDirectionLabel := widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{})
+		txDirectionIcon := widget.NewIcon(txHistory.icons[txDirectionIcon(tx.Direction)])
 		txBox = append(txBox, widget.NewHBox(
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{}),
+			widget.NewHBox(txDirectionIcon, txDirectionLabel),
 			widget.NewLabelWithStyle(status, fyne.TextAlignLeading, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
@@ -628,4 +619,17 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	)
 
 	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)), window.Canvas())
+}
+
+func txDirectionIcon(direction int32) string {
+	switch direction {
+	case 0:
+		return assets.SendIcon
+	case 1:
+		return assets.ReceiveIcon
+	case 2:
+		return assets.ReceiveIcon
+	default:
+		return assets.InfoIcon
+	}
 }
