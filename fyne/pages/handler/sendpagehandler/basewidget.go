@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
@@ -20,22 +19,22 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 		return errors.New(constantvalues.BaseObjectsIconErr)
 	}
 	// define base widget consisting of label, more icon and info button
-	sendLabel := widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
+	sendLabel := widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
 	var clickableInfoIcon *widgets.ImageButton
 	clickableInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
 
 		dialogLabel := widget.NewLabelWithStyle(constantvalues.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-		confirmationText := canvas.NewText(constantvalues.GotIt, color.RGBA{41, 112, 255, 255})
-		confirmationText.TextStyle.Bold = true
+		confirmationText := widgets.NewTextWithStyle(constantvalues.GotIt, color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(12),
 			widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(30),
+			widgets.NewVSpacer(10),
 			dialogLabel,
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
+			widgets.NewVSpacer(20),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(10))
 
 		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
