@@ -79,7 +79,7 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.initAmountEntryComponents()
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(20))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(15))
 
 	err = sendPage.initTransactionDetails()
 	if err != nil {

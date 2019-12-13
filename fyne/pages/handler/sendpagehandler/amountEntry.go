@@ -37,8 +37,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 	sendPage.amountEntryErrorLabel = widgets.NewTextWithSize("", color.RGBA{237, 109, 71, 255}, constantvalues.DefaultErrTextSize)
 	sendPage.amountEntryErrorLabel.Hide()
 
-	var container *fyne.Container
-
 	sendPage.amountEntry.OnChanged = func(value string) {
 		if len(value) > 0 && !amountEntryExpression.MatchString(value) {
 			if len(value) == 1 {
@@ -72,7 +70,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 			sendPage.nextButton.Disable()
 			widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
-			container.Refresh()
 			sendPage.SendPageContents.Refresh()
 			return
 		}
@@ -98,7 +95,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 			sendPage.nextButton.Disable()
 			widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
-			container.Refresh()
 			sendPage.SendPageContents.Refresh()
 
 			return
@@ -121,7 +117,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		sendPage.errorLabel.Container.Hide()
 		widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
-		container.Refresh()
 		sendPage.SendPageContents.Refresh()
 	}
 
@@ -137,11 +132,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 			sendPage.amountEntry, maxButton.Container),
 		sendPage.amountEntryErrorLabel)
 
-	container = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(
-		fyne.Max(amountEntryComponents.MinSize().Width, 312), amountEntryComponents.MinSize().Height)),
-		amountEntryComponents)
-
-	sendPage.SendPageContents.Append(container)
+	sendPage.SendPageContents.Append(amountEntryComponents)
 }
 
 func (sendPage *SendPageObjects) maxButton() *widgets.Button {

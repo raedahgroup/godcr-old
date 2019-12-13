@@ -61,7 +61,7 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 	costAndBalanceAfterSendBox.Append(transactionFeeBox)
 
 	costAndBalanceAfterSendBox.Append(paintedtransactionInfoform)
-	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(10))
+	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(30))
 
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(
 		canvas.NewText(constantvalues.TotalCost, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.totalCostLabel))
