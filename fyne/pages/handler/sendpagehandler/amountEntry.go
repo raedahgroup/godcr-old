@@ -76,8 +76,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		transactionAuthor, amountInAccount := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, "")
 		if transactionAuthor == nil {
-			sendPage.showErrorLabel(constantvalues.InitTxAuthorErr)
-
 			return
 		}
 
@@ -104,10 +102,13 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 			sendPage.amountEntryErrorLabel.Hide()
 		}
 
-		sendPage.transactionFeeLabel.SetText(fmt.Sprintf("%f %s", feeAndSize.Fee.DcrValue, constantvalues.DCR))
-		sendPage.totalCostLabel.SetText(fmt.Sprintf("%f %s", feeAndSize.Fee.DcrValue+amountInFloat, constantvalues.DCR))
-		sendPage.balanceAfterSendLabel.SetText(fmt.Sprintf("%f %s", amountInAccount-(feeAndSize.Fee.DcrValue+amountInFloat), constantvalues.DCR))
+		totalCostInAtom := feeAndSize.Fee.AtomValue + dcrlibwallet.AmountAtom(amountInFloat)
+		balanceAfterSendInAtom := amountInAccount - totalCostInAtom
+
+		sendPage.transactionFeeLabel.SetText(fmt.Sprintf("%s %s", strconv.FormatFloat(feeAndSize.Fee.DcrValue, 'f', -1, 64), constantvalues.DCR))
+		sendPage.totalCostLabel.SetText(fmt.Sprintf("%s %s", strconv.FormatFloat(dcrlibwallet.AmountCoin(totalCostInAtom), 'f', -1, 64), constantvalues.DCR))
 		sendPage.transactionSizeLabel.SetText(fmt.Sprintf("%d %s", feeAndSize.EstimatedSignedSize, constantvalues.Bytes))
+		sendPage.balanceAfterSendLabel.SetText(fmt.Sprintf("%s %s", strconv.FormatFloat(dcrlibwallet.AmountCoin(balanceAfterSendInAtom), 'f', -1, 64), constantvalues.DCR))
 
 		if sendPage.destinationAddressEntry.Text != "" && sendPage.destinationAddressErrorLabel.Hidden || sendPage.destinationAddressEntry.Hidden {
 			sendPage.nextButton.Enable()
@@ -116,7 +117,6 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 		}
 
 		sendPage.errorLabel.Container.Hide()
-		widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
 		sendPage.SendPageContents.Refresh()
 	}
 
@@ -138,6 +138,10 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 func (sendPage *SendPageObjects) maxButton() *widgets.Button {
 	maxButton := widgets.NewButton(color.RGBA{61, 88, 115, 255}, constantvalues.Max, func() {
 		transactionAuthor, _ := sendPage.initTxAuthorAndGetAmountInWalletAccount(0, "")
+		if transactionAuthor == nil {
+			return
+		}
+
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
 		if err != nil {
 			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
@@ -148,14 +152,14 @@ func (sendPage *SendPageObjects) maxButton() *widgets.Button {
 
 				sendPage.amountEntryErrorLabel.Show()
 				sendPage.SendPageContents.Refresh()
-				return
 			}
+			return
 		}
 
 		sendPage.amountEntryErrorLabel.Hide()
 		sendPage.SendPageContents.Refresh()
 
-		sendPage.amountEntry.SetText(fmt.Sprintf("%f", maxAmount.DcrValue-0.000012))
+		sendPage.amountEntry.SetText(strconv.FormatFloat(maxAmount.DcrValue, 'f', -1, 64))
 	})
 
 	maxButton.SetTextSize(9)
@@ -164,7 +168,7 @@ func (sendPage *SendPageObjects) maxButton() *widgets.Button {
 	return maxButton
 }
 
-func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount float64, address string) (*dcrlibwallet.TxAuthor, float64) {
+func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount float64, address string) (*dcrlibwallet.TxAuthor, int64) {
 	accNo, err := sendPage.Sending.SelectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
 	if err != nil {
 		sendPage.showErrorLabel(constantvalues.AccountNumberErr)
@@ -187,13 +191,20 @@ func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount 
 		return nil, 0
 	}
 
-	amountInAccount := dcrlibwallet.AmountCoin(accountBalance.Spendable)
+	amountInAccount := accountBalance.Spendable
 
-	var sendMax bool
-	if amount == 0 {
-		sendMax = true
+	transactionAuthor.AddSendDestination(address, 0, true)
+	maxAmnt, err := transactionAuthor.EstimateMaxSendAmount()
+	if err != nil {
+		sendPage.showErrorLabel(constantvalues.MaxAmntErr)
+		return nil, 0
 	}
-	transactionAuthor.AddSendDestination(address, dcrlibwallet.AmountAtom(amount), sendMax)
+
+	if amount == maxAmnt.DcrValue || amount == 0 {
+		transactionAuthor.UpdateSendDestination(0, address, dcrlibwallet.AmountAtom(amount), true)
+	} else {
+		transactionAuthor.UpdateSendDestination(0, address, dcrlibwallet.AmountAtom(amount), false)
+	}
 
 	return transactionAuthor, amountInAccount
 }
