@@ -123,7 +123,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 	maxButton := sendPage.maxButton()
 
 	amountEntryComponents := widget.NewVBox(
-		widget.NewHBox(amountLabel, layout.NewSpacer(), sendPage.SpendableLabel),
+		widget.NewHBox(amountLabel, layout.NewSpacer(), sendPage.SpendableLabel, widgets.NewHSpacer(20)),
 		widgets.NewVSpacer(10),
 
 		fyne.NewContainerWithLayout(

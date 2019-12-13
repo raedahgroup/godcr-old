@@ -55,6 +55,6 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 
 	})
 
-	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon))
+	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(15), clickableMoreIcon))
 	return err
 }

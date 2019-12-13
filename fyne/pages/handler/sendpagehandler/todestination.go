@@ -73,7 +73,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	})
 
 	box := widget.NewVBox(
-		widget.NewHBox(fromLabel, layout.NewSpacer(), switchingComponentButton),
+		widget.NewHBox(fromLabel, layout.NewSpacer(), switchingComponentButton, widgets.NewHSpacer(20)),
 		accountBox,
 		destinationAddressContainer,
 		sendPage.destinationAddressErrorLabel,
