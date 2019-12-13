@@ -2,21 +2,23 @@ package pages
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/widgets"
+
 	"image/color"
-	"sort"
-	"strings"
-	"time"
 )
 
-const overviewPageIndex = 0
 const historyPageIndex = 1
 const PageTitle = "Overview"
 
@@ -27,7 +29,6 @@ type Overview struct {
 	walletIds []int
 	transactions []dcrlibwallet.Transaction
 }
-
 
 // todo: display overview page (include sync progress UI elements)
 // todo: register sync progress listener on overview page to update sync progress views
@@ -90,10 +91,10 @@ func (ov *Overview) recentTransactionBox () fyne.CanvasObject {
 	for _, txn := range ov.transactions {
 		amount := dcrutil.Amount(txn.Amount).String()
 		fee := dcrutil.Amount(txn.Fee).String()
-		timeDate := time.Unix(txn.Timestamp, 0).Format("2006-01-02")
+		timeDate := dcrlibwallet.ExtractDateOrTime(txn.Timestamp)
 		status := transactionStatus(ov, txn)
 		table.Append(newTransactionRow(transactionIcon(txn.Direction), amount, fee,
-			transactionDirection(txn.Direction), status, timeDate))
+			dcrlibwallet.TransactionDirectionName(txn.Direction), status, timeDate))
 	}
 
 	return widget.NewVBox(
@@ -257,21 +258,6 @@ func recentTransactions (overview *Overview) (transactions []dcrlibwallet.Transa
 		transactions = transactions[:5]
 	}
 	return
-}
-
-func transactionDirection (direction int32) string {
-	switch direction {
-	case -1:
-		return "invalid"
-	case 0:
-		return "sent"
-	case 1:
-		return "received"
-	case 2:
-		return "transferred"
-	default:
-		return "unknown"
-	}
 }
 
 func transactionIcon (direction int32) string {
