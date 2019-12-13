@@ -57,13 +57,9 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		amountLabelBox.AddObject(trailingAmountLabel)
 
 	} else {
-		amountLabel := canvas.NewText(sendPage.amountEntry.Text, color.Black)
-		amountLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
-		amountLabel.TextSize = 20
+		amountLabel := widgets.NewTextWithStyle(sendPage.amountEntry.Text, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 20)
 
-		DCRLabel := canvas.NewText(constantvalues.DCR, color.Black)
-		DCRLabel.TextStyle = fyne.TextStyle{Bold: true, Monospace: true}
-		DCRLabel.TextSize = 15
+		DCRLabel := widgets.NewTextWithStyle(constantvalues.DCR, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 15)
 
 		amountLabelBox.Layout = layouts.NewHBox(5)
 		amountLabelBox.AddObject(amountLabel)
@@ -157,15 +153,15 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		widgets.NewVSpacer(8),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 		widget.NewHBox(canvas.NewText(constantvalues.TransactionFee, color.RGBA{89, 109, 129, 255}),
-			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.transactionFeeLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
+			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.transactionFeeLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 		widget.NewHBox(canvas.NewText(constantvalues.TotalCost, color.RGBA{89, 109, 129, 255}),
-			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.totalCostLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
+			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.totalCostLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)),
 		widget.NewHBox(canvas.NewText(constantvalues.BalanceAfterSend, color.RGBA{89, 109, 129, 255}),
-			layout.NewSpacer(), widget.NewLabelWithStyle(sendPage.balanceAfterSendLabel.Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
+			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.balanceAfterSendLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
 		widget.NewHBox(layout.NewSpacer(),
-			widget.NewIcon(icons[assets.Alert]), widget.NewLabelWithStyle(constantvalues.SendingDcrWarning, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), layout.NewSpacer()),
+			widget.NewIcon(icons[assets.Alert]), widgets.NewTextWithStyle(constantvalues.SendingDcrWarning, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize), layout.NewSpacer()),
 		sendButton.Container,
 		widgets.NewVSpacer(18),
 	)

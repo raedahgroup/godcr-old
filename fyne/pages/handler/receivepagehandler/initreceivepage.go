@@ -52,7 +52,7 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 		return err
 	}
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.addressCopiedLabel.Container, layout.NewSpacer()))
+	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(50), receivePage.addressCopiedLabel.Container, layout.NewSpacer()))
 
 	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(10))
 	receivePage.initQrImageAndAddress()
