@@ -44,13 +44,14 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
 
-		popup = widget.NewPopUpAtPosition(
+		popup = widget.NewPopUp(
 			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(constantvalues.GenerateNewAddress)), func() {
 				receivePage.generateAddressAndQR(true)
 				popup.Hide()
 
-			}), receivePage.Window.Canvas(), fyne.CurrentApp().Driver().AbsolutePositionForObject(
-				clickableMoreIcon).Add(fyne.NewPos(clickableMoreIcon.MinSize().Width, clickableMoreIcon.MinSize().Height)))
+			}), receivePage.Window.Canvas())
+		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			clickableMoreIcon).Add(fyne.NewPos(10, clickableMoreIcon.MinSize().Height+5).Subtract(fyne.NewPos(popup.MinSize().Width, 0))))
 	})
 
 	receivePage.ReceivePageContents.Append(widget.NewHBox(receivePageLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(26), clickableMoreIcon))

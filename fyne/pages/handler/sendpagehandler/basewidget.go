@@ -37,20 +37,22 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(10))
 
-		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
+		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(20), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
 	})
 
 	var clickableMoreIcon *widgets.ImageButton
 	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
-		popup = widget.NewPopUpAtPosition(
-			widgets.NewButton(color.White, constantvalues.ClearField, func() {
+		popup = widget.NewPopUp(
+			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(constantvalues.ClearField)), func() {
 				sendPage.amountEntry.SetText("")
 				sendPage.destinationAddressEntry.SetText("")
 				popup.Hide()
 
-			}).Container, sendPage.Window.Canvas(), fyne.CurrentApp().Driver().AbsolutePositionForObject(
-				clickableMoreIcon).Add(fyne.NewPos(clickableMoreIcon.MinSize().Width, clickableMoreIcon.MinSize().Height)))
+			}), sendPage.Window.Canvas())
+
+		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			clickableMoreIcon).Add(fyne.NewPos(10, clickableMoreIcon.MinSize().Height+5).Subtract(fyne.NewPos(popup.MinSize().Width, 0))))
 
 	})
 
