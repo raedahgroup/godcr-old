@@ -19,9 +19,9 @@ import (
 )
 
 const historyPageIndex = 1
-const PageTitle = "Overview"
+const PageTitle = "overview"
 
-type Overview struct {
+type overview struct {
 	app            *AppInterface
 	transactionBox *widget.Box
 	multiWallet    *dcrlibwallet.MultiWallet
@@ -32,7 +32,7 @@ type Overview struct {
 // todo: display overview page (include sync progress UI elements)
 // todo: register sync progress listener on overview page to update sync progress views
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
-	ov := &Overview{}
+	ov := &overview{}
 	ov.app = app
 	app.Window.Resize(fyne.NewSize(650, 650))
 	ov.multiWallet = app.MultiWallet
@@ -44,7 +44,7 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
 }
 
-func (ov *Overview) container() fyne.CanvasObject {
+func (ov *overview) container() fyne.CanvasObject {
 	return widget.NewVBox(
 		title(),
 		ov.balance(),
@@ -58,7 +58,7 @@ func title() fyne.CanvasObject {
 	return widget.NewHBox(titleWidget)
 }
 
-func (ov *Overview) balance() fyne.CanvasObject {
+func (ov *overview) balance() fyne.CanvasObject {
 	tb, err := totalBalance(ov)
 	if err != nil {
 		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
@@ -70,7 +70,7 @@ func (ov *Overview) balance() fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
 }
 
-func (ov *Overview) pageBoxes() (object fyne.CanvasObject) {
+func (ov *overview) pageBoxes() (object fyne.CanvasObject) {
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		blockStatusBox(),
 		widgets.NewVSpacer(15),
@@ -78,7 +78,7 @@ func (ov *Overview) pageBoxes() (object fyne.CanvasObject) {
 	)
 }
 
-func (ov *Overview) recentTransactionBox() fyne.CanvasObject {
+func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	var err error
 	ov.transactions, err = recentTransactions(ov)
 	if err != nil {
@@ -212,7 +212,7 @@ func transactionRowHeader() *widget.Box {
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
 }
 
-func totalBalance(overview *Overview) (balance string, err error) {
+func totalBalance(overview *overview) (balance string, err error) {
 	var totalWalletBalance int64
 	mw := overview.multiWallet
 	for _, id := range overview.walletIds {
@@ -239,7 +239,7 @@ func breakBalance(balance string) (b1, b2 string) {
 	return
 }
 
-func recentTransactions(overview *Overview) (transactions []dcrlibwallet.Transaction, err error) {
+func recentTransactions(overview *overview) (transactions []dcrlibwallet.Transaction, err error) {
 	mw := overview.multiWallet
 
 	// add recent transactions of all wallets to a single slice
@@ -274,7 +274,7 @@ func transactionIcon(direction int32) string {
 	}
 }
 
-func transactionStatus(overview *Overview, txn dcrlibwallet.Transaction) string {
+func transactionStatus(overview *overview, txn dcrlibwallet.Transaction) string {
 	confirmations := overview.multiWallet.GetBestBlock().Height - txn.BlockHeight + 1
 	if txn.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
 		return "confirmed"
