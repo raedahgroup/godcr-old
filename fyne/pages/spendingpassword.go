@@ -13,7 +13,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -45,7 +44,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		newWindow.SetFixedSize(true)
 	}
 
-	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal, assets.Loader)
+	icons, err := assets.GetIcons(assets.Loader)
 	if err != nil {
 		return app.displayErrorPage(err.Error())
 	}
@@ -157,41 +156,15 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 
 	createButton.Disable()
 
-	var passwordConceal *widgets.ImageButton
-	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if password.Password {
-			passwordConceal.SetIcon(icons[assets.Conceal])
-			password.Password = false
-		} else {
-			passwordConceal.SetIcon(icons[assets.Reveal])
-			password.Password = true
-		}
-		// reveal texts
-		password.SetText(password.Text)
-	})
-
-	var confirmPasswordConceal *widgets.ImageButton
-	confirmPasswordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if confirmPassword.Password {
-			confirmPasswordConceal.SetIcon(icons[assets.Conceal])
-			confirmPassword.Password = false
-		} else {
-			confirmPasswordConceal.SetIcon(icons[assets.Reveal])
-			confirmPassword.Password = true
-		}
-		// reveal texts
-		confirmPassword.SetText(confirmPassword.Text)
-	})
-
 	return widget.NewVBox(widgets.NewVSpacer(10),
-		fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, password.MinSize().Height)), password, passwordConceal),
+		password,
 		passwordLength,
 		widget.NewHBox(layout.NewSpacer(),
 			fyne.NewContainerWithLayout(
 				layout.NewFixedGridLayout(fyne.NewSize(150, widget.NewLabel("0%").MinSize().Height)), passwordStrength)),
-		fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, confirmPassword.MinSize().Height)), confirmPassword, confirmPasswordConceal),
+		confirmPassword,
 		confirmPasswordLength,
-		widget.NewHBox(layout.NewSpacer(), cancelButton, widgets.NewHSpacer(24), createButton),
+		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(170), cancelButton, widgets.NewHSpacer(24), createButton),
 		errorLabel,
 		widgets.NewVSpacer(10))
 }

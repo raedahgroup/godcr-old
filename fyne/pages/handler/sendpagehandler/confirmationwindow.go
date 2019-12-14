@@ -126,10 +126,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 			onConfirm, onCancel, onError, extraCalls, sendPage.Window,
 		}
 
-		err := passwordPopUp.PasswordPopUp()
-		if err != nil {
-
-		}
+		passwordPopUp.PasswordPopUp()
 	})
 
 	sendButton.SetMinSize(fyne.NewSize(312, 56))

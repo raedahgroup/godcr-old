@@ -1,7 +1,6 @@
 package multipagecomponents
 
 import (
-	"errors"
 	"image/color"
 	"log"
 
@@ -12,8 +11,6 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -26,12 +23,7 @@ type PasswordPopUpObjects struct {
 	Window fyne.Window
 }
 
-func (objects *PasswordPopUpObjects) PasswordPopUp() error {
-	icons, err := assets.GetIcons(assets.Conceal, assets.Reveal)
-	if err != nil {
-		return errors.New(constantvalues.PasswordPopupIconsErr)
-	}
-
+func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	errorLabel := canvas.NewText(constantvalues.WrongPasswordErr, color.RGBA{237, 109, 71, 255})
 	errorLabel.Alignment = fyne.TextAlignLeading
 	errorLabel.TextSize = 12
@@ -93,34 +85,21 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() error {
 	confirmButton.SetMinSize(fyne.NewSize(91, 40))
 	confirmButton.Disable()
 
-	var passwordConceal *widgets.ImageButton
-	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if walletPassword.Password {
-			passwordConceal.SetIcon(icons[assets.Conceal])
-			walletPassword.Password = false
-		} else {
-			passwordConceal.SetIcon(icons[assets.Reveal])
-			walletPassword.Password = true
-		}
-		// reveal texts
-		walletPassword.SetText(walletPassword.Text)
-	})
-
 	popupContent = widget.NewHBox(
 		widgets.NewHSpacer(24),
 		widget.NewVBox(
 			widgets.NewVSpacer(24),
 			widget.NewLabelWithStyle(constantvalues.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(40),
-			fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, walletPassword.MinSize().Height)), walletPassword, passwordConceal),
+			walletPassword,
 			errorLabel,
 			widgets.NewVSpacer(20),
-			widget.NewHBox(layout.NewSpacer(), cancelButton, widgets.NewHSpacer(24), confirmButton.Container),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(140), cancelButton, widgets.NewHSpacer(24), confirmButton.Container),
 			widgets.NewVSpacer(24),
 		),
+
 		widgets.NewHSpacer(24),
 	)
 
 	sendingPasswordPopup = widget.NewModalPopUp(popupContent, objects.Window.Canvas())
-	return nil
 }

@@ -64,12 +64,11 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 			return
 		}
 
-		if amountInFloat == 0.0 {
+		if amountInFloat == 0.0 || !sendPage.destinationAddressErrorLabel.Hidden || !sendPage.amountEntryErrorLabel.Hidden {
 			setLabelText(constantvalues.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
 			sendPage.transactionSizeLabel.SetText(constantvalues.ZeroByte)
 
 			sendPage.nextButton.Disable()
-			widgets.Refresher(sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel, sendPage.transactionSizeLabel)
 			sendPage.SendPageContents.Refresh()
 			return
 		}
