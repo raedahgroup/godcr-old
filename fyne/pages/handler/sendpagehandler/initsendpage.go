@@ -11,8 +11,8 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -27,10 +27,11 @@ type SendPageObjects struct {
 	amountEntryErrorLabel *canvas.Text
 	SpendableLabel        *canvas.Text
 
-	transactionFeeLabel   *widget.Label
-	transactionSizeLabel  *widget.Label
-	totalCostLabel        *widget.Label
-	balanceAfterSendLabel *widget.Label
+	transactionFeeLabel      *widget.Label
+	transactionSizeLabel     *widget.Label
+	totalCostLabel           *widget.Label
+	balanceAfterSendLabel    *widget.Label
+	transactionInfoContainer *fyne.Container
 
 	nextButton *widgets.Button
 
@@ -55,7 +56,7 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.SendPageContents.Append(widgets.NewVSpacer(10))
 
-	sendPage.successLabel = widgets.NewBorderedText(constantvalues.SuccessText, fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
+	sendPage.successLabel = widgets.NewBorderedText(values.SuccessText, fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
 	sendPage.successLabel.Container.Hide()
 
 	sendPage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})

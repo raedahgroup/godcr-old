@@ -9,28 +9,28 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initBaseObjects() error {
 	icons, err := assets.GetIcons(assets.InfoIcon, assets.MoreIcon)
 	if err != nil {
-		return errors.New(constantvalues.BaseObjectsIconErr)
+		return errors.New(values.BaseObjectsIconErr)
 	}
 	// define base widget consisting of label, more icon and info button
-	sendLabel := widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	sendLabel := widget.NewLabelWithStyle(values.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
 	var clickableInfoIcon *widgets.ImageButton
 	clickableInfoIcon = widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
 
-		dialogLabel := widget.NewLabelWithStyle(constantvalues.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-		confirmationText := widgets.NewTextWithStyle(constantvalues.GotIt, color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, constantvalues.DefaultTextSize)
+		dialogLabel := widget.NewLabelWithStyle(values.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
+		confirmationText := widgets.NewTextWithStyle(values.GotIt, color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(12),
-			widget.NewLabelWithStyle(constantvalues.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(values.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(10),
 			dialogLabel,
 			widgets.NewVSpacer(20),
@@ -44,7 +44,7 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(
-			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(constantvalues.ClearField)), func() {
+			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(values.ClearField)), func() {
 				sendPage.amountEntry.SetText("")
 				sendPage.destinationAddressEntry.SetText("")
 				popup.Hide()

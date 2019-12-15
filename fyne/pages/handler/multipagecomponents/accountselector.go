@@ -16,7 +16,7 @@ import (
 
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -42,7 +42,7 @@ type AccountSelectorStruct struct {
 func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel string) (*widgets.ClickableBox, error) {
 	icons, err := assets.GetIcons(assets.ReceiveAccountIcon, assets.CollapseIcon)
 	if err != nil {
-		return nil, errors.New(constantvalues.AccountSelectorIconErr)
+		return nil, errors.New(values.AccountSelectorIconErr)
 	}
 
 	accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(accountSelector.WalletIDs[0])
@@ -118,11 +118,11 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 	accountsBox := widget.NewVBox()
 
 	for index, account := range accounts.Acc {
-		if account.Name == constantvalues.Imported {
+		if account.Name == values.Imported {
 			continue
 		}
 
-		spendableLabel := canvas.NewText(constantvalues.Spendable, color.Black)
+		spendableLabel := canvas.NewText(values.Spendable, color.Black)
 		spendableLabel.TextSize = 10
 
 		accountName := account.Name

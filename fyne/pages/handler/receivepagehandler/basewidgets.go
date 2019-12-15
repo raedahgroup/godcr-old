@@ -10,28 +10,28 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (receivePage *ReceivePageObjects) initBaseObjects() error {
 	icons, err := assets.GetIcons(assets.InfoIcon, assets.MoreIcon)
 	if err != nil {
-		return errors.New(constantvalues.BaseObjectsIconErr)
+		return errors.New(values.BaseObjectsIconErr)
 	}
 
-	receivePageLabel := widget.NewLabelWithStyle(constantvalues.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	receivePageLabel := widget.NewLabelWithStyle(values.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
 	clickableInfoIcon := widgets.NewImageButton(icons[assets.InfoIcon], nil, func() {
 		var popup *widget.PopUp
 
-		dialogLabel := widget.NewLabelWithStyle(constantvalues.ReceivePageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-		confirmationText := canvas.NewText(constantvalues.GotIt, color.RGBA{41, 112, 255, 255})
+		dialogLabel := widget.NewLabelWithStyle(values.ReceivePageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
+		confirmationText := canvas.NewText(values.GotIt, color.RGBA{41, 112, 255, 255})
 		confirmationText.TextStyle.Bold = true
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(12),
-			widget.NewLabelWithStyle(constantvalues.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(values.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(30),
 			dialogLabel,
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
@@ -45,7 +45,7 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 		var popup *widget.PopUp
 
 		popup = widget.NewPopUp(
-			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(constantvalues.GenerateNewAddress)), func() {
+			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(values.GenerateNewAddress)), func() {
 				receivePage.generateAddressAndQR(true)
 				popup.Hide()
 

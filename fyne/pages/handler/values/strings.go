@@ -1,4 +1,4 @@
-package constantvalues
+package values
 
 const (
 	//General

@@ -12,7 +12,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -88,7 +88,7 @@ func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSele
 	sendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
 
 	if spendableLabel != nil {
-		spendableLabel.Text = constantvalues.SpendableAmountLabel + dcrutil.Amount(account.Balance.Spendable).String()
+		spendableLabel.Text = values.SpendableAmountLabel + dcrutil.Amount(account.Balance.Spendable).String()
 		canvas.Refresh(spendableLabel)
 	}
 

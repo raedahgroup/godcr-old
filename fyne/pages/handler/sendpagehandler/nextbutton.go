@@ -5,26 +5,25 @@ import (
 
 	"fyne.io/fyne"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initNextButton() {
-
 	sendPage.nextButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, "Next", func() {
 		if sendPage.MultiWallet.ConnectedPeers() <= 0 {
-			sendPage.showErrorLabel(constantvalues.NotConnectedErr)
+			sendPage.showErrorLabel(values.NotConnectedErr)
 			return
 		}
 
 		if sendPage.SelfSending.SelectedWallet == nil {
-			sendPage.showErrorLabel(constantvalues.SelectedWalletInvalidErr)
+			sendPage.showErrorLabel(values.SelectedWalletInvalidErr)
 			return
 		}
 
 		err := sendPage.confirmationWindow()
 		if err != nil {
-			sendPage.showErrorLabel(constantvalues.ConfirmationWindowErr)
+			sendPage.showErrorLabel(values.ConfirmationWindowErr)
 		}
 	})
 

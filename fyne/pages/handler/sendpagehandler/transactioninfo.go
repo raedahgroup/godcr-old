@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -18,13 +18,13 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 
 	icons, err := assets.GetIcons(assets.CollapseDropdown, assets.ExpandDropdown)
 	if err != nil {
-		return errors.New(constantvalues.TransactionDetailsIconErr)
+		return errors.New(values.TransactionDetailsIconErr)
 	}
 
-	sendPage.transactionFeeLabel = widget.NewLabel(constantvalues.NilAmount)
-	sendPage.transactionSizeLabel = widget.NewLabel(constantvalues.ZeroByte)
-	sendPage.totalCostLabel = widget.NewLabel(constantvalues.NilAmount)
-	sendPage.balanceAfterSendLabel = widget.NewLabel(constantvalues.NilAmount)
+	sendPage.transactionFeeLabel = widget.NewLabel(values.NilAmount)
+	sendPage.transactionSizeLabel = widget.NewLabel(values.ZeroByte)
+	sendPage.totalCostLabel = widget.NewLabel(values.NilAmount)
+	sendPage.balanceAfterSendLabel = widget.NewLabel(values.NilAmount)
 
 	paintedtransactionInfoform := sendPage.transactionInfoWithBorder()
 	paintedtransactionInfoform.Hide()
@@ -33,7 +33,6 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 
 	costAndBalanceAfterSendBox := widget.NewVBox()
 	var transactionSizeDropdown *widgets.ImageButton
-	var container *fyne.Container
 
 	transactionSizeDropdown = widgets.NewImageButton(icons[assets.ExpandDropdown], nil, func() {
 		if paintedtransactionInfoform.Hidden {
@@ -45,17 +44,17 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 		}
 
 		costAndBalanceAfterSendBox.Refresh()
-		container.Layout = layout.NewFixedGridLayout(
+		sendPage.transactionInfoContainer.Layout = layout.NewFixedGridLayout(
 			fyne.NewSize(paintedtransactionInfoform.MinSize().Width, costAndBalanceAfterSendBox.MinSize().Height))
 
-		container.Refresh()
+		sendPage.transactionInfoContainer.Refresh()
 		transactionSizeDropdown.Refresh()
 		paintedtransactionInfoform.Refresh()
 		transactionFeeBox.Refresh()
 		sendPage.SendPageContents.Refresh()
 	})
 
-	transactionFeeBox = widget.NewHBox(canvas.NewText(constantvalues.TransactionFee, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(),
+	transactionFeeBox = widget.NewHBox(canvas.NewText(values.TransactionFee, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(),
 		sendPage.transactionFeeLabel, widgets.NewHSpacer(4), transactionSizeDropdown)
 
 	costAndBalanceAfterSendBox.Append(transactionFeeBox)
@@ -64,14 +63,14 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(30))
 
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(
-		canvas.NewText(constantvalues.TotalCost, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.totalCostLabel))
+		canvas.NewText(values.TotalCost, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.totalCostLabel))
 
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(
-		canvas.NewText(constantvalues.BalanceAfterSend, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.balanceAfterSendLabel))
+		canvas.NewText(values.BalanceAfterSend, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.balanceAfterSendLabel))
 
-	container = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(paintedtransactionInfoform.MinSize()), costAndBalanceAfterSendBox)
+	sendPage.transactionInfoContainer = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(paintedtransactionInfoform.MinSize()), costAndBalanceAfterSendBox)
 
-	sendPage.SendPageContents.Append(container)
+	sendPage.SendPageContents.Append(sendPage.transactionInfoContainer)
 
 	return nil
 }
@@ -80,15 +79,15 @@ func (sendPage *SendPageObjects) transactionInfoWithBorder() *fyne.Container {
 	transactionInfoForm := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
 
 	transactionInfoForm.AddObject(fyne.NewContainerWithLayout(
-		layout.NewHBoxLayout(), canvas.NewText(constantvalues.ProcessingTime, color.RGBA{89, 109, 129, 255}), widgets.NewHSpacer(46),
-		layout.NewSpacer(), widget.NewLabelWithStyle(constantvalues.ProcessingTimeInfo, fyne.TextAlignLeading, fyne.TextStyle{})))
+		layout.NewHBoxLayout(), canvas.NewText(values.ProcessingTime, color.RGBA{89, 109, 129, 255}), widgets.NewHSpacer(46),
+		layout.NewSpacer(), widget.NewLabelWithStyle(values.ProcessingTimeInfo, fyne.TextAlignLeading, fyne.TextStyle{})))
 
 	transactionInfoForm.AddObject(fyne.NewContainerWithLayout(
-		layout.NewHBoxLayout(), canvas.NewText(constantvalues.FeeRate, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(),
-		widget.NewLabelWithStyle(constantvalues.FeeRateInfo, fyne.TextAlignLeading, fyne.TextStyle{})))
+		layout.NewHBoxLayout(), canvas.NewText(values.FeeRate, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(),
+		widget.NewLabelWithStyle(values.FeeRateInfo, fyne.TextAlignLeading, fyne.TextStyle{})))
 
 	transactionInfoForm.AddObject(fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-		canvas.NewText(constantvalues.TransactionSize, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.transactionSizeLabel))
+		canvas.NewText(values.TransactionSize, color.RGBA{89, 109, 129, 255}), layout.NewSpacer(), sendPage.transactionSizeLabel))
 
 	return fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 		widgets.NewBorder(color.RGBA{158, 158, 158, 180}, fyne.NewSize(20, 30), transactionInfoForm), transactionInfoForm)

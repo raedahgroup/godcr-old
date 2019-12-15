@@ -11,8 +11,8 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/skip2/go-qrcode"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -64,7 +64,7 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 	accNo, err := receivePage.Accounts.SelectedWallet.AccountNumber(receivePage.Accounts.SelectedAccountLabel.Text)
 	if err != nil {
-		receivePage.showInfoLabel(receivePage.errorLabel, constantvalues.AccountNumberErr)
+		receivePage.showInfoLabel(receivePage.errorLabel, values.AccountNumberErr)
 		return
 	}
 
@@ -72,13 +72,13 @@ func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 	if newAddress {
 		addr, err = receivePage.Accounts.SelectedWallet.NextAddress(int32(accNo))
 		if err != nil {
-			receivePage.showInfoLabel(receivePage.errorLabel, constantvalues.GettingAddress)
+			receivePage.showInfoLabel(receivePage.errorLabel, values.GettingAddress)
 			return
 		}
 	} else {
 		addr, err = receivePage.Accounts.SelectedWallet.CurrentAddress(int32(accNo))
 		if err != nil {
-			receivePage.showInfoLabel(receivePage.errorLabel, constantvalues.GettingAddress)
+			receivePage.showInfoLabel(receivePage.errorLabel, values.GettingAddress)
 			return
 		}
 	}
@@ -89,7 +89,7 @@ func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 
 	imgBytes, err := qrcode.Encode(addr, qrcode.High, 256)
 	if err != nil {
-		receivePage.showInfoLabel(receivePage.errorLabel, constantvalues.QrEncodeErr)
+		receivePage.showInfoLabel(receivePage.errorLabel, values.QrEncodeErr)
 		return
 	}
 

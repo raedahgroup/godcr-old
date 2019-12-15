@@ -11,7 +11,7 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -24,7 +24,7 @@ type PasswordPopUpObjects struct {
 }
 
 func (objects *PasswordPopUpObjects) PasswordPopUp() {
-	errorLabel := canvas.NewText(constantvalues.WrongPasswordErr, color.RGBA{237, 109, 71, 255})
+	errorLabel := canvas.NewText(values.WrongPasswordErr, color.RGBA{237, 109, 71, 255})
 	errorLabel.Alignment = fyne.TextAlignLeading
 	errorLabel.TextSize = 12
 	errorLabel.Hide()
@@ -32,7 +32,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	var confirmButton *widgets.Button
 
 	walletPassword := widget.NewPasswordEntry()
-	walletPassword.SetPlaceHolder(constantvalues.SpendingPasswordText)
+	walletPassword.SetPlaceHolder(values.SpendingPasswordText)
 	walletPassword.OnChanged = func(value string) {
 		if value == "" {
 			confirmButton.Disable()
@@ -44,7 +44,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	var sendingPasswordPopup *widget.PopUp
 	var popupContent *widget.Box
 
-	cancelLabel := canvas.NewText(constantvalues.Cancel, color.RGBA{41, 112, 255, 255})
+	cancelLabel := canvas.NewText(values.Cancel, color.RGBA{41, 112, 255, 255})
 	cancelLabel.TextStyle.Bold = true
 
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() {
@@ -52,7 +52,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		objects.InitOnCancel()
 	})
 
-	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, constantvalues.Confirm, func() {
+	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, values.Confirm, func() {
 		confirmButton.Disable()
 		cancelButton.Disable()
 
@@ -89,8 +89,8 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		widgets.NewHSpacer(24),
 		widget.NewVBox(
 			widgets.NewVSpacer(24),
-			widget.NewLabelWithStyle(constantvalues.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(40),
+			widget.NewLabelWithStyle(values.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widgets.NewVSpacer(30),
 			walletPassword,
 			errorLabel,
 			widgets.NewVSpacer(20),

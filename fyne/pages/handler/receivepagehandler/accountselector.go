@@ -5,13 +5,13 @@ import (
 
 	"fyne.io/fyne"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (receivePage *ReceivePageObjects) initAccountSelector() error {
 	receivePage.Accounts.OnAccountChange = receivePage.onAccountChange
-	accountBox, err := receivePage.Accounts.CreateAccountSelector(constantvalues.ReceivingAccountLabel)
+	accountBox, err := receivePage.Accounts.CreateAccountSelector(values.ReceivingAccountLabel)
 	if err != nil {
 		return err
 	}

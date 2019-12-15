@@ -5,12 +5,12 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (receivePage *ReceivePageObjects) initTapToCopyText() {
-	tapToCopy := widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(constantvalues.TapToCopy, fyne.TextAlignCenter, fyne.TextStyle{Monospace: true})), func() {
+	tapToCopy := widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(values.TapToCopy, fyne.TextAlignCenter, fyne.TextStyle{Monospace: true})), func() {
 		clipboard := receivePage.Window.Clipboard()
 		clipboard.SetContent(receivePage.address.Text)
 

@@ -11,9 +11,9 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/constantvalues"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/sendpagehandler"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -40,18 +40,18 @@ var sendPage sendPageDynamicData
 func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) fyne.CanvasObject {
 	openedWalletIDs := multiWallet.OpenedWalletIDsRaw()
 	if len(openedWalletIDs) == 0 {
-		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(constantvalues.WalletsErr, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(values.WalletsErr, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	}
 	sort.Ints(openedWalletIDs)
 
 	var selectedWallet = multiWallet.WalletWithID(openedWalletIDs[0])
 	if selectedWallet == nil {
-		return widget.NewLabelWithStyle(constantvalues.LoadMultiWalletErr, fyne.TextAlignLeading, fyne.TextStyle{})
+		return widget.NewLabelWithStyle(values.LoadMultiWalletErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
 	selectedWalletAccounts, err := selectedWallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		return widget.NewLabel(constantvalues.AccountDetailsErr)
+		return widget.NewLabel(values.AccountDetailsErr)
 	}
 
 	initSendPageDynamicContent(openedWalletIDs, selectedWalletAccounts)
@@ -93,7 +93,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	err = initSendPage.InitAllSendPageComponents()
 	if err != nil {
-		return widget.NewLabelWithStyle(constantvalues.SendPageLoadErr, fyne.TextAlignLeading, fyne.TextStyle{})
+		return widget.NewLabelWithStyle(values.SendPageLoadErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
 	return widget.NewHBox(widgets.NewHSpacer(30), initSendPage.SendPageContents)
@@ -106,7 +106,7 @@ func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *d
 	sendPage.selfSendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 	sendPage.sendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
-	sendPage.spendableLabel = canvas.NewText(constantvalues.SpendableAmountLabel+dcrutil.Amount(selectedWalletAccounts.Acc[0].Balance.Spendable).String(), color.Black)
+	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(selectedWalletAccounts.Acc[0].Balance.Spendable).String(), color.Black)
 	sendPage.spendableLabel.TextSize = 12
 
 	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
