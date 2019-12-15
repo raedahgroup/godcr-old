@@ -100,20 +100,24 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 }
 
 func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
-	sendPage.sendingSelectedWalletID = openedWalletIDs[0]
-	sendPage.selfSendingSelectedWalletID = openedWalletIDs[0]
+
+	firstWalletWalletID := openedWalletIDs[0]
+	defaultAccount := selectedWalletAccounts.Acc[0]
+
+	sendPage.sendingSelectedWalletID = firstWalletWalletID
+	sendPage.selfSendingSelectedWalletID = firstWalletWalletID
 
 	sendPage.selfSendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 	sendPage.sendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
-	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(selectedWalletAccounts.Acc[0].Balance.Spendable).String(), color.Black)
+	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(defaultAccount.Balance.Spendable).String(), color.Black)
 	sendPage.spendableLabel.TextSize = values.TextSize12
 
-	sendPage.sendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
-	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+	sendPage.sendingSelectedAccountLabel = widget.NewLabel(defaultAccount.Name)
+	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(defaultAccount.TotalBalance).String())
 
-	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
-	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(defaultAccount.Name)
+	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(defaultAccount.TotalBalance).String())
 
 	sendPage.Contents = widget.NewVBox()
 }
