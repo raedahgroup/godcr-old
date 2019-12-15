@@ -46,9 +46,7 @@ func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSele
 		}
 
 		for index, boxContent := range accountBox.Children {
-			spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Acc[index].Balance.Spendable).String(), color.Black)
-			spendableAmountLabel.TextSize = 10
-			spendableAmountLabel.Alignment = fyne.TextAlignTrailing
+			spendableAmountLabel := widgets.NewTextWithStyle(dcrutil.Amount(account.Acc[index].Balance.Spendable).String(), color.Black, fyne.TextStyle{}, fyne.TextAlignTrailing, values.SpacerSize10)
 
 			accountBalance := dcrutil.Amount(account.Acc[index].Balance.Total).String()
 			accountBalanceLabel := widget.NewLabel(accountBalance)

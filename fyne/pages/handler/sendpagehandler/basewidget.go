@@ -29,15 +29,15 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 		confirmationText := widgets.NewTextWithStyle(values.GotIt, color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)
 
 		dialog := widget.NewVBox(
-			widgets.NewVSpacer(12),
+			widgets.NewVSpacer(values.SpacerSize10),
 			widget.NewLabelWithStyle(values.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(10),
+			widgets.NewVSpacer(values.SpacerSize10),
 			dialogLabel,
-			widgets.NewVSpacer(20),
+			widgets.NewVSpacer(values.SpacerSize20),
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
-			widgets.NewVSpacer(10))
+			widgets.NewVSpacer(values.SpacerSize10))
 
-		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(20), dialog, widgets.NewHSpacer(20)), sendPage.Window.Canvas())
+		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20), dialog, widgets.NewHSpacer(values.SpacerSize20)), sendPage.Window.Canvas())
 	})
 
 	var clickableMoreIcon *widgets.ImageButton
@@ -56,6 +56,6 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 
 	})
 
-	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(15), clickableMoreIcon))
+	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(values.SpacerSize16), clickableMoreIcon))
 	return err
 }

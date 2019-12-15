@@ -30,14 +30,14 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 		confirmationText.TextStyle.Bold = true
 
 		dialog := widget.NewVBox(
-			widgets.NewVSpacer(12),
+			widgets.NewVSpacer(values.SpacerSize10),
 			widget.NewLabelWithStyle(values.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(30),
+			widgets.NewVSpacer(values.SpacerSize30),
 			dialogLabel,
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
-			widgets.NewVSpacer(10))
+			widgets.NewVSpacer(values.SpacerSize10))
 
-		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(24), dialog, widgets.NewHSpacer(20)), receivePage.Window.Canvas())
+		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize24), dialog, widgets.NewHSpacer(values.SpacerSize20)), receivePage.Window.Canvas())
 	})
 
 	var clickableMoreIcon *widgets.ImageButton
@@ -54,6 +54,6 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 			clickableMoreIcon).Add(fyne.NewPos(10, clickableMoreIcon.MinSize().Height+5).Subtract(fyne.NewPos(popup.MinSize().Width, 0))))
 	})
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(receivePageLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(15), clickableMoreIcon))
+	receivePage.ReceivePageContents.Append(widget.NewHBox(receivePageLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(values.SpacerSize16), clickableMoreIcon))
 	return err
 }

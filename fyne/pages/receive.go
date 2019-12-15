@@ -69,7 +69,7 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 		return widget.NewLabelWithStyle(values.ReceivePageLoadErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
-	return widget.NewHBox(widgets.NewHSpacer(20), receivePage.Contents)
+	return widget.NewHBox(widgets.NewHSpacer(values.Padding), receivePage.Contents, widgets.NewHSpacer(values.Padding))
 }
 
 func initReceivePageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {

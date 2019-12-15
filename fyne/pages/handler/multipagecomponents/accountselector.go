@@ -51,27 +51,27 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 	dropdownContent := widget.NewVBox()
 
 	selectAccountBox := widget.NewHBox(
-		widgets.NewHSpacer(15),
-		widget.NewVBox(widgets.NewVSpacer(10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
-		widgets.NewHSpacer(20),
+		widgets.NewHSpacer(values.SpacerSize16),
+		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
+		widgets.NewHSpacer(values.SpacerSize20),
 		fyne.NewContainerWithLayout(layouts.NewVBox(12), accountSelector.SelectedAccountLabel, accountSelector.SelectedWalletLabel),
-		widgets.NewHSpacer(30),
-		widget.NewVBox(widgets.NewVSpacer(4), accountSelector.SelectedAccountBalanceLabel),
-		widgets.NewHSpacer(8),
-		widget.NewVBox(widgets.NewVSpacer(6), widget.NewIcon(icons[assets.CollapseIcon])),
+		widgets.NewHSpacer(values.SpacerSize30),
+		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize4), accountSelector.SelectedAccountBalanceLabel),
+		widgets.NewHSpacer(values.SpacerSize8),
+		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize6), widget.NewIcon(icons[assets.CollapseIcon])),
 	)
 
 	var accountSelectionPopup *widget.PopUp
 	accountSelectionPopupHeader := widget.NewVBox(
-		widgets.NewVSpacer(5),
+		widgets.NewVSpacer(values.SpacerSize4),
 		widget.NewHBox(
-			widgets.NewHSpacer(16),
+			widgets.NewHSpacer(values.SpacerSize16),
 			widgets.NewImageButton(theme.CancelIcon(), nil, func() { accountSelectionPopup.Hide() }),
-			widgets.NewHSpacer(16),
+			widgets.NewHSpacer(values.SpacerSize16),
 			widget.NewLabelWithStyle(accountLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			layout.NewSpacer(),
 		),
-		widgets.NewVSpacer(5),
+		widgets.NewVSpacer(values.SpacerSize4),
 		canvas.NewLine(color.Black),
 	)
 
@@ -130,7 +130,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		accountNameLabel.Alignment = fyne.TextAlignLeading
 		accountNameBox := widget.NewVBox(
 			accountNameLabel,
-			widget.NewHBox(widgets.NewHSpacer(1), spendableLabel),
+			widget.NewHBox(widgets.NewHSpacer(values.NilSpacer), spendableLabel),
 		)
 
 		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.Black)
@@ -151,20 +151,20 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		var spacing fyne.CanvasObject
 		if index != 0 || walletID != *accountSelector.SendingSelectedWalletID {
 			checkmarkIcon.Hide()
-			spacing = widgets.NewHSpacer(35)
+			spacing = widgets.NewHSpacer(values.SpacerSize36)
 		} else {
-			spacing = widgets.NewHSpacer(15)
+			spacing = widgets.NewHSpacer(values.SpacerSize16)
 		}
 
 		accountsView := widget.NewHBox(
-			widgets.NewHSpacer(15),
+			widgets.NewHSpacer(values.SpacerSize16),
 			widget.NewIcon(receiveAccountIcon),
-			widgets.NewHSpacer(20),
+			widgets.NewHSpacer(values.SpacerSize20),
 			accountNameBox,
 			layout.NewSpacer(),
-			widgets.NewHSpacer(30),
+			widgets.NewHSpacer(values.SpacerSize30),
 			accountBalanceBox,
-			widgets.NewHSpacer(30),
+			widgets.NewHSpacer(values.SpacerSize30),
 			checkmarkIcon,
 			spacing,
 		)

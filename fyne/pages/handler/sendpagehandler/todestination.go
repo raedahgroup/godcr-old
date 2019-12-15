@@ -28,12 +28,12 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	sendPage.destinationAddressEntryComponent()
 
 	sendToAccountLabel := canvas.NewText(values.SwitchToSendToAccount, color.RGBA{R: 41, G: 112, B: 255, A: 255})
-	sendToAccountLabel.TextSize = 12
+	sendToAccountLabel.TextSize = values.TextSize12
 
 	destinationAddressContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
 		fyne.NewSize(widget.NewLabel(values.TestAddress).MinSize().Width, sendPage.destinationAddressEntry.MinSize().Height)), sendPage.destinationAddressEntry)
 
-	spacer := widgets.NewVSpacer(10)
+	spacer := widgets.NewVSpacer(values.SpacerSize10)
 
 	var container *fyne.Container
 	switchingComponentButton := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
@@ -77,7 +77,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 
 	sendPage.destinationAddressErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
-	sendPage.destinationAddressErrorLabel.TextSize = 12
+	sendPage.destinationAddressErrorLabel.TextSize = values.DefaultErrTextSize
 	sendPage.destinationAddressErrorLabel.Hide()
 
 	sendPage.destinationAddressEntry = widget.NewEntry()

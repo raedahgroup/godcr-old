@@ -17,5 +17,5 @@ func (receivePage *ReceivePageObjects) initTapToCopyText() {
 		receivePage.showInfoLabel(receivePage.addressCopiedLabel, "Address copied")
 	})
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(widgets.NewHSpacer(50), layout.NewSpacer(), tapToCopy, layout.NewSpacer()))
+	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), tapToCopy, layout.NewSpacer()))
 }

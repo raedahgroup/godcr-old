@@ -24,9 +24,7 @@ type PasswordPopUpObjects struct {
 }
 
 func (objects *PasswordPopUpObjects) PasswordPopUp() {
-	errorLabel := canvas.NewText(values.WrongPasswordErr, color.RGBA{237, 109, 71, 255})
-	errorLabel.Alignment = fyne.TextAlignLeading
-	errorLabel.TextSize = 12
+	errorLabel := widgets.NewTextWithStyle(values.WrongPasswordErr, color.RGBA{237, 109, 71, 255}, fyne.TextStyle{}, fyne.TextAlignLeading, values.DefaultErrTextSize)
 	errorLabel.Hide()
 
 	var confirmButton *widgets.Button
@@ -86,16 +84,16 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	confirmButton.Disable()
 
 	popupContent = widget.NewHBox(
-		widgets.NewHSpacer(24),
+		widgets.NewHSpacer(values.SpacerSize24),
 		widget.NewVBox(
-			widgets.NewVSpacer(24),
+			widgets.NewVSpacer(values.SpacerSize24),
 			widget.NewLabelWithStyle(values.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(30),
+			widgets.NewVSpacer(values.SpacerSize30),
 			walletPassword,
 			errorLabel,
-			widgets.NewVSpacer(20),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(140), cancelButton, widgets.NewHSpacer(24), confirmButton.Container),
-			widgets.NewVSpacer(24),
+			widgets.NewVSpacer(values.SpacerSize20),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.SpacerSize140), cancelButton, widgets.NewHSpacer(values.SpacerSize24), confirmButton.Container),
+			widgets.NewVSpacer(values.SpacerSize24),
 		),
 
 		widgets.NewHSpacer(24),

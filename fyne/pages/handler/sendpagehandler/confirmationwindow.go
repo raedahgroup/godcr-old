@@ -39,9 +39,9 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 
 	accountSelectionPopupHeader := widget.NewHBox(
 		widgets.NewImageButton(theme.CancelIcon(), nil, func() { confirmationPagePopup.Hide() }),
-		widgets.NewHSpacer(9),
+		widgets.NewHSpacer(values.SpacerSize10),
 		confirmLabel,
-		widgets.NewHSpacer(170),
+		widgets.NewHSpacer(values.SpacerSize170),
 	)
 	sendingSelectedWalletLabel := widget.NewLabelWithStyle(fmt.Sprintf("%s (%s)",
 		sendPage.Sending.SelectedAccountLabel.Text, sendPage.Sending.SelectedWalletLabel.Text), fyne.TextAlignTrailing, fyne.TextStyle{Bold: true})
@@ -57,11 +57,11 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		amountLabelBox.AddObject(trailingAmountLabel)
 
 	} else {
-		amountLabel := widgets.NewTextWithStyle(sendPage.amountEntry.Text, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 20)
+		amountLabel := widgets.NewTextWithStyle(sendPage.amountEntry.Text, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.SpacerSize20)
 
-		DCRLabel := widgets.NewTextWithStyle(values.DCR, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, 15)
+		DCRLabel := widgets.NewTextWithStyle(values.DCR, color.Black, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.SpacerSize16)
 
-		amountLabelBox.Layout = layouts.NewHBox(5)
+		amountLabelBox.Layout = layouts.NewHBox(values.SpacerSize4)
 		amountLabelBox.AddObject(amountLabel)
 		amountLabelBox.AddObject(DCRLabel)
 	}
@@ -130,48 +130,48 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 	})
 
 	sendButton.SetMinSize(fyne.NewSize(312, 56))
-	sendButton.SetTextSize(18)
+	sendButton.SetTextSize(values.SendButtonTextSize)
 
 	confirmationPageContent := widget.NewVBox(
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(values.SpacerSize10),
 		accountSelectionPopupHeader,
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(values.SpacerSize10),
 		canvas.NewLine(color.Black),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		widget.NewHBox(layout.NewSpacer(), errorLabelContainer.Container, layout.NewSpacer()),
-		widgets.NewVSpacer(16),
+		widgets.NewVSpacer(values.SpacerSize16),
 		widget.NewHBox(layout.NewSpacer(), widget.NewLabel(values.SendingFrom), sendingSelectedWalletLabel, layout.NewSpacer()),
 		widget.NewHBox(layout.NewSpacer(), amountLabelBox, layout.NewSpacer()),
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(values.SpacerSize10),
 		widget.NewHBox(layout.NewSpacer(), widget.NewIcon(icons[assets.DownArrow]), layout.NewSpacer()),
-		widgets.NewVSpacer(10),
+		widgets.NewVSpacer(values.SpacerSize10),
 		widgets.NewTextWithStyle(toDestination, color.RGBA{89, 109, 129, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignCenter, 14),
 		widget.NewLabelWithStyle(destination, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		widget.NewHBox(canvas.NewText(values.TransactionFee, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.transactionFeeLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		widget.NewHBox(canvas.NewText(values.TotalCost, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.totalCostLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)),
-		widgets.NewVSpacer(4),
+		widgets.NewVSpacer(values.SpacerSize4),
 		widget.NewHBox(canvas.NewText(values.BalanceAfterSend, color.RGBA{89, 109, 129, 255}),
 			layout.NewSpacer(), widgets.NewTextWithStyle(sendPage.balanceAfterSendLabel.Text, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		canvas.NewLine(color.RGBA{230, 234, 237, 255}),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		widget.NewHBox(layout.NewSpacer(),
 			widget.NewIcon(icons[assets.Alert]), widgets.NewTextWithStyle(values.SendingDcrWarning, color.Black, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize), layout.NewSpacer()),
-		widgets.NewVSpacer(8),
+		widgets.NewVSpacer(values.SpacerSize8),
 		sendButton.Container,
-		widgets.NewVSpacer(18),
+		widgets.NewVSpacer(values.SpacerSize18),
 	)
 
 	confirmationPagePopup = widget.NewModalPopUp(
-		widget.NewHBox(widgets.NewHSpacer(16), confirmationPageContent, widgets.NewHSpacer(16)),
+		widget.NewHBox(widgets.NewHSpacer(values.SpacerSize16), confirmationPageContent, widgets.NewHSpacer(values.SpacerSize16)),
 		sendPage.Window.Canvas())
 
 	confirmationPagePopup.Show()

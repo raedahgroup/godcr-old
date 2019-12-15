@@ -46,15 +46,14 @@ type SendPageObjects struct {
 }
 
 func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
-	// add padding to the top
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(20))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.Padding)) // top padding
 
 	err := sendPage.initBaseObjects()
 	if err != nil {
 		return err
 	}
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(10))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
 	sendPage.successLabel = widgets.NewBorderedText(values.SuccessText, fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
 	sendPage.successLabel.Container.Hide()
@@ -69,27 +68,29 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 		return err
 	}
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(10))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
 	err = sendPage.initToDestinationComponents()
 	if err != nil {
 		return err
 	}
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(20))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize20))
 
 	sendPage.initAmountEntryComponents()
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(15))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize16))
 
 	err = sendPage.initTransactionDetails()
 	if err != nil {
 		return err
 	}
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(35))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize36))
 
 	sendPage.initNextButton()
+
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.Padding)) // bottom padding
 	return err
 }
 
