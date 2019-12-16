@@ -16,8 +16,8 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
-func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountLabel, sendingSelectedAccountBalanceLabel *widget.Label,
-	spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID int, contents *widget.Box) {
+func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSelectedAccountBalanceLabel,
+	spendableLabel *canvas.Text, multiWallet *dcrlibwallet.MultiWallet, selectedWalletID, selectedAccountID int, contents *widget.Box) {
 
 	if contents == nil {
 		return
@@ -71,19 +71,13 @@ func UpdateAccountSelectorOnNotification(accountBoxes []*widget.Box, sendingSele
 		return
 	}
 
-	accountNumber, err := wallet.AccountNumber(sendingSelectedAccountLabel.Text)
-	if err != nil {
-		log.Println("could not retrieve selected account number on transaction notification")
-		return
-	}
-
-	account, err := wallet.GetAccount(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
+	account, err := wallet.GetAccount(int32(selectedAccountID), dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		log.Println("could not retrieve selected account on transaction notification")
 		return
 	}
 
-	sendingSelectedAccountBalanceLabel.SetText(dcrutil.Amount(account.TotalBalance).String())
+	sendingSelectedAccountBalanceLabel.Text = dcrutil.Amount(account.TotalBalance).String()
 
 	if spendableLabel != nil {
 		spendableLabel.Text = values.SpendableAmountLabel + dcrutil.Amount(account.Balance.Spendable).String()

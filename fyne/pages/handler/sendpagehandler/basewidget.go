@@ -2,7 +2,6 @@ package sendpagehandler
 
 import (
 	"errors"
-	"image/color"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
@@ -26,14 +25,14 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 		var popup *widget.PopUp
 
 		dialogLabel := widget.NewLabelWithStyle(values.SendPageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-		confirmationText := widgets.NewTextWithStyle(values.GotIt, color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)
+		confirmationText := widgets.NewTextWithStyle(values.GotIt, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)
 
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(values.SpacerSize10),
 			widget.NewLabelWithStyle(values.SendDcr, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(values.SpacerSize10),
 			dialogLabel,
-			widgets.NewVSpacer(values.SpacerSize20),
+			widgets.NewVSpacer(values.SpacerSize10),
 			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(values.SpacerSize10))
 
@@ -53,7 +52,6 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 
 		popup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			clickableMoreIcon).Add(fyne.NewPos(10, clickableMoreIcon.MinSize().Height+5).Subtract(fyne.NewPos(popup.MinSize().Width, 0))))
-
 	})
 
 	sendPage.SendPageContents.Append(widget.NewHBox(sendLabel, layout.NewSpacer(), clickableInfoIcon, widgets.NewHSpacer(values.SpacerSize16), clickableMoreIcon))

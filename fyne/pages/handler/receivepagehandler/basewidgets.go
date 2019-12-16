@@ -2,7 +2,6 @@ package receivepagehandler
 
 import (
 	"errors"
-	"image/color"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -26,7 +25,7 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 		var popup *widget.PopUp
 
 		dialogLabel := widget.NewLabelWithStyle(values.ReceivePageInfo, fyne.TextAlignLeading, fyne.TextStyle{})
-		confirmationText := canvas.NewText(values.GotIt, color.RGBA{41, 112, 255, 255})
+		confirmationText := canvas.NewText(values.GotIt, values.Blue)
 		confirmationText.TextStyle.Bold = true
 
 		dialog := widget.NewVBox(

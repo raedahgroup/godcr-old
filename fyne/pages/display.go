@@ -85,7 +85,6 @@ func (app *AppInterface) setupNavigationMenu() {
 
 		for {
 			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
-				app.tabMenu.Refresh()
 				time.Sleep(50 * time.Millisecond)
 				continue
 			}

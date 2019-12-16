@@ -1,11 +1,17 @@
 package values
 
 const (
-	DefaultTextSize    = 14
-	DefaultErrTextSize = 12
-	Padding            = 16
+	DefaultTextSize            = 14
+	DefaultErrTextSize         = 12
+	Padding                    = 16
+	TextSize10                 = 10
+	TextSize12                 = 12
+	TextSize16                 = 16
+	TextSize20                 = 20
+	ConfirmationButtonTextSize = 18
 
 	NilSpacer     = 1
+	SpacerSize2   = 2
 	SpacerSize4   = 4
 	SpacerSize8   = 8
 	SpacerSize6   = 6
@@ -20,9 +26,4 @@ const (
 	SpacerSize50  = 50
 	SpacerSize140 = 140
 	SpacerSize170 = 170
-
-	TextSize12         = 12
-	TextSize16         = 16
-	TextSize20         = 20
-	SendButtonTextSize = 18
 )

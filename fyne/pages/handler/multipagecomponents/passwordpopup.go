@@ -1,7 +1,6 @@
 package multipagecomponents
 
 import (
-	"image/color"
 	"log"
 
 	"fyne.io/fyne"
@@ -24,7 +23,7 @@ type PasswordPopUpObjects struct {
 }
 
 func (objects *PasswordPopUpObjects) PasswordPopUp() {
-	errorLabel := widgets.NewTextWithStyle(values.WrongPasswordErr, color.RGBA{237, 109, 71, 255}, fyne.TextStyle{}, fyne.TextAlignLeading, values.DefaultErrTextSize)
+	errorLabel := widgets.NewTextWithStyle(values.WrongPasswordErr, values.ErrorColor, fyne.TextStyle{}, fyne.TextAlignLeading, values.DefaultErrTextSize)
 	errorLabel.Hide()
 
 	var confirmButton *widgets.Button
@@ -42,7 +41,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	var sendingPasswordPopup *widget.PopUp
 	var popupContent *widget.Box
 
-	cancelLabel := canvas.NewText(values.Cancel, color.RGBA{41, 112, 255, 255})
+	cancelLabel := canvas.NewText(values.Cancel, values.Blue)
 	cancelLabel.TextStyle.Bold = true
 
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() {
@@ -50,7 +49,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		objects.InitOnCancel()
 	})
 
-	confirmButton = widgets.NewButton(color.RGBA{41, 112, 255, 255}, values.Confirm, func() {
+	confirmButton = widgets.NewButton(values.Blue, values.Confirm, func() {
 		confirmButton.Disable()
 		cancelButton.Disable()
 
@@ -88,7 +87,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		widget.NewVBox(
 			widgets.NewVSpacer(values.SpacerSize24),
 			widget.NewLabelWithStyle(values.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(values.SpacerSize30),
+			widgets.NewVSpacer(values.SpacerSize20),
 			walletPassword,
 			errorLabel,
 			widgets.NewVSpacer(values.SpacerSize20),

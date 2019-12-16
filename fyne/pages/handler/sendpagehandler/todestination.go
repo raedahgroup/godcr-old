@@ -1,8 +1,6 @@
 package sendpagehandler
 
 import (
-	"image/color"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -16,8 +14,7 @@ import (
 
 // sendingToDestinationComponents constitutes all components that composes sending coins to users or self.
 func (sendPage *SendPageObjects) initToDestinationComponents() error {
-	fromLabel := canvas.NewText("To", color.RGBA{61, 88, 115, 255})
-	fromLabel.TextStyle.Bold = true
+	fromLabel := canvas.NewText("To", values.DarkerBlueGrayTextColor)
 
 	accountBox, err := sendPage.SelfSending.CreateAccountSelector("Sending account")
 	if err != nil {
@@ -27,7 +24,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 	sendPage.destinationAddressEntryComponent()
 
-	sendToAccountLabel := canvas.NewText(values.SwitchToSendToAccount, color.RGBA{R: 41, G: 112, B: 255, A: 255})
+	sendToAccountLabel := canvas.NewText(values.SwitchToSendToAccount, values.Blue)
 	sendToAccountLabel.TextSize = values.TextSize12
 
 	destinationAddressContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
@@ -54,14 +51,12 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 			sendPage.destinationAddressEntry.OnChanged(sendPage.destinationAddressEntry.Text)
 		}
-
 		sendPage.SendPageContents.Refresh()
 		sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
-		sendPage.SendPageContents.Refresh()
 	})
 
 	box := widget.NewVBox(
-		widget.NewHBox(fromLabel, layout.NewSpacer(), switchingComponentButton, widgets.NewHSpacer(20)),
+		widget.NewHBox(fromLabel, layout.NewSpacer(), switchingComponentButton, widgets.NewHSpacer(values.SpacerSize20)),
 		accountBox,
 		destinationAddressContainer,
 		sendPage.destinationAddressErrorLabel,
@@ -76,7 +71,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 
-	sendPage.destinationAddressErrorLabel = canvas.NewText("", color.RGBA{237, 109, 71, 255})
+	sendPage.destinationAddressErrorLabel = canvas.NewText("", values.ErrorColor)
 	sendPage.destinationAddressErrorLabel.TextSize = values.DefaultErrTextSize
 	sendPage.destinationAddressErrorLabel.Hide()
 
@@ -106,14 +101,11 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 		} else {
 			sendPage.nextButton.Disable()
 		}
-
-		sendPage.SendPageContents.Refresh()
 	}
 }
 
 func setLabelText(Text string, objects ...*widget.Label) {
 	for _, object := range objects {
 		object.SetText(Text)
-		object.Refresh()
 	}
 }

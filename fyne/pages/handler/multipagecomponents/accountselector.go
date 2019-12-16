@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image/color"
 	"log"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -21,14 +22,16 @@ import (
 )
 
 type AccountSelectorStruct struct {
-	OnAccountChange         func()
-	SendingSelectedWalletID *int
-	WalletIDs               []int
+	OnAccountChange          func()
+	SendingSelectedWalletID  *int
+	SendingSelectedAccountID *int
+	WalletIDs                []int
 
-	AccountBoxes []*widget.Box
+	AccountBoxes     []*widget.Box
+	selectAccountBox *widget.Box
 
-	SelectedAccountLabel        *widget.Label
-	SelectedAccountBalanceLabel *widget.Label
+	SelectedAccountLabel        *canvas.Text
+	SelectedAccountBalanceLabel *canvas.Text
 	SelectedWalletLabel         *canvas.Text
 
 	PageContents *widget.Box
@@ -46,15 +49,15 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 	}
 
 	accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(accountSelector.WalletIDs[0])
-	accountSelector.SelectedWalletLabel = canvas.NewText(accountSelector.SelectedWallet.Name, color.RGBA{137, 151, 165, 255})
+	accountSelector.SelectedWalletLabel = canvas.NewText(strings.Title(accountSelector.SelectedWallet.Name), values.WalletLabelColor)
 
 	dropdownContent := widget.NewVBox()
 
-	selectAccountBox := widget.NewHBox(
+	accountSelector.selectAccountBox = widget.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize16),
 		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
 		widgets.NewHSpacer(values.SpacerSize20),
-		fyne.NewContainerWithLayout(layouts.NewVBox(12), accountSelector.SelectedAccountLabel, accountSelector.SelectedWalletLabel),
+		fyne.NewContainerWithLayout(layouts.NewVBox(values.SpacerSize10), widget.NewHBox(widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedAccountLabel), accountSelector.SelectedWalletLabel),
 		widgets.NewHSpacer(values.SpacerSize30),
 		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize4), accountSelector.SelectedAccountBalanceLabel),
 		widgets.NewHSpacer(values.SpacerSize8),
@@ -93,13 +96,13 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 	popupContent.Append(dropdownContentWithScroller)
 
 	var accountClickableBox *widgets.ClickableBox
-	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
+	accountClickableBox = widgets.NewClickableBox(accountSelector.selectAccountBox, func() {
 		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
 
 		accountSelectionPopup.Show()
 		accountSelectionPopup.Resize(dropdownContentWithScroller.Size().Add(fyne.NewSize(10, accountSelectionPopupHeader.MinSize().Height)))
-		accountSelector.PageContents.Refresh()
+		//accountSelector.PageContents.Refresh()
 	})
 
 	return accountClickableBox, err
@@ -113,7 +116,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		return
 	}
 
-	var groupedWalletsAccounts = widget.NewGroup(wallet.Name)
+	var groupedWalletsAccounts = widget.NewGroup(strings.Title(wallet.Name))
 	// we cant access children of a group so a box is used
 	accountsBox := widget.NewVBox()
 
@@ -125,7 +128,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		spendableLabel := canvas.NewText(values.Spendable, color.Black)
 		spendableLabel.TextSize = 10
 
-		accountName := account.Name
+		accountName := strings.Title(account.Name)
 		accountNameLabel := widget.NewLabel(accountName)
 		accountNameLabel.Alignment = fyne.TextAlignLeading
 		accountNameBox := widget.NewVBox(
@@ -168,10 +171,12 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			checkmarkIcon,
 			spacing,
 		)
-
+		accountNumber := account.Number
 		accountsBox.Append(widgets.NewClickableBox(accountsView, func() {
+			*accountSelector.SendingSelectedAccountID = int(accountNumber)
 			*accountSelector.SendingSelectedWalletID = walletID
 			accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(walletID)
+
 			for _, boxes := range accountSelector.AccountBoxes {
 				for _, objectsChild := range boxes.Children {
 					if box, ok := objectsChild.(*widgets.ClickableBox); !ok {
@@ -209,19 +214,25 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			if accountbalanceBox, ok := accountsView.Children[6].(*widget.Box); ok {
 				if len(accountbalanceBox.Children) == 2 {
 					if balanceLabel, ok := accountbalanceBox.Children[0].(*widget.Label); ok {
-						accountSelector.SelectedAccountBalanceLabel.SetText(balanceLabel.Text)
+						accountSelector.SelectedAccountBalanceLabel.Text = balanceLabel.Text
 					}
 				}
 			}
 
-			accountSelector.SelectedAccountLabel.SetText(accountName)
-			accountSelector.SelectedWalletLabel.Text = wallet.Name
+			accountSelector.SelectedAccountLabel.Text = strings.Title(accountName)
+			accountSelector.SelectedWalletLabel.Text = strings.Title(wallet.Name)
+
+			popup.Hide()
+
 			accountSelector.SelectedWalletLabel.Refresh()
+			accountSelector.SelectedAccountLabel.Refresh()
+			accountSelector.selectAccountBox.Refresh()
 
 			if accountSelector.OnAccountChange != nil {
 				accountSelector.OnAccountChange()
 			}
-			popup.Hide()
+			//accountSelector.PageContents.Refresh()
+
 		}))
 	}
 

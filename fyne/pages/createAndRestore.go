@@ -12,7 +12,9 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -32,10 +34,10 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		return app.displayErrorPage(err.Error())
 	}
 
-	greenBar := canvas.NewRectangle(color.RGBA{45, 216, 163, 255})
+	greenBar := canvas.NewRectangle(values.Green)
 	greenBar.SetMinSize(fyne.NewSize(312, 56))
 
-	blueBar := canvas.NewRectangle(color.RGBA{41, 112, 255, 255})
+	blueBar := canvas.NewRectangle(values.Blue)
 	blueBar.SetMinSize(fyne.NewSize(312, 56))
 
 	restoreWalletLabel := canvas.NewText("Restore an existing wallet", color.White)

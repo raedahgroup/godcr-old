@@ -1,8 +1,6 @@
 package receivepagehandler
 
 import (
-	"image/color"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
@@ -14,7 +12,7 @@ import (
 
 func (receivePage *ReceivePageObjects) initQrImageAndAddress() {
 	receivePage.qrImage = widget.NewIcon(theme.FyneLogo())
-	receivePage.address = widgets.NewTextWithStyle("", color.RGBA{41, 112, 255, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignCenter, values.SpacerSize16)
+	receivePage.address = widgets.NewTextWithStyle("", values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignCenter, values.SpacerSize16)
 
 	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(300, 300)), receivePage.qrImage), layout.NewSpacer()))

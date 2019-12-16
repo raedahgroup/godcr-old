@@ -13,6 +13,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -103,7 +104,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		}
 	}
 
-	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
+	cancelLabel := canvas.NewText("Cancel", values.Blue)
 	cancelLabel.TextStyle.Bold = true
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { passwordPopup.Hide() })
 
@@ -119,7 +120,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 
 		enableCancelButton := func() {
 			cancelButton.OnTapped = nil
-			cancelLabel.Color = color.RGBA{41, 112, 255, 255}
+			cancelLabel.Color = values.Blue
 		}
 
 		var err error

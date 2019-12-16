@@ -1,20 +1,17 @@
 package sendpagehandler
 
 import (
-	"image/color"
-
-	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
-	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initFromAccountSelector() error {
-	fromLabel := widgets.NewTextWithStyle(values.FromText, color.RGBA{61, 88, 115, 255}, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.DefaultTextSize)
+	fromLabel := canvas.NewText(values.FromText, values.DarkerBlueGrayTextColor)
 
 	sendPage.Sending.OnAccountChange = sendPage.onAccountChange
 
@@ -30,19 +27,14 @@ func (sendPage *SendPageObjects) initFromAccountSelector() error {
 }
 
 func (sendPage *SendPageObjects) onAccountChange() {
-	accountNumber, err := sendPage.Sending.SelectedWallet.AccountNumber(sendPage.Sending.SelectedAccountLabel.Text)
-	if err != nil {
-		sendPage.showErrorLabel(values.AccountDetailsErr)
-		return
-	}
-
-	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(accountNumber), dcrlibwallet.DefaultRequiredConfirmations)
+	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(*sendPage.Sending.SendingSelectedAccountID), dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		sendPage.showErrorLabel(values.AccountBalanceErr)
 		return
 	}
 
 	sendPage.SpendableLabel.Text = values.SpendableAmountLabel + dcrutil.Amount(balance.Spendable).String()
+	sendPage.SpendableLabel.Refresh()
 
 	sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
 }

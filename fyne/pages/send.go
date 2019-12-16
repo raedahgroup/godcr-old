@@ -1,8 +1,8 @@
 package pages
 
 import (
-	"image/color"
 	"sort"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -24,13 +24,15 @@ type sendPageDynamicData struct {
 
 	spendableLabel *canvas.Text
 
-	selfSendingSelectedAccountLabel        *widget.Label
-	selfSendingSelectedAccountBalanceLabel *widget.Label
+	selfSendingSelectedAccountLabel        *canvas.Text
+	selfSendingSelectedAccountBalanceLabel *canvas.Text
 	selfSendingSelectedWalletID            int
+	selfSendingSelectedAccountID           int
 
-	sendingSelectedAccountLabel        *widget.Label
-	sendingSelectedAccountBalanceLabel *widget.Label
+	sendingSelectedAccountLabel        *canvas.Text
+	sendingSelectedAccountBalanceLabel *canvas.Text
 	sendingSelectedWalletID            int
+	sendingSelectedAccountID           int
 
 	Contents *widget.Box
 }
@@ -57,9 +59,10 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	initSendPageDynamicContent(openedWalletIDs, selectedWalletAccounts)
 
 	sendingFromAccountSelectorObjects := multipagecomponents.AccountSelectorStruct{
-		MultiWallet:             multiWallet,
-		WalletIDs:               openedWalletIDs,
-		SendingSelectedWalletID: &sendPage.sendingSelectedWalletID,
+		MultiWallet:              multiWallet,
+		WalletIDs:                openedWalletIDs,
+		SendingSelectedWalletID:  &sendPage.sendingSelectedWalletID,
+		SendingSelectedAccountID: &sendPage.sendingSelectedAccountID,
 
 		AccountBoxes:                sendPage.sendingAccountBoxes,
 		SelectedAccountLabel:        sendPage.sendingSelectedAccountLabel,
@@ -70,9 +73,10 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 	}
 
 	sendingToAccountSelectorObjects := multipagecomponents.AccountSelectorStruct{
-		MultiWallet:             multiWallet,
-		WalletIDs:               openedWalletIDs,
-		SendingSelectedWalletID: &sendPage.selfSendingSelectedWalletID,
+		MultiWallet:              multiWallet,
+		WalletIDs:                openedWalletIDs,
+		SendingSelectedWalletID:  &sendPage.selfSendingSelectedWalletID,
+		SendingSelectedAccountID: &sendPage.selfSendingSelectedAccountID,
 
 		AccountBoxes:                sendPage.selfSendingAccountBoxes,
 		SelectedAccountLabel:        sendPage.selfSendingSelectedAccountLabel,
@@ -110,14 +114,14 @@ func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *d
 	sendPage.selfSendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 	sendPage.sendingAccountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
-	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(defaultAccount.Balance.Spendable).String(), color.Black)
+	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(defaultAccount.Balance.Spendable).String(), values.DarkerBlueGrayTextColor)
 	sendPage.spendableLabel.TextSize = values.TextSize12
 
-	sendPage.sendingSelectedAccountLabel = widget.NewLabel(defaultAccount.Name)
-	sendPage.sendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(defaultAccount.TotalBalance).String())
+	sendPage.sendingSelectedAccountLabel = canvas.NewText(strings.Title(defaultAccount.Name), values.DefaultTextColor)
+	sendPage.sendingSelectedAccountBalanceLabel = canvas.NewText(dcrutil.Amount(defaultAccount.TotalBalance).String(), values.DefaultTextColor)
 
-	sendPage.selfSendingSelectedAccountLabel = widget.NewLabel(defaultAccount.Name)
-	sendPage.selfSendingSelectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(defaultAccount.TotalBalance).String())
+	sendPage.selfSendingSelectedAccountLabel = canvas.NewText(strings.Title(defaultAccount.Name), values.DefaultTextColor)
+	sendPage.selfSendingSelectedAccountBalanceLabel = canvas.NewText(dcrutil.Amount(defaultAccount.TotalBalance).String(), values.DefaultTextColor)
 
 	sendPage.Contents = widget.NewVBox()
 }

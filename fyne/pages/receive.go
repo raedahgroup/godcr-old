@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
@@ -17,9 +18,10 @@ import (
 
 type receivePageDynamicData struct {
 	accountBoxes                []*widget.Box
-	selectedAccountLabel        *widget.Label
-	selectedAccountBalanceLabel *widget.Label
+	selectedAccountLabel        *canvas.Text
+	selectedAccountBalanceLabel *canvas.Text
 	selectedWalletID            int
+	selectedAccountID           int
 	Contents                    *widget.Box
 }
 
@@ -45,9 +47,10 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 	initReceivePageDynamicContent(openedWalletIDs, selectedWalletAccounts)
 
 	accountSelectorObjects := multipagecomponents.AccountSelectorStruct{
-		MultiWallet:             multiWallet,
-		WalletIDs:               openedWalletIDs,
-		SendingSelectedWalletID: &receivePage.selectedWalletID,
+		MultiWallet:              multiWallet,
+		WalletIDs:                openedWalletIDs,
+		SendingSelectedWalletID:  &receivePage.selectedWalletID,
+		SendingSelectedAccountID: &receivePage.selectedAccountID,
 
 		AccountBoxes:                receivePage.accountBoxes,
 		SelectedAccountLabel:        receivePage.selectedAccountLabel,
@@ -76,8 +79,8 @@ func initReceivePageDynamicContent(openedWalletIDs []int, selectedWalletAccounts
 	receivePage.selectedWalletID = openedWalletIDs[0]
 	receivePage.accountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
-	receivePage.selectedAccountLabel = widget.NewLabel(selectedWalletAccounts.Acc[0].Name)
-	receivePage.selectedAccountBalanceLabel = widget.NewLabel(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String())
+	receivePage.selectedAccountLabel = canvas.NewText(selectedWalletAccounts.Acc[0].Name, values.DefaultTextColor)
+	receivePage.selectedAccountBalanceLabel = canvas.NewText(dcrutil.Amount(selectedWalletAccounts.Acc[0].TotalBalance).String(), values.DefaultTextColor)
 
 	receivePage.Contents = widget.NewVBox()
 }

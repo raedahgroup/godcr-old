@@ -68,15 +68,15 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
-		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
-			sendPage.sendingSelectedAccountBalanceLabel, sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
+			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)
 
-		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
-			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountBalanceLabel,
+			nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.selfSendingSelectedAccountID, sendPage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
-		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountLabel,
-			receivePage.selectedAccountBalanceLabel, nil, app.multiWallet, receivePage.selectedWalletID, receivePage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountBalanceLabel,
+			nil, app.multiWallet, receivePage.selectedWalletID, receivePage.selectedAccountID, receivePage.Contents)
 	} else if app.tabMenu.CurrentTabIndex() == 4 {
 
 	}
@@ -87,15 +87,15 @@ func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash stri
 	if app.tabMenu.CurrentTabIndex() == 0 {
 
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
-		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountLabel,
-			sendPage.sendingSelectedAccountBalanceLabel, sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
+			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)
 
-		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountLabel,
-			sendPage.selfSendingSelectedAccountBalanceLabel, nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.selfSendingAccountBoxes, sendPage.selfSendingSelectedAccountBalanceLabel,
+			nil, app.multiWallet, sendPage.selfSendingSelectedWalletID, sendPage.selfSendingSelectedAccountID, sendPage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 3 {
-		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountLabel,
-			receivePage.selectedAccountBalanceLabel, nil, app.multiWallet, receivePage.selectedWalletID, receivePage.Contents)
+		multipagecomponents.UpdateAccountSelectorOnNotification(receivePage.accountBoxes, receivePage.selectedAccountBalanceLabel,
+			nil, app.multiWallet, receivePage.selectedWalletID, receivePage.selectedAccountID, receivePage.Contents)
 
 	} else if app.tabMenu.CurrentTabIndex() == 4 {
 

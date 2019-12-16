@@ -1,7 +1,6 @@
 package sendpagehandler
 
 import (
-	"image/color"
 	"time"
 
 	"fyne.io/fyne"
@@ -23,9 +22,10 @@ type SendPageObjects struct {
 	destinationAddressEntry      *widget.Entry
 	destinationAddressErrorLabel *canvas.Text
 
-	amountEntry           *widget.Entry
-	amountEntryErrorLabel *canvas.Text
-	SpendableLabel        *canvas.Text
+	amountEntry                *widget.Entry
+	amountEntryErrorLabel      *canvas.Text
+	SpendableLabel             *canvas.Text
+	costAndBalanceAfterSendBox *widget.Box
 
 	transactionFeeLabel      *widget.Label
 	transactionSizeLabel     *widget.Label
@@ -42,7 +42,8 @@ type SendPageObjects struct {
 
 	MultiWallet *dcrlibwallet.MultiWallet
 
-	Window fyne.Window
+	windowFixedSize fyne.Size
+	Window          fyne.Window
 }
 
 func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
@@ -55,10 +56,10 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
-	sendPage.successLabel = widgets.NewBorderedText(values.SuccessText, fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
+	sendPage.successLabel = widgets.NewBorderedText(values.SuccessText, fyne.NewSize(0, 0), values.Green)
 	sendPage.successLabel.Container.Hide()
 
-	sendPage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})
+	sendPage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), values.ErrorColor)
 	sendPage.errorLabel.Container.Hide()
 
 	sendPage.SendPageContents.Append(widget.NewHBox(layout.NewSpacer(), sendPage.successLabel.Container, sendPage.errorLabel.Container, layout.NewSpacer()))
@@ -90,7 +91,7 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.initNextButton()
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.Padding)) // bottom padding
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize50)) // bottom padding
 	return err
 }
 

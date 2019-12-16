@@ -1,8 +1,6 @@
 package receivepagehandler
 
 import (
-	"image/color"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -39,10 +37,10 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 
 	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
-	receivePage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{237, 109, 71, 255})
+	receivePage.errorLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), values.ErrorColor)
 	receivePage.errorLabel.Container.Hide()
 
-	receivePage.addressCopiedLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), color.RGBA{65, 190, 83, 255})
+	receivePage.addressCopiedLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), values.Green)
 	receivePage.addressCopiedLabel.Container.Hide()
 
 	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.errorLabel.Container, layout.NewSpacer()))
@@ -64,21 +62,16 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 }
 
 func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
-	accNo, err := receivePage.Accounts.SelectedWallet.AccountNumber(receivePage.Accounts.SelectedAccountLabel.Text)
-	if err != nil {
-		receivePage.showInfoLabel(receivePage.errorLabel, values.AccountNumberErr)
-		return
-	}
-
 	var addr string
+	var err error
 	if newAddress {
-		addr, err = receivePage.Accounts.SelectedWallet.NextAddress(int32(accNo))
+		addr, err = receivePage.Accounts.SelectedWallet.NextAddress(int32(*receivePage.Accounts.SendingSelectedAccountID))
 		if err != nil {
 			receivePage.showInfoLabel(receivePage.errorLabel, values.GettingAddress)
 			return
 		}
 	} else {
-		addr, err = receivePage.Accounts.SelectedWallet.CurrentAddress(int32(accNo))
+		addr, err = receivePage.Accounts.SelectedWallet.CurrentAddress(int32(*receivePage.Accounts.SendingSelectedAccountID))
 		if err != nil {
 			receivePage.showInfoLabel(receivePage.errorLabel, values.GettingAddress)
 			return

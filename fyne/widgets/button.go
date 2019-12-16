@@ -31,16 +31,23 @@ func (b *Button) SetTextSize(size int) {
 	b.canvasText.Refresh()
 }
 
+func (b *Button) SetTextStyle(style fyne.TextStyle) {
+	b.canvasText.TextStyle = style
+	b.canvasText.Refresh()
+}
+
 func (b *Button) Disable() {
 	b.Container.Disable()
 
 	b.bar.FillColor = color.RGBA{196, 203, 210, 255}
+	b.bar.Refresh()
 }
 
 func (b *Button) Enable() {
 	b.Container.Enable()
 
 	b.bar.FillColor = b.fillColor
+	b.bar.Refresh()
 }
 
 func (b *Button) Disabled() bool {
@@ -49,6 +56,7 @@ func (b *Button) Disabled() bool {
 
 func (b *Button) SetText(text string) {
 	b.canvasText.Text = text
+	b.canvasText.Refresh()
 }
 
 // NewButton implements a custom button widget with varied size and OnTapped ability.
