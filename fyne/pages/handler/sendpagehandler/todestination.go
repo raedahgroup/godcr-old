@@ -51,7 +51,8 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 			sendPage.destinationAddressEntry.OnChanged(sendPage.destinationAddressEntry.Text)
 		}
-		sendPage.SendPageContents.Refresh()
+		sendToAccountLabel.Refresh()
+		//sendPage.SendPageContents.Refresh()
 		sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
 	})
 
