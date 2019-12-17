@@ -1,10 +1,8 @@
 package pages
 
 import (
-	"fmt"
 	"image/color"
 	"sort"
-	"strings"
 	"time"
 
 	"fyne.io/fyne"
@@ -12,65 +10,51 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
-	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/handlers"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const historyPageIndex = 1
-const PageTitle = "Overview"
+const PageTitle = "overview"
 
 type overview struct {
 	app            *AppInterface
-	transactionBox *widget.Box
 	multiWallet    *dcrlibwallet.MultiWallet
 	walletIds      []int
 	transactions   []dcrlibwallet.Transaction
 }
+
+var overviewHandler = &handlers.OverviewHandler{}
 
 // todo: display overview page (include sync progress UI elements)
 // todo: register sync progress listener on overview page to update sync progress views
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	ov := &overview{}
 	ov.app = app
-	// app.Window.Resize(fyne.NewSize(650, 650))
+	app.Window.Resize(fyne.NewSize(650, 650))
 	ov.multiWallet = app.MultiWallet
 	ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
 	if len(ov.walletIds) == 0 {
 		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	}
 	sort.Ints(ov.walletIds)
-	return widget.NewHBox(widgets.NewHSpacer(values.Padding), ov.container(), widgets.NewHSpacer(values.Padding))
+
+	defer func (){
+		populateOverview(ov)
+		overviewHandler.UpdateBalance(app.MultiWallet)
+	}()
+	return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
 }
 
 func (ov *overview) container() fyne.CanvasObject {
-	return widget.NewVBox(
-		widgets.NewVSpacer(values.Padding),
+	overviewContainer := widget.NewVBox(
 		title(),
-		ov.balance(),
+		balance(),
 		widgets.NewVSpacer(50),
 		ov.pageBoxes(),
-		widgets.NewVSpacer(values.Padding),
 	)
-}
-
-func title() fyne.CanvasObject {
-	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	return widget.NewHBox(titleWidget)
-}
-
-func (ov *overview) balance() fyne.CanvasObject {
-	tb, err := totalBalance(ov)
-	if err != nil {
-		return widget.NewLabel(fmt.Sprintf("Error: %s", err.Error()))
-	}
-	mainBalance, subBalance := breakBalance(tb)
-	dcrBalance := widgets.NewLargeText(mainBalance, color.Black)
-	dcrDecimals := widgets.NewSmallText(subBalance, color.Black)
-	decimalsBox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(6), dcrDecimals)
-	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
+	return overviewContainer
 }
 
 func (ov *overview) pageBoxes() (object fyne.CanvasObject) {
@@ -82,23 +66,16 @@ func (ov *overview) pageBoxes() (object fyne.CanvasObject) {
 }
 
 func (ov *overview) recentTransactionBox() fyne.CanvasObject {
-	var err error
-	ov.transactions, err = recentTransactions(ov)
-	if err != nil {
-		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
-	}
+	//var err error
+	//overviewHandler.Transactions, err = recentTransactions(ov)
+	//if err != nil {
+	//	return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+	//}
 
 	table := &widgets.Table{}
 	table.NewTable(transactionRowHeader())
-	for _, txn := range ov.transactions {
-		amount := dcrutil.Amount(txn.Amount).String()
-		fee := dcrutil.Amount(txn.Fee).String()
-		timeDate := dcrlibwallet.ExtractDateOrTime(txn.Timestamp)
-		status := transactionStatus(ov, txn)
-		table.Append(newTransactionRow(transactionIcon(txn.Direction), amount, fee,
-			dcrlibwallet.TransactionDirectionName(txn.Direction), status, timeDate))
-	}
-
+	overviewHandler.Table = table
+	overviewHandler.UpdateTransactions(ov.multiWallet, handlers.TransactionUpdate{WalletId: -1})
 	return widget.NewVBox(
 		table.Result,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
@@ -115,16 +92,23 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 }
 
 func blockStatusBox() fyne.CanvasObject {
+	syncStatusText := widgets.NewSmallText("", color.Black)
+	timeLeft := widget.NewLabelWithStyle("6 min left", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
+	progressBar := widget.NewProgressBar()
+	overviewHandler.SyncStatusText = syncStatusText
+	overviewHandler.TimeLeftText = timeLeft
+	overviewHandler.ProgressBar = progressBar
+
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
-			widgets.NewSmallText("Syncing...", color.Black),
+			syncStatusText,
 			layout.NewSpacer(),
 			widget.NewButton("Cancel", func() {}),
 		))
-	progressBar := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
-		widget.NewProgressBar(),
+	overviewHandler.Top = top
+	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
+		progressBar,
 	)
-	timeLeft := widget.NewLabelWithStyle("6 min left", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
 	connectedPeers := widget.NewLabelWithStyle("Connected peers count  6", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	syncSteps := widget.NewLabelWithStyle("Step 1/3", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  89%", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
@@ -137,16 +121,35 @@ func blockStatusBox() fyne.CanvasObject {
 		walletSyncBox("Default", "waiting for other wallets", "6000 of 164864", "220 days behind"),
 		walletSyncBox("Wallet 2", "Syncing", "100 of 164864", "320 days behind"),
 	)
-
-	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+	blockStatus := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		widgets.NewVSpacer(5),
 		top,
-		progressBar,
+		progressBarContainer,
 		syncDuration,
 		syncStatus,
 		widgets.NewVSpacer(15),
-		bottom,
 	)
+	go func() {
+		time.Sleep(time.Millisecond * 200)
+		blockStatus.AddObject(bottom)
+		canvas.Refresh(blockStatus)
+	}()
+	return blockStatus
+}
+
+func title() fyne.CanvasObject {
+	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	return widget.NewHBox(titleWidget)
+}
+
+func balance() fyne.CanvasObject {
+	dcrBalance := widgets.NewLargeText("0.00", color.Black)
+	dcrDecimals := widgets.NewSmallText("00000 DCR", color.Black)
+	overviewHandler.Balance = make([]*canvas.Text, 2)
+	overviewHandler.Balance[0] = dcrBalance
+	overviewHandler.Balance[1] = dcrDecimals
+	decimalsBox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(6), dcrDecimals)
+	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
 }
 
 func walletSyncBox(name, status, headerFetched, progress string) fyne.CanvasObject {
@@ -190,21 +193,6 @@ func walletSyncBox(name, status, headerFetched, progress string) fyne.CanvasObje
 	)
 }
 
-func newTransactionRow(transactionType, amount, fee, direction, status, date string) *widget.Box {
-	icons, _ := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
-	icon := canvas.NewImageFromResource(icons[transactionType])
-	// spacer := widgets.NewHSpacer(10)
-	icon.SetMinSize(fyne.NewSize(5, 20))
-	iconBox := widget.NewVBox(widgets.NewVSpacer(4), icon)
-	amountLabel := widget.NewLabel(amount)
-	feeLabel := widget.NewLabel(fee)
-	dateLabel := widget.NewLabel(date)
-	statusLabel := widget.NewLabel(status)
-	directionLabel := widget.NewLabel(direction)
-	column := widget.NewHBox(iconBox, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
-	return column
-}
-
 func transactionRowHeader() *widget.Box {
 	hash := widget.NewLabelWithStyle("#", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	amount := widget.NewLabelWithStyle("amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -215,72 +203,10 @@ func transactionRowHeader() *widget.Box {
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
 }
 
-func totalBalance(overview *overview) (balance string, err error) {
-	var totalWalletBalance int64
+func populateOverview (overview *overview) {
 	mw := overview.multiWallet
-	for _, id := range overview.walletIds {
-		accounts, err := mw.WalletWithID(id).GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
-		if err != nil {
-			return "", err
-		}
-		for _, acc := range accounts.Acc {
-			totalWalletBalance += acc.TotalBalance
-		}
-	}
-	balance = dcrutil.Amount(totalWalletBalance).String()
-	return
+	overviewHandler.Syncing = mw.IsSyncing()
+	overviewHandler.Synced =  mw.IsSynced()
+	overviewHandler.UpdateSyncProgressTop(mw.GetBestBlock().Height, mw.GetBestBlock().Timestamp)
 }
 
-func breakBalance(balance string) (b1, b2 string) {
-	balanceParts := strings.Split(balance, ".")
-	b1 = balanceParts[0]
-	if len(balanceParts) > 1 {
-		b2 = balanceParts[1]
-		b1 = b1 + "." + b2[:2]
-		b2 = b2[2:]
-	}
-	return
-}
-
-func recentTransactions(overview *overview) (transactions []dcrlibwallet.Transaction, err error) {
-	mw := overview.multiWallet
-
-	// add recent transactions of all wallets to a single slice
-	for _, id := range overview.walletIds {
-		txns, err := mw.WalletWithID(id).GetTransactionsRaw(0, 10, 0, true)
-		transactions = append(transactions, txns...)
-		if err != nil {
-			return nil, err
-		}
-	}
-	sort.SliceStable(transactions, func(i, j int) bool {
-		backTime := time.Unix(transactions[j].Timestamp, 0)
-		frontTime := time.Unix(transactions[i].Timestamp, 0)
-		return backTime.Before(frontTime)
-	})
-	if len(transactions) > 5 {
-		transactions = transactions[:5]
-	}
-	return
-}
-
-func transactionIcon(direction int32) string {
-	switch direction {
-	case 0:
-		return assets.SendIcon
-	case 1:
-		return assets.ReceiveIcon
-	case 2:
-		return assets.ReceiveIcon
-	default:
-		return assets.InfoIcon
-	}
-}
-
-func transactionStatus(overview *overview, txn dcrlibwallet.Transaction) string {
-	confirmations := overview.multiWallet.GetBestBlock().Height - txn.BlockHeight + 1
-	if txn.BlockHeight != -1 && confirmations > dcrlibwallet.DefaultRequiredConfirmations {
-		return "confirmed"
-	}
-	return "pending"
-}

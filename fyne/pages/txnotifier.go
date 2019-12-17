@@ -3,6 +3,7 @@ package pages
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/raedahgroup/godcr/fyne/handlers"
 	"log"
 	"strconv"
 
@@ -20,7 +21,10 @@ type multiWalletTxListener struct {
 }
 
 func (app *multiWalletTxListener) OnSyncStarted() {
-
+	mw := app.multiWallet
+	overviewHandler.Synced = mw.IsSynced()
+	overviewHandler.Syncing = mw.IsSyncing()
+	overviewHandler.UpdateSyncProgressTop(mw.GetBestBlock().Height, mw.GetBestBlock().Timestamp)
 }
 
 func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnectedPeers int32) {
@@ -40,7 +44,10 @@ func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress 
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
-
+	mw := app.multiWallet
+	overviewHandler.Synced = mw.IsSynced()
+	overviewHandler.Syncing = mw.IsSyncing()
+	overviewHandler.UpdateSyncProgressTop(mw.GetBestBlock().Height, mw.GetBestBlock().Timestamp)
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
@@ -66,7 +73,12 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-
+		transactionUpdate := handlers.TransactionUpdate{
+			Transaction: currentTransaction,
+			WalletId: -1,
+		}
+		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
+		overviewHandler.UpdateBalance(app.multiWallet)
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
 		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
 			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)
@@ -85,7 +97,12 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash string, blockHeight int32) {
 	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-
+		transactionUpdate := handlers.TransactionUpdate{
+			WalletId:    walletID,
+			TxnHash:     hash,
+		}
+		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
+		overviewHandler.UpdateBalance(app.multiWallet)
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
 		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
 			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)
