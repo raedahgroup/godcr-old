@@ -3,7 +3,9 @@ package pages
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/raedahgroup/godcr/fyne/handlers"
 	"log"
+	"math"
 	"strconv"
 
 	"fyne.io/fyne/widget"
@@ -20,15 +22,24 @@ type multiWalletTxListener struct {
 }
 
 func (app *multiWalletTxListener) OnSyncStarted() {
-
+	mw := app.multiWallet
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	overviewHandler.Synced = mw.IsSynced()
+	overviewHandler.Syncing = mw.IsSyncing()
+	overviewHandler.UpdateBlockStatusBox(mw)
 }
 
 func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnectedPeers int32) {
-
+	overviewHandler.UpdateConnectedPeers(numberOfConnectedPeers, true)
 }
 
 func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
-
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	overviewHandler.SyncProgress = float64(headersFetchProgress.FetchedHeadersCount) / float64(headersFetchProgress.TotalHeadersToFetch)
+	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress * 100) / 100
+	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
@@ -40,11 +51,22 @@ func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress 
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
-
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	mw := app.multiWallet
+	overviewHandler.Synced = mw.IsSynced()
+	overviewHandler.Syncing = mw.IsSyncing()
+	overviewHandler.SyncProgress = 1
+	overviewHandler.UpdateBlockStatusBox(mw)
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
-
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	mw := app.multiWallet
+	overviewHandler.Synced = false
+	overviewHandler.Syncing = false
+	overviewHandler.UpdateBlockStatusBox(mw)
 }
 
 func (app *multiWalletTxListener) OnSyncEndedWithError(err error) {
@@ -66,7 +88,11 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-
+		transactionUpdate := handlers.TransactionUpdate{
+			Transaction: currentTransaction,
+		}
+		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
+		overviewHandler.UpdateBalance(app.multiWallet)
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
 		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
 			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)
@@ -85,7 +111,12 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash string, blockHeight int32) {
 	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-
+		transactionUpdate := handlers.TransactionUpdate{
+			WalletId:    walletID,
+			TxnHash:     hash,
+		}
+		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
+		overviewHandler.UpdateBalance(app.multiWallet)
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
 		multipagecomponents.UpdateAccountSelectorOnNotification(sendPage.sendingAccountBoxes, sendPage.sendingSelectedAccountBalanceLabel,
 			sendPage.spendableLabel, app.multiWallet, sendPage.sendingSelectedWalletID, sendPage.sendingSelectedAccountID, sendPage.Contents)

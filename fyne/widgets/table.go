@@ -58,9 +58,13 @@ func (table *Table) Pop() {
 	table.Refresh()
 }
 
+func (table *Table) DeleteAll() {
+	table.tableData = table.tableData[:1]
+	table.Refresh()
+}
+
 func (table *Table) Refresh() {
 	var container = widget.NewHBox()
-
 	// get horizontals apart from heading
 	for i := 0; i < len(table.heading.Children); i++ {
 		// get vertical
