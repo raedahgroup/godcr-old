@@ -50,7 +50,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		return app.displayErrorPage(err.Error())
 	}
 
-	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 255})
+	errorLabel := canvas.NewText("Password do not match", values.ErrorColor)
 	errorLabel.TextSize = 10
 	errorLabel.Hide()
 

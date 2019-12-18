@@ -56,7 +56,7 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 	receivePage.initQrImageAndAddress()
 	receivePage.initTapToCopyText()
 
-	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.Padding))
+	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.BottomPadding))
 
 	return nil
 }
@@ -82,13 +82,20 @@ func (receivePage *ReceivePageObjects) generateAddressAndQR(newAddress bool) {
 	receivePage.address.Text = addr
 	receivePage.address.Refresh()
 
-	imgBytes, err := qrcode.Encode(addr, qrcode.High, 256)
+	qrCode, err := qrcode.New(addr, qrcode.Highest)
+	qrCode.DisableBorder = true
 	if err != nil {
 		receivePage.showInfoLabel(receivePage.errorLabel, values.QrEncodeErr)
 		return
 	}
 
-	receivePage.qrImage.SetResource(fyne.NewStaticResource("Text", imgBytes))
+	bytes, err := qrCode.PNG(256)
+	if err != nil {
+		receivePage.showInfoLabel(receivePage.errorLabel, values.QrEncodeErr)
+		return
+	}
+
+	receivePage.qrImage.SetResource(fyne.NewStaticResource("", bytes))
 
 	receivePage.ReceivePageContents.Refresh()
 }

@@ -19,18 +19,19 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 		return errors.New(values.TransactionDetailsIconErr)
 	}
 
-	sendPage.transactionFeeLabel = widget.NewLabel(values.NilAmount)
-	sendPage.transactionSizeLabel = widget.NewLabel(values.ZeroByte)
-	sendPage.totalCostLabel = widget.NewLabel(values.NilAmount)
-	sendPage.balanceAfterSendLabel = widget.NewLabel(values.NilAmount)
+	sendPage.transactionFeeLabel = canvas.NewText(values.NilAmount, values.NilAmountColor)
+	sendPage.totalCostLabel = canvas.NewText(values.NilAmount, values.NilAmountColor)
+	sendPage.balanceAfterSendLabel = canvas.NewText(values.NilAmount, values.NilAmountColor)
+	sendPage.transactionSizeLabel = canvas.NewText(values.ZeroByte, values.DefaultTextColor)
 
 	borderedtransactionInfoform := sendPage.transactionInfoWithBorder()
 	borderedtransactionInfoform.Hide()
 
 	var transactionFeeBox *widget.Box
 
-	sendPage.costAndBalanceAfterSendBox = widget.NewVBox()
+	costAndBalanceAfterSendBox := widget.NewVBox()
 	var transactionSizeDropdown *widgets.ImageButton
+	var transactionInfoContainer *fyne.Container
 
 	transactionSizeDropdown = widgets.NewImageButton(icons[assets.ExpandDropdown], nil, func() {
 		if borderedtransactionInfoform.Hidden {
@@ -41,30 +42,30 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 			borderedtransactionInfoform.Hide()
 		}
 
-		sendPage.transactionInfoContainer.Layout = layout.NewFixedGridLayout(
-			fyne.NewSize(borderedtransactionInfoform.MinSize().Width, sendPage.costAndBalanceAfterSendBox.MinSize().Height))
+		transactionInfoContainer.Layout = layout.NewFixedGridLayout(
+			fyne.NewSize(borderedtransactionInfoform.MinSize().Width, costAndBalanceAfterSendBox.MinSize().Height))
 		sendPage.Window.Resize(sendPage.SendPageContents.MinSize().Add(fyne.NewSize(0, values.SpacerSize10)))
 	})
 
 	transactionFeeBox = widget.NewHBox(canvas.NewText(values.TransactionFee, values.TransactionInfoColor), layout.NewSpacer(),
-		sendPage.transactionFeeLabel, widgets.NewHSpacer(values.SpacerSize4), transactionSizeDropdown)
+		sendPage.transactionFeeLabel, canvas.NewText(values.DCR, values.DefaultTextColor), widgets.NewHSpacer(values.SpacerSize4), transactionSizeDropdown)
 
-	sendPage.costAndBalanceAfterSendBox.Append(transactionFeeBox)
+	costAndBalanceAfterSendBox.Append(transactionFeeBox)
 
-	sendPage.costAndBalanceAfterSendBox.Append(borderedtransactionInfoform)
-	sendPage.costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize4))
+	costAndBalanceAfterSendBox.Append(borderedtransactionInfoform)
+	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize4))
 
-	sendPage.costAndBalanceAfterSendBox.Append(widget.NewHBox(
-		canvas.NewText(values.TotalCost, values.TransactionInfoColor), layout.NewSpacer(), sendPage.totalCostLabel))
+	costAndBalanceAfterSendBox.Append(widget.NewHBox(
+		canvas.NewText(values.TotalCost, values.TransactionInfoColor), layout.NewSpacer(), sendPage.totalCostLabel, canvas.NewText(values.DCR, values.DefaultTextColor)))
 
-	sendPage.costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize6))
+	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize6))
 
-	sendPage.costAndBalanceAfterSendBox.Append(widget.NewHBox(
-		canvas.NewText(values.BalanceAfterSend, values.TransactionInfoColor), layout.NewSpacer(), sendPage.balanceAfterSendLabel))
+	costAndBalanceAfterSendBox.Append(widget.NewHBox(
+		canvas.NewText(values.BalanceAfterSend, values.TransactionInfoColor), layout.NewSpacer(), sendPage.balanceAfterSendLabel, canvas.NewText(values.DCR, values.DefaultTextColor)))
 
-	sendPage.transactionInfoContainer = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(borderedtransactionInfoform.MinSize()), sendPage.costAndBalanceAfterSendBox)
+	transactionInfoContainer = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(borderedtransactionInfoform.MinSize()), costAndBalanceAfterSendBox)
 
-	sendPage.SendPageContents.Append(sendPage.transactionInfoContainer)
+	sendPage.SendPageContents.Append(transactionInfoContainer)
 
 	return nil
 }

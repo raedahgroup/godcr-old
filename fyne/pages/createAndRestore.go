@@ -34,7 +34,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 		return app.displayErrorPage(err.Error())
 	}
 
-	greenBar := canvas.NewRectangle(values.Green)
+	greenBar := canvas.NewRectangle(values.BlueGreen)
 	greenBar.SetMinSize(fyne.NewSize(312, 56))
 
 	blueBar := canvas.NewRectangle(values.Blue)

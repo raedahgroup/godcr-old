@@ -22,16 +22,14 @@ type SendPageObjects struct {
 	destinationAddressEntry      *widget.Entry
 	destinationAddressErrorLabel *canvas.Text
 
-	amountEntry                *widget.Entry
-	amountEntryErrorLabel      *canvas.Text
-	SpendableLabel             *canvas.Text
-	costAndBalanceAfterSendBox *widget.Box
+	amountEntry           *widget.Entry
+	amountEntryErrorLabel *canvas.Text
+	SpendableLabel        *canvas.Text
 
-	transactionFeeLabel      *widget.Label
-	transactionSizeLabel     *widget.Label
-	totalCostLabel           *widget.Label
-	balanceAfterSendLabel    *widget.Label
-	transactionInfoContainer *fyne.Container
+	transactionFeeLabel   *canvas.Text
+	transactionSizeLabel  *canvas.Text
+	totalCostLabel        *canvas.Text
+	balanceAfterSendLabel *canvas.Text
 
 	nextButton *widgets.Button
 
@@ -42,8 +40,7 @@ type SendPageObjects struct {
 
 	MultiWallet *dcrlibwallet.MultiWallet
 
-	windowFixedSize fyne.Size
-	Window          fyne.Window
+	Window fyne.Window
 }
 
 func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
@@ -80,18 +77,18 @@ func (sendPage *SendPageObjects) InitAllSendPageComponents() error {
 
 	sendPage.initAmountEntryComponents()
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize16))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize36))
 
 	err = sendPage.initTransactionDetails()
 	if err != nil {
 		return err
 	}
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize36))
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize30))
 
 	sendPage.initNextButton()
 
-	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.SpacerSize50)) // bottom padding
+	sendPage.SendPageContents.Append(widgets.NewVSpacer(values.BottomPadding))
 	return err
 }
 

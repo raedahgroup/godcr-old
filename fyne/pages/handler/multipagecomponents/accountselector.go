@@ -231,7 +231,6 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			if accountSelector.OnAccountChange != nil {
 				accountSelector.OnAccountChange()
 			}
-			//accountSelector.PageContents.Refresh()
 
 		}))
 	}

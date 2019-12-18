@@ -9,8 +9,12 @@ github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOv
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/C-ollins/mobilewallet v1.0.0-rc1.0.20191201141735-f45887d0465f h1:HSLconWwgX8sZ02iqyzRUvXVQVQYFdvCNOEW7irnHNY=
 github.com/C-ollins/mobilewallet v1.0.0-rc1.0.20191201141735-f45887d0465f/go.mod h1:BuSLoumCVs9mOqUxzAxrEDKTUIyDDU67xhQPg6onCpM=
+github.com/C-ollins/mobilewallet v1.0.0-rc1.0.20191206032901-ef455a3cc250 h1:S+2GC2xw9505AEwbq/UnQNVIyj74oI+coBFe942SSZw=
+github.com/C-ollins/mobilewallet v1.0.0-rc1.0.20191206032901-ef455a3cc250/go.mod h1:BuSLoumCVs9mOqUxzAxrEDKTUIyDDU67xhQPg6onCpM=
 github.com/C-ollins/mobilewallet/spv v0.0.0-20191201141735-f45887d0465f h1:ksRHn5LCFflIC4NP+NmLiOMirGaJ6KNdTVJK4OJU/4E=
 github.com/C-ollins/mobilewallet/spv v0.0.0-20191201141735-f45887d0465f/go.mod h1:ZBnPwcopuDqDbJ1sb2D+2rMs2oRbbpisCRHKUZ/KJQI=
+github.com/C-ollins/mobilewallet/spv v0.0.0-20191206032901-ef455a3cc250 h1:ND5kMZoC8PpCUpLq0efZ5PrbxoYi78R4R6+j/8P4nVw=
+github.com/C-ollins/mobilewallet/spv v0.0.0-20191206032901-ef455a3cc250/go.mod h1:22RazM8yyrlKO22Mvv6IzEVYdS8pPf651wkzsMrVAYk=
 github.com/DataDog/zstd v1.3.5 h1:DtpNbljikUepEPD16hD4LvIcmhnhdLTiW/5pHgbmp14=
 github.com/DataDog/zstd v1.3.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod h1:7uhhqiBaR4CpN0k9rMjOtjpcfGd6DG2m04zQxKnWQ0I=

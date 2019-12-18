@@ -1,6 +1,8 @@
 package sendpagehandler
 
 import (
+	"image/color"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -34,6 +36,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 	var container *fyne.Container
 	switchingComponentButton := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
+		sendPage.SendPageContents.Refresh()
 		if accountBox.Hidden {
 			sendToAccountLabel.Text = values.SwitchToSendToAddress
 			accountBox.Show()
@@ -51,9 +54,10 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 
 			sendPage.destinationAddressEntry.OnChanged(sendPage.destinationAddressEntry.Text)
 		}
-		sendToAccountLabel.Refresh()
-		//sendPage.SendPageContents.Refresh()
+
+		sendPage.SendPageContents.Refresh()
 		sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
+		sendPage.SendPageContents.Refresh()
 	})
 
 	box := widget.NewVBox(
@@ -71,7 +75,6 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 }
 
 func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
-
 	sendPage.destinationAddressErrorLabel = canvas.NewText("", values.ErrorColor)
 	sendPage.destinationAddressErrorLabel.TextSize = values.DefaultErrTextSize
 	sendPage.destinationAddressErrorLabel.Hide()
@@ -83,18 +86,24 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 		if sendPage.destinationAddressEntry.Text == "" {
 			sendPage.destinationAddressErrorLabel.Hide()
 			sendPage.SendPageContents.Refresh()
+			sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
+
 			return
 		}
 
 		_, err := dcrutil.DecodeAddress(address)
 		if err != nil {
 			sendPage.destinationAddressErrorLabel.Text = values.InvalidAddress
+			sendPage.SendPageContents.Refresh()
 			sendPage.destinationAddressErrorLabel.Show()
+			sendPage.SendPageContents.Refresh()
 			setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
 			setLabelText(values.ZeroByte, sendPage.transactionSizeLabel)
+			sendPage.SendPageContents.Refresh()
 
 		} else {
 			sendPage.destinationAddressErrorLabel.Hide()
+			sendPage.SendPageContents.Refresh()
 		}
 
 		if sendPage.amountEntry.Text != "" && sendPage.amountEntryErrorLabel.Hidden && sendPage.destinationAddressErrorLabel.Hidden {
@@ -102,11 +111,25 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 		} else {
 			sendPage.nextButton.Disable()
 		}
+
+		sendPage.SendPageContents.Refresh()
 	}
 }
 
-func setLabelText(Text string, objects ...*widget.Label) {
+func setLabelText(Text string, objects ...*canvas.Text) {
 	for _, object := range objects {
-		object.SetText(Text)
+		object.Text = Text
+	}
+}
+
+func setLabelColor(textColor color.Color, objects ...*canvas.Text) {
+	for _, object := range objects {
+		object.Color = textColor
+	}
+}
+
+func canvasTextRefresher(objects ...*canvas.Text) {
+	for _, object := range objects {
+		object.Refresh()
 	}
 }

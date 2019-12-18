@@ -31,9 +31,10 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 		dialog := widget.NewVBox(
 			widgets.NewVSpacer(values.SpacerSize10),
 			widget.NewLabelWithStyle(values.ReceivePageLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-			widgets.NewVSpacer(values.SpacerSize30),
+			widgets.NewVSpacer(values.SpacerSize10),
 			dialogLabel,
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(confirmationText), func() { popup.Hide() })),
+			widgets.NewVSpacer(values.SpacerSize10),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(values.SpacerSize10))
 
 		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize24), dialog, widgets.NewHSpacer(values.SpacerSize20)), receivePage.Window.Canvas())

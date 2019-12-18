@@ -1,9 +1,9 @@
 package values
 
 const (
-	DefaultTextSize            = 14
-	DefaultErrTextSize         = 12
-	Padding                    = 16
+	DefaultTextSize    = 14
+	DefaultErrTextSize = 12
+
 	TextSize10                 = 10
 	TextSize12                 = 12
 	TextSize16                 = 16
@@ -26,4 +26,7 @@ const (
 	SpacerSize50  = 50
 	SpacerSize140 = 140
 	SpacerSize170 = 170
+
+	Padding       = 16
+	BottomPadding = 50
 )

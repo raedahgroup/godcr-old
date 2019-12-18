@@ -33,8 +33,9 @@ func (sendPage *SendPageObjects) onAccountChange() {
 		return
 	}
 
+	sendPage.SendPageContents.Refresh()
 	sendPage.SpendableLabel.Text = values.SpendableAmountLabel + dcrutil.Amount(balance.Spendable).String()
-	sendPage.SpendableLabel.Refresh()
+	sendPage.SendPageContents.Refresh()
 
 	sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
 }

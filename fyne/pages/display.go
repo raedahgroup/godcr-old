@@ -118,7 +118,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
 				activePageBox.Children = []fyne.CanvasObject{newPageContent}
 				widget.Refresh(activePageBox)
-				app.Window.Resize(newPageContent.Size())
+				app.Window.Resize(app.tabMenu.MinSize().Union(newPageContent.MinSize()))
 			}
 		}
 	}()
