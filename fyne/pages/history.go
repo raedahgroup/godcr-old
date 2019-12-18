@@ -24,14 +24,19 @@ import (
 const txPerPage int32 = 25
 
 type txHistoryPageData struct {
-	txTable          widgets.Table
-	allTxCount       int
-	selectedFilterId int32
-	errorLabel       *widget.Label
-	TotalTxFetched   int32
-	selectedWalletID int
-	selectedtxSort   bool
-	icons            map[string]*fyne.StaticResource
+	txTable                    widgets.Table
+	allTxCount                 int
+	selectedFilterId           int32
+	errorLabel                 *widget.Label
+	TotalTxFetched             int32
+	selectedWalletID           int
+	selectedtxSort             bool
+	walletListWidget           *widget.Box
+	txFilterTab                *widget.Box
+	txSortFilterTab            *widget.Box
+	txFilterSelectionPopup     *widget.PopUp
+	txSortFilterSelectionPopup *widget.PopUp
+	icons                      map[string]*fyne.StaticResource
 }
 
 var txHistory txHistoryPageData
@@ -78,25 +83,31 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(110), infoIcon),
 		widgets.NewVSpacer(5),
 	)
+	txHistory.walletListWidget = widget.NewHBox()
 
-	walletList, txFilterDropDown, errorMessage := txFilterDropDown(app.MultiWallet, app.Window, app.tabMenu)
-	if errorMessage != "" {
-		errorHandler(errorMessage, txHistory.errorLabel)
-		txHistoryPageOutput.Append(txHistory.errorLabel)
-		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
-	}
+	txWalletList(app.MultiWallet, app.Window, app.tabMenu, txHistory.walletListWidget)
+	txSortDropDown(app.MultiWallet, app.Window, app.tabMenu)
 
-	txSortFilterDropDown, errorMessage := txSortDropDown(app.MultiWallet, app.Window, app.tabMenu)
-	if errorMessage != "" {
-		errorHandler(errorMessage, txHistory.errorLabel)
-		txHistoryPageOutput.Append(txHistory.errorLabel)
-		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
-	}
+	txHistoryPageOutput.Append(txHistory.walletListWidget)
 
-	txTableHeader(app.MultiWallet, &txHistory.txTable, app.Window)
-	fetchTx(&txHistory.txTable, 0, dcrlibwallet.TxFilterAll, app.MultiWallet, app.Window, app.tabMenu, false)
+	var txSortFilterDropDown *widgets.ClickableBox
+	txSortFilterDropDown = widgets.NewClickableBox(txHistory.txSortFilterTab, func() {
+		txHistory.txSortFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			txSortFilterDropDown).Add(fyne.NewPos(0, txSortFilterDropDown.Size().Height)))
+		txHistory.txSortFilterSelectionPopup.Show()
+	})
 
-	txHistoryPageOutput.Append(walletList)
+	var txFilterDropDown *widgets.ClickableBox
+	txFilterDropDown = widgets.NewClickableBox(txHistory.txFilterTab, func() {
+		// if len(txFilterListWidget.Children) == 0 {
+		// 	txFilterSelectionPopup.Hide()
+		// } else {
+		txHistory.txFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+			txFilterDropDown).Add(fyne.NewPos(0, txFilterDropDown.Size().Height)))
+		txHistory.txFilterSelectionPopup.Show()
+		// }
+	})
+
 	txHistoryPageOutput.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	txHistoryPageOutput.Append(txHistory.errorLabel)
 	txHistoryPageOutput.Append(widgets.NewVSpacer(5))
@@ -106,19 +117,18 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 	return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 }
 
-func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) (*widget.Box, *widgets.ClickableBox, string) {
+func txWalletList(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer, walletListWidget *widget.Box) {
 	var txTable widgets.Table
-
 	walletsID := multiWallet.OpenedWalletIDsRaw()
 	if len(walletsID) == 0 {
-		return nil, nil, "Could not retrieve wallets"
+		errorHandler("Could not retrieve wallets", txHistory.errorLabel)
 	}
 	sort.Ints(walletsID)
 
-	// default wallet selected
-	txHistory.selectedWalletID = walletsID[0]
+	txFilterDropDown(multiWallet, window, tabMenu, walletsID[0])
+	txTableHeader(multiWallet, &txHistory.txTable, window)
+	fetchTx(&txHistory.txTable, 0, dcrlibwallet.TxFilterAll, multiWallet, window, tabMenu, false)
 
-	walletListWidget := widget.NewHBox()
 	for _, walletID := range walletsID {
 		wallet := multiWallet.WalletWithID(walletID)
 		if wallet == nil {
@@ -145,27 +155,31 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 
 		// working on hiding line
 		walletListWidget.Append(widgets.NewClickableBox(walletView, func() {
-			for _, children := range walletView.Children {
-				if box, ok := children.(*widget.Box); !ok {
-					continue
-				} else {
-					if len(box.Children) != 2 {
-						continue
-					}
-					if line, ok := box.Children[1].(*canvas.Line); !ok {
-						continue
-					} else {
-						line.Hide()
-					}
-				}
-			}
+			// for _, children := range walletView.Children {
+			// 	if box, ok := children.(*widget.Box); !ok {
+			// 		continue
+			// 	} else {
+			// 		if len(box.Children) != 2 {
+			// 			continue
+			// 		}
+			// 		box.Children[1].Hide()
+			// 	}
+			// }
 
-			txHistory.selectedWalletID = individualWalletID
+			selectedWalletLine.Show()
+			txHistory.selectedFilterId = dcrlibwallet.TxFilterAll
+			txFilterDropDown(multiWallet, window, tabMenu, individualWalletID)
+			txTableHeader(multiWallet, &txTable, window)
+			fetchTx(&txTable, 0, txHistory.selectedFilterId, multiWallet, window, tabMenu, false)
+			widget.Refresh(txHistory.txTable.Result)
 		}))
+
 		walletListWidget.Append(widgets.NewHSpacer(8))
 	}
+}
 
-	var txFilterSelectionPopup *widget.PopUp
+func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer, walletId int) {
+	var txTable widgets.Table
 	txFilterListWidget := widget.NewVBox()
 
 	var allTxFilterNames = []string{"All", "Sent", "Received", "Transferred", "Coinbase", "Staking"}
@@ -177,24 +191,25 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 		"Coinbase":    dcrlibwallet.TxFilterCoinBase,
 		"Staking":     dcrlibwallet.TxFilterStaking,
 	}
+	if walletId != txHistory.selectedWalletID {
+		txHistory.selectedWalletID = walletId
+	}
 
 	txCountForFilter, err := multiWallet.WalletWithID(txHistory.selectedWalletID).CountTransactions(allTxFilters["All"])
 	if err != nil {
 		errorMessage := fmt.Sprintf("Cannot load txHistory page. Error getting transaction count for filter All: %s", err.Error())
-		return nil, nil, errorMessage
+		errorHandler(errorMessage, txHistory.errorLabel)
 	}
 
 	txHistory.allTxCount = txCountForFilter
-
 	selectedTxFilterLabel := widget.NewLabel(fmt.Sprintf("%s (%d)", "All", txCountForFilter))
 
 	for _, filterName := range allTxFilterNames {
 		filterId := allTxFilters[filterName]
 		txCountForFilter, err := multiWallet.WalletWithID(txHistory.selectedWalletID).CountTransactions(filterId)
 		if err != nil {
-			errorMessage := fmt.Sprintf("Cannot load txHistory page. Error getting transaction count for filter %s: %s",
-				filterName, err.Error())
-			return nil, nil, errorMessage
+			errorMessage := fmt.Sprintf("Cannot load txHistory page. Error getting transaction count for filter %s: %s", filterName, err.Error())
+			errorHandler(errorMessage, txHistory.errorLabel)
 		}
 		if txCountForFilter > 0 {
 			filter := fmt.Sprintf("%s (%d)", filterName, txCountForFilter)
@@ -214,41 +229,28 @@ func txFilterDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window,
 				if selectedFilterId != txHistory.selectedFilterId {
 					selectedTxFilterLabel.SetText(filter)
 					txTableHeader(multiWallet, &txTable, window)
-					txHistory.txTable.Result.Children = txTable.Result.Children
 					fetchTx(&txTable, 0, selectedFilterId, multiWallet, window, tabMenu, false)
 					widget.Refresh(txHistory.txTable.Result)
 				}
 
-				txFilterSelectionPopup.Hide()
+				txHistory.txFilterSelectionPopup.Hide()
 			}))
 		}
 	}
 
 	// txFilterSelectionPopup create a popup that has tx filter name and tx count
-	txFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txFilterListWidget), window.Canvas())
-	txFilterSelectionPopup.Hide()
+	txHistory.txFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txFilterListWidget), window.Canvas())
+	txHistory.txFilterSelectionPopup.Hide()
 
-	txFilterTab := widget.NewHBox(
+	txHistory.txFilterTab = widget.NewHBox(
 		selectedTxFilterLabel,
-		widgets.NewHSpacer(60),
+		widgets.NewHSpacer(10),
 		widget.NewIcon(txHistory.icons[assets.CollapseIcon]),
 	)
-
-	var txFilterDropDown *widgets.ClickableBox
-	txFilterDropDown = widgets.NewClickableBox(txFilterTab, func() {
-		if len(txFilterListWidget.Children) == 0 {
-			txFilterSelectionPopup.Hide()
-		} else {
-			txFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-				txFilterDropDown).Add(fyne.NewPos(0, txFilterDropDown.Size().Height)))
-			txFilterSelectionPopup.Show()
-		}
-	})
-
-	return walletListWidget, txFilterDropDown, ""
+	widget.Refresh(txHistory.txFilterTab)
 }
 
-func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) (*widgets.ClickableBox, string) {
+func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabMenu *widget.TabContainer) {
 	var txTable widgets.Table
 	var allTxSortNames = []string{"Newest", "Oldest"}
 	var allTxSortFilters = map[string]bool{
@@ -259,7 +261,6 @@ func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, t
 	selectedTxSortFilterLabel := widget.NewLabel("Newest")
 	txHistory.selectedtxSort = allTxSortFilters["Newest"]
 
-	var txSortFilterSelectionPopup *widget.PopUp
 	txSortFilterListWidget := widget.NewVBox()
 	for _, sortName := range allTxSortNames {
 		txSortView := widget.NewHBox(
@@ -278,28 +279,19 @@ func txSortDropDown(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, t
 			txHistory.txTable.Result.Children = txTable.Result.Children
 			fetchTx(&txTable, 0, txHistory.selectedFilterId, multiWallet, window, tabMenu, false)
 			widget.Refresh(txHistory.txTable.Result)
-			txSortFilterSelectionPopup.Hide()
+			txHistory.txSortFilterSelectionPopup.Hide()
 		}))
 	}
 
 	// txSortFilterSelectionPopup create a popup that has tx filter name and tx count
-	txSortFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txSortFilterListWidget), window.Canvas())
-	txSortFilterSelectionPopup.Hide()
+	txHistory.txSortFilterSelectionPopup = widget.NewPopUp(widget.NewVBox(txSortFilterListWidget), window.Canvas())
+	txHistory.txSortFilterSelectionPopup.Hide()
 
-	txSortFilterTab := widget.NewHBox(
+	txHistory.txSortFilterTab = widget.NewHBox(
 		selectedTxSortFilterLabel,
 		widgets.NewHSpacer(10),
 		widget.NewIcon(txHistory.icons[assets.CollapseIcon]),
 	)
-
-	var txSortFilterDropDown *widgets.ClickableBox
-	txSortFilterDropDown = widgets.NewClickableBox(txSortFilterTab, func() {
-		txSortFilterSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
-			txSortFilterDropDown).Add(fyne.NewPos(0, txSortFilterDropDown.Size().Height)))
-		txSortFilterSelectionPopup.Show()
-	})
-
-	return txSortFilterDropDown, ""
 }
 
 func txTableHeader(wallet *dcrlibwallet.MultiWallet, txTable *widgets.Table, window fyne.Window) {
@@ -316,7 +308,7 @@ func txTableHeader(wallet *dcrlibwallet.MultiWallet, txTable *widgets.Table, win
 	var hBox []*widget.Box
 
 	txTable.NewTable(tableHeading, hBox...)
-
+	txHistory.txTable.Result.Children = txTable.Result.Children
 	return
 }
 
@@ -375,6 +367,7 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, multiWallet *dcrlib
 	txHistory.txTable.Result.Children = txTable.Result.Children
 	widget.Refresh(txHistory.txTable.Result)
 	widget.Refresh(txHistory.txTable.Container)
+	txHistory.txTable.Container.Show()
 
 	time.AfterFunc(time.Second*8, func() {
 		updateTable(multiWallet, window, tabMenu)
