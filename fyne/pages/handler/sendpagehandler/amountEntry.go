@@ -28,12 +28,10 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 	}
 
 	sendPage.amountEntry = widget.NewEntry()
-	sendPage.amountEntry.SetPlaceHolder(values.ZeroAmount)
+	sendPage.amountEntry.SetPlaceHolder(fmt.Sprintf("%s %s", values.ZeroAmount, values.DCR))
 
 	sendPage.amountEntryErrorLabel = widgets.NewTextWithSize("", values.ErrorColor, values.DefaultErrTextSize)
 	sendPage.amountEntryErrorLabel.Hide()
-
-	var amountEntryComponents *widget.Box
 
 	sendPage.amountEntry.OnChanged = func(value string) {
 		if len(value) > 0 && !amountEntryExpression.MatchString(value) {
@@ -65,9 +63,13 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 		if amountInFloat == 0.0 || !sendPage.destinationAddressErrorLabel.Hidden {
 			setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
 			sendPage.transactionSizeLabel.Text = values.ZeroByte
+			sendPage.SendPageContents.Refresh()
+
 			setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+			sendPage.SendPageContents.Refresh()
 
 			sendPage.nextButton.Disable()
+			sendPage.SendPageContents.Refresh()
 			return
 		}
 
@@ -123,7 +125,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 	maxButton := sendPage.maxButton()
 
-	amountEntryComponents = widget.NewVBox(
+	amountEntryComponents := widget.NewVBox(
 		widget.NewHBox(amountLabel, layout.NewSpacer(), sendPage.SpendableLabel, widgets.NewHSpacer(values.SpacerSize20)),
 		widgets.NewVSpacer(values.SpacerSize10),
 

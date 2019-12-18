@@ -125,7 +125,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			continue
 		}
 
-		spendableLabel := canvas.NewText(values.Spendable, color.Black)
+		spendableLabel := canvas.NewText(values.Spendable, values.TransactionInfoColor)
 		spendableLabel.TextSize = 10
 
 		accountName := strings.Title(account.Name)
@@ -136,7 +136,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			widget.NewHBox(widgets.NewHSpacer(values.NilSpacer), spendableLabel),
 		)
 
-		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), color.Black)
+		spendableAmountLabel := canvas.NewText(dcrutil.Amount(account.Balance.Spendable).String(), values.DefaultTextColor)
 		spendableAmountLabel.TextSize = 10
 		spendableAmountLabel.Alignment = fyne.TextAlignTrailing
 
