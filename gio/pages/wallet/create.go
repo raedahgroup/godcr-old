@@ -80,8 +80,9 @@ func (w *CreateWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(),
 		w.seedPage.render(ctx, w.refreshWindowFunc)
 	} else {
 		inset := layout.Inset{
-			Left : unit.Dp(20),
-			Right: unit.Dp(20),
+			Top  : unit.Dp(30),
+			Left : unit.Dp(helper.StandaloneScreenPadding),
+			Right: unit.Dp(helper.StandaloneScreenPadding),
 		}
 		inset.Layout(ctx, func(){
 			layout.Stack{Alignment: layout.NW}.Layout(ctx, 
@@ -113,13 +114,13 @@ func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
 	
 	
 	inset := layout.Inset{
-		Left: unit.Dp(20),
-		Right: unit.Dp(20),
+		Left: unit.Dp(helper.StandaloneScreenPadding),
+		Right: unit.Dp(helper.StandaloneScreenPadding),
 	}
 	inset.Layout(ctx, func(){
 		// password section
 		inset := layout.Inset{
-			Top: unit.Dp(20),
+			Top: unit.Dp(helper.StandaloneScreenPadding),
 		}
 		inset.Layout(ctx, func(){
 			go func(){

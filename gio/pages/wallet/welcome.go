@@ -29,19 +29,19 @@ func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), chan
 	helper.DrawLogo(ctx)
 	
 	inset := layout.Inset{
-		Left: unit.Dp(20),
-		Right: unit.Dp(20),
+		Left: unit.Dp(helper.StandaloneScreenPadding),
+		Right: unit.Dp(helper.StandaloneScreenPadding),
 	}
 	inset.Layout(ctx, func(){
 		inset := layout.Inset{
-			Top: unit.Dp(35),
+			Top: unit.Dp(55),
 		}
 		inset.Layout(ctx, func(){
 			widgets.NewLabel("Welcome to", 6).Draw(ctx)
 		})
 
 		inset = layout.Inset{
-			Top: unit.Dp(64),
+			Top: unit.Dp(85),
 		}
 		inset.Layout(ctx, func(){
 			widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
@@ -49,7 +49,7 @@ func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), chan
 
 		// create button section 
 		inset = layout.Inset{
-			Top: unit.Dp(285),
+			Top: unit.Dp(335),
 		}
 		inset.Layout(ctx, func(){
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
@@ -62,7 +62,7 @@ func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), chan
 
 		// restore button section 
 		inset = layout.Inset{
-			Top: unit.Dp(345),
+			Top: unit.Dp(395),
 		}
 		inset.Layout(ctx, func(){
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max

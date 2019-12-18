@@ -35,7 +35,7 @@ type (
 
 const (
 	windowWidth  = 520
-	windowHeight = 500
+	windowHeight = 530
 
 	navSectionWidth = 120
 )
@@ -181,13 +181,11 @@ func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.C
 	}
 	helper.PaintArea(ctx, helper.BackgroundColor, windowBounds)
 
-	inset := layout.Inset{
-		Top: unit.Dp(20),
-	}
+	inset := layout.Inset{}
 	inset.Layout(ctx, func(){
 		layout.Stack{Alignment: layout.NW}.Layout(ctx,
 			layout.Stacked(func(){
-				inset := layout.Inset{Top: unit.Dp(35)}
+				inset := layout.Inset{Top: unit.Dp(helper.StandaloneScreenPadding)}
 				inset.Layout(ctx, func(){
 					page.Render(ctx, d.refreshWindow, d.changePage)
 				})

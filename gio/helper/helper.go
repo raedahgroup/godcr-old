@@ -12,6 +12,7 @@ import (
 
 const (
 	logoPath = "../../gio/assets/decred.png"
+	StandaloneScreenPadding = 20
 )
 
 var logo material.Image
@@ -28,14 +29,14 @@ func InitLogo(theme *Theme) error {
 	}
 
 	logo = theme.Image(paint.NewImageOp(src))
-	logo.Scale = 0.95
+	logo.Scale = 1.3
 
 	return nil
 }
 
 func DrawLogo(ctx *layout.Context) {
 	inset := layout.Inset{
-		Left: unit.Dp(20),
+		Left: unit.Dp(StandaloneScreenPadding),
 	}
 	inset.Layout(ctx, func(){
 		logo.Layout(ctx)
