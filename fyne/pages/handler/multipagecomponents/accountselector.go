@@ -16,7 +16,6 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -27,8 +26,7 @@ type AccountSelectorStruct struct {
 	SendingSelectedAccountID *int
 	WalletIDs                []int
 
-	AccountBoxes     []*widget.Box
-	selectAccountBox *widget.Box
+	AccountBoxes []*widget.Box
 
 	SelectedAccountLabel        *canvas.Text
 	SelectedAccountBalanceLabel *canvas.Text
@@ -53,11 +51,12 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 
 	dropdownContent := widget.NewVBox()
 
-	accountSelector.selectAccountBox = widget.NewHBox(
+	selectAccountBox := widget.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize16),
 		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
 		widgets.NewHSpacer(values.SpacerSize20),
-		fyne.NewContainerWithLayout(layouts.NewVBox(values.SpacerSize10), widget.NewHBox(widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedAccountLabel), accountSelector.SelectedWalletLabel),
+		widget.NewVBox(widget.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedWalletLabel, layout.NewSpacer())),
 		widgets.NewHSpacer(values.SpacerSize30),
 		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize4), accountSelector.SelectedAccountBalanceLabel),
 		widgets.NewHSpacer(values.SpacerSize8),
@@ -96,13 +95,12 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 	popupContent.Append(dropdownContentWithScroller)
 
 	var accountClickableBox *widgets.ClickableBox
-	accountClickableBox = widgets.NewClickableBox(accountSelector.selectAccountBox, func() {
+	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
 		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
 
 		accountSelectionPopup.Show()
 		accountSelectionPopup.Resize(dropdownContentWithScroller.Size().Add(fyne.NewSize(10, accountSelectionPopupHeader.MinSize().Height)))
-		//accountSelector.PageContents.Refresh()
 	})
 
 	return accountClickableBox, err
@@ -226,7 +224,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 
 			accountSelector.SelectedWalletLabel.Refresh()
 			accountSelector.SelectedAccountLabel.Refresh()
-			accountSelector.selectAccountBox.Refresh()
+			accountSelector.PageContents.Refresh()
 
 			if accountSelector.OnAccountChange != nil {
 				accountSelector.OnAccountChange()

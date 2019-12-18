@@ -7,7 +7,10 @@ const (
 	TextSize10                 = 10
 	TextSize12                 = 12
 	TextSize16                 = 16
+	TextSize14                 = 14
+	TextSize24                 = 24
 	TextSize20                 = 20
+	TextSize32                 = 32
 	ConfirmationButtonTextSize = 18
 
 	NilSpacer     = 1
