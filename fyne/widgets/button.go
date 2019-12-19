@@ -38,6 +38,7 @@ func (b *Button) Disable() {
 	b.Container.Disable()
 
 	b.bar.FillColor = color.RGBA{196, 203, 210, 255}
+	b.bar.Refresh()
 }
 
 func (b *Button) Enable() {

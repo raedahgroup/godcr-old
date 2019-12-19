@@ -17,8 +17,10 @@ const (
 	SpacerSize2   = 2
 	SpacerSize4   = 4
 	SpacerSize8   = 8
+	SpacerSize12  = 12
 	SpacerSize6   = 6
 	SpacerSize10  = 10
+	SpacerSize14  = 14
 	SpacerSize16  = 16
 	SpacerSize18  = 18
 	SpacerSize20  = 20

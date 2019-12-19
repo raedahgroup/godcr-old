@@ -41,15 +41,19 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 	transactionSizeDropdown = widgets.NewImageButton(icons[assets.ExpandDropdown], nil, func() {
 		if transactionInfoWithBorder.Hidden {
 			transactionSizeDropdown.SetIcon(icons[assets.CollapseDropdown])
+
+			transactionInfoWithBorder.Refresh()
 			transactionInfoWithBorder.Show()
 		} else {
 			transactionSizeDropdown.SetIcon(icons[assets.ExpandDropdown])
+			transactionInfoWithBorder.Refresh()
 			transactionInfoWithBorder.Hide()
 		}
 
 		transactionInfoContainer.Layout = layout.NewFixedGridLayout(
 			fyne.NewSize(transactionInfoWithBorder.MinSize().Width, costAndBalanceAfterSendBox.MinSize().Height))
-		sendPage.Window.Resize(sendPage.SendPageContents.MinSize().Add(fyne.NewSize(0, values.SpacerSize10)))
+		transactionInfoContainer.Refresh()
+		sendPage.Window.Resize(sendPage.SendPageContents.MinSize().Union(sendPage.Window.Content().MinSize()))
 	})
 
 	transactionFeeBox = widget.NewHBox(canvas.NewText(values.TransactionFee, values.TransactionInfoColor), layout.NewSpacer(),
@@ -58,17 +62,20 @@ func (sendPage *SendPageObjects) initTransactionDetails() error {
 	costAndBalanceAfterSendBox.Append(transactionFeeBox)
 
 	costAndBalanceAfterSendBox.Append(transactionInfoWithBorder)
-	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize4))
+	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize14))
 
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(
 		canvas.NewText(values.TotalCost, values.TransactionInfoColor), layout.NewSpacer(), sendPage.totalCostLabel, canvas.NewText(values.DCR, values.DefaultTextColor)))
 
-	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize6))
+	costAndBalanceAfterSendBox.Append(widgets.NewVSpacer(values.SpacerSize14))
 
 	costAndBalanceAfterSendBox.Append(widget.NewHBox(
 		canvas.NewText(values.BalanceAfterSend, values.TransactionInfoColor), layout.NewSpacer(), sendPage.balanceAfterSendLabel, canvas.NewText(values.DCR, values.DefaultTextColor)))
 
-	transactionInfoContainer = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(transactionInfoWithBorder.MinSize()), costAndBalanceAfterSendBox)
+	txInfoContainerLayout := layout.NewFixedGridLayout(
+		fyne.NewSize(transactionInfoWithBorder.MinSize().Width, costAndBalanceAfterSendBox.MinSize().Height))
+
+	transactionInfoContainer = fyne.NewContainerWithLayout(txInfoContainerLayout, costAndBalanceAfterSendBox)
 
 	sendPage.SendPageContents.Append(transactionInfoContainer)
 
@@ -82,13 +89,17 @@ func (sendPage *SendPageObjects) transactionInfoWithBorder() *fyne.Container {
 		layout.NewHBoxLayout(), canvas.NewText(values.ProcessingTime, values.TransactionInfoColor), widgets.NewHSpacer(values.SpacerSize46),
 		layout.NewSpacer(), canvas.NewText(values.ProcessingTimeInfo, values.DefaultTextColor)))
 
+	transactionInfoForm.AddObject(widgets.NewVSpacer(values.SpacerSize12))
+
 	transactionInfoForm.AddObject(fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(), canvas.NewText(values.FeeRate, values.TransactionInfoColor), layout.NewSpacer(),
 		canvas.NewText(values.FeeRateInfo, values.DefaultTextColor)))
+
+	transactionInfoForm.AddObject(widgets.NewVSpacer(values.SpacerSize12))
 
 	transactionInfoForm.AddObject(fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 		canvas.NewText(values.TransactionSize, values.TransactionInfoColor), layout.NewSpacer(), sendPage.transactionSizeLabel))
 
 	return fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-		widgets.NewBorder(values.TransactionInfoBorderColor, fyne.NewSize(20, 30), transactionInfoForm), transactionInfoForm)
+		widgets.NewBorder(values.TransactionInfoBorderColor, fyne.NewSize(28, 28), transactionInfoForm), transactionInfoForm)
 }
