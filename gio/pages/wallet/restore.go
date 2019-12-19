@@ -1,12 +1,12 @@
 package wallet 
 
 import (
-	"gioui.org/text"
+	//"gioui.org/text"
 	"gioui.org/layout"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/gio/helper"
-	"github.com/raedahgroup/godcr/gio/widgets"
+	//"github.com/raedahgroup/godcr/gio/helper"
+	//"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type (
@@ -24,7 +24,7 @@ func NewRestoreWalletPage(multiWallet *dcrlibwallet.MultiWallet) *RestoreWalletP
 
 
 func (w *RestoreWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
-	stack := layout.Stack{}
+	/**stack := layout.Stack{}
 
 	child := stack.Expand(ctx, func(){
 		widgets.NewLabel("Page not yet implemented", 4).
@@ -33,5 +33,5 @@ func (w *RestoreWalletPage) Render(ctx *layout.Context, refreshWindowFunc func()
 			Draw(ctx, widgets.AlignLeft)
 	})
 
-	stack.Layout(ctx, child)
+	stack.Layout(ctx, child)**/
 }

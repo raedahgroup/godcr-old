@@ -65,6 +65,9 @@ type Editor struct {
 
 	// events is the list of events not yet processed.
 	events []EditorEvent
+
+	// prevEvents is the number of events from the previous frame.
+	prevEvents int
 }
 
 
@@ -83,7 +86,7 @@ type SubmitEvent struct {
 
 type line struct {
 	offset f32.Point
-	clip   paint.ClipOp
+	clip   op.CallOp
 }
 
 const (
@@ -130,7 +133,7 @@ func (e *Editor) processPointer(ctx *layout.Context) {
 		axis = gesture.Vertical
 		smin, smax = sbounds.Min.Y, sbounds.Max.Y
 	}
-	sdist := e.scroller.Scroll(ctx.Config, ctx.Queue, ctx.Now(), axis)
+	sdist := e.scroller.Scroll(ctx, ctx, ctx.Now(), axis)
 	var soff int
 	if e.SingleLine {
 		e.scrollRel(sdist, 0)
@@ -198,15 +201,16 @@ func (e *Editor) Focus() {
 
 // Layout lays out the editor.
 func (e *Editor) Layout(ctx *layout.Context, sh *text.Shaper, font text.Font) {
+	// Flush events from before the previous frame.
+	copy(e.events, e.events[e.prevEvents:])
+	e.events = e.events[:len(e.events)-e.prevEvents]
+	e.prevEvents = len(e.events)
 	if e.font != font {
 		e.invalidate()
 		e.font = font
 	}
 	e.processEvents(ctx)
 	e.layout(ctx, sh)
-	if !e.clicker.Active() {
-		e.events = nil
-	}
 }
 
 func (e *Editor) layout(ctx *layout.Context, sh *text.Shaper) {
@@ -272,7 +276,7 @@ func (e *Editor) layout(ctx *layout.Context, sh *text.Shaper) {
 	r.Min.Y -= pointerPadding
 	r.Max.X += pointerPadding
 	r.Max.X += pointerPadding
-	pointer.RectAreaOp{Rect: r}.Add(ctx.Ops)
+	pointer.Rect(r).Add(ctx.Ops)
 	e.scroller.Add(ctx.Ops)
 	e.clicker.Add(ctx.Ops)
 	e.caretOn = false
@@ -432,7 +436,8 @@ func (e *Editor) moveCoord(c unit.Converter, pos image.Point) {
 
 func (e *Editor) layoutText(c unit.Converter, s *text.Shaper, font text.Font) ([]text.Line, layout.Dimensions) {
 	txt := e.rr.String()
-	opts := text.LayoutOptions{SingleLine: e.SingleLine, MaxWidth: e.maxWidth}
+	opts := text.LayoutOptions{MaxWidth: e.maxWidth}
+	//opts := text.LayoutOptions{SingleLine: e.SingleLine, MaxWidth: e.maxWidth}
 	textLayout := s.Layout(c, font, txt, opts)
 	lines := textLayout.Lines
 	dims := widgets.LinesDimens(lines)

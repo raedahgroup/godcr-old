@@ -3,7 +3,8 @@ module github.com/raedahgroup/godcr/gio
 go 1.12
 
 require (
-	gioui.org v0.0.0-20191023081811-143d2aae95dd
+	//gioui.org v0.0.0-20191023081811-143d2aae95dd
+	gioui.org v0.0.0-20191211234536-7814da47a0ff
 	github.com/decred/dcrd/dcrutil v1.4.0
 	github.com/decred/slog v1.0.0
 	github.com/raedahgroup/dcrlibwallet v0.0.0-00010101000000-000000000000

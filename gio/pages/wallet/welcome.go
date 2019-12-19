@@ -12,7 +12,7 @@ import (
 type (
 	WelcomePage struct {
 		multiWallet *dcrlibwallet.MultiWallet
-		createWalletButton *widgets.Button 
+		createWalletButton  *widgets.Button 
 		restoreWalletButton *widgets.Button
 	}
 )
@@ -26,45 +26,43 @@ func NewWelcomePage(multiWallet *dcrlibwallet.MultiWallet) *WelcomePage {
 }
 
 func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
-	stack := layout.Stack{}
+	inset := layout.Inset{
+		Top: unit.Dp(30),
+	}
+	inset.Layout(ctx, func(){
+		widgets.NewLabel("Welcome to", 6).Draw(ctx)
+	})
 
-	welcomeTextSection := stack.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Top: unit.Dp(0),
-		}
-		inset.Layout(ctx, func() {
-			widgets.NewLabel("Welcome to", 6).Draw(ctx, widgets.AlignLeft)
-		})
+	inset = layout.Inset{
+		Top: unit.Dp(59),
+	}
+	inset.Layout(ctx, func(){
+		widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
+	})
 
-		inset = layout.Inset{
-			Top: unit.Dp(29),
-		}
-		inset.Layout(ctx, func() {
-			widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx, widgets.AlignLeft)
+	// create button section 
+	inset = layout.Inset{
+		Top: unit.Dp(280),
+	}
+	inset.Layout(ctx, func(){
+		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+		ctx.Constraints.Height.Min = 50
+
+		w.createWalletButton.Draw(ctx, func(){
+			changePageFunc("createwallet")
 		})
 	})
 
-	createButtonSection := stack.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Top: unit.Dp(280),
-		}
-		inset.Layout(ctx, func() {
-			w.createWalletButton.Draw(ctx, widgets.AlignLeft, func(){
-				changePageFunc("createwallet")
-			})
+	// restore button section 
+	inset = layout.Inset{
+		Top: unit.Dp(340),
+	}
+	inset.Layout(ctx, func(){
+		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+		ctx.Constraints.Height.Min = 50
+
+		w.restoreWalletButton.Draw(ctx, func(){
+			changePageFunc("restorewallet")
 		})
 	})
-
-	restoreButtonSection := stack.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Top: unit.Dp(330),
-		}
-		inset.Layout(ctx, func() {
-			w.restoreWalletButton.Draw(ctx, widgets.AlignLeft, func(){
-				changePageFunc("restorewallet")
-			})
-		})
-	})
-
-	stack.Layout(ctx, welcomeTextSection, createButtonSection, restoreButtonSection)
 }

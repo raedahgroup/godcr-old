@@ -9,8 +9,9 @@ import (
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/text"
+	//"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/io/pointer"
 	"gioui.org/widget"
@@ -28,8 +29,10 @@ type (
 
 		text 	   string
 
+		alignment  Alignment
 		Color      color.RGBA
 		Background color.RGBA
+		
 	}
 
 	Icon struct {
@@ -60,12 +63,13 @@ func NewButton(txt string, icon *Icon) *Button {
 	theme := helper.GetTheme()
 
 	btn := &Button{
-		button : new(widget.Button),
-		icon   : icon,
-		text   :  txt,
-		padding: unit.Dp(defaultButtonPadding),
+		button    : new(widget.Button),
+		icon      : icon,
+		text      : txt,
+		padding   : unit.Dp(defaultButtonPadding),
 		Background: helper.DecredDarkBlueColor,
-		Color: helper.WhiteColor,
+		Color     : helper.WhiteColor,
+		alignment : AlignLeft,
 	}
 
 	if icon != nil {
@@ -99,128 +103,99 @@ func (b *Button) SetColor(color color.RGBA) *Button {
 	return b
 }
 
-func (b *Button) Draw(ctx *layout.Context, alignment Alignment, onClick func()) {
+func (b *Button) SetAlignment(alignment Alignment) *Button {
+	b.alignment = alignment 
+	return b
+}
+
+func (b *Button) Draw(ctx *layout.Context, onClick func()) {
+	theme := helper.GetTheme()
 	for b.button.Clicked(ctx) {
 		onClick()
 	}
 
-	theme := helper.GetTheme()
-	
 	if b.icon != nil {
-		b.drawIconButton(ctx, theme, alignment)
+		b.drawIconButton(ctx, theme)
 		return
 	}
 
 	col := b.Color
 	bgcol := b.Background
-	if !b.button.Active() {
-		//col = helper.WhiteColor
-		//bgcol = helper.DecredDarkBlueColor
-	}
-	st := layout.Stack{}
 	hmin := ctx.Constraints.Width.Min
 	vmin := ctx.Constraints.Height.Min
-	lbl := st.Rigid(ctx, func() {
-		ctx.Constraints.Width.Min = hmin
-		ctx.Constraints.Height.Min = vmin
-		layout.Align(layout.Center).Layout(ctx, func() {
-			layout.UniformInset(b.padding).Layout(ctx, func() {
-				paint.ColorOp{Color: col}.Add(ctx.Ops)
-				widget.Label{Alignment: text.Middle}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
+	layout.Stack{Alignment: layout.Center}.Layout(ctx,
+		layout.Expanded(func() {
+			rr := float32(ctx.Px(unit.Dp(4)))
+			clip.Rect{
+				Rect: f32.Rectangle{Max: f32.Point{
+					X: float32(ctx.Constraints.Width.Min),
+					Y: float32(ctx.Constraints.Height.Min),
+				}},
+				NE: rr, NW: rr, SE: rr, SW: rr,
+			}.Op(ctx.Ops).Add(ctx.Ops)
+			Fill(ctx, bgcol)
+			for _, c := range b.button.History() {
+				drawInk(ctx, c)
+			}
+		}),
+		layout.Stacked(func() {
+			ctx.Constraints.Width.Min = hmin
+			ctx.Constraints.Height.Min = vmin
+			layout.Align(layout.Center).Layout(ctx, func() {
+				layout.Inset{Top: unit.Dp(10), Bottom: unit.Dp(10), Left: unit.Dp(12), Right: unit.Dp(12)}.Layout(ctx, func() {
+					paint.ColorOp{Color: col}.Add(ctx.Ops)
+					widget.Label{}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
+				})
 			})
-		})
-		pointer.RectAreaOp{Rect: image.Rectangle{Max: ctx.Dimensions.Size}}.Add(ctx.Ops)
-		b.button.Layout(ctx)
-	})
-	bg := st.Expand(ctx, func() {
-		rr := float32(ctx.Px(unit.Dp(4)))
-		Rrect(ctx.Ops,
-			float32(ctx.Constraints.Width.Min),
-			float32(ctx.Constraints.Height.Min),
-			rr, rr, rr, rr,
-		)
-		Fill(ctx, bgcol)
-		for _, c := range b.button.History() {
-			drawInk(ctx, c)
-		}
-	})
-	st.Layout(ctx, bg, lbl)
+			pointer.Rect(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
+			b.button.Layout(ctx)
+		}),
+	)
 }
 
-func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme, alignment Alignment) {
-	col   := b.Color 
-	bgcol := b.Background 
-	if !b.button.Active() {
-		//col.A = 0xaa
-		//bgcol.A = 0xaa
-	}
-
-	stack := layout.Stack{}
+func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
+	iconSize := ctx.Px(b.size) - 2*ctx.Px(b.padding)
 	
-	lbl := stack.Rigid(ctx, func(){
-		alignment := getLayoutAlignment(alignment)
-		layout.Align(alignment).Layout(ctx, func(){
-			stack := layout.Stack{}
-			child := stack.Expand(ctx, func(){
-				flex := layout.Flex{}
-
-				iconColumn := flex.Rigid(ctx, func(){
-					iconSize := ctx.Px(b.size) - 2*ctx.Px(b.padding)
-					topInset :=	(float32(iconSize) - 2*b.padding.V) / 2.0
-
-					inset := layout.Inset{
-						Right: b.padding,
-						Left: unit.Dp(b.padding.V * 1.2),
-						Top: unit.Dp(-topInset+10.0),
-					}
-					inset.Layout(ctx, func(){
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func(){
+			size := float32(ctx.Constraints.Width.Min)
+			rr := float32(4)
+			clip.Rect{
+				Rect: f32.Rectangle{Max: f32.Point{X: size, Y: size}},
+				NE:   rr, NW: rr, SE: rr, SW: rr * 2,
+			}.Op(ctx.Ops).Add(ctx.Ops)
+			Fill(ctx, b.Background)
+			
+			rect := image.Rectangle{
+				Max: ctx.Dimensions.Size,
+			}
+			pointer.Rect(rect).Add(ctx.Ops)
+			b.button.Layout(ctx)
+			
+			for _, c := range b.button.History() {
+				drawInk(ctx, c)
+			}
+		}),
+		layout.Stacked(func(){
+			layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
+				layout.Rigid(func(){
+					layout.UniformInset(b.padding).Layout(ctx, func() {
 						ico := b.icon.image(iconSize)
 						ico.Add(ctx.Ops)
 						paint.PaintOp{
-							Rect: f32.Rectangle{Max: toPointF(ico.Size())}, //toRectF(ico.Bounds()),
+							Rect: f32.Rectangle{Max: toPointF(ico.Size())},
 						}.Add(ctx.Ops)
 					})
-				})
-
-				textColumn := flex.Rigid(ctx, func(){
-					inset := layout.Inset{
-						Left: unit.Dp(b.padding.V + 7.0),
-						Top: b.padding,
-						Bottom: b.padding,
-					}
-					inset.Layout(ctx, func(){
-						paint.ColorOp{Color: col}.Add(ctx.Ops)
-						widget.Label{Alignment: text.Middle}.Layout(ctx, theme.Shaper, theme.Fonts.Regular, b.text)
+				}),
+				layout.Rigid(func(){
+					layout.UniformInset(b.padding).Layout(ctx, func() {
+						paint.ColorOp{Color: b.Color}.Add(ctx.Ops)
+						widget.Label{}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
 					})
-				})
-				flex.Layout(ctx, iconColumn, textColumn)
-			})
-			stack.Layout(ctx, child)
-		})
-	})
-
-	clickDimensionSize := ctx.Dimensions.Size 
-	
-
-	bg := stack.Expand(ctx, func(){
-		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-		rr := float32(ctx.Px(unit.Dp(4)))
-		Rrect(ctx.Ops,
-			float32(ctx.Constraints.Width.Min),
-			float32(ctx.Constraints.Height.Min),
-			rr, rr, rr, rr,
-		)
-		Fill(ctx, bgcol)
-
-		clickDimensionSize.X = ctx.Dimensions.Size.X
-		pointer.RectAreaOp{Rect: image.Rectangle{Max: clickDimensionSize}}.Add(ctx.Ops)
-		b.button.Layout(ctx)
-
-		for _, c := range b.button.History() {
-			drawInk(ctx, c)
-		}
-	})
-	stack.Layout(ctx, bg, lbl)
+				}),
+			)
+		}),
+	)
 }
 
 
@@ -267,7 +242,13 @@ func drawInk(ctx *layout.Context, c widget.Click) {
 		X: -rr,
 		Y: -rr,
 	}).Add(ctx.Ops)
-	Rrect(ctx.Ops, float32(size), float32(size), rr, rr, rr, rr)
+	clip.Rect{
+		Rect: f32.Rectangle{Max: f32.Point{
+			X: float32(size),
+			Y: float32(size),
+		}},
+		NE: rr, NW: rr, SE: rr, SW: rr,
+	}.Op(ctx.Ops).Add(ctx.Ops)
 	paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{X: float32(size), Y: float32(size)}}}.Add(ctx.Ops)
 	stack.Pop()
 	op.InvalidateOp{}.Add(ctx.Ops)
@@ -275,18 +256,18 @@ func drawInk(ctx *layout.Context, c widget.Click) {
 
 func Fill(ctx *layout.Context, col color.RGBA) {
 	cs := ctx.Constraints
-	d := image.Point{X: cs.Width.Max, Y: cs.Height.Max}
+	d := image.Point{X: cs.Width.Min, Y: cs.Height.Min}
 	dr := f32.Rectangle{
 		Max: f32.Point{X: float32(d.X), Y: float32(d.Y)},
 	}
 	paint.ColorOp{Color: col}.Add(ctx.Ops)
 	paint.PaintOp{Rect: dr}.Add(ctx.Ops)
-	ctx.Dimensions = layout.Dimensions{Size: d, Baseline: d.Y}
+	ctx.Dimensions = layout.Dimensions{Size: d}
 }
 
 // https://pomax.github.io/bezierinfo/#circles_cubic.
 func Rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
-	w, h := float32(width), float32(height)
+	/**w, h := float32(width), float32(height)
 	const c = 0.55228475 // 4*(sqrt(2)-1)/3
 	var b paint.Path
 	b.Begin(ops)
@@ -298,5 +279,5 @@ func Rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
 	b.Cube(f32.Point{X: 0, Y: -nw * c}, f32.Point{X: nw - nw*c, Y: -nw}, f32.Point{X: nw, Y: -nw}) // NW
 	b.Line(f32.Point{X: w - ne - nw, Y: 0})
 	b.Cube(f32.Point{X: ne * c, Y: 0}, f32.Point{X: ne, Y: ne - ne*c}, f32.Point{X: ne, Y: ne}) // NE
-	b.End().Add(ops)
+	b.End().Add(ops)**/
 }

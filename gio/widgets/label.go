@@ -17,7 +17,8 @@ import (
 type (
 	Label struct {
 		material.Label
-		size int
+		size      int
+		alignment Alignment
 	}
 
 	Alignment int
@@ -40,8 +41,9 @@ func NewLabel(txt string, size ...int) *Label {
 	}
 
 	return &Label{
-		Label: getLabelWithSize(txt, labelSize),
-		size: labelSize,
+		Label    : getLabelWithSize(txt, labelSize),
+		size     : labelSize,
+		alignment: AlignLeft,
 	}
 }
 
@@ -80,8 +82,13 @@ func (l *Label) SetColor(color color.RGBA) *Label {
 	return l
 }
 
-func (l *Label) Draw(ctx *layout.Context, alignment Alignment) {
-	l.Label.Alignment = getTextAlignment(alignment)
+func (l *Label) SetAlignment(alignment Alignment) *Label {
+	l.alignment = alignment
+	return l
+}
+
+func (l *Label) Draw(ctx *layout.Context) {
+	l.Label.Alignment = getTextAlignment(l.alignment)
 	l.Label.Layout(ctx)
 }
 
@@ -135,25 +142,28 @@ func (c *ClickableLabel) SetWidth(width int) *ClickableLabel {
 	return c
 }
 
-func (c *ClickableLabel) Draw(ctx *layout.Context, alignment Alignment, onClick func()) {
+
+func (c *ClickableLabel) SetAlignment(alignment Alignment) *ClickableLabel {
+	c.label.alignment = alignment
+	return c
+}
+
+func (c *ClickableLabel) Draw(ctx *layout.Context, onClick func()) {
 	for c.clicker.Clicked(ctx) {
 		onClick()
 	}
 
-	stack := layout.Stack{}
-	child := stack.Expand(ctx, func(){
-		if c.width == 0 {
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-		} else {
-			ctx.Constraints.Width.Min =  c.width
-		}
-		
+	layout.Stack{}.Layout(ctx, 
+		layout.Stacked(func(){
+			if c.width != 0 {
+				ctx.Constraints.Width.Min =  c.width
+			}
 
-		c.label.Draw(ctx, alignment)
-		pointer.RectAreaOp{Rect: image.Rectangle{Max: ctx.Dimensions.Size}}.Add(ctx.Ops)
-		c.clicker.Register(ctx)
-	})
-	stack.Layout(ctx, child)
+			c.label.Draw(ctx)
+			pointer.Rect(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
+			c.clicker.Register(ctx)
+		}),
+	)
 }
 
 

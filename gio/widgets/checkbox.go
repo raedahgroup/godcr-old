@@ -1,15 +1,15 @@
 package widgets 
 
 import (
-	"image"
+	//"image"
 
-	"gioui.org/f32"
-	"gioui.org/io/pointer"
+	//"gioui.org/f32"
+	//"gioui.org/io/pointer"
 	"gioui.org/layout"
-	"gioui.org/op/paint"
+	//"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
-	"github.com/raedahgroup/godcr/gio/helper"
+	//"github.com/raedahgroup/godcr/gio/helper"
 )
 
 
@@ -47,7 +47,7 @@ func (c *Checkbox) toggleCheckState() {
 }
 
 func (c *Checkbox) Draw(ctx *layout.Context) {
-	for c.button.Clicked(ctx) {
+	/**for c.button.Clicked(ctx) {
 		c.toggleCheckState()
 	}
 
@@ -111,5 +111,5 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 			})
 		})
 	})
-	st.Layout(ctx, bg, ico)
+	st.Layout(ctx, bg, ico)**/
 }

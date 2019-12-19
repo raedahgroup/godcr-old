@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"gioui.org/layout"
-	"gioui.org/unit"
+	//"gioui.org/unit"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -33,7 +33,7 @@ func NewSyncer(wallet *dcrlibwallet.MultiWallet, refreshDisplay func()) *Syncer 
 			"Starting...",
 		},
 		showDetails:      false,
-		informationLabel: widgets.NewClickableLabel("Tap to view information"),
+		//informationLabel: widgets.NewClickableLabel("Tap to view information"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (s *Syncer) OnBlockAttached(walletID int, blockHeight int32) {}
 func (s *Syncer) OnTransactionConfirmed(walletID int, hash string, blockHeight int32) {}
 
 func (s *Syncer) Render(ctx *layout.Context) {
-	inset := layout.UniformInset(unit.Dp(3))
+	/**inset := layout.UniformInset(unit.Dp(3))
 	inset.Layout(ctx, func() {
 		if s.err != nil {
 			widgets.NewErrorLabel(fmt.Sprintf("Sync failed to start: %s", s.err.Error())).Draw(ctx, widgets.AlignMiddle)
@@ -188,5 +188,5 @@ func (s *Syncer) Render(ctx *layout.Context) {
 				widgets.NewErrorLabel(fmt.Sprintf("Sync error: %s", s.syncError.Error())).Draw(ctx, widgets.AlignMiddle)
 			})
 		}
-	})
+	})**/
 }

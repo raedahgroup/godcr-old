@@ -18,6 +18,7 @@ type (
 	Clicker struct {
 		click   gesture.Click
 		clicks  int
+		prevClicks int
 		history []clickItem
 	}
 )
@@ -29,6 +30,27 @@ func NewClicker() Clicker {
 }
 
 func (c *Clicker) Clicked(ctx *layout.Context) bool {
+	c.processEvents(ctx)
+	if c.clicks > 0 {
+		c.clicks--
+		if c.prevClicks > 0 {
+			c.prevClicks--
+		}
+		if c.clicks > 0 {
+			// Ensure timely delivery of remaining clicks.
+			op.InvalidateOp{}.Add(ctx.Ops)
+		}
+		return true
+	}
+	return false
+}
+
+func (c *Clicker) History() []clickItem {
+	return c.history
+}
+
+
+func (c *Clicker) processEvents(ctx *layout.Context) {
 	for _, e := range c.click.Events(ctx) {
 		switch e.Type {
 		case gesture.TypeClick:
@@ -40,37 +62,21 @@ func (c *Clicker) Clicked(ctx *layout.Context) bool {
 			})
 		}
 	}
-	if c.clicks > 0 {
-		c.clicks--
-		if c.clicks > 0 {
-			// Ensure timely delivery of remaining clicks.
-			op.InvalidateOp{}.Add(ctx.Ops)
-		}
-		return true
-	}
-	return false
-}
-
-func (c *Clicker) Active() bool {
-	return c.click.Active()
-}
-
-func (c *Clicker) History() []clickItem {
-	return c.history
 }
 
 func (c *Clicker) Register(ctx *layout.Context) {
+	// Flush clicks from before the previous frame.
+	c.clicks -= c.prevClicks
+	c.prevClicks = 0
+	c.processEvents(ctx)
 	c.click.Add(ctx.Ops)
-	if !c.Active() {
-		c.clicks = 0
-	}
-
 	for len(c.history) > 0 {
-		h := c.history[0]
-		if ctx.Now().Sub(h.time) < 1*time.Second {
+		click := c.history[0]
+		if ctx.Now().Sub(click.time) < 1*time.Second {
 			break
 		}
 		copy(c.history, c.history[1:])
 		c.history = c.history[:len(c.history)-1]
 	}
 }
+

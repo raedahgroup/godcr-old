@@ -3,9 +3,11 @@ package editor
 import (
 	"image/color"
 
+	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -60,7 +62,47 @@ func (i *Input) Draw(ctx *layout.Context) {
 		borderColor = i.focusBorderColor
 	}
 
+	layout.Stack{}.Layout(ctx, 
+		layout.Expanded(func(){
+			borderRadius := float32(ctx.Px(unit.Dp(4)))
+			clip.Rect{
+				Rect: f32.Rectangle{Max: f32.Point{
+					X: float32(ctx.Constraints.Width.Min),
+					Y: float32(ctx.Constraints.Height.Min),
+				}},
+				NE: borderRadius, NW: borderRadius, SE: borderRadius, SW: borderRadius,
+			}.Op(ctx.Ops).Add(ctx.Ops)
+			widgets.Fill(ctx, borderColor)
 
+			layout.Align(layout.Center).Layout(ctx, func(){
+				layout.UniformInset(unit.Dp(1)).Layout(ctx, func(){
+					ctx.Constraints.Height.Min = 48
+					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+					clip.Rect{
+						Rect: f32.Rectangle{Max: f32.Point{
+							X: float32(ctx.Constraints.Width.Min),
+							Y: float32(ctx.Constraints.Height.Min),
+						}},
+						NE: borderRadius, NW: borderRadius, SE: borderRadius, SW: borderRadius,
+					}.Op(ctx.Ops).Add(ctx.Ops)
+					widgets.Fill(ctx, helper.WhiteColor)
+				})
+			})
+		}),
+		layout.Stacked(func(){
+			ctx.Constraints.Height.Min = 50 
+			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+			layout.Align(layout.Center).Layout(ctx, func(){
+				layout.UniformInset(unit.Dp(8)).Layout(ctx, func() {
+					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+					i.draw(ctx)
+				})
+			})
+		}),
+	)
+
+	
+	/**
 	stack := layout.Stack{}
 	input := stack.Rigid(ctx, func(){
 		ctx.Constraints.Height.Min = 50 
@@ -96,7 +138,7 @@ func (i *Input) Draw(ctx *layout.Context) {
 			})
 		})
 	})
-	stack.Layout(ctx, bg, input)
+	stack.Layout(ctx, bg, input)**/
 }
 
 func (i *Input) draw(ctx *layout.Context) {
@@ -109,7 +151,7 @@ func (i *Input) draw(ctx *layout.Context) {
 	paint.ColorOp{
 		Color: helper.GrayColor,
 	}.Add(ctx.Ops)
-	widgets.NewLabel(i.hint, 3).SetColor(helper.GrayColor).Draw(ctx, widgets.AlignLeft)
+	widgets.NewLabel(i.hint, 3).SetColor(helper.GrayColor).Draw(ctx)
 	macro.Stop()
 	if w := ctx.Dimensions.Size.X; ctx.Constraints.Width.Min < w {
 		ctx.Constraints.Width.Min = w
@@ -125,7 +167,7 @@ func (i *Input) draw(ctx *layout.Context) {
 		}.Add(ctx.Ops)
 		i.PaintText(ctx)
 	} else {
-		macro.Add(ctx.Ops)
+		macro.Add()
 	}
 	paint.ColorOp{
 		Color: helper.BlackColor,

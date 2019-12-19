@@ -18,7 +18,7 @@ import (
 
 	"github.com/raedahgroup/godcr/gio/giolog"
 	"github.com/raedahgroup/godcr/gio/helper"
-	"github.com/raedahgroup/godcr/gio/widgets"
+	//"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type (
@@ -138,9 +138,7 @@ func (d *desktop) changePage(pageName string) {
 }
 
 func (d *desktop) renderLoop() error {
-	ctx := &layout.Context{
-		Queue: d.window.Queue(),
-	}
+	ctx := layout.NewContext(d.window.Queue())
 
 	for {
 		e := <-d.window.Events()
@@ -178,7 +176,7 @@ func (d *desktop) render(ctx *layout.Context) {
 }
 
 func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
-	flex := layout.Flex{
+	/**flex := layout.Flex{
 		Axis: layout.Horizontal,
 	}
 
@@ -195,33 +193,34 @@ func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 		})
 	})
 
-	flex.Layout(ctx, navChild, contentChild)
+	flex.Layout(ctx, navChild, contentChild)**/
 }
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
 	windowBounds := image.Point{
-		X: windowWidth * 2,
-		Y: windowHeight * 2,
+		X: windowWidth,
+		Y: windowHeight,
 	}
 	helper.PaintArea(ctx, helper.BackgroundColor, windowBounds)
 
 	inset := layout.UniformInset(unit.Dp(25))
 	inset.Layout(ctx, func(){
-		d.logo.Layout(ctx)
-	})
-
-	inset = layout.Inset{
-		Top: unit.Dp(65),
-		Left: unit.Dp(25),
-		Right: unit.Dp(25),
-	}
-	inset.Layout(ctx, func(){
-		page.Render(ctx, d.refreshWindow, d.changePage)
+		layout.Stack{Alignment: layout.NW}.Layout(ctx,
+			layout.Expanded(func(){
+				d.logo.Layout(ctx)
+			}),
+			layout.Stacked(func(){
+				inset := layout.Inset{Top: unit.Dp(35)}
+				inset.Layout(ctx, func(){
+					page.Render(ctx, d.refreshWindow, d.changePage)
+				})
+			}),
+		)
 	})
 }
 
 func (d *desktop) renderNavSection(ctx *layout.Context) {
-	navAreaBounds := image.Point{
+	/**navAreaBounds := image.Point{
 		X: navSectionWidth,
 		Y: windowHeight * 2,
 	}
@@ -257,7 +256,7 @@ func (d *desktop) renderNavSection(ctx *layout.Context) {
 			currentPositionTop += navButtonHeight
 		}
 		stack.Layout(ctx, children...)
-	})
+	})**/
 }
 
 func (d *desktop) renderContentSection(page navPage, ctx *layout.Context) {
