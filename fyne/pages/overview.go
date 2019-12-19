@@ -41,8 +41,10 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	sort.Ints(ov.walletIds)
 
 	defer func (){
-		populateOverview(ov)
 		overviewHandler.UpdateBalance(app.MultiWallet)
+		handlers.OverviewHandlerLock.Lock()
+		overviewHandler.UpdateBlockStatusBox(app.MultiWallet)
+		handlers.OverviewHandlerLock.Unlock()
 	}()
 	return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
 }
@@ -75,7 +77,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	table := &widgets.Table{}
 	table.NewTable(transactionRowHeader())
 	overviewHandler.Table = table
-	overviewHandler.UpdateTransactions(ov.multiWallet, handlers.TransactionUpdate{WalletId: -1})
+	overviewHandler.UpdateTransactions(ov.multiWallet, handlers.TransactionUpdate{})
 	return widget.NewVBox(
 		table.Result,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
@@ -93,11 +95,13 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 
 func blockStatusBox() fyne.CanvasObject {
 	syncStatusText := widgets.NewSmallText("", color.Black)
-	timeLeft := widget.NewLabelWithStyle("6 min left", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
+	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
+	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	progressBar := widget.NewProgressBar()
 	overviewHandler.SyncStatusText = syncStatusText
 	overviewHandler.TimeLeftText = timeLeft
 	overviewHandler.ProgressBar = progressBar
+	overviewHandler.ConnectedPeersText = connectedPeers
 
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
@@ -105,11 +109,9 @@ func blockStatusBox() fyne.CanvasObject {
 			layout.NewSpacer(),
 			widget.NewButton("Cancel", func() {}),
 		))
-	overviewHandler.Top = top
 	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
 		progressBar,
 	)
-	connectedPeers := widget.NewLabelWithStyle("Connected peers count  6", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	syncSteps := widget.NewLabelWithStyle("Step 1/3", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  89%", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	syncDuration := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, timeLeft, connectedPeers),
@@ -129,6 +131,7 @@ func blockStatusBox() fyne.CanvasObject {
 		syncStatus,
 		widgets.NewVSpacer(15),
 	)
+	overviewHandler.BlockStatus = blockStatus
 	go func() {
 		time.Sleep(time.Millisecond * 200)
 		blockStatus.AddObject(bottom)
@@ -202,11 +205,3 @@ func transactionRowHeader() *widget.Box {
 	date := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
 }
-
-func populateOverview (overview *overview) {
-	mw := overview.multiWallet
-	overviewHandler.Syncing = mw.IsSyncing()
-	overviewHandler.Synced =  mw.IsSynced()
-	overviewHandler.UpdateSyncProgressTop(mw.GetBestBlock().Height, mw.GetBestBlock().Timestamp)
-}
-
