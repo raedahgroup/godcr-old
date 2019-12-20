@@ -44,86 +44,18 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 				sendPage.amountEntry.CursorColumn--
 				sendPage.amountEntry.SetText(value)
 			}
+
 			return
 		}
 
-		if numbers := strings.Split(value, "."); len(numbers) == 2 {
-			if len(numbers[1]) > 8 {
-				sendPage.showErrorLabel(values.AmountDecimalPlaceErr)
-				return
-			}
+		if sendPage.amountEntry.Focused() {
+			sendPage.sendMax = false
 		}
 
-		amountInFloat, err := strconv.ParseFloat(value, 64)
-		if err != nil && value != "" {
-			sendPage.showErrorLabel(values.ParseFloatErr)
-			return
-		}
-
-		if amountInFloat == 0.0 || !sendPage.destinationAddressErrorLabel.Hidden {
-			setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			sendPage.transactionSizeLabel.Text = values.ZeroByte
-			sendPage.SendPageContents.Refresh()
-
-			setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			sendPage.SendPageContents.Refresh()
-
-			sendPage.nextButton.Disable()
-			sendPage.SendPageContents.Refresh()
-			return
-		}
-
-		transactionAuthor, amountInAccount := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, "")
-		if transactionAuthor == nil {
-			return
-		}
-
-		feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
-		if err != nil {
-			sendPage.SendPageContents.Refresh()
-			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				sendPage.amountEntryErrorLabel.Text = values.InsufficientBalanceErr
-				sendPage.amountEntryErrorLabel.Show()
-			} else {
-				sendPage.showErrorLabel(values.TransactionFeeSizeErr)
-			}
-			sendPage.SendPageContents.Refresh()
-
-			setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-			sendPage.transactionSizeLabel.Text = values.ZeroByte
-			setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-
-			sendPage.SendPageContents.Refresh()
-			sendPage.nextButton.Disable()
-			sendPage.SendPageContents.Refresh()
-			return
-		}
-
-		totalCostInAtom := feeAndSize.Fee.AtomValue + dcrlibwallet.AmountAtom(amountInFloat)
-		balanceAfterSendInAtom := amountInAccount - totalCostInAtom
-		sendPage.SendPageContents.Refresh()
-		if !sendPage.amountEntryErrorLabel.Hidden {
-			sendPage.amountEntryErrorLabel.Hide()
-		}
-
-		sendPage.SendPageContents.Refresh()
-		sendPage.transactionFeeLabel.Text = strconv.FormatFloat(feeAndSize.Fee.DcrValue, 'f', -1, 64)
-		sendPage.totalCostLabel.Text = strconv.FormatFloat(dcrlibwallet.AmountCoin(totalCostInAtom), 'f', -1, 64)
-		sendPage.transactionSizeLabel.Text = fmt.Sprintf("%d %s", feeAndSize.EstimatedSignedSize, values.Bytes)
-		sendPage.balanceAfterSendLabel.Text = strconv.FormatFloat(dcrlibwallet.AmountCoin(balanceAfterSendInAtom), 'f', -1, 64)
-
-		setLabelColor(values.DefaultTextColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-		sendPage.SendPageContents.Refresh()
-
-		if sendPage.destinationAddressEntry.Text != "" && sendPage.destinationAddressErrorLabel.Hidden || sendPage.destinationAddressEntry.Hidden {
-			sendPage.nextButton.Enable()
-		} else {
-			sendPage.nextButton.Disable()
-		}
-		sendPage.SendPageContents.Refresh()
+		sendPage.initTxDetails(value)
 	}
 
-	maxButton := sendPage.maxButton()
+	sendPage.initMaxButton()
 
 	amountEntryComponents := widget.NewVBox(
 		widget.NewHBox(amountLabel, layout.NewSpacer(), sendPage.SpendableLabel, widgets.NewHSpacer(values.SpacerSize20)),
@@ -131,31 +63,32 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 
 		fyne.NewContainerWithLayout(
 			layouts.NewPasswordLayout(
-				fyne.NewSize(widget.NewLabel(values.MaxAmountAllowedInDCR).MinSize().Width+maxButton.MinSize().Width, sendPage.amountEntry.MinSize().Height)),
-			sendPage.amountEntry, maxButton.Container),
+				fyne.NewSize(widget.NewLabel(values.MaxAmountAllowedInDCR).MinSize().Width+sendPage.maxButton.MinSize().Width, sendPage.amountEntry.MinSize().Height)),
+			sendPage.amountEntry, sendPage.maxButton.Container),
 		sendPage.amountEntryErrorLabel)
 
 	sendPage.SendPageContents.Append(amountEntryComponents)
 }
 
-func (sendPage *SendPageObjects) maxButton() *widgets.Button {
-	maxButton := widgets.NewButton(values.MaxButtonBackgroundColor, values.Max, func() {
+func (sendPage *SendPageObjects) initMaxButton() {
+	sendPage.maxButton = widgets.NewButton(values.MaxButtonBackgroundColor, values.Max, func() {
+		sendPage.sendMax = true
 		transactionAuthor, _ := sendPage.initTxAuthorAndGetAmountInWalletAccount(0, "")
 		if transactionAuthor == nil {
 			return
 		}
 
 		maxAmount, err := transactionAuthor.EstimateMaxSendAmount()
-		if err != nil {
-			if err.Error() == dcrlibwallet.ErrInsufficientBalance {
-				sendPage.amountEntryErrorLabel.Text = values.NoFunds
-				if !sendPage.MultiWallet.IsSynced() {
-					sendPage.amountEntryErrorLabel.Text = values.NoFundsOrNotConnected
-				}
-
-				sendPage.amountEntryErrorLabel.Show()
-				sendPage.SendPageContents.Refresh()
+		if err != nil && err.Error() == dcrlibwallet.ErrInsufficientBalance {
+			sendPage.amountEntryErrorLabel.Text = values.NoFunds
+			if !sendPage.MultiWallet.IsSynced() {
+				sendPage.amountEntryErrorLabel.Text = values.NoFundsOrNotConnected
 			}
+
+			sendPage.SendPageContents.Refresh()
+			sendPage.amountEntryErrorLabel.Show()
+			sendPage.SendPageContents.Refresh()
+
 			return
 		}
 		sendPage.SendPageContents.Refresh()
@@ -165,14 +98,15 @@ func (sendPage *SendPageObjects) maxButton() *widgets.Button {
 		sendPage.amountEntryErrorLabel.Text = ""
 		sendPage.SendPageContents.Refresh()
 
+		// entry widget doesn't perform the onchanged function if values are same
+		sendPage.amountEntry.Text = ""
 		sendPage.amountEntry.SetText(strconv.FormatFloat(maxAmount.DcrValue, 'f', -1, 64))
 	})
 
-	maxButton.SetTextSize(values.TextSize10)
-	maxButton.SetTextStyle(fyne.TextStyle{Bold: true})
-	maxButton.SetMinSize(maxButton.MinSize().Add(fyne.NewSize(8, 8)))
+	sendPage.maxButton.SetTextSize(values.TextSize10)
+	sendPage.maxButton.SetTextStyle(fyne.TextStyle{Bold: true})
+	sendPage.maxButton.SetMinSize(sendPage.maxButton.MinSize().Add(fyne.NewSize(8, 8)))
 
-	return maxButton
 }
 
 func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount float64, address string) (*dcrlibwallet.TxAuthor, int64) {
@@ -194,18 +128,85 @@ func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount 
 
 	amountInAccount := accountBalance.Spendable
 
-	transactionAuthor.AddSendDestination(address, 0, true)
-	maxAmnt, err := transactionAuthor.EstimateMaxSendAmount()
-	if err != nil {
-		sendPage.showErrorLabel(values.MaxAmntErr)
-		return nil, 0
-	}
-
-	if amount == maxAmnt.DcrValue || amount == 0 {
-		transactionAuthor.UpdateSendDestination(0, address, dcrlibwallet.AmountAtom(amount), true)
-	} else {
-		transactionAuthor.UpdateSendDestination(0, address, dcrlibwallet.AmountAtom(amount), false)
-	}
+	transactionAuthor.AddSendDestination(address, dcrlibwallet.AmountAtom(amount), sendPage.sendMax)
 
 	return transactionAuthor, amountInAccount
+}
+
+func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
+	if numbers := strings.Split(amountInString, "."); len(numbers) == 2 && len(numbers[1]) > 8 {
+		sendPage.showErrorLabel(values.AmountDecimalPlaceErr)
+		return
+	}
+
+	amountInFloat, err := strconv.ParseFloat(amountInString, 64)
+	if err != nil && amountInString != "" {
+		sendPage.showErrorLabel(values.ParseFloatErr)
+		return
+	}
+
+	if amountInFloat == 0.0 || !sendPage.destinationAddressErrorLabel.Hidden {
+		setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+		sendPage.transactionSizeLabel.Text = values.ZeroByte
+		sendPage.SendPageContents.Refresh()
+
+		setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+		sendPage.SendPageContents.Refresh()
+
+		sendPage.nextButton.Disable()
+		sendPage.SendPageContents.Refresh()
+
+		return
+	}
+
+	transactionAuthor, amountInAccount := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, "")
+	if transactionAuthor == nil {
+		return
+	}
+
+	feeAndSize, err := transactionAuthor.EstimateFeeAndSize()
+	if err != nil {
+		sendPage.SendPageContents.Refresh()
+		if err.Error() == dcrlibwallet.ErrInsufficientBalance {
+			sendPage.amountEntryErrorLabel.Text = values.InsufficientBalanceErr
+			sendPage.amountEntryErrorLabel.Show()
+		} else {
+			sendPage.showErrorLabel(values.TransactionFeeSizeErr)
+		}
+		sendPage.SendPageContents.Refresh()
+
+		setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+		sendPage.transactionSizeLabel.Text = values.ZeroByte
+		setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+
+		sendPage.SendPageContents.Refresh()
+		sendPage.nextButton.Disable()
+		sendPage.SendPageContents.Refresh()
+		return
+	}
+
+	totalCostInAtom := feeAndSize.Fee.AtomValue + dcrlibwallet.AmountAtom(amountInFloat)
+	balanceAfterSendInAtom := amountInAccount - totalCostInAtom
+	sendPage.SendPageContents.Refresh()
+	if !sendPage.amountEntryErrorLabel.Hidden {
+		sendPage.amountEntryErrorLabel.Hide()
+	}
+	sendPage.SendPageContents.Refresh()
+
+	sendPage.SendPageContents.Refresh()
+	sendPage.transactionFeeLabel.Text = strconv.FormatFloat(feeAndSize.Fee.DcrValue, 'f', -1, 64)
+	sendPage.totalCostLabel.Text = strconv.FormatFloat(dcrlibwallet.AmountCoin(totalCostInAtom), 'f', -1, 64)
+	sendPage.transactionSizeLabel.Text = fmt.Sprintf("%d %s", feeAndSize.EstimatedSignedSize, values.Bytes)
+	sendPage.balanceAfterSendLabel.Text = strconv.FormatFloat(dcrlibwallet.AmountCoin(balanceAfterSendInAtom), 'f', -1, 64)
+
+	setLabelColor(values.DefaultTextColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+	sendPage.SendPageContents.Refresh()
+
+	if sendPage.destinationAddressEntry.Text != "" && sendPage.destinationAddressErrorLabel.Hidden || sendPage.destinationAddressEntry.Hidden {
+		sendPage.nextButton.Enable()
+	} else {
+		sendPage.nextButton.Disable()
+	}
+
+	sendPage.SendPageContents.Refresh()
 }

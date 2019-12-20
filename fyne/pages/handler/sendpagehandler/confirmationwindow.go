@@ -91,6 +91,10 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 
 			transactionAuthor, _ := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, destinationAddress)
 			_, err = transactionAuthor.Broadcast([]byte(password))
+
+			if err == nil {
+				sendPage.sendMax = false
+			}
 			return err
 		}
 
@@ -181,7 +185,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 	confirmationPageWithHeader := widget.NewVBox(
 		widgets.NewVSpacer(values.SpacerSize10),
 		widget.NewHBox(widgets.NewHSpacer(values.SpacerSize16), accountSelectionPopupHeader),
-		
+
 		strippedLineWithSpacer(values.SpacerSize4, values.SpacerSize4),
 		confirmationPageContentWithPadding,
 		widgets.NewVSpacer(values.SpacerSize10),

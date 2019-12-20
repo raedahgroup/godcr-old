@@ -56,7 +56,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 		}
 
 		sendPage.SendPageContents.Refresh()
-		sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
+		sendPage.initTxDetails(sendPage.amountEntry.Text)
 		sendPage.SendPageContents.Refresh()
 	})
 
@@ -86,7 +86,7 @@ func (sendPage *SendPageObjects) destinationAddressEntryComponent() {
 		if sendPage.destinationAddressEntry.Text == "" {
 			sendPage.destinationAddressErrorLabel.Hide()
 			sendPage.SendPageContents.Refresh()
-			sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
+			sendPage.initTxDetails(sendPage.amountEntry.Text)
 
 			return
 		}

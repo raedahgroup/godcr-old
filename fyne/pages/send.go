@@ -104,7 +104,7 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 }
 
 func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
-
+	sendPage = sendPageDynamicData{}
 	firstWalletWalletID := openedWalletIDs[0]
 	defaultAccount := selectedWalletAccounts.Acc[0]
 

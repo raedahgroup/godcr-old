@@ -171,6 +171,14 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		)
 		accountNumber := account.Number
 		accountsBox.Append(widgets.NewClickableBox(accountsView, func() {
+			if *accountSelector.SendingSelectedAccountID == int(accountNumber) && *accountSelector.SendingSelectedWalletID == walletID {
+				if accountSelector.OnAccountChange != nil {
+					accountSelector.OnAccountChange()
+					popup.Hide()
+				}
+				return
+			}
+
 			*accountSelector.SendingSelectedAccountID = int(accountNumber)
 			*accountSelector.SendingSelectedWalletID = walletID
 			accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(walletID)

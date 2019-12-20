@@ -31,6 +31,7 @@ type SendPageObjects struct {
 	totalCostLabel        *canvas.Text
 	balanceAfterSendLabel *canvas.Text
 
+	maxButton  *widgets.Button
 	nextButton *widgets.Button
 
 	Sending     multipagecomponents.AccountSelectorStruct
@@ -39,6 +40,7 @@ type SendPageObjects struct {
 	SendPageContents *widget.Box
 
 	MultiWallet *dcrlibwallet.MultiWallet
+	sendMax     bool
 
 	Window fyne.Window
 }

@@ -37,5 +37,11 @@ func (sendPage *SendPageObjects) onAccountChange() {
 	sendPage.SpendableLabel.Text = values.SpendableAmountLabel + dcrutil.Amount(balance.Spendable).String()
 	sendPage.SendPageContents.Refresh()
 
-	sendPage.amountEntry.OnChanged(sendPage.amountEntry.Text)
+	sendPage.SendPageContents.Refresh()
+	if sendPage.sendMax {
+		sendPage.maxButton.Container.OnTapped()
+	} else {
+		sendPage.initTxDetails(sendPage.amountEntry.Text)
+	}
+	sendPage.SendPageContents.Refresh()
 }

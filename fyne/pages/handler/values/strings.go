@@ -82,7 +82,6 @@ const (
 	GettingAddressToSelfSendErr = "Could not generate address to send to self"
 	InsufficientBalanceErr      = "Insufficient balance"
 	InitTxAuthorErr             = "Unable to initialize TxAuthor"
-	MaxAmntErr                  = "Unable to get max amount in account"
 	NotConnectedErr             = "Not Connected To Decred Network"
 	ParseFloatErr               = "Could not parse float"
 	PasswordPopupIconsErr       = "Unable to load password popup icons"
