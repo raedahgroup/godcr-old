@@ -18,7 +18,7 @@ import (
 func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	fromLabel := canvas.NewText("To", values.DarkerBlueGrayTextColor)
 
-	accountBox, err := sendPage.SelfSending.CreateAccountSelector("Sending account")
+	accountBox, err := sendPage.SelfSending.CreateAccountSelector("Receiving account")
 	if err != nil {
 		return err
 	}
