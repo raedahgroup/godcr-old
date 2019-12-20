@@ -75,6 +75,8 @@ func (sendPage *SendPageObjects) initMaxButton() {
 		sendPage.sendMax = true
 		transactionAuthor, _ := sendPage.initTxAuthorAndGetAmountInWalletAccount(0, "")
 		if transactionAuthor == nil {
+			log.Println("Could not initialize transaction author")
+			sendPage.disableTxInfo()
 			return
 		}
 
@@ -84,10 +86,12 @@ func (sendPage *SendPageObjects) initMaxButton() {
 			if !sendPage.MultiWallet.IsSynced() {
 				sendPage.amountEntryErrorLabel.Text = values.NoFundsOrNotConnected
 			}
+			sendPage.amountEntry.SetText("")
 
 			sendPage.SendPageContents.Refresh()
 			sendPage.amountEntryErrorLabel.Show()
 			sendPage.SendPageContents.Refresh()
+			sendPage.disableTxInfo()
 
 			return
 		}
@@ -140,25 +144,19 @@ func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount 
 func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
 	if numbers := strings.Split(amountInString, "."); len(numbers) == 2 && len(numbers[1]) > 8 {
 		sendPage.showErrorLabel(values.AmountDecimalPlaceErr)
+		sendPage.disableTxInfo()
 		return
 	}
 
 	amountInFloat, err := strconv.ParseFloat(amountInString, 64)
 	if err != nil && amountInString != "" {
 		sendPage.showErrorLabel(values.ParseFloatErr)
+		sendPage.disableTxInfo()
 		return
 	}
 
 	if amountInFloat == 0.0 || !sendPage.destinationAddressErrorLabel.Hidden {
-		setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-		sendPage.transactionSizeLabel.Text = values.ZeroByte
-		sendPage.SendPageContents.Refresh()
-
-		setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-		sendPage.SendPageContents.Refresh()
-
-		sendPage.nextButton.Disable()
-		sendPage.SendPageContents.Refresh()
+		sendPage.disableTxInfo()
 
 		if amountInFloat == 0.0 {
 			sendPage.SendPageContents.Refresh()
@@ -171,6 +169,8 @@ func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
 
 	transactionAuthor, amountInAccount := sendPage.initTxAuthorAndGetAmountInWalletAccount(amountInFloat, "")
 	if transactionAuthor == nil {
+		sendPage.disableTxInfo()
+		log.Println("Unable to initialize transaction autor")
 		return
 	}
 
@@ -183,15 +183,8 @@ func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
 		} else {
 			sendPage.showErrorLabel(values.TransactionFeeSizeErr)
 		}
-		sendPage.SendPageContents.Refresh()
 
-		setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-		sendPage.transactionSizeLabel.Text = values.ZeroByte
-		setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
-
-		sendPage.SendPageContents.Refresh()
-		sendPage.nextButton.Disable()
-		sendPage.SendPageContents.Refresh()
+		sendPage.disableTxInfo()
 		return
 	}
 
@@ -218,5 +211,17 @@ func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
 		sendPage.nextButton.Disable()
 	}
 
+	sendPage.SendPageContents.Refresh()
+}
+
+func (sendPage *SendPageObjects) disableTxInfo() {
+	setLabelText(values.NilAmount, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+	sendPage.transactionSizeLabel.Text = values.ZeroByte
+	sendPage.SendPageContents.Refresh()
+
+	setLabelColor(values.NilAmountColor, sendPage.transactionFeeLabel, sendPage.totalCostLabel, sendPage.balanceAfterSendLabel)
+	sendPage.SendPageContents.Refresh()
+
+	sendPage.nextButton.Disable()
 	sendPage.SendPageContents.Refresh()
 }
