@@ -76,6 +76,8 @@ func receivePageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Windo
 }
 
 func initReceivePageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *dcrlibwallet.Accounts) {
+	receivePage = receivePageDynamicData{}
+
 	receivePage.selectedWalletID = openedWalletIDs[0]
 	receivePage.accountBoxes = make([]*widget.Box, len(openedWalletIDs))
 
