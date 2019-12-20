@@ -20,7 +20,7 @@ const (
 	MessageKindInfo
 )
 
-const txPerPage int32 = 10
+const txPerPage int32 = 25
 
 var historyPageData struct {
 	pageContentHolder *tview.Flex
