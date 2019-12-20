@@ -11,8 +11,6 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"gioui.org/op/paint"
-	"gioui.org/widget/material"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -32,8 +30,6 @@ type (
 		appDisplayName string
 		multiWallet    *dcrlibwallet.MultiWallet
 		syncer         *Syncer
-
-		logo           material.Image
 	}
 )
 
@@ -42,8 +38,6 @@ const (
 	windowHeight = 500
 
 	navSectionWidth = 120
-
-	logoPath = "../../gio/assets/decred.png"
 )
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
@@ -62,14 +56,12 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	}
 
 	theme := helper.GetTheme()
-	imageOp, err := app.loadLogo()
+	err = helper.InitLogo(theme)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Launch error - cannot load logo: %v", err)
 		return
 	}
-	app.logo = theme.Image(imageOp)
-	app.logo.Scale = 0.95
-
+	
 	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := LoadWallet(appDataDir, netType) 
 	if err != nil {
 		// todo show error in UI
@@ -101,20 +93,6 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 
 	// run app
 	gioapp.Main()
-}
-
-func (d *desktop) loadLogo() (paint.ImageOp, error) {
-	logoByte, err := os.Open(logoPath)
-	if err != nil {
-		return paint.ImageOp{}, err
-	}
-
-	src, _, err := image.Decode(logoByte) 
-	if err != nil {
-		return paint.ImageOp{}, err
-	}
-
-	return paint.NewImageOp(src), nil
 }
 
 func (d *desktop) prepareHandlers() {
@@ -203,12 +181,11 @@ func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.C
 	}
 	helper.PaintArea(ctx, helper.BackgroundColor, windowBounds)
 
-	inset := layout.UniformInset(unit.Dp(25))
+	inset := layout.Inset{
+		Top: unit.Dp(20),
+	}
 	inset.Layout(ctx, func(){
 		layout.Stack{Alignment: layout.NW}.Layout(ctx,
-			layout.Expanded(func(){
-				d.logo.Layout(ctx)
-			}),
 			layout.Stacked(func(){
 				inset := layout.Inset{Top: unit.Dp(35)}
 				inset.Layout(ctx, func(){

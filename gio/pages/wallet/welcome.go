@@ -26,43 +26,51 @@ func NewWelcomePage(multiWallet *dcrlibwallet.MultiWallet) *WelcomePage {
 }
 
 func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
+	helper.DrawLogo(ctx)
+	
 	inset := layout.Inset{
-		Top: unit.Dp(30),
+		Left: unit.Dp(20),
+		Right: unit.Dp(20),
 	}
 	inset.Layout(ctx, func(){
-		widgets.NewLabel("Welcome to", 6).Draw(ctx)
-	})
-
-	inset = layout.Inset{
-		Top: unit.Dp(59),
-	}
-	inset.Layout(ctx, func(){
-		widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
-	})
-
-	// create button section 
-	inset = layout.Inset{
-		Top: unit.Dp(280),
-	}
-	inset.Layout(ctx, func(){
-		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-		ctx.Constraints.Height.Min = 50
-
-		w.createWalletButton.Draw(ctx, func(){
-			changePageFunc("createwallet")
+		inset := layout.Inset{
+			Top: unit.Dp(35),
+		}
+		inset.Layout(ctx, func(){
+			widgets.NewLabel("Welcome to", 6).Draw(ctx)
 		})
-	})
 
-	// restore button section 
-	inset = layout.Inset{
-		Top: unit.Dp(340),
-	}
-	inset.Layout(ctx, func(){
-		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-		ctx.Constraints.Height.Min = 50
+		inset = layout.Inset{
+			Top: unit.Dp(64),
+		}
+		inset.Layout(ctx, func(){
+			widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
+		})
 
-		w.restoreWalletButton.Draw(ctx, func(){
-			changePageFunc("restorewallet")
+		// create button section 
+		inset = layout.Inset{
+			Top: unit.Dp(285),
+		}
+		inset.Layout(ctx, func(){
+			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+			ctx.Constraints.Height.Min = 50
+
+			w.createWalletButton.Draw(ctx, func(){
+				changePageFunc("createwallet")
+			})
+		})
+
+		// restore button section 
+		inset = layout.Inset{
+			Top: unit.Dp(345),
+		}
+		inset.Layout(ctx, func(){
+			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+			ctx.Constraints.Height.Min = 50
+
+			w.restoreWalletButton.Draw(ctx, func(){
+				changePageFunc("restorewallet")
+			})
 		})
 	})
 }

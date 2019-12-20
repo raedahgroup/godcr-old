@@ -30,11 +30,17 @@ type (
 	CreateWalletPage struct {
 		multiWallet          *dcrlibwallet.MultiWallet 
 		changePageFunc		  func(string)
+		refreshWindowFunc     func()
+
 		formTabContainer     *widgets.TabContainer
 		passwordTab          *passwordTab
 		pinTab               *pinTab
+
 		cancelLabel          *widgets.ClickableLabel
 		createButton         *widgets.Button
+
+		seedPage			 *SeedPage
+		isShowingSeedPage    bool
 	}
 )
 
@@ -52,34 +58,49 @@ func NewCreateWalletPage(multiWallet *dcrlibwallet.MultiWallet) *CreateWalletPag
 	}
 	formTabContainer := widgets.NewTabContainer().AddTab("Password").AddTab("PIN")
 
-	return &CreateWalletPage{
-		multiWallet     :  multiWallet,
-		formTabContainer:  formTabContainer,
-		passwordTab     :  passwordTab,
-		pinTab          :  pinTab,
-		cancelLabel     :  widgets.NewClickableLabel("Cancel").SetSize(4).SetWeight(text.Bold).SetColor(helper.DecredLightBlueColor),
-		createButton    :  widgets.NewButton("Create", nil),
+	c := &CreateWalletPage{
+		multiWallet       :  multiWallet,
+		formTabContainer  :  formTabContainer,
+		passwordTab       :  passwordTab,
+		pinTab            :  pinTab,
+		cancelLabel       :  widgets.NewClickableLabel("Cancel").SetSize(4).SetWeight(text.Bold).SetColor(helper.DecredLightBlueColor),
+		createButton      :  widgets.NewButton("Create", nil),
+		isShowingSeedPage :  false,
 	}
+
+	c.seedPage =  NewSeedPage(multiWallet, c)
+	return c
 }
 
 func (w *CreateWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
 	w.changePageFunc = changePageFunc
+	w.refreshWindowFunc = refreshWindowFunc
 
-	layout.Stack{Alignment: layout.NW}.Layout(ctx, 
-		layout.Expanded(func(){
-			widgets.NewLabel("Create a Spending Password", 5).
-				SetWeight(text.Bold).
-				Draw(ctx)
-		}),
-		layout.Stacked(func(){
-			inset := layout.Inset{
-				Top: unit.Dp(25),
-			}
-			inset.Layout(ctx, func(){
-				w.formTabContainer.Draw(ctx, w.passwordRenderFunc, w.pinRenderFunc)
-			})
-		}),
-	)
+	if w.isShowingSeedPage {
+		w.seedPage.render(ctx, w.refreshWindowFunc)
+	} else {
+		inset := layout.Inset{
+			Left : unit.Dp(20),
+			Right: unit.Dp(20),
+		}
+		inset.Layout(ctx, func(){
+			layout.Stack{Alignment: layout.NW}.Layout(ctx, 
+				layout.Expanded(func(){
+					widgets.NewLabel("Create a Spending Password", 5).
+						SetWeight(text.Bold).
+						Draw(ctx)
+				}),
+				layout.Stacked(func(){
+					inset := layout.Inset{
+						Top  : unit.Dp(25),
+					}
+					inset.Layout(ctx, func(){
+						w.formTabContainer.Draw(ctx, w.passwordRenderFunc, w.pinRenderFunc)
+					})
+				}),
+			)
+		})
+	}
 }
 
 func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
@@ -173,7 +194,8 @@ func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
 							}
 							w.createButton.SetBackgroundColor(bgCol).Draw(ctx, func(){
 								if bothPasswordsMatch && w.passwordTab.confirmPasswordInput.Len() > 0 {
-									w.showSeedInformationPage()
+									w.isShowingSeedPage = true 
+									w.refreshWindowFunc()
 								}
 							})
 						}),
@@ -185,60 +207,7 @@ func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
 }
 
 func (w *CreateWalletPage) pinRenderFunc(ctx *layout.Context) {
-	/**inset := layout.UniformInset(unit.Dp(20))
-	inset.Layout(ctx, func(){
-		stack := layout.Stack{}
-		pinSection := stack.Rigid(ctx, func(){
-			inset := layout.Inset{}
-			inset.Layout(ctx, func(){
-				w.pinTab.pinInput.Draw(ctx)
-			})
-		})
-
-		confirmPinSection := stack.Rigid(ctx, func(){
-			inset := layout.Inset{
-				Top:  unit.Dp(50),
-			}
-			inset.Layout(ctx, func(){
-				w.pinTab.confirmPinInput.Draw(ctx)
-			})
-		})
-
-		buttonsSection := stack.Expand(ctx, func(){
-			inset := layout.Inset{
-				Top: unit.Dp(100),
-			}
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			inset.Layout(ctx, func(){
-				stack := layout.Stack{}
-
-				cancelButtonSection := stack.Rigid(ctx, func(){
-					inset := layout.Inset{
-						Left: unit.Dp(240),
-						Top : unit.Dp(10),
-					}
-					inset.Layout(ctx, func(){
-						w.cancelLabel.Draw(ctx, widgets.AlignLeft, func(){
-							w.resetAndGotoPage("welcome")
-						})
-					})
-				})
-
-				createButtonSection := stack.Rigid(ctx, func(){
-					inset := layout.Inset{
-						Left: unit.Dp(300),
-					}
-					inset.Layout(ctx, func(){
-						w.createButton.Draw(ctx, widgets.AlignLeft, func(){
-							
-						})
-					})
-				})
-				stack.Layout(ctx, cancelButtonSection, createButtonSection)
-			})
-		})
-		stack.Layout(ctx, pinSection, confirmPinSection, buttonsSection)
-	})**/
+	
 }
 
 func (w *CreateWalletPage) resetAndGotoPage(page string) {

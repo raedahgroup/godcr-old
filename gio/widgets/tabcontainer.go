@@ -1,6 +1,7 @@
 package widgets 
 
 import (
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/layout"
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -26,8 +27,13 @@ func NewTabContainer() *TabContainer {
 }
 
 func (t *TabContainer) AddTab(label string) *TabContainer {
+	lbl := NewClickableLabel(label).
+				SetSize(5).
+				SetAlignment(AlignMiddle).
+				SetWeight(text.Bold)
+
 	item := tabItem{
-		label     : NewClickableLabel(label), 
+		label     : lbl, 
 		renderFunc: func(){},
 	}
 	t.items = append(t.items, item)
@@ -49,25 +55,30 @@ func (t *TabContainer) Draw(ctx *layout.Context, renderFuncs ...func(*layout.Con
 
 func (t *TabContainer) drawNavSection(ctx *layout.Context) {
 	navTabWidth := ctx.Constraints.Width.Max / len(t.items)
-
 	columns := make([]layout.FlexChild, len(t.items))
-	for index, tab := range t.items {
+
+	for index := range t.items {
+		tindex := index 
+
 		color := helper.BlackColor
-		if t.currentTabIndex == index {
+		if t.currentTabIndex == tindex {
 			color = helper.DecredLightBlueColor
 		}
 
-		columns[index] = layout.Rigid(func(){
-			tab.label.SetWidth(navTabWidth).
-				SetSize(13).
+		columns[tindex] = layout.Rigid(func(){
+			t.items[tindex].label.SetWidth(navTabWidth).
 				SetColor(color).
-				SetAlignment(AlignMiddle).
 				Draw(ctx, func(){
-					t.currentTabIndex = index
+					t.currentTabIndex = tindex
 				})
 		})
 	}
-	layout.Flex{Axis: layout.Horizontal}.Layout(ctx, columns...)
+	
+	layout.Stack{}.Layout(ctx, 
+		layout.Expanded(func(){
+			layout.Flex{Axis: layout.Horizontal}.Layout(ctx, columns...)
+		}),
+	)
 }
 
 func (t *TabContainer) drawContentSection(ctx *layout.Context, renderFuncs []func(*layout.Context)) {
