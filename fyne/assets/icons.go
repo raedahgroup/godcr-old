@@ -25,6 +25,8 @@ const (
 	DownArrow = "downArrow.png"
 	Alert     = "alert.png"
 
+	Expand = "expand.png"
+
 	CollapseIcon       = "collapse.png"
 	MoreIcon           = "more.png"
 	InfoIcon           = "info.png"
