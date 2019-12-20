@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"image/color"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ import (
 )
 
 const txPerPage int32 = 25
+const netType = "testnet"
 
 type txHistoryPageData struct {
 	allTxCount                 int
@@ -57,7 +59,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 	txHistory.selectedTxSortFilterLabel = widget.NewLabel("")
 
 	// gets all icons used on this page
-	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon)
+	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon, assets.RedirectIcon)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %s", err.Error())
 		helpers.ErrorHandler(errorMessage, txHistory.errorLabel)
@@ -447,7 +449,7 @@ func updateTable(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabM
 				})
 			}
 			if txHistory.TotalTxFetched >= 50 {
-				txHistory.TotalTxFetched -= txPerPage*2
+				txHistory.TotalTxFetched -= txPerPage * 2
 				if txTableRowCount >= 50 {
 					txHistory.txTable.Delete(txTableRowCount-int(txPerPage), txTableRowCount)
 				}
@@ -638,9 +640,24 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 		tableDate,
 	)
 
+	link, err := url.Parse(fmt.Sprintf("https://%s.dcrdata.org/tx/%s", netType, txDetails.Hash))
+	if err != nil {
+		helpers.ErrorHandler(fmt.Sprintf("Error: ", err.Error()), errorMessageLabel)
+		txDetailsErrorMethod()
+		return
+	}
+	redirectWidget := widget.NewHBox(
+		widget.NewHyperlinkWithStyle("View on dcrdata", link, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widgets.NewHSpacer(20),
+		widget.NewIcon(txHistory.icons[assets.RedirectIcon]),
+	)
+
 	txDetailsData := widget.NewVBox(
 		widgets.NewHSpacer(10),
 		tableData,
+		widgets.NewHSpacer(15),
+		redirectWidget,
+		widgets.NewHSpacer(15),
 		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txInput.Result,
 		widgets.NewVSpacer(10),
