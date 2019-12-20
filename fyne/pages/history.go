@@ -185,7 +185,7 @@ func txWalletList(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tab
 		individualWalletID := walletID
 
 		walletListWidget.Append(widgets.NewClickableBox(walletContainer, func() {
-			// hide checkmark icon of other accounts
+			// hide checkmark icon of other wallets
 			for _, children := range walletListWidget.Children {
 				if box, ok := children.(*widgets.ClickableBox); !ok {
 					continue
@@ -418,7 +418,8 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, multiWallet *dcrlib
 	widget.Refresh(txHistory.txTable.Container)
 	txHistory.txTable.Container.Show()
 
-	time.AfterFunc(time.Second*8, func() {
+	// wait four sec then update tx table
+	time.AfterFunc(time.Second*4, func() {
 		updateTable(multiWallet, window, tabMenu)
 	})
 
@@ -432,27 +433,31 @@ func updateTable(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tabM
 
 	if txHistory.allTxCount > int(txHistory.TotalTxFetched) {
 		if txHistory.txTable.Container.Offset.Y == 0 {
-			time.AfterFunc(time.Second*8, func() {
+			if txTableRowCount < int(txPerPage) {
+				return
+			}
+			// table not yet scrolled wait 4 secs and update
+			time.AfterFunc(time.Second*4, func() {
 				updateTable(multiWallet, window, tabMenu)
 			})
 		} else if scrollPosition < 0.5 {
-			if txHistory.TotalTxFetched <= txPerPage {
-				time.AfterFunc(time.Second*8, func() {
+			if txHistory.TotalTxFetched == txPerPage {
+				time.AfterFunc(time.Second*4, func() {
 					updateTable(multiWallet, window, tabMenu)
 				})
 			}
-			if txTableRowCount <= int(txPerPage) {
-				return
+			if txHistory.TotalTxFetched >= 50 {
+				txHistory.TotalTxFetched -= txPerPage*2
+				if txTableRowCount >= 50 {
+					txHistory.txTable.Delete(txTableRowCount-int(txPerPage), txTableRowCount)
+				}
+				fetchTx(&txHistory.txTable, txHistory.TotalTxFetched, txHistory.selectedFilterId, multiWallet, window, tabMenu, true)
 			}
-
-			txHistory.TotalTxFetched -= int32(txPerPage)
-
-			fetchTx(&txHistory.txTable, txHistory.TotalTxFetched, txHistory.selectedFilterId, multiWallet, window, tabMenu, true)
 		} else if scrollPosition >= 0.5 {
-			fetchTx(&txHistory.txTable, txHistory.TotalTxFetched, txHistory.selectedFilterId, multiWallet, window, tabMenu, false)
-			if txTableRowCount > 12 {
+			if txTableRowCount >= 50 {
 				txHistory.txTable.Delete(0, txTableRowCount-int(txPerPage))
 			}
+			fetchTx(&txHistory.txTable, txHistory.TotalTxFetched, txHistory.selectedFilterId, multiWallet, window, tabMenu, false)
 		}
 	}
 }
