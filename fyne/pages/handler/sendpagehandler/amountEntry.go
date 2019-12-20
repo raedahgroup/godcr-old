@@ -128,6 +128,10 @@ func (sendPage *SendPageObjects) initTxAuthorAndGetAmountInWalletAccount(amount 
 
 	amountInAccount := accountBalance.Spendable
 
+	if sendPage.sendMax {
+		amount = 0
+	}
+
 	transactionAuthor.AddSendDestination(address, dcrlibwallet.AmountAtom(amount), sendPage.sendMax)
 
 	return transactionAuthor, amountInAccount
