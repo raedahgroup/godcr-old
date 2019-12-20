@@ -18,6 +18,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/helpers"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -59,7 +60,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 	icons, err := assets.GetIcons(assets.CollapseIcon, assets.InfoIcon, assets.SendIcon, assets.ReceiveIcon, assets.ReceiveIcon, assets.InfoIcon)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %s", err.Error())
-		errorHandler(errorMessage, txHistory.errorLabel)
+		helpers.ErrorHandler(errorMessage, txHistory.errorLabel)
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistory.errorLabel)
 	}
 	txHistory.icons = icons
@@ -68,7 +69,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 	pageTitleLabel := widget.NewLabelWithStyle("Transactions", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 
 	// infoPopUp creates a popup with history page hint-text
-	var infoPopUp *widgets.ImageButton
+	var infoIcon *widgets.ImageButton
 	info := "- Tap Hash to view Transaction details.\n\n- Tap Blue Text to Copy."
 	infoIcon = widgets.NewImageButton(txHistory.icons[assets.InfoIcon], nil, func() {
 		infoLabel := widget.NewLabelWithStyle(info, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
@@ -90,7 +91,6 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 
 	// history output widget
 	txHistoryPageOutput := widget.NewVBox(
-		widgets.NewVSpacer(5),
 		widget.NewHBox(pageTitleLabel, widgets.NewHSpacer(110), infoIcon),
 		widgets.NewVSpacer(5),
 	)
@@ -132,7 +132,7 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 
 	// catch all errors when trying to setup and render tx page data.
 	if txHistory.errorMessage != "" {
-		errorHandler(txHistory.errorMessage, txHistory.errorLabel)
+		helpers.ErrorHandler(txHistory.errorMessage, txHistory.errorLabel)
 		txHistoryPageOutput.Append(txHistory.errorLabel)
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 	}
@@ -370,13 +370,12 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, multiWallet *dcrlib
 
 	txns, err := multiWallet.WalletWithID(txHistory.selectedWalletID).GetTransactionsRaw(txOffset, txPerPage, filter, txHistory.selectedtxSort)
 	if err != nil {
-		errorHandler(fmt.Sprintf("Error getting transaction for Filter: %s", err.Error()), txHistory.errorLabel)
+		helpers.ErrorHandler(fmt.Sprintf("Error getting transaction for Filter: %s", err.Error()), txHistory.errorLabel)
 		txHistory.txTable.Container.Hide()
 		return
 	}
-
 	if len(txns) == 0 {
-		errorHandler(fmt.Sprintf("No transactions for %s yet.", multiWallet.WalletWithID(txHistory.selectedWalletID).Name), txHistory.errorLabel)
+		helpers.ErrorHandler(fmt.Sprintf("No transactions for %s yet.", multiWallet.WalletWithID(txHistory.selectedWalletID).Name), txHistory.errorLabel)
 		txHistory.txTable.Container.Hide()
 		return
 	}
@@ -394,7 +393,7 @@ func fetchTx(txTable *widgets.Table, txOffset, filter int32, multiWallet *dcrlib
 		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
 		txForTrimmedHash := tx.Hash
 		txDirectionLabel := widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{})
-		txDirectionIcon := widget.NewIcon(txHistory.icons[txDirectionIcon(tx.Direction)])
+		txDirectionIcon := widget.NewIcon(txHistory.icons[helpers.TxDirectionIcon(tx.Direction)])
 		txBox = append(txBox, widget.NewHBox(
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewHBox(txDirectionIcon, txDirectionLabel),
@@ -489,14 +488,14 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 
 	chainHash, err := chainhash.NewHashFromStr(hash)
 	if err != nil {
-		errorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
+		helpers.ErrorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
 		txDetailsErrorMethod()
 		return
 	}
 
 	txDetails, err := multiWallet.WalletWithID(txHistory.selectedWalletID).GetTransactionRaw(chainHash[:])
 	if err != nil {
-		errorHandler(fmt.Sprintf("Error fetching transaction details for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
+		helpers.ErrorHandler(fmt.Sprintf("Error fetching transaction details for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
 		txDetailsErrorMethod()
 		return
 	}
@@ -659,17 +658,4 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	)
 
 	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)), window.Canvas())
-}
-
-func txDirectionIcon(direction int32) string {
-	switch direction {
-	case 0:
-		return assets.SendIcon
-	case 1:
-		return assets.ReceiveIcon
-	case 2:
-		return assets.ReceiveIcon
-	default:
-		return assets.InfoIcon
-	}
 }
