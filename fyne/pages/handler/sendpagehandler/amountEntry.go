@@ -160,6 +160,12 @@ func (sendPage *SendPageObjects) initTxDetails(amountInString string) {
 		sendPage.nextButton.Disable()
 		sendPage.SendPageContents.Refresh()
 
+		if amountInFloat == 0.0 {
+			sendPage.SendPageContents.Refresh()
+			sendPage.amountEntryErrorLabel.Hide()
+			sendPage.SendPageContents.Refresh()
+		}
+
 		return
 	}
 
