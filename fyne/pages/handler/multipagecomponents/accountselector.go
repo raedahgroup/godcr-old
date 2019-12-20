@@ -4,7 +4,6 @@ import (
 	"errors"
 	"image/color"
 	"log"
-	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -47,7 +46,7 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 	}
 
 	accountSelector.SelectedWallet = accountSelector.MultiWallet.WalletWithID(accountSelector.WalletIDs[0])
-	accountSelector.SelectedWalletLabel = canvas.NewText(strings.Title(accountSelector.SelectedWallet.Name), values.WalletLabelColor)
+	accountSelector.SelectedWalletLabel = canvas.NewText(accountSelector.SelectedWallet.Name, values.WalletLabelColor)
 
 	dropdownContent := widget.NewVBox()
 
@@ -114,7 +113,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		return
 	}
 
-	var groupedWalletsAccounts = widget.NewGroup(strings.Title(wallet.Name))
+	var groupedWalletsAccounts = widget.NewGroup(wallet.Name)
 	// we cant access children of a group so a box is used
 	accountsBox := widget.NewVBox()
 
@@ -126,7 +125,7 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 		spendableLabel := canvas.NewText(values.Spendable, values.TransactionInfoColor)
 		spendableLabel.TextSize = 10
 
-		accountName := strings.Title(account.Name)
+		accountName := account.Name
 		accountNameLabel := widget.NewLabel(accountName)
 		accountNameLabel.Alignment = fyne.TextAlignLeading
 		accountNameBox := widget.NewVBox(
@@ -225,8 +224,8 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 				}
 			}
 
-			accountSelector.SelectedAccountLabel.Text = strings.Title(accountName)
-			accountSelector.SelectedWalletLabel.Text = strings.Title(wallet.Name)
+			accountSelector.SelectedAccountLabel.Text = accountName
+			accountSelector.SelectedWalletLabel.Text = wallet.Name
 
 			popup.Hide()
 

@@ -2,7 +2,6 @@ package pages
 
 import (
 	"sort"
-	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -117,10 +116,10 @@ func initSendPageDynamicContent(openedWalletIDs []int, selectedWalletAccounts *d
 	sendPage.spendableLabel = canvas.NewText(values.SpendableAmountLabel+dcrutil.Amount(defaultAccount.Balance.Spendable).String(), values.DarkerBlueGrayTextColor)
 	sendPage.spendableLabel.TextSize = values.TextSize12
 
-	sendPage.sendingSelectedAccountLabel = canvas.NewText(strings.Title(defaultAccount.Name), values.DefaultTextColor)
+	sendPage.sendingSelectedAccountLabel = canvas.NewText(defaultAccount.Name, values.DefaultTextColor)
 	sendPage.sendingSelectedAccountBalanceLabel = canvas.NewText(dcrutil.Amount(defaultAccount.TotalBalance).String(), values.DefaultTextColor)
 
-	sendPage.selfSendingSelectedAccountLabel = canvas.NewText(strings.Title(defaultAccount.Name), values.DefaultTextColor)
+	sendPage.selfSendingSelectedAccountLabel = canvas.NewText(defaultAccount.Name, values.DefaultTextColor)
 	sendPage.selfSendingSelectedAccountBalanceLabel = canvas.NewText(dcrutil.Amount(defaultAccount.TotalBalance).String(), values.DefaultTextColor)
 
 	sendPage.Contents = widget.NewVBox()
