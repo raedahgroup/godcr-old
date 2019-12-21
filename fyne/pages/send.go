@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"fmt"
 	"sort"
 
 	"fyne.io/fyne"
@@ -97,7 +96,6 @@ func sendPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) 
 
 	err = initSendPage.InitAllSendPageComponents()
 	if err != nil {
-		fmt.Println(err)
 		return widget.NewLabelWithStyle(values.SendPageLoadErr, fyne.TextAlignLeading, fyne.TextStyle{})
 	}
 
