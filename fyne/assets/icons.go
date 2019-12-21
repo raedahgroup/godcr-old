@@ -22,11 +22,16 @@ const (
 	Add       = "add.png"
 	Loader    = "loader.png"
 	Back      = "back.png"
+	DownArrow = "downArrow.png"
+	Alert     = "alert.png"
 
 	CollapseIcon       = "collapse.png"
 	MoreIcon           = "more.png"
 	InfoIcon           = "info.png"
 	ReceiveAccountIcon = "receiveAccount.png"
+
+	CollapseDropdown = "collapseDropdown.png"
+	ExpandDropdown   = "expandDropdown.png"
 )
 
 var imageBox = packr.New("icons", "../assets")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/decred/dcrd/dcrutil"
+
 	"github.com/raedahgroup/godcr/fyne"
 )
 

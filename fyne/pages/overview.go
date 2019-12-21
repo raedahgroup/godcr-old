@@ -15,11 +15,12 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const historyPageIndex = 1
-const PageTitle = "overview"
+const PageTitle = "Overview"
 
 type overview struct {
 	app            *AppInterface
@@ -34,27 +35,29 @@ type overview struct {
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	ov := &overview{}
 	ov.app = app
-	app.Window.Resize(fyne.NewSize(650, 650))
+	// app.Window.Resize(fyne.NewSize(650, 650))
 	ov.multiWallet = app.MultiWallet
 	ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
 	if len(ov.walletIds) == 0 {
 		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 	}
 	sort.Ints(ov.walletIds)
-	return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
+	return widget.NewHBox(widgets.NewHSpacer(values.Padding), ov.container(), widgets.NewHSpacer(values.Padding))
 }
 
 func (ov *overview) container() fyne.CanvasObject {
 	return widget.NewVBox(
+		widgets.NewVSpacer(values.Padding),
 		title(),
 		ov.balance(),
 		widgets.NewVSpacer(50),
 		ov.pageBoxes(),
+		widgets.NewVSpacer(values.Padding),
 	)
 }
 
 func title() fyne.CanvasObject {
-	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(titleWidget)
 }
 

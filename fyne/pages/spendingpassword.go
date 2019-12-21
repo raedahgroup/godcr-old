@@ -5,15 +5,16 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/layouts"
-	"github.com/raedahgroup/godcr/fyne/widgets"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/dcrlibwallet"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (app *AppInterface) createSpendingPasswordPopup(seed string) {
@@ -44,12 +45,12 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		newWindow.SetFixedSize(true)
 	}
 
-	icons, err := assets.GetIcons(assets.Reveal, assets.Conceal, assets.Loader)
+	icons, err := assets.GetIcons(assets.Loader)
 	if err != nil {
 		return app.displayErrorPage(err.Error())
 	}
 
-	errorLabel := canvas.NewText("Password do not match", color.RGBA{255, 0, 0, 255})
+	errorLabel := canvas.NewText("Password do not match", values.ErrorColor)
 	errorLabel.TextSize = 10
 	errorLabel.Hide()
 
@@ -103,7 +104,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 		}
 	}
 
-	cancelLabel := canvas.NewText("Cancel", color.RGBA{41, 112, 255, 255})
+	cancelLabel := canvas.NewText("Cancel", values.Blue)
 	cancelLabel.TextStyle.Bold = true
 	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { passwordPopup.Hide() })
 
@@ -119,13 +120,13 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 
 		enableCancelButton := func() {
 			cancelButton.OnTapped = nil
-			cancelLabel.Color = color.RGBA{41, 112, 255, 255}
+			cancelLabel.Color = values.Blue
 		}
 
 		var err error
 		var wallet *dcrlibwallet.Wallet
 		if seed == "" {
-			wallet, err = app.MultiWallet.CreateNewWallet(password.Text, 0)
+			wallet, err = app.MultiWallet.CreateNewWallet("", password.Text, 0)
 			if err != nil {
 				enableCancelButton()
 				displayError(err)
@@ -133,7 +134,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 				return
 			}
 		} else {
-			wallet, err = app.MultiWallet.RestoreWallet(seed, password.Text, 0)
+			wallet, err = app.MultiWallet.RestoreWallet(seed, "", password.Text, 0)
 			if err != nil {
 				enableCancelButton()
 				displayError(err)
@@ -156,41 +157,15 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 
 	createButton.Disable()
 
-	var passwordConceal *widgets.ImageButton
-	passwordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if password.Password {
-			passwordConceal.SetIcon(icons[assets.Conceal])
-			password.Password = false
-		} else {
-			passwordConceal.SetIcon(icons[assets.Reveal])
-			password.Password = true
-		}
-		// reveal texts
-		password.SetText(password.Text)
-	})
-
-	var confirmPasswordConceal *widgets.ImageButton
-	confirmPasswordConceal = widgets.NewImageButton(icons[assets.Reveal], nil, func() {
-		if confirmPassword.Password {
-			confirmPasswordConceal.SetIcon(icons[assets.Conceal])
-			confirmPassword.Password = false
-		} else {
-			confirmPasswordConceal.SetIcon(icons[assets.Reveal])
-			confirmPassword.Password = true
-		}
-		// reveal texts
-		confirmPassword.SetText(confirmPassword.Text)
-	})
-
 	return widget.NewVBox(widgets.NewVSpacer(10),
-		fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, password.MinSize().Height)), password, passwordConceal),
+		password,
 		passwordLength,
 		widget.NewHBox(layout.NewSpacer(),
 			fyne.NewContainerWithLayout(
 				layout.NewFixedGridLayout(fyne.NewSize(150, widget.NewLabel("0%").MinSize().Height)), passwordStrength)),
-		fyne.NewContainerWithLayout(layouts.NewPasswordLayout(fyne.NewSize(312, confirmPassword.MinSize().Height)), confirmPassword, confirmPasswordConceal),
+		confirmPassword,
 		confirmPasswordLength,
-		widget.NewHBox(layout.NewSpacer(), cancelButton, widgets.NewHSpacer(24), createButton),
+		widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(170), cancelButton, widgets.NewHSpacer(24), createButton),
 		errorLabel,
 		widgets.NewVSpacer(10))
 }

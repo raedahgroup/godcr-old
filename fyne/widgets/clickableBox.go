@@ -8,18 +8,35 @@ import (
 type ClickableBox struct {
 	*widget.Box
 
+	disable  bool
 	OnTapped func() `json:"-"`
 }
 
 func NewClickableBox(box *widget.Box, OnTapped func()) *ClickableBox {
 	icon := box
 
-	clickable := &ClickableBox{icon, OnTapped}
+	clickable := &ClickableBox{icon, false, OnTapped}
 	return clickable
+}
+
+func (c *ClickableBox) Disable() {
+	c.disable = true
+}
+
+func (c *ClickableBox) Enable() {
+	c.disable = false
+}
+
+func (c *ClickableBox) Disabled() bool {
+	return c.disable
 }
 
 // Tapped is called when users click on the icon
 func (c *ClickableBox) Tapped(_ *fyne.PointEvent) {
+	if c.disable == true {
+		return
+	}
+
 	if c.OnTapped == nil {
 		return
 	}
@@ -37,6 +54,5 @@ func (c *ClickableBox) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (c *ClickableBox) Refresh() {
-	object := fyne.CurrentApp().Driver().CanvasForObject(c)
-	object.Refresh(c)
+	c.Box.Refresh()
 }
