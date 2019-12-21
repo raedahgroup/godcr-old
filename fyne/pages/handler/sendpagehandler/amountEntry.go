@@ -28,7 +28,7 @@ func (sendPage *SendPageObjects) initAmountEntryComponents() {
 	}
 
 	sendPage.amountEntry = widget.NewEntry()
-	sendPage.amountEntry.SetPlaceHolder(fmt.Sprintf("%s %s", values.ZeroAmount, values.DCR))
+	sendPage.amountEntry.SetPlaceHolder(values.ZeroDCR)
 
 	sendPage.amountEntryErrorLabel = widgets.NewTextWithSize("", values.ErrorColor, values.DefaultErrTextSize)
 	sendPage.amountEntryErrorLabel.Hide()

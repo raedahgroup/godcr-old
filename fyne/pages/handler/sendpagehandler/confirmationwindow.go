@@ -81,7 +81,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		}
 	}
 
-	sendButton := widgets.NewButton(values.Blue, fmt.Sprintf("%s %s %s", values.Send, sendPage.amountEntry.Text, values.DCR), func() {
+	sendButton := widgets.NewButton(values.Blue, fmt.Sprintf(values.SendAmountFormat, sendPage.amountEntry.Text), func() {
 		onConfirm := func(password string) error {
 			amountInFloat, err := strconv.ParseFloat(sendPage.amountEntry.Text, 64)
 			if err != nil {

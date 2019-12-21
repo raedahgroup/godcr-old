@@ -49,9 +49,11 @@ const (
 	ToSelf              = "To self"
 	TransactionFee      = "Transaction fee"
 	TotalCost           = "Total cost"
+	SendAmountFormat    = "Send %s DCR"
 	// Transaction Info Window
 	FeeRate            = "Fee rate"
 	FeeRateInfo        = "0.0001 DCR/byte"
+	ZeroDCR            = "0 DCR"
 	ProcessingTime     = "Processing time"
 	ProcessingTimeInfo = "Approx. 10 mins (2 blocks)"
 	TransactionSize    = "Transaction size"
