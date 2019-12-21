@@ -594,7 +594,7 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 
 	var txInput widgets.Table
 	inputTableColumnLabels := widget.NewHBox(
-		widget.NewLabelWithStyle("Previous Outpoint", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Previous Outpoint", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 
@@ -655,12 +655,14 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	txDetailsData := widget.NewVBox(
 		widgets.NewHSpacer(10),
 		tableData,
-		widgets.NewHSpacer(15),
+		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
 		redirectWidget,
-		widgets.NewHSpacer(15),
+		widgets.NewHSpacer(10),
+		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
 		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txInput.Result,
-		widgets.NewVSpacer(10),
+		widgets.NewHSpacer(10),
+		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
 		widget.NewLabelWithStyle("Outputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txOutput.Result,
 		widgets.NewHSpacer(10),
