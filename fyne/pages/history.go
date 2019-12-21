@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-	"image/color"
 	"net/url"
 	"sort"
 	"strconv"
@@ -20,6 +19,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/helpers"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -72,10 +72,9 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 
 	// infoPopUp creates a popup with history page hint-text
 	var infoIcon *widgets.ImageButton
-	info := "- Tap Hash to view Transaction details.\n\n- Tap Blue Text to Copy."
 	infoIcon = widgets.NewImageButton(txHistory.icons[assets.InfoIcon], nil, func() {
-		infoLabel := widget.NewLabelWithStyle(info, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
-		gotItLabel := canvas.NewText("Got it", color.RGBA{41, 112, 255, 255})
+		infoLabel := widget.NewLabelWithStyle(values.PageHint, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
+		gotItLabel := canvas.NewText(values.GotIt, values.Blue)
 		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
 		gotItLabel.TextSize = 14
 
@@ -139,13 +138,12 @@ func historyPageContent(app *AppInterface) fyne.CanvasObject {
 		return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 	}
 
-	txHistoryPageOutput.Append(walletDropDown)
+	txHistoryPageOutput.Append(widget.NewHBox(walletDropDown))
 	txHistoryPageOutput.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	txHistoryPageOutput.Append(widgets.NewVSpacer(5))
 	txHistoryPageOutput.Append(txHistory.errorLabel)
-	txHistoryPageOutput.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txHistory.txTable.Container.MinSize().Width, txHistory.txTable.Container.MinSize().Height+450)), txHistory.txTable.Container))
+	txHistoryPageOutput.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txHistory.txTable.Container.MinSize().Width*33, txHistory.txTable.Container.MinSize().Height+450)), txHistory.txTable.Container))
 	txHistoryPageOutput.Append(widgets.NewVSpacer(15))
-
 	return widget.NewHBox(widgets.NewHSpacer(18), txHistoryPageOutput)
 }
 
@@ -155,7 +153,7 @@ func txWalletList(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tab
 
 	walletsID := multiWallet.OpenedWalletIDsRaw()
 	if len(walletsID) == 0 {
-		txHistory.errorMessage = "Could not retrieve wallets"
+		txHistory.errorMessage = values.WalletsErr
 		return
 	}
 	sort.Ints(walletsID)
@@ -480,22 +478,20 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 
 	txDetailsErrorMethod := func() {
 		txErrorDetailsOutput := widget.NewVBox(
-			widgets.NewHSpacer(10),
 			widget.NewHBox(
 				txDetailslabel,
-				widgets.NewHSpacer(txDetailslabel.MinSize().Width+180),
+				widgets.NewHSpacer(txDetailslabel.MinSize().Width*3),
 				minimizeIcon,
 			),
-			errorMessageLabel,
+			widget.NewHBox(errorMessageLabel),
 		)
-		txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txErrorDetailsOutput)),
-			window.Canvas())
+		txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txErrorDetailsOutput)), window.Canvas())
 		txDetailsPopUp.Show()
 	}
 
 	chainHash, err := chainhash.NewHashFromStr(hash)
 	if err != nil {
-		helpers.ErrorHandler(fmt.Sprintf("fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
+		helpers.ErrorHandler(fmt.Sprintf("Error fetching generating chainhash from for \n %s \n %s ", hash, err.Error()), errorMessageLabel)
 		txDetailsErrorMethod()
 		return
 	}
@@ -523,9 +519,9 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	copyAbleText := func(text string, copyAble bool) *widgets.ClickableBox {
 		var textToCopy *canvas.Text
 		if copyAble {
-			textToCopy = canvas.NewText(text, color.RGBA{0x44, 0x8a, 0xff, 0xff})
+			textToCopy = canvas.NewText(text, values.Blue)
 		} else {
-			textToCopy = canvas.NewText(text, color.RGBA{0x00, 0x00, 0x00, 0xff})
+			textToCopy = canvas.NewText(text, values.DefaultTextColor)
 		}
 		textToCopy.TextSize = 14
 		textToCopy.Alignment = fyne.TextAlignTrailing
@@ -655,14 +651,14 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 	txDetailsData := widget.NewVBox(
 		widgets.NewHSpacer(10),
 		tableData,
-		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
+		canvas.NewLine(values.TxdetailsLineColor),
 		redirectWidget,
 		widgets.NewHSpacer(10),
-		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
+		canvas.NewLine(values.TxdetailsLineColor),
 		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txInput.Result,
 		widgets.NewHSpacer(10),
-		canvas.NewLine(color.RGBA{0xe0, 0xe0, 0xe0, 0xff}),
+		canvas.NewLine(values.TxdetailsLineColor),
 		widget.NewLabelWithStyle("Outputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txOutput.Result,
 		widgets.NewHSpacer(10),
@@ -673,11 +669,11 @@ func fetchTxDetails(hash string, multiWallet *dcrlibwallet.MultiWallet, window f
 		widgets.NewHSpacer(10),
 		widget.NewHBox(
 			txDetailslabel,
-			widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width-txDetailslabel.MinSize().Width-30),
+			widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width*22),
 			minimizeIcon,
 		),
-		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width/2-30), messageLabel),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width+10, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
+		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width*13), messageLabel),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsScrollContainer.MinSize().Width*30, txDetailsScrollContainer.MinSize().Height+400)), txDetailsScrollContainer),
 		widgets.NewVSpacer(10),
 	)
 
