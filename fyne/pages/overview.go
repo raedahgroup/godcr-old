@@ -1,14 +1,13 @@
 package pages
 
 import (
-	"image/color"
-	"sort"
-	"time"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"image/color"
+	"sort"
+	"time"
 
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/handlers"
@@ -46,6 +45,11 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 		overviewHandler.UpdateBlockStatusBox(app.MultiWallet)
 		handlers.OverviewHandlerLock.Unlock()
 	}()
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		overviewHandler.UpdateWalletsSyncBox(app.MultiWallet)
+	}()
+
 	return widget.NewHBox(widgets.NewHSpacer(18), ov.container())
 }
 
@@ -61,7 +65,7 @@ func (ov *overview) container() fyne.CanvasObject {
 
 func (ov *overview) pageBoxes() (object fyne.CanvasObject) {
 	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
-		blockStatusBox(),
+		ov.blockStatusBox(),
 		widgets.NewVSpacer(15),
 		ov.recentTransactionBox(),
 	)
@@ -93,36 +97,48 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	)
 }
 
-func blockStatusBox() fyne.CanvasObject {
+func (ov *overview) blockStatusBox() fyne.CanvasObject {
 	syncStatusText := widgets.NewSmallText("", color.Black)
 	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
 	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	progressBar := widget.NewProgressBar()
-	overviewHandler.SyncStatusText = syncStatusText
-	overviewHandler.TimeLeftText = timeLeft
-	overviewHandler.ProgressBar = progressBar
-	overviewHandler.ConnectedPeersText = connectedPeers
+	syncSteps := widget.NewLabelWithStyle("Step 1/3", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
+	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  89%", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
+	walletSyncInfo := fyne.NewContainerWithLayout(layout.NewGridLayout(2))
+	walletSyncScrollContainer := widget.NewScrollContainer(walletSyncInfo)
+	walletSyncInfoToggleText := widget.NewLabelWithStyle("hide details", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
+	walletSyncInfoToggle := widgets.NewClickableBox(widget.NewHBox(walletSyncInfoToggleText),
+		func() {
+			overviewHandler.HideWalletSyncBox()
+		},
+	)
 
+	overviewHandler.SyncStatusWidget = syncStatusText
+	overviewHandler.TimeLeftWidget = timeLeft
+	overviewHandler.ProgressBar = progressBar
+	overviewHandler.ConnectedPeersWidget = connectedPeers
+	overviewHandler.SyncStepWidget = syncSteps
+	overviewHandler.BlockHeadersWidget = blockHeadersStatus
+	overviewHandler.WalletSyncInfo = walletSyncInfo
+	overviewHandler.WalletSyncInfoToggle = walletSyncInfoToggle
+	overviewHandler.WalletSyncInfoToggleText = walletSyncInfoToggleText
+	overviewHandler.Scroll = walletSyncScrollContainer
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
 			syncStatusText,
 			layout.NewSpacer(),
-			widget.NewButton("Cancel", func() {}),
+			widget.NewButton("Cancel", func() {
+				overviewHandler.CancelSync(ov.multiWallet)
+			}),
 		))
 	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
 		progressBar,
 	)
-	syncSteps := widget.NewLabelWithStyle("Step 1/3", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
-	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  89%", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
 	syncDuration := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, timeLeft, connectedPeers),
 		timeLeft, connectedPeers)
 	syncStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, syncSteps, blockHeadersStatus),
 		syncSteps, blockHeadersStatus)
 
-	bottom := fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-		walletSyncBox("Default", "waiting for other wallets", "6000 of 164864", "220 days behind"),
-		walletSyncBox("Wallet 2", "Syncing", "100 of 164864", "320 days behind"),
-	)
 	blockStatus := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		widgets.NewVSpacer(5),
 		top,
@@ -130,13 +146,19 @@ func blockStatusBox() fyne.CanvasObject {
 		syncDuration,
 		syncStatus,
 		widgets.NewVSpacer(15),
+		walletSyncScrollContainer,
+		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+			layout.NewSpacer(),
+			widgets.NewClickableBox(
+				widget.NewHBox(walletSyncInfoToggleText),
+				func() {
+					overviewHandler.HideWalletSyncBox()
+				},
+			),
+			layout.NewSpacer(),
+		),
 	)
 	overviewHandler.BlockStatus = blockStatus
-	go func() {
-		time.Sleep(time.Millisecond * 200)
-		blockStatus.AddObject(bottom)
-		canvas.Refresh(blockStatus)
-	}()
 	return blockStatus
 }
 
@@ -153,47 +175,6 @@ func balance() fyne.CanvasObject {
 	overviewHandler.Balance[1] = dcrDecimals
 	decimalsBox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(6), dcrDecimals)
 	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
-}
-
-func walletSyncBox(name, status, headerFetched, progress string) fyne.CanvasObject {
-	blackColor := color.Black
-	nameText := widgets.NewTextWithSize(name, blackColor, 12)
-	statusText := widgets.NewTextWithSize(status, blackColor, 10)
-	headerFetchedTitleText := widgets.NewTextWithSize("Block header fetched", blackColor, 12)
-	headerFetchedText := widgets.NewTextWithSize(headerFetched, blackColor, 10)
-	progressTitleText := widgets.NewTextWithSize("Syncing progress", blackColor, 12)
-	progressText := widgets.NewTextWithSize(progress, blackColor, 10)
-	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-		widgets.NewHSpacer(2),
-		nameText, layout.NewSpacer(),
-		statusText,
-		widgets.NewHSpacer(2))
-	middle := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-		widgets.NewHSpacer(2),
-		headerFetchedTitleText,
-		layout.NewSpacer(),
-		headerFetchedText,
-		widgets.NewHSpacer(2),
-	)
-	bottom := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-		widgets.NewHSpacer(2),
-		progressTitleText,
-		layout.NewSpacer(),
-		progressText,
-		widgets.NewHSpacer(2),
-	)
-	background := canvas.NewRectangle(color.RGBA{0, 0, 0, 7})
-	background.SetMinSize(fyne.NewSize(250, 70))
-	walletSyncContent := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
-		fyne.NewContainerWithLayout(layout.NewVBoxLayout(), top, layout.NewSpacer(), middle, layout.NewSpacer(), bottom),
-	)
-
-	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
-		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil),
-			background,
-			walletSyncContent,
-		),
-	)
 }
 
 func transactionRowHeader() *widget.Box {

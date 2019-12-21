@@ -37,36 +37,36 @@ func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnecte
 func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
 	handlers.OverviewHandlerLock.Lock()
 	defer handlers.OverviewHandlerLock.Unlock()
+	overviewHandler.Steps += 1
 	overviewHandler.SyncProgress = float64(headersFetchProgress.FetchedHeadersCount) / float64(headersFetchProgress.TotalHeadersToFetch)
 	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress * 100) / 100
-	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
+	overviewHandler.UpdateSyncSteps(true)
+	overviewHandler.UpdateProgressBar(true)
 }
 
 func (app *multiWalletTxListener) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
-
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	overviewHandler.Steps += 1
+	overviewHandler.UpdateSyncSteps(true)
 }
 
 func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress *dcrlibwallet.HeadersRescanProgressReport) {
-
+	handlers.OverviewHandlerLock.Lock()
+	defer handlers.OverviewHandlerLock.Unlock()
+	overviewHandler.Steps += 1
+	overviewHandler.UpdateSyncSteps(true)
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
 	handlers.OverviewHandlerLock.Lock()
 	defer handlers.OverviewHandlerLock.Unlock()
-	mw := app.multiWallet
-	overviewHandler.Synced = mw.IsSynced()
-	overviewHandler.Syncing = mw.IsSyncing()
 	overviewHandler.SyncProgress = 1
-	overviewHandler.UpdateBlockStatusBox(mw)
+	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
-	mw := app.multiWallet
-	overviewHandler.Synced = false
-	overviewHandler.Syncing = false
-	overviewHandler.UpdateBlockStatusBox(mw)
+	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnSyncEndedWithError(err error) {

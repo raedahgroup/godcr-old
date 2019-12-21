@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"fyne.io/fyne/layout"
+	"github.com/gen2brain/beeep"
 	"image/color"
 	"log"
 	"sort"
@@ -23,20 +25,28 @@ import (
 var OverviewHandlerLock sync.Mutex
 
 type OverviewHandler struct {
-	Synced         bool
-	Syncing        bool
-	SyncProgress   float64
-	ConnectedPeers int32
+	Synced          bool
+	Syncing         bool
+	SyncProgress    float64
+	ConnectedPeers  int32
+	Steps           int32
+	hideSyncDetails bool
 
-	Balance            []*canvas.Text
-	Transactions       []dcrlibwallet.Transaction
-	PageBox            fyne.CanvasObject
-	SyncStatusText     *canvas.Text
-	TimeLeftText       *widget.Label
-	ProgressBar        *widget.ProgressBar
-	BlockStatus        *fyne.Container
-	Table              *widgets.Table
-	ConnectedPeersText *widget.Label
+	Balance              []*canvas.Text
+	Transactions         []dcrlibwallet.Transaction
+	PageBox              fyne.CanvasObject
+	SyncStatusWidget     *canvas.Text
+	TimeLeftWidget       *widget.Label
+	ProgressBar          *widget.ProgressBar
+	BlockStatus          *fyne.Container
+	Table                *widgets.Table
+	ConnectedPeersWidget *widget.Label
+	SyncStepWidget       *widget.Label
+	BlockHeadersWidget   *widget.Label
+	WalletSyncInfo       *fyne.Container
+	WalletSyncInfoToggle *widgets.ClickableBox
+	WalletSyncInfoToggleText	 *widget.Label
+	Scroll *widget.ScrollContainer
 }
 
 type TransactionUpdate struct {
@@ -108,15 +118,17 @@ func (handler *OverviewHandler) UpdateTransactions(wallet *dcrlibwallet.MultiWal
 	handler.Table.Append(transactionList...)
 }
 
-func (handler *OverviewHandler) UpdateSyncStatus (wallet *dcrlibwallet.MultiWallet, refresh bool) {
-	status := handler.SyncStatusText
+func (handler *OverviewHandler) UpdateSyncStatus(wallet *dcrlibwallet.MultiWallet, refresh bool) {
+	status := handler.SyncStatusWidget
 	progressBar := handler.ProgressBar
 	handler.Syncing = wallet.IsSyncing()
 	handler.Synced = wallet.IsSynced()
 	if wallet.IsSynced() {
 		handler.SyncProgress = 1
 	}
-	status.Text, status.Color, progressBar.Value = handler.blockSyncStatus()
+
+	handler.UpdateProgressBar(false)
+	status.Text, status.Color = handler.blockSyncStatus()
 	if refresh {
 		widget.Refresh(progressBar)
 		canvas.Refresh(status)
@@ -125,53 +137,114 @@ func (handler *OverviewHandler) UpdateSyncStatus (wallet *dcrlibwallet.MultiWall
 
 func (handler *OverviewHandler) UpdateSyncProgress(progressReport *dcrlibwallet.HeadersFetchProgressReport) {
 	timeInString := strconv.Itoa(int(progressReport.GeneralSyncProgress.TotalTimeRemainingSeconds))
-	handler.TimeLeftText.Text = timeInString + " secs left"
-	widget.Refresh(handler.TimeLeftText)
+	handler.TimeLeftWidget.Text = timeInString + " secs left"
+	widget.Refresh(handler.TimeLeftWidget)
 }
 
 func (handler *OverviewHandler) UpdateConnectedPeers(peers int32, refresh bool) {
-	handler.ConnectedPeersText.SetText(fmt.Sprintf("Connected peers count  %d", peers))
+	handler.ConnectedPeersWidget.SetText(fmt.Sprintf("Connected peers count  %d", peers))
 	if refresh {
-		widget.Refresh(handler.ConnectedPeersText)
+		widget.Refresh(handler.ConnectedPeersWidget)
 	}
 }
 
 func (handler *OverviewHandler) UpdateTimestamp(wallet *dcrlibwallet.MultiWallet, refresh bool) {
-	handler.TimeLeftText.SetText(bestBlockInfo(wallet.GetBestBlock().Height, wallet.GetBestBlock().Timestamp))
+	handler.TimeLeftWidget.SetText(bestBlockInfo(wallet.GetBestBlock().Height, wallet.GetBestBlock().Timestamp))
 	if refresh {
-		widget.Refresh(handler.TimeLeftText)
+		widget.Refresh(handler.TimeLeftWidget)
 	}
 }
 
-func (handler *OverviewHandler) blockSyncStatus() (string, color.Color, float64) {
+func (handler *OverviewHandler) UpdateProgressBar(refresh bool) {
+	handler.ProgressBar.Value = handler.SyncProgress
+	if refresh {
+		widget.Refresh(handler.ProgressBar)
+	}
+}
+
+func (handler *OverviewHandler) UpdateSyncSteps(refresh bool) {
+	handler.SyncStepWidget.Text = fmt.Sprintf("Step 1/%d", handler.Steps)
+	if refresh {
+		widget.Refresh(handler.SyncStepWidget)
+	}
+}
+
+func (handler *OverviewHandler) UpdateBlockHeadersSync(status float64, refresh bool) {
+	handler.BlockHeadersWidget.Text = fmt.Sprintf("Fetching block headers  %f%%", status)
+	if refresh {
+		widget.Refresh(handler.BlockHeadersWidget)
+	}
+}
+
+func (handler *OverviewHandler) blockSyncStatus() (string, color.Color) {
 	if handler.Syncing {
-		return "Syncing...", color.Gray{Y: 123}, handler.SyncProgress
+		return "Syncing...", color.Gray{Y: 123}
 	}
 	if handler.Synced {
-		return "Synced", color.Gray{Y: 123}, handler.SyncProgress
+		return "Synced", color.Gray{Y: 123}
 	}
 
-	return "Not Synced", color.Gray{Y: 123}, handler.SyncProgress
+	return "Not Synced", color.Gray{Y: 123}
+}
+
+func (handler *OverviewHandler) CancelSync(wallet *dcrlibwallet.MultiWallet) {
+	if wallet.IsSyncing() {
+		wallet.CancelSync()
+		err := beeep.Notify("Sync Canceled", "wallet sync stopped until app restart", "assets/information.png")
+		if err != nil {
+			log.Println("error initiating alert:", err.Error())
+		}
+	}
+}
+
+func (handler *OverviewHandler) UpdateWalletsSyncBox(wallet *dcrlibwallet.MultiWallet) {
+	walletIds := wallet.OpenedWalletIDsRaw()
+	sort.Ints(walletIds)
+	for _, id := range walletIds {
+		w := wallet.WalletWithID(id)
+		headersFetched := fmt.Sprintf("%d of %d", w.GetBestBlock(), wallet.GetBestBlock().Height)
+		progress := fmt.Sprintf("%s behind", dcrlibwallet.CalculateDaysBehind(w.GetBestBlockTimeStamp()))
+		handler.WalletSyncInfo.AddObject(
+			walletSyncBox(
+				w.Name,
+				walletSyncStatus(w, wallet.GetBestBlock().Height),
+				headersFetched,
+				progress,
+			),
+		)
+	}
+	handler.Scroll.Resize(fyne.NewSize(510, 70))
+	widget.Refresh(handler.Scroll)
+	canvas.Refresh(handler.WalletSyncInfo)
+	fmt.Printf("SCROLLER %v",handler.Scroll.MinSize())
+}
+
+func (handler *OverviewHandler) HideWalletSyncBox() {
+	if handler.hideSyncDetails {
+		handler.hideSyncDetails = !handler.hideSyncDetails
+		handler.WalletSyncInfoToggleText.Text = "show details"
+	} else {
+		handler.hideSyncDetails  = !handler.hideSyncDetails
+		handler.WalletSyncInfoToggleText.Text = "hide details"
+	}
+
+	// handler.WalletSyncInfoToggle.Refresh()
+}
+
+func walletSyncStatus(wallet *dcrlibwallet.Wallet, bestBlockHeight int32) string {
+	if wallet.IsWaiting() {
+		return "waiting for other wallets"
+	}
+	if wallet.GetBestBlock() < bestBlockHeight {
+		return "syncing"
+	}
+	return "synced"
 }
 
 func bestBlockInfo(blockHeight int32, timestamp int64) string {
 	blockTimeStamp := time.Unix(timestamp, 0)
 	timeLeft := time.Now().Sub(blockTimeStamp).Round(time.Second).String()
 	return timeLeft + " ago"
-}
-
-func newTransactionRow(transactionType, amount, fee, direction, status, date string) *widget.Box {
-	icons, _ := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
-	icon := canvas.NewImageFromResource(icons[transactionType])
-	icon.SetMinSize(fyne.NewSize(5, 20))
-	iconBox := widget.NewVBox(widgets.NewVSpacer(4), icon)
-	amountLabel := widget.NewLabel(amount)
-	feeLabel := widget.NewLabel(fee)
-	dateLabel := widget.NewLabel(date)
-	statusLabel := widget.NewLabel(status)
-	directionLabel := widget.NewLabel(direction)
-	column := widget.NewHBox(iconBox, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
-	return column
 }
 
 func totalBalance(multiWallet *dcrlibwallet.MultiWallet) (balance string, err error) {
@@ -243,4 +316,59 @@ func recentTransactions(wallet *dcrlibwallet.MultiWallet) (transactions []dcrlib
 	}
 
 	return
+}
+
+func newTransactionRow(transactionType, amount, fee, direction, status, date string) *widget.Box {
+	icons, _ := assets.GetIcons(assets.ReceiveIcon, assets.SendIcon)
+	icon := canvas.NewImageFromResource(icons[transactionType])
+	icon.SetMinSize(fyne.NewSize(5, 20))
+	iconBox := widget.NewVBox(widgets.NewVSpacer(4), icon)
+	amountLabel := widget.NewLabel(amount)
+	feeLabel := widget.NewLabel(fee)
+	dateLabel := widget.NewLabel(date)
+	statusLabel := widget.NewLabel(status)
+	directionLabel := widget.NewLabel(direction)
+	column := widget.NewHBox(iconBox, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
+	return column
+}
+
+func walletSyncBox(name, status, headerFetched, progress string) fyne.CanvasObject {
+	blackColor := color.Black
+	nameText := widgets.NewTextWithSize(name, blackColor, 12)
+	statusText := widgets.NewTextWithSize(status, blackColor, 10)
+	headerFetchedTitleText := widgets.NewTextWithSize("Block header fetched", blackColor, 12)
+	headerFetchedText := widgets.NewTextWithSize(headerFetched, blackColor, 10)
+	progressTitleText := widgets.NewTextWithSize("Syncing progress", blackColor, 12)
+	progressText := widgets.NewTextWithSize(progress, blackColor, 10)
+	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		nameText, layout.NewSpacer(),
+		statusText,
+		widgets.NewHSpacer(2))
+	middle := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		headerFetchedTitleText,
+		layout.NewSpacer(),
+		headerFetchedText,
+		widgets.NewHSpacer(2),
+	)
+	bottom := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(2),
+		progressTitleText,
+		layout.NewSpacer(),
+		progressText,
+		widgets.NewHSpacer(2),
+	)
+	background := canvas.NewRectangle(color.RGBA{0, 0, 0, 7})
+	background.SetMinSize(fyne.NewSize(250, 70))
+	walletSyncContent := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
+		fyne.NewContainerWithLayout(layout.NewVBoxLayout(), top, layout.NewSpacer(), middle, layout.NewSpacer(), bottom),
+	)
+
+	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
+		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil),
+			background,
+			walletSyncContent,
+		),
+	)
 }
