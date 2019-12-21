@@ -77,7 +77,7 @@ func (w *CreateWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(),
 	w.refreshWindowFunc = refreshWindowFunc
 
 	if w.isShowingSeedPage {
-		w.seedPage.render(ctx, w.refreshWindowFunc)
+		w.seedPage.render(ctx, w.refreshWindowFunc, changePageFunc)
 	} else {
 		inset := layout.Inset{
 			Top  : unit.Dp(30),

@@ -9,6 +9,7 @@ var (
 	AddIcon             *Icon
 	ReturnIcon          *Icon
 	NavigationCheckIcon *Icon
+	NavigationArrowBackIcon *Icon
 )
 
 func init()  {
@@ -25,6 +26,11 @@ func init()  {
 	}
 
 	NavigationCheckIcon, err = NewIcon(icons.NavigationCheck)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	NavigationArrowBackIcon, err = NewIcon(icons.NavigationArrowBack)
 	if err != nil {
 		log.Fatal(err)
 	}

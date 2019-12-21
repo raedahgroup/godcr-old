@@ -1,7 +1,6 @@
 package widgets 
 
 import (
-	//"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -22,16 +21,18 @@ import (
 
 type (
 	Button struct {
-		button *widget.Button 
-		icon   *Icon
-		padding unit.Value 
-		size 	unit.Value
+		button   *widget.Button 
+		icon     *Icon
+		padding   unit.Value 
+		isRounded bool
+		size 	  unit.Value
 
 		text 	   string
 
 		alignment  Alignment
 		Color      color.RGBA
 		Background color.RGBA
+		borderColor color.RGBA
 		
 	}
 
@@ -39,7 +40,7 @@ type (
 		imgSize int 
 		img 	image.Image 
 		src 	[]byte 
-
+		color   color.RGBA
 		op paint.ImageOp 
 		material.Icon
 	}
@@ -56,20 +57,24 @@ func NewIcon(data []byte) (*Icon, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Icon{src: data}, nil
+	return &Icon{
+		src: data,
+		color: helper.WhiteColor,
+	}, nil
 }
 
 func NewButton(txt string, icon *Icon) *Button {
 	theme := helper.GetTheme()
 
 	btn := &Button{
-		button    : new(widget.Button),
-		icon      : icon,
-		text      : txt,
-		padding   : unit.Dp(defaultButtonPadding),
-		Background: helper.DecredDarkBlueColor,
-		Color     : helper.WhiteColor,
-		alignment : AlignLeft,
+		button     : new(widget.Button),
+		icon       : icon,
+		text       : txt,
+		padding    : unit.Dp(defaultButtonPadding),
+		Background : helper.DecredDarkBlueColor,
+		Color      : helper.WhiteColor,
+		alignment  : AlignLeft,
+		borderColor: helper.BackgroundColor,
 	}
 
 	if icon != nil {
@@ -98,8 +103,22 @@ func (b *Button) SetBackgroundColor(color color.RGBA) *Button {
 	return b
 }
 
+func (b *Button) SetBorderColor(color color.RGBA) *Button {
+	b.borderColor = color 
+	return b
+}
+
 func (b *Button) SetColor(color color.RGBA) *Button {
 	b.Color = color 
+	if b.icon != nil {
+		b.icon.color = color
+	}
+	
+	return b
+}
+
+func (b *Button) MakeRound() *Button {
+	b.isRounded = true
 	return b
 }
 
@@ -125,18 +144,35 @@ func (b *Button) Draw(ctx *layout.Context, onClick func()) {
 	vmin := ctx.Constraints.Height.Min
 	layout.Stack{Alignment: layout.Center}.Layout(ctx,
 		layout.Expanded(func() {
+			minWidth   := ctx.Constraints.Width.Min
+			minHeight  := ctx.Constraints.Height.Min
 			rr := float32(ctx.Px(unit.Dp(4)))
+
 			clip.Rect{
 				Rect: f32.Rectangle{Max: f32.Point{
-					X: float32(ctx.Constraints.Width.Min),
-					Y: float32(ctx.Constraints.Height.Min),
+					X: float32(minWidth),
+					Y: float32(minHeight),
 				}},
 				NE: rr, NW: rr, SE: rr, SW: rr,
 			}.Op(ctx.Ops).Add(ctx.Ops)
-			Fill(ctx, bgcol)
-			for _, c := range b.button.History() {
-				drawInk(ctx, c)
-			}
+			Fill(ctx, b.borderColor)
+
+			layout.Align(layout.Center).Layout(ctx, func(){
+				ctx.Constraints.Width.Min  = minWidth - 2
+				ctx.Constraints.Height.Min = minHeight - 2
+
+				clip.Rect{
+					Rect: f32.Rectangle{Max: f32.Point{
+						X: float32(ctx.Constraints.Width.Min),
+						Y: float32(ctx.Constraints.Height.Min),
+					}},
+					NE: rr, NW: rr, SE: rr, SW: rr,
+				}.Op(ctx.Ops).Add(ctx.Ops)
+				Fill(ctx, bgcol)
+				for _, c := range b.button.History() {
+					drawInk(ctx, c)
+				}
+			})
 		}),
 		layout.Stacked(func() {
 			ctx.Constraints.Width.Min = hmin
@@ -160,9 +196,12 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 		layout.Expanded(func(){
 			size := float32(ctx.Constraints.Width.Min)
 			rr := float32(4)
+			if b.isRounded {
+				rr = size * .5
+			}
 			clip.Rect{
 				Rect: f32.Rectangle{Max: f32.Point{X: size, Y: size}},
-				NE:   rr, NW: rr, SE: rr, SW: rr * 2,
+				NE:   rr, NW: rr, SE: rr, SW: rr,
 			}.Op(ctx.Ops).Add(ctx.Ops)
 			Fill(ctx, b.Background)
 			
@@ -188,10 +227,12 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 					})
 				}),
 				layout.Rigid(func(){
-					layout.UniformInset(b.padding).Layout(ctx, func() {
-						paint.ColorOp{Color: b.Color}.Add(ctx.Ops)
-						widget.Label{}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
-					})
+					if b.text != "" {
+						layout.UniformInset(b.padding).Layout(ctx, func() {
+							paint.ColorOp{Color: b.Color}.Add(ctx.Ops)
+							widget.Label{}.Layout(ctx, theme.Shaper, theme.Fonts.Bold, b.text)
+						})
+					}
 				}),
 			)
 		}),
@@ -208,8 +249,9 @@ func (ic *Icon) image(sz int) paint.ImageOp {
 	img := image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(img, img.Bounds(), draw.Src)
-	// Use white for icons.
-	m.Palette[0] = color.RGBA{A: 0xff, R: 0xff, G: 0xff, B: 0xff}
+	
+	m.Palette[0] = ic.color
+	//color.RGBA{A: 0xff, R: 0xff, G: 0xff, B: 0xff}
 	iconvg.Decode(&ico, ic.src, &iconvg.DecodeOptions{
 		Palette: &m.Palette,
 	})
@@ -263,21 +305,4 @@ func Fill(ctx *layout.Context, col color.RGBA) {
 	paint.ColorOp{Color: col}.Add(ctx.Ops)
 	paint.PaintOp{Rect: dr}.Add(ctx.Ops)
 	ctx.Dimensions = layout.Dimensions{Size: d}
-}
-
-// https://pomax.github.io/bezierinfo/#circles_cubic.
-func Rrect(ops *op.Ops, width, height, se, sw, nw, ne float32) {
-	/**w, h := float32(width), float32(height)
-	const c = 0.55228475 // 4*(sqrt(2)-1)/3
-	var b paint.Path
-	b.Begin(ops)
-	b.Move(f32.Point{X: w, Y: h - se})
-	b.Cube(f32.Point{X: 0, Y: se * c}, f32.Point{X: -se + se*c, Y: se}, f32.Point{X: -se, Y: se}) // SE
-	b.Line(f32.Point{X: sw - w + se, Y: 0})
-	b.Cube(f32.Point{X: -sw * c, Y: 0}, f32.Point{X: -sw, Y: -sw + sw*c}, f32.Point{X: -sw, Y: -sw}) // SW
-	b.Line(f32.Point{X: 0, Y: nw - h + sw})
-	b.Cube(f32.Point{X: 0, Y: -nw * c}, f32.Point{X: nw - nw*c, Y: -nw}, f32.Point{X: nw, Y: -nw}) // NW
-	b.Line(f32.Point{X: w - ne - nw, Y: 0})
-	b.Cube(f32.Point{X: ne * c, Y: 0}, f32.Point{X: ne, Y: ne - ne*c}, f32.Point{X: ne, Y: ne}) // NE
-	b.End().Add(ops)**/
 }
