@@ -214,7 +214,8 @@ func txWalletList(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window, tab
 	}
 
 	// txWalletSelectionPopup create a popup that has tx wallet
-	txHistory.txWalletSelectionPopup = widget.NewPopUp(widget.NewVBox(walletListWidget), window.Canvas())
+	txHistory.txWalletSelectionPopup = widget.NewPopUp(fyne.NewContainerWithLayout(
+		layout.NewFixedGridLayout(fyne.NewSize(100, 100)), widget.NewScrollContainer(walletListWidget)), window.Canvas())
 	txHistory.txWalletSelectionPopup.Hide()
 
 	txHistory.walletListTab = widget.NewHBox(
