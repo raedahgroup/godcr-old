@@ -71,7 +71,9 @@ const (
 	ReceivePageInfo       = "Each time you request a \npayment, a new address is \ncreated to protect your privacy."
 
 	// History Page
-	PageHint = "- Tap Hash to view Transaction details.\n\n- Tap Blue Text to Copy."
+	PageHint     = "- Tap Hash to view Transaction details.\n\n- Tap Blue Text to Copy."
+	HistoryTitle = "Transaction"
+	NetType      = "testnet"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
