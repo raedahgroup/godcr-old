@@ -12,12 +12,12 @@ import (
 
 func (receivePage *ReceivePageObjects) initQrImageAndAddress() {
 	receivePage.qrImage = widget.NewIcon(theme.FyneLogo())
-	receivePage.address = widgets.NewTextWithStyle("", values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignCenter, values.SpacerSize16)
+	receivePage.address = widgets.NewTextWithStyle("", values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignCenter, values.DefaultTextSize)
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(),
+	receivePage.borderedContent.Append(widgets.NewHBox(layout.NewSpacer(),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(300, 300)), receivePage.qrImage), layout.NewSpacer()))
-	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
-	receivePage.ReceivePageContents.Append(receivePage.address)
+	receivePage.borderedContent.Append(widgets.NewVSpacer(values.SpacerSize10))
+	receivePage.borderedContent.Append(receivePage.address)
 
 	receivePage.generateAddressAndQR(false)
 }

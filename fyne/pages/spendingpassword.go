@@ -106,7 +106,7 @@ func (app *AppInterface) passwordPopup(passwordPopup *widget.PopUp, seed string)
 
 	cancelLabel := canvas.NewText("Cancel", values.Blue)
 	cancelLabel.TextStyle.Bold = true
-	cancelButton := widgets.NewClickableBox(widget.NewHBox(cancelLabel), func() { passwordPopup.Hide() })
+	cancelButton := widgets.NewClickableBox(widgets.NewHBox(cancelLabel), func() { passwordPopup.Hide() })
 
 	createButton = widget.NewButton("Create", func() {
 		createButton.SetText("")

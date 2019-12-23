@@ -35,7 +35,7 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	spacer := widgets.NewVSpacer(values.SpacerSize10)
 
 	var container *fyne.Container
-	switchingComponentButton := widgets.NewClickableBox(widget.NewVBox(sendToAccountLabel), func() {
+	switchingComponentButton := widgets.NewClickableBox(widgets.NewVBox(sendToAccountLabel), func() {
 		sendPage.SendPageContents.Refresh()
 		if accountBox.Hidden {
 			sendToAccountLabel.Text = values.SwitchToSendToAddress

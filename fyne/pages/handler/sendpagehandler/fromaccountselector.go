@@ -2,12 +2,12 @@ package sendpagehandler
 
 import (
 	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initFromAccountSelector() error {
@@ -20,14 +20,17 @@ func (sendPage *SendPageObjects) initFromAccountSelector() error {
 		return err
 	}
 
-	box := widget.NewVBox(fromLabel, accountBox)
+	box := widgets.NewVBox(
+		fromLabel,
+		accountBox)
 
 	sendPage.SendPageContents.Append(box)
 	return err
 }
 
 func (sendPage *SendPageObjects) onAccountChange() {
-	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(*sendPage.Sending.SendingSelectedAccountID), dcrlibwallet.DefaultRequiredConfirmations)
+	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(*sendPage.Sending.SendingSelectedAccountID),
+		dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		sendPage.showErrorLabel(values.AccountBalanceErr)
 		return

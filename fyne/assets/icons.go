@@ -25,6 +25,10 @@ const (
 	DownArrow = "downArrow.png"
 	Alert     = "alert.png"
 
+	ImportedAccount = "importedaccount.png"
+	WalletAccount   = "walletaccount.png"
+	AddWallet       = "addwallet.png"
+
 	Expand = "expand.png"
 
 	CollapseIcon       = "collapse.png"

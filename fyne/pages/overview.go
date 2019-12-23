@@ -103,8 +103,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 		table.Result,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 			layout.NewSpacer(),
-			widgets.NewClickableBox(
-				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})),
+			widgets.NewClickableWidget(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{Italic: true}),
 				func() {
 					ov.app.tabMenu.SelectTabIndex(historyPageIndex)
 				},

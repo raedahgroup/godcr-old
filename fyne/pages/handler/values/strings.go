@@ -18,6 +18,7 @@ const (
 	SuccessText                   = "Transaction sent"
 	ZeroByte                      = "0 bytes"
 	ZeroAmount                    = "0"
+	AmountInDCR                   = "%s DCR"
 	// Base Object
 	GotIt      = "Got it"
 	ClearField = "Clear all fields"
@@ -91,6 +92,7 @@ const (
 	ReceivePageLoadErr          = "Unable to load Receive Page components"
 	SelectedWalletInvalidErr    = "Selected self sending wallet is invalid"
 	SendPageLoadErr             = "Unable to load Send Page components"
+	WalletPageLoadErr           = "Unable to load Wallet Page components"
 	TransactionFeeSizeErr       = "Could not retrieve transaction fee and size"
 	TransactionDetailsIconErr   = "Could not load transaction details icons"
 	WrongPasswordErr            = "Wrong spending password. Please try again"

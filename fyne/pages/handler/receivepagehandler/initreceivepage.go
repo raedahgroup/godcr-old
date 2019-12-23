@@ -23,12 +23,13 @@ type ReceivePageObjects struct {
 	addressCopiedLabel  *widgets.BorderedText
 	errorLabel          *widgets.BorderedText
 	ReceivePageContents *widget.Box
-
-	Window fyne.Window
+	borderedContent     *widgets.Box
+	Window              fyne.Window
 }
 
 func (receivePage *ReceivePageObjects) InitReceivePage() error {
 	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.Padding))
+	receivePage.borderedContent = widgets.NewVBox()
 
 	err := receivePage.initBaseObjects()
 	if err != nil {
@@ -43,20 +44,22 @@ func (receivePage *ReceivePageObjects) InitReceivePage() error {
 	receivePage.addressCopiedLabel = widgets.NewBorderedText("", fyne.NewSize(0, 0), values.Green)
 	receivePage.addressCopiedLabel.Container.Hide()
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.errorLabel.Container, layout.NewSpacer()))
+	receivePage.borderedContent.Append(widgets.NewHBox(layout.NewSpacer(), receivePage.errorLabel.Container, layout.NewSpacer()))
 
 	err = receivePage.initAccountSelector()
 	if err != nil {
 		return err
 	}
 
-	receivePage.ReceivePageContents.Append(widget.NewHBox(layout.NewSpacer(), receivePage.addressCopiedLabel.Container, layout.NewSpacer()))
+	receivePage.borderedContent.Append(widgets.NewHBox(layout.NewSpacer(), receivePage.addressCopiedLabel.Container, layout.NewSpacer()))
 
-	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
+	receivePage.borderedContent.Append(widgets.NewVSpacer(values.SpacerSize10))
 	receivePage.initQrImageAndAddress()
 	receivePage.initTapToCopyText()
+	receivePage.borderedContent.Append(widgets.NewVSpacer(values.SpacerSize20))
+	receivePage.ReceivePageContents.Append(receivePage.borderedContent)
 
-	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.BottomPadding))
+	receivePage.ReceivePageContents.Append(widgets.NewVSpacer(values.Padding))
 
 	return nil
 }

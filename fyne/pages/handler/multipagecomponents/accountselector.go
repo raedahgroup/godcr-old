@@ -50,16 +50,18 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 
 	dropdownContent := widget.NewVBox()
 
-	selectAccountBox := widget.NewHBox(
+	selectAccountBox := widgets.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize16),
-		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize10), widget.NewIcon(icons[assets.ReceiveAccountIcon])),
+		widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.ReceiveAccountIcon]), layout.NewSpacer()),
 		widgets.NewHSpacer(values.SpacerSize20),
-		widget.NewVBox(widget.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedWalletLabel, layout.NewSpacer())),
+		widgets.NewVBox(widgets.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
+			widgets.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedWalletLabel, layout.NewSpacer())),
 		widgets.NewHSpacer(values.SpacerSize30),
-		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize4), accountSelector.SelectedAccountBalanceLabel),
+		layout.NewSpacer(),
+		widgets.NewVBox(layout.NewSpacer(), accountSelector.SelectedAccountBalanceLabel, layout.NewSpacer()),
 		widgets.NewHSpacer(values.SpacerSize8),
-		widget.NewVBox(widgets.NewVSpacer(values.SpacerSize6), widget.NewIcon(icons[assets.CollapseIcon])),
+		widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.CollapseIcon]), layout.NewSpacer()),
+		widgets.NewHSpacer(values.SpacerSize16),
 	)
 
 	var accountSelectionPopup *widget.PopUp
@@ -168,8 +170,9 @@ func (accountSelector *AccountSelectorStruct) getAllWalletAccountsInBox(receiveA
 			checkmarkIcon,
 			spacing,
 		)
+
 		accountNumber := account.Number
-		accountsBox.Append(widgets.NewClickableBox(accountsView, func() {
+		accountsBox.Append(widgets.NewClickableWidget(accountsView, func() {
 			if *accountSelector.SendingSelectedAccountID == int(accountNumber) && *accountSelector.SendingSelectedWalletID == walletID {
 				if accountSelector.OnAccountChange != nil {
 					accountSelector.OnAccountChange()

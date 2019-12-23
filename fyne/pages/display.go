@@ -110,7 +110,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 3:
 				newPageContent = receivePageContent(app.MultiWallet, app.Window)
 			case 4:
-				newPageContent = accountsPageContent()
+				newPageContent = walletPageContent(app.MultiWallet)
 			case 5:
 				newPageContent = stakingPageContent()
 			}
