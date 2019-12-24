@@ -25,7 +25,6 @@ func (historyPage *HistoryPageData) txWalletList() {
 	}
 	sort.Ints(walletsID)
 
-	// var selectedWalletLabel  *widget.Label
 	selectedWalletLabel := widget.NewLabel(historyPage.MultiWallet.WalletWithID(walletsID[0]).Name)
 	var txWalletSelectionPopup *widget.PopUp
 

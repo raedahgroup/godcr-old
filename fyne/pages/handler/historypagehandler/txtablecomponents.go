@@ -91,7 +91,7 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 	historyPage.txTable.Container.Show()
 
 	// wait four sec then update tx table
-	time.AfterFunc(time.Second*4, func() {
+	time.AfterFunc(time.Second*2, func() {
 		if historyPage.TabMenu.CurrentTabIndex() != 1 {
 			return
 		}
@@ -109,7 +109,7 @@ func (historyPage *HistoryPageData) updateTable() {
 	if historyPage.allTxCount > int(historyPage.TotalTxFetched) {
 		if historyPage.txTable.Container.Offset.Y == 0 {
 			// table not yet scrolled wait 4 secs and update
-			time.AfterFunc(time.Second*4, func() {
+			time.AfterFunc(time.Second*2, func() {
 				if historyPage.TabMenu.CurrentTabIndex() != 1 {
 					return
 				}
@@ -117,7 +117,7 @@ func (historyPage *HistoryPageData) updateTable() {
 			})
 		} else if scrollPosition < 0.5 {
 			if historyPage.TotalTxFetched == txPerPage {
-				time.AfterFunc(time.Second*4, func() {
+				time.AfterFunc(time.Second*2, func() {
 					if historyPage.TabMenu.CurrentTabIndex() != 1 {
 						return
 					}
