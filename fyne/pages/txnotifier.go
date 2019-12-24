@@ -3,12 +3,11 @@ package pages
 import (
 	"encoding/json"
 	"fmt"
+	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/handlers"
 	"log"
 	"math"
 	"strconv"
-
-	"fyne.io/fyne/widget"
 
 	"github.com/gen2brain/beeep"
 	"github.com/raedahgroup/dcrlibwallet"
@@ -23,11 +22,7 @@ type multiWalletTxListener struct {
 
 func (app *multiWalletTxListener) OnSyncStarted() {
 	mw := app.multiWallet
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
-	overviewHandler.Synced = mw.IsSynced()
-	overviewHandler.Syncing = mw.IsSyncing()
-	overviewHandler.UpdateBlockStatusBox(mw)
+	go overviewHandler.UpdateBlockStatusBox(mw)
 }
 
 func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnectedPeers int32) {
@@ -35,38 +30,30 @@ func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnecte
 }
 
 func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
-	overviewHandler.Steps += 1
 	overviewHandler.SyncProgress = float64(headersFetchProgress.FetchedHeadersCount) / float64(headersFetchProgress.TotalHeadersToFetch)
-	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress * 100) / 100
+	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress*100) / 100
+	overviewHandler.StepsChannel <- headersFetchProgress.HeadersFetchProgress
+	overviewHandler.UpdateBlockHeadersSync(headersFetchProgress.HeadersFetchProgress, true)
 	overviewHandler.UpdateSyncSteps(true)
-	overviewHandler.UpdateProgressBar(true)
 }
 
 func (app *multiWalletTxListener) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
-	overviewHandler.Steps += 1
+	overviewHandler.StepsChannel <- addressDiscoveryProgress.AddressDiscoveryProgress
 	overviewHandler.UpdateSyncSteps(true)
 }
 
 func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress *dcrlibwallet.HeadersRescanProgressReport) {
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
-	overviewHandler.Steps += 1
+	overviewHandler.StepsChannel <- headersRescanProgress.RescanProgress
 	overviewHandler.UpdateSyncSteps(true)
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
-	handlers.OverviewHandlerLock.Lock()
-	defer handlers.OverviewHandlerLock.Unlock()
 	overviewHandler.SyncProgress = 1
-	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
+	go overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
-	overviewHandler.UpdateBlockStatusBox(app.multiWallet)
+	go overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnSyncEndedWithError(err error) {
@@ -112,8 +99,8 @@ func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash stri
 	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
 		transactionUpdate := handlers.TransactionUpdate{
-			WalletId:    walletID,
-			TxnHash:     hash,
+			WalletId: walletID,
+			TxnHash:  hash,
 		}
 		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
 		overviewHandler.UpdateBalance(app.multiWallet)
