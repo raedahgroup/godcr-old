@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
+
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -56,6 +57,7 @@ func (app *AppInterface) DisplayMainWindow() {
 	app.Window.SetFixedSize(true)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
+	go overviewHandler.PreserveSyncSteps()
 	app.Window.ShowAndRun()
 	app.tearDown()
 }
