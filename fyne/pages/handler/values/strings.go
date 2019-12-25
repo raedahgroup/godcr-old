@@ -70,6 +70,10 @@ const (
 	GenerateNewAddress    = "Generate new address"
 	ReceivePageInfo       = "Each time you request a \npayment, a new address is \ncreated to protect your privacy."
 
+	// Staking Page
+	StakingPageTitle = "Staking"
+	SummaryText      = "Summary"
+
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
 	AccountSelectorIconErr      = "Could not retrieve account selector icons"

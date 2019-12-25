@@ -112,7 +112,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
-				newPageContent = stakingPageContent()
+				newPageContent = stakingPageContent(app)
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
