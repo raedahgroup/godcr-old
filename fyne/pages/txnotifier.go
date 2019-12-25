@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/godcr/fyne/handlers"
+	"github.com/raedahgroup/godcr/fyne/pages/handler"
 	"log"
 	"math"
 	"strconv"
@@ -48,6 +48,7 @@ func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress 
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
+	fmt.Printf("\n calling from completed \n \n")
 	overviewHandler.SyncProgress = 1
 	go overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 }
@@ -75,7 +76,7 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 
 	// place all dynamic widgets here to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-		transactionUpdate := handlers.TransactionUpdate{
+		transactionUpdate := handler.TransactionUpdate{
 			Transaction: currentTransaction,
 		}
 		overviewHandler.UpdateTransactions(app.multiWallet, transactionUpdate)
@@ -98,7 +99,7 @@ func (app *multiWalletTxListener) OnTransaction(transaction string) {
 func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash string, blockHeight int32) {
 	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-		transactionUpdate := handlers.TransactionUpdate{
+		transactionUpdate := handler.TransactionUpdate{
 			WalletId: walletID,
 			TxnHash:  hash,
 		}
@@ -123,7 +124,7 @@ func (app *multiWalletTxListener) OnTransactionConfirmed(walletID int, hash stri
 func (app *multiWalletTxListener) OnBlockAttached(walletID int, blockHeight int32) {
 	// place all dynamic widgets in a function here, to be updated only when tabmenu is in view.
 	if app.tabMenu.CurrentTabIndex() == 0 {
-
+		overviewHandler.UpdateBlockStatusBox(app.multiWallet)
 	} else if app.tabMenu.CurrentTabIndex() == 2 {
 
 	} else if app.tabMenu.CurrentTabIndex() == 3 {

@@ -5,12 +5,12 @@ import (
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/raedahgroup/godcr/fyne/pages/handler"
 	"image/color"
 	"sort"
 	"time"
 
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/handlers"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
@@ -24,7 +24,7 @@ type overview struct {
 	transactions []dcrlibwallet.Transaction
 }
 
-var overviewHandler = &handlers.OverviewHandler{}
+var overviewHandler = &handler.OverviewHandler{}
 
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	ov := &overview{}
@@ -51,11 +51,12 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 }
 
 func (ov *overview) container() fyne.CanvasObject {
+	overviewHandler.PageBoxes = ov.pageBoxes()
 	overviewContainer := widget.NewVBox(
 		title(),
 		balance(),
 		widgets.NewVSpacer(25),
-		ov.pageBoxes(),
+		overviewHandler.PageBoxes,
 	)
 	return overviewContainer
 }
@@ -72,13 +73,13 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	table := &widgets.Table{}
 	table.NewTable(transactionRowHeader())
 	overviewHandler.Table = table
-	overviewHandler.UpdateTransactions(ov.multiWallet, handlers.TransactionUpdate{})
+	overviewHandler.UpdateTransactions(ov.multiWallet, handler.TransactionUpdate{})
 	return widget.NewVBox(
 		table.Result,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 			layout.NewSpacer(),
 			widgets.NewClickableBox(
-				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{Italic: true})),
+				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{})),
 				func() {
 					ov.app.tabMenu.SelectTabIndex(historyPageIndex)
 				},
@@ -90,14 +91,22 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 }
 
 func (ov *overview) blockStatusBox() fyne.CanvasObject {
+	if overviewHandler.Synced {
+		return ov.blockStatusBoxInSync()
+	}
+	return ov.blockStatusBoxSyncing()
+}
+
+func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 	syncStatusText := widgets.NewSmallText("", color.Black)
-	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
-	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
+	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{})
 	progressBar := widget.NewProgressBar()
-	syncSteps := widget.NewLabelWithStyle("Step 0/3", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
-	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  0%", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
+	syncSteps := widget.NewLabelWithStyle("Step 0/3", fyne.TextAlignTrailing, fyne.TextStyle{})
+	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  0%", fyne.TextAlignTrailing, fyne.TextStyle{})
 	walletSyncInfo := fyne.NewContainerWithLayout(layout.NewHBoxLayout())
 	walletSyncScrollContainer := widget.NewScrollContainer(walletSyncInfo)
+	cancelButton := widget.NewButton("Cancel", func() {overviewHandler.CancelSync(ov.multiWallet)})
 
 	overviewHandler.SyncStatusWidget = syncStatusText
 	overviewHandler.TimeLeftWidget = timeLeft
@@ -107,13 +116,13 @@ func (ov *overview) blockStatusBox() fyne.CanvasObject {
 	overviewHandler.BlockHeadersWidget = blockHeadersStatus
 	overviewHandler.WalletSyncInfo = walletSyncInfo
 	overviewHandler.Scroll = walletSyncScrollContainer
+	overviewHandler.CancelButton = cancelButton
+	overviewHandler.BlockHeightTime = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
 			syncStatusText,
 			layout.NewSpacer(),
-			widget.NewButton("Cancel", func() {
-				overviewHandler.CancelSync(ov.multiWallet)
-			}),
+			cancelButton,
 		))
 	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
 		progressBar,
@@ -136,8 +145,34 @@ func (ov *overview) blockStatusBox() fyne.CanvasObject {
 	return blockStatus
 }
 
+func (ov *overview) blockStatusBoxInSync() fyne.CanvasObject {
+	syncStatusText := widgets.NewSmallText("", color.Black)
+	blockHeightTime := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{})
+
+	overviewHandler.SyncStatusWidget = syncStatusText
+	overviewHandler.BlockHeightTime = blockHeightTime
+	overviewHandler.ConnectedPeersWidget = connectedPeers
+	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
+		widget.NewHBox(
+			syncStatusText,
+			layout.NewSpacer(),
+		))
+	syncedStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, blockHeightTime, connectedPeers),
+		blockHeightTime, connectedPeers)
+
+	blockStatus := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+		widgets.NewVSpacer(5),
+		top,
+		syncedStatus,
+		widgets.NewVSpacer(15),
+	)
+	overviewHandler.BlockStatus = blockStatus
+	return blockStatus
+}
+
 func title() fyne.CanvasObject {
-	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	titleWidget := widget.NewLabelWithStyle(PageTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(titleWidget)
 }
 
