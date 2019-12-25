@@ -62,7 +62,7 @@ func (app *AppInterface) DisplayMainWindow() {
 
 func (app *AppInterface) setupNavigationMenu() {
 	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
-		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon, assets.ExitIcon)
 
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
@@ -76,6 +76,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Exit", icons[assets.ExitIcon], app.exitPageContent()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
