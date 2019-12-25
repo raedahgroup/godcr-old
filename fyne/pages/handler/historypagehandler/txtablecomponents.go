@@ -17,8 +17,8 @@ const txPerPage int32 = 15
 
 func (historyPage *HistoryPageData) txTableHeader(txTable *widgets.Table) {
 	tableHeading := widget.NewHBox(
+		widget.NewLabelWithStyle("#", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Date (UTC)", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -63,11 +63,10 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 
 		trimmedHash := tx.Hash[:10] + "..." + tx.Hash[len(tx.Hash)-5:]
 		txForTrimmedHash := tx.Hash
-		txDirectionLabel := widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{})
 		txDirectionIcon := widget.NewIcon(historyPage.icons[helpers.TxDirectionIcon(tx.Direction)])
 		txBox = append(txBox, widget.NewHBox(
+			widget.NewHBox(txDirectionIcon, widget.NewLabel("")),
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewHBox(txDirectionIcon, txDirectionLabel),
 			widget.NewLabelWithStyle(status, fyne.TextAlignLeading, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
