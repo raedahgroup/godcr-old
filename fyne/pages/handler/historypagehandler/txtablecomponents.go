@@ -22,7 +22,6 @@ func (historyPage *HistoryPageData) txTableHeader(txTable *widgets.Table) {
 		widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewLabelWithStyle("Hash", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 	)
 
@@ -62,7 +61,7 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 			status = "Confirmed"
 		}
 
-		trimmedHash := tx.Hash[:15] + "..." + tx.Hash[len(tx.Hash)-15:]
+		trimmedHash := tx.Hash[:10] + "..." + tx.Hash[len(tx.Hash)-5:]
 		txForTrimmedHash := tx.Hash
 		txDirectionLabel := widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(tx.Direction), fyne.TextAlignCenter, fyne.TextStyle{})
 		txDirectionIcon := widget.NewIcon(historyPage.icons[helpers.TxDirectionIcon(tx.Direction)])
@@ -72,7 +71,6 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 			widget.NewLabelWithStyle(status, fyne.TextAlignLeading, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(tx.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})), func() {
 				historyPage.fetchTxDetails(txForTrimmedHash)
 			}),
