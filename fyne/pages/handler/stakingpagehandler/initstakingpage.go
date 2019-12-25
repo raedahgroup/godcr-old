@@ -33,8 +33,16 @@ func (stakingPage *StakingPageObjects) InitStakingPage() error {
 	stakingPage.StakingPageContents.Append(summaryLabel)
 
 	stakingPage.summaryWalletList()
-
 	stakingPage.getStakingSummary()
+
+	stakingPage.StakingPageContents.Append(widgets.NewVSpacer(values.SpacerSize20))
+
+	PurchaseTicketLabel := widget.NewLabelWithStyle(values.PurchaseTicketsText, fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
+	stakingPage.StakingPageContents.Append(PurchaseTicketLabel)
+
+	stakingPage.purchaseTickets()
+
+	stakingPage.StakingPageContents.Append(widgets.NewVSpacer(values.BottomPadding))
 
 	return nil
 }

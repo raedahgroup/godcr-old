@@ -14,7 +14,7 @@ func (stakingPage *StakingPageObjects) summaryWalletList() {
 	walletListWidget := widget.NewVBox()
 
 	selectedWalletLabel := widget.NewLabel("wallet-1")
-	var txWalletSelectionPopup *widget.PopUp
+	var walletSelectionPopup *widget.PopUp
 
 	index := 0
 	checkmarkIcon := widget.NewIcon(theme.ConfirmIcon())
@@ -32,10 +32,10 @@ func (stakingPage *StakingPageObjects) summaryWalletList() {
 
 	}))
 
-	// txWalletSelectionPopup create a popup that has tx wallet
-	txWalletSelectionPopup = widget.NewPopUp(fyne.NewContainerWithLayout(
+	// walletSelectionPopup create a popup that has tx wallet
+	walletSelectionPopup = widget.NewPopUp(fyne.NewContainerWithLayout(
 		layout.NewFixedGridLayout(fyne.NewSize(walletListWidget.MinSize().Width, 50)), widget.NewScrollContainer(walletListWidget)), stakingPage.Window.Canvas())
-	txWalletSelectionPopup.Hide()
+	walletSelectionPopup.Hide()
 
 	walletListTab := widget.NewHBox(
 		selectedWalletLabel,
@@ -46,9 +46,9 @@ func (stakingPage *StakingPageObjects) summaryWalletList() {
 	// walletDropDown creates a popup like dropdown that holds the list of available wallets.
 	var walletDropDown *widgets.ClickableBox
 	walletDropDown = widgets.NewClickableBox(walletListTab, func() {
-		txWalletSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
+		walletSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			walletDropDown).Add(fyne.NewPos(0, walletDropDown.Size().Height)))
-		txWalletSelectionPopup.Show()
+		walletSelectionPopup.Show()
 	})
 
 	stakingPage.StakingPageContents.Append(widget.NewHBox(walletDropDown))

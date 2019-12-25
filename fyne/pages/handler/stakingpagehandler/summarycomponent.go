@@ -2,7 +2,6 @@ package stakingpagehandler
 
 import (
 	"fyne.io/fyne"
-
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 
@@ -63,7 +62,7 @@ func (stakingPage *StakingPageObjects) getStakingSummary() {
 	summaryData.AddObject(colFour)
 
 	summaryDataLayout := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
-		widgets.NewBorder(values.TransactionInfoBorderColor, fyne.NewSize(50, 30), summaryData), summaryData)
+		widgets.NewBorder(values.TransactionInfoBorderColor, fyne.NewSize(30, 20), summaryData), summaryData)
 
 	stakingPage.StakingPageContents.Append(summaryDataLayout)
 }
