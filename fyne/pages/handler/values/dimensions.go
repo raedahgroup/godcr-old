@@ -29,6 +29,7 @@ const (
 	SpacerSize36  = 36
 	SpacerSize46  = 46
 	SpacerSize50  = 50
+	SpacerSize70  = 70
 	SpacerSize140 = 140
 	SpacerSize170 = 170
 

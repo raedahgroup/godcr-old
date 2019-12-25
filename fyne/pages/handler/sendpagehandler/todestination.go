@@ -18,6 +18,7 @@ import (
 func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	fromLabel := canvas.NewText("To", values.DarkerBlueGrayTextColor)
 
+	sendPage.SelfSending.DefaultThemeColor = true
 	accountBox, err := sendPage.SelfSending.CreateAccountSelector("Receiving account")
 	if err != nil {
 		return err
@@ -35,9 +36,9 @@ func (sendPage *SendPageObjects) initToDestinationComponents() error {
 	spacer := widgets.NewVSpacer(values.SpacerSize10)
 
 	var container *fyne.Container
-	switchingComponentButton := widgets.NewClickableBox(widgets.NewVBox(sendToAccountLabel), func() {
+	switchingComponentButton := widgets.NewClickableWidget(widget.NewVBox(sendToAccountLabel), func() {
 		sendPage.SendPageContents.Refresh()
-		if accountBox.Hidden {
+		if !accountBox.Widget.Visible() {
 			sendToAccountLabel.Text = values.SwitchToSendToAddress
 			accountBox.Show()
 			sendPage.destinationAddressEntry.Hide()

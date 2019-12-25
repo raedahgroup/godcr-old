@@ -10,7 +10,7 @@ import (
 )
 
 func (receivePage *ReceivePageObjects) initTapToCopyText() {
-	tapToCopy := widgets.NewClickableWidget(widget.NewLabelWithStyle(values.TapToCopy, fyne.TextAlignCenter, fyne.TextStyle{Monospace: true}), func() {
+	tapToCopy := widgets.NewClickableWidget(widget.NewLabelWithStyle(values.TapToCopy, fyne.TextAlignCenter, fyne.TextStyle{}), func() {
 		clipboard := receivePage.Window.Clipboard()
 		clipboard.SetContent(receivePage.address.Text)
 

@@ -25,7 +25,8 @@ type AccountSelectorStruct struct {
 	SendingSelectedAccountID *int
 	WalletIDs                []int
 
-	AccountBoxes []*widget.Box
+	AccountBoxes      []*widget.Box
+	DefaultThemeColor bool
 
 	SelectedAccountLabel        *canvas.Text
 	SelectedAccountBalanceLabel *canvas.Text
@@ -39,7 +40,7 @@ type AccountSelectorStruct struct {
 	Window fyne.Window
 }
 
-func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel string) (*widgets.ClickableBox, error) {
+func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel string) (*widgets.ClickableWidget, error) {
 	icons, err := assets.GetIcons(assets.ReceiveAccountIcon, assets.CollapseIcon)
 	if err != nil {
 		return nil, errors.New(values.AccountSelectorIconErr)
@@ -50,19 +51,38 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 
 	dropdownContent := widget.NewVBox()
 
-	selectAccountBox := widgets.NewHBox(
-		widgets.NewHSpacer(values.SpacerSize16),
-		widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.ReceiveAccountIcon]), layout.NewSpacer()),
-		widgets.NewHSpacer(values.SpacerSize20),
-		widgets.NewVBox(widgets.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
-			widgets.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedWalletLabel, layout.NewSpacer())),
-		widgets.NewHSpacer(values.SpacerSize30),
-		layout.NewSpacer(),
-		widgets.NewVBox(layout.NewSpacer(), accountSelector.SelectedAccountBalanceLabel, layout.NewSpacer()),
-		widgets.NewHSpacer(values.SpacerSize8),
-		widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.CollapseIcon]), layout.NewSpacer()),
-		widgets.NewHSpacer(values.SpacerSize16),
-	)
+	var selectAccountBox fyne.Widget
+
+	if accountSelector.DefaultThemeColor {
+		selectAccountBox = widget.NewHBox(
+			widgets.NewHSpacer(values.SpacerSize16),
+			widget.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.ReceiveAccountIcon]), layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize20),
+			widget.NewVBox(widget.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
+				widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.SpacerSize2), accountSelector.SelectedWalletLabel, widgets.NewHSpacer(values.SpacerSize2), layout.NewSpacer())),
+			layout.NewSpacer(),
+			widgets.NewHSpacer(values.SpacerSize70),
+			widget.NewVBox(layout.NewSpacer(), accountSelector.SelectedAccountBalanceLabel, layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize8),
+			widget.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.CollapseIcon]), layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize16),
+		)
+
+	} else {
+		selectAccountBox = widgets.NewHBox(
+			widgets.NewHSpacer(values.SpacerSize16),
+			widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.ReceiveAccountIcon]), layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize20),
+			widgets.NewVBox(widgets.NewHBox(layout.NewSpacer(), accountSelector.SelectedAccountLabel, layout.NewSpacer()),
+				widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.NilSpacer), accountSelector.SelectedWalletLabel, layout.NewSpacer())),
+			layout.NewSpacer(),
+			widgets.NewHSpacer(values.SpacerSize70),
+			widgets.NewVBox(layout.NewSpacer(), accountSelector.SelectedAccountBalanceLabel, layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize8),
+			widgets.NewVBox(layout.NewSpacer(), widget.NewIcon(icons[assets.CollapseIcon]), layout.NewSpacer()),
+			widgets.NewHSpacer(values.SpacerSize16),
+		)
+	}
 
 	var accountSelectionPopup *widget.PopUp
 	accountSelectionPopupHeader := widget.NewVBox(
@@ -95,8 +115,8 @@ func (accountSelector *AccountSelectorStruct) CreateAccountSelector(accountLabel
 		widget.NewScrollContainer(dropdownContent))
 	popupContent.Append(dropdownContentWithScroller)
 
-	var accountClickableBox *widgets.ClickableBox
-	accountClickableBox = widgets.NewClickableBox(selectAccountBox, func() {
+	var accountClickableBox *widgets.ClickableWidget
+	accountClickableBox = widgets.NewClickableWidget(selectAccountBox, func() {
 		accountSelectionPopup.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(
 			accountClickableBox).Add(fyne.NewPos(0, accountClickableBox.Size().Height)))
 

@@ -68,9 +68,11 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 
 	accountLabel = widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), notBackedUpLabel, layout.NewSpacer())
 
+	expand := canvas.NewImageFromResource(icons[assets.Expand])
+	expand.
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(12),
-		widget.NewIcon(icons[assets.Expand]), widgets.NewHSpacer(4),
+		expand, widgets.NewHSpacer(4),
 		widget.NewIcon(icons[assets.AccountsIcon]), widgets.NewHSpacer(12),
 		accountLabel, widgets.NewHSpacer(50),
 		layout.NewSpacer(),
@@ -89,6 +91,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
 		fmt.Println("Hello")
+		walletPage.WalletPageContents.Refresh()
 		if toShow.Hidden {
 			toShow.Show()
 		} else {

@@ -2,12 +2,12 @@ package sendpagehandler
 
 import (
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/widget"
 
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
-	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (sendPage *SendPageObjects) initFromAccountSelector() error {
@@ -15,12 +15,13 @@ func (sendPage *SendPageObjects) initFromAccountSelector() error {
 
 	sendPage.Sending.OnAccountChange = sendPage.onAccountChange
 
+	sendPage.Sending.DefaultThemeColor = true
 	accountBox, err := sendPage.Sending.CreateAccountSelector(values.FromAccountSelectorPopUpHeaderLabel)
 	if err != nil { // return err if icons in account selector dont load
 		return err
 	}
 
-	box := widgets.NewVBox(
+	box := widget.NewVBox(
 		fromLabel,
 		accountBox)
 

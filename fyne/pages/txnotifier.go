@@ -40,10 +40,7 @@ func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress 
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
-	fmt.Println("SYnc completed", app.multiWallet.IsSynced())
-	fmt.Println("SYnc completed", app.multiWallet.IsSynced())
-	tt := app.multiWallet.IsSynced()
-	fmt.Println(tt)
+
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {

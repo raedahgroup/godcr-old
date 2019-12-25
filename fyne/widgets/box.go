@@ -13,9 +13,15 @@ import (
 // for vertical or a single row for horizontal arrangement
 type Box struct {
 	widget.BaseWidget
+	background color.Color
 
 	Horizontal bool
 	Children   []fyne.CanvasObject
+}
+
+func (b *Box) SetBackgroundColor(bg color.Color) {
+	b.background = bg
+	b.Refresh()
 }
 
 // Refresh updates this box to match the current theme
@@ -82,7 +88,11 @@ func (b *boxRenderer) Layout(size fyne.Size) {
 }
 
 func (b *boxRenderer) BackgroundColor() color.Color {
-	return color.White
+	if b.box.background == nil {
+		return color.White
+	}
+
+	return b.box.background
 }
 
 func (b *boxRenderer) Objects() []fyne.CanvasObject {
