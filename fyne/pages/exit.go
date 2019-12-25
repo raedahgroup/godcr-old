@@ -6,6 +6,9 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 func (app *AppInterface) exitPageContent() fyne.CanvasObject {
@@ -13,7 +16,6 @@ func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 
 	yesButton := widget.NewButtonWithIcon("Yes", theme.ConfirmIcon(), func() {
 		app.Window.Close()
-		fyne.CurrentApp().Quit()
 		fmt.Println("Exited fyne")
 	})
 	noButton := widget.NewButtonWithIcon("No", theme.CancelIcon(), func() {
@@ -21,7 +23,17 @@ func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 		popup.Hide()
 	})
 
-	exitView := widget.NewVBox(widget.NewLabelWithStyle("Exit", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true}), widget.NewHBox(yesButton, noButton))
-	popup = widget.NewModalPopUp(exitView, app.Window.Canvas())
+	exitView := widget.NewVBox(
+		widgets.NewVSpacer(values.Padding),
+		widget.NewLabelWithStyle("Exit", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widgets.NewVSpacer(values.Padding),
+		widget.NewHBox(yesButton, noButton),
+		widgets.NewVSpacer(values.Padding))
+
+	viewWithPadding := widget.NewHBox(
+		widgets.NewHSpacer(values.Padding), exitView, widgets.NewHSpacer(values.Padding))
+
+	popup = widget.NewModalPopUp(viewWithPadding, app.Window.Canvas())
+	popup.Show()
 	return popup
 }

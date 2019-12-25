@@ -88,6 +88,8 @@ func (app *AppInterface) setupNavigationMenu() {
 			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
 				time.Sleep(50 * time.Millisecond)
 				continue
+			} else if app.tabMenu.CurrentTab().Text == "Exit" {
+				continue
 			}
 
 			// clear previous tab content
@@ -114,6 +116,8 @@ func (app *AppInterface) setupNavigationMenu() {
 				newPageContent = accountsPageContent()
 			case 5:
 				newPageContent = stakingPageContent()
+			default:
+				continue
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
