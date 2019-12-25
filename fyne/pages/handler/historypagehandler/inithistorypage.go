@@ -44,7 +44,7 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(values.SpacerSize10))
 
-	historyPage.errorLabel = widget.NewLabel("")
+	historyPage.errorLabel = widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	historyPage.errorLabel.Hide()
 
 	historyPage.selectedFilterId = dcrlibwallet.TxFilterAll
@@ -84,6 +84,7 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 
 	historyPage.HistoryPageContents.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(5))
+	historyPage.HistoryPageContents.Append(historyPage.errorLabel)
 	historyPage.HistoryPageContents.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(historyPage.txTable.Result.MinSize().Width, historyPage.txTable.Container.MinSize().Height+450)), historyPage.txTable.Container))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(15))
 	return nil
