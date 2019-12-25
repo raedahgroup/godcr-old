@@ -85,10 +85,8 @@ func (app *AppInterface) setupNavigationMenu() {
 		var currentTabIndex = 0
 
 		for {
-			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
+			if app.tabMenu.CurrentTabIndex() == currentTabIndex || app.tabMenu.CurrentTab().Text == "Exit" {
 				time.Sleep(50 * time.Millisecond)
-				continue
-			} else if app.tabMenu.CurrentTab().Text == "Exit" {
 				continue
 			}
 

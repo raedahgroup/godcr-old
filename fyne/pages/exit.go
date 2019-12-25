@@ -25,9 +25,9 @@ func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 
 	exitView := widget.NewVBox(
 		widgets.NewVSpacer(values.Padding),
-		widget.NewLabelWithStyle("Exit", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Exit?", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		widgets.NewVSpacer(values.Padding),
-		widget.NewHBox(yesButton, noButton),
+		widget.NewHBox(yesButton, widgets.NewHSpacer(values.SpacerSize4), noButton),
 		widgets.NewVSpacer(values.Padding))
 
 	viewWithPadding := widget.NewHBox(
