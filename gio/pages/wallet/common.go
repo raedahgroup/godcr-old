@@ -42,8 +42,21 @@ func drawHeader(ctx *layout.Context, backFunc func(), titleFunc func()) {
 }
 
 func drawBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
+	topInset := float32(68)
+	if title != nil {
+		inset := layout.Inset{
+			Top: unit.Dp(topInset),
+			Left : unit.Dp(helper.StandaloneScreenPadding),
+			Right: unit.Dp(helper.StandaloneScreenPadding),
+		}
+		inset.Layout(ctx, func(){
+			title.Draw(ctx)
+		})
+		topInset += 20
+	}
+	
 	inset := layout.Inset{
-		Top: unit.Dp(68),
+		Top: unit.Dp(topInset),
 		Left : unit.Dp(helper.StandaloneScreenPadding),
 		Right: unit.Dp(helper.StandaloneScreenPadding),
 	}
@@ -54,14 +67,8 @@ func drawBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
 
 func drawCardBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
 	drawBody(ctx, title, func(){
-		topInset := float32(0)
-		if title != nil {
-			title.Draw(ctx)
-			topInset += 20
-		}
-
 		inset := layout.Inset{
-			Top: unit.Dp(topInset),
+			Top: unit.Dp(0),
 		}
 		inset.Layout(ctx, func(){
 			helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, bodyHeight + 20)

@@ -38,17 +38,17 @@ type (
 	}
 
 	SeedPage struct {
-		createWalletPage  *CreateWalletPage
-		currentScreen     string
+		createWalletPage    *CreateWalletPage
+		currentScreen       string
 
 		backButton          *widgets.Button
 		backToWalletsButton *widgets.ClickableLabel
 
-		reminderScreen    *reminderScreen
-		seedScreen        *seedScreen
-		verifyScreen      *verifyScreen
+		reminderScreen      *reminderScreen
+		seedScreen          *seedScreen
+		verifyScreen        *verifyScreen
 
-		isPrepared 		  bool
+		isPrepared 		    bool
 	}
 )
 
@@ -66,14 +66,6 @@ func NewSeedPage(createWalletPage *CreateWalletPage) *SeedPage {
 }
 
 func (s *SeedPage) prepare(seed string) {
-	if seed == "" {
-		allSeeds := dcrlibwallet.PGPWordList()
-		seeds := allSeeds[0:32]
-
-		seed = strings.Join(seeds, " ")
-	}
-
-
 	if !s.isPrepared {
 		s.prepareInformationScreenWidgets(seed)
 	}
@@ -119,7 +111,6 @@ func (s *SeedPage) prepareInformationScreenWidgets(seed string) {
 		widgets.NewLabel("steal your funds. DO NOT show it to").SetSize(4),
 		widgets.NewLabel("anyone.").SetSize(4),
 	}
-
 
 
 	// seed screen widgets 
@@ -192,12 +183,7 @@ func (s *SeedPage) render(ctx *layout.Context, refreshWindowFunc func(), changeP
 
 func (s *SeedPage) drawReminderScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
 	drawHeader(ctx, func(){
-		s.backButton.Draw(ctx, func(){
-			s.createWalletPage.isShowingSeedPage = false
-			s.createWalletPage.Render(ctx, refreshWindowFunc, changePageFunc)
-			refreshWindowFunc()
-			return
-		})
+		
 	}, func(){
 		widgets.NewLabel("Keep in mind").
 			SetWeight(text.Bold).
@@ -482,7 +468,6 @@ func (s *SeedPage) hasSelectedAllVerifyWords() bool {
 	}
 	return true
 }
-
 
 func (s *SeedPage) doVerify() bool {
 	for i := range s.verifyScreen.options {
