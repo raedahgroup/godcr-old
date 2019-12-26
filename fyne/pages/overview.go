@@ -48,16 +48,18 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	}()
 
 	overviewHandler.Container = ov.container()
-	return widget.NewHBox(widgets.NewHSpacer(18), overviewHandler.Container)
+	return widget.NewHBox(widgets.NewHSpacer(values.Padding), overviewHandler.Container, widgets.NewHSpacer(values.Padding))
 }
 
 func (ov *overview) container() fyne.CanvasObject {
 	overviewHandler.PageBoxes = ov.pageBoxes()
 	overviewContainer := widget.NewVBox(
+		widgets.NewVSpacer(values.Padding),
 		title(),
 		balance(),
 		widgets.NewVSpacer(25),
 		overviewHandler.PageBoxes,
+		widgets.NewVSpacer(values.Padding),
 	)
 	return overviewContainer
 }
@@ -128,6 +130,7 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 	h := overviewHandler
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
+			widgets.NewHSpacer(values.NilSpacer),
 			h.SyncStatusWidget,
 			layout.NewSpacer(),
 			h.CancelButton,
@@ -153,6 +156,7 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 func (ov *overview) blockStatusBoxSynced() fyne.CanvasObject {
 	h := overviewHandler
 	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		widgets.NewHSpacer(values.NilSpacer),
 		h.SyncStatusWidget,
 		layout.NewSpacer())
 	syncedStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, h.BlockHeightTime, h.ConnectedPeersWidget),
