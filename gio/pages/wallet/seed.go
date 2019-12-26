@@ -1,7 +1,7 @@
 package wallet 
 
 import (
-	"image"
+	//"image"
 	"math"
 	"time"
 	"math/rand"
@@ -38,7 +38,6 @@ type (
 	}
 
 	SeedPage struct {
-		multiWallet       *dcrlibwallet.MultiWallet 
 		createWalletPage  *CreateWalletPage
 		currentScreen     string
 
@@ -55,26 +54,26 @@ type (
 
 func NewSeedPage(createWalletPage *CreateWalletPage) *SeedPage {
 	s := &SeedPage{
-		//multiWallet      : multiWallet,
 		createWalletPage : createWalletPage,
 		isPrepared       : false,
 		currentScreen    : "reminderScreen",
-		backButton       : widgets.NewButton("", widgets.NavigationArrowBackIcon).
-			SetBackgroundColor(helper.BackgroundColor).
-			SetColor(helper.BlackColor).MakeRound(),
 	}
 
-	s.backToWalletsButton = widgets.NewClickableLabel("Back to wallets").
-								SetAlignment(widgets.AlignMiddle).
-								SetSize(5).
-								SetColor(helper.DecredLightBlueColor).
-								SetWeight(text.Bold)
-
+	s.backButton          = widgets.NewButton("", widgets.NavigationArrowBackIcon).SetBackgroundColor(helper.BackgroundColor).SetColor(helper.BlackColor).MakeRound()
+	s.backToWalletsButton = widgets.NewClickableLabel("Back to wallets").SetAlignment(widgets.AlignMiddle).SetSize(5).SetColor(helper.DecredLightBlueColor).SetWeight(text.Bold)
 
 	return s
 }
 
 func (s *SeedPage) prepare(seed string) {
+	if seed == "" {
+		allSeeds := dcrlibwallet.PGPWordList()
+		seeds := allSeeds[0:32]
+
+		seed = strings.Join(seeds, " ")
+	}
+
+
 	if !s.isPrepared {
 		s.prepareInformationScreenWidgets(seed)
 	}
@@ -171,7 +170,6 @@ func (s *SeedPage) prepareVerifyScreenData() {
 		rand.Shuffle(len(selectableItems), func(i, j int){
 			selectableItems[i], selectableItems[j] = selectableItems[j], selectableItems[i]
 		})
-
 		s.verifyScreen.options[i] = widgets.NewSelectable(selectableItems)
 	}
 }
@@ -188,120 +186,81 @@ func (s *SeedPage) render(ctx *layout.Context, refreshWindowFunc func(), changeP
 	} else if s.currentScreen == "verifySeedPhraseScreen" {
 		s.drawVerifySeedPhraseScreen(ctx, refreshWindowFunc, changePageFunc)
 	} else if s.currentScreen == "successScreen" {
-		s.showSuccessScreen(ctx, refreshWindowFunc, changePageFunc)
+		s.drawSuccessScreen(ctx, refreshWindowFunc, changePageFunc)
 	}
 }
 
 func (s *SeedPage) drawReminderScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
-	inset := layout.Inset{
-		Top: unit.Dp(0),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		layout.Stack{}.Layout(ctx, 
-			layout.Expanded(func(){
-				layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
-					layout.Rigid(func(){
-						ctx.Constraints.Width.Min = 50
-						s.backButton.Draw(ctx, func(){
-							s.createWalletPage.isShowingSeedPage = false
-							s.createWalletPage.Render(ctx, refreshWindowFunc, changePageFunc)
-							refreshWindowFunc()
-							return
-						})
-					}),
+	drawHeader(ctx, func(){
+		s.backButton.Draw(ctx, func(){
+			s.createWalletPage.isShowingSeedPage = false
+			s.createWalletPage.Render(ctx, refreshWindowFunc, changePageFunc)
+			refreshWindowFunc()
+			return
+		})
+	}, func(){
+		widgets.NewLabel("Keep in mind").
+			SetWeight(text.Bold).
+			SetSize(6).
+			Draw(ctx)
+	})
+
+	drawBody(ctx, nil, func(){
+		outerTopInset := float32(0)
+		for index := range s.reminderScreen.checkboxes {
+			currentIndex := index 
+
+			inset := layout.Inset{
+				Top: unit.Dp(outerTopInset),
+				Left: unit.Dp(10),
+			}
+			inset.Layout(ctx, func(){
+				layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
 					layout.Rigid(func(){
 						inset := layout.Inset{
 							Top: unit.Dp(10),
 						}
 						inset.Layout(ctx, func(){
-							widgets.NewLabel("Keep in mind").SetWeight(text.Bold).SetSize(6).Draw(ctx)
+							ctx.Constraints.Width.Min = 38
+							s.reminderScreen.checkboxes[currentIndex].Draw(ctx)
 						})
 					}),
-				)
-			}),
-		)
-	})
-
-	inset = layout.Inset{
-		Top: unit.Dp(45),
-		Left: unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		s.drawReminderItems(ctx, refreshWindowFunc)
-	})
-
-	inset = layout.Inset{
-		Top: unit.Dp(410),
-	}
-	inset.Layout(ctx, func(){
-		bounds := image.Point{
-			X: 700,
-			Y: 400,
-		}
-		helper.PaintArea(ctx, helper.WhiteColor, bounds)
-
-		inset := layout.UniformInset(unit.Dp(20))
-		inset.Layout(ctx, func(){
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			ctx.Constraints.Height.Min = 50
-
-			bgcol := helper.DecredLightBlueColor 
-			if !s.hasCheckedAllReminders() {
-				bgcol = helper.GrayColor
-			}
-
-			s.reminderScreen.viewSeedButton.
-				SetBackgroundColor(bgcol).
-				Draw(ctx, func(){
-					if s.hasCheckedAllReminders() {
-						s.currentScreen = "seedPhraseScreen"
-						refreshWindowFunc()
-					}
-				})
-		})
-	})
-}
-
-func (s *SeedPage) drawReminderItems(ctx *layout.Context, refreshWindowFunc func()) {
-	outerTopInset := 0
-	for index := range s.reminderScreen.checkboxes {
-		cindex := index
-
-		inset := layout.Inset{
-			Top: unit.Dp(float32(outerTopInset)),
-			Left: unit.Dp(10),
-		}
-		inset.Layout(ctx, func(){
-			layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-				layout.Rigid(func(){
-					inset := layout.Inset{
-						Top: unit.Dp(10),
-					}
-					inset.Layout(ctx, func(){
-						ctx.Constraints.Width.Min = 38
-						s.reminderScreen.checkboxes[cindex].Draw(ctx)
-					})
-				}),
-				layout.Rigid(func(){
-					innerTopInset := 0
-					for i := range s.reminderScreen.labels[cindex] {
-						inset := layout.Inset{
-							Top: unit.Dp(float32(innerTopInset)),
-							Left: unit.Dp(40),
+					layout.Rigid(func(){
+						innerTopInset := float32(0.0)
+						for i := range s.reminderScreen.labels[currentIndex] {
+							inset := layout.Inset{
+								Top: unit.Dp(innerTopInset),
+								Left: unit.Dp(40),
+							}
+							inset.Layout(ctx, func(){
+								s.reminderScreen.labels[currentIndex][i].Draw(ctx)
+							})
+							innerTopInset += 18.0
 						}
-						inset.Layout(ctx, func(){
-							s.reminderScreen.labels[cindex][i].Draw(ctx)
-						})
-						innerTopInset += 18
-					}
-				}),
-			)
-		})
-		outerTopInset += (25 * len(s.reminderScreen.labels[cindex])) + 7
-	}
+					}),
+				)
+				outerTopInset += 25 * float32(len(s.reminderScreen.labels[currentIndex]))
+			})
+		}
+	})
+
+	drawFooter(ctx, func(){
+		ctx.Constraints.Height.Min = 50
+
+		bgcol := helper.DecredLightBlueColor 
+		if !s.hasCheckedAllReminders() {
+			bgcol = helper.GrayColor
+		}
+
+		s.reminderScreen.viewSeedButton.
+			SetBackgroundColor(bgcol).
+			Draw(ctx, func(){
+				if s.hasCheckedAllReminders() {
+					s.currentScreen = "seedPhraseScreen"
+					refreshWindowFunc()
+				}
+			})
+	})
 }
 
 func (s *SeedPage) hasCheckedAllReminders() bool {
@@ -313,75 +272,24 @@ func (s *SeedPage) hasCheckedAllReminders() bool {
 	return true
 }
 
-func (s *SeedPage) hasSelectedAllVerifyWords() bool {
-	for i := range s.verifyScreen.options {
-		if s.verifyScreen.options[i].Selected() == "" {
-			return false
-		}
-	}
-	return true
-}
-
 func (s *SeedPage) drawSeedPhraseScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
-	inset := layout.Inset{
-		Top: unit.Dp(0),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		layout.Stack{}.Layout(ctx, 
-			layout.Expanded(func(){
-				layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
-					layout.Rigid(func(){
-						ctx.Constraints.Width.Min = 50
-						s.backButton.Draw(ctx, func(){
-							s.currentScreen = "reminderScreen"
-						})
-					}),
-					layout.Rigid(func(){
-						inset := layout.Inset{}
-						inset.Layout(ctx, func(){
-							widgets.NewLabel("Write down seed phrase").SetWeight(text.Bold).SetSize(6).Draw(ctx)
-						})
-
-						inset = layout.Inset{
-							Top: unit.Dp(23),
-						}
-						inset.Layout(ctx, func(){
-							widgets.NewLabel("Step 1/2").SetSize(4).Draw(ctx)
-						})
-					}),
-				)
-			}),
-		)
+	drawHeader(ctx, func(){
+		s.backButton.Draw(ctx, func(){
+			s.currentScreen = "reminderScreen"
+		})
+	}, func(){
+		widgets.NewLabel("Write down seed phrase").SetWeight(text.Bold).SetSize(6).Draw(ctx)
+		inset := layout.Inset{
+			Top: unit.Dp(23),
+		}
+		inset.Layout(ctx, func(){
+			widgets.NewLabel("Step 1/2").SetSize(4).Draw(ctx)
+		})
 	})
 
-	
-	inset = layout.Inset{
-		Top: unit.Dp(48),
-		Left: unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		widgets.NewLabel("Write down all 33 words in the correct order.").
-			SetSize(5).
-			Draw(ctx)
-	})	
-
-	seedCardHeight := ctx.Constraints.Height.Max - 175
-
-	inset = layout.Inset{
-		Top: unit.Dp(68),
-		Left: unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		bounds := image.Point{
-			X: ctx.Constraints.Width.Max,
-			Y: seedCardHeight - 20,
-		}
-		helper.PaintArea(ctx, helper.WhiteColor, bounds)
-
+	drawCardBody(ctx, 
+		widgets.NewLabel("Write down all 33 words in the correct order.").SetSize(5),
+	func(){
 		layout.Stack{}.Layout(ctx, 
 			layout.Expanded(func(){
 				inset := layout.Inset{
@@ -422,28 +330,16 @@ func (s *SeedPage) drawSeedPhraseScreen(ctx *layout.Context, refreshWindowFunc f
 		)
 	})
 
-	inset = layout.Inset{
-		Top: unit.Dp(float32(seedCardHeight + 60)),
-	}
-	inset.Layout(ctx, func(){
-		bounds := image.Point{
-			X: ctx.Constraints.Width.Max,
-			Y: 200,
-		}
-		helper.PaintArea(ctx, helper.WhiteColor, bounds)
-
-		inset := layout.UniformInset(unit.Dp(20))
+	drawFooter(ctx, func(){
+		inset := layout.UniformInset(unit.Dp(-15))
+		inset.Left = unit.Dp(20)
 		inset.Layout(ctx, func(){
 			widgets.NewLabel("You will be asked to enter the seed phrase on the next screen").SetSize(5).Draw(ctx)
 		})
-
 		inset = layout.Inset{
-			Top: unit.Dp(45),
-			Left: unit.Dp(20),
-			Right: unit.Dp(20),
+			Top: unit.Dp(5),
 		}
 		inset.Layout(ctx, func(){
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max 
 			ctx.Constraints.Height.Min = 50
 			s.seedScreen.goToVerifyScreenButton.Draw(ctx, func(){
 				s.currentScreen = "verifySeedPhraseScreen"
@@ -453,161 +349,152 @@ func (s *SeedPage) drawSeedPhraseScreen(ctx *layout.Context, refreshWindowFunc f
 	})
 }
 
-func (s *SeedPage) drawVerifySeedPhraseScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
-	inset := layout.Inset{
-		Top: unit.Dp(0),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		layout.Stack{}.Layout(ctx, 
-			layout.Expanded(func(){
-				layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
-					layout.Rigid(func(){
-						ctx.Constraints.Width.Min = 50
-						s.backButton.Draw(ctx, func(){
-							s.currentScreen = "seedPhraseScreen"
-							s.verifyScreen.failedVerification = false
-						})
-					}),
-					layout.Rigid(func(){
-						inset := layout.Inset{}
-						inset.Layout(ctx, func(){
-							widgets.NewLabel("Verify seed phrase").SetWeight(text.Bold).SetSize(6).Draw(ctx)
-						})
-
-						inset = layout.Inset{
-							Top: unit.Dp(23),
-						}
-						inset.Layout(ctx, func(){
-							widgets.NewLabel("Step 2/2").SetSize(4).Draw(ctx)
-						})
-					}),
-				)
-			}),
-		)
-	})
-
-	
-	topInset := float32(48) 
-	inset = layout.Inset{
-		Top: unit.Dp(topInset),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-
-	inset.Layout(ctx, func(){
-		widgets.NewLabel("Select the correct words to verify.").
-			SetSize(5).
-			Draw(ctx)
-	})
-
-	if s.verifyScreen.failedVerification {
-		inset = layout.Inset{
-			Top: unit.Dp(topInset+20),
+func drawColumn(ctx *layout.Context, words []string, currentItem *int) {
+	topInset := 0
+	for i := range words {
+		inset := layout.Inset{
+			Top: unit.Dp(float32(topInset)),
 		}
 		inset.Layout(ctx, func(){
-			bounds := image.Point{
-				X: ctx.Constraints.Width.Max,
-				Y: 30,
-			}
-			helper.PaintArea(ctx, helper.DangerColor, bounds)
-
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			widgets.NewLabel("Failed to verify. Please go through every word and try again").
+			widgets.NewLabel(strconv.Itoa(*currentItem) + ") " + words[i]).
+				SetWeight(text.Bold).
 				SetSize(5).
-				SetColor(helper.WhiteColor).
-				SetAlignment(widgets.AlignMiddle).
 				Draw(ctx)
 		})
-		topInset += 30
+		topInset += 26
+		*currentItem++
 	}
+}
 
-	inset = layout.Inset{
-		Top: unit.Dp(topInset + 20),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
-	}
-	inset.Layout(ctx, func(){
-		ctx.Constraints.Height.Max = ctx.Constraints.Height.Max - 80
-		(&layout.List{Axis: layout.Vertical}).Layout(ctx, len(s.verifyScreen.options), func(i int){
+
+func (s *SeedPage) drawVerifySeedPhraseScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+	drawHeader(ctx, func(){
+		s.backButton.Draw(ctx, func(){
+			s.currentScreen = "seedPhraseScreen"
+			s.verifyScreen.failedVerification = false
+		})
+	}, func(){
+		widgets.NewLabel("Verify seed phrase").SetWeight(text.Bold).SetSize(6).Draw(ctx)
+		
+		inset := layout.Inset{
+			Top: unit.Dp(23),
+		}
+		inset.Layout(ctx, func(){
+			widgets.NewLabel("Step 2/2").SetSize(4).Draw(ctx)
+		})
+	})
+
+	drawCardBody(ctx, 
+		widgets.NewLabel("Select the correct words to verify.").SetSize(5),
+	func(){
+		topInset := float32(0)
+
+		if s.verifyScreen.failedVerification {
 			inset := layout.Inset{
-				Top: unit.Dp(float32(5)),
+				Top: unit.Dp(topInset),
 			}
 			inset.Layout(ctx, func(){
-				ctx.Constraints.Height.Min = 37
-				bounds := image.Point{
-					X: ctx.Constraints.Width.Max,
-					Y: 190,
-				}
-				helper.PaintArea(ctx, helper.WhiteColor, bounds)
-				
+				helper.PaintArea(ctx, helper.DangerColor, ctx.Constraints.Width.Max, 30)
+
+				ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+				widgets.NewLabel("Failed to verify. Please go through every word and try again").
+					SetSize(5).
+					SetColor(helper.WhiteColor).
+					SetAlignment(widgets.AlignMiddle).
+					Draw(ctx)
+			})
+			topInset += 30
+		}
+
+		inset := layout.Inset{
+			Top: unit.Dp(topInset),
+		}
+		inset.Layout(ctx, func(){
+			ctx.Constraints.Height.Max = ctx.Constraints.Height.Max - 80
+			(&layout.List{Axis: layout.Vertical}).Layout(ctx, len(s.verifyScreen.options), func(i int){
 				inset := layout.Inset{
 					Top: unit.Dp(5),
-					Left: unit.Dp(7),
 				}
 				inset.Layout(ctx, func(){
-					txt := strconv.Itoa(i+1) + ")"
-					lbl := widgets.NewLabel(txt).SetSize(4).SetWeight(text.Bold).SetColor(helper.GrayColor)
-					selectedText := s.verifyScreen.options[i].Selected()
-					if selectedText == "" {
-						txt += " ..."
-					} else {
-						txt += " " + selectedText
-					}
-					lbl.SetText(txt).Draw(ctx)
-				})
-
-				inset = layout.Inset{
-					Top: unit.Dp(27),
-					Left: unit.Dp(10),
-				}
-				inset.Layout(ctx, func(){
-					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max 
-					s.verifyScreen.options[i].Draw(ctx)
-				})
+					ctx.Constraints.Height.Min = 37
+					helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 190)
 				
+					inset := layout.Inset{
+						Top: unit.Dp(5),
+						Left: unit.Dp(7),
+					}
+					inset.Layout(ctx, func(){
+						txt := strconv.Itoa(i+1) + ")"
+						lbl := widgets.NewLabel(txt).SetSize(4).SetWeight(text.Bold).SetColor(helper.GrayColor)
+						selectedText := s.verifyScreen.options[i].Selected()
+						if selectedText == "" {
+							txt += " ..."
+						} else {
+							txt += " " + selectedText
+						}
+						lbl.SetText(txt).Draw(ctx)
+					})
+
+					inset = layout.Inset{
+						Top: unit.Dp(27),
+						Left: unit.Dp(10),
+					}
+					inset.Layout(ctx, func(){
+						ctx.Constraints.Width.Min = ctx.Constraints.Width.Max 
+						s.verifyScreen.options[i].Draw(ctx)
+					})
+				
+				})
 			})
 		})
 	})
 
-	inset = layout.Inset{
-		Top: unit.Dp(410),
-	}
-	inset.Layout(ctx, func(){
-		bounds := image.Point{
-			X: ctx.Constraints.Width.Max,
-			Y: 200,
+	drawFooter(ctx, func(){
+		ctx.Constraints.Height.Min = 50
+
+		bgcol := helper.DecredLightBlueColor 
+		if !s.hasSelectedAllVerifyWords() {
+			bgcol = helper.GrayColor
 		}
-		helper.PaintArea(ctx, helper.WhiteColor, bounds)
-		inset := layout.UniformInset(unit.Dp(20))
-		inset.Layout(ctx, func(){
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			ctx.Constraints.Height.Min = 50
 
-			bgcol := helper.DecredLightBlueColor 
-			if !s.hasSelectedAllVerifyWords() {
-				bgcol = helper.GrayColor
-			}
-
-			s.verifyScreen.verifyButton.
-				SetBackgroundColor(bgcol).
-				Draw(ctx, func(){
-					if !s.hasSelectedAllVerifyWords() {
-						s.verifyScreen.failedVerification = false
-						if s.doVerify() {
-							s.currentScreen = "successScreen"
-						} else {
-							s.verifyScreen.failedVerification = true
-						}
-						refreshWindowFunc()
+		s.verifyScreen.verifyButton.
+			SetBackgroundColor(bgcol).
+			Draw(ctx, func(){
+				if s.hasSelectedAllVerifyWords() {
+					s.verifyScreen.failedVerification = false
+					if s.doVerify() {
+						s.currentScreen = "successScreen"
+					} else {
+						s.verifyScreen.failedVerification = true
 					}
-				})
-		})
+					refreshWindowFunc()
+				}
+			})
+
 	})
 }
 
-func (s *SeedPage) showSuccessScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (s *SeedPage) hasSelectedAllVerifyWords() bool {
+	for i := range s.verifyScreen.options {
+		if s.verifyScreen.options[i].Selected() == "" {
+			return false
+		}
+	}
+	return true
+}
+
+
+func (s *SeedPage) doVerify() bool {
+	for i := range s.verifyScreen.options {
+		if s.verifyScreen.options[i].Selected() != s.seedScreen.words[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *SeedPage) drawSuccessScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
 	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 	layout.Stack{}.Layout(ctx, 
 		layout.Expanded(func(){
@@ -680,31 +567,4 @@ func (s *SeedPage) showSuccessScreen(ctx *layout.Context, refreshWindowFunc func
 			})
 		}),
 	)
-}
-
-func (s *SeedPage) doVerify() bool {
-	for i := range s.verifyScreen.options {
-		if s.verifyScreen.options[i].Selected() != s.seedScreen.words[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func drawColumn(ctx *layout.Context, words []string, currentItem *int) {
-	topInset := 0
-	for i := range words {
-		inset := layout.Inset{
-			Top: unit.Dp(float32(topInset)),
-		}
-		inset.Layout(ctx, func(){
-			widgets.NewLabel(strconv.Itoa(*currentItem) + ") " + words[i]).
-				SetWeight(text.Bold).
-				SetSize(5).
-				Draw(ctx)
-		})
-		topInset += 26
-		*currentItem++
-	}
 }

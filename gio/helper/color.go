@@ -26,7 +26,12 @@ var (
 	BackgroundColor = color.RGBA{243, 245, 246, 255}
 )
 
-func PaintArea(ctx *layout.Context, color color.RGBA, bounds image.Point) {
+func PaintArea(ctx *layout.Context, color color.RGBA, x int, y int) {
+	bounds := image.Point{
+		X: x,
+		Y: y,
+	}
+	
 	paint.ColorOp{
 		Color: color,
 	}.Add(ctx.Ops)

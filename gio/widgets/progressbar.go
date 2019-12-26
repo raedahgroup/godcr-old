@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"image"
 	"image/color"
 
 	"gioui.org/layout"
@@ -47,23 +46,15 @@ func (p *ProgressBar) SetProgressColor(col color.RGBA) *ProgressBar {
 func (p *ProgressBar) Draw(ctx *layout.Context, progress *float64) {
 	layout.Stack{}.Layout(ctx, 
 		layout.Stacked(func(){
-			containerBounds := image.Point{
-				X: ctx.Constraints.Width.Max,
-				Y: p.height,
-			}
-			helper.PaintArea(ctx, p.backgroundColor, containerBounds)
+			helper.PaintArea(ctx, p.backgroundColor, ctx.Constraints.Width.Max, p.height)
 			// calculate width of indicator with respects to progress bar width
-			indicatorWidth := float64(*progress) / float64(100) * float64(containerBounds.X)
+			indicatorWidth := float64(*progress) / float64(100) * float64(ctx.Constraints.Width.Max)
 		
-			if indicatorWidth > float64(containerBounds.X) {
-				indicatorWidth = float64(containerBounds.X)
+			if indicatorWidth > float64(ctx.Constraints.Width.Max) {
+				indicatorWidth = float64(ctx.Constraints.Width.Max)
 			}
 
-			indicatorBounds := image.Point{
-				X: int(indicatorWidth),
-				Y: p.height,
-			}
-			helper.PaintArea(ctx, p.progressColor, indicatorBounds)
+			helper.PaintArea(ctx, p.progressColor, int(indicatorWidth), p.height)
 		}),
 	)
 }

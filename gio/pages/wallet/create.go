@@ -59,6 +59,7 @@ func NewCreateWalletPage(multiWallet *dcrlibwallet.MultiWallet) *CreateWalletPag
 		pinInput         : editor.NewInput("Pin").SetMask("*").Numeric(),
 		confirmPinInput  : editor.NewInput("Confirm Pin").SetMask("*").Numeric(),
 	}
+	
 	formTabContainer := widgets.NewTabContainer().AddTab("Password").AddTab("PIN")
 
 	c := &CreateWalletPage{
@@ -231,12 +232,12 @@ func (w *CreateWalletPage) createWalletAndShowSeedPage() {
 	doneChan := make(chan bool)
 
 	go func(){
-		wallet, err := w.multiWallet.CreateNewWallet(w.passwordTab.passwordInput.Text(), 0)
+		/**wallet, err := w.multiWallet.CreateNewWallet(w.passwordTab.passwordInput.Text(), 0)
 		if err != nil {
 			w.err = err 
 			return
 		}
-		w.seed = wallet.Seed
+		w.seed = wallet.Seed**/
 		doneChan <- true
 	}()
 	

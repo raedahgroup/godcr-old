@@ -2,7 +2,6 @@ package gio
 
 import (
 	"fmt"
-	"image"
 	_ "image/png"
 	"log"
 	"os"
@@ -175,11 +174,7 @@ func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 }
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
-	windowBounds := image.Point{
-		X: windowWidth,
-		Y: windowHeight,
-	}
-	helper.PaintArea(ctx, helper.BackgroundColor, windowBounds)
+	helper.PaintArea(ctx, helper.BackgroundColor, windowWidth, windowHeight)
 
 	inset := layout.Inset{}
 	inset.Layout(ctx, func(){
