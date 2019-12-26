@@ -48,7 +48,7 @@ func (t *TabContainer) Draw(ctx *layout.Context, renderFuncs ...func(*layout.Con
 		Top: unit.Dp(25),
 	}
 	inset.Layout(ctx, func(){
-		// todo make sure number of render funcs match number of tabs
+		// TODO make sure number of render funcs match number of tabs
 		renderFuncs[t.currentTabIndex](ctx)
 	})
 }

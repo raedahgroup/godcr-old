@@ -22,6 +22,7 @@ type (
 		padding   unit.Value
 		size      unit.Value
 		button    *widget.Button 
+		isClickable  bool
 	}
 )
 
@@ -32,11 +33,17 @@ func NewCheckbox() *Checkbox {
 		button:    new(widget.Button),
 		padding:   unit.Dp(5),
 		size:      unit.Dp(26),
+		isClickable: true,
 	}
 }
 
 func (c *Checkbox) IsChecked() bool {
 	return c.isChecked
+}
+
+func (c *Checkbox) MakeAsIcon() *Checkbox {
+	c.isClickable = false
+	return c
 }
 
 func (c *Checkbox) toggleCheckState() {
@@ -47,12 +54,26 @@ func (c *Checkbox) toggleCheckState() {
 	c.isChecked = true
 }
 
+func (c *Checkbox) SetSize(size float32) *Checkbox {
+	c.size = unit.Dp(size)
+	return c
+}
+
+func (c *Checkbox) SetPadding(padding float32) *Checkbox {
+	c.padding = unit.Dp(padding)
+	return c
+}
+
 func (c *Checkbox) Draw(ctx *layout.Context) {
 	for c.button.Clicked(ctx) {
 		c.toggleCheckState()
 	}
 
 	bgcol := helper.DecredGreenColor
+	if !c.isClickable {
+		c.isChecked = true
+	}
+
 	if !c.isChecked {
 		bgcol = helper.WhiteColor
 	}
@@ -61,7 +82,7 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 	vmin := ctx.Constraints.Height.Min
 	layout.Stack{Alignment: layout.Center}.Layout(ctx, 
 		layout.Expanded(func(){
-			ctx.Constraints.Width.Min = 36
+			//ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 			ctx.Constraints.Height.Min = ctx.Constraints.Width.Min
 			size   := float32(ctx.Constraints.Width.Min) 
 			rr     := float32(size) * .5
@@ -113,8 +134,10 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 					}
 				})
 			})
-			pointer.Ellipse(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
-			c.button.Layout(ctx)
+			if c.isClickable {
+				pointer.Ellipse(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
+				c.button.Layout(ctx)
+			}
 		}),
 	)
 }

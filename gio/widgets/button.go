@@ -88,6 +88,11 @@ func NewButton(txt string, icon *Icon) *Button {
 	return btn
 }
 
+func (b *Button) SetText(txt string) *Button {
+	b.text = txt 
+	return b
+}
+
 func (b *Button) SetPadding(padding int)  *Button {
 	b.padding = unit.Dp(float32(padding))
 	return b

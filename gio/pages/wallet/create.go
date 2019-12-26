@@ -40,7 +40,10 @@ type (
 		createButton         *widgets.Button
 
 		seedPage			 *SeedPage
+		seed 				 string
 		isShowingSeedPage    bool
+		isCreating           bool
+		err 				 error
 	}
 )
 
@@ -68,7 +71,7 @@ func NewCreateWalletPage(multiWallet *dcrlibwallet.MultiWallet) *CreateWalletPag
 		isShowingSeedPage :  false,
 	}
 
-	c.seedPage =  NewSeedPage(multiWallet, c)
+	c.seedPage =  NewSeedPage(c)
 	return c
 }
 
@@ -77,6 +80,7 @@ func (w *CreateWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(),
 	w.refreshWindowFunc = refreshWindowFunc
 
 	if w.isShowingSeedPage {
+		w.seedPage.prepare(w.seed)
 		w.seedPage.render(ctx, w.refreshWindowFunc, changePageFunc)
 	} else {
 		inset := layout.Inset{
@@ -189,14 +193,20 @@ func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
 							})
 						}),
 						layout.Rigid(func(){
+							createButton := w.createButton 
+							txt := "Create"
+							
 							bgCol := helper.GrayColor 
 							if bothPasswordsMatch && w.passwordTab.confirmPasswordInput.Len() > 0 {
 								bgCol = helper.DecredLightBlueColor
+							} else if w.isCreating {
+								bgCol = helper.GrayColor
+								txt = "Creating..."
 							}
-							w.createButton.SetBackgroundColor(bgCol).Draw(ctx, func(){
+
+							createButton.SetBackgroundColor(bgCol).SetText(txt).Draw(ctx, func(){
 								if bothPasswordsMatch && w.passwordTab.confirmPasswordInput.Len() > 0 {
-									w.isShowingSeedPage = true 
-									w.refreshWindowFunc()
+									w.createWalletAndShowSeedPage()
 								}
 							})
 						}),
@@ -209,6 +219,31 @@ func (w *CreateWalletPage) passwordRenderFunc(ctx *layout.Context) {
 
 func (w *CreateWalletPage) pinRenderFunc(ctx *layout.Context) {
 	
+}
+
+func (w *CreateWalletPage) createWalletAndShowSeedPage() {
+	w.isCreating = true
+	w.refreshWindowFunc()
+	defer func(){
+		w.isCreating = false
+	}()
+	
+	doneChan := make(chan bool)
+
+	go func(){
+		wallet, err := w.multiWallet.CreateNewWallet(w.passwordTab.passwordInput.Text(), 0)
+		if err != nil {
+			w.err = err 
+			return
+		}
+		w.seed = wallet.Seed
+		doneChan <- true
+	}()
+	
+	<-doneChan
+
+	w.isShowingSeedPage = true 
+	w.refreshWindowFunc()
 }
 
 func (w *CreateWalletPage) resetAndGotoPage(page string) {
