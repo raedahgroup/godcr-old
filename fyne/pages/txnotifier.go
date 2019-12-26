@@ -32,25 +32,33 @@ func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnecte
 func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
 	overviewHandler.SyncProgress = float64(headersFetchProgress.FetchedHeadersCount) / float64(headersFetchProgress.TotalHeadersToFetch)
 	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress*100) / 100
-	overviewHandler.StepsChannel <- headersFetchProgress.HeadersFetchProgress
+	if headersFetchProgress.HeadersFetchProgress == 100 && overviewHandler.Steps == 0 {
+		overviewHandler.StepsChannel <- headersFetchProgress.HeadersFetchProgress
+		overviewHandler.UpdateSyncSteps(true)
+	}
 	overviewHandler.UpdateBlockHeadersSync(headersFetchProgress.HeadersFetchProgress, true)
-	overviewHandler.UpdateSyncSteps(true)
+	go overviewHandler.UpdateWalletsSyncBox(app.multiWallet)
 }
 
 func (app *multiWalletTxListener) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
-	overviewHandler.StepsChannel <- addressDiscoveryProgress.AddressDiscoveryProgress
-	overviewHandler.UpdateSyncSteps(true)
+	if addressDiscoveryProgress.AddressDiscoveryProgress == 100 {
+		overviewHandler.StepsChannel <- addressDiscoveryProgress.AddressDiscoveryProgress
+		overviewHandler.UpdateSyncSteps(true)
+	}
 }
 
 func (app *multiWalletTxListener) OnHeadersRescanProgress(headersRescanProgress *dcrlibwallet.HeadersRescanProgressReport) {
-	overviewHandler.StepsChannel <- headersRescanProgress.RescanProgress
-	overviewHandler.UpdateSyncSteps(true)
+	if headersRescanProgress.RescanProgress == 100 {
+		overviewHandler.StepsChannel <- headersRescanProgress.RescanProgress
+		overviewHandler.UpdateSyncSteps(true)
+	}
 }
 
 func (app *multiWalletTxListener) OnSyncCompleted() {
-	fmt.Printf("\n calling from completed \n \n")
 	overviewHandler.SyncProgress = 1
 	go overviewHandler.UpdateBlockStatusBox(app.multiWallet)
+	go overviewHandler.UpdateBalance(app.multiWallet)
+	go overviewHandler.UpdateTransactions(app.multiWallet, handler.TransactionUpdate{})
 }
 
 func (app *multiWalletTxListener) OnSyncCanceled(willRestart bool) {
