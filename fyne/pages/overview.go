@@ -48,16 +48,18 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	}()
 
 	overviewHandler.Container = ov.container()
-	return widget.NewHBox(widgets.NewHSpacer(18), overviewHandler.Container)
+	return widget.NewHBox(widgets.NewHSpacer(values.Padding), overviewHandler.Container, widgets.NewHSpacer(values.Padding))
 }
 
 func (ov *overview) container() fyne.CanvasObject {
 	overviewHandler.PageBoxes = ov.pageBoxes()
 	overviewContainer := widget.NewVBox(
+		widgets.NewVSpacer(values.Padding),
 		title(),
 		balance(),
 		widgets.NewVSpacer(25),
 		overviewHandler.PageBoxes,
+		widgets.NewVSpacer(values.Padding),
 	)
 	return overviewContainer
 }
@@ -91,14 +93,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	)
 }
 
-func (ov *overview) blockStatusBox() fyne.CanvasObject {
-	overviewHandler.BlockStatusSyncing = ov.blockStatusBoxSyncing()
-	overviewHandler.BlockStatusSynced = ov.blockStatusBoxSynced()
-	overviewHandler.BlockStatus = fyne.NewContainerWithLayout(layout.NewVBoxLayout())
-	return overviewHandler.BlockStatus
-}
-
-func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
+func (ov *overview) initializeBlockStatusWidgets() {
 	syncStatusText := widgets.NewSmallText("Syncing...", values.DefaultTextColor)
 	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{})
@@ -107,7 +102,9 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  0%", fyne.TextAlignTrailing, fyne.TextStyle{})
 	walletSyncInfo := fyne.NewContainerWithLayout(layout.NewHBoxLayout())
 	walletSyncScrollContainer := widget.NewScrollContainer(walletSyncInfo)
-	cancelButton := widget.NewButton("Cancel", func() {overviewHandler.CancelSync(ov.multiWallet)})
+	cancelButton := widget.NewButton("Cancel", func() { overviewHandler.CancelSync(ov.multiWallet)})
+	blockHeightTime := widget.NewLabelWithStyle("Latest block 0 . 0s ago", fyne.TextAlignLeading, fyne.TextStyle{})
+	overviewHandler.BlockHeightTime = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 
 	overviewHandler.SyncStatusWidget = syncStatusText
 	overviewHandler.TimeLeftWidget = timeLeft
@@ -118,53 +115,59 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 	overviewHandler.WalletSyncInfo = walletSyncInfo
 	overviewHandler.Scroll = walletSyncScrollContainer
 	overviewHandler.CancelButton = cancelButton
-	overviewHandler.BlockHeightTime = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
+	overviewHandler.BlockHeightTime = blockHeightTime
+}
+
+func (ov *overview) blockStatusBox() fyne.CanvasObject {
+	ov.initializeBlockStatusWidgets()
+	overviewHandler.BlockStatusSyncing = ov.blockStatusBoxSyncing()
+	overviewHandler.BlockStatusSynced = ov.blockStatusBoxSynced()
+	overviewHandler.BlockStatus = fyne.NewContainerWithLayout(layout.NewVBoxLayout())
+	return overviewHandler.BlockStatus
+}
+
+func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
+	h := overviewHandler
 	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
 		widget.NewHBox(
-			syncStatusText,
+			widgets.NewHSpacer(values.NilSpacer),
+			h.SyncStatusWidget,
 			layout.NewSpacer(),
-			cancelButton,
+			h.CancelButton,
 		))
 	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
-		progressBar,
-	)
-	syncDuration := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, timeLeft, connectedPeers),
-		timeLeft, connectedPeers)
-	syncStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, syncSteps, blockHeadersStatus),
-		syncSteps, blockHeadersStatus)
+		h.ProgressBar)
+	syncDuration := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, h.TimeLeftWidget, h.ConnectedPeersWidget),
+		h.TimeLeftWidget, h.ConnectedPeersWidget)
+	syncStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, h.SyncStepWidget, h.BlockHeadersWidget),
+		h.SyncStepWidget, h.BlockHeadersWidget)
 
-	blockStatus := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		widgets.NewVSpacer(5),
 		top,
 		progressBarContainer,
 		syncDuration,
 		syncStatus,
 		widgets.NewVSpacer(15),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(510, 80)), walletSyncScrollContainer),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(510, 80)), h.Scroll),
 	)
-	return blockStatus
 }
 
 func (ov *overview) blockStatusBoxSynced() fyne.CanvasObject {
-	syncStatusText := widgets.NewSmallText("Synced", color.Black)
-	blockHeightTime := widget.NewLabelWithStyle("Latest block 0 . 0s ago", fyne.TextAlignLeading, fyne.TextStyle{})
-
-	overviewHandler.SyncStatusWidget = syncStatusText
-	overviewHandler.BlockHeightTime = blockHeightTime
+	h := overviewHandler
 	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-			syncStatusText,
-			layout.NewSpacer())
-	syncedStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, blockHeightTime, overviewHandler.ConnectedPeersWidget),
-		blockHeightTime, overviewHandler.ConnectedPeersWidget)
+		widgets.NewHSpacer(values.NilSpacer),
+		h.SyncStatusWidget,
+		layout.NewSpacer())
+	syncedStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, h.BlockHeightTime, h.ConnectedPeersWidget),
+		h.BlockHeightTime, h.ConnectedPeersWidget)
 
-	blockStatus := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+	return fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		widgets.NewVSpacer(5),
 		top,
 		syncedStatus,
 		widgets.NewVSpacer(15),
 	)
-	overviewHandler.BlockStatus = blockStatus
-	return blockStatus
 }
 
 func title() fyne.CanvasObject {
