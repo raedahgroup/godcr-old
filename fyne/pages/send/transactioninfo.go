@@ -1,4 +1,4 @@
-package sendpagehandler
+package send
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

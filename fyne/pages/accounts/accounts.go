@@ -1,10 +1,10 @@
-package pages
+package accounts
 
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
 
-func accountsPageContent() fyne.CanvasObject {
+func PageContent() fyne.CanvasObject {
 	return widget.NewLabelWithStyle("Accounts", fyne.TextAlignLeading, fyne.TextStyle{Bold: true, Italic: true})
 }

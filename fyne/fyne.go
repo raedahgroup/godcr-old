@@ -2,12 +2,12 @@ package fyne
 
 import (
 	"fmt"
+	"github.com/raedahgroup/godcr/fyne/pages"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 
 	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/pages"
 )
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {

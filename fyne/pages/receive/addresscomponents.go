@@ -1,4 +1,4 @@
-package receivepagehandler
+package receive
 
 import (
 	"fyne.io/fyne"
@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

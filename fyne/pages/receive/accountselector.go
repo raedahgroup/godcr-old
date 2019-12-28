@@ -1,11 +1,11 @@
-package receivepagehandler
+package receive
 
 import (
 	"time"
 
 	"fyne.io/fyne"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

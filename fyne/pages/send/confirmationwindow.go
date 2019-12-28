@@ -1,4 +1,4 @@
-package sendpagehandler
+package send
 
 import (
 	"errors"
@@ -15,8 +15,8 @@ import (
 
 	"github.com/raedahgroup/godcr/fyne/assets"
 	"github.com/raedahgroup/godcr/fyne/layouts"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

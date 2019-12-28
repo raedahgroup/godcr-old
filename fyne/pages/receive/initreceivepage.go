@@ -1,4 +1,4 @@
-package receivepagehandler
+package receive
 
 import (
 	"fyne.io/fyne"
@@ -9,8 +9,8 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/skip2/go-qrcode"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

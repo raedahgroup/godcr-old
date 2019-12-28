@@ -1,12 +1,11 @@
-package pages
+package overview
 
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
-	"github.com/raedahgroup/godcr/fyne/pages/handler"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"image/color"
 	"sort"
 	"time"
@@ -19,36 +18,41 @@ const historyPageIndex = 1
 const PageTitle = "overview"
 
 type overview struct {
-	app          *AppInterface
 	multiWallet  *dcrlibwallet.MultiWallet
 	walletIds    []int
 	transactions []dcrlibwallet.Transaction
+	tabMenu 	 *widget.TabContainer
 }
 
-var overviewHandler = &handler.OverviewHandler{}
+var overviewHandler = &Handler{}
 
-func overviewPageContent(app *AppInterface) fyne.CanvasObject {
+func PageContent(mw *dcrlibwallet.MultiWallet, tabMenu *widget.TabContainer) (content fyne.CanvasObject, handler *Handler) {
 	ov := &overview{}
-	ov.app = app
 	//app.Window.Resize(fyne.NewSize(650, 680))
-	ov.multiWallet = app.MultiWallet
+	ov.multiWallet = mw
+	ov.tabMenu = tabMenu
 	ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
 	if len(ov.walletIds) == 0 {
-		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		content = widget.NewHBox(
+			widgets.NewHSpacer(10),
+			widget.NewLabelWithStyle("Could not retrieve wallets", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
+		return
 	}
 	sort.Ints(ov.walletIds)
 
 	defer func() {
-		go overviewHandler.UpdateBalance(app.MultiWallet)
-		go overviewHandler.UpdateBlockStatusBox(app.MultiWallet)
+		go overviewHandler.UpdateBalance(mw)
+		go overviewHandler.UpdateBlockStatusBox(mw)
 	}()
 	go func() {
 		time.Sleep(200 * time.Millisecond)
-		overviewHandler.UpdateWalletsSyncBox(app.MultiWallet)
+		overviewHandler.UpdateWalletsSyncBox(mw)
 	}()
 
 	overviewHandler.Container = ov.container()
-	return widget.NewHBox(widgets.NewHSpacer(values.Padding), overviewHandler.Container, widgets.NewHSpacer(values.Padding))
+	handler = overviewHandler
+	content = widget.NewHBox(widgets.NewHSpacer(values.Padding), overviewHandler.Container, widgets.NewHSpacer(values.Padding))
+	return
 }
 
 func (ov *overview) container() fyne.CanvasObject {
@@ -76,7 +80,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	table := &widgets.Table{}
 	table.NewTable(transactionRowHeader())
 	overviewHandler.Table = table
-	overviewHandler.UpdateTransactions(ov.multiWallet, handler.TransactionUpdate{})
+	overviewHandler.UpdateTransactions(ov.multiWallet, TransactionUpdate{})
 	return widget.NewVBox(
 		table.Result,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
@@ -84,7 +88,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 			widgets.NewClickableBox(
 				widget.NewHBox(widget.NewLabelWithStyle("see all", fyne.TextAlignCenter, fyne.TextStyle{})),
 				func() {
-					ov.app.tabMenu.SelectTabIndex(historyPageIndex)
+					ov.tabMenu.SelectTabIndex(historyPageIndex)
 				},
 			),
 			widgets.NewVSpacer(40),

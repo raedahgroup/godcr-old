@@ -1,4 +1,4 @@
-package sendpagehandler
+package send
 
 import (
 	"fyne.io/fyne/canvas"
@@ -7,7 +7,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 )
 
 func (sendPage *SendPageObjects) initFromAccountSelector() error {

@@ -1,4 +1,4 @@
-package sendpagehandler
+package send
 
 import (
 	"image/color"
@@ -11,7 +11,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/values"
 )
 
 // sendingToDestinationComponents constitutes all components that composes sending coins to users or self.
