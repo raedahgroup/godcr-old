@@ -55,7 +55,7 @@ func (app *AppInterface) DisplayMainWindow() {
 	app.Window.SetFixedSize(true)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
-	// go overview.overviewHandler.PreserveSyncSteps()
+	go app.handlers.overviewHandler.PreserveSyncSteps()
 	app.Window.ShowAndRun()
 	app.tearDown()
 }
