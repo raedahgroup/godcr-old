@@ -61,7 +61,7 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 			status = "Confirmed"
 		}
 
-		trimmedHash := tx.Hash[:10] + "..." + tx.Hash[len(tx.Hash)-5:]
+		trimmedHash := tx.Hash[:10] + "..." + tx.Hash[len(tx.Hash)-10:]
 		txForTrimmedHash := tx.Hash
 		txDirectionIcon := widget.NewIcon(historyPage.icons[helpers.TxDirectionIcon(tx.Direction)])
 		txBox = append(txBox, widget.NewHBox(

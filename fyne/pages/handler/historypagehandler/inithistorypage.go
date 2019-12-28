@@ -85,7 +85,7 @@ func (historyPage *HistoryPageData) InitHistoryPage() error {
 	historyPage.HistoryPageContents.Append(widget.NewHBox(txSortFilterDropDown, widgets.NewHSpacer(30), txFilterDropDown))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(5))
 	historyPage.HistoryPageContents.Append(historyPage.errorLabel)
-	historyPage.HistoryPageContents.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(historyPage.txTable.Result.MinSize().Width+30, historyPage.txTable.Container.MinSize().Height+450)), historyPage.txTable.Container))
+	historyPage.HistoryPageContents.Append(fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(historyPage.txTable.Result.MinSize().Width+15, historyPage.txTable.Container.MinSize().Height+450)), historyPage.txTable.Container))
 	historyPage.HistoryPageContents.Append(widgets.NewVSpacer(15))
 	return nil
 }
