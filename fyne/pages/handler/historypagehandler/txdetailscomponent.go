@@ -112,52 +112,65 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 		)
 	}
 
-	tableConfirmations := widget.NewHBox(
-		widget.NewLabelWithStyle("Confirmations:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(strconv.Itoa(int(confirmations)), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
+	// tableConfirmations := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Confirmations:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(strconv.Itoa(int(confirmations)), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
 
-	tableHash := widget.NewHBox(
-		widget.NewLabelWithStyle("Transaction ID:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		textObject(txDetails.Hash, true, fyne.TextAlignCenter, false),
-	)
+	// tableHash := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Transaction ID:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// textObject(txDetails.Hash, true, fyne.TextAlignCenter, false),
+	// )
 
-	tableBlockHeight := widget.NewHBox(
-		widget.NewLabelWithStyle("Block Height:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(strconv.Itoa(int(txDetails.BlockHeight)), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableDirection := widget.NewHBox(
-		widget.NewLabelWithStyle("Direction:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(txDetails.Direction), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableType := widget.NewHBox(
-		widget.NewLabelWithStyle("Type:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(txDetails.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableAmount := widget.NewHBox(
-		widget.NewLabelWithStyle("Amount:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Amount).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableSize := widget.NewHBox(
-		widget.NewLabelWithStyle("Size:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(strconv.Itoa(txDetails.Size)+" Bytes", fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableFee := widget.NewHBox(
-		widget.NewLabelWithStyle("Fee:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableFeeRate := widget.NewHBox(
-		widget.NewLabelWithStyle("Fee Rate:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.FeeRate).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableStatus := widget.NewHBox(
-		widget.NewLabelWithStyle("Status:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(status, fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
-	tableDate := widget.NewHBox(
-		widget.NewLabelWithStyle("Date:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
-		widget.NewLabelWithStyle(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(txDetails.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
-	)
+	// tableBlockHeight := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Block Height:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// widget.NewLabelWithStyle(strconv.Itoa(int(txDetails.BlockHeight)), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableDirection := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Direction:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(txDetails.Direction), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableType := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Type:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// widget.NewLabelWithStyle(txDetails.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableAmount := widget.NewHBox(
+	// widget.NewLabelWithStyle("Amount:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Amount).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableSize := widget.NewHBox(
+	// widget.NewLabelWithStyle("Size:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(strconv.Itoa(txDetails.Size)+" Bytes", fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableFee := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Fee:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableFeeRate := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Fee Rate:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(dcrutil.Amount(txDetails.FeeRate).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableStatus := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Status:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(status, fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+	// tableDate := widget.NewHBox(
+	// 	widget.NewLabelWithStyle("Date:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+	// 	widget.NewLabelWithStyle(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(txDetails.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
+	// )
+
+	txDetailsForm := widget.NewForm()
+	txDetailsForm.Append("Fee: ", widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Fee).String(), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Date: ", widget.NewLabelWithStyle(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(txDetails.Timestamp)), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Type: ", widget.NewLabelWithStyle(txDetails.Type, fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Size: ", widget.NewLabelWithStyle(strconv.Itoa(txDetails.Size)+" Bytes", fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Amount: ", widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Amount).String(), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Status: ", widget.NewLabelWithStyle(status, fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Fee Rate: ", widget.NewLabelWithStyle(dcrutil.Amount(txDetails.FeeRate).String(), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Direction: ", widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(txDetails.Direction), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Block Height: ", widget.NewLabelWithStyle(strconv.Itoa(int(txDetails.BlockHeight)), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Confirmations: ", widget.NewLabelWithStyle(strconv.Itoa(int(confirmations)), fyne.TextAlignLeading, fyne.TextStyle{}))
+	txDetailsForm.Append("Transaction ID: ", textObject(txDetails.Hash, true, fyne.TextAlignLeading, false))
 
 	var txInput widgets.Table
 	inputTableColumnLabels := widget.NewHBox(
@@ -193,19 +206,19 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 	}
 	txOutput.NewTable(outputTableColumnLabels, outputBox...)
 
-	tableData := widget.NewVBox(
-		tableConfirmations,
-		tableHash,
-		tableBlockHeight,
-		tableDirection,
-		tableType,
-		tableAmount,
-		tableSize,
-		tableFee,
-		tableFeeRate,
-		tableStatus,
-		tableDate,
-	)
+	// tableData := widget.NewVBox(
+	// 	tableConfirmations,
+	// 	tableHash,
+	// 	tableBlockHeight,
+	// 	tableDirection,
+	// 	tableType,
+	// 	tableAmount,
+	// 	tableSize,
+	// 	tableFee,
+	// 	tableFeeRate,
+	// 	tableStatus,
+	// 	tableDate,
+	// )
 
 	link, err := url.Parse(fmt.Sprintf("https://%s.dcrdata.org/tx/%s", values.NetType, txDetails.Hash))
 	if err != nil {
@@ -222,7 +235,8 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 
 	txDetailsData := widget.NewVBox(
 		widgets.NewHSpacer(10),
-		tableData,
+		// tableData,
+		txDetailsForm,
 		canvas.NewLine(values.TxdetailsLineColor),
 		redirectWidget,
 		widgets.NewHSpacer(10),
