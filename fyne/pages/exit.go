@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"fmt"
+	"log"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/theme"
@@ -16,7 +16,7 @@ func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 
 	yesButton := widget.NewButtonWithIcon("Yes", theme.ConfirmIcon(), func() {
 		app.Window.Close()
-		fmt.Println("Exited fyne")
+		log.Println("Exited fyne")
 	})
 	noButton := widget.NewButtonWithIcon("No", theme.CancelIcon(), func() {
 		app.tabMenu.SelectTabIndex(0)
