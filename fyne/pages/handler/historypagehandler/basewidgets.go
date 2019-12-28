@@ -23,23 +23,32 @@ func (historyPage *HistoryPageData) initBaseObjects() error {
 	// infoPopUp creates a popup with history page hint-text
 	var infoIcon *widgets.ImageButton
 	infoIcon = widgets.NewImageButton(historyPage.icons[assets.InfoIcon], nil, func() {
-		infoLabel := widget.NewLabelWithStyle(values.PageHint, fyne.TextAlignLeading, fyne.TextStyle{Monospace: true})
+		infoLabel := canvas.NewText(values.TxdetailsHint, values.DefaultTextColor)
+		infoLabel.TextSize = 12
+		infoLabel.TextStyle = fyne.TextStyle{Monospace: true}
+
+		info2Label := canvas.NewText(values.CopyHint, values.DefaultTextColor)
+		info2Label.TextSize = 12
+		info2Label.TextStyle = fyne.TextStyle{Monospace: true}
+
 		gotItLabel := canvas.NewText(values.GotIt, values.Blue)
 		gotItLabel.TextStyle = fyne.TextStyle{Bold: true}
-		gotItLabel.TextSize = 14
+		gotItLabel.TextSize = 12
 
 		var infoPopUp *widget.PopUp
 		infoPopUp = widget.NewPopUp(widget.NewVBox(
-			widgets.NewVSpacer(5),
-			widget.NewHBox(widgets.NewHSpacer(5), infoLabel, widgets.NewHSpacer(5)),
-			widgets.NewVSpacer(5),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { infoPopUp.Hide() }), widgets.NewHSpacer(5)),
-			widgets.NewVSpacer(5),
+			widgets.NewVSpacer(values.SpacerSize2),
+			widget.NewHBox(widgets.NewHSpacer(values.SpacerSize2), infoLabel, widgets.NewHSpacer(values.SpacerSize2)),
+			widgets.NewVSpacer(values.SpacerSize2),
+			widget.NewHBox(widgets.NewHSpacer(values.SpacerSize2), info2Label, widgets.NewHSpacer(values.SpacerSize2)),
+			widgets.NewVSpacer(values.SpacerSize2),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewVBox(gotItLabel), func() { infoPopUp.Hide() }), widgets.NewHSpacer(values.SpacerSize2)),
+			widgets.NewVSpacer(values.SpacerSize2),
 		), historyPage.Window.Canvas())
 
-		infoPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(infoIcon).Add(fyne.NewPos(0, infoIcon.Size().Height)))
+		infoPopUp.Move(fyne.CurrentApp().Driver().AbsolutePositionForObject(infoIcon).Add(fyne.NewPos(10, infoIcon.MinSize().Height+5).Subtract(fyne.NewPos(infoPopUp.MinSize().Width, 0))))
 	})
 
-	historyPage.HistoryPageContents.Append(widget.NewHBox(historyTitleLabel, widgets.NewHSpacer(110), infoIcon))
+	historyPage.HistoryPageContents.Append(widget.NewHBox(historyTitleLabel, layout.NewSpacer(), infoIcon, widgets.NewHSpacer(values.SpacerSize10)))
 	return nil
 }

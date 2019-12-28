@@ -76,7 +76,7 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 		status = "Pending"
 	}
 
-	textObject := func(text string, copyAble bool, bold bool) *widgets.ClickableBox {
+	textObject := func(text string, copyAble bool, align fyne.TextAlign, bold bool) *widgets.ClickableBox {
 		var textToCopy *canvas.Text
 		if copyAble {
 			if strings.Contains(text, ":") {
@@ -94,7 +94,7 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 			textToCopy.TextStyle = fyne.TextStyle{Bold: true}
 		}
 		textToCopy.TextSize = 14
-		textToCopy.Alignment = fyne.TextAlignTrailing
+		textToCopy.Alignment = align
 
 		return widgets.NewClickableBox(widget.NewHBox(textToCopy),
 			func() {
@@ -113,109 +113,98 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 	}
 
 	tableConfirmations := widget.NewHBox(
-		textObject("Confirmations:", false, true),
-		textObject(strconv.Itoa(int(confirmations)), false, false),
+		widget.NewLabelWithStyle("Confirmations:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(strconv.Itoa(int(confirmations)), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 
 	tableHash := widget.NewHBox(
-		textObject("Transaction ID:", false, true),
-		textObject(txDetails.Hash, true, false),
+		widget.NewLabelWithStyle("Transaction ID:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		textObject(txDetails.Hash, true, fyne.TextAlignCenter, false),
 	)
 
 	tableBlockHeight := widget.NewHBox(
-		textObject("Block Height:", false, true),
-		textObject(strconv.Itoa(int(txDetails.BlockHeight)), false, false),
+		widget.NewLabelWithStyle("Block Height:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(strconv.Itoa(int(txDetails.BlockHeight)), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableDirection := widget.NewHBox(
-		textObject("Direction:", false, true),
-		textObject(dcrlibwallet.TransactionDirectionName(txDetails.Direction), false, false),
+		widget.NewLabelWithStyle("Direction:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(dcrlibwallet.TransactionDirectionName(txDetails.Direction), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableType := widget.NewHBox(
-		textObject("Type:", false, true),
-		textObject(txDetails.Type, false, false),
+		widget.NewLabelWithStyle("Type:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(txDetails.Type, fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableAmount := widget.NewHBox(
-		textObject("Amount:", false, true),
-		textObject(dcrutil.Amount(txDetails.Amount).String(), false, false),
+		widget.NewLabelWithStyle("Amount:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Amount).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableSize := widget.NewHBox(
-		textObject("Size:", false, true),
-		textObject(strconv.Itoa(txDetails.Size)+" Bytes", false, false),
+		widget.NewLabelWithStyle("Size:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(strconv.Itoa(txDetails.Size)+" Bytes", fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableFee := widget.NewHBox(
-		textObject("Fee:", false, true),
-		textObject(dcrutil.Amount(txDetails.Fee).String(), false, false),
+		widget.NewLabelWithStyle("Fee:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableFeeRate := widget.NewHBox(
-		textObject("Fee Rate:", false, true),
-		textObject(dcrutil.Amount(txDetails.FeeRate).String(), false, false),
+		widget.NewLabelWithStyle("Fee Rate:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(dcrutil.Amount(txDetails.FeeRate).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableStatus := widget.NewHBox(
-		textObject("Status:", false, true),
-		textObject(status, false, false),
+		widget.NewLabelWithStyle("Status:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(status, fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 	tableDate := widget.NewHBox(
-		textObject("Date:", false, true),
-		textObject(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(txDetails.Timestamp)), false, false),
+		widget.NewLabelWithStyle("Date:", fyne.TextAlignTrailing, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(fmt.Sprintf("%s UTC", dcrlibwallet.FormatUTCTime(txDetails.Timestamp)), fyne.TextAlignCenter, fyne.TextStyle{}),
 	)
 
 	var txInput widgets.Table
 	inputTableColumnLabels := widget.NewHBox(
-		textObject("Previous Outpoint", false, true),
-		textObject("Account", false, true),
-		textObject("Amount", false, true))
+		widget.NewLabelWithStyle("Previous Outpoint", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 
 	var inputBox []*widget.Box
 	for i := range txDetails.Inputs {
 		inputBox = append(inputBox, widget.NewHBox(
-			textObject(txDetails.Inputs[i].PreviousOutpoint, true, false),
-			textObject(txDetails.Inputs[i].AccountName, false, false),
-			textObject(dcrutil.Amount(txDetails.Inputs[i].Amount).String(), false, false),
+			textObject(txDetails.Inputs[i].PreviousOutpoint, true, fyne.TextAlignCenter, false),
+			textObject(txDetails.Inputs[i].AccountName, false, fyne.TextAlignCenter, false),
+			textObject(dcrutil.Amount(txDetails.Inputs[i].Amount).String(), false, fyne.TextAlignTrailing, false),
 		))
 	}
 	txInput.NewTable(inputTableColumnLabels, inputBox...)
 
 	var txOutput widgets.Table
 	outputTableColumnLabels := widget.NewHBox(
-		textObject("Address", false, true),
-		textObject("Account", false, true),
-		textObject("Value", false, true),
-		textObject("Type", false, true))
+		widget.NewLabelWithStyle("Account", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Address", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Value", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Type", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
 
 	var outputBox []*widget.Box
 	for i := range txDetails.Outputs {
 		outputBox = append(outputBox, widget.NewHBox(
-			textObject(txDetails.Outputs[i].AccountName, false, false),
-			textObject(txDetails.Outputs[i].Address, true, false),
-			textObject(dcrutil.Amount(txDetails.Outputs[i].Amount).String(), false, false),
-			textObject(txDetails.Outputs[i].ScriptType, false, false),
+			textObject(txDetails.Outputs[i].AccountName, false, fyne.TextAlignCenter, false),
+			textObject(txDetails.Outputs[i].Address, true, fyne.TextAlignCenter, false),
+			textObject(dcrutil.Amount(txDetails.Outputs[i].Amount).String(), false, fyne.TextAlignTrailing, false),
+			textObject(txDetails.Outputs[i].ScriptType, false, fyne.TextAlignCenter, false),
 		))
 	}
 	txOutput.NewTable(outputTableColumnLabels, outputBox...)
 
 	tableData := widget.NewVBox(
 		tableConfirmations,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableHash,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableBlockHeight,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableDirection,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableType,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableAmount,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableSize,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableFee,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableFeeRate,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableStatus,
-		widgets.NewVSpacer(values.SpacerSize4),
 		tableDate,
-		widgets.NewVSpacer(values.SpacerSize4),
 	)
 
 	link, err := url.Parse(fmt.Sprintf("https://%s.dcrdata.org/tx/%s", values.NetType, txDetails.Hash))
@@ -227,38 +216,38 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 
 	redirectWidget := widget.NewHBox(
 		widget.NewHyperlinkWithStyle("View on dcrdata", link, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		widgets.NewHSpacer(values.SpacerSize20),
+		widgets.NewHSpacer(20),
 		widget.NewIcon(historyPage.icons[assets.RedirectIcon]),
 	)
 
 	txDetailsData := widget.NewVBox(
-		widgets.NewHSpacer(values.SpacerSize10),
+		widgets.NewHSpacer(10),
 		tableData,
 		canvas.NewLine(values.TxdetailsLineColor),
 		redirectWidget,
-		widgets.NewHSpacer(values.SpacerSize10),
+		widgets.NewHSpacer(10),
 		canvas.NewLine(values.TxdetailsLineColor),
 		widget.NewLabelWithStyle("Inputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txInput.Result,
-		widgets.NewHSpacer(values.SpacerSize10),
+		widgets.NewHSpacer(10),
 		canvas.NewLine(values.TxdetailsLineColor),
 		widget.NewLabelWithStyle("Outputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txOutput.Result,
-		widgets.NewHSpacer(values.SpacerSize20),
-		widgets.NewVSpacer(values.SpacerSize10),
+		widgets.NewHSpacer(20),
+		widgets.NewVSpacer(10),
 	)
 
 	txDetailsScrollContainer := widget.NewScrollContainer(txDetailsData)
 	txDetailsOutput := widget.NewVBox(
-		widgets.NewHSpacer(values.SpacerSize10),
+		widgets.NewHSpacer(10),
 		widget.NewHBox(
 			txDetailslabel,
 			widgets.NewHSpacer(txDetailsData.MinSize().Width-180),
 			minimizeIcon,
 		),
-		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width*12), messageLabel),
+		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width*13), messageLabel),
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsData.MinSize().Width, txDetailsData.MinSize().Height-200)), txDetailsScrollContainer),
-		widgets.NewVSpacer(values.SpacerSize10),
+		widgets.NewVSpacer(10),
 	)
 
 	txDetailsPopUp = widget.NewModalPopUp(fyne.NewContainer(txDetailsOutput), historyPage.Window.Canvas())

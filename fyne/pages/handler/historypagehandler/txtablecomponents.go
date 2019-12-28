@@ -67,7 +67,7 @@ func (historyPage *HistoryPageData) fetchTx(txTable *widgets.Table, txOffset, fi
 		txBox = append(txBox, widget.NewHBox(
 			widget.NewHBox(txDirectionIcon, widget.NewLabel("")),
 			widget.NewLabelWithStyle(dcrlibwallet.ExtractDateOrTime(tx.Timestamp), fyne.TextAlignCenter, fyne.TextStyle{}),
-			widget.NewLabelWithStyle(status, fyne.TextAlignLeading, fyne.TextStyle{}),
+			widget.NewLabelWithStyle(status, fyne.TextAlignCenter, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Amount).String(), fyne.TextAlignTrailing, fyne.TextStyle{}),
 			widget.NewLabelWithStyle(dcrutil.Amount(tx.Fee).String(), fyne.TextAlignCenter, fyne.TextStyle{}),
 			widgets.NewClickableBox(widget.NewHBox(widget.NewLabelWithStyle(trimmedHash, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})), func() {
