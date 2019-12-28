@@ -1,4 +1,4 @@
-package sendpagehandler
+package send
 
 import (
 	"time"
@@ -10,8 +10,8 @@ import (
 
 	"github.com/raedahgroup/dcrlibwallet"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/pages/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 

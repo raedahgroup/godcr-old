@@ -12,8 +12,6 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
-
-	"github.com/raedahgroup/godcr/fyne/assets"
 )
 
 type AppInterface struct {
@@ -22,7 +20,8 @@ type AppInterface struct {
 	Window         fyne.Window
 	AppDisplayName string
 
-	tabMenu *widget.TabContainer
+	tabMenu  *widget.TabContainer
+	handlers *pageHandlers
 }
 
 func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
@@ -56,29 +55,23 @@ func (app *AppInterface) DisplayMainWindow() {
 	app.Window.SetFixedSize(true)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
+	go app.handlers.overviewHandler.PreserveSyncSteps()
 	app.Window.ShowAndRun()
 	app.tearDown()
 }
 
 func (app *AppInterface) setupNavigationMenu() {
-	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
-		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+	var err error
+	p := initiatePages(app.MultiWallet, app.tabMenu, app.Window)
 
+	app.handlers = p.pageHandlers()
+	app.tabMenu, err = p.NewTab()
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
 	}
 
-	app.tabMenu = widget.NewTabContainer(
-		widget.NewTabItemWithIcon("Overview", icons[assets.OverviewIcon], overviewPageContent(app)),
-		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
-	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
-
 	app.Window.SetContent(app.tabMenu)
 	go func() {
 		var currentTabIndex = 0
@@ -102,17 +95,17 @@ func (app *AppInterface) setupNavigationMenu() {
 
 			switch currentTabIndex {
 			case 0:
-				newPageContent = overviewPageContent(app)
+				newPageContent = p.overviewPage()
 			case 1:
-				newPageContent = historyPageContent()
+				newPageContent = p.historyPage()
 			case 2:
-				newPageContent = sendPageContent(app.MultiWallet, app.Window)
+				newPageContent = p.sendPage()
 			case 3:
-				newPageContent = receivePageContent(app.MultiWallet, app.Window)
+				newPageContent = p.receivePage()
 			case 4:
-				newPageContent = accountsPageContent()
+				newPageContent = p.accountsPage()
 			case 5:
-				newPageContent = stakingPageContent()
+				newPageContent = p.stakingPage()
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
