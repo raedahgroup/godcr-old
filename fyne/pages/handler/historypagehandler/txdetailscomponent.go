@@ -222,7 +222,8 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 		canvas.NewLine(values.TxdetailsLineColor),
 		widget.NewLabelWithStyle("Outputs", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		txOutput.Result,
-		widgets.NewHSpacer(10),
+		widgets.NewHSpacer(20),
+		widgets.NewVSpacer(10),
 	)
 
 	txDetailsScrollContainer := widget.NewScrollContainer(txDetailsData)
@@ -230,13 +231,13 @@ func (historyPage *HistoryPageData) fetchTxDetails(hash string) {
 		widgets.NewHSpacer(10),
 		widget.NewHBox(
 			txDetailslabel,
-			widgets.NewHSpacer(txDetailsData.MinSize().Width-200),
+			widgets.NewHSpacer(txDetailsData.MinSize().Width-260),
 			minimizeIcon,
 		),
 		widget.NewHBox(widgets.NewHSpacer(txDetailsScrollContainer.MinSize().Width*13), messageLabel),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsData.MinSize().Width, txDetailsData.MinSize().Height-200)), txDetailsScrollContainer),
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(txDetailsData.MinSize().Width-80, txDetailsData.MinSize().Height-200)), txDetailsScrollContainer),
 		widgets.NewVSpacer(10),
 	)
 
-	txDetailsPopUp = widget.NewModalPopUp(widget.NewVBox(fyne.NewContainer(txDetailsOutput)), historyPage.Window.Canvas())
+	txDetailsPopUp = widget.NewModalPopUp(fyne.NewContainer(txDetailsOutput), historyPage.Window.Canvas())
 }
