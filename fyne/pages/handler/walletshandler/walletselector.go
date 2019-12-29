@@ -17,7 +17,7 @@ import (
 )
 
 func (walletPage *WalletPageObject) accountSelector() error {
-	icons, err := assets.GetIcons(assets.Expand, assets.AccountsIcon, assets.ImportedAccount, assets.MoreIcon)
+	icons, err := assets.GetIcons(assets.Expand, assets.WalletIcon, assets.ImportedAccount, assets.MoreIcon)
 	if err != nil {
 		return err
 	}
@@ -52,28 +52,32 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 
 	walletPage.WalletTotalAmountLabel[index].Text = fmt.Sprintf(values.AmountInDCR, balanceInString)
 
-	var accountLabel fyne.CanvasObject
-
 	notBackedUpLabel := canvas.NewText("Not backed up", values.ErrorColor)
+	// add extra padding to account selector on hiding "Not backed up" due to extra VBox padding
 	extraPadding1 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 1)
 	extraPadding2 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 1)
 
 	if selectedWallet.Seed == "" {
 		notBackedUpLabel.Hide()
-		accountLabel = widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), layout.NewSpacer())
 	} else {
 		extraPadding2.Hide()
 		extraPadding1.Hide()
 	}
 
-	accountLabel = widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), notBackedUpLabel, layout.NewSpacer())
+	accountLabel := widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), notBackedUpLabel, layout.NewSpacer())
 
-	expand := canvas.NewImageFromResource(icons[assets.Expand])
-	expand.
+	expandIcon := canvas.NewImageFromResource(icons[assets.Expand])
+	expandIcon.SetMinSize(fyne.NewSize(24, 24))
+
+	walletIcon := canvas.NewImageFromResource(icons[assets.WalletIcon])
+	walletIcon.SetMinSize(fyne.NewSize(24, 24))
+
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(12),
-		expand, widgets.NewHSpacer(4),
-		widget.NewIcon(icons[assets.AccountsIcon]), widgets.NewHSpacer(12),
+		widgets.NewVBox(layout.NewSpacer(), expandIcon, layout.NewSpacer()),
+		widgets.NewHSpacer(4),
+		widgets.NewVBox(layout.NewSpacer(), walletIcon, layout.NewSpacer()),
+		widgets.NewHSpacer(12),
 		accountLabel, widgets.NewHSpacer(50),
 		layout.NewSpacer(),
 		walletPage.WalletTotalAmountLabel[index], widgets.NewHSpacer(4),
@@ -81,16 +85,13 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 
 		}), widgets.NewHSpacer(12))
 
-	fmt.Println(accountBox.MinSize())
 	toShow := widgets.NewVBox(
 		widget.NewLabel("Hello"),
 		widget.NewLabel("Hello"),
-		widget.NewLabel("Hello"),
-	)
+		widget.NewLabel("Hello"))
 	toShow.Hide()
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
-		fmt.Println("Hello")
 		walletPage.WalletPageContents.Refresh()
 		if toShow.Hidden {
 			toShow.Show()

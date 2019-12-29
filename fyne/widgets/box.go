@@ -19,13 +19,9 @@ type Box struct {
 	Children   []fyne.CanvasObject
 }
 
-func (b *Box) SetBackgroundColor(bg color.Color) {
-	b.background = bg
-	b.Refresh()
-}
-
 // Refresh updates this box to match the current theme
 func (b *Box) Refresh() {
+
 	b.BaseWidget.Refresh()
 }
 
@@ -33,14 +29,14 @@ func (b *Box) Refresh() {
 func (b *Box) Prepend(object fyne.CanvasObject) {
 	b.Children = append([]fyne.CanvasObject{object}, b.Children...)
 
-	b.BaseWidget.Refresh()
+	b.Refresh()
 }
 
 // Append adds a new CanvasObject to the end/right of the box
 func (b *Box) Append(object fyne.CanvasObject) {
 	b.Children = append(b.Children, object)
 
-	b.BaseWidget.Refresh()
+	b.Refresh()
 }
 
 // MinSize returns the size that this widget should not shrink below
@@ -60,6 +56,10 @@ func (b *Box) CreateRenderer() fyne.WidgetRenderer {
 	}
 
 	return &boxRenderer{objects: b.Children, layout: lay, box: b}
+}
+
+func (b *Box) SetBackgroundColor(bg color.Color) {
+	b.background = bg
 }
 
 // NewHBox creates a new horizontally aligned box widget with the specified list of child objects

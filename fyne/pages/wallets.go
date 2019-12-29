@@ -55,3 +55,19 @@ func initWalletDynamicContent(openedWalletIDs []int) {
 		walletPage.walletTotalAmountLabel[index] = canvas.NewText("", values.TransactionInfoColor)
 	}
 }
+
+func isAllWalletVerified(multiWallet *dcrlibwallet.MultiWallet) bool {
+	openedWalletIDs := multiWallet.OpenedWalletIDsRaw()
+	if len(openedWalletIDs) == 0 {
+		return true
+	}
+	sort.Ints(openedWalletIDs)
+
+	for _, walletID := range openedWalletIDs {
+		if multiWallet.WalletWithID(walletID).Seed != "" {
+			return false
+		}
+	}
+
+	return true
+}
