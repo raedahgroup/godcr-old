@@ -11,6 +11,8 @@ import (
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
+var initialPage int
+
 func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 	var popup *widget.PopUp
 
@@ -18,8 +20,9 @@ func (app *AppInterface) exitPageContent() fyne.CanvasObject {
 		app.Window.Close()
 		log.Println("Exited fyne")
 	})
+
 	noButton := widget.NewButtonWithIcon("No", theme.CancelIcon(), func() {
-		app.tabMenu.SelectTabIndex(0)
+		app.tabMenu.SelectTabIndex(initialPage)
 		popup.Hide()
 	})
 

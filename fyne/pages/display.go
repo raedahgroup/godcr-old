@@ -99,6 +99,7 @@ func (app *AppInterface) setupNavigationMenu() {
 				}
 			}
 			currentTabIndex = app.tabMenu.CurrentTabIndex()
+			initialPage = currentTabIndex
 			var newPageContent fyne.CanvasObject
 
 			switch currentTabIndex {
