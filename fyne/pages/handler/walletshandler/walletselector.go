@@ -103,9 +103,11 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 		widgets.NewVSpacer(12),
 		accountSelector,
 		extraPadding2,
+		widgets.NewVSpacer(4),
 		toShow,
 		widgets.NewVSpacer(4),
 	)
+
 	walletPage.walletSelectorBox.Append(widget.NewVBox(
 		textBox,
 		widgets.NewVSpacer(4),
