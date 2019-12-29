@@ -17,7 +17,7 @@ import (
 )
 
 func (walletPage *WalletPageObject) accountSelector() error {
-	icons, err := assets.GetIcons(assets.Expand, assets.WalletIcon, assets.ImportedAccount, assets.MoreIcon)
+	icons, err := assets.GetIcons(assets.Expand, assets.CollapseIcon, assets.WalletIcon, assets.ImportedAccount, assets.MoreIcon)
 	if err != nil {
 		return err
 	}
@@ -66,8 +66,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 
 	accountLabel := widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), notBackedUpLabel, layout.NewSpacer())
 
-	expandIcon := canvas.NewImageFromResource(icons[assets.Expand])
-	expandIcon.SetMinSize(fyne.NewSize(24, 24))
+	expandIcon := widget.NewIcon(icons[assets.Expand])
 
 	walletIcon := canvas.NewImageFromResource(icons[assets.WalletIcon])
 	walletIcon.SetMinSize(fyne.NewSize(24, 24))
@@ -86,28 +85,26 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 		}), widgets.NewHSpacer(12))
 
 	toShow := widgets.NewVBox(
-		widget.NewLabel("Hello"),
-		widget.NewLabel("Hello"),
-		widget.NewLabel("Hello"))
+		widget.NewLabel("To do"))
 	toShow.Hide()
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
-		walletPage.WalletPageContents.Refresh()
 		if toShow.Hidden {
+			expandIcon.SetResource(icons[assets.CollapseIcon])
 			toShow.Show()
 		} else {
+			expandIcon.SetResource(icons[assets.Expand])
 			toShow.Hide()
 		}
-		walletPage.WalletPageContents.Refresh()
 	})
 
 	textBox := widgets.NewVBox(
 		extraPadding1,
 		widgets.NewVSpacer(12),
 		accountSelector,
-		toShow,
-		widgets.NewVSpacer(12),
 		extraPadding2,
+		toShow,
+		widgets.NewVSpacer(4),
 	)
 	walletPage.walletSelectorBox.Append(widget.NewVBox(
 		textBox,
