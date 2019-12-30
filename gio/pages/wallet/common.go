@@ -71,6 +71,7 @@ func drawCardBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
 			Top: unit.Dp(0),
 		}
 		inset.Layout(ctx, func(){
+			ctx.Constraints.Height.Min = 400
 			helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, bodyHeight + 20)
 			bodyFunc()
 		})
@@ -83,7 +84,7 @@ func drawFooter(ctx *layout.Context, footerFunc func()) {
 		Top: unit.Dp(float32(bodyHeight + 120)),
 	}
 	inset.Layout(ctx, func(){
-		helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 200)
+		helper.PaintFooter(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 200)
 		inset := layout.UniformInset(unit.Dp(20))
 		inset.Layout(ctx, func(){
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max

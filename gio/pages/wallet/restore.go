@@ -6,7 +6,6 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/layout"
-	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
@@ -22,7 +21,7 @@ type (
 	}
 
 	RestoreWalletPage struct {
-		multiWallet   *dcrlibwallet.MultiWallet 
+		multiWallet   *helper.MultiWallet 
 		changePageFunc func(string)
 		currentScreen  string
 		
@@ -36,7 +35,7 @@ type (
 )
 
 
-func NewRestoreWalletPage(multiWallet *dcrlibwallet.MultiWallet) *RestoreWalletPage {
+func NewRestoreWalletPage(multiWallet *helper.MultiWallet) *RestoreWalletPage {
 	w := &RestoreWalletPage{
 		multiWallet  : multiWallet,
 		currentScreen: "verifySeedScreen",
@@ -85,7 +84,18 @@ func (w *RestoreWalletPage) create() {
 			seed += w.restoreScreen.inputs[i].Text() + " "
 		}
 
-		_, w.err = w.multiWallet.RestoreWallet(seed, w.pinAndPasswordWidget.Value(), 0)
+		password := w.pinAndPasswordWidget.Value()
+
+		wallet, err := w.multiWallet.RestoreWallet(seed, password, 0)
+		if err != nil {
+			w.err = err 
+			return
+		}
+
+		w.err = wallet.UnlockWallet([]byte(password))
+		if w.err == nil {
+			w.multiWallet.RegisterWalletID(wallet.ID)
+		}
 	}()
 
 	<-doneChan
@@ -151,7 +161,7 @@ func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWin
 			})
 
 			inset = layout.Inset{
-				Top: unit.Dp(430),
+				Top: unit.Dp(450),
 			}
 			inset.Layout(ctx, func(){
 				w.backToWalletsButton.SetWidth(ctx.Constraints.Width.Max).Draw(ctx, func(){
@@ -263,7 +273,6 @@ func (w *RestoreWalletPage) renderPasswordScreen(ctx *layout.Context) {
 
 func (w *RestoreWalletPage) hasEnteredAllSeedWords() bool {
 	for i := range w.restoreScreen.inputs {
-		w.restoreScreen.inputs[i].SetText("eee")
 		if w.restoreScreen.inputs[i].Text() == "" {
 			return false
 		}

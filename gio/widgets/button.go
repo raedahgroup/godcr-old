@@ -244,6 +244,19 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 	)
 }
 
+func (ic *Icon) SetColor(col color.RGBA) *Icon {
+	ic.color = col
+	return ic
+}
+
+func (ic *Icon) Draw(ctx *layout.Context, size int) {
+	ico := ic.image(size)
+	ico.Add(ctx.Ops)
+	paint.PaintOp{
+		Rect: f32.Rectangle{Max: toPointF(ico.Size())},
+	}.Add(ctx.Ops)
+}
+
 
 func (ic *Icon) image(sz int) paint.ImageOp {
 	if sz == ic.imgSize {

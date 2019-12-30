@@ -15,6 +15,7 @@ import (
 
 	"github.com/raedahgroup/godcr/gio/giolog"
 	"github.com/raedahgroup/godcr/gio/helper"
+	"github.com/raedahgroup/godcr/gio/pages/common"
 	//"github.com/raedahgroup/godcr/gio/widgets"
 )
 
@@ -27,8 +28,8 @@ type (
 		currentPage    string
 		pageChanged    bool
 		appDisplayName string
-		multiWallet    *dcrlibwallet.MultiWallet
-		syncer         *Syncer
+		multiWallet    *helper.MultiWallet
+		syncer         *common.Syncer
 	}
 )
 
@@ -36,7 +37,9 @@ const (
 	windowWidth  = 520
 	windowHeight = 530
 
-	navSectionWidth = 120
+
+
+	navSectionHeight = 70
 )
 
 func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
@@ -52,6 +55,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 
 	app := &desktop{
 		currentPage: "overview",
+		pageChanged: true,
 	}
 
 	theme := helper.GetTheme()
@@ -61,7 +65,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		return
 	}
 	
-	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := LoadWallet(appDataDir, netType) 
+	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := helper.LoadWallet(appDataDir, netType) 
 	if err != nil {
 		// todo show error in UI
 		giolog.Log.Errorf(err.Error())
@@ -72,10 +76,10 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	if shouldCreateOrRestoreWallet {
 		app.currentPage = "welcome"
 	} else if shouldPromptForPass {
-		app.currentPage = "passphrase"
+		//app.currentPage = "passphrase"
 	}
 
-	app.syncer = NewSyncer(app.multiWallet, app.refreshWindow)
+	app.syncer = common.NewSyncer(app.multiWallet, app.refreshWindow)
 	app.multiWallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
 
 	app.prepareHandlers()
@@ -131,6 +135,8 @@ func (d *desktop) renderLoop() error {
 }
 
 func (d *desktop) render(ctx *layout.Context) {
+	helper.PaintArea(ctx, helper.BackgroundColor, windowWidth, windowHeight)
+
 	// first check if current page is standalone and render 
 	if page, ok := d.standalonePages[d.currentPage]; ok {
 		d.renderStandalonePage(page, ctx)
@@ -145,7 +151,7 @@ func (d *desktop) render(ctx *layout.Context) {
 
 		if d.pageChanged {
 			d.pageChanged = false
-			page.handler.BeforeRender(d.multiWallet)
+			page.handler.BeforeRender(d.syncer, d.multiWallet)
 		}
 		d.renderNavPage(page, ctx)
 	}
@@ -153,29 +159,20 @@ func (d *desktop) render(ctx *layout.Context) {
 }
 
 func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
-	/**flex := layout.Flex{
-		Axis: layout.Horizontal,
-	}
-
-	navChild := flex.Rigid(ctx, func() {
-		d.renderNavSection(ctx)
-	})
-
-	contentChild := flex.Rigid(ctx, func() {
-		inset := layout.Inset{
-			Left: unit.Dp(-353),
-		}
-		inset.Layout(ctx, func(){
-			d.renderContentSection(page, ctx)
-		})
-	})
-
-	flex.Layout(ctx, navChild, contentChild)**/
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func(){
+			inset := layout.UniformInset(unit.Dp(15))
+			inset.Layout(ctx, func(){
+				page.handler.Render(ctx, d.refreshWindow)
+			})
+		}),
+		layout.Stacked(func(){
+			d.renderNavSection(ctx)
+		}),
+	)
 }
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
-	helper.PaintArea(ctx, helper.BackgroundColor, windowWidth, windowHeight)
-
 	inset := layout.Inset{}
 	inset.Layout(ctx, func(){
 		layout.Stack{Alignment: layout.NW}.Layout(ctx,
@@ -189,52 +186,17 @@ func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.C
 	})
 }
 
-func (d *desktop) renderNavSection(ctx *layout.Context) {
-	/**navAreaBounds := image.Point{
-		X: navSectionWidth,
-		Y: windowHeight * 2,
-	}
-	helper.PaintArea(ctx, helper.DecredDarkBlueColor, navAreaBounds)
-
+func (d *desktop) renderNavSection(ctx *layout.Context) {	
 	inset := layout.Inset{
-		Top:  unit.Dp(0),
-		Left: unit.Dp(0),
-		Right: unit.Dp(float32(navAreaBounds.X)),
+		Top: unit.Dp(windowHeight - navSectionHeight),
 	}
-	inset.Layout(ctx, func() {
-		var stack layout.Stack
-		children := make([]layout.StackChild, len(d.pages))
+	inset.Layout(ctx, func(){
+		helper.PaintFooter(ctx, helper.WhiteColor, windowWidth, navSectionHeight)
 
-		currentPositionTop := float32(0)
-		navButtonHeight := float32(30)
-
-		for index, page := range d.pages {
-			children[index] = stack.Rigid(ctx, func() {
-				inset := layout.Inset{
-					Top:   unit.Dp(currentPositionTop),
-				}
-
-				c := ctx.Constraints
-				inset.Layout(ctx, func() {
-					ctx.Constraints.Width.Min = navAreaBounds.X
-					page.button.Draw(ctx, widgets.AlignMiddle, func(){
-						d.changePage(page.name)
-					})
-				})
-				ctx.Constraints = c
-			})
-			currentPositionTop += navButtonHeight
-		}
-		stack.Layout(ctx, children...)
-	})**/
-}
-
-func (d *desktop) renderContentSection(page navPage, ctx *layout.Context) {
-	if d.multiWallet.IsSyncing() {
-		d.syncer.Render(ctx)
-	} else {
-		page.handler.Render(ctx, d.refreshWindow)
-	}
+		 layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
+			// TODO loop through and layout nav items
+		)
+	})
 }
 
 func (d *desktop) refreshWindow() {

@@ -3,7 +3,6 @@ package wallet
 import (
 	"gioui.org/unit"
 	"gioui.org/layout"
-	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets/security"
@@ -11,7 +10,7 @@ import (
 
 type (
 	CreateWalletPage struct {
-		multiWallet          *dcrlibwallet.MultiWallet 
+		multiWallet          *helper.MultiWallet 
 		changePageFunc		  func(string)
 		refreshWindowFunc     func()
 
@@ -25,7 +24,7 @@ type (
 	}
 )
 
-func NewCreateWalletPage(multiWallet *dcrlibwallet.MultiWallet) *CreateWalletPage {
+func NewCreateWalletPage(multiWallet *helper.MultiWallet) *CreateWalletPage {
 	c := &CreateWalletPage{
 		multiWallet         :  multiWallet,
 		isShowingSeedPage   :  false,
@@ -75,6 +74,7 @@ func (w *CreateWalletPage) create() {
 			return
 		}
 		w.seed = wallet.Seed 
+		w.multiWallet.RegisterWalletID(wallet.ID)
 	}()
 	
 	<-doneChan 

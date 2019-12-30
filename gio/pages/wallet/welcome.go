@@ -3,7 +3,6 @@ package wallet
 import (
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
@@ -11,13 +10,13 @@ import (
 
 type (
 	WelcomePage struct {
-		multiWallet *dcrlibwallet.MultiWallet
+		multiWallet *helper.MultiWallet
 		createWalletButton  *widgets.Button 
 		restoreWalletButton *widgets.Button
 	}
 )
 
-func NewWelcomePage(multiWallet *dcrlibwallet.MultiWallet) *WelcomePage {
+func NewWelcomePage(multiWallet *helper.MultiWallet) *WelcomePage {
 	return &WelcomePage{
 		multiWallet        :  multiWallet,
 		createWalletButton :  widgets.NewButton("Create a new wallet", widgets.AddIcon).SetBackgroundColor(helper.DecredLightBlueColor),

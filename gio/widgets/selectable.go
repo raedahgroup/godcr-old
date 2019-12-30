@@ -26,6 +26,19 @@ func NewSelectable(items []string) *Selectable {
 		items: btns,
 	}
 }
+ 
+func (s *Selectable) Select(index int) {
+	for i := range s.items {
+		if index == i {
+			s.selected = s.items[i].text 
+			break
+		}
+	}
+}
+
+func (s *Selectable) SelectText(txt string) {
+	s.selected = txt
+}
 
 func (s *Selectable) Selected() string {
 	return s.selected

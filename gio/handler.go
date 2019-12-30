@@ -3,9 +3,11 @@ package gio
 import (
 	"gioui.org/layout"
 
-	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/gio/widgets"
+	"github.com/raedahgroup/godcr/gio/pages"
+	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/pages/wallet"
+	"github.com/raedahgroup/godcr/gio/pages/common"
 )
 
 type standalonePageHandler interface {
@@ -13,8 +15,8 @@ type standalonePageHandler interface {
 }
 
 type navPageHandler interface {
-	BeforeRender(*dcrlibwallet.MultiWallet)
-	Render(ctx *layout.Context, refreshWindowFunc func())
+	BeforeRender(*common.Syncer, *helper.MultiWallet)
+	Render(*layout.Context, func())
 }
 
 type navPage struct {
@@ -24,7 +26,7 @@ type navPage struct {
 	handler   navPageHandler
 }
 
-func getStandalonePages(multiWallet *dcrlibwallet.MultiWallet) map[string]standalonePageHandler {
+func getStandalonePages(multiWallet *helper.MultiWallet) map[string]standalonePageHandler {
 	return map[string]standalonePageHandler{
 		"welcome"      : wallet.NewWelcomePage(multiWallet),
 		"createwallet" : wallet.NewCreateWalletPage(multiWallet),
@@ -38,7 +40,7 @@ func getNavPages() []navPage {
 			name:      "overview",
 			label:     "Overview",
 			button:     widgets.NewButton("Overview", nil),
-			handler:   &notImplementedNavPageHandler{"Overview"},
+			handler:  	pages.NewOverviewPage(),
 		},
 		{
 			name:      "history",
@@ -83,7 +85,7 @@ type notImplementedNavPageHandler struct {
 	pageTitle string
 }
 
-func (_ *notImplementedNavPageHandler) BeforeRender(_ *dcrlibwallet.MultiWallet) {
+func (_ *notImplementedNavPageHandler) BeforeRender(_ *common.Syncer, _ *helper.MultiWallet) {
 
 }
 
