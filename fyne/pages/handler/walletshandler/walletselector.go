@@ -33,7 +33,11 @@ func (walletPage *WalletPageObject) accountSelector() error {
 		}
 	}
 
-	walletPage.WalletPageContents.Append(walletPage.walletSelectorBox)
+	scrollableSelectorBox := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(
+		fyne.NewSize(walletPage.walletSelectorBox.MinSize().Width+20, walletPage.Window.Content().MinSize().Height)),
+		widget.NewScrollContainer(widget.NewHBox(walletPage.walletSelectorBox, widgets.NewHSpacer(values.Padding))))
+
+	walletPage.WalletPageContents.Append(scrollableSelectorBox)
 	return nil
 }
 
