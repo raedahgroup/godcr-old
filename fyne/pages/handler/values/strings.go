@@ -19,7 +19,7 @@ const (
 	ZeroByte                      = "0 bytes"
 	ZeroAmount                    = "0"
 	AmountInDCR                   = "%s DCR"
-	HDPathFormat                  = "m / 44' / 11'/ %d'"
+	HDPathFormat                  = "m / 44’ / 11’ / %d"
 	// Base Object
 	GotIt      = "Got it"
 	ClearField = "Clear all fields"

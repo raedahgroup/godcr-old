@@ -26,7 +26,8 @@ type WalletPageObject struct {
 	WalletPageContents *widget.Box
 	MultiWallet        *dcrlibwallet.MultiWallet
 
-	Window fyne.Window
+	TabMenu *widget.TabContainer
+	Window  fyne.Window
 }
 
 func (walletPage *WalletPageObject) InitWalletPage() error {

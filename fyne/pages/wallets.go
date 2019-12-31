@@ -22,7 +22,7 @@ type walletPageDynamicData struct {
 
 var walletPage walletPageDynamicData
 
-func walletPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) fyne.CanvasObject {
+func walletPageContent(tabMenu *widget.TabContainer, multiWallet *dcrlibwallet.MultiWallet, window fyne.Window) fyne.CanvasObject {
 	openedWalletIDs := multiWallet.OpenedWalletIDsRaw()
 	if len(openedWalletIDs) == 0 {
 		return widget.NewHBox(widgets.NewHSpacer(10), widget.NewLabelWithStyle(values.WalletsErr, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}))
@@ -37,6 +37,7 @@ func walletPageContent(multiWallet *dcrlibwallet.MultiWallet, window fyne.Window
 		OpenedWallets: openedWalletIDs,
 		MultiWallet:   multiWallet,
 		Window:        window,
+		TabMenu:       tabMenu,
 	}
 
 	err := initWalletPage.InitWalletPage()

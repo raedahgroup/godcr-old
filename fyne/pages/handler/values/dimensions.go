@@ -11,6 +11,7 @@ const (
 	TextSize18                 = 18
 	TextSize24                 = 24
 	TextSize20                 = 20
+	TextSize22                 = 22
 	TextSize32                 = 32
 	ConfirmationButtonTextSize = 18
 

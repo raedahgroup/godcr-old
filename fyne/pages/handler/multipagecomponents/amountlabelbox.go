@@ -27,10 +27,10 @@ func AmountFormatBox(amountInString string, textSize1, textSize2 int) *fyne.Cont
 
 	} else {
 		amountLabel := widgets.NewTextWithStyle(amountInString, values.DefaultTextColor,
-			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize24)
+			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, textSize1)
 
 		DCRLabel := widgets.NewTextWithStyle(values.DCR, values.DefaultTextColor,
-			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize14)
+			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, textSize2)
 
 		amountLabelBox.Layout = layouts.NewHBox(values.SpacerSize4, true)
 		amountLabelBox.AddObject(amountLabel)
