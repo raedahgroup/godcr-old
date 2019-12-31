@@ -209,7 +209,7 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		fmt.Println("Works")
 	})
 
-	canvasLine := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(clickableAccountBox.MinSize().Width-iconWidthSize, 1)),
+	canvasLine := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(clickableAccountBox.MinSize().Width-iconWidthSize-values.SpacerSize18, 1)),
 		canvas.NewLine(values.StrippedLineColor))
 
 	return widgets.NewVBox(
