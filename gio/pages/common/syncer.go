@@ -1,9 +1,9 @@
 package common
 
 import (
+	"fmt"
 	"image/color"
 
-	"strconv"
 	"gioui.org/f32"
 	"gioui.org/op/clip"
 	"gioui.org/layout"
@@ -26,6 +26,7 @@ type widgetItems struct {
 	reconnectButton  *widgets.Button
 	cancelButton     *widgets.Button
 	progressBar      *widgets.ProgressBar
+	disconnectButton *widgets.Button
 }
 
 type Syncer struct {
@@ -53,6 +54,7 @@ func NewSyncer(wallet *helper.MultiWallet, refreshDisplay func()) *Syncer {
 		progressBar: widgets.NewProgressBar(),
 		reconnectButton: widgets.NewButton("Reconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
 		cancelButton   : widgets.NewButton("Cancel", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
+		disconnectButton : widgets.NewButton("Disconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
 	}
 
 
@@ -170,89 +172,15 @@ func (s *Syncer) Render(ctx *layout.Context) {
 		}
 
 		inset.Layout(ctx, func(){
-			if !s.wallet.IsSynced() {
-				s.drawIsSyncingStatus(ctx)
-				//s.drawNotSyncedStatus(ctx)
+			if s.wallet.IsSynced() {
+				s.drawIsSyncedCard(ctx)
+			} else if !s.wallet.IsSyncing() {
+				s.drawIsSyncingCard(ctx)
 			} else {
-				s.drawIsSyncingStatus(ctx)
+				s.drawNotSyncedCard(ctx)
 			}
 		})
 	})
-
-	
-
-
-	/**inset := layout.UniformInset(unit.Dp(3))
-	inset.Layout(ctx, func() {
-		if s.err != nil {
-			widgets.NewErrorLabel(fmt.Sprintf("Sync failed to start: %s", s.err.Error())).Draw(ctx, widgets.AlignMiddle)
-		} else {
-			inset := layout.Inset{
-				Top: unit.Dp(5),
-			}
-			inset.Layout(ctx, func() {
-				widgets.NewLabel("Synchronizing", 4).Draw(ctx, widgets.AlignMiddle)
-			})
-
-			inset = layout.Inset{
-				Top: unit.Dp(30),
-			}
-			inset.Layout(ctx, func() {
-				//s.widgets.ProgressBar(ctx, &s.percentageProgress)
-			})
-
-			nextTopInset := float32(47)
-			if s.showDetails {
-				for _, report := range s.report {
-					inset := layout.Inset{
-						Top: unit.Dp(nextTopInset),
-					}
-					inset.Layout(ctx, func() {
-						widgets.NewLabel(report).Draw(ctx, widgets.AlignMiddle)
-					})
-					nextTopInset += float32(widgets.NormalLabelHeight)
-				}
-
-				// show peer count info last
-				var connectedPeersInfo string
-				if s.wallet.ConnectedPeers() == 1 {
-					connectedPeersInfo = "Syncing with 1 peer"
-				} else {
-					connectedPeersInfo = fmt.Sprintf("Syncing with %d peers.", s.wallet.ConnectedPeers())
-				}
-
-				inset := layout.Inset{
-					Top: unit.Dp(nextTopInset),
-				}
-				inset.Layout(ctx, func() {
-					widgets.NewLabel(connectedPeersInfo).Draw(ctx, widgets.AlignMiddle)
-				})
-				nextTopInset += float32(widgets.NormalLabelHeight)
-				s.informationLabel.SetText("Tap to hide details")
-			} else {
-				s.informationLabel.SetText("Tap to view details")
-			}
-
-			inset = layout.Inset{
-				Top: unit.Dp(nextTopInset),
-			}
-			inset.Layout(ctx, func() {
-				clickFunc := func() {
-					s.showDetails = !s.showDetails
-				}
-				s.informationLabel.Draw(ctx, widgets.AlignMiddle, clickFunc)
-			})
-		}
-
-		if s.syncError != nil {
-			inset := layout.Inset{
-				Top: unit.Dp(22),
-			}
-			inset.Layout(ctx, func() {
-				widgets.NewErrorLabel(fmt.Sprintf("Sync error: %s", s.syncError.Error())).Draw(ctx, widgets.AlignMiddle)
-			})
-		}
-	})**/
 }
 
 
@@ -311,7 +239,7 @@ func (s *Syncer) IsOnline() bool {
 	return true
 }
 
-func (s *Syncer) drawNotSyncedStatus(ctx *layout.Context) {
+func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
 		layout.Rigid(func(){
 			widgets.CancelIcon.SetColor(helper.DangerColor).Draw(ctx, 25)
@@ -352,8 +280,7 @@ func (s *Syncer) drawNotSyncedStatus(ctx *layout.Context) {
 			lowestBlockHeight = lowestBlock.Height
 		}
 
-		txt := "Synced to block " + strconv.Itoa(int(lowestBlockHeight)) + " - " + s.report.daysBehind
-		widgets.NewLabel(txt).
+		widgets.NewLabel(fmt.Sprintf("Synced to block %d - %s", lowestBlockHeight, s.report.daysBehind)).
 			SetSize(4).
 			SetColor(helper.GrayColor).
 			Draw(ctx)
@@ -371,7 +298,73 @@ func (s *Syncer) drawNotSyncedStatus(ctx *layout.Context) {
 	})
 }
 
-func (s *Syncer) drawIsSyncingStatus(ctx *layout.Context) {
+func (s *Syncer) drawIsSyncedCard(ctx *layout.Context) {
+	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+		layout.Rigid(func(){
+			inset := layout.Inset{
+				Top: unit.Dp(3),
+			}
+			inset.Layout(ctx, func(){
+				widgets.NewCheckbox().MakeAsIcon().Draw(ctx)
+			})
+		}),
+		layout.Rigid(func(){
+			inset := layout.Inset{
+				Left: unit.Dp(30),
+			}
+			inset.Layout(ctx, func(){
+				widgets.NewLabel("Synced").
+					SetSize(5).
+					SetColor(helper.BlackColor).
+					SetWeight(text.Bold).
+					Draw(ctx)
+			})
+		}),
+		layout.Flexed(1, func(){
+			layout.Align(layout.NE).Layout(ctx, func(){
+				ctx.Constraints.Height.Max = 35
+				ctx.Constraints.Width.Max = 130
+
+				s.widgets.disconnectButton.Draw(ctx, func(){
+
+				})
+			})
+		}),
+	)
+
+
+		inset := layout.Inset{
+		Top: unit.Dp(35),
+		Left: unit.Dp(40),
+	}
+	inset.Layout(ctx, func(){
+		lowestBlock := s.wallet.GetLowestBlock()
+		lowestBlockHeight := int32(-1)
+		
+		if lowestBlock != nil {
+			lowestBlockHeight = lowestBlock.Height
+		}
+
+		widgets.NewLabel(fmt.Sprintf("Synced to block %d - %s", lowestBlockHeight, s.report.daysBehind)).
+			SetSize(4).
+			SetColor(helper.GrayColor).
+			Draw(ctx)
+	})
+
+	inset = layout.Inset{
+		Top: unit.Dp(65),
+		Left: unit.Dp(40),
+	}
+	inset.Layout(ctx, func(){
+		widgets.NewLabel(fmt.Sprintf("Connected to %d peers", s.wallet.ConnectedPeers())).
+			SetSize(4).
+			SetColor(helper.GrayColor).
+			Draw(ctx)
+	})
+
+}
+
+func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
 		layout.Rigid(func(){
 			inset := layout.Inset{
@@ -421,8 +414,11 @@ func (s *Syncer) drawIsSyncingStatus(ctx *layout.Context) {
 	inset.Layout(ctx, func(){
 		layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
 			layout.Rigid(func(){
-				txt := strconv.Itoa(int(s.report.percentageProgress)) + "%"
-				widgets.NewLabel(txt).SetColor(helper.BlackColor).SetSize(4).SetWeight(text.Bold).Draw(ctx)
+				widgets.NewLabel(fmt.Sprintf("%d%%", int(s.report.percentageProgress))).
+					SetColor(helper.BlackColor).
+					SetSize(4).
+					SetWeight(text.Bold).
+					Draw(ctx)
 			}),
 			layout.Flexed(1, func(){
 				layout.Align(layout.NE).Layout(ctx, func(){

@@ -12,7 +12,7 @@ import (
 type (
 	MultiWallet struct {
 		*dcrlibwallet.MultiWallet 
-		walletIDs []int
+		WalletIDs []int
 	}
 )
 
@@ -25,8 +25,8 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 	mw := &MultiWallet{
 		MultiWallet: multiWallet,
 	} 
-	mw.walletIDs = make([]int, 0)
-	mw.walletIDs = append(mw.walletIDs, mw.OpenedWalletIDsRaw()...)
+	mw.WalletIDs = make([]int, 0)
+	mw.WalletIDs = append(mw.WalletIDs, mw.OpenedWalletIDsRaw()...)
 
 	if multiWallet.LoadedWalletsCount() == 0 {
 		return mw, true, false, nil
@@ -43,8 +43,8 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 		return mw, false, false, fmt.Errorf("Error opening wallet db: %v", err)
 	}
 
-	for i := range mw.walletIDs {
-		fmt.Println(mw.WalletWithID(mw.walletIDs[i]).WalletOpened())
+	for i := range mw.WalletIDs {
+		fmt.Println(mw.WalletWithID(mw.WalletIDs[i]).WalletOpened())
 	}
 
 	err = multiWallet.SpvSync()
@@ -59,20 +59,20 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 }
 
 func (w *MultiWallet) RegisterWalletID(wID int) {
-	for _,v := range w.walletIDs {
+	for _,v := range w.WalletIDs {
 		if v == wID {
 			return
 		}
 	}
 	
-	w.walletIDs = append(w.walletIDs, wID)
+	w.WalletIDs = append(w.WalletIDs, wID)
 	// TODO return and handle wallet is already registered error
 }
 
 func (w *MultiWallet) TotalBalance() (string, error) {
 	var totalBalance int64 
 
-	for _, walletID := range w.walletIDs {
+	for _, walletID := range w.WalletIDs {
 		accounts, err := w.WalletWithID(walletID).GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 		if err != nil {
 			return "0", err

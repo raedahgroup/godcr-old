@@ -10,13 +10,14 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/unit"
+	"gioui.org/text"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/gio/giolog"
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/pages/common"
-	//"github.com/raedahgroup/godcr/gio/widgets"
+	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type (
@@ -59,9 +60,9 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	}
 
 	theme := helper.GetTheme()
-	err = helper.InitLogo(theme)
+	err = helper.InitImages(theme)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Launch error - cannot load logo: %v", err)
+		fmt.Fprintf(os.Stderr, "Launch error - cannot load assets: %v", err)
 		return
 	}
 	
@@ -161,9 +162,31 @@ func (d *desktop) render(ctx *layout.Context) {
 func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 	layout.Stack{}.Layout(ctx,
 		layout.Expanded(func(){
-			inset := layout.UniformInset(unit.Dp(15))
+			layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+				layout.Rigid(func(){
+					helper.LogoSymbol.Layout(ctx)
+				}),
+				layout.Flexed(1, func(){
+					inset := layout.Inset{
+						Top: unit.Dp(17),
+					}
+					inset.Layout(ctx, func(){
+						widgets.NewLabel(page.label).
+							SetSize(6).	
+							SetWeight(text.Bold).
+							Draw(ctx)
+					})
+				}),
+			)
+		}),
+		layout.Expanded(func(){
+			inset := layout.Inset{
+				Top: unit.Dp(55),
+				Left: unit.Dp(15),
+				Right: unit.Dp(15),
+			}
 			inset.Layout(ctx, func(){
-				page.handler.Render(ctx, d.refreshWindow)
+				page.handler.Render(ctx, d.changePage)
 			})
 		}),
 		layout.Stacked(func(){
@@ -193,9 +216,15 @@ func (d *desktop) renderNavSection(ctx *layout.Context) {
 	inset.Layout(ctx, func(){
 		helper.PaintFooter(ctx, helper.WhiteColor, windowWidth, navSectionHeight)
 
-		 layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
-			// TODO loop through and layout nav items
-		)
+		navItemWidth := ctx.Constraints.Width.Max / 4
+		(&layout.List{Axis: layout.Horizontal}).Layout(ctx, 4, func(i int){
+			if i > 3 {
+				return 
+			}
+			d.pages[i].button.DrawNavItem(ctx, d.pages[i].icon, navItemWidth, func(){
+				d.changePage(d.pages[i].name)
+			})
+		})
 	})
 }
 

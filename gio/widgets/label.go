@@ -8,6 +8,7 @@ import (
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/text"
+	"gioui.org/unit"
 	"gioui.org/f32"
 	"gioui.org/widget/material"
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -146,6 +147,36 @@ func (c *ClickableLabel) SetWidth(width int) *ClickableLabel {
 func (c *ClickableLabel) SetAlignment(alignment Alignment) *ClickableLabel {
 	c.label.alignment = alignment
 	return c
+}
+
+func (c *ClickableLabel) DrawNavItem(ctx *layout.Context, icon material.Image, width int, onClick func()){
+	for c.clicker.Clicked(ctx) {
+		onClick()
+	}
+
+	layout.Stack{}.Layout(ctx, 
+		layout.Stacked(func(){
+			ctx.Constraints.Width.Min =  width
+			ctx.Constraints.Width.Max =  width
+			ctx.Constraints.Height.Min = ctx.Constraints.Height.Max - 20
+
+			layout.Align(layout.Center).Layout(ctx, func(){
+				icon.Layout(ctx)
+			})
+			
+			inset := layout.Inset{
+				Top: unit.Dp(float32(ctx.Constraints.Height.Max - 45)),
+			}
+			inset.Layout(ctx, func(){
+				layout.Align(layout.Center).Layout(ctx, func(){
+					c.label.SetSize(5).SetColor(helper.BlackColor).Draw(ctx)
+				})
+			})
+			
+		}),
+	)
+	pointer.Rect(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
+	c.clicker.Register(ctx)
 }
 
 func (c *ClickableLabel) Draw(ctx *layout.Context, onClick func()) {

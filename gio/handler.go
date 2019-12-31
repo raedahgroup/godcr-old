@@ -1,7 +1,9 @@
 package gio
 
 import (
+	"gioui.org/text"
 	"gioui.org/layout"
+	"gioui.org/widget/material"
 
 	"github.com/raedahgroup/godcr/gio/widgets"
 	"github.com/raedahgroup/godcr/gio/pages"
@@ -16,13 +18,14 @@ type standalonePageHandler interface {
 
 type navPageHandler interface {
 	BeforeRender(*common.Syncer, *helper.MultiWallet)
-	Render(*layout.Context, func())
+	Render(*layout.Context, func(string))
 }
 
 type navPage struct {
 	name      string
 	label     string
-	button    *widgets.Button
+	icon      material.Image
+	button    *widgets.ClickableLabel
 	handler   navPageHandler
 }
 
@@ -39,44 +42,30 @@ func getNavPages() []navPage {
 		{
 			name:      "overview",
 			label:     "Overview",
-			button:     widgets.NewButton("Overview", nil),
+			icon:      helper.OverviewImage,
+			button:     widgets.NewClickableLabel("Overview"),
 			handler:  	pages.NewOverviewPage(),
 		},
 		{
-			name:      "history",
-			label:     "History",
-			button:   	widgets.NewButton("History", nil),
+			name:      "transactions",
+			label:     "Transactions",
+			icon:      helper.TransactionsImage,
+			button:     widgets.NewClickableLabel("Transactions"),
 			handler:   &notImplementedNavPageHandler{"History"},
 		},
 		{
-			name:      "send",
-			label:     "Send",
-			button:   	widgets.NewButton("Send", nil),
-			handler:   &notImplementedNavPageHandler{"Send"},
+			name:      "wallets",
+			label:     "Wallets",
+			icon:      helper.WalletsImage,
+			button:     widgets.NewClickableLabel("Wallets"),
+			handler:   &notImplementedNavPageHandler{"Wallets"},
 		},
 		{
-			name:      "receive",
-			label:     "Receive",
-			button:   	widgets.NewButton("Receive", nil),
-			handler:   &notImplementedNavPageHandler{"Receive"},
-		},
-		{
-			name:      "staking",
-			label:     "Staking",
-			button:   	widgets.NewButton("Staking",  nil),
-			handler:   &notImplementedNavPageHandler{"Staking"},
-		},
-		{
-			name:      "security",
-			label:     "Security",
-			button:   	widgets.NewButton("Security", nil),
-			handler:   &notImplementedNavPageHandler{"Security"},
-		},
-		{
-			name:      "settings",
-			label:     "Settings",
-			button:   	widgets.NewButton("Settings", nil),
-			handler:   &notImplementedNavPageHandler{"Settings"},
+			name:      "more",
+			label:     "More",
+			icon:      helper.MoreImage,
+			button:    widgets.NewClickableLabel("More"),
+			handler:   &notImplementedNavPageHandler{"More"},
 		},
 	}
 }
@@ -89,6 +78,6 @@ func (_ *notImplementedNavPageHandler) BeforeRender(_ *common.Syncer, _ *helper.
 
 }
 
-func (p *notImplementedNavPageHandler) Render(_ *layout.Context, _ func()) {
-
+func (p *notImplementedNavPageHandler) Render(ctx *layout.Context, _ func(string)) {
+	widgets.NewLabel("Page not yet implemented").SetSize(7).SetColor(helper.GrayColor).SetWeight(text.Bold).SetStyle(text.Italic).Draw(ctx)
 }

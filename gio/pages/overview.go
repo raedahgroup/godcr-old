@@ -1,9 +1,13 @@
 package pages 
 
 import (
+	"sort"
+	"time"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/layout"
+
+	"github.com/decred/dcrd/dcrutil"
 
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -19,12 +23,15 @@ type (
 		err error
 		totalBalance string
 
-		transactions []*dcrlibwallet.Transaction
+		transactions []dcrlibwallet.Transaction
+		seeAllTransactionsButton *widgets.Button
 	}
 )
 
 func NewOverviewPage() *OverviewPage {
-	return &OverviewPage{}
+	return &OverviewPage{
+		seeAllTransactionsButton: widgets.NewButton("See All", nil).SetBackgroundColor(helper.WhiteColor).SetColor(helper.DecredLightBlueColor),
+	}
 }
 
 func (o *OverviewPage) BeforeRender(syncer *common.Syncer, multiWallet *helper.MultiWallet) {
@@ -32,17 +39,42 @@ func (o *OverviewPage) BeforeRender(syncer *common.Syncer, multiWallet *helper.M
 	o.multiWallet = multiWallet
 
 	o.totalBalance, o.err = o.multiWallet.TotalBalance()
+
+	// fetch recent transactions from all wallets 
+	transactions := []dcrlibwallet.Transaction{}
+
+	for _, id := range o.multiWallet.WalletIDs {
+		txns, err := o.multiWallet.WalletWithID(id).GetTransactionsRaw(0, 10, 0, true)
+		if err != nil {
+			o.err = err 
+			return
+		}
+		transactions = append(transactions, txns...)
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		backTime := time.Unix(transactions[j].Timestamp, 0)
+		frontTime := time.Unix(transactions[i].Timestamp, 0)
+		return backTime.Before(frontTime)
+	})
+
+	if len(transactions) > 3 {
+		transactions = transactions[:3]
+	}
 }
 
-func (o *OverviewPage) Render(ctx *layout.Context, refreshWindowFunc func()) {
-	widgets.NewLabel("Overview").
-		SetColor(helper.BlackColor).
-		SetWeight(text.Bold).
-		SetSize(6).
-		Draw(ctx)
-
+func (o *OverviewPage) Render(ctx *layout.Context, changePageFunc func(string)) {
+	if o.err != nil {
+		inset := layout.Inset{
+			Left: unit.Dp(15),
+		}
+		inset.Layout(ctx, func(){
+			widgets.NewErrorLabel(o.err.Error()).Draw(ctx)
+		})
+		return
+	}
+	
+	
 	inset := layout.Inset{
-		Top: unit.Dp(45),
 		Left: unit.Dp(15),
 	}
 	inset.Layout(ctx, func(){
@@ -54,7 +86,7 @@ func (o *OverviewPage) Render(ctx *layout.Context, refreshWindowFunc func()) {
 	})
 
 	inset = layout.Inset{
-		Top: unit.Dp(80),
+		Top: unit.Dp(40),
 		Left: unit.Dp(15),
 	}
 	inset.Layout(ctx, func(){
@@ -64,7 +96,7 @@ func (o *OverviewPage) Render(ctx *layout.Context, refreshWindowFunc func()) {
 			Draw(ctx)
 	})
 
-	var nextTopInset float32  = 105
+	var nextTopInset float32  = 65
 
 	inset = layout.Inset{
 		Top: unit.Dp(nextTopInset),
@@ -74,8 +106,8 @@ func (o *OverviewPage) Render(ctx *layout.Context, refreshWindowFunc func()) {
 			o.drawNoTransactionsCard(ctx)
 			nextTopInset += 85 
 		} else {
-			o.drawRecentTransactionsCard(ctx)
-			nextTopInset += 300
+			o.drawRecentTransactionsCard(ctx, changePageFunc)
+			nextTopInset += 195
 		}
 	})
 
@@ -111,6 +143,77 @@ func (o *OverviewPage) drawNoTransactionsCard(ctx *layout.Context) {
 	})
 }
 
-func (o *OverviewPage) drawRecentTransactionsCard(ctx *layout.Context) {
+func (o *OverviewPage) drawRecentTransactionsCard(ctx *layout.Context, changePageFunc func(string)) {
+	helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 190)
 
+	inset := layout.UniformInset(unit.Dp(15))
+	inset.Layout(ctx, func(){
+		widgets.NewLabel("Recent Transactions").
+			SetSize(5).
+			SetColor(helper.BlackColor).
+			SetWeight(text.Bold).
+			Draw(ctx)
+		
+		inset := layout.Inset{
+			Top: unit.Dp(5),
+		}
+		inset.Layout(ctx, func(){
+			inset := layout.Inset{
+				Top: unit.Dp(20),
+			}
+			inset.Layout(ctx, func(){
+				(&layout.List{Axis: layout.Vertical}).Layout(ctx, len(o.transactions), func(i int){
+					inset := layout.Inset{
+						Top: unit.Dp(5),
+					}
+					inset.Layout(ctx, func(){
+						layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+							layout.Rigid(func(){
+								transactionImage(ctx, o.transactions[i].Direction)
+							}),
+							layout.Rigid(func(){
+								inset := layout.UniformInset(unit.Dp(6))
+								inset.Layout(ctx, func(){
+									widgets.NewLabel(dcrutil.Amount(o.transactions[i].Amount).String()).
+										SetSize(4).
+										Draw(ctx)
+								})
+							}),
+							layout.Flexed(1, func(){
+								layout.Align(layout.NE).Layout(ctx, func(){
+									widgets.NewLabel(dcrlibwallet.ExtractDateOrTime(o.transactions[i].Timestamp)).
+										SetColor(helper.GrayColor).
+										Draw(ctx)
+								})
+							}),
+						)
+					})
+				})
+			})
+		})
+
+		inset = layout.Inset{
+			Top: unit.Dp(137),
+		}
+		inset.Layout(ctx, func(){
+			ctx.Constraints.Height.Min = 35
+			o.seeAllTransactionsButton.Draw(ctx, func(){
+				changePageFunc("transactions")
+			})
+		})
+	})
+}
+
+
+func transactionImage(ctx *layout.Context, direction int32) {
+	switch direction {
+	case dcrlibwallet.TxDirectionSent:
+		helper.SendImage.Layout(ctx)
+	case dcrlibwallet.TxDirectionReceived:
+		helper.ReceiveImage.Layout(ctx)
+	case dcrlibwallet.TxDirectionTransferred:
+		helper.ReceiveImage.Layout(ctx)
+	default:
+		helper.InfoImage.Layout(ctx)
+	}
 }

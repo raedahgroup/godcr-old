@@ -463,7 +463,7 @@ func (s *SeedPage) drawVerifySeedPhraseScreen(ctx *layout.Context, refreshWindow
 func (s *SeedPage) hasSelectedAllVerifyWords() bool {
 	for i := range s.verifyScreen.options {
 		if s.verifyScreen.options[i].Selected() == "" {
-			return true
+			return false
 		}
 	}
 	return true
