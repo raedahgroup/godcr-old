@@ -5,14 +5,12 @@ import (
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/pages/handler"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/widgets"
 	"image/color"
 	"sort"
-	"time"
-
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
 const historyPageIndex = 1
@@ -30,7 +28,6 @@ var overviewHandler = &handler.OverviewHandler{}
 func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	ov := &overview{}
 	ov.app = app
-	//app.Window.Resize(fyne.NewSize(650, 680))
 	ov.multiWallet = app.MultiWallet
 	ov.walletIds = ov.multiWallet.OpenedWalletIDsRaw()
 	if len(ov.walletIds) == 0 {
@@ -41,9 +38,6 @@ func overviewPageContent(app *AppInterface) fyne.CanvasObject {
 	defer func() {
 		go overviewHandler.UpdateBalance(app.MultiWallet)
 		go overviewHandler.UpdateBlockStatusBox(app.MultiWallet)
-	}()
-	go func() {
-		time.Sleep(200 * time.Millisecond)
 		overviewHandler.UpdateWalletsSyncBox(app.MultiWallet)
 	}()
 
@@ -74,11 +68,15 @@ func (ov *overview) pageBoxes() (object fyne.CanvasObject) {
 
 func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	table := &widgets.Table{}
-	table.NewTable(transactionRowHeader())
+	overviewHandler.TableHeader = transactionRowHeader()
+	table.NewTable(overviewHandler.TableHeader)
 	overviewHandler.Table = table
 	overviewHandler.UpdateTransactions(ov.multiWallet, handler.TransactionUpdate{})
+	transactionsContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 200)), table.Container)
+	overviewHandler.TransactionsContainer = transactionsContainer
+
 	return widget.NewVBox(
-		table.Result,
+		transactionsContainer,
 		fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 			layout.NewSpacer(),
 			widgets.NewClickableBox(
@@ -98,11 +96,11 @@ func (ov *overview) initializeBlockStatusWidgets() {
 	timeLeft := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 	connectedPeers := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{})
 	progressBar := widget.NewProgressBar()
-	syncSteps := widget.NewLabelWithStyle("Step 0/3", fyne.TextAlignTrailing, fyne.TextStyle{})
+	syncSteps := widget.NewLabelWithStyle("Step 1/3", fyne.TextAlignTrailing, fyne.TextStyle{})
 	blockHeadersStatus := widget.NewLabelWithStyle("Fetching block headers  0%", fyne.TextAlignTrailing, fyne.TextStyle{})
 	walletSyncInfo := fyne.NewContainerWithLayout(layout.NewHBoxLayout())
 	walletSyncScrollContainer := widget.NewScrollContainer(walletSyncInfo)
-	cancelButton := widget.NewButton("Cancel", func() { overviewHandler.CancelSync(ov.multiWallet)})
+	syncButton := widget.NewButton("", func() { overviewHandler.SyncTrigger(ov.multiWallet)})
 	blockHeightTime := widget.NewLabelWithStyle("Latest block 0 . 0s ago", fyne.TextAlignLeading, fyne.TextStyle{})
 	overviewHandler.BlockHeightTime = widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{})
 
@@ -114,7 +112,7 @@ func (ov *overview) initializeBlockStatusWidgets() {
 	overviewHandler.BlockHeadersWidget = blockHeadersStatus
 	overviewHandler.WalletSyncInfo = walletSyncInfo
 	overviewHandler.Scroll = walletSyncScrollContainer
-	overviewHandler.CancelButton = cancelButton
+	overviewHandler.SyncButton = syncButton
 	overviewHandler.BlockHeightTime = blockHeightTime
 }
 
@@ -133,7 +131,7 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 			widgets.NewHSpacer(values.NilSpacer),
 			h.SyncStatusWidget,
 			layout.NewSpacer(),
-			h.CancelButton,
+			h.SyncButton,
 		))
 	progressBarContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 20)),
 		h.ProgressBar)
@@ -155,10 +153,13 @@ func (ov *overview) blockStatusBoxSyncing() fyne.CanvasObject {
 
 func (ov *overview) blockStatusBoxSynced() fyne.CanvasObject {
 	h := overviewHandler
-	top := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
-		widgets.NewHSpacer(values.NilSpacer),
-		h.SyncStatusWidget,
-		layout.NewSpacer())
+	top := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 24)),
+		widget.NewHBox(
+			widgets.NewHSpacer(values.NilSpacer),
+			h.SyncStatusWidget,
+			layout.NewSpacer(),
+			h.SyncButton,
+		))
 	syncedStatus := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, h.BlockHeightTime, h.ConnectedPeersWidget),
 		h.BlockHeightTime, h.ConnectedPeersWidget)
 

@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/godcr/fyne/pages/handler"
 	"log"
-	"math"
 	"strconv"
 
 	"github.com/gen2brain/beeep"
@@ -30,9 +29,8 @@ func (app *multiWalletTxListener) OnPeerConnectedOrDisconnected(numberOfConnecte
 }
 
 func (app *multiWalletTxListener) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
-	overviewHandler.SyncProgress = float64(headersFetchProgress.FetchedHeadersCount) / float64(headersFetchProgress.TotalHeadersToFetch)
-	overviewHandler.SyncProgress = math.Round(overviewHandler.SyncProgress*100) / 100
-	if headersFetchProgress.HeadersFetchProgress == 100 && overviewHandler.Steps == 0 {
+	overviewHandler.SyncProgress = float64(headersFetchProgress.TotalSyncProgress) / 100
+	if headersFetchProgress.HeadersFetchProgress == 100 && overviewHandler.Steps == 1 {
 		overviewHandler.StepsChannel <- headersFetchProgress.HeadersFetchProgress
 		overviewHandler.UpdateSyncSteps(true)
 	}
