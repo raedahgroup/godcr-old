@@ -90,7 +90,9 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		widgets.NewHSpacer(values.SpacerSize12),
 	)
 
-	walletSelectorDropdownContent, err := walletPage.accountDropdown(accountBox.MinSize().Width, selectedWallet)
+	accountBoxSpacer := accountBox.MinSize().Width - values.SpacerSize44
+
+	walletSelectorDropdownContent, err := walletPage.accountDropdown(accountBoxSpacer, selectedWallet)
 	if err != nil {
 		return err
 	}
@@ -104,6 +106,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 			expandIcon.SetResource(walletPage.icons[assets.Expand])
 			walletSelectorDropdownContent.Hide()
 		}
+		fmt.Println(accountBox.MinSize().Width)
 		fmt.Println("done")
 	})
 
