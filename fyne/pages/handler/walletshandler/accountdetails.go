@@ -65,10 +65,9 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	})
 
 	accountBalanceBox := widget.NewVBox(
+		widgets.NewVSpacer(values.SpacerSize14),
 		baseWidget,
-
-		widget.NewHBox(centerObject(widget.NewIcon(walletIcon)), widgets.NewHSpacer(values.SpacerSize14), multipagecomponents.AmountFormatBox(totalAmountInString, 32, 30)),
-
+		widget.NewHBox(centerObject(widget.NewIcon(walletIcon), false), widgets.NewHSpacer(values.SpacerSize14), multipagecomponents.AmountFormatBox(totalAmountInString, 32, 30)),
 		widget.NewHBox(widgets.NewHSpacer(accountDetailsSpacer), balanceDetailsBox),
 
 		canvas.NewLine(values.StrippedLineColor),
@@ -137,6 +136,10 @@ func accountPropertiesBox(account *dcrlibwallet.Account, popupMinSizeWidth int) 
 	return propertiesVBox
 }
 
-func centerObject(object fyne.CanvasObject) *widget.Box {
+func centerObject(object fyne.CanvasObject, bordered bool) fyne.CanvasObject {
+	if bordered {
+		return widgets.NewVBox(layout.NewSpacer(), object, layout.NewSpacer())
+	}
+
 	return widget.NewVBox(layout.NewSpacer(), object, layout.NewSpacer())
 }

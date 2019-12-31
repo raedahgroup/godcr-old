@@ -83,9 +83,9 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize12),
-		centerObject(expandIcon),
+		centerObject(expandIcon, true),
 		widgets.NewHSpacer(values.SpacerSize4),
-		centerObject(walletIcon),
+		centerObject(walletIcon, true),
 		widgets.NewHSpacer(values.SpacerSize12),
 		accountLabel, widgets.NewHSpacer(values.SpacerSize50),
 		layout.NewSpacer(),
@@ -146,15 +146,9 @@ func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *d
 	}
 
 	addAccount := widgets.NewClickableBox(widgets.NewHBox(
-		widgets.NewVBox(
-			layout.NewSpacer(),
-			widget.NewIcon(theme.ContentAddIcon()),
-			layout.NewSpacer()),
+		centerObject(widget.NewIcon(theme.ContentAddIcon()), true),
 		widgets.NewHSpacer(values.SpacerSize12),
-		widgets.NewVBox(
-			layout.NewSpacer(),
-			widget.NewLabel("Add new account"),
-			layout.NewSpacer())),
+		centerObject(widget.NewLabel("Add new account"), true)),
 		func() {
 			fmt.Println("Add new account")
 		})
@@ -175,12 +169,6 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		walletIcon = walletPage.icons[assets.ImportedAccount]
 	}
 
-	iconBox := widgets.NewVBox(
-		layout.NewSpacer(),
-		widget.NewIcon(walletIcon),
-		layout.NewSpacer(),
-	)
-
 	accountNameWithSpendableLabel := widgets.NewVBox(
 		layout.NewSpacer(),
 		canvas.NewText(account.Name, values.DefaultTextColor),
@@ -198,7 +186,7 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		widgets.NewTextAndAlign(fmt.Sprintf(values.AmountInDCR, spendableBalanceInString), values.SpendableLabelColor, fyne.TextAlignTrailing),
 		layout.NewSpacer())
 
-	accountHBox := widgets.NewHBox(iconBox, widgets.NewHSpacer(values.SpacerSize14),
+	accountHBox := widgets.NewHBox(centerObject(widget.NewIcon(walletIcon), true), widgets.NewHSpacer(values.SpacerSize14),
 		accountNameWithSpendableLabel,
 		layout.NewSpacer(),
 		widgets.NewHSpacer(values.NilSpacer),
