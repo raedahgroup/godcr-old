@@ -191,9 +191,9 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 
 	accountBalAndSpendableBal := widgets.NewVBox(
 		layout.NewSpacer(),
-		canvas.NewText(fmt.Sprintf(values.AmountInDCR, totalBalanceInString), values.DefaultTextColor),
+		widgets.NewTextAndAlign(fmt.Sprintf(values.AmountInDCR, totalBalanceInString), values.DefaultTextColor, fyne.TextAlignTrailing),
 		widgets.NewHSpacer(values.SpacerSize4),
-		canvas.NewText(fmt.Sprintf(values.AmountInDCR, spendableBalanceInString), values.SpendableLabelColor),
+		widgets.NewTextAndAlign(fmt.Sprintf(values.AmountInDCR, spendableBalanceInString), values.SpendableLabelColor, fyne.TextAlignTrailing),
 		layout.NewSpacer())
 
 	accountHBox := widgets.NewHBox(iconBox, widgets.NewHSpacer(values.SpacerSize14),
