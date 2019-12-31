@@ -1,25 +1,25 @@
-package helper 
+package helper
 
 import (
-	"os"
 	"image"
+	"os"
 
-	"gioui.org/unit"
 	"gioui.org/layout"
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 )
 
 const (
-	logoPath = "../../gio/assets/decred.png"
-	logoSymbolPath = "../../gio/assets/decred_symbol.png"
-	overviewImagePath = "../../gio/assets/overview.png"
+	logoPath              = "../../gio/assets/decred.png"
+	logoSymbolPath        = "../../gio/assets/decred_symbol.png"
+	overviewImagePath     = "../../gio/assets/overview.png"
 	transactionsImagePath = "../../gio/assets/history.png"
-	walletsImagePath = "../../gio/assets/account.png"
-	moreImagePath = "../../gio/assets/more.png"
-	sendImagePath = "../../gio/assets/send.png"
-	receiveImagePath = "../../gio/assets/receive.png"
-	infoImagePath = "../../gio/assets/info.png"
+	walletsImagePath      = "../../gio/assets/account.png"
+	moreImagePath         = "../../gio/assets/more.png"
+	sendImagePath         = "../../gio/assets/send.png"
+	receiveImagePath      = "../../gio/assets/receive.png"
+	infoImagePath         = "../../gio/assets/info.png"
 
 	StandaloneScreenPadding = 20
 )
@@ -27,16 +27,15 @@ const (
 var (
 	logo material.Image
 
-	LogoSymbol material.Image
-	OverviewImage material.Image 
-	TransactionsImage material.Image 
-	WalletsImage material.Image 
-	MoreImage material.Image
-	SendImage material.Image 
-	ReceiveImage material.Image 
-	InfoImage material.Image
+	LogoSymbol        material.Image
+	OverviewImage     material.Image
+	TransactionsImage material.Image
+	WalletsImage      material.Image
+	MoreImage         material.Image
+	SendImage         material.Image
+	ReceiveImage      material.Image
+	InfoImage         material.Image
 )
-
 
 func LoadImage(theme *Theme, path string, scale float32) (material.Image, error) {
 	b, err := os.Open(path)
@@ -44,19 +43,19 @@ func LoadImage(theme *Theme, path string, scale float32) (material.Image, error)
 		return material.Image{}, err
 	}
 
-	src, _, err := image.Decode(b) 
+	src, _, err := image.Decode(b)
 	if err != nil {
 		return material.Image{}, err
 	}
 
 	img := theme.Image(paint.NewImageOp(src))
 	img.Scale = scale
-	
+
 	return img, nil
 }
 
 func InitImages(theme *Theme) error {
-	var err error 
+	var err error
 	logo, err = LoadImage(theme, logoPath, 1.3)
 	if err != nil {
 		return err
@@ -109,7 +108,7 @@ func DrawLogo(ctx *layout.Context) {
 	inset := layout.Inset{
 		Left: unit.Dp(StandaloneScreenPadding),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		logo.Layout(ctx)
 	})
 }

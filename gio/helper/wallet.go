@@ -1,7 +1,8 @@
-package helper 
+package helper
 
 import (
 	"fmt"
+
 	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/walletseed"
 
@@ -11,7 +12,7 @@ import (
 
 type (
 	MultiWallet struct {
-		*dcrlibwallet.MultiWallet 
+		*dcrlibwallet.MultiWallet
 		WalletIDs []int
 	}
 )
@@ -21,10 +22,10 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 	if err != nil {
 		return nil, false, false, fmt.Errorf("Initialization error: %v", err)
 	}
-	
+
 	mw := &MultiWallet{
 		MultiWallet: multiWallet,
-	} 
+	}
 	mw.WalletIDs = make([]int, 0)
 	mw.WalletIDs = append(mw.WalletIDs, mw.OpenedWalletIDsRaw()...)
 
@@ -52,25 +53,22 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 		return mw, false, false, fmt.Errorf("Spv sync attempt failed: %v", err)
 	}
 
-	
-
-
 	return mw, false, false, nil
 }
 
 func (w *MultiWallet) RegisterWalletID(wID int) {
-	for _,v := range w.WalletIDs {
+	for _, v := range w.WalletIDs {
 		if v == wID {
 			return
 		}
 	}
-	
+
 	w.WalletIDs = append(w.WalletIDs, wID)
 	// TODO return and handle wallet is already registered error
 }
 
 func (w *MultiWallet) TotalBalance() (string, error) {
-	var totalBalance int64 
+	var totalBalance int64
 
 	for _, walletID := range w.WalletIDs {
 		accounts, err := w.WalletWithID(walletID).GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)

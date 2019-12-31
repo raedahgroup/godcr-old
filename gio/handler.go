@@ -1,15 +1,15 @@
 package gio
 
 import (
-	"gioui.org/text"
 	"gioui.org/layout"
+	"gioui.org/text"
 	"gioui.org/widget/material"
 
-	"github.com/raedahgroup/godcr/gio/widgets"
-	"github.com/raedahgroup/godcr/gio/pages"
 	"github.com/raedahgroup/godcr/gio/helper"
-	"github.com/raedahgroup/godcr/gio/pages/wallet"
+	"github.com/raedahgroup/godcr/gio/pages"
 	"github.com/raedahgroup/godcr/gio/pages/common"
+	"github.com/raedahgroup/godcr/gio/pages/wallet"
+	"github.com/raedahgroup/godcr/gio/widgets"
 )
 
 type standalonePageHandler interface {
@@ -22,17 +22,17 @@ type navPageHandler interface {
 }
 
 type navPage struct {
-	name      string
-	label     string
-	icon      material.Image
-	button    *widgets.ClickableLabel
-	handler   navPageHandler
+	name    string
+	label   string
+	icon    material.Image
+	button  *widgets.ClickableLabel
+	handler navPageHandler
 }
 
 func getStandalonePages(multiWallet *helper.MultiWallet) map[string]standalonePageHandler {
 	return map[string]standalonePageHandler{
-		"welcome"      : wallet.NewWelcomePage(multiWallet),
-		"createwallet" : wallet.NewCreateWalletPage(multiWallet),
+		"welcome":       wallet.NewWelcomePage(multiWallet),
+		"createwallet":  wallet.NewCreateWalletPage(multiWallet),
 		"restorewallet": wallet.NewRestoreWalletPage(multiWallet),
 	}
 }
@@ -40,32 +40,32 @@ func getStandalonePages(multiWallet *helper.MultiWallet) map[string]standalonePa
 func getNavPages() []navPage {
 	return []navPage{
 		{
-			name:      "overview",
-			label:     "Overview",
-			icon:      helper.OverviewImage,
-			button:     widgets.NewClickableLabel("Overview"),
-			handler:  	pages.NewOverviewPage(),
+			name:    "overview",
+			label:   "Overview",
+			icon:    helper.OverviewImage,
+			button:  widgets.NewClickableLabel("Overview"),
+			handler: pages.NewOverviewPage(),
 		},
 		{
-			name:      "transactions",
-			label:     "Transactions",
-			icon:      helper.TransactionsImage,
-			button:     widgets.NewClickableLabel("Transactions"),
-			handler:   &notImplementedNavPageHandler{"History"},
+			name:    "transactions",
+			label:   "Transactions",
+			icon:    helper.TransactionsImage,
+			button:  widgets.NewClickableLabel("Transactions"),
+			handler: &notImplementedNavPageHandler{"History"},
 		},
 		{
-			name:      "wallets",
-			label:     "Wallets",
-			icon:      helper.WalletsImage,
-			button:     widgets.NewClickableLabel("Wallets"),
-			handler:   &notImplementedNavPageHandler{"Wallets"},
+			name:    "wallets",
+			label:   "Wallets",
+			icon:    helper.WalletsImage,
+			button:  widgets.NewClickableLabel("Wallets"),
+			handler: &notImplementedNavPageHandler{"Wallets"},
 		},
 		{
-			name:      "more",
-			label:     "More",
-			icon:      helper.MoreImage,
-			button:    widgets.NewClickableLabel("More"),
-			handler:   &notImplementedNavPageHandler{"More"},
+			name:    "more",
+			label:   "More",
+			icon:    helper.MoreImage,
+			button:  widgets.NewClickableLabel("More"),
+			handler: &notImplementedNavPageHandler{"More"},
 		},
 	}
 }

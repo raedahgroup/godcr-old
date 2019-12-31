@@ -2,19 +2,20 @@ package widgets
 
 import (
 	"log"
+
 	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 var (
-	AddIcon             *Icon
-	ReturnIcon          *Icon
-	NavigationCheckIcon *Icon
+	AddIcon                 *Icon
+	ReturnIcon              *Icon
+	NavigationCheckIcon     *Icon
 	NavigationArrowBackIcon *Icon
-	CancelIcon  *Icon
+	CancelIcon              *Icon
 )
 
-func init()  {
-	var err error 
+func init() {
+	var err error
 
 	AddIcon, err = NewIcon(icons.ContentAdd)
 	if err != nil {
@@ -41,4 +42,3 @@ func init()  {
 		log.Fatal(err)
 	}
 }
-

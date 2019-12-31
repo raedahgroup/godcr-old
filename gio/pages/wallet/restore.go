@@ -1,16 +1,16 @@
-package wallet 
+package wallet
 
 import (
 	"strconv"
 
+	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/layout"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
-	"github.com/raedahgroup/godcr/gio/widgets/security"
 	"github.com/raedahgroup/godcr/gio/widgets/editor"
+	"github.com/raedahgroup/godcr/gio/widgets/security"
 )
 
 type (
@@ -21,24 +21,23 @@ type (
 	}
 
 	RestoreWalletPage struct {
-		multiWallet   *helper.MultiWallet 
+		multiWallet    *helper.MultiWallet
 		changePageFunc func(string)
 		currentScreen  string
-		
-		err error
+
+		err                  error
 		pinAndPasswordWidget *security.PinAndPasswordWidget
-		backToWalletsButton *widgets.ClickableLabel
+		backToWalletsButton  *widgets.ClickableLabel
 
 		isRestoring   bool
 		restoreScreen *restoreScreen
 	}
 )
 
-
 func NewRestoreWalletPage(multiWallet *helper.MultiWallet) *RestoreWalletPage {
 	w := &RestoreWalletPage{
-		multiWallet  : multiWallet,
-		currentScreen: "verifySeedScreen",
+		multiWallet:         multiWallet,
+		currentScreen:       "verifySeedScreen",
 		backToWalletsButton: widgets.NewClickableLabel("Get Started").SetAlignment(widgets.AlignMiddle).SetSize(5).SetColor(helper.DecredLightBlueColor).SetWeight(text.Bold),
 	}
 
@@ -46,20 +45,20 @@ func NewRestoreWalletPage(multiWallet *helper.MultiWallet) *RestoreWalletPage {
 
 	// restore screen widgets
 	w.restoreScreen = &restoreScreen{
-		inputs       : make([]*editor.Input, 33),
+		inputs:        make([]*editor.Input, 33),
 		restoreButton: widgets.NewButton("Continue", nil),
-		backButton   : widgets.NewButton("", widgets.NavigationArrowBackIcon).SetBackgroundColor(helper.BackgroundColor).SetColor(helper.BlackColor).MakeRound(),
+		backButton:    widgets.NewButton("", widgets.NavigationArrowBackIcon).SetBackgroundColor(helper.BackgroundColor).SetColor(helper.BlackColor).MakeRound(),
 	}
 	for i := 0; i < 33; i++ {
 		w.restoreScreen.inputs[i] = editor.NewInput("")
 	}
-	
+
 	return w
 }
 
 func (w *RestoreWalletPage) cancel() {
 	w.err = nil
-	
+
 	for i := range w.restoreScreen.inputs {
 		w.restoreScreen.inputs[i].SetText("")
 	}
@@ -67,16 +66,16 @@ func (w *RestoreWalletPage) cancel() {
 }
 
 func (w *RestoreWalletPage) create() {
-	w.isRestoring = true 
+	w.isRestoring = true
 	w.err = nil
 	w.currentScreen = "verifySeedScreen"
 
 	doneChan := make(chan bool)
 
-	// do restoring here 
-	go func(){
-		defer func(){
-			doneChan <- true 
+	// do restoring here
+	go func() {
+		defer func() {
+			doneChan <- true
 		}()
 
 		seed := ""
@@ -88,7 +87,7 @@ func (w *RestoreWalletPage) create() {
 
 		wallet, err := w.multiWallet.RestoreWallet(seed, password, 0)
 		if err != nil {
-			w.err = err 
+			w.err = err
 			return
 		}
 
@@ -99,7 +98,7 @@ func (w *RestoreWalletPage) create() {
 	}()
 
 	<-doneChan
-	w.isRestoring = false 
+	w.isRestoring = false
 	if w.err == nil {
 		w.currentScreen = "restoreSuccessScreen"
 	}
@@ -109,11 +108,11 @@ func (w *RestoreWalletPage) Render(ctx *layout.Context, refreshWindowFunc func()
 	if w.changePageFunc == nil {
 		w.changePageFunc = changePageFunc
 	}
-	
+
 	if w.currentScreen == "verifySeedScreen" {
 		w.renderVerifySeedScreen(ctx, refreshWindowFunc, changePageFunc)
 	} else if w.currentScreen == "passwordScreen" {
-		w.renderPasswordScreen(ctx) 
+		w.renderPasswordScreen(ctx)
 	} else if w.currentScreen == "restoreSuccessScreen" {
 		w.restoreSuccessScreen(ctx, refreshWindowFunc, changePageFunc)
 	}
@@ -121,37 +120,37 @@ func (w *RestoreWalletPage) Render(ctx *layout.Context, refreshWindowFunc func()
 
 func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
 	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-	layout.Stack{}.Layout(ctx, 
-		layout.Expanded(func(){
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func() {
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			layout.Align(layout.Center).Layout(ctx, func(){
+			layout.Align(layout.Center).Layout(ctx, func() {
 				inset := layout.Inset{
 					Top: unit.Dp(120),
 				}
-				inset.Layout(ctx, func(){
+				inset.Layout(ctx, func() {
 					ctx.Constraints.Width.Min = 50
 					widgets.NewCheckbox().SetSize(80).MakeAsIcon().Draw(ctx)
 				})
 			})
 		}),
 
-		layout.Expanded(func(){
+		layout.Expanded(func() {
 			inset := layout.Inset{
 				Top: unit.Dp(220),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewLabel("Your wallet is successfully").
 					SetSize(6).
 					SetWeight(text.Bold).
 					SetAlignment(widgets.AlignMiddle).
 					SetColor(helper.BlackColor).
 					Draw(ctx)
-			})	
+			})
 
 			inset = layout.Inset{
 				Top: unit.Dp(245),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewLabel("restored").
 					SetSize(6).
 					SetWeight(text.Bold).
@@ -163,8 +162,8 @@ func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWin
 			inset = layout.Inset{
 				Top: unit.Dp(450),
 			}
-			inset.Layout(ctx, func(){
-				w.backToWalletsButton.SetWidth(ctx.Constraints.Width.Max).Draw(ctx, func(){
+			inset.Layout(ctx, func() {
+				w.backToWalletsButton.SetWidth(ctx.Constraints.Width.Max).Draw(ctx, func() {
 					changePageFunc("overview")
 				})
 			})
@@ -173,72 +172,72 @@ func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWin
 }
 
 func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
-	drawHeader(ctx, func(){
-		w.restoreScreen.backButton.Draw(ctx, func(){
+	drawHeader(ctx, func() {
+		w.restoreScreen.backButton.Draw(ctx, func() {
 			w.resetAndGotoPage("welcome")
 		})
-	}, func(){
+	}, func() {
 		widgets.NewLabel("Restore from seed phrase").
 			SetWeight(text.Bold).
 			SetSize(6).
 			Draw(ctx)
 	})
 
-	drawBody(ctx, 
+	drawBody(ctx,
 		widgets.NewLabel("Enter your seed phrase in the correct order.").SetSize(5),
-	func(){
-		topInset := float32(10) 
-		if w.err != nil {
+		func() {
+			topInset := float32(10)
+			if w.err != nil {
+				inset := layout.Inset{
+					Top: unit.Dp(topInset),
+				}
+				inset.Layout(ctx, func() {
+					helper.PaintArea(ctx, helper.DangerColor, ctx.Constraints.Width.Max, 30)
+
+					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
+					widgets.NewLabel("Failed to restore. Please verify all words and try again").
+						SetSize(5).
+						SetColor(helper.WhiteColor).
+						SetAlignment(widgets.AlignMiddle).
+						Draw(ctx)
+				})
+				topInset += 30
+			}
+
 			inset := layout.Inset{
 				Top: unit.Dp(topInset),
 			}
-			inset.Layout(ctx, func(){
-				helper.PaintArea(ctx, helper.DangerColor, ctx.Constraints.Width.Max, 30)
-
-				ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-				widgets.NewLabel("Failed to restore. Please verify all words and try again").
-					SetSize(5).
-					SetColor(helper.WhiteColor).
-					SetAlignment(widgets.AlignMiddle).
-					Draw(ctx)
-			})
-			topInset += 30
-		}
-
-		inset := layout.Inset{
-			Top: unit.Dp(topInset),
-		}
-		inset.Layout(ctx, func(){
-			(&layout.List{Axis: layout.Vertical}).Layout(ctx, 33, func(i int){
-				inset := layout.Inset{
-					Top: unit.Dp(10),
-					Left: unit.Dp(5),
-					Right: unit.Dp(5),
-				}
-				inset.Layout(ctx, func(){
-					layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-						layout.Rigid(func(){
-							inset := layout.Inset{
-								Top: unit.Dp(20),
-								Right: unit.Dp(10),
-							}
-							inset.Layout(ctx, func(){
-								widgets.NewLabel(strconv.Itoa(i+1)).Draw(ctx)
-							})
-						}),
-						layout.Rigid(func(){
-							w.restoreScreen.inputs[i].Draw(ctx)
-						}),
-					)
+			inset.Layout(ctx, func() {
+				(&layout.List{Axis: layout.Vertical}).Layout(ctx, 33, func(i int) {
+					inset := layout.Inset{
+						Top:   unit.Dp(10),
+						Left:  unit.Dp(5),
+						Right: unit.Dp(5),
+					}
+					inset.Layout(ctx, func() {
+						layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+							layout.Rigid(func() {
+								inset := layout.Inset{
+									Top:   unit.Dp(20),
+									Right: unit.Dp(10),
+								}
+								inset.Layout(ctx, func() {
+									widgets.NewLabel(strconv.Itoa(i + 1)).Draw(ctx)
+								})
+							}),
+							layout.Rigid(func() {
+								w.restoreScreen.inputs[i].Draw(ctx)
+							}),
+						)
+					})
 				})
 			})
 		})
-	})
 
-	drawFooter(ctx, func(){
+	drawFooter(ctx, func() {
 		ctx.Constraints.Height.Min = 50
-		
-		bgCol := helper.GrayColor 
+
+		bgCol := helper.GrayColor
 		txt := "Continue"
 		if w.hasEnteredAllSeedWords() {
 			bgCol = helper.DecredLightBlueColor
@@ -252,7 +251,7 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, refreshW
 			restoreButton.
 			SetText(txt).
 			SetBackgroundColor(bgCol).
-			Draw(ctx, func(){
+			Draw(ctx, func() {
 				if w.hasEnteredAllSeedWords() {
 					w.currentScreen = "passwordScreen"
 				}
@@ -262,11 +261,11 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, refreshW
 
 func (w *RestoreWalletPage) renderPasswordScreen(ctx *layout.Context) {
 	inset := layout.Inset{
-		Top  : unit.Dp(30),
-		Left : unit.Dp(helper.StandaloneScreenPadding),
+		Top:   unit.Dp(30),
+		Left:  unit.Dp(helper.StandaloneScreenPadding),
 		Right: unit.Dp(helper.StandaloneScreenPadding),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		w.pinAndPasswordWidget.Render(ctx)
 	})
 }

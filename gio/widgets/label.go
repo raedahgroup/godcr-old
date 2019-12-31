@@ -5,11 +5,11 @@ import (
 	"image"
 	"image/color"
 
+	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/f32"
 	"gioui.org/widget/material"
 	"github.com/raedahgroup/godcr/gio/helper"
 	"golang.org/x/image/math/fixed"
@@ -36,14 +36,14 @@ const (
 )
 
 func NewLabel(txt string, size ...int) *Label {
-	labelSize := 3 
+	labelSize := 3
 	if len(size) > 0 {
 		labelSize = size[0]
 	}
 
 	return &Label{
-		Label    : getLabelWithSize(txt, labelSize),
-		size     : labelSize,
+		Label:     getLabelWithSize(txt, labelSize),
+		size:      labelSize,
 		alignment: AlignLeft,
 	}
 }
@@ -51,7 +51,7 @@ func NewLabel(txt string, size ...int) *Label {
 func NewErrorLabel(txt string) *Label {
 	l := &Label{
 		Label: getLabelWithSize(txt, 4),
-		size: 4,
+		size:  4,
 	}
 
 	return l.SetColor(helper.DangerColor)
@@ -74,7 +74,7 @@ func (l *Label) SetWeight(weight text.Weight) *Label {
 }
 
 func (l *Label) SetStyle(style text.Style) *Label {
-	l.Font.Style = style 
+	l.Font.Style = style
 	return l
 }
 
@@ -93,25 +93,23 @@ func (l *Label) Draw(ctx *layout.Context) {
 	l.Label.Layout(ctx)
 }
 
-
 type ClickableLabel struct {
-	label *Label 
+	label   *Label
 	clicker helper.Clicker
-	width  int
+	width   int
 }
 
 func NewClickableLabel(txt string, size ...int) *ClickableLabel {
-	labelSize := 2 
+	labelSize := 2
 	if len(size) > 0 {
 		labelSize = size[0]
 	}
-	
+
 	return &ClickableLabel{
-		label  : NewLabel(txt, labelSize).SetColor(helper.DecredDarkBlueColor),
+		label:   NewLabel(txt, labelSize).SetColor(helper.DecredDarkBlueColor),
 		clicker: helper.NewClicker(),
 	}
 }
-
 
 func (c *ClickableLabel) SetText(txt string) *ClickableLabel {
 	c.label.SetText(txt)
@@ -139,40 +137,39 @@ func (c *ClickableLabel) SetColor(color color.RGBA) *ClickableLabel {
 }
 
 func (c *ClickableLabel) SetWidth(width int) *ClickableLabel {
-	c.width = width 
+	c.width = width
 	return c
 }
-
 
 func (c *ClickableLabel) SetAlignment(alignment Alignment) *ClickableLabel {
 	c.label.alignment = alignment
 	return c
 }
 
-func (c *ClickableLabel) DrawNavItem(ctx *layout.Context, icon material.Image, width int, onClick func()){
+func (c *ClickableLabel) DrawNavItem(ctx *layout.Context, icon material.Image, width int, onClick func()) {
 	for c.clicker.Clicked(ctx) {
 		onClick()
 	}
 
-	layout.Stack{}.Layout(ctx, 
-		layout.Stacked(func(){
-			ctx.Constraints.Width.Min =  width
-			ctx.Constraints.Width.Max =  width
+	layout.Stack{}.Layout(ctx,
+		layout.Stacked(func() {
+			ctx.Constraints.Width.Min = width
+			ctx.Constraints.Width.Max = width
 			ctx.Constraints.Height.Min = ctx.Constraints.Height.Max - 20
 
-			layout.Align(layout.Center).Layout(ctx, func(){
+			layout.Align(layout.Center).Layout(ctx, func() {
 				icon.Layout(ctx)
 			})
-			
+
 			inset := layout.Inset{
 				Top: unit.Dp(float32(ctx.Constraints.Height.Max - 45)),
 			}
-			inset.Layout(ctx, func(){
-				layout.Align(layout.Center).Layout(ctx, func(){
+			inset.Layout(ctx, func() {
+				layout.Align(layout.Center).Layout(ctx, func() {
 					c.label.SetSize(5).SetColor(helper.BlackColor).Draw(ctx)
 				})
 			})
-			
+
 		}),
 	)
 	pointer.Rect(image.Rectangle{Max: ctx.Dimensions.Size}).Add(ctx.Ops)
@@ -184,10 +181,10 @@ func (c *ClickableLabel) Draw(ctx *layout.Context, onClick func()) {
 		onClick()
 	}
 
-	layout.Stack{}.Layout(ctx, 
-		layout.Stacked(func(){
+	layout.Stack{}.Layout(ctx,
+		layout.Stacked(func() {
 			if c.width != 0 {
-				ctx.Constraints.Width.Min =  c.width
+				ctx.Constraints.Width.Min = c.width
 			}
 
 			c.label.Draw(ctx)
@@ -196,7 +193,6 @@ func (c *ClickableLabel) Draw(ctx *layout.Context, onClick func()) {
 		}),
 	)
 }
-
 
 func getTextAlignment(alignment Alignment) text.Alignment {
 	switch alignment {
@@ -245,8 +241,7 @@ func getLabelWithSize(txt string, size int) material.Label {
 	default:
 		return theme.Body1(txt)
 	}
-}	
-
+}
 
 func TextPadding(lines []text.Line) (padding image.Rectangle) {
 	if len(lines) == 0 {
@@ -295,7 +290,6 @@ func LinesDimens(lines []text.Line) layout.Dimensions {
 	}
 }
 
-
 func Align(align text.Alignment, width fixed.Int26_6, maxWidth int) fixed.Int26_6 {
 	mw := fixed.I(maxWidth)
 	switch align {
@@ -309,7 +303,6 @@ func Align(align text.Alignment, width fixed.Int26_6, maxWidth int) fixed.Int26_
 		panic(fmt.Errorf("unknown alignment %v", align))
 	}
 }
-
 
 func ToRectF(r image.Rectangle) f32.Rectangle {
 	return f32.Rectangle{

@@ -1,4 +1,4 @@
-package widgets 
+package widgets
 
 import (
 	"image"
@@ -6,13 +6,12 @@ import (
 	"image/draw"
 
 	"gioui.org/f32"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	//"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/io/pointer"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/raedahgroup/godcr/gio/helper"
@@ -21,27 +20,26 @@ import (
 
 type (
 	Button struct {
-		button   *widget.Button 
-		icon     *Icon
-		padding   unit.Value 
+		button    *widget.Button
+		icon      *Icon
+		padding   unit.Value
 		isRounded bool
-		size 	  unit.Value
+		size      unit.Value
 
-		text 	   string
+		text string
 
-		alignment  Alignment
-		Color      color.RGBA
-		Background color.RGBA
+		alignment   Alignment
+		Color       color.RGBA
+		Background  color.RGBA
 		borderColor color.RGBA
-		
 	}
 
 	Icon struct {
-		imgSize int 
-		img 	image.Image 
-		src 	[]byte 
+		imgSize int
+		img     image.Image
+		src     []byte
 		color   color.RGBA
-		op paint.ImageOp 
+		op      paint.ImageOp
 		material.Icon
 	}
 )
@@ -50,7 +48,6 @@ const (
 	defaultButtonPadding = 10
 )
 
-
 // NewIcon returns a new Icon from IconVG data.
 func NewIcon(data []byte) (*Icon, error) {
 	_, err := iconvg.DecodeMetadata(data)
@@ -58,7 +55,7 @@ func NewIcon(data []byte) (*Icon, error) {
 		return nil, err
 	}
 	return &Icon{
-		src: data,
+		src:   data,
 		color: helper.WhiteColor,
 	}, nil
 }
@@ -67,13 +64,13 @@ func NewButton(txt string, icon *Icon) *Button {
 	theme := helper.GetTheme()
 
 	btn := &Button{
-		button     : new(widget.Button),
-		icon       : icon,
-		text       : txt,
-		padding    : unit.Dp(defaultButtonPadding),
-		Background : helper.DecredDarkBlueColor,
-		Color      : helper.WhiteColor,
-		alignment  : AlignLeft,
+		button:      new(widget.Button),
+		icon:        icon,
+		text:        txt,
+		padding:     unit.Dp(defaultButtonPadding),
+		Background:  helper.DecredDarkBlueColor,
+		Color:       helper.WhiteColor,
+		alignment:   AlignLeft,
 		borderColor: helper.BackgroundColor,
 	}
 
@@ -82,18 +79,18 @@ func NewButton(txt string, icon *Icon) *Button {
 		btn.size = unit.Dp(46)
 	}
 
-	btn.Background = theme.Color.Primary 
-	btn.Color      = helper.WhiteColor
+	btn.Background = theme.Color.Primary
+	btn.Color = helper.WhiteColor
 
 	return btn
 }
 
 func (b *Button) SetText(txt string) *Button {
-	b.text = txt 
+	b.text = txt
 	return b
 }
 
-func (b *Button) SetPadding(padding int)  *Button {
+func (b *Button) SetPadding(padding int) *Button {
 	b.padding = unit.Dp(float32(padding))
 	return b
 }
@@ -104,21 +101,21 @@ func (b *Button) SetSize(size int) *Button {
 }
 
 func (b *Button) SetBackgroundColor(color color.RGBA) *Button {
-	b.Background = color 
+	b.Background = color
 	return b
 }
 
 func (b *Button) SetBorderColor(color color.RGBA) *Button {
-	b.borderColor = color 
+	b.borderColor = color
 	return b
 }
 
 func (b *Button) SetColor(color color.RGBA) *Button {
-	b.Color = color 
+	b.Color = color
 	if b.icon != nil {
 		b.icon.color = color
 	}
-	
+
 	return b
 }
 
@@ -128,7 +125,7 @@ func (b *Button) MakeRound() *Button {
 }
 
 func (b *Button) SetAlignment(alignment Alignment) *Button {
-	b.alignment = alignment 
+	b.alignment = alignment
 	return b
 }
 
@@ -149,8 +146,8 @@ func (b *Button) Draw(ctx *layout.Context, onClick func()) {
 	vmin := ctx.Constraints.Height.Min
 	layout.Stack{Alignment: layout.Center}.Layout(ctx,
 		layout.Expanded(func() {
-			minWidth   := ctx.Constraints.Width.Min
-			minHeight  := ctx.Constraints.Height.Min
+			minWidth := ctx.Constraints.Width.Min
+			minHeight := ctx.Constraints.Height.Min
 			rr := float32(ctx.Px(unit.Dp(4)))
 
 			clip.Rect{
@@ -162,8 +159,8 @@ func (b *Button) Draw(ctx *layout.Context, onClick func()) {
 			}.Op(ctx.Ops).Add(ctx.Ops)
 			Fill(ctx, b.borderColor)
 
-			layout.Align(layout.Center).Layout(ctx, func(){
-				ctx.Constraints.Width.Min  = minWidth - 2
+			layout.Align(layout.Center).Layout(ctx, func() {
+				ctx.Constraints.Width.Min = minWidth - 2
 				ctx.Constraints.Height.Min = minHeight - 2
 
 				clip.Rect{
@@ -196,9 +193,9 @@ func (b *Button) Draw(ctx *layout.Context, onClick func()) {
 
 func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 	iconSize := ctx.Px(b.size) - 2*ctx.Px(b.padding)
-	
+
 	layout.Stack{}.Layout(ctx,
-		layout.Expanded(func(){
+		layout.Expanded(func() {
 			size := float32(ctx.Constraints.Width.Min)
 			rr := float32(4)
 			if b.isRounded {
@@ -209,20 +206,20 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 				NE:   rr, NW: rr, SE: rr, SW: rr,
 			}.Op(ctx.Ops).Add(ctx.Ops)
 			Fill(ctx, b.Background)
-			
+
 			rect := image.Rectangle{
 				Max: ctx.Dimensions.Size,
 			}
 			pointer.Rect(rect).Add(ctx.Ops)
 			b.button.Layout(ctx)
-			
+
 			for _, c := range b.button.History() {
 				drawInk(ctx, c)
 			}
 		}),
-		layout.Stacked(func(){
-			layout.Flex{Axis: layout.Horizontal}.Layout(ctx, 
-				layout.Rigid(func(){
+		layout.Stacked(func() {
+			layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+				layout.Rigid(func() {
 					layout.UniformInset(b.padding).Layout(ctx, func() {
 						ico := b.icon.image(iconSize)
 						ico.Add(ctx.Ops)
@@ -231,7 +228,7 @@ func (b *Button) drawIconButton(ctx *layout.Context, theme *helper.Theme) {
 						}.Add(ctx.Ops)
 					})
 				}),
-				layout.Rigid(func(){
+				layout.Rigid(func() {
 					if b.text != "" {
 						layout.UniformInset(b.padding).Layout(ctx, func() {
 							paint.ColorOp{Color: b.Color}.Add(ctx.Ops)
@@ -257,7 +254,6 @@ func (ic *Icon) Draw(ctx *layout.Context, size int) {
 	}.Add(ctx.Ops)
 }
 
-
 func (ic *Icon) image(sz int) paint.ImageOp {
 	if sz == ic.imgSize {
 		return ic.op
@@ -267,7 +263,7 @@ func (ic *Icon) image(sz int) paint.ImageOp {
 	img := image.NewRGBA(image.Rectangle{Max: image.Point{X: sz, Y: int(float32(sz) * dy / dx)}})
 	var ico iconvg.Rasterizer
 	ico.SetDstImage(img, img.Bounds(), draw.Src)
-	
+
 	m.Palette[0] = ic.color
 	//color.RGBA{A: 0xff, R: 0xff, G: 0xff, B: 0xff}
 	iconvg.Decode(&ico, ic.src, &iconvg.DecodeOptions{
@@ -277,7 +273,6 @@ func (ic *Icon) image(sz int) paint.ImageOp {
 	ic.imgSize = sz
 	return ic.op
 }
-
 
 func toPointF(p image.Point) f32.Point {
 	return f32.Point{X: float32(p.X), Y: float32(p.Y)}

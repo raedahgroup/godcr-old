@@ -16,10 +16,10 @@ type (
 	}
 
 	Clicker struct {
-		click   gesture.Click
-		clicks  int
+		click      gesture.Click
+		clicks     int
 		prevClicks int
-		history []clickItem
+		history    []clickItem
 	}
 )
 
@@ -48,7 +48,6 @@ func (c *Clicker) Clicked(ctx *layout.Context) bool {
 func (c *Clicker) History() []clickItem {
 	return c.history
 }
-
 
 func (c *Clicker) processEvents(ctx *layout.Context) {
 	for _, e := range c.click.Events(ctx) {
@@ -79,4 +78,3 @@ func (c *Clicker) Register(ctx *layout.Context) {
 		c.history = c.history[:len(c.history)-1]
 	}
 }
-

@@ -1,15 +1,15 @@
-package widgets 
+package widgets
 
 import (
-	"gioui.org/unit"
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
 type (
-	Selectable struct{
+	Selectable struct {
 		selected string
-		items 	 []*Button
+		items    []*Button
 	}
 )
 
@@ -26,11 +26,11 @@ func NewSelectable(items []string) *Selectable {
 		items: btns,
 	}
 }
- 
+
 func (s *Selectable) Select(index int) {
 	for i := range s.items {
 		if index == i {
-			s.selected = s.items[i].text 
+			s.selected = s.items[i].text
 			break
 		}
 	}
@@ -46,28 +46,26 @@ func (s *Selectable) Selected() string {
 
 func (s *Selectable) Draw(ctx *layout.Context) {
 	numItems := len(s.items)
-	spacing  := 3
+	spacing := 3
 	children := make([]layout.FlexChild, numItems)
 	tSpacing := spacing * numItems
-	width    := (ctx.Constraints.Width.Max / numItems) - tSpacing
-
-
+	width := (ctx.Constraints.Width.Max / numItems) - tSpacing
 
 	for i := range s.items {
 		index := i
-		children[i] = layout.Rigid(func(){
+		children[i] = layout.Rigid(func() {
 			ctx.Constraints.Width.Min = width
 			sideInset := float32(tSpacing / 2)
-			
+
 			inset := layout.Inset{
-				Left: unit.Dp(sideInset),
+				Left:  unit.Dp(sideInset),
 				Right: unit.Dp(sideInset),
 			}
-			inset.Layout(ctx, func(){
-				s.items[index].Draw(ctx, func(){
+			inset.Layout(ctx, func() {
+				s.items[index].Draw(ctx, func() {
 					s.items[index].SetColor(helper.DecredLightBlueColor).SetBorderColor(helper.DecredLightBlueColor)
 					s.selected = s.items[index].text
-				
+
 					for i := range s.items {
 						tindex := i
 						if tindex != index {
@@ -78,11 +76,10 @@ func (s *Selectable) Draw(ctx *layout.Context) {
 			})
 		})
 	}
-	
-	
-	layout.Stack{}.Layout(ctx, 
-		layout.Expanded(func(){
+
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func() {
 			layout.Flex{Axis: layout.Horizontal}.Layout(ctx, children...)
 		}),
 	)
-}	
+}

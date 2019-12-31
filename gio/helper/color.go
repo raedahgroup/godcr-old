@@ -5,9 +5,9 @@ import (
 	"image/color"
 
 	"gioui.org/f32"
+	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-	"gioui.org/layout"
 )
 
 var (
@@ -29,12 +29,11 @@ var (
 
 func PaintArea(ctx *layout.Context, color color.RGBA, x int, y int) {
 	borderRadius := float32(6)
-	borderWidth  := 1
+	borderWidth := 1
 	if y < 21 {
 		borderRadius = float32(4)
 		borderWidth = 0
 	}
-
 
 	clip.Rect{
 		Rect: f32.Rectangle{
@@ -50,8 +49,8 @@ func PaintArea(ctx *layout.Context, color color.RGBA, x int, y int) {
 	}.Op(ctx.Ops).Add(ctx.Ops)
 	Fill(ctx, GrayColor, x, y)
 
-	innerWidth := x-borderWidth 
-	innerHeight := y-borderWidth 
+	innerWidth := x - borderWidth
+	innerHeight := y - borderWidth
 
 	clip.Rect{
 		Rect: f32.Rectangle{
@@ -74,7 +73,7 @@ func PaintArea(ctx *layout.Context, color color.RGBA, x int, y int) {
 
 func PaintCircle(ctx *layout.Context, color color.RGBA, size float32) {
 	borderRadius := size * .5
-	
+
 	clip.Rect{
 		Rect: f32.Rectangle{
 			Max: f32.Point{
@@ -90,12 +89,11 @@ func PaintCircle(ctx *layout.Context, color color.RGBA, size float32) {
 	Fill(ctx, color, int(size), int(size))
 }
 
-func PaintFooter(ctx *layout.Context, color color.RGBA, x int, y int)  {
+func PaintFooter(ctx *layout.Context, color color.RGBA, x int, y int) {
 	paint.ColorOp{
 		Color: GrayColor,
 	}.Add(ctx.Ops)
-	
-	
+
 	paint.PaintOp{
 		Rect: f32.Rectangle{
 			Max: f32.Point{
@@ -105,13 +103,10 @@ func PaintFooter(ctx *layout.Context, color color.RGBA, x int, y int)  {
 		},
 	}.Add(ctx.Ops)
 
-
-
 	paint.ColorOp{
 		Color: color,
 	}.Add(ctx.Ops)
-	
-	
+
 	paint.PaintOp{
 		Rect: f32.Rectangle{
 			Max: f32.Point{
@@ -124,7 +119,6 @@ func PaintFooter(ctx *layout.Context, color color.RGBA, x int, y int)  {
 		},
 	}.Add(ctx.Ops)
 }
-
 
 func Fill(ctx *layout.Context, col color.RGBA, x, y int) {
 	//cs := ctx.Constraints

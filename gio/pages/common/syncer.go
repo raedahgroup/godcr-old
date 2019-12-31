@@ -5,10 +5,10 @@ import (
 	"image/color"
 
 	"gioui.org/f32"
-	"gioui.org/op/clip"
 	"gioui.org/layout"
-	"gioui.org/unit"
+	"gioui.org/op/clip"
 	"gioui.org/text"
+	"gioui.org/unit"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -17,9 +17,9 @@ import (
 )
 
 type report struct {
-	percentageProgress  float64 
-	timeRemaining       string 
-	daysBehind          string
+	percentageProgress float64
+	timeRemaining      string
+	daysBehind         string
 }
 
 type widgetItems struct {
@@ -30,34 +30,32 @@ type widgetItems struct {
 }
 
 type Syncer struct {
-	err                error
+	err error
 	//report             []string
-	showDetails        bool
-	wallet             *helper.MultiWallet
-	refreshDisplay     func()
-	syncError          error
-	
-	report           *report
-	widgets          *widgetItems
+	showDetails    bool
+	wallet         *helper.MultiWallet
+	refreshDisplay func()
+	syncError      error
+
+	report  *report
+	widgets *widgetItems
 }
 
 func NewSyncer(wallet *helper.MultiWallet, refreshDisplay func()) *Syncer {
 	s := &Syncer{
-		wallet:             wallet,
-		refreshDisplay:     refreshDisplay,
-		syncError:          nil,
-		showDetails:      false,
-		report: &report{},
+		wallet:         wallet,
+		refreshDisplay: refreshDisplay,
+		syncError:      nil,
+		showDetails:    false,
+		report:         &report{},
 	}
 
 	s.widgets = &widgetItems{
-		progressBar: widgets.NewProgressBar(),
-		reconnectButton: widgets.NewButton("Reconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
-		cancelButton   : widgets.NewButton("Cancel", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
-		disconnectButton : widgets.NewButton("Disconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
+		progressBar:      widgets.NewProgressBar(),
+		reconnectButton:  widgets.NewButton("Reconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
+		cancelButton:     widgets.NewButton("Cancel", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
+		disconnectButton: widgets.NewButton("Disconnect", nil).SetBorderColor(helper.GrayColor).SetBackgroundColor(helper.WhiteColor).SetColor(helper.BlackColor),
 	}
-
-
 
 	return s
 }
@@ -65,69 +63,28 @@ func NewSyncer(wallet *helper.MultiWallet, refreshDisplay func()) *Syncer {
 func (s *Syncer) OnSyncStarted() {}
 
 func (s *Syncer) OnPeerConnectedOrDisconnected(numberOfConnectedPeers int32) {
-    s.refreshDisplay()
+	s.refreshDisplay()
 }
 
 func (s *Syncer) OnHeadersFetchProgress(headersFetchProgress *dcrlibwallet.HeadersFetchProgressReport) {
 	s.report.percentageProgress = float64(headersFetchProgress.TotalSyncProgress)
 	s.report.timeRemaining = dcrlibwallet.CalculateTotalTimeRemaining(headersFetchProgress.TotalTimeRemainingSeconds)
-	s.report.daysBehind  = dcrlibwallet.CalculateDaysBehind(headersFetchProgress.CurrentHeaderTimestamp)
-
-
-	/**s.report = []string{
-		fmt.Sprintf("%d%% completed, %s remaining.", headersFetchProgress.TotalSyncProgress,
-			dcrlibwallet.CalculateTotalTimeRemaining(headersFetchProgress.TotalTimeRemainingSeconds)),
-
-		fmt.Sprintf("Fetched %d of %d block headers.", headersFetchProgress.FetchedHeadersCount,
-			headersFetchProgress.TotalHeadersToFetch),
-
-		fmt.Sprintf("%d%% through step 1 of 3.", headersFetchProgress.HeadersFetchProgress),
-
-		fmt.Sprintf("Your wallet is %s behind.",
-			dcrlibwallet.CalculateDaysBehind(headersFetchProgress.CurrentHeaderTimestamp)),
-	}**/
+	s.report.daysBehind = dcrlibwallet.CalculateDaysBehind(headersFetchProgress.CurrentHeaderTimestamp)
 	s.refreshDisplay()
 }
 
 func (s *Syncer) OnAddressDiscoveryProgress(addressDiscoveryProgress *dcrlibwallet.AddressDiscoveryProgressReport) {
 	s.report.percentageProgress = float64(addressDiscoveryProgress.TotalSyncProgress)
-	/**s.report = []string{
-		fmt.Sprintf("%d%% completed, %s remaining.", addressDiscoveryProgress.TotalSyncProgress,
-			dcrlibwallet.CalculateTotalTimeRemaining(addressDiscoveryProgress.TotalTimeRemainingSeconds)),
-
-		"%Discovering used addresses.",
-	}
-
-	if addressDiscoveryProgress.AddressDiscoveryProgress > 100 {
-		s.report = append(s.report, fmt.Sprintf("%d%% (over) through step 2 of 3.",
-			addressDiscoveryProgress.AddressDiscoveryProgress))
-	} else {
-		s.report = append(s.report, fmt.Sprintf("%d%% through step 2 of 3.",
-			addressDiscoveryProgress.AddressDiscoveryProgress))
-	}**/
-
 	s.refreshDisplay()
 }
 
 func (s *Syncer) OnHeadersRescanProgress(headersRescanProgress *dcrlibwallet.HeadersRescanProgressReport) {
 	s.report.percentageProgress = float64(headersRescanProgress.TotalSyncProgress)
-	/**s.report = []string{
-		fmt.Sprintf("%d%% completed, %s remaining.", headersRescanProgress.TotalSyncProgress,
-			dcrlibwallet.CalculateTotalTimeRemaining(headersRescanProgress.TotalTimeRemainingSeconds)),
-
-		fmt.Sprintf("Scanning %d of %d block headers.", headersRescanProgress.CurrentRescanHeight,
-			headersRescanProgress.TotalHeadersToScan),
-
-		fmt.Sprintf("%d%% through step 3 of 3.", headersRescanProgress.RescanProgress),
-	}**/
 	s.refreshDisplay()
 }
 
 func (s *Syncer) OnSyncCompleted() {
 	s.report.percentageProgress = 100
-	/**s.report = []string{
-		"Sync completed.",
-	}**/
 	s.refreshDisplay()
 }
 
@@ -150,28 +107,27 @@ func (s *Syncer) Render(ctx *layout.Context) {
 	helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 140)
 
 	inset := layout.UniformInset(unit.Dp(15))
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-			layout.Rigid(func(){
+			layout.Rigid(func() {
 				widgets.NewLabel("Wallet Status").
 					SetColor(helper.GrayColor).
 					SetSize(4).
 					SetWeight(text.Bold).
 					Draw(ctx)
 			}),
-			layout.Flexed(1, func(){
-				layout.Align(layout.NE).Layout(ctx, func(){
+			layout.Flexed(1, func() {
+				layout.Align(layout.NE).Layout(ctx, func() {
 					s.drawWalletStatus(ctx)
 				})
 			}),
 		)
 
-
 		inset := layout.Inset{
 			Top: unit.Dp(25),
 		}
 
-		inset.Layout(ctx, func(){
+		inset.Layout(ctx, func() {
 			if s.wallet.IsSynced() {
 				s.drawIsSyncedCard(ctx)
 			} else if !s.wallet.IsSyncing() {
@@ -183,29 +139,28 @@ func (s *Syncer) Render(ctx *layout.Context) {
 	})
 }
 
-
 func (s *Syncer) drawWalletStatus(ctx *layout.Context) {
-	var indicatorColor color.RGBA 
-	var statusText string 
+	var indicatorColor color.RGBA
+	var statusText string
 
 	if s.IsOnline() {
-		indicatorColor = helper.DecredGreenColor 
+		indicatorColor = helper.DecredGreenColor
 		statusText = "Online"
 	} else {
-		indicatorColor = helper.DecredOrangeColor 
+		indicatorColor = helper.DecredOrangeColor
 		statusText = "Offline"
 	}
 
 	indicatorSize := float32(8)
-	radius := indicatorSize * .5 
+	radius := indicatorSize * .5
 
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
-				Top: unit.Dp(3.5),
+				Top:   unit.Dp(3.5),
 				Right: unit.Dp(5),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				clip.Rect{
 					Rect: f32.Rectangle{
 						Max: f32.Point{
@@ -221,7 +176,7 @@ func (s *Syncer) drawWalletStatus(ctx *layout.Context) {
 				helper.Fill(ctx, indicatorColor, int(indicatorSize), int(indicatorSize))
 			})
 		}),
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			widgets.NewLabel(statusText).
 				SetSize(4).
 				SetColor(helper.GrayColor).
@@ -230,7 +185,6 @@ func (s *Syncer) drawWalletStatus(ctx *layout.Context) {
 		}),
 	)
 }
-
 
 func (s *Syncer) IsOnline() bool {
 	if !s.wallet.IsSynced() || !s.wallet.IsSyncing() {
@@ -241,14 +195,14 @@ func (s *Syncer) IsOnline() bool {
 
 func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			widgets.CancelIcon.SetColor(helper.DangerColor).Draw(ctx, 25)
 		}),
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
 				Left: unit.Dp(40),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewLabel("Not Synced").
 					SetSize(5).
 					SetColor(helper.BlackColor).
@@ -256,12 +210,12 @@ func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 					Draw(ctx)
 			})
 		}),
-		layout.Flexed(1, func(){
-			layout.Align(layout.NE).Layout(ctx, func(){
+		layout.Flexed(1, func() {
+			layout.Align(layout.NE).Layout(ctx, func() {
 				ctx.Constraints.Height.Max = 35
 				ctx.Constraints.Width.Max = 130
 
-				s.widgets.reconnectButton.Draw(ctx, func(){
+				s.widgets.reconnectButton.Draw(ctx, func() {
 
 				})
 			})
@@ -269,13 +223,13 @@ func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 	)
 
 	inset := layout.Inset{
-		Top: unit.Dp(35),
+		Top:  unit.Dp(35),
 		Left: unit.Dp(40),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		lowestBlock := s.wallet.GetLowestBlock()
 		lowestBlockHeight := int32(-1)
-		
+
 		if lowestBlock != nil {
 			lowestBlockHeight = lowestBlock.Height
 		}
@@ -287,10 +241,10 @@ func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 	})
 
 	inset = layout.Inset{
-		Top: unit.Dp(65),
+		Top:  unit.Dp(65),
 		Left: unit.Dp(40),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		widgets.NewLabel("No connected peers").
 			SetSize(4).
 			SetColor(helper.GrayColor).
@@ -300,19 +254,19 @@ func (s *Syncer) drawNotSyncedCard(ctx *layout.Context) {
 
 func (s *Syncer) drawIsSyncedCard(ctx *layout.Context) {
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
 				Top: unit.Dp(3),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewCheckbox().MakeAsIcon().Draw(ctx)
 			})
 		}),
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
 				Left: unit.Dp(30),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewLabel("Synced").
 					SetSize(5).
 					SetColor(helper.BlackColor).
@@ -320,27 +274,26 @@ func (s *Syncer) drawIsSyncedCard(ctx *layout.Context) {
 					Draw(ctx)
 			})
 		}),
-		layout.Flexed(1, func(){
-			layout.Align(layout.NE).Layout(ctx, func(){
+		layout.Flexed(1, func() {
+			layout.Align(layout.NE).Layout(ctx, func() {
 				ctx.Constraints.Height.Max = 35
 				ctx.Constraints.Width.Max = 130
 
-				s.widgets.disconnectButton.Draw(ctx, func(){
+				s.widgets.disconnectButton.Draw(ctx, func() {
 
 				})
 			})
 		}),
 	)
 
-
-		inset := layout.Inset{
-		Top: unit.Dp(35),
+	inset := layout.Inset{
+		Top:  unit.Dp(35),
 		Left: unit.Dp(40),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		lowestBlock := s.wallet.GetLowestBlock()
 		lowestBlockHeight := int32(-1)
-		
+
 		if lowestBlock != nil {
 			lowestBlockHeight = lowestBlock.Height
 		}
@@ -352,10 +305,10 @@ func (s *Syncer) drawIsSyncedCard(ctx *layout.Context) {
 	})
 
 	inset = layout.Inset{
-		Top: unit.Dp(65),
+		Top:  unit.Dp(65),
 		Left: unit.Dp(40),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		widgets.NewLabel(fmt.Sprintf("Connected to %d peers", s.wallet.ConnectedPeers())).
 			SetSize(4).
 			SetColor(helper.GrayColor).
@@ -366,19 +319,19 @@ func (s *Syncer) drawIsSyncedCard(ctx *layout.Context) {
 
 func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 	layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
 				Top: unit.Dp(3),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				helper.PaintCircle(ctx, helper.DecredGreenColor, 15)
 			})
 		}),
-		layout.Rigid(func(){
+		layout.Rigid(func() {
 			inset := layout.Inset{
 				Left: unit.Dp(30),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				widgets.NewLabel("Syncing...").
 					SetSize(5).
 					SetColor(helper.BlackColor).
@@ -386,12 +339,12 @@ func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 					Draw(ctx)
 			})
 		}),
-		layout.Flexed(1, func(){
-			layout.Align(layout.NE).Layout(ctx, func(){
+		layout.Flexed(1, func() {
+			layout.Align(layout.NE).Layout(ctx, func() {
 				ctx.Constraints.Height.Max = 35
 				ctx.Constraints.Width.Max = 130
 
-				s.widgets.cancelButton.Draw(ctx, func(){
+				s.widgets.cancelButton.Draw(ctx, func() {
 
 				})
 			})
@@ -401,7 +354,7 @@ func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 	inset := layout.Inset{
 		Top: unit.Dp(38),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		s.widgets.progressBar.
 			SetHeight(10).
 			SetBackgroundColor(helper.GrayColor).
@@ -411,17 +364,17 @@ func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 	inset = layout.Inset{
 		Top: unit.Dp(50),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-			layout.Rigid(func(){
+			layout.Rigid(func() {
 				widgets.NewLabel(fmt.Sprintf("%d%%", int(s.report.percentageProgress))).
 					SetColor(helper.BlackColor).
 					SetSize(4).
 					SetWeight(text.Bold).
 					Draw(ctx)
 			}),
-			layout.Flexed(1, func(){
-				layout.Align(layout.NE).Layout(ctx, func(){
+			layout.Flexed(1, func() {
+				layout.Align(layout.NE).Layout(ctx, func() {
 					widgets.NewLabel(s.report.timeRemaining).
 						SetColor(helper.BlackColor).
 						SetSize(4).
@@ -432,4 +385,3 @@ func (s *Syncer) drawIsSyncingCard(ctx *layout.Context) {
 		)
 	})
 }
-

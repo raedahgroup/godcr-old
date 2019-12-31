@@ -9,8 +9,8 @@ import (
 	gioapp "gioui.org/app"
 	"gioui.org/io/system"
 	"gioui.org/layout"
-	"gioui.org/unit"
 	"gioui.org/text"
+	"gioui.org/unit"
 
 	"github.com/raedahgroup/dcrlibwallet"
 
@@ -22,23 +22,21 @@ import (
 
 type (
 	desktop struct {
-		window         *gioapp.Window
-		displayName    string
-		pages          []navPage
+		window          *gioapp.Window
+		displayName     string
+		pages           []navPage
 		standalonePages map[string]standalonePageHandler
-		currentPage    string
-		pageChanged    bool
-		appDisplayName string
-		multiWallet    *helper.MultiWallet
-		syncer         *common.Syncer
+		currentPage     string
+		pageChanged     bool
+		appDisplayName  string
+		multiWallet     *helper.MultiWallet
+		syncer          *common.Syncer
 	}
 )
 
 const (
 	windowWidth  = 520
 	windowHeight = 530
-
-
 
 	navSectionHeight = 70
 )
@@ -51,7 +49,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	}
 	giolog.UseLogger(logger)
 
-	// initialize theme 
+	// initialize theme
 	helper.Initialize()
 
 	app := &desktop{
@@ -65,19 +63,20 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 		fmt.Fprintf(os.Stderr, "Launch error - cannot load assets: %v", err)
 		return
 	}
-	
-	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := helper.LoadWallet(appDataDir, netType) 
+
+	multiWallet, shouldCreateOrRestoreWallet, shouldPromptForPass, err := helper.LoadWallet(appDataDir, netType)
 	if err != nil {
 		// todo show error in UI
 		giolog.Log.Errorf(err.Error())
 		return
 	}
 
-	app.multiWallet = multiWallet 
+	app.multiWallet = multiWallet
 	if shouldCreateOrRestoreWallet {
 		app.currentPage = "welcome"
 	} else if shouldPromptForPass {
 		//app.currentPage = "passphrase"
+		// TODO prompt for passphrase
 	}
 
 	app.syncer = common.NewSyncer(app.multiWallet, app.refreshWindow)
@@ -114,7 +113,6 @@ func (d *desktop) changePage(pageName string) {
 	if d.currentPage == pageName {
 		return
 	}
-
 	d.currentPage = pageName
 	d.pageChanged = true
 }
@@ -138,7 +136,7 @@ func (d *desktop) renderLoop() error {
 func (d *desktop) render(ctx *layout.Context) {
 	helper.PaintArea(ctx, helper.BackgroundColor, windowWidth, windowHeight)
 
-	// first check if current page is standalone and render 
+	// first check if current page is standalone and render
 	if page, ok := d.standalonePages[d.currentPage]; ok {
 		d.renderStandalonePage(page, ctx)
 	} else {
@@ -161,35 +159,35 @@ func (d *desktop) render(ctx *layout.Context) {
 
 func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 	layout.Stack{}.Layout(ctx,
-		layout.Expanded(func(){
+		layout.Expanded(func() {
 			layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-				layout.Rigid(func(){
+				layout.Rigid(func() {
 					helper.LogoSymbol.Layout(ctx)
 				}),
-				layout.Flexed(1, func(){
+				layout.Flexed(1, func() {
 					inset := layout.Inset{
 						Top: unit.Dp(17),
 					}
-					inset.Layout(ctx, func(){
+					inset.Layout(ctx, func() {
 						widgets.NewLabel(page.label).
-							SetSize(6).	
+							SetSize(6).
 							SetWeight(text.Bold).
 							Draw(ctx)
 					})
 				}),
 			)
 		}),
-		layout.Expanded(func(){
+		layout.Expanded(func() {
 			inset := layout.Inset{
-				Top: unit.Dp(55),
-				Left: unit.Dp(15),
+				Top:   unit.Dp(55),
+				Left:  unit.Dp(15),
 				Right: unit.Dp(15),
 			}
-			inset.Layout(ctx, func(){
+			inset.Layout(ctx, func() {
 				page.handler.Render(ctx, d.changePage)
 			})
 		}),
-		layout.Stacked(func(){
+		layout.Stacked(func() {
 			d.renderNavSection(ctx)
 		}),
 	)
@@ -197,11 +195,11 @@ func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
 	inset := layout.Inset{}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		layout.Stack{Alignment: layout.NW}.Layout(ctx,
-			layout.Stacked(func(){
+			layout.Stacked(func() {
 				inset := layout.Inset{Top: unit.Dp(helper.StandaloneScreenPadding)}
-				inset.Layout(ctx, func(){
+				inset.Layout(ctx, func() {
 					page.Render(ctx, d.refreshWindow, d.changePage)
 				})
 			}),
@@ -209,19 +207,19 @@ func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.C
 	})
 }
 
-func (d *desktop) renderNavSection(ctx *layout.Context) {	
+func (d *desktop) renderNavSection(ctx *layout.Context) {
 	inset := layout.Inset{
 		Top: unit.Dp(windowHeight - navSectionHeight),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		helper.PaintFooter(ctx, helper.WhiteColor, windowWidth, navSectionHeight)
 
 		navItemWidth := ctx.Constraints.Width.Max / 4
-		(&layout.List{Axis: layout.Horizontal}).Layout(ctx, 4, func(i int){
+		(&layout.List{Axis: layout.Horizontal}).Layout(ctx, 4, func(i int) {
 			if i > 3 {
-				return 
+				return
 			}
-			d.pages[i].button.DrawNavItem(ctx, d.pages[i].icon, navItemWidth, func(){
+			d.pages[i].button.DrawNavItem(ctx, d.pages[i].icon, navItemWidth, func() {
 				d.changePage(d.pages[i].name)
 			})
 		})

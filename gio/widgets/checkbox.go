@@ -1,4 +1,4 @@
-package widgets 
+package widgets
 
 import (
 	"image"
@@ -6,33 +6,31 @@ import (
 	"gioui.org/f32"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
-	"gioui.org/op/clip"
 	"gioui.org/widget"
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
-
-
 type (
 	Checkbox struct {
-		isChecked bool
-		icon   	  *Icon
-		padding   unit.Value
-		size      unit.Value
-		button    *widget.Button 
-		isClickable  bool
+		isChecked   bool
+		icon        *Icon
+		padding     unit.Value
+		size        unit.Value
+		button      *widget.Button
+		isClickable bool
 	}
 )
 
 func NewCheckbox() *Checkbox {
 	return &Checkbox{
-		isChecked: false,
-		icon: 	   NavigationCheckIcon,
-		button:    new(widget.Button),
-		padding:   unit.Dp(5),
-		size:      unit.Dp(26),
+		isChecked:   false,
+		icon:        NavigationCheckIcon,
+		button:      new(widget.Button),
+		padding:     unit.Dp(5),
+		size:        unit.Dp(26),
 		isClickable: true,
 	}
 }
@@ -48,7 +46,7 @@ func (c *Checkbox) MakeAsIcon() *Checkbox {
 
 func (c *Checkbox) toggleCheckState() {
 	if c.isChecked {
-		c.isChecked = false 
+		c.isChecked = false
 		return
 	}
 	c.isChecked = true
@@ -80,12 +78,12 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 
 	hmin := ctx.Constraints.Width.Min
 	vmin := ctx.Constraints.Height.Min
-	layout.Stack{Alignment: layout.Center}.Layout(ctx, 
-		layout.Expanded(func(){
+	layout.Stack{Alignment: layout.Center}.Layout(ctx,
+		layout.Expanded(func() {
 			//ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 			ctx.Constraints.Height.Min = ctx.Constraints.Width.Min
-			size   := float32(ctx.Constraints.Width.Min) 
-			rr     := float32(size) * .5
+			size := float32(ctx.Constraints.Width.Min)
+			rr := float32(size) * .5
 			clip.Rect{
 				Rect: f32.Rectangle{Max: f32.Point{
 					X: float32(ctx.Constraints.Width.Min),
@@ -95,12 +93,12 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 			}.Op(ctx.Ops).Add(ctx.Ops)
 			Fill(ctx, helper.DecredGreenColor)
 
-			layout.Align(layout.Center).Layout(ctx, func(){
-				layout.UniformInset(unit.Dp(1)).Layout(ctx, func(){
+			layout.Align(layout.Center).Layout(ctx, func() {
+				layout.UniformInset(unit.Dp(1)).Layout(ctx, func() {
 					ctx.Constraints.Width.Min = 34
 					ctx.Constraints.Height.Min = ctx.Constraints.Width.Min
 
-					mainSize   := float32(ctx.Constraints.Width.Min) 
+					mainSize := float32(ctx.Constraints.Width.Min)
 					mainRadius := float32(mainSize) * .5
 					clip.Rect{
 						Rect: f32.Rectangle{Max: f32.Point{
@@ -116,7 +114,7 @@ func (c *Checkbox) Draw(ctx *layout.Context) {
 				})
 			})
 		}),
-		layout.Stacked(func(){
+		layout.Stacked(func() {
 			ctx.Constraints.Width.Min = hmin
 			ctx.Constraints.Height.Min = vmin
 			layout.Align(layout.Center).Layout(ctx, func() {

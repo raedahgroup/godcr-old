@@ -1,40 +1,40 @@
-package widgets 
+package widgets
 
 import (
+	"gioui.org/layout"
 	"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/layout"
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
 type (
 	tabItem struct {
-		label *ClickableLabel
+		label      *ClickableLabel
 		renderFunc func()
 	}
 
 	TabContainer struct {
-		items 			[]tabItem
+		items           []tabItem
 		currentTabIndex int
 	}
 )
 
 func NewTabContainer() *TabContainer {
 	return &TabContainer{
-		items: []tabItem{},
+		items:           []tabItem{},
 		currentTabIndex: 0,
 	}
 }
 
 func (t *TabContainer) AddTab(label string) *TabContainer {
 	lbl := NewClickableLabel(label).
-				SetSize(5).
-				SetAlignment(AlignMiddle).
-				SetWeight(text.Bold)
+		SetSize(5).
+		SetAlignment(AlignMiddle).
+		SetWeight(text.Bold)
 
 	item := tabItem{
-		label     : lbl, 
-		renderFunc: func(){},
+		label:      lbl,
+		renderFunc: func() {},
 	}
 	t.items = append(t.items, item)
 	return t
@@ -47,7 +47,7 @@ func (t *TabContainer) Draw(ctx *layout.Context, renderFuncs ...func(*layout.Con
 	inset := layout.Inset{
 		Top: unit.Dp(25),
 	}
-	inset.Layout(ctx, func(){
+	inset.Layout(ctx, func() {
 		// TODO make sure number of render funcs match number of tabs
 		renderFuncs[t.currentTabIndex](ctx)
 	})
@@ -58,24 +58,24 @@ func (t *TabContainer) drawNavSection(ctx *layout.Context) {
 	columns := make([]layout.FlexChild, len(t.items))
 
 	for index := range t.items {
-		tindex := index 
+		tindex := index
 
 		color := helper.BlackColor
 		if t.currentTabIndex == tindex {
 			color = helper.DecredLightBlueColor
 		}
 
-		columns[tindex] = layout.Rigid(func(){
+		columns[tindex] = layout.Rigid(func() {
 			t.items[tindex].label.SetWidth(navTabWidth).
 				SetColor(color).
-				Draw(ctx, func(){
+				Draw(ctx, func() {
 					t.currentTabIndex = tindex
 				})
 		})
 	}
-	
-	layout.Stack{}.Layout(ctx, 
-		layout.Expanded(func(){
+
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func() {
 			layout.Flex{Axis: layout.Horizontal}.Layout(ctx, columns...)
 		}),
 	)
@@ -85,7 +85,7 @@ func (t *TabContainer) drawContentSection(ctx *layout.Context, renderFuncs []fun
 	inset := layout.Inset{
 		Top: unit.Dp(25),
 	}
-	inset.Layout(ctx, func(){
-		
+	inset.Layout(ctx, func() {
+
 	})
 }

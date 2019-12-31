@@ -11,25 +11,24 @@ import (
 
 type (
 	Fonts struct {
-		Regular       text.Font 
+		Regular       text.Font
 		Bold          text.Font
-		RegularItalic text.Font 
+		RegularItalic text.Font
 		BoldItalic    text.Font
 	}
 	Theme struct {
-		*material.Theme 
+		*material.Theme
 		*text.Shaper
 		Fonts *Fonts
 	}
 )
 
 const (
-	regularFontSize = 12 
+	regularFontSize = 12
 )
 
-
 var (
-	theme *Theme 
+	theme *Theme
 )
 
 func Initialize() {
@@ -51,9 +50,9 @@ func newTheme() *Theme {
 	materialTheme.TextSize = unit.Dp(10)
 
 	return &Theme{
-		Theme: materialTheme,
+		Theme:  materialTheme,
 		Shaper: materialTheme.Shaper,
-		Fonts: getFonts(),
+		Fonts:  getFonts(),
 	}
 }
 
@@ -63,17 +62,17 @@ func getFonts() *Fonts {
 			Size: unit.Dp(regularFontSize),
 		},
 		Bold: text.Font{
-			Size: unit.Dp(regularFontSize),
+			Size:   unit.Dp(regularFontSize),
 			Weight: text.Bold,
 		},
 		RegularItalic: text.Font{
-			Size: unit.Dp(regularFontSize),
+			Size:  unit.Dp(regularFontSize),
 			Style: text.Italic,
 		},
 		BoldItalic: text.Font{
-			Size: unit.Dp(regularFontSize),
+			Size:   unit.Dp(regularFontSize),
 			Weight: text.Bold,
-			Style: text.Italic,
+			Style:  text.Italic,
 		},
 	}
 }

@@ -6,6 +6,8 @@ require (
 	//gioui.org v0.0.0-20191023081811-143d2aae95dd
 	gioui.org v0.0.0-20191211234536-7814da47a0ff
 	github.com/decred/dcrd/dcrutil v1.4.0
+	github.com/decred/dcrd/hdkeychain v1.1.1
+	github.com/decred/dcrwallet/walletseed v1.0.1
 	github.com/decred/slog v1.0.0
 	github.com/raedahgroup/dcrlibwallet v0.0.0-00010101000000-000000000000
 	golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3

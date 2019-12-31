@@ -1,4 +1,4 @@
-package widgets 
+package widgets
 
 import (
 	"image/color"
@@ -11,35 +11,34 @@ import (
 	"github.com/raedahgroup/godcr/gio/helper"
 )
 
-
 type (
 	Line struct {
 		height float32
-		color color.RGBA 
+		color  color.RGBA
 	}
 )
 
 func NewLine() *Line {
 	return &Line{
 		height: 1,
-		color: helper.DecredDarkBlueColor,
+		color:  helper.DecredDarkBlueColor,
 	}
 }
 
 func (l *Line) SetColor(color color.RGBA) *Line {
-	l.color = color 
+	l.color = color
 	return l
 }
 
 func (l *Line) SetHeight(height float32) *Line {
-	l.height = height 
+	l.height = height
 	return l
 }
 
 func (l *Line) Draw(ctx *layout.Context) {
 	rect := f32.Rectangle{
 		Max: f32.Point{
-			X: float32(ctx.Constraints.Width.Max), 
+			X: float32(ctx.Constraints.Width.Max),
 			Y: l.height,
 		},
 	}

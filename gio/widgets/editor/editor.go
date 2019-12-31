@@ -3,8 +3,8 @@ package editor
 import (
 	"image"
 	"math"
-	"time"
 	"strconv"
+	"time"
 	"unicode/utf8"
 
 	"gioui.org/f32"
@@ -51,8 +51,8 @@ type Editor struct {
 	caretOn      bool
 	caretScroll  bool
 
-	char         string
-	isNumeric    bool
+	char      string
+	isNumeric bool
 
 	// carXOff is the offset to the current caret
 	// position when moving between lines.
@@ -69,7 +69,6 @@ type Editor struct {
 	// prevEvents is the number of events from the previous frame.
 	prevEvents int
 }
-
 
 type EditorEvent interface {
 	isEditorEvent()
@@ -105,7 +104,7 @@ func (e *Editor) setMask(char string) *Editor {
 }
 
 func (e *Editor) numeric() *Editor {
-	e.isNumeric = true 
+	e.isNumeric = true
 	return e
 }
 
@@ -362,11 +361,11 @@ func (e *Editor) SetText(s string) {
 	// return if it's a numeric input but a string is entered
 	if e.isNumeric {
 		if _, err := strconv.Atoi(s); err != nil {
-			return 
+			return
 		}
 	}
-	
-	str := s 
+
+	str := s
 	if e.char != "" {
 		str = e.char
 	}
@@ -510,27 +509,26 @@ func (e *Editor) append(s string) {
 	// return if it's a numeric input but a string is entered
 	if e.isNumeric {
 		if _, err := strconv.Atoi(s); err != nil {
-			return 
+			return
 		}
 	}
-	
 
-	/**str := s 
+	/**str := s
 	if e.char != "" {
-		str = e.char 
+		str = e.char
 	}
-*/
+	*/
 	e.prepend(s)
 	e.rr.caret += len(s)
 	e.realText.caret += len(s)
 }
 
-func (e *Editor) prepend(s string) {	
-	str := s 
+func (e *Editor) prepend(s string) {
+	str := s
 	if e.char != "" {
-		str = e.char 
+		str = e.char
 	}
-	
+
 	e.rr.prepend(str)
 	e.prependRealText(s)
 	e.carXOff = 0
@@ -712,8 +710,6 @@ func (e *Editor) command(k key.Event) bool {
 
 func (s ChangeEvent) isEditorEvent() {}
 func (s SubmitEvent) isEditorEvent() {}
-
-
 
 type lineIterator struct {
 	Lines     []text.Line

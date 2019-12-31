@@ -1,4 +1,4 @@
-package editor 
+package editor
 
 import (
 	"image/color"
@@ -6,9 +6,9 @@ import (
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/unit"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
@@ -17,17 +17,17 @@ import (
 type (
 	Input struct {
 		*Editor
-		hint   		      string
+		hint              string
 		focusBorderColor  color.RGBA
 		normalBorderColor color.RGBA
 	}
 )
 
-func NewInput(hint string) *Input { 
+func NewInput(hint string) *Input {
 	return &Input{
-		Editor           : new(Editor),
-		hint             : hint,
-		focusBorderColor : helper.DecredLightBlueColor,
+		Editor:            new(Editor),
+		hint:              hint,
+		focusBorderColor:  helper.DecredLightBlueColor,
 		normalBorderColor: helper.GrayColor,
 	}
 }
@@ -62,8 +62,8 @@ func (i *Input) Draw(ctx *layout.Context) {
 		borderColor = i.focusBorderColor
 	}
 
-	layout.Stack{}.Layout(ctx, 
-		layout.Expanded(func(){
+	layout.Stack{}.Layout(ctx,
+		layout.Expanded(func() {
 			borderRadius := float32(ctx.Px(unit.Dp(4)))
 			clip.Rect{
 				Rect: f32.Rectangle{Max: f32.Point{
@@ -74,8 +74,8 @@ func (i *Input) Draw(ctx *layout.Context) {
 			}.Op(ctx.Ops).Add(ctx.Ops)
 			widgets.Fill(ctx, borderColor)
 
-			layout.Align(layout.Center).Layout(ctx, func(){
-				layout.UniformInset(unit.Dp(1)).Layout(ctx, func(){
+			layout.Align(layout.Center).Layout(ctx, func() {
+				layout.UniformInset(unit.Dp(1)).Layout(ctx, func() {
 					ctx.Constraints.Height.Min = 48
 					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 					clip.Rect{
@@ -89,10 +89,10 @@ func (i *Input) Draw(ctx *layout.Context) {
 				})
 			})
 		}),
-		layout.Stacked(func(){
-			ctx.Constraints.Height.Min = 50 
+		layout.Stacked(func() {
+			ctx.Constraints.Height.Min = 50
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			layout.Align(layout.Center).Layout(ctx, func(){
+			layout.Align(layout.Center).Layout(ctx, func() {
 				layout.UniformInset(unit.Dp(8)).Layout(ctx, func() {
 					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 					i.draw(ctx)
@@ -101,11 +101,10 @@ func (i *Input) Draw(ctx *layout.Context) {
 		}),
 	)
 
-	
 	/**
 	stack := layout.Stack{}
 	input := stack.Rigid(ctx, func(){
-		ctx.Constraints.Height.Min = 50 
+		ctx.Constraints.Height.Min = 50
 		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 		layout.Align(layout.Center).Layout(ctx, func(){
 			layout.UniformInset(unit.Dp(8)).Layout(ctx, func() {
@@ -144,9 +143,9 @@ func (i *Input) Draw(ctx *layout.Context) {
 func (i *Input) draw(ctx *layout.Context) {
 	theme := helper.GetTheme()
 
-	var stack op.StackOp 
+	var stack op.StackOp
 	stack.Push(ctx.Ops)
-	var macro op.MacroOp 
+	var macro op.MacroOp
 	macro.Record(ctx.Ops)
 	paint.ColorOp{
 		Color: helper.GrayColor,
