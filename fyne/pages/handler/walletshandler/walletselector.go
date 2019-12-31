@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"fyne.io/fyne/theme"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
@@ -49,7 +48,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 	for _, acc := range accts.Acc {
 		totalBalance += acc.TotalBalance
 	}
-	balanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(totalBalance), 'f', 8, 64)
+	balanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(totalBalance), 'f', -1, 64)
 
 	walletPage.WalletTotalAmountLabel[index].Text = fmt.Sprintf(values.AmountInDCR, balanceInString)
 
@@ -180,8 +179,8 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		canvas.NewText("Spendable", values.SpendableLabelColor),
 		layout.NewSpacer())
 
-	totalBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.TotalBalance), 'f', 8, 64)
-	spendableBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.Balance.Spendable), 'f', 8, 64)
+	totalBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.TotalBalance), 'f', -1, 64)
+	spendableBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.Balance.Spendable), 'f', -1, 64)
 
 	accountBalAndSpendableBal := widgets.NewVBox(
 		layout.NewSpacer(),
