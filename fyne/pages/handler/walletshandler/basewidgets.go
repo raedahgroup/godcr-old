@@ -14,12 +14,7 @@ import (
 func (walletPage *WalletPageObject) initBaseWidgets() error {
 	walletLabel := widget.NewLabelWithStyle("Wallets", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
-	icon, err := assets.GetIcons(assets.AddWallet)
-	if err != nil {
-		return err
-	}
-
-	addWallet := widgets.NewImageButton(icon[assets.AddWallet], nil, func() {
+	addWallet := widgets.NewImageButton(walletPage.icons[assets.AddWallet], nil, func() {
 		fmt.Println("Helllll0")
 	})
 

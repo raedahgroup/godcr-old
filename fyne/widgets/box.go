@@ -21,7 +21,6 @@ type Box struct {
 
 // Refresh updates this box to match the current theme
 func (b *Box) Refresh() {
-
 	b.BaseWidget.Refresh()
 }
 
@@ -89,7 +88,7 @@ func (b *boxRenderer) Layout(size fyne.Size) {
 
 func (b *boxRenderer) BackgroundColor() color.Color {
 	if b.box.background == nil {
-		return color.White
+		return color.RGBA{255, 255, 255, 255}
 	}
 
 	return b.box.background

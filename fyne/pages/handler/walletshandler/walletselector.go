@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"fyne.io/fyne/theme"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -17,11 +19,6 @@ import (
 )
 
 func (walletPage *WalletPageObject) accountSelector() error {
-	icons, err := assets.GetIcons(assets.Expand, assets.CollapseIcon, assets.WalletIcon, assets.ImportedAccount, assets.MoreIcon)
-	if err != nil {
-		return err
-	}
-
 	// all wallet selectors are housed here,
 	// if a wallet is deleted, we are to redeclare the children to omit the deleted wallet
 	walletPage.walletSelectorBox = widget.NewVBox()
@@ -30,18 +27,22 @@ func (walletPage *WalletPageObject) accountSelector() error {
 
 	for index, walletID := range walletPage.OpenedWallets {
 		walletPage.walletIDToIndex[index] = walletID
-		walletPage.getAccountsInWallet(icons, index, walletID)
+
+		err := walletPage.getAccountsInWallet(index, walletID)
+		if err != nil {
+			return err
+		}
 	}
 
 	walletPage.WalletPageContents.Append(walletPage.walletSelectorBox)
 	return nil
 }
 
-func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.StaticResource, index, selectedWalletID int) {
+func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID int) error {
 	selectedWallet := walletPage.MultiWallet.WalletWithID(selectedWalletID)
 	accts, err := selectedWallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
-		return
+		return err
 	}
 
 	var totalBalance int64
@@ -53,9 +54,10 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 	walletPage.WalletTotalAmountLabel[index].Text = fmt.Sprintf(values.AmountInDCR, balanceInString)
 
 	notBackedUpLabel := canvas.NewText("Not backed up", values.ErrorColor)
+
 	// add extra padding to account selector on hiding "Not backed up" due to extra VBox padding
-	extraPadding1 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 1)
-	extraPadding2 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 1)
+	extraPadding1 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 2)
+	extraPadding2 := widgets.NewVSpacer((notBackedUpLabel.MinSize().Height / 2) - 3)
 
 	if selectedWallet.Seed == "" {
 		notBackedUpLabel.Hide()
@@ -64,52 +66,154 @@ func (walletPage *WalletPageObject) getAccountsInWallet(icons map[string]*fyne.S
 		extraPadding1.Hide()
 	}
 
-	accountLabel := widgets.NewVBox(layout.NewSpacer(), canvas.NewText(selectedWallet.Name, values.DefaultTextColor), notBackedUpLabel, layout.NewSpacer())
+	accountLabel := widgets.NewVBox(
+		layout.NewSpacer(),
+		canvas.NewText(selectedWallet.Name, values.DefaultTextColor),
+		notBackedUpLabel,
+		layout.NewSpacer())
 
-	expandIcon := widget.NewIcon(icons[assets.Expand])
+	expandIcon := widget.NewIcon(walletPage.icons[assets.Expand])
 
-	walletIcon := canvas.NewImageFromResource(icons[assets.WalletIcon])
-	walletIcon.SetMinSize(fyne.NewSize(24, 24))
+	walletIcon := widget.NewIcon(walletPage.icons[assets.WalletIcon])
 
 	accountBox := widgets.NewHBox(
-		widgets.NewHSpacer(12),
+		widgets.NewHSpacer(values.SpacerSize12),
 		widgets.NewVBox(layout.NewSpacer(), expandIcon, layout.NewSpacer()),
-		widgets.NewHSpacer(4),
+		widgets.NewHSpacer(values.SpacerSize4),
 		widgets.NewVBox(layout.NewSpacer(), walletIcon, layout.NewSpacer()),
-		widgets.NewHSpacer(12),
-		accountLabel, widgets.NewHSpacer(50),
+		widgets.NewHSpacer(values.SpacerSize12),
+		accountLabel, widgets.NewHSpacer(values.SpacerSize50),
 		layout.NewSpacer(),
 		walletPage.WalletTotalAmountLabel[index], widgets.NewHSpacer(4),
-		widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
+		widgets.NewImageButton(walletPage.icons[assets.MoreIcon], nil, func() {
 
-		}), widgets.NewHSpacer(12))
+		}),
+		widgets.NewHSpacer(values.SpacerSize12),
+	)
 
-	toShow := widgets.NewVBox(
-		widget.NewLabel("To do"))
-	toShow.Hide()
+	walletSelectorDropdownContent, err := walletPage.accountDropdown(accountBox.MinSize().Width, selectedWallet)
+	if err != nil {
+		return err
+	}
+	walletSelectorDropdownContent.Hide()
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
-		if toShow.Hidden {
-			expandIcon.SetResource(icons[assets.CollapseIcon])
-			toShow.Show()
+		if walletSelectorDropdownContent.Hidden {
+			expandIcon.SetResource(walletPage.icons[assets.CollapseIcon])
+			walletSelectorDropdownContent.Show()
 		} else {
-			expandIcon.SetResource(icons[assets.Expand])
-			toShow.Hide()
+			expandIcon.SetResource(walletPage.icons[assets.Expand])
+			walletSelectorDropdownContent.Hide()
 		}
+		fmt.Println("done")
 	})
 
 	textBox := widgets.NewVBox(
 		extraPadding1,
-		widgets.NewVSpacer(12),
+		widgets.NewVSpacer(values.SpacerSize12),
 		accountSelector,
 		extraPadding2,
-		widgets.NewVSpacer(4),
-		toShow,
-		widgets.NewVSpacer(4),
-	)
+		widgets.NewVSpacer(values.SpacerSize4),
+		walletSelectorDropdownContent,
+		widgets.NewVSpacer(values.SpacerSize4))
 
 	walletPage.walletSelectorBox.Append(widget.NewVBox(
 		textBox,
-		widgets.NewVSpacer(4),
+		widgets.NewVSpacer(values.SpacerSize4), // add spacing between wallet account selector
 	))
+
+	return nil
+}
+
+func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *dcrlibwallet.Wallet) (*widgets.Box, error) {
+	accounts, err := wallet.GetAccountsRaw(dcrlibwallet.DefaultRequiredConfirmations)
+	if err != nil {
+		return nil, err
+	}
+
+	accountObjects := widgets.NewVBox(canvas.NewLine(values.StrippedLineColor))
+
+	for _, account := range accounts.Acc {
+		accountObjects.Append(walletPage.walletAccountBox(walletBoxSize, account))
+	}
+
+	addAccount := widgets.NewClickableBox(widgets.NewHBox(
+		widgets.NewVBox(
+			layout.NewSpacer(),
+			widget.NewIcon(theme.ContentAddIcon()),
+			layout.NewSpacer()),
+		widgets.NewHSpacer(values.SpacerSize12),
+		widgets.NewVBox(
+			layout.NewSpacer(),
+			widget.NewLabel("Add new account"),
+			layout.NewSpacer())),
+		func() {
+			fmt.Println("Add new account")
+		})
+
+	accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
+	accountObjects.Append(addAccount)
+	accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
+
+	accountBoxSpacer := widget.NewIcon(walletPage.icons[assets.Expand]).MinSize().Width + values.SpacerSize24
+	accountBoxes := widgets.NewHBox(widgets.NewHSpacer(accountBoxSpacer), accountObjects)
+
+	return accountBoxes, nil
+}
+
+func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account *dcrlibwallet.Account) *widgets.Box {
+	walletIcon := walletPage.icons[assets.WalletAccount]
+	if account.Name == "imported" {
+		walletIcon = walletPage.icons[assets.ImportedAccount]
+	}
+
+	iconBox := widgets.NewVBox(
+		layout.NewSpacer(),
+		widget.NewIcon(walletIcon),
+		layout.NewSpacer(),
+	)
+
+	accountNameWithSpendableLabel := widgets.NewVBox(
+		layout.NewSpacer(),
+		canvas.NewText(account.Name, values.DefaultTextColor),
+		widgets.NewHSpacer(values.SpacerSize4),
+		canvas.NewText("Spendable", values.SpendableLabelColor),
+		layout.NewSpacer())
+
+	totalBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.TotalBalance), 'f', 8, 64)
+	spendableBalanceInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.Balance.Spendable), 'f', 8, 64)
+
+	accountBalAndSpendableBal := widgets.NewVBox(
+		layout.NewSpacer(),
+		canvas.NewText(fmt.Sprintf(values.AmountInDCR, totalBalanceInString), values.DefaultTextColor),
+		widgets.NewHSpacer(values.SpacerSize4),
+		canvas.NewText(fmt.Sprintf(values.AmountInDCR, spendableBalanceInString), values.SpendableLabelColor),
+		layout.NewSpacer())
+
+	accountHBox := widgets.NewHBox(iconBox, widgets.NewHSpacer(values.SpacerSize14),
+		accountNameWithSpendableLabel,
+		layout.NewSpacer(),
+		widgets.NewHSpacer(values.NilSpacer),
+		accountBalAndSpendableBal, widgets.NewHSpacer(values.SpacerSize12))
+
+	spacerSize := walletBoxSize - accountHBox.MinSize().Width - 4
+	accountHBox.Children[4] = widgets.NewHSpacer(spacerSize)
+
+	iconWidthSize := widget.NewIcon(walletPage.icons[assets.WalletAccount]).MinSize().Width + values.SpacerSize14
+
+	accountBoxWithLiner := widgets.NewVBox(
+		widgets.NewVSpacer(values.SpacerSize14),
+		accountHBox,
+		widgets.NewVSpacer(values.SpacerSize8))
+
+	clickableAccountBox := widgets.NewClickableBox(accountBoxWithLiner, func() {
+		fmt.Println("Works")
+	})
+
+	canvasLine := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(clickableAccountBox.MinSize().Width-iconWidthSize, 1)),
+		canvas.NewLine(values.StrippedLineColor))
+
+	return widgets.NewVBox(
+		clickableAccountBox,
+		widgets.NewHBox(widgets.NewHSpacer(iconWidthSize), canvasLine))
 }
