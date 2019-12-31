@@ -31,7 +31,8 @@ type WalletPageObject struct {
 
 func (walletPage *WalletPageObject) InitWalletPage() error {
 	var err error
-	walletPage.icons, err = assets.GetIcons(assets.AddWallet, assets.Expand, assets.CollapseIcon, assets.WalletIcon, assets.WalletAccount, assets.ImportedAccount, assets.MoreIcon)
+	walletPage.icons, err = assets.GetIcons(assets.AddWallet, assets.Expand, assets.CollapseIcon, assets.WalletIcon,
+		assets.WalletAccount, assets.ImportedAccount, assets.MoreIcon, assets.Edit)
 
 	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.Padding))
 

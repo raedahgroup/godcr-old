@@ -36,6 +36,7 @@ const (
 	SpacerSize70  = 70
 	SpacerSize140 = 140
 	SpacerSize170 = 170
+	SpacerSize202 = 202
 
 	Padding       = 16
 	BottomPadding = 50

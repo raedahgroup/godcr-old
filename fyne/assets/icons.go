@@ -29,6 +29,7 @@ const (
 	ImportedAccount = "importedaccount.png"
 	WalletAccount   = "walletaccount.png"
 	AddWallet       = "addwallet.png"
+	Edit            = "edit.png"
 
 	Expand = "expand.png"
 

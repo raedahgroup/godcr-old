@@ -19,6 +19,7 @@ const (
 	ZeroByte                      = "0 bytes"
 	ZeroAmount                    = "0"
 	AmountInDCR                   = "%s DCR"
+	HDPathFormat                  = "m / 44' / 11'/ %d'"
 	// Base Object
 	GotIt      = "Got it"
 	ClearField = "Clear all fields"
@@ -70,6 +71,19 @@ const (
 	TapToCopy             = "(Tap to copy)"
 	GenerateNewAddress    = "Generate new address"
 	ReceivePageInfo       = "Each time you request a \npayment, a new address is \ncreated to protect your privacy."
+
+	// Wallet Page
+	TotalBalance     = "Total Balance"
+	ImmatureRewards  = "Immature Rewards"
+	LockedByTickets  = "Locked By Tickets"
+	VotingAuthority  = "Voting Authority"
+	ImmatureStakeGen = "Immature Stake Gen"
+	Properties       = "Properties"
+	AccountNumber    = "Account Number"
+	HDPath           = "HD Path"
+	Keys             = "Keys"
+	ShowProperties   = "Show properties"
+	HideProperties   = "Hide properties"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"

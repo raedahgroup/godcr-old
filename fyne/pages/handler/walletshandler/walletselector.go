@@ -48,6 +48,8 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		return err
 	}
 
+	//	ss, _ := selectedWallet.StakeInfo()
+
 	var totalBalance int64
 	for _, acc := range accts.Acc {
 		totalBalance += acc.TotalBalance
@@ -81,9 +83,9 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize12),
-		widgets.NewVBox(layout.NewSpacer(), expandIcon, layout.NewSpacer()),
+		centerObject(expandIcon),
 		widgets.NewHSpacer(values.SpacerSize4),
-		widgets.NewVBox(layout.NewSpacer(), walletIcon, layout.NewSpacer()),
+		centerObject(walletIcon),
 		widgets.NewHSpacer(values.SpacerSize12),
 		accountLabel, widgets.NewHSpacer(values.SpacerSize50),
 		layout.NewSpacer(),
@@ -213,7 +215,7 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		widgets.NewVSpacer(values.SpacerSize8))
 
 	clickableAccountBox := widgets.NewClickableBox(accountBoxWithLiner, func() {
-		fmt.Println("Works")
+		walletPage.accountDetailsPopUp(walletIcon, account)
 	})
 
 	canvasLine := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(clickableAccountBox.MinSize().Width-iconWidthSize-values.SpacerSize18, 1)),
