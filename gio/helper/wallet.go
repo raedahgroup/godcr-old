@@ -37,6 +37,7 @@ func LoadWallet(appDataDir, netType string) (*MultiWallet, bool, bool, error) {
 	if multiWallet.ReadBoolConfigValueForKey(dcrlibwallet.IsStartupSecuritySetConfigKey, true) {
 		// prompt user for public passphrase and assign to `pubPass`
 		//return mw, false, true, nil
+		pubPass = []byte("public")
 	}
 
 	err = multiWallet.OpenWallets(pubPass)
