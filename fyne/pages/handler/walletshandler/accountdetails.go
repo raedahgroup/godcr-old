@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
-
-	"github.com/raedahgroup/dcrlibwallet"
-	"github.com/raedahgroup/godcr/fyne/assets"
-	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
-	"github.com/raedahgroup/godcr/fyne/widgets"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+
+	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/widgets"
+
+	"github.com/raedahgroup/dcrlibwallet"
 )
 
 func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticResource, account *dcrlibwallet.Account) {

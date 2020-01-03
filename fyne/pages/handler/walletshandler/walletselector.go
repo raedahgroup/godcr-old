@@ -48,8 +48,6 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		return err
 	}
 
-	//	ss, _ := selectedWallet.StakeInfo()
-
 	var totalBalance int64
 	for _, acc := range accts.Acc {
 		totalBalance += acc.TotalBalance
@@ -77,13 +75,13 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		notBackedUpLabel,
 		layout.NewSpacer())
 
-	expandIcon := widget.NewIcon(walletPage.icons[assets.Expand])
+	walletPage.walletExpandCollapseIcon[index] = widget.NewIcon(walletPage.icons[assets.Expand])
 
 	walletIcon := widget.NewIcon(walletPage.icons[assets.WalletIcon])
 
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize12),
-		centerObject(expandIcon, true),
+		centerObject(walletPage.walletExpandCollapseIcon[index], true),
 		widgets.NewHSpacer(values.SpacerSize4),
 		centerObject(walletIcon, true),
 		widgets.NewHSpacer(values.SpacerSize12),
@@ -98,22 +96,29 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountBoxSpacer := accountBox.MinSize().Width - values.SpacerSize44
 
-	walletSelectorDropdownContent, err := walletPage.accountDropdown(accountBoxSpacer, selectedWallet)
+	walletPage.walletPropertiesBox[index], err = walletPage.accountDropdown(accountBoxSpacer, selectedWallet)
 	if err != nil {
 		return err
 	}
-	walletSelectorDropdownContent.Hide()
+	walletPage.walletPropertiesBox[index].Hide()
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
-		if walletSelectorDropdownContent.Hidden {
-			expandIcon.SetResource(walletPage.icons[assets.CollapseIcon])
-			walletSelectorDropdownContent.Show()
-		} else {
-			expandIcon.SetResource(walletPage.icons[assets.Expand])
-			walletSelectorDropdownContent.Hide()
+		// hide other textboxes
+		for i, propertieBox := range walletPage.walletPropertiesBox {
+			if !propertieBox.Hidden {
+				propertieBox.Hide()
+				walletPage.walletExpandCollapseIcon[i].SetResource(walletPage.icons[assets.Expand])
+			}
 		}
-		fmt.Println(accountBox.MinSize().Width)
-		fmt.Println("done")
+
+		if walletPage.walletPropertiesBox[index].Hidden {
+			walletPage.walletExpandCollapseIcon[index].SetResource(walletPage.icons[assets.CollapseIcon])
+			walletPage.walletPropertiesBox[index].Show()
+		} else {
+			walletPage.walletExpandCollapseIcon[index].SetResource(walletPage.icons[assets.Expand])
+			walletPage.walletPropertiesBox[index].Hide()
+		}
+
 	})
 
 	textBox := widgets.NewVBox(
@@ -122,7 +127,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		accountSelector,
 		extraPadding2,
 		widgets.NewVSpacer(values.SpacerSize4),
-		walletSelectorDropdownContent,
+		walletPage.walletPropertiesBox[index],
 		widgets.NewVSpacer(values.SpacerSize4))
 
 	walletPage.walletSelectorBox.Append(widget.NewVBox(

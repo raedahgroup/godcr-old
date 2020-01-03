@@ -3,8 +3,6 @@ package pages
 import (
 	"sort"
 
-	"github.com/raedahgroup/godcr/fyne/pages/handler/walletshandler"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/widget"
@@ -12,6 +10,7 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/walletshandler"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
 
