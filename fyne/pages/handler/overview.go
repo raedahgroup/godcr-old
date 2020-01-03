@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"fyne.io/fyne/layout"
 	"github.com/gen2brain/beeep"
+	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"image/color"
 	"log"
 	"sort"
@@ -212,10 +213,19 @@ func (handler *OverviewHandler) blockSyncStatus() (string, color.Color) {
 }
 
 func (handler *OverviewHandler) SyncTrigger(wallet *dcrlibwallet.MultiWallet) {
-	if wallet.IsSyncing() {
+	var notifyTitle, notifyMessage string
+	synced, syncing := wallet.IsSynced(), wallet.IsSyncing()
+	if wallet.ConnectedPeers() > 0 && (synced || syncing) {
+		if synced {
+			notifyTitle = "Wallet Disconnected"
+			notifyMessage = "wallet has been disconnected from peers"
+		} else if syncing {
+			notifyTitle = "Sync Canceled"
+			notifyMessage = "wallet sync stopped until wallet reconnect"
+		}
 		wallet.CancelSync()
 		handler.ConnectedPeers = 0
-		err := beeep.Notify("Sync Canceled", "wallet sync stopped until wallet reconnect", "assets/information.png")
+		err := beeep.Notify(notifyTitle, notifyMessage, "assets/information.png")
 		if err != nil {
 			log.Println("error initiating alert:", err.Error())
 		}
@@ -362,11 +372,11 @@ func newTransactionRow(transactionType, amount, fee, direction, status, date str
 	icon := canvas.NewImageFromResource(icons[transactionType])
 	icon.SetMinSize(fyne.NewSize(5, 20))
 	iconBox := widget.NewVBox(widgets.NewVSpacer(4), icon)
-	amountLabel := widget.NewLabel(amount)
-	feeLabel := widget.NewLabel(fee)
-	dateLabel := widget.NewLabel(date)
-	statusLabel := widget.NewLabel(status)
-	directionLabel := widget.NewLabel(direction)
+	amountLabel := widget.NewLabelWithStyle(amount, fyne.TextAlignTrailing, fyne.TextStyle{})
+	feeLabel := widget.NewLabelWithStyle(fee, fyne.TextAlignCenter, fyne.TextStyle{})
+	dateLabel := widget.NewLabelWithStyle(date, fyne.TextAlignCenter, fyne.TextStyle{})
+	statusLabel := widget.NewLabelWithStyle(status, fyne.TextAlignCenter, fyne.TextStyle{})
+	directionLabel := widget.NewLabelWithStyle(direction, fyne.TextAlignCenter, fyne.TextStyle{})
 	column := widget.NewHBox(iconBox, amountLabel, feeLabel, directionLabel, statusLabel, dateLabel)
 	return column
 }
@@ -399,12 +409,13 @@ func walletSyncBox(name, status, headerFetched, progress string) fyne.CanvasObje
 		widgets.NewHSpacer(2),
 	)
 	background := canvas.NewRectangle(color.RGBA{0, 0, 0, 7})
-	background.SetMinSize(fyne.NewSize(250, 70))
-	walletSyncContent := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
-		fyne.NewContainerWithLayout(layout.NewVBoxLayout(), top, layout.NewSpacer(), middle, layout.NewSpacer(), bottom),
+	background.SetMinSize(fyne.NewSize(250, 80))
+	walletSyncContent := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 80)),
+		fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(values.SpacerSize2), top, layout.NewSpacer(),
+			middle, layout.NewSpacer(), bottom, widgets.NewVSpacer(values.SpacerSize2)),
 	)
 
-	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 70)),
+	return fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(250, 80)),
 		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil),
 			background,
 			walletSyncContent,

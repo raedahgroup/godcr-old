@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/raedahgroup/dcrlibwallet"
+	"github.com/raedahgroup/godcr/fyne/layouts"
 	"github.com/raedahgroup/godcr/fyne/pages/handler"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -14,7 +15,7 @@ import (
 )
 
 const historyPageIndex = 1
-const PageTitle = "overview"
+const PageTitle = "Overview"
 
 type overview struct {
 	app          *AppInterface
@@ -72,7 +73,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 	table.NewTable(overviewHandler.TableHeader)
 	overviewHandler.Table = table
 	overviewHandler.UpdateTransactions(ov.multiWallet, handler.TransactionUpdate{})
-	transactionsContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(515, 200)), table.Container)
+	transactionsContainer := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(520, 200)), table.Container)
 	overviewHandler.TransactionsContainer = transactionsContainer
 
 	return widget.NewVBox(
@@ -177,21 +178,20 @@ func title() fyne.CanvasObject {
 }
 
 func balance() fyne.CanvasObject {
-	dcrBalance := widgets.NewLargeText("0.00", color.Black)
-	dcrDecimals := widgets.NewSmallText("00000 DCR", color.Black)
+	dcrBalance := widgets.NewTextWithStyle("0.00", color.Black, fyne.TextStyle{}, fyne.TextAlignLeading, values.TextSize25)
+	dcrDecimals := widgets.NewTextWithStyle("00000 DCR", color.Black, fyne.TextStyle{}, fyne.TextAlignLeading, values.TextSize15)
 	overviewHandler.Balance = make([]*canvas.Text, 2)
 	overviewHandler.Balance[0] = dcrBalance
 	overviewHandler.Balance[1] = dcrDecimals
-	decimalsBox := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), widgets.NewVSpacer(6), dcrDecimals)
-	return widget.NewHBox(widgets.NewVSpacer(10), dcrBalance, decimalsBox)
+	return fyne.NewContainerWithLayout(layouts.NewHBox(0, true), dcrBalance, dcrDecimals)
 }
 
 func transactionRowHeader() *widget.Box {
 	hash := widget.NewLabelWithStyle("#", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	amount := widget.NewLabelWithStyle("amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	fee := widget.NewLabelWithStyle("fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	direction := widget.NewLabelWithStyle("direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	status := widget.NewLabelWithStyle("status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	date := widget.NewLabelWithStyle("date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	amount := widget.NewLabelWithStyle("Amount", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	fee := widget.NewLabelWithStyle("Fee", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	direction := widget.NewLabelWithStyle("Direction", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	status := widget.NewLabelWithStyle("Status", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	date := widget.NewLabelWithStyle("Date", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	return widget.NewHBox(hash, amount, fee, direction, status, date)
 }
