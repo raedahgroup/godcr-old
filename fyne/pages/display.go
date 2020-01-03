@@ -12,6 +12,7 @@ import (
 
 	"github.com/decred/slog"
 	"github.com/raedahgroup/dcrlibwallet"
+
 	"github.com/raedahgroup/godcr/fyne/assets"
 )
 
@@ -33,7 +34,6 @@ func (app *AppInterface) DisplayLaunchErrorAndExit(errorMessage string) {
 			layout.NewSpacer(),
 		),
 	))
-	app.Window.FixedSize()
 	app.Window.ShowAndRun()
 	app.tearDown()
 	os.Exit(1)
@@ -52,7 +52,8 @@ func (app *AppInterface) displayErrorPage(errorMessage string) fyne.CanvasObject
 
 func (app *AppInterface) DisplayMainWindow() {
 	app.setupNavigationMenu()
-	// app.Window.SetContent(app.tabMenu)
+	app.Window.SetContent(app.tabMenu)
+	app.Window.SetFixedSize(true)
 	app.Window.CenterOnScreen()
 	fyne.CurrentApp().Settings().SetTheme(theme.LightTheme())
 	app.Window.ShowAndRun()
@@ -96,7 +97,6 @@ func (app *AppInterface) setupNavigationMenu() {
 					widget.Refresh(previousPageBox)
 				}
 			}
-
 			currentTabIndex = app.tabMenu.CurrentTabIndex()
 			var newPageContent fyne.CanvasObject
 
@@ -106,9 +106,9 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 1:
 				newPageContent = historyPageContent()
 			case 2:
-				newPageContent = sendPageContent()
+				newPageContent = sendPageContent(app.MultiWallet, app.Window)
 			case 3:
-				newPageContent = receivePageContent(app.MultiWallet, app.Window, app.tabMenu)
+				newPageContent = receivePageContent(app.MultiWallet, app.Window)
 			case 4:
 				newPageContent = accountsPageContent()
 			case 5:
@@ -118,6 +118,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {
 				activePageBox.Children = []fyne.CanvasObject{newPageContent}
 				widget.Refresh(activePageBox)
+				app.Window.Resize(app.tabMenu.MinSize().Union(newPageContent.MinSize()))
 			}
 		}
 	}()

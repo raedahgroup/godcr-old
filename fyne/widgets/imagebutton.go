@@ -74,5 +74,8 @@ func (c *ImageButton) SetIcon(res fyne.Resource) {
 
 func (c *ImageButton) Refresh() {
 	object := fyne.CurrentApp().Driver().CanvasForObject(c)
+	if object == nil {
+		return
+	}
 	object.Refresh(c)
 }
