@@ -22,10 +22,10 @@ func (walletPage *WalletPageObject) accountSelector() error {
 	// if a wallet is deleted, we are to redeclare the children to omit the deleted wallet
 	walletPage.walletSelectorBox = widget.NewVBox()
 
-	walletPage.walletIDToIndex = make(map[int]int)
+	walletPage.WalletIDToIndex = make(map[int]int)
 
 	for index, walletID := range walletPage.OpenedWallets {
-		walletPage.walletIDToIndex[index] = walletID
+		walletPage.WalletIDToIndex[index] = walletID
 
 		err := walletPage.getAccountsInWallet(index, walletID)
 		if err != nil {
@@ -71,8 +71,8 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountLabel := widgets.NewVBox(
 		layout.NewSpacer(),
-		canvas.NewText(selectedWallet.Name, values.DefaultTextColor),
-		notBackedUpLabel,
+		widgets.CenterObject(canvas.NewText(selectedWallet.Name, values.DefaultTextColor), true),
+		widgets.CenterObject(notBackedUpLabel, true),
 		layout.NewSpacer())
 
 	walletPage.walletExpandCollapseIcon[index] = widget.NewIcon(walletPage.icons[assets.Expand])
@@ -81,13 +81,15 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountBox := widgets.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize12),
-		centerObject(walletPage.walletExpandCollapseIcon[index], true),
+		widgets.CenterObject(walletPage.walletExpandCollapseIcon[index], true),
 		widgets.NewHSpacer(values.SpacerSize4),
-		centerObject(walletIcon, true),
+		widgets.CenterObject(walletIcon, true),
 		widgets.NewHSpacer(values.SpacerSize12),
-		accountLabel, widgets.NewHSpacer(values.SpacerSize50),
+		widgets.CenterObject(accountLabel, true),
+		widgets.NewHSpacer(values.SpacerSize50),
 		layout.NewSpacer(),
-		walletPage.WalletTotalAmountLabel[index], widgets.NewHSpacer(4),
+		widgets.CenterObject(walletPage.WalletTotalAmountLabel[index], true),
+		widgets.NewHSpacer(4),
 		widgets.NewImageButton(walletPage.icons[assets.MoreIcon], nil, func() {
 
 		}),
@@ -96,27 +98,31 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	accountBoxSpacer := accountBox.MinSize().Width - values.SpacerSize44
 
-	walletPage.walletPropertiesBox[index], err = walletPage.accountDropdown(accountBoxSpacer, selectedWallet)
+	walletPage.walletAccountsBox[index], err = walletPage.accountDropdown(accountBoxSpacer, selectedWallet)
 	if err != nil {
 		return err
 	}
-	walletPage.walletPropertiesBox[index].Hide()
+	walletPage.walletAccountsBox[index].Hide()
 
 	accountSelector := widgets.NewClickableWidget(accountBox, func() {
-		// hide other textboxes
-		for i, propertieBox := range walletPage.walletPropertiesBox {
+		// hide other multiwallet accounts boxes
+		for i, propertieBox := range walletPage.walletAccountsBox {
+			if i == index {
+				continue
+			}
+
 			if !propertieBox.Hidden {
 				propertieBox.Hide()
 				walletPage.walletExpandCollapseIcon[i].SetResource(walletPage.icons[assets.Expand])
 			}
 		}
 
-		if walletPage.walletPropertiesBox[index].Hidden {
+		if walletPage.walletAccountsBox[index].Hidden {
 			walletPage.walletExpandCollapseIcon[index].SetResource(walletPage.icons[assets.CollapseIcon])
-			walletPage.walletPropertiesBox[index].Show()
+			walletPage.walletAccountsBox[index].Show()
 		} else {
 			walletPage.walletExpandCollapseIcon[index].SetResource(walletPage.icons[assets.Expand])
-			walletPage.walletPropertiesBox[index].Hide()
+			walletPage.walletAccountsBox[index].Hide()
 		}
 
 	})
@@ -127,7 +133,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		accountSelector,
 		extraPadding2,
 		widgets.NewVSpacer(values.SpacerSize4),
-		walletPage.walletPropertiesBox[index],
+		walletPage.walletAccountsBox[index],
 		widgets.NewVSpacer(values.SpacerSize4))
 
 	walletPage.walletSelectorBox.Append(widget.NewVBox(
@@ -151,9 +157,9 @@ func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *d
 	}
 
 	addAccount := widgets.NewClickableBox(widgets.NewHBox(
-		centerObject(widget.NewIcon(theme.ContentAddIcon()), true),
+		widgets.CenterObject(widget.NewIcon(theme.ContentAddIcon()), true),
 		widgets.NewHSpacer(values.SpacerSize12),
-		centerObject(widget.NewLabel("Add new account"), true)),
+		widgets.CenterObject(widget.NewLabel("Add new account"), true)),
 		func() {
 			fmt.Println("Add new account")
 		})
@@ -173,10 +179,11 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 	if account.Name == "imported" {
 		walletIcon = walletPage.icons[assets.ImportedAccount]
 	}
+	accountName := canvas.NewText(account.Name, values.DefaultTextColor)
 
 	accountNameWithSpendableLabel := widgets.NewVBox(
 		layout.NewSpacer(),
-		canvas.NewText(account.Name, values.DefaultTextColor),
+		accountName,
 		widgets.NewHSpacer(values.SpacerSize4),
 		canvas.NewText("Spendable", values.SpendableLabelColor),
 		layout.NewSpacer())
@@ -191,7 +198,7 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		widgets.NewTextAndAlign(fmt.Sprintf(values.AmountInDCR, spendableBalanceInString), values.SpendableLabelColor, fyne.TextAlignTrailing),
 		layout.NewSpacer())
 
-	accountHBox := widgets.NewHBox(centerObject(widget.NewIcon(walletIcon), true), widgets.NewHSpacer(values.SpacerSize14),
+	accountHBox := widgets.NewHBox(widgets.CenterObject(widget.NewIcon(walletIcon), true), widgets.NewHSpacer(values.SpacerSize14),
 		accountNameWithSpendableLabel,
 		layout.NewSpacer(),
 		widgets.NewHSpacer(values.NilSpacer),
@@ -208,7 +215,7 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 		widgets.NewVSpacer(values.SpacerSize8))
 
 	clickableAccountBox := widgets.NewClickableBox(accountBoxWithLiner, func() {
-		walletPage.accountDetailsPopUp(walletIcon, account)
+		walletPage.accountDetailsPopUp(walletIcon, account, accountName)
 	})
 
 	canvasLine := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(clickableAccountBox.MinSize().Width-iconWidthSize-values.SpacerSize18, 1)),

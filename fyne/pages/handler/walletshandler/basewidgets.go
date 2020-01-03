@@ -21,6 +21,6 @@ func (walletPage *WalletPageObject) initBaseWidgets() error {
 
 	walletPage.WalletPageContents.Append(widget.NewHBox(walletLabel, layout.NewSpacer(), fyne.NewContainerWithLayout(
 		layout.NewFixedGridLayout(fyne.NewSize(30, 30)), addWallet), widgets.NewHSpacer(values.Padding)))
-		
+
 	return nil
 }

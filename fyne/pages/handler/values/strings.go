@@ -20,6 +20,7 @@ const (
 	ZeroAmount                    = "0"
 	AmountInDCR                   = "%s DCR"
 	HDPathFormat                  = "m / 44’ / 11’ / %d"
+
 	// Base Object
 	GotIt      = "Got it"
 	ClearField = "Clear all fields"
@@ -82,8 +83,10 @@ const (
 	AccountNumber    = "Account Number"
 	HDPath           = "HD Path"
 	Keys             = "Keys"
+	KeyValues        = "%d external, %d internal, %d imported"
 	ShowProperties   = "Show properties"
 	HideProperties   = "Hide properties"
+	RenameAccount    = "Rename account"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"

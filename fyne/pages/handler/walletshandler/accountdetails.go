@@ -3,6 +3,7 @@ package walletshandler
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -18,11 +19,14 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 )
 
-func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticResource, account *dcrlibwallet.Account) {
+func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticResource, account *dcrlibwallet.Account, accountNameInMainPage *canvas.Text) {
 	var popUp *widget.PopUp
+	parentPopUpAccountName := widgets.NewTextWithSize(account.Name, values.DefaultTextColor, 20)
+	successLabel := widgets.NewBorderedText("", fyne.NewSize(10, 10), values.Green)
 
 	editAccountButton := widgets.NewImageButton(walletPage.icons[assets.Edit], nil, func() {
-
+		walletPage.renameAccountPopUp(parentPopUpAccountName, accountNameInMainPage,
+			account.WalletID, int(account.Number), successLabel, popUp)
 	})
 
 	exitButton := widgets.NewImageButton(theme.CancelIcon(), nil, func() {
@@ -30,7 +34,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	})
 
 	baseWidget := widget.NewHBox(exitButton, widgets.NewHSpacer(values.SpacerSize12),
-		widgets.NewTextWithSize(account.Name, values.DefaultTextColor, 20),
+		parentPopUpAccountName,
 		widgets.NewHSpacer(values.SpacerSize202), editAccountButton)
 
 	totalAmountInString := strconv.FormatFloat(dcrlibwallet.AmountCoin(account.TotalBalance), 'f', -1, 64)
@@ -69,7 +73,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 		widgets.NewVSpacer(values.SpacerSize14),
 		baseWidget,
 		widgets.NewVSpacer(values.SpacerSize12),
-		widget.NewHBox(centerObject(widget.NewIcon(walletIcon), false), widgets.NewHSpacer(values.SpacerSize14),
+		widget.NewHBox(widgets.CenterObject(widget.NewIcon(walletIcon), false), widgets.NewHSpacer(values.SpacerSize14),
 			multipagecomponents.AmountFormatBox(totalAmountInString, 32, 20)),
 		widget.NewHBox(widgets.NewHSpacer(accountDetailsSpacer), balanceDetailsBox),
 
@@ -84,6 +88,111 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	popupContent := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize14), accountBalanceBox, widgets.NewHSpacer(values.SpacerSize14))
 
 	popUp = widget.NewModalPopUp(popupContent, walletPage.Window.Canvas())
+}
+
+func (walletPage *WalletPageObject) renameAccountPopUp(accountNameInParentPopup, accountNameInPage *canvas.Text,
+	walletID, accountID int, successLabel *widgets.BorderedText, accountPopUp *widget.PopUp) {
+
+	errorLabel := canvas.NewText("", values.ErrorColor)
+	errorLabel.Hide()
+
+	var popup *widget.PopUp
+
+	showAccountPage := func() {
+		popup.Hide()
+		accountPopUp.Show()
+	}
+
+	renameAccountLabel := canvas.NewText(values.RenameAccount, values.DefaultTextColor)
+	renameAccountLabel.TextStyle.Bold = true
+
+	accountTextBox := widget.NewEntry()
+	accountTextBox.PlaceHolder = "Account name"
+
+	cancelButton := widgets.NewClickableWidget(widget.NewVBox(widgets.NewTextWithStyle(values.Cancel, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 16)),
+		func() {
+			showAccountPage()
+		})
+
+	renameButton := widgets.NewButton(values.Blue, "Rename", func() {
+		wallet := walletPage.MultiWallet.WalletWithID(walletID)
+		if wallet == nil {
+			errorLabel.Text = "could not initialize wallet for account"
+			errorLabel.Show()
+			return
+		}
+
+		err := wallet.RenameAccount(int32(accountID), accountTextBox.Text)
+		if err != nil {
+			errorLabel.Text = err.Error()
+			errorLabel.Show()
+			return
+		}
+
+		accountNameInParentPopup.Text = accountTextBox.Text
+		accountNameInPage.Text = accountTextBox.Text
+
+		showAccountPage()
+		successLabel.SetText("Account renamed")
+		successLabel.Container.Show()
+		time.AfterFunc(time.Second*5, func() {
+			successLabel.Container.Hide()
+		})
+
+		walletPage.WalletPageContents.Refresh()
+	})
+	renameButton.SetMinSize(renameButton.MinSize().Add(fyne.NewSize(32, 24)))
+	renameButton.SetTextStyle(fyne.TextStyle{Bold: true})
+
+	accountTextBox.OnChanged = func(value string) {
+		if value == "" {
+			renameButton.Disable()
+		} else {
+			renameButton.Enable()
+		}
+	}
+
+	popUpContent := widget.NewVBox(
+		widgets.NewVSpacer(values.Padding),
+		renameAccountLabel,
+		widgets.NewVSpacer(values.SpacerSize20),
+		accountTextBox,
+		errorLabel,
+		widgets.NewVSpacer(values.SpacerSize20),
+		widget.NewHBox(widgets.NewHSpacer(values.SpacerSize140), layout.NewSpacer(), widgets.CenterObject(cancelButton, false),
+			widgets.NewHSpacer(20), widgets.CenterObject(renameButton.Container, false)),
+		widgets.NewVSpacer(values.Padding))
+
+	contentWithBorder := widget.NewHBox(widgets.NewHSpacer(values.Padding), popUpContent, widgets.NewHSpacer(values.Padding))
+
+	popup = widget.NewModalPopUp(contentWithBorder, walletPage.Window.Canvas())
+}
+
+func accountPropertiesBox(account *dcrlibwallet.Account, popupMinSizeWidth int) *widget.Box {
+	propertiesInfo := func(ID string, value string) *widget.Box {
+		return widget.NewHBox(widgets.NewHSpacer(values.SpacerSize12), canvas.NewText(ID, values.TransactionInfoColor),
+			layout.NewSpacer(),
+			canvas.NewText(value, values.DefaultTextColor), widgets.NewHSpacer(values.SpacerSize12))
+	}
+
+	propertiesVBox := widget.NewVBox(
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(popupMinSizeWidth, 1)), canvas.NewLine(values.StrippedLineColor)),
+		widgets.NewVSpacer(values.SpacerSize12),
+		widget.NewHBox(widgets.NewHSpacer(values.SpacerSize12), canvas.NewText(values.Properties, values.TransactionInfoColor)),
+		widgets.NewVSpacer(values.SpacerSize12),
+
+		propertiesInfo(values.AccountNumber, fmt.Sprintf("%d", account.Number)),
+		widgets.NewVSpacer(values.SpacerSize14),
+
+		propertiesInfo(values.HDPath, fmt.Sprintf(values.HDPathFormat, account.Number)),
+		widgets.NewVSpacer(values.SpacerSize14),
+
+		propertiesInfo(values.Keys, fmt.Sprintf(values.KeyValues,
+			account.ExternalKeyCount, account.InternalKeyCount, account.ImportedKeyCount)),
+		widgets.NewVSpacer(values.SpacerSize14),
+	)
+
+	return propertiesVBox
 }
 
 func (walletPage *WalletPageObject) addStakingBalance(box *widget.Box, balance *dcrlibwallet.Balance) {
@@ -113,39 +222,4 @@ func (walletPage *WalletPageObject) addStakingBalance(box *widget.Box, balance *
 	box.Append(multipagecomponents.AmountFormatBox(immatureStakeGen, values.TextSize22, values.TextSize14))
 	box.Append(canvas.NewText(values.ImmatureStakeGen, values.TransactionInfoColor))
 	box.Append(widgets.NewHSpacer(values.SpacerSize12))
-}
-
-func accountPropertiesBox(account *dcrlibwallet.Account, popupMinSizeWidth int) *widget.Box {
-	propertiesInfo := func(ID string, value string) *widget.Box {
-		return widget.NewHBox(widgets.NewHSpacer(values.SpacerSize12), canvas.NewText(ID, values.TransactionInfoColor),
-			layout.NewSpacer(),
-			canvas.NewText(value, values.DefaultTextColor), widgets.NewHSpacer(values.SpacerSize12))
-	}
-
-	propertiesVBox := widget.NewVBox(
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(popupMinSizeWidth, 1)), canvas.NewLine(values.StrippedLineColor)),
-		widgets.NewVSpacer(values.SpacerSize12),
-		widget.NewHBox(widgets.NewHSpacer(values.SpacerSize12), canvas.NewText(values.Properties, values.TransactionInfoColor)),
-		widgets.NewVSpacer(values.SpacerSize12),
-
-		propertiesInfo(values.AccountNumber, fmt.Sprintf("%d", account.Number)),
-		widgets.NewVSpacer(values.SpacerSize14),
-
-		propertiesInfo(values.HDPath, fmt.Sprintf(values.HDPathFormat, account.Number)),
-		widgets.NewVSpacer(values.SpacerSize14),
-
-		propertiesInfo(values.Keys, fmt.Sprintf("%d external, %d internal, %d imported",
-			account.ExternalKeyCount, account.InternalKeyCount, account.ImportedKeyCount)),
-		widgets.NewVSpacer(values.SpacerSize14),
-	)
-
-	return propertiesVBox
-}
-
-func centerObject(object fyne.CanvasObject, bordered bool) fyne.CanvasObject {
-	if bordered {
-		return widgets.NewVBox(layout.NewSpacer(), object, layout.NewSpacer())
-	}
-
-	return widget.NewVBox(layout.NewSpacer(), object, layout.NewSpacer())
 }

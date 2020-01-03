@@ -33,6 +33,8 @@ const (
 	SpacerSize44  = 44
 	SpacerSize46  = 46
 	SpacerSize50  = 50
+	SpacerSize60  = 60
+	SpacerSize64  = 64
 	SpacerSize66  = 66
 	SpacerSize70  = 70
 	SpacerSize140 = 140

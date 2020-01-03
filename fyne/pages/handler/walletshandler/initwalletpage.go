@@ -15,17 +15,18 @@ import (
 type WalletPageObject struct {
 	icons map[string]*fyne.StaticResource
 
-	walletSelectorBox         *widget.Box
-	WalletsAccountAmountText  [][]*fyne.Container
-	WalletSpendableAmountText [][]*canvas.Text
-	WalletTotalAmountLabel    []*canvas.Text
-	walletPropertiesBox       []*widgets.Box
+	walletSelectorBox *widget.Box
+	walletAccountsBox []*widgets.Box
 	// changing icons when other wallet propertie box's are collapsed,
 	// we need to define all in a struct for easy accessibility
 	walletExpandCollapseIcon []*widget.Icon
 
+	WalletsAccountAmountText  [][]*fyne.Container
+	WalletSpendableAmountText [][]*canvas.Text
+	WalletTotalAmountLabel    []*canvas.Text
+
 	OpenedWallets   []int
-	walletIDToIndex map[int]int // relates wallet ID to iterator where key is iterator and value wallet ID
+	WalletIDToIndex map[int]int // relates wallet ID to iterator where key is iterator and value wallet ID
 
 	WalletPageContents *widget.Box
 	MultiWallet        *dcrlibwallet.MultiWallet
@@ -39,7 +40,7 @@ func (walletPage *WalletPageObject) InitWalletPage() error {
 	walletPage.icons, err = assets.GetIcons(assets.AddWallet, assets.Expand, assets.CollapseIcon, assets.WalletIcon,
 		assets.WalletAccount, assets.ImportedAccount, assets.MoreIcon, assets.Edit)
 
-	walletPage.walletPropertiesBox = make([]*widgets.Box, len(walletPage.OpenedWallets))
+	walletPage.walletAccountsBox = make([]*widgets.Box, len(walletPage.OpenedWallets))
 	walletPage.walletExpandCollapseIcon = make([]*widget.Icon, len(walletPage.OpenedWallets))
 
 	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.Padding))
