@@ -153,33 +153,10 @@ func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, 
 
 			return
 		}
-		// wallet := walletPage.MultiWallet.WalletWithID(walletID)
-		// if wallet == nil {
-		// 	errorLabel.Text = "could not initialize wallet for account"
-		// 	errorLabel.Show()
-		// 	return
-		// }
-
-		//err := wallet.RenameAccount(int32(accountID), accountTextBox.Text)
-		//if err != nil {
-		// 	errorLabel.Text = err.Error()
-		// 	errorLabel.Show()
-		// 	return
-		// }
-
-		//accountNameInParentPopup.Text = accountTextBox.Text
-		//accountNameInPage.Text = accountTextBox.Text
 		popup.Hide()
 		if otherCallFunc != nil {
 			otherCallFunc(accountTextBox.Text)
 		}
-		walletPage.WalletPageContents.Refresh()
-		//successLabel.SetText("Account renamed")
-		//successLabel.Container.Show()
-		//time.AfterFunc(time.Second*5, func() {
-		//successLabel.Container.Hide()
-		//})
-
 		walletPage.WalletPageContents.Refresh()
 	})
 	renameButton.SetMinSize(renameButton.MinSize().Add(fyne.NewSize(32, 24)))
