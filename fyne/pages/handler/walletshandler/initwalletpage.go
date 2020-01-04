@@ -3,6 +3,7 @@ package walletshandler
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
 	"github.com/raedahgroup/dcrlibwallet"
@@ -13,7 +14,8 @@ import (
 )
 
 type WalletPageObject struct {
-	icons map[string]*fyne.StaticResource
+	icons        map[string]*fyne.StaticResource
+	successLabel *widgets.BorderedText
 
 	walletSelectorBox *widget.Box
 	walletAccountsBox []*widgets.Box
@@ -43,6 +45,9 @@ func (walletPage *WalletPageObject) InitWalletPage() error {
 	walletPage.walletAccountsBox = make([]*widgets.Box, len(walletPage.OpenedWallets))
 	walletPage.walletExpandCollapseIcon = make([]*widget.Icon, len(walletPage.OpenedWallets))
 
+	walletPage.successLabel = widgets.NewBorderedText("Wallet renamed", fyne.NewSize(16, 20), values.Green)
+	walletPage.successLabel.Container.Hide()
+
 	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.Padding))
 
 	err = walletPage.initBaseWidgets()
@@ -50,7 +55,9 @@ func (walletPage *WalletPageObject) InitWalletPage() error {
 		return err
 	}
 
-	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.Padding))
+	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.SpacerSize8))
+	walletPage.WalletPageContents.Append(widget.NewHBox(layout.NewSpacer(), walletPage.successLabel.Container, layout.NewSpacer()))
+	walletPage.WalletPageContents.Append(widgets.NewVSpacer(values.SpacerSize8))
 
 	err = walletPage.accountSelector()
 	if err != nil {

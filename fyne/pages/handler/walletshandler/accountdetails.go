@@ -21,6 +21,7 @@ import (
 
 func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticResource, account *dcrlibwallet.Account, accountNameInMainPage *canvas.Text) {
 	var popUp *widget.PopUp
+
 	parentPopUpAccountName := widgets.NewTextWithSize(account.Name, values.DefaultTextColor, 20)
 	successLabel := widgets.NewBorderedText("Account renamed", fyne.NewSize(20, 16), values.Green)
 	successLabel.Container.Hide()
@@ -46,7 +47,6 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 		walletPage.WalletPageContents.Refresh()
 
 		popUp.Show()
-		successLabel.SetText("Account renamed")
 		successLabel.Container.Show()
 		time.AfterFunc(time.Second*5, func() {
 			successLabel.Container.Hide()
@@ -108,7 +108,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 		baseWidget,
 
 		widgets.NewVSpacer(values.SpacerSize6),
-		successLabel.Container,
+		widget.NewHBox(layout.NewSpacer(), successLabel.Container, layout.NewSpacer()),
 		widgets.NewVSpacer(values.SpacerSize6),
 
 		widget.NewHBox(widgets.CenterObject(widget.NewIcon(walletIcon), false), widgets.NewHSpacer(values.SpacerSize14),
@@ -140,12 +140,12 @@ func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, 
 	accountTextBox := widget.NewEntry()
 	accountTextBox.PlaceHolder = "Account name"
 
-	cancelButton := widgets.NewClickableWidget(widget.NewVBox(widgets.NewTextWithStyle(values.Cancel, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 16)),
+	cancelButton := widgets.NewClickableWidget(widget.NewVBox(widgets.NewTextWithStyle(values.Cancel, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 14)),
 		func() {
 			onCancel(popup)
 		})
 
-	renameButton := widgets.NewButton(values.Blue, values.RenameWallet, func() {
+	renameButton := widgets.NewButton(values.Blue, values.Rename, func() {
 		err := onRename(accountTextBox.Text)
 		if err != nil {
 			errorLabel.Text = err.Error()
@@ -153,6 +153,7 @@ func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, 
 
 			return
 		}
+
 		popup.Hide()
 		if otherCallFunc != nil {
 			otherCallFunc(accountTextBox.Text)

@@ -48,6 +48,8 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		return err
 	}
 
+	walletLabel := canvas.NewText(selectedWallet.Name, values.DefaultTextColor)
+
 	var totalBalance int64
 	for _, acc := range accts.Acc {
 		totalBalance += acc.TotalBalance
@@ -71,12 +73,13 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 
 	var clickableMoreDialog *widgets.ImageButton
 	clickableMoreDialog = widgets.NewImageButton(walletPage.icons[assets.MoreIcon], nil, func() {
-		walletPage.dialogMenu(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableMoreDialog))
+		dialogPos := fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableMoreDialog)
+		walletPage.dialogMenu(walletLabel, dialogPos, selectedWalletID)
 	})
 
 	accountLabel := widgets.NewVBox(
 		layout.NewSpacer(),
-		widgets.CenterObject(canvas.NewText(selectedWallet.Name, values.DefaultTextColor), true),
+		widgets.CenterObject(walletLabel, true),
 		widgets.CenterObject(notBackedUpLabel, true),
 		layout.NewSpacer())
 
