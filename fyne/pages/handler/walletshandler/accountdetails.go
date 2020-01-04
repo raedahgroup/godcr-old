@@ -29,6 +29,10 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 			account.WalletID, int(account.Number), successLabel, popUp)
 	})
 
+	if account.Name == "imported" {
+		editAccountButton.Hide()
+	}
+
 	exitButton := widgets.NewImageButton(theme.CancelIcon(), nil, func() {
 		popUp.Hide()
 	})
@@ -101,6 +105,9 @@ func (walletPage *WalletPageObject) renameAccountPopUp(accountNameInParentPopup,
 	showAccountPage := func() {
 		popup.Hide()
 		accountPopUp.Show()
+		walletPage.WalletPageContents.Refresh()
+		accountNameInParentPopup.Refresh()
+		walletPage.WalletPageContents.Refresh()
 	}
 
 	renameAccountLabel := canvas.NewText(values.RenameAccount, values.DefaultTextColor)
