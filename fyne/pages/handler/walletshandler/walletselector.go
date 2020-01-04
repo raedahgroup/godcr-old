@@ -69,6 +69,11 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		extraPadding1.Hide()
 	}
 
+	var clickableMoreDialog *widgets.ImageButton
+	clickableMoreDialog = widgets.NewImageButton(walletPage.icons[assets.MoreIcon], nil, func() {
+		walletPage.dialogMenu(fyne.CurrentApp().Driver().AbsolutePositionForObject(clickableMoreDialog))
+	})
+
 	accountLabel := widgets.NewVBox(
 		layout.NewSpacer(),
 		widgets.CenterObject(canvas.NewText(selectedWallet.Name, values.DefaultTextColor), true),
@@ -90,9 +95,7 @@ func (walletPage *WalletPageObject) getAccountsInWallet(index, selectedWalletID 
 		layout.NewSpacer(),
 		widgets.CenterObject(walletPage.WalletTotalAmountLabel[index], true),
 		widgets.NewHSpacer(4),
-		widgets.NewImageButton(walletPage.icons[assets.MoreIcon], nil, func() {
-
-		}),
+		clickableMoreDialog,
 		widgets.NewHSpacer(values.SpacerSize12),
 	)
 

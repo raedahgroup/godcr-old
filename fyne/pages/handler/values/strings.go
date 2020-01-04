@@ -87,6 +87,12 @@ const (
 	ShowProperties   = "Show properties"
 	HideProperties   = "Hide properties"
 	RenameAccount    = "Rename account"
+	SignMessage      = "Sign message"
+	VerifyMessage    = "Verify message"
+	ViewProperty     = "View property"
+	RenameWallet     = "Rename"
+	WalletSettings   = "Settings"
+	
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
