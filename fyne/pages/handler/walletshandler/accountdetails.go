@@ -22,11 +22,41 @@ import (
 func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticResource, account *dcrlibwallet.Account, accountNameInMainPage *canvas.Text) {
 	var popUp *widget.PopUp
 	parentPopUpAccountName := widgets.NewTextWithSize(account.Name, values.DefaultTextColor, 20)
-	successLabel := widgets.NewBorderedText("", fyne.NewSize(10, 10), values.Green)
+	successLabel := widgets.NewBorderedText("Account renamed", fyne.NewSize(20, 16), values.Green)
+	successLabel.Container.Hide()
+
+	onRename := func(text string) error {
+		wallet := walletPage.MultiWallet.WalletWithID(account.WalletID)
+		if wallet == nil {
+			return fmt.Errorf("could not initiate wallet with ID")
+		}
+
+		err := wallet.RenameAccount(account.Number, text)
+		return err
+	}
+	onCancel := func(childPopUp *widget.PopUp) {
+		childPopUp.Hide()
+		popUp.Show()
+	}
+	otherCall := func(value string) {
+		accountNameInMainPage.Text = value
+		parentPopUpAccountName.Refresh()
+		parentPopUpAccountName.Text = value
+		parentPopUpAccountName.Refresh()
+		walletPage.WalletPageContents.Refresh()
+
+		popUp.Show()
+		successLabel.SetText("Account renamed")
+		successLabel.Container.Show()
+		time.AfterFunc(time.Second*5, func() {
+			successLabel.Container.Hide()
+			walletPage.WalletPageContents.Refresh()
+		})
+		walletPage.WalletPageContents.Refresh()
+	}
 
 	editAccountButton := widgets.NewImageButton(walletPage.icons[assets.Edit], nil, func() {
-		walletPage.renameAccountPopUp(parentPopUpAccountName, accountNameInMainPage,
-			account.WalletID, int(account.Number), successLabel, popUp)
+		walletPage.renameAccountOrWalletPopUp(values.RenameAccount, onRename, onCancel, otherCall)
 	})
 
 	if account.Name == "imported" {
@@ -76,7 +106,11 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	accountBalanceBox := widget.NewVBox(
 		widgets.NewVSpacer(values.SpacerSize14),
 		baseWidget,
-		widgets.NewVSpacer(values.SpacerSize12),
+
+		widgets.NewVSpacer(values.SpacerSize6),
+		successLabel.Container,
+		widgets.NewVSpacer(values.SpacerSize6),
+
 		widget.NewHBox(widgets.CenterObject(widget.NewIcon(walletIcon), false), widgets.NewHSpacer(values.SpacerSize14),
 			multipagecomponents.AmountFormatBox(totalAmountInString, 32, 20)),
 		widget.NewHBox(widgets.NewHSpacer(accountDetailsSpacer), balanceDetailsBox),
@@ -94,57 +128,57 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	popUp = widget.NewModalPopUp(popupContent, walletPage.Window.Canvas())
 }
 
-func (walletPage *WalletPageObject) renameAccountPopUp(accountNameInParentPopup, accountNameInPage *canvas.Text,
-	walletID, accountID int, successLabel *widgets.BorderedText, accountPopUp *widget.PopUp) {
+func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, onRename func(string) error, onCancel func(*widget.PopUp), otherCallFunc func(string)) {
 
 	errorLabel := canvas.NewText("", values.ErrorColor)
 	errorLabel.Hide()
 
 	var popup *widget.PopUp
 
-	showAccountPage := func() {
-		popup.Hide()
-		accountPopUp.Show()
-		accountNameInParentPopup.Refresh()
-		walletPage.WalletPageContents.Refresh()
-	}
-
-	renameAccountLabel := widgets.NewTextWithStyle(values.RenameAccount, values.DefaultTextColor, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.TextSize18)
+	baseLabel := widgets.NewTextWithStyle(baseText, values.DefaultTextColor, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.TextSize18)
 
 	accountTextBox := widget.NewEntry()
 	accountTextBox.PlaceHolder = "Account name"
 
 	cancelButton := widgets.NewClickableWidget(widget.NewVBox(widgets.NewTextWithStyle(values.Cancel, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 16)),
 		func() {
-			showAccountPage()
+			onCancel(popup)
 		})
 
 	renameButton := widgets.NewButton(values.Blue, values.RenameWallet, func() {
-		wallet := walletPage.MultiWallet.WalletWithID(walletID)
-		if wallet == nil {
-			errorLabel.Text = "could not initialize wallet for account"
-			errorLabel.Show()
-			return
-		}
-
-		err := wallet.RenameAccount(int32(accountID), accountTextBox.Text)
+		err := onRename(accountTextBox.Text)
 		if err != nil {
 			errorLabel.Text = err.Error()
 			errorLabel.Show()
+
 			return
 		}
+		// wallet := walletPage.MultiWallet.WalletWithID(walletID)
+		// if wallet == nil {
+		// 	errorLabel.Text = "could not initialize wallet for account"
+		// 	errorLabel.Show()
+		// 	return
+		// }
 
-		accountNameInParentPopup.Text = accountTextBox.Text
-		accountNameInPage.Text = accountTextBox.Text
-		walletPage.WalletPageContents.Refresh()
+		//err := wallet.RenameAccount(int32(accountID), accountTextBox.Text)
+		//if err != nil {
+		// 	errorLabel.Text = err.Error()
+		// 	errorLabel.Show()
+		// 	return
+		// }
 
-		showAccountPage()
+		//accountNameInParentPopup.Text = accountTextBox.Text
+		//accountNameInPage.Text = accountTextBox.Text
+		popup.Hide()
+		if otherCallFunc != nil {
+			otherCallFunc(accountTextBox.Text)
+		}
 		walletPage.WalletPageContents.Refresh()
-		successLabel.SetText("Account renamed")
-		successLabel.Container.Show()
-		time.AfterFunc(time.Second*5, func() {
-			successLabel.Container.Hide()
-		})
+		//successLabel.SetText("Account renamed")
+		//successLabel.Container.Show()
+		//time.AfterFunc(time.Second*5, func() {
+		//successLabel.Container.Hide()
+		//})
 
 		walletPage.WalletPageContents.Refresh()
 	})
@@ -162,7 +196,7 @@ func (walletPage *WalletPageObject) renameAccountPopUp(accountNameInParentPopup,
 
 	popUpContent := widget.NewVBox(
 		widgets.NewVSpacer(values.Padding),
-		renameAccountLabel,
+		baseLabel,
 		widgets.NewVSpacer(values.SpacerSize20),
 		accountTextBox,
 		errorLabel,
