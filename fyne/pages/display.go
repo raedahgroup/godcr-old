@@ -62,11 +62,17 @@ func (app *AppInterface) DisplayMainWindow() {
 
 func (app *AppInterface) setupNavigationMenu() {
 	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
-		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+		assets.ReceiveIcon, assets.WalletIcon, assets.WalletAlertIcon, assets.StakeIcon)
 
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
 		return
+	}
+
+	// this should be called only once
+	walletIcon := icons[assets.WalletAlertIcon]
+	if isAllWalletVerified(app.MultiWallet) {
+		walletIcon = icons[assets.WalletIcon]
 	}
 
 	app.tabMenu = widget.NewTabContainer(
@@ -74,7 +80,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		widget.NewTabItemWithIcon("History", icons[assets.HistoryIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Send", icons[assets.SendIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
-		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Accounts", walletIcon, widget.NewHBox()),
 		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
@@ -110,7 +116,7 @@ func (app *AppInterface) setupNavigationMenu() {
 			case 3:
 				newPageContent = receivePageContent(app.MultiWallet, app.Window)
 			case 4:
-				newPageContent = accountsPageContent()
+				newPageContent = walletPageContent(app.tabMenu, app.MultiWallet, app.Window)
 			case 5:
 				newPageContent = stakingPageContent()
 			}

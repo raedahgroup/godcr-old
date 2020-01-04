@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"fyne.io/fyne"
@@ -42,29 +41,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 	sendingSelectedWalletLabel := canvas.NewText(fmt.Sprintf("%s (%s)", sendPage.Sending.SelectedAccountLabel.Text, sendPage.Sending.SelectedWalletLabel.Text), values.DefaultTextColor)
 	sendingSelectedWalletLabel.TextStyle.Bold = true
 
-	trailingDotForAmount := strings.Split(sendPage.amountEntry.Text, ".")
-	// if amount is a float
-	amountLabelBox := fyne.NewContainerWithLayout(layouts.NewHBox(0, true))
-	if len(trailingDotForAmount) > 1 && len(trailingDotForAmount[1]) > 2 {
-		trailingAmountLabel := widgets.NewTextWithStyle(fmt.Sprintf("%s %s", trailingDotForAmount[1][2:], values.DCR),
-			values.DefaultTextColor, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize14)
-		leadingAmountLabel := widgets.NewTextWithStyle(trailingDotForAmount[0]+"."+trailingDotForAmount[1][:2],
-			values.DefaultTextColor, fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize24)
-
-		amountLabelBox.AddObject(leadingAmountLabel)
-		amountLabelBox.AddObject(trailingAmountLabel)
-
-	} else {
-		amountLabel := widgets.NewTextWithStyle(sendPage.amountEntry.Text, values.DefaultTextColor,
-			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize24)
-
-		DCRLabel := widgets.NewTextWithStyle(values.DCR, values.DefaultTextColor,
-			fyne.TextStyle{Bold: true, Monospace: true}, fyne.TextAlignLeading, values.TextSize14)
-
-		amountLabelBox.Layout = layouts.NewHBox(values.SpacerSize4, true)
-		amountLabelBox.AddObject(amountLabel)
-		amountLabelBox.AddObject(DCRLabel)
-	}
+	amountLabelBox := multipagecomponents.AmountFormatBox(sendPage.amountEntry.Text, 32, 20)
 
 	toDestination := values.ToDesinationAddress
 	destination := sendPage.destinationAddressEntry.Text

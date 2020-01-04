@@ -44,7 +44,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 	createWalletLabel := canvas.NewText("Create a new wallet", color.White)
 
 	createWalletWidget := widgets.NewClickableBox(
-		widget.NewVBox(
+		widgets.NewVBox(
 			fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), blueBar,
 				fyne.NewContainerWithLayout(
 					layout.NewHBoxLayout(),
@@ -53,7 +53,7 @@ func (app *AppInterface) createAndRestoreWalletPage() fyne.CanvasObject {
 			app.createSpendingPasswordPopup("")
 		})
 
-	restoreWalletWidget := widgets.NewClickableBox(widget.NewVBox(
+	restoreWalletWidget := widgets.NewClickableBox(widgets.NewVBox(
 		fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), greenBar,
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 				widgets.NewHSpacer(16), widget.NewIcon(icons[assets.Restore]), widgets.NewHSpacer(16), restoreWalletLabel))),

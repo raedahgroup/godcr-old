@@ -33,7 +33,7 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 			widgets.NewVSpacer(values.SpacerSize10),
 			dialogLabel,
 			widgets.NewVSpacer(values.SpacerSize10),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widgets.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(values.SpacerSize10))
 
 		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20), dialog, widgets.NewHSpacer(values.SpacerSize20)), sendPage.Window.Canvas())
@@ -43,7 +43,7 @@ func (sendPage *SendPageObjects) initBaseObjects() error {
 	clickableMoreIcon = widgets.NewImageButton(icons[assets.MoreIcon], nil, func() {
 		var popup *widget.PopUp
 		popup = widget.NewPopUp(
-			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(values.ClearField)), func() {
+			widgets.NewClickableWidget(widget.NewLabel(values.ClearField), func() {
 				sendPage.amountEntry.SetText("")
 				sendPage.destinationAddressEntry.SetText("")
 				popup.Hide()

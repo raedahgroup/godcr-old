@@ -57,3 +57,16 @@ func NewTextWithStyle(text string, textColor color.Color, style fyne.TextStyle, 
 		TextSize:  textSize,
 	}
 }
+
+func NewTextAndAlign(text string, textColor color.Color, alignment fyne.TextAlign) *canvas.Text {
+	if textColor == nil {
+		textColor = DefaultTextColor
+	}
+
+	return &canvas.Text{
+		Color:     textColor,
+		Text:      text,
+		Alignment: alignment,
+		TextSize:  fyne.CurrentApp().Settings().Theme().TextSize(),
+	}
+}

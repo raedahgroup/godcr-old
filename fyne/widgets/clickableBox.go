@@ -6,16 +6,14 @@ import (
 )
 
 type ClickableBox struct {
-	*widget.Box
+	*Box
 
 	disable  bool
 	OnTapped func() `json:"-"`
 }
 
-func NewClickableBox(box *widget.Box, OnTapped func()) *ClickableBox {
-	icon := box
-
-	clickable := &ClickableBox{icon, false, OnTapped}
+func NewClickableBox(box *Box, OnTapped func()) *ClickableBox {
+	clickable := &ClickableBox{box, false, OnTapped}
 	return clickable
 }
 

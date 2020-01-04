@@ -34,7 +34,7 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 			widgets.NewVSpacer(values.SpacerSize10),
 			dialogLabel,
 			widgets.NewVSpacer(values.SpacerSize10),
-			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widget.NewHBox(confirmationText), func() { popup.Hide() })),
+			widget.NewHBox(layout.NewSpacer(), widgets.NewClickableBox(widgets.NewHBox(confirmationText), func() { popup.Hide() })),
 			widgets.NewVSpacer(values.SpacerSize10))
 
 		popup = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize24), dialog, widgets.NewHSpacer(values.SpacerSize20)), receivePage.Window.Canvas())
@@ -45,7 +45,7 @@ func (receivePage *ReceivePageObjects) initBaseObjects() error {
 		var popup *widget.PopUp
 
 		popup = widget.NewPopUp(
-			widgets.NewClickableBox(widget.NewHBox(widget.NewLabel(values.GenerateNewAddress)), func() {
+			widgets.NewClickableWidget(widget.NewLabel(values.GenerateNewAddress), func() {
 				receivePage.generateAddressAndQR(true)
 				popup.Hide()
 

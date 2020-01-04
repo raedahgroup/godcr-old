@@ -15,19 +15,23 @@ func (sendPage *SendPageObjects) initFromAccountSelector() error {
 
 	sendPage.Sending.OnAccountChange = sendPage.onAccountChange
 
+	sendPage.Sending.DefaultThemeColor = true
 	accountBox, err := sendPage.Sending.CreateAccountSelector(values.FromAccountSelectorPopUpHeaderLabel)
 	if err != nil { // return err if icons in account selector dont load
 		return err
 	}
 
-	box := widget.NewVBox(fromLabel, accountBox)
+	box := widget.NewVBox(
+		fromLabel,
+		accountBox)
 
 	sendPage.SendPageContents.Append(box)
 	return err
 }
 
 func (sendPage *SendPageObjects) onAccountChange() {
-	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(*sendPage.Sending.SendingSelectedAccountID), dcrlibwallet.DefaultRequiredConfirmations)
+	balance, err := sendPage.Sending.SelectedWallet.GetAccountBalance(int32(*sendPage.Sending.SendingSelectedAccountID),
+		dcrlibwallet.DefaultRequiredConfirmations)
 	if err != nil {
 		sendPage.showErrorLabel(values.AccountBalanceErr)
 		return

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
@@ -16,7 +17,14 @@ func (receivePage *ReceivePageObjects) initAccountSelector() error {
 		return err
 	}
 
-	receivePage.ReceivePageContents.Append(accountBox)
+	acctBoxWithVPadding := widgets.NewVBox(
+		widgets.NewVSpacer(values.SpacerSize16),
+		accountBox,
+		widgets.NewVSpacer(values.SpacerSize16),
+	)
+
+	receivePage.borderedContent.Append(acctBoxWithVPadding)
+	receivePage.borderedContent.Append(canvas.NewLine(values.ConfirmationPageStrippedColor))
 	return err
 }
 

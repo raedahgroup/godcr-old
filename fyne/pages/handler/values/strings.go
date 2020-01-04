@@ -18,6 +18,9 @@ const (
 	SuccessText                   = "Transaction sent"
 	ZeroByte                      = "0 bytes"
 	ZeroAmount                    = "0"
+	AmountInDCR                   = "%s DCR"
+	HDPathFormat                  = "m / 44’ / 11’ / %d"
+
 	// Base Object
 	GotIt      = "Got it"
 	ClearField = "Clear all fields"
@@ -70,6 +73,27 @@ const (
 	GenerateNewAddress    = "Generate new address"
 	ReceivePageInfo       = "Each time you request a \npayment, a new address is \ncreated to protect your privacy."
 
+	// Wallet Page
+	TotalBalance     = "Total Balance"
+	ImmatureRewards  = "Immature Rewards"
+	LockedByTickets  = "Locked By Tickets"
+	VotingAuthority  = "Voting Authority"
+	ImmatureStakeGen = "Immature Stake Gen"
+	Properties       = "Properties"
+	AccountNumber    = "Account Number"
+	HDPath           = "HD Path"
+	Keys             = "Keys"
+	KeyValues        = "%d external, %d internal, %d imported"
+	ShowProperties   = "Show properties"
+	HideProperties   = "Hide properties"
+	RenameAccount    = "Rename account"
+	RenameWallet     = "Rename wallet"
+	SignMessage      = "Sign message"
+	VerifyMessage    = "Verify message"
+	ViewProperty     = "View property"
+	Rename           = "Rename"
+	WalletSettings   = "Settings"
+
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
 	AccountSelectorIconErr      = "Could not retrieve account selector icons"
@@ -91,6 +115,7 @@ const (
 	ReceivePageLoadErr          = "Unable to load Receive Page components"
 	SelectedWalletInvalidErr    = "Selected self sending wallet is invalid"
 	SendPageLoadErr             = "Unable to load Send Page components"
+	WalletPageLoadErr           = "Unable to load Wallet Page components"
 	TransactionFeeSizeErr       = "Could not retrieve transaction fee and size"
 	TransactionDetailsIconErr   = "Could not load transaction details icons"
 	WrongPasswordErr            = "Wrong spending password. Please try again"

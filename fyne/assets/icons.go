@@ -7,13 +7,14 @@ import (
 )
 
 const (
-	AccountsIcon = "account.png"
-	HistoryIcon  = "history.png"
-	OverviewIcon = "overview.png"
-	ReceiveIcon  = "receive.png"
-	SendIcon     = "send.png"
-	StakeIcon    = "staking.png"
-	DecredLogo   = "decred.png"
+	WalletIcon      = "wallet.png"
+	WalletAlertIcon = "walletAlert.png"
+	HistoryIcon     = "history.png"
+	OverviewIcon    = "overview.png"
+	ReceiveIcon     = "receive.png"
+	SendIcon        = "send.png"
+	StakeIcon       = "staking.png"
+	DecredLogo      = "decred.png"
 
 	Reveal    = "reveal.png"
 	Conceal   = "conceal.png"
@@ -24,6 +25,13 @@ const (
 	Back      = "back.png"
 	DownArrow = "downArrow.png"
 	Alert     = "alert.png"
+
+	ImportedAccount = "importedaccount.png"
+	WalletAccount   = "walletaccount.png"
+	AddWallet       = "addwallet.png"
+	Edit            = "edit.png"
+
+	Expand = "expand.png"
 
 	CollapseIcon       = "collapse.png"
 	MoreIcon           = "more.png"

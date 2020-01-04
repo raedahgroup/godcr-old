@@ -4,7 +4,6 @@ import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
 
 	"image/color"
 )
@@ -74,7 +73,7 @@ func NewButton(fillColor color.Color, text string, OnTapped func()) *Button {
 
 	Container := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil), button.bar, button.canvasText)
 
-	button.Container = NewClickableBox(widget.NewVBox(Container), OnTapped)
+	button.Container = NewClickableBox(NewVBox(Container), OnTapped)
 
 	return &button
 }
