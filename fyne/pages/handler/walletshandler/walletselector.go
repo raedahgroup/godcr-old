@@ -165,7 +165,7 @@ func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *d
 	addAccount := widgets.NewClickableBox(widgets.NewHBox(
 		widgets.CenterObject(widget.NewIcon(theme.ContentAddIcon()), true),
 		widgets.NewHSpacer(values.SpacerSize12),
-		widgets.CenterObject(widget.NewLabel("Add new account"), true)),
+		widgets.CenterObject(canvas.NewText("Add new account", values.DefaultTextColor), true)),
 		func() {
 			fmt.Println("Add new account")
 		})
