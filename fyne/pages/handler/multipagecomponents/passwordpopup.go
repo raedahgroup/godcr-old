@@ -19,6 +19,8 @@ type PasswordPopUpObjects struct {
 	InitOnCancel, InitOnError func()
 	ExtraCalls                func() // ExtraCalls is called when InitOnConfirmation is called and doesnt throw an error
 
+	Title string
+
 	Window fyne.Window
 }
 
@@ -79,23 +81,23 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		objects.ExtraCalls()
 		sendingPasswordPopup.Hide()
 	})
-	confirmButton.SetMinSize(fyne.NewSize(91, 40))
+	confirmButton.SetMinSize(confirmButton.MinSize().Add(fyne.NewSize(32,24))
 	confirmButton.Disable()
 
 	popupContent = widget.NewHBox(
-		widgets.NewHSpacer(values.SpacerSize24),
+		widgets.NewHSpacer(values.SpacerSize20),
 		widget.NewVBox(
-			widgets.NewVSpacer(values.SpacerSize24),
-			widget.NewLabelWithStyle(values.ConfirmToSend, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widgets.NewVSpacer(values.SpacerSize20),
+			widget.NewLabelWithStyle(Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(values.SpacerSize20),
 			walletPassword,
 			errorLabel,
 			widgets.NewVSpacer(values.SpacerSize20),
 			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.SpacerSize140), cancelButton, widgets.NewHSpacer(values.SpacerSize24), confirmButton.Container),
-			widgets.NewVSpacer(values.SpacerSize24),
+			widgets.NewVSpacer(values.SpacerSize20),
 		),
 
-		widgets.NewHSpacer(24),
+		widgets.NewHSpacer(20),
 	)
 
 	sendingPasswordPopup = widget.NewModalPopUp(popupContent, objects.Window.Canvas())
