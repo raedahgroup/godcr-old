@@ -36,6 +36,8 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 		return err
 	}
 	onCancel := func(childPopUp *widget.PopUp) {
+		fmt.Println(account.Number)
+
 		childPopUp.Hide()
 		popUp.Show()
 	}
@@ -56,7 +58,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	}
 
 	editAccountButton := widgets.NewImageButton(walletPage.icons[assets.Edit], nil, func() {
-		walletPage.renameAccountOrWalletPopUp(values.RenameAccount, onRename, onCancel, otherCall)
+		walletPage.renameAccountOrWalletPopUp(values.RenameAccount, values.RenameAccountPlaceHolder, onRename, onCancel, otherCall)
 	})
 
 	if account.Name == "imported" {
@@ -128,7 +130,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 	popUp = widget.NewModalPopUp(popupContent, walletPage.Window.Canvas())
 }
 
-func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, onRename func(string) error, onCancel func(*widget.PopUp), otherCallFunc func(string)) {
+func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText, placeHolder string, onRename func(string) error, onCancel func(*widget.PopUp), otherCallFunc func(string)) {
 
 	errorLabel := canvas.NewText("", values.ErrorColor)
 	errorLabel.Hide()
@@ -138,7 +140,7 @@ func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText string, 
 	baseLabel := widgets.NewTextWithStyle(baseText, values.DefaultTextColor, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, values.TextSize18)
 
 	accountTextBox := widget.NewEntry()
-	accountTextBox.PlaceHolder = "Account name"
+	accountTextBox.PlaceHolder = placeHolder
 
 	cancelButton := widgets.NewClickableWidget(widget.NewVBox(widgets.NewTextWithStyle(values.Cancel, values.Blue, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 14)),
 		func() {

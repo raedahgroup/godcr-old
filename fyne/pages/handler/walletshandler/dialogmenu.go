@@ -68,7 +68,7 @@ func (walletPage *WalletPageObject) renameWalletPopUp(walletID int, walletLabel 
 		walletPage.showLabel("Wallet renamed", walletPage.successLabel)
 	}
 
-	walletPage.renameAccountOrWalletPopUp(values.RenameWallet, onRename, onCancel, otherCallFunc)
+	walletPage.renameAccountOrWalletPopUp(values.RenameWallet, values.RenameWalletPlaceHolder, onRename, onCancel, otherCallFunc)
 }
 
 func (walletPage *WalletPageObject) showLabel(Text string, object *widgets.BorderedText) {

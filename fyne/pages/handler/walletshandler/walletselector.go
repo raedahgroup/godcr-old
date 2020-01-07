@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/raedahgroup/godcr/fyne/pages/handler/multipagecomponents"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -161,13 +163,35 @@ func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *d
 	for _, account := range accounts.Acc {
 		accountObjects.Append(walletPage.walletAccountBox(walletBoxSize, account))
 	}
+	var accountBoxes *widgets.Box
 
-	addAccount := widgets.NewClickableBox(widgets.NewHBox(
+	var addAccount *widgets.ClickableBox
+
+	addAccount = widgets.NewClickableBox(widgets.NewHBox(
 		widgets.CenterObject(widget.NewIcon(theme.ContentAddIcon()), true),
 		widgets.NewHSpacer(values.SpacerSize12),
 		widgets.CenterObject(canvas.NewText("Add new account", values.DefaultTextColor), true)),
 		func() {
-			fmt.Println("Add new account")
+			addAccountFunc := func(account *dcrlibwallet.Account) {
+				child := accountObjects.Children
+				// omit to import account clickable widget
+				allAccounts := child[:len(child)-4]
+				fmt.Println(len(allAccounts))
+				importedAccount := child[len(child)-4]
+
+				allAccounts = append(allAccounts, walletPage.walletAccountBox(walletBoxSize, account))
+				accountObjects.Children = allAccounts
+				accountObjects.Children = append(accountObjects.Children, importedAccount)
+
+				accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
+				accountObjects.Append(addAccount)
+				accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
+
+				accountObjects.Refresh()
+				walletPage.WalletPageContents.Refresh()
+			}
+
+			walletPage.createNewAccountPopUp(wallet, addAccountFunc)
 		})
 
 	accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
@@ -175,7 +199,7 @@ func (walletPage *WalletPageObject) accountDropdown(walletBoxSize int, wallet *d
 	accountObjects.Append(widgets.NewVSpacer(values.SpacerSize12))
 
 	accountBoxSpacer := widget.NewIcon(walletPage.icons[assets.Expand]).MinSize().Width + values.SpacerSize24
-	accountBoxes := widgets.NewHBox(widgets.NewHSpacer(accountBoxSpacer), accountObjects)
+	accountBoxes = widgets.NewHBox(widgets.NewHSpacer(accountBoxSpacer), accountObjects)
 
 	return accountBoxes, nil
 }
@@ -230,4 +254,70 @@ func (walletPage *WalletPageObject) walletAccountBox(walletBoxSize int, account 
 	return widgets.NewVBox(
 		clickableAccountBox,
 		widgets.NewHBox(widgets.NewHSpacer(iconWidthSize), canvasLine))
+}
+
+func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.Wallet, addAccount func(*dcrlibwallet.Account)) {
+	createNewAccountLabel := widgets.NewTextWithStyle(values.CreateNewAccount, values.DefaultTextColor,
+		fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 20)
+
+	infoLabel := widget.NewHBox(
+		widget.NewIcon(walletPage.icons[assets.Alert]),
+		canvas.NewText("Accounts CANNOT be deleted once created.", values.DarkerBlueGrayTextColor),
+	)
+
+	textBox := widget.NewEntry()
+	textBox.SetPlaceHolder(values.AccountNamePlaceHolder)
+
+	var popup *widget.PopUp
+
+	cancel := canvas.NewText(values.Cancel, values.Blue)
+	cancel.TextStyle.Bold = true
+
+	cancelButton := widgets.NewClickableWidget(widget.NewVBox(cancel), func() {
+		popup.Hide()
+	})
+
+	var accountNo int32
+	initOnConfirmation := func(value string) (err error) {
+		accountNo, err = wallet.NextAccount(textBox.Text, []byte(value))
+		return err
+	}
+	extraCall := func() {
+		account, err := wallet.GetAccount(accountNo, dcrlibwallet.DefaultRequiredConfirmations)
+		if err == nil {
+			addAccount(account)
+		}
+	}
+	onCancel := func() {
+		popup.Show()
+	}
+
+	createAccountButton := widgets.NewButton(values.Blue, values.CreateNewAccountButtonText, func() {
+		confirmPasswordPopUp := multipagecomponents.PasswordPopUpObjects{
+			Window:             walletPage.Window,
+			InitOnConfirmation: initOnConfirmation,
+			ExtraCalls:         extraCall,
+			InitOnCancel:       onCancel,
+		}
+
+		confirmPasswordPopUp.PasswordPopUp()
+	})
+	createAccountButton.SetTextStyle(fyne.TextStyle{Bold: true})
+	createAccountButton.SetMinSize(createAccountButton.MinSize().Add(fyne.NewSize(32, 24)))
+
+	popUpContent := widget.NewVBox(
+		widgets.NewVSpacer(values.SpacerSize20),
+		createNewAccountLabel,
+		widgets.NewVSpacer(values.SpacerSize20),
+		infoLabel,
+		widgets.NewVSpacer(values.SpacerSize20),
+		textBox,
+		widgets.NewVSpacer(values.SpacerSize20),
+		widget.NewHBox(layout.NewSpacer(), widgets.CenterObject(cancelButton, false), widgets.NewHSpacer(values.SpacerSize20), createAccountButton.Container),
+		widgets.NewVSpacer(values.SpacerSize20),
+	)
+
+	contentWithBorder := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20), popUpContent, widgets.NewHSpacer(values.SpacerSize20))
+
+	popup = widget.NewModalPopUp(contentWithBorder, walletPage.Window.Canvas())
 }
