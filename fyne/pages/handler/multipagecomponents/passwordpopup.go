@@ -46,7 +46,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 	cancelLabel := canvas.NewText(values.Cancel, values.Blue)
 	cancelLabel.TextStyle.Bold = true
 
-	cancelButton := widgets.NewClickableWidget(widgets.NewHBox(cancelLabel), func() {
+	cancelButton := widgets.NewClickableWidget(widget.NewHBox(cancelLabel), func() {
 		sendingPasswordPopup.Hide()
 		objects.InitOnCancel()
 	})
@@ -82,6 +82,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		sendingPasswordPopup.Hide()
 	})
 	confirmButton.SetMinSize(confirmButton.MinSize().Add(fyne.NewSize(32, 24)))
+	confirmButton.SetTextStyle(fyne.TextStyle{Bold: true})
 	confirmButton.Disable()
 
 	popupContent = widget.NewHBox(
