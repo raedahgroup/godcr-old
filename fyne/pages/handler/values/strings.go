@@ -98,6 +98,7 @@ const (
 	CreateNewAccountButtonText = "Create"
 	RenameWalletPlaceHolder    = "Wallet name"
 	RenameAccountPlaceHolder   = "Account name"
+	ConfirmToCreateAcc         = "Confirm to create account"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"

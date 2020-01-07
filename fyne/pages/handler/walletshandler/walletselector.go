@@ -287,6 +287,8 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 		if err == nil {
 			addAccount(account)
 		}
+
+		walletPage.showLabel("Account created", walletPage.successLabel)
 	}
 	onCancel := func() {
 		popup.Show()
@@ -298,6 +300,7 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 			InitOnConfirmation: initOnConfirmation,
 			ExtraCalls:         extraCall,
 			InitOnCancel:       onCancel,
+			Title:              values.ConfirmToCreateAcc,
 		}
 
 		confirmPasswordPopUp.PasswordPopUp()

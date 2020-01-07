@@ -98,7 +98,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		}
 
 		passwordPopUp := multipagecomponents.PasswordPopUpObjects{
-			onConfirm, onCancel, onError, extraCalls, sendPage.Window,
+			onConfirm, onCancel, onError, extraCalls, values.ConfirmToSend, sendPage.Window,
 		}
 
 		passwordPopUp.PasswordPopUp()

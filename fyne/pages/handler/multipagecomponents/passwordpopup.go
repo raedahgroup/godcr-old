@@ -81,14 +81,14 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 		objects.ExtraCalls()
 		sendingPasswordPopup.Hide()
 	})
-	confirmButton.SetMinSize(confirmButton.MinSize().Add(fyne.NewSize(32,24))
+	confirmButton.SetMinSize(confirmButton.MinSize().Add(fyne.NewSize(32, 24)))
 	confirmButton.Disable()
 
 	popupContent = widget.NewHBox(
 		widgets.NewHSpacer(values.SpacerSize20),
 		widget.NewVBox(
 			widgets.NewVSpacer(values.SpacerSize20),
-			widget.NewLabelWithStyle(Text, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			widget.NewLabelWithStyle(objects.Title, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 			widgets.NewVSpacer(values.SpacerSize20),
 			walletPassword,
 			errorLabel,
@@ -96,7 +96,6 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 			widget.NewHBox(layout.NewSpacer(), widgets.NewHSpacer(values.SpacerSize140), cancelButton, widgets.NewHSpacer(values.SpacerSize24), confirmButton.Container),
 			widgets.NewVSpacer(values.SpacerSize20),
 		),
-
 		widgets.NewHSpacer(20),
 	)
 
