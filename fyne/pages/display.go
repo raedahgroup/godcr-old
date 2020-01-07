@@ -62,7 +62,7 @@ func (app *AppInterface) DisplayMainWindow() {
 
 func (app *AppInterface) setupNavigationMenu() {
 	icons, err := assets.GetIcons(assets.OverviewIcon, assets.HistoryIcon, assets.SendIcon,
-		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon)
+		assets.ReceiveIcon, assets.AccountsIcon, assets.StakeIcon, assets.ExitIcon)
 
 	if err != nil {
 		app.DisplayLaunchErrorAndExit(fmt.Sprintf("An error occured while loading app icons: %s", err))
@@ -76,6 +76,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		widget.NewTabItemWithIcon("Receive", icons[assets.ReceiveIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Accounts", icons[assets.AccountsIcon], widget.NewHBox()),
 		widget.NewTabItemWithIcon("Staking", icons[assets.StakeIcon], widget.NewHBox()),
+		widget.NewTabItemWithIcon("Exit", icons[assets.ExitIcon], app.exitPageContent()),
 	)
 	app.tabMenu.SetTabLocation(widget.TabLocationLeading)
 
@@ -84,7 +85,7 @@ func (app *AppInterface) setupNavigationMenu() {
 		var currentTabIndex = 0
 
 		for {
-			if app.tabMenu.CurrentTabIndex() == currentTabIndex {
+			if app.tabMenu.CurrentTabIndex() == currentTabIndex || app.tabMenu.CurrentTab().Text == "Exit" {
 				time.Sleep(50 * time.Millisecond)
 				continue
 			}
@@ -98,6 +99,7 @@ func (app *AppInterface) setupNavigationMenu() {
 				}
 			}
 			currentTabIndex = app.tabMenu.CurrentTabIndex()
+			initialPage = currentTabIndex
 			var newPageContent fyne.CanvasObject
 
 			switch currentTabIndex {
@@ -113,6 +115,8 @@ func (app *AppInterface) setupNavigationMenu() {
 				newPageContent = accountsPageContent()
 			case 5:
 				newPageContent = stakingPageContent()
+			default:
+				continue
 			}
 
 			if activePageBox, ok := app.tabMenu.Items[currentTabIndex].Content.(*widget.Box); ok {

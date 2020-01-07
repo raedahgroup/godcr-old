@@ -14,6 +14,7 @@ const (
 	SendIcon     = "send.png"
 	StakeIcon    = "staking.png"
 	DecredLogo   = "decred.png"
+	ExitIcon     = "exit.png"
 
 	Reveal    = "reveal.png"
 	Conceal   = "conceal.png"
