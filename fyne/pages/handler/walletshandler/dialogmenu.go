@@ -1,8 +1,6 @@
 package walletshandler
 
 import (
-	"time"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
@@ -69,14 +67,4 @@ func (walletPage *WalletPageObject) renameWalletPopUp(walletID int, walletLabel 
 	}
 
 	walletPage.renameAccountOrWalletPopUp(values.RenameWallet, values.RenameWalletPlaceHolder, onRename, onCancel, otherCallFunc)
-}
-
-func (walletPage *WalletPageObject) showLabel(Text string, object *widgets.BorderedText) {
-	object.SetText(Text)
-	object.Container.Show()
-	walletPage.WalletPageContents.Refresh()
-	time.AfterFunc(time.Second*5, func() {
-		object.Container.Hide()
-		walletPage.WalletPageContents.Refresh()
-	})
 }
