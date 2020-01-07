@@ -15,9 +15,9 @@ import (
 )
 
 type PasswordPopUpObjects struct {
-	InitOnConfirmation        func(string) error
-	InitOnCancel, InitOnError func()
-	ExtraCalls                func() // ExtraCalls is called when InitOnConfirmation is called and doesnt throw an error
+	InitOnConfirmation       func(string) error
+	InitOnError              func(error)
+	InitOnCancel, ExtraCalls func() // ExtraCalls is called when InitOnConfirmation is called and doesnt throw an error
 
 	Title string
 
@@ -71,7 +71,7 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 				log.Println(err)
 				sendingPasswordPopup.Hide()
 				if objects.InitOnError != nil {
-					objects.InitOnError()
+					objects.InitOnError(err)
 				}
 			}
 

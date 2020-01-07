@@ -267,6 +267,8 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 
 	textBox := widget.NewEntry()
 	textBox.SetPlaceHolder(values.AccountNamePlaceHolder)
+	errorLabel := widgets.NewTextWithSize("", values.ErrorColor, 12)
+	errorLabel.Hide()
 
 	var popup *widget.PopUp
 
@@ -293,6 +295,13 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 	onCancel := func() {
 		popup.Show()
 	}
+	initOnError := func(err error) {
+		popup.Show()
+
+		errorLabel.Text = err.Error()
+		errorLabel.Show()
+		walletPage.WalletPageContents.Refresh()
+	}
 
 	createAccountButton := widgets.NewButton(values.Blue, values.CreateNewAccountButtonText, func() {
 		confirmPasswordPopUp := multipagecomponents.PasswordPopUpObjects{
@@ -300,6 +309,7 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 			InitOnConfirmation: initOnConfirmation,
 			ExtraCalls:         extraCall,
 			InitOnCancel:       onCancel,
+			InitOnError:        initOnError,
 			Title:              values.ConfirmToCreateAcc,
 		}
 
@@ -315,6 +325,7 @@ func (walletPage *WalletPageObject) createNewAccountPopUp(wallet *dcrlibwallet.W
 		infoLabel,
 		widgets.NewVSpacer(values.SpacerSize20),
 		textBox,
+		errorLabel,
 		widgets.NewVSpacer(values.SpacerSize20),
 		widget.NewHBox(layout.NewSpacer(), widgets.CenterObject(cancelButton, false), widgets.NewHSpacer(values.SpacerSize20), createAccountButton.Container),
 		widgets.NewVSpacer(values.SpacerSize20),

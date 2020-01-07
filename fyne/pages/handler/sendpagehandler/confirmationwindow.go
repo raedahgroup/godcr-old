@@ -3,6 +3,7 @@ package sendpagehandler
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -79,8 +80,9 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 			confirmationPagePopup.Show()
 		}
 
-		onError := func() {
+		onError := func(err error) {
 			errorLabelContainer.Container.Show()
+			log.Println(err)
 			confirmationPagePopup.Show()
 		}
 
@@ -98,7 +100,7 @@ func (sendPage *SendPageObjects) confirmationWindow() error {
 		}
 
 		passwordPopUp := multipagecomponents.PasswordPopUpObjects{
-			onConfirm, onCancel, onError, extraCalls, values.ConfirmToSend, sendPage.Window,
+			onConfirm, onError, onCancel, extraCalls, values.ConfirmToSend, sendPage.Window,
 		}
 
 		passwordPopUp.PasswordPopUp()

@@ -131,8 +131,7 @@ func (walletPage *WalletPageObject) accountDetailsPopUp(walletIcon *fyne.StaticR
 }
 
 func (walletPage *WalletPageObject) renameAccountOrWalletPopUp(baseText, placeHolder string, onRename func(string) error, onCancel func(*widget.PopUp), otherCallFunc func(string)) {
-
-	errorLabel := canvas.NewText("", values.ErrorColor)
+	errorLabel := widgets.NewTextWithSize("", values.ErrorColor, 12)
 	errorLabel.Hide()
 
 	var popup *widget.PopUp
