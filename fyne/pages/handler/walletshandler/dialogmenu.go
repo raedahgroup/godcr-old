@@ -124,6 +124,10 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			return
 		}
 
+		if addressErrorLabel.Hidden && addressEntry.Text != "" && signButton.Disabled() {
+			signButton.Enable()
+		}
+
 		clearAllText.Color = values.Blue
 		clearAllText.Refresh()
 		clearAllButton.Enable()
@@ -147,8 +151,14 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 		clearAllText.Refresh()
 		clearAllButton.Enable()
 
-		if wallet.IsAddressValid(addressEntry.Text) {
-			if wallet.HaveAddress(addressEntry.Text) {
+		if value == "" && !addressErrorLabel.Hidden {
+			addressErrorLabel.Hide()
+			walletPage.WalletPageContents.Refresh()
+			return
+		}
+
+		if wallet.IsAddressValid(value) {
+			if wallet.HaveAddress(value) {
 				addressErrorLabel.Hide()
 				addressErrorLabel.Refresh()
 				signButton.Enable()
@@ -161,6 +171,7 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			addressErrorLabel.Show()
 			addressErrorLabel.Refresh()
 			signButton.Disable()
+
 		} else {
 			addressErrorLabel.Text = "Not a valid address."
 			addressErrorLabel.Show()
@@ -241,7 +252,7 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 	signButton.SetMinSize(signButton.MinSize().Add(fyne.NewSize(48, 24)))
 	signButton.Disable()
 
-	signMessageBox := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize14),
+	signMessageBox := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20),
 		widget.NewVBox(
 			widgets.NewVSpacer(values.SpacerSize14),
 			widget.NewHBox(backIcon, widgets.NewHSpacer(values.SpacerSize12), label, layout.NewSpacer(), infoIcon),
@@ -260,7 +271,7 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			widgets.NewVSpacer(values.SpacerSize12),
 			signatureEntryBox,
 		),
-		widgets.NewHSpacer(values.SpacerSize14))
+		widgets.NewHSpacer(values.SpacerSize20))
 
 	maxResize = signMessageBox.MinSize()
 	signatureEntryBox.Hide()
