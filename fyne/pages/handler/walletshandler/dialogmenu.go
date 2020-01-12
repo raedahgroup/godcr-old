@@ -80,6 +80,8 @@ func (walletPage *WalletPageObject) renameWalletPopUp(walletID int, walletLabel 
 func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet, dialogPopup *widget.PopUp) {
 	dialogPopup.Hide()
 	var stringedMessage string
+	var maxResize fyne.Size
+	var scrollableMessageBox *fyne.Container
 
 	var popup *widget.PopUp
 	successLabel := widgets.NewBorderedText("", fyne.NewSize(20, 16), values.Green)
@@ -187,7 +189,6 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 		widget.NewHBox(layout.NewSpacer(), copyButton.Container),
 		widgets.NewVSpacer(values.SpacerSize12),
 	)
-	signatureEntryBox.Hide()
 
 	signButton = widgets.NewButton(values.Blue, values.Sign, func() {
 		onConfirm := func(password string) error {
@@ -198,9 +199,9 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 
 			stringedMessage = hex.EncodeToString(message)
 			var splittedWords string
-			for i := 0; i < len(stringedMessage); i += 50 {
-				if len(stringedMessage) > i+50 {
-					splittedWords += stringedMessage[i : i+50]
+			for i := 0; i < len(stringedMessage); i += 40 {
+				if len(stringedMessage) > i+40 {
+					splittedWords += stringedMessage[i : i+40]
 					splittedWords += "\n"
 				} else {
 					splittedWords += stringedMessage[i:]
@@ -222,6 +223,9 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			popup.Show()
 			walletPage.showLabel("Message signed", successLabel)
 			signatureEntryBox.Show()
+
+			scrollableMessageBox.Layout = layout.NewFixedGridLayout(maxResize)
+			scrollableMessageBox.Refresh()
 		}
 		onCancel := func() {
 			popup.Show()
@@ -237,26 +241,30 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 	signButton.SetMinSize(signButton.MinSize().Add(fyne.NewSize(48, 24)))
 	signButton.Disable()
 
-	signMessageBox := widget.NewVBox(
-		widgets.NewVSpacer(values.SpacerSize14),
-		widget.NewHBox(backIcon, widgets.NewHSpacer(values.SpacerSize12), label, layout.NewSpacer(), infoIcon),
-		widgets.NewVSpacer(values.SpacerSize6),
-		successLabel.Container,
-		widgets.NewVSpacer(values.SpacerSize6),
-		baseLabel,
-		widgets.NewVSpacer(values.SpacerSize4),
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(widget.NewLabel(values.TestAddress).MinSize().Add(fyne.NewSize(0, 10))), addressEntry),
-		addressErrorLabel,
-		widgets.NewVSpacer(values.SpacerSize12),
-		messageEntry,
-		widgets.NewVSpacer(values.SpacerSize12),
-		widget.NewHBox(layout.NewSpacer(), widgets.CenterObject(clearAllButton, false), widgets.NewHSpacer(values.SpacerSize20), signButton.Container),
+	signMessageBox := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize14),
+		widget.NewVBox(
+			widgets.NewVSpacer(values.SpacerSize14),
+			widget.NewHBox(backIcon, widgets.NewHSpacer(values.SpacerSize12), label, layout.NewSpacer(), infoIcon),
+			widgets.NewVSpacer(values.SpacerSize4),
+			successLabel.Container,
+			widgets.NewVSpacer(values.SpacerSize4),
+			baseLabel,
+			widgets.NewVSpacer(values.SpacerSize4),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(widget.NewLabel(values.TestAddress).MinSize().Add(fyne.NewSize(0, 10))), addressEntry),
+			addressErrorLabel,
+			widgets.NewVSpacer(values.SpacerSize12),
+			messageEntry,
+			widgets.NewVSpacer(values.SpacerSize12),
+			widget.NewHBox(layout.NewSpacer(), widgets.CenterObject(clearAllButton, false), widgets.NewHSpacer(values.SpacerSize20), signButton.Container),
 
-		widgets.NewVSpacer(values.SpacerSize12),
-		signatureEntryBox,
-	)
-	leftSpacer := widgets.NewHSpacer(values.SpacerSize20)
-	rightSpacer := widgets.NewHSpacer(values.SpacerSize20)
+			widgets.NewVSpacer(values.SpacerSize12),
+			signatureEntryBox,
+		),
+		widgets.NewHSpacer(values.SpacerSize14))
 
-	popup = widget.NewModalPopUp(widget.NewHBox(leftSpacer, signMessageBox, rightSpacer), dialogPopup.Canvas)
+	maxResize = signMessageBox.MinSize()
+	signatureEntryBox.Hide()
+	scrollableMessageBox = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(signMessageBox.MinSize()), widget.NewScrollContainer(signMessageBox))
+
+	popup = widget.NewModalPopUp(scrollableMessageBox, dialogPopup.Canvas)
 }
