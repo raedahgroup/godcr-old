@@ -42,7 +42,8 @@ type WalletPageObject struct {
 func (walletPage *WalletPageObject) InitWalletPage() error {
 	var err error
 	walletPage.icons, err = assets.GetIcons(assets.AddWallet, assets.Expand, assets.CollapseIcon, assets.WalletIcon,
-		assets.WalletAccount, assets.ImportedAccount, assets.MoreIcon, assets.Edit, assets.Alert, assets.InfoIcon)
+		assets.WalletAccount, assets.ImportedAccount, assets.MoreIcon, assets.Edit, assets.Alert, assets.InfoIcon,
+		assets.Checkmark, assets.Crossmark)
 
 	walletPage.walletAccountsBox = make([]*widgets.Box, len(walletPage.OpenedWallets))
 	walletPage.walletExpandCollapseIcon = make([]*widget.Icon, len(walletPage.OpenedWallets))

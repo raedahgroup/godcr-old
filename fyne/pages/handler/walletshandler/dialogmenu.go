@@ -2,6 +2,7 @@ package walletshandler
 
 import (
 	"encoding/hex"
+	"log"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -43,7 +44,7 @@ func (walletPage *WalletPageObject) dialogMenu(walletLabel *canvas.Text, posOfIc
 	dialogBox := widget.NewVBox(
 		widgets.NewHSpacer(values.SpacerSize4),
 		clickableText(values.SignMessage, func() { walletPage.signMessagePopUp(wallet, popUp) }),
-		clickableText(values.VerifyMessage, callFunc),
+		clickableText(values.VerifyMessage, func() { walletPage.verifyMessagePopup(wallet, popUp) }),
 		widgets.NewHSpacer(values.SpacerSize4),
 		canvas.NewLine(values.StrippedLineColor),
 		widgets.NewHSpacer(values.SpacerSize4),
@@ -86,7 +87,6 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 	var popup *widget.PopUp
 	successLabel := widgets.NewBorderedText("", fyne.NewSize(20, 16), values.Green)
 	successLabel.Container.Hide()
-	errorLabel := widgets.NewTextWithSize("", values.ErrorColor, 12)
 
 	backIcon := widgets.NewImageButton(theme.NavigateBackIcon(), nil, func() {
 		popup.Hide()
@@ -247,9 +247,7 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			return nil
 		}
 		onError := func(err error) {
-			errorLabel.Text = err.Error()
-			errorLabel.Show()
-			errorLabel.Refresh()
+			log.Println(err)
 			walletPage.WalletPageContents.Refresh()
 
 			popup.Show()
@@ -281,7 +279,7 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 			widgets.NewVSpacer(values.SpacerSize14),
 			widget.NewHBox(backIcon, widgets.NewHSpacer(values.SpacerSize12), label, layout.NewSpacer(), infoIcon),
 			widgets.NewVSpacer(values.SpacerSize4),
-			successLabel.Container,
+			widget.NewHBox(layout.NewSpacer(), successLabel.Container, layout.NewSpacer()),
 			widgets.NewVSpacer(values.SpacerSize4),
 			baseLabel,
 			widgets.NewVSpacer(values.SpacerSize4),
@@ -299,6 +297,239 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 
 	maxResize = signMessageBox.MinSize()
 	signatureEntryBox.Hide()
+	scrollableMessageBox = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(signMessageBox.MinSize()), widget.NewScrollContainer(signMessageBox))
+
+	popup = widget.NewModalPopUp(scrollableMessageBox, dialogPopup.Canvas)
+}
+
+func (walletPage *WalletPageObject) verifyMessagePopup(wallet *dcrlibwallet.Wallet, dialogPopup *widget.PopUp) {
+	dialogPopup.Hide()
+	var scrollableMessageBox *fyne.Container
+	var maxResize fyne.Size
+
+	var popup *widget.PopUp
+
+	backIcon := widgets.NewImageButton(theme.NavigateBackIcon(), nil, func() {
+		popup.Hide()
+	})
+
+	infoIcon := widgets.NewImageButton(walletPage.icons[assets.InfoIcon], nil, func() {
+		var infoPopUp *widget.PopUp
+
+		gotItText := canvas.NewText(values.GotIt, values.Blue)
+		gotItText.TextStyle.Bold = true
+
+		gotItButton := widgets.NewClickableWidget(widget.NewHBox(gotItText), func() {
+			infoPopUp.Hide()
+			popup.Show()
+		})
+
+		infoDetails := widget.NewVBox(
+			widgets.NewVSpacer(values.SpacerSize20),
+			widgets.NewTextWithStyle(values.VerifyMessage, values.DefaultTextColor, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 18),
+			widgets.NewVSpacer(values.SpacerSize12),
+			canvas.NewText("After you or your counterparty", values.SignMessageBaseLabelColor),
+			canvas.NewText("has generated a signature, you", values.SignMessageBaseLabelColor),
+			canvas.NewText("can use this form to verify the", values.SignMessageBaseLabelColor),
+			canvas.NewText("validity of the signature.", values.SignMessageBaseLabelColor),
+			canvas.NewText("", values.SignMessageBaseLabelColor),
+			canvas.NewText("Once you have entered the", values.SignMessageBaseLabelColor),
+			canvas.NewText("address, the message and the", values.SignMessageBaseLabelColor),
+			canvas.NewText("corresponding signature, you will", values.SignMessageBaseLabelColor),
+			canvas.NewText("see VALID if the signature", values.SignMessageBaseLabelColor),
+			canvas.NewText("appropriately matches the", values.SignMessageBaseLabelColor),
+			canvas.NewText("address and message, otherwise", values.SignMessageBaseLabelColor),
+			canvas.NewText("INVALID.", values.SignMessageBaseLabelColor),
+			widget.NewHBox(layout.NewSpacer(), gotItButton),
+			widgets.NewVSpacer(values.SpacerSize20),
+		)
+
+		infoPopUp = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20), infoDetails, widgets.NewHSpacer(values.SpacerSize20)), walletPage.Window.Canvas())
+	})
+
+	label := widgets.NewTextWithSize(values.VerifyMessage, values.DefaultTextColor, 20)
+	baseLabel := canvas.NewText(values.VerifyMessageBaseLabel, values.SignMessageBaseLabelColor)
+
+	addressEntry := widget.NewEntry()
+	addressEntry.SetPlaceHolder(values.AddressPlaceHolder)
+	addressErrorLabel := widgets.NewTextWithSize("", values.ErrorColor, 12)
+
+	messageEntry := widget.NewMultiLineEntry()
+	messageEntry.SetPlaceHolder(values.MessagePlaceHolder)
+
+	signatureEntry := widget.NewMultiLineEntry()
+	signatureEntry.SetPlaceHolder(values.Signature)
+	signatureErrorLabel := widgets.NewTextWithSize("Not a base64 string", values.ErrorColor, 12)
+	signatureErrorLabel.Hide()
+
+	clearAllText := canvas.NewText(values.ClearAll, values.DisabledButtonColor)
+	clearAllText.TextStyle.Bold = true
+	clearAllButton := widgets.NewClickableWidget(widget.NewHBox(clearAllText), func() {
+		addressEntry.SetText("")
+		messageEntry.SetText("")
+		signatureEntry.SetText("")
+	})
+	clearAllButton.Disable()
+
+	var verifyButton *widgets.Button
+
+	messageEntry.OnChanged = func(value string) {
+		if value == "" && addressEntry.Text == "" && signatureEntry.Text == "" {
+			clearAllText.Color = values.DisabledButtonColor
+			clearAllButton.Disable()
+			clearAllText.Refresh()
+			walletPage.WalletPageContents.Refresh()
+			return
+		}
+
+		if addressErrorLabel.Hidden && addressEntry.Text != "" && verifyButton.Disabled() {
+			verifyButton.Enable()
+		}
+
+		clearAllText.Color = values.Blue
+		clearAllText.Refresh()
+		clearAllButton.Enable()
+
+		walletPage.WalletPageContents.Refresh()
+	}
+
+	addressEntry.OnChanged = func(value string) {
+		if value == "" && addressEntry.Text == "" && signatureEntry.Text == "" {
+			clearAllText.Color = values.DisabledButtonColor
+			clearAllButton.Disable()
+			clearAllText.Refresh()
+			verifyButton.Disable()
+			verifyButton.Container.Refresh()
+			addressErrorLabel.Hide()
+
+			return
+		}
+
+		clearAllText.Color = values.Blue
+		clearAllText.Refresh()
+		clearAllButton.Enable()
+
+		if value == "" && !addressErrorLabel.Hidden {
+			addressErrorLabel.Hide()
+			walletPage.WalletPageContents.Refresh()
+			return
+		}
+
+		if wallet.IsAddressValid(value) {
+			if wallet.HaveAddress(value) {
+				addressErrorLabel.Hide()
+				addressErrorLabel.Refresh()
+				verifyButton.Enable()
+				verifyButton.Container.Refresh()
+				walletPage.WalletPageContents.Refresh()
+				return
+			}
+
+			addressErrorLabel.Text = "Address does not belong to wallet"
+			addressErrorLabel.Show()
+			addressErrorLabel.Refresh()
+			verifyButton.Disable()
+
+		} else {
+			addressErrorLabel.Text = "Not a valid address."
+			addressErrorLabel.Show()
+			addressErrorLabel.Refresh()
+			verifyButton.Disable()
+		}
+
+		walletPage.WalletPageContents.Refresh()
+	}
+
+	signatureEntry.OnChanged = func(value string) {
+		_, err := hex.DecodeString(value)
+		if err != nil {
+			signatureErrorLabel.Show()
+		} else {
+			signatureErrorLabel.Hide()
+		}
+
+		signatureErrorLabel.Refresh()
+		walletPage.WalletPageContents.Refresh()
+	}
+
+	validSignatureLabel := canvas.NewText("", values.ErrorColor)
+	checkmarkIcon := canvas.NewImageFromResource(walletPage.icons[assets.Checkmark])
+	crossmarkIcon := canvas.NewImageFromResource(walletPage.icons[assets.Crossmark])
+
+	checkmarkBox := widget.NewVBox(
+		canvas.NewLine(values.StrippedLineColor),
+		widgets.NewVSpacer(values.SpacerSize12),
+		widget.NewHBox(checkmarkIcon, crossmarkIcon, widgets.CenterObject(validSignatureLabel, false)),
+		widgets.NewVSpacer(values.SpacerSize12),
+	)
+
+	verifyButton = widgets.NewButton(values.Blue, values.Sign, func() {
+		validSignature, err := wallet.VerifyMessage(addressEntry.Text, messageEntry.Text, signatureEntry.Text)
+
+		if err != nil {
+			checkmarkIcon.Hide()
+			crossmarkIcon.Show()
+
+			validSignatureLabel.Text = "This signature does not verify against the message and address."
+			validSignatureLabel.Color = values.ErrorColor
+			validSignatureLabel.Show()
+			validSignatureLabel.Refresh()
+			walletPage.WalletPageContents.Refresh()
+
+			scrollableMessageBox.Layout = layout.NewFixedGridLayout(maxResize)
+			scrollableMessageBox.Refresh()
+			return
+		}
+
+		if validSignature {
+			checkmarkIcon.Show()
+			crossmarkIcon.Hide()
+
+			validSignatureLabel.Text = "Valid signature"
+			validSignatureLabel.Color = values.Green
+		} else {
+			checkmarkIcon.Hide()
+			crossmarkIcon.Show()
+
+			validSignatureLabel.Text = "Invalid signature"
+			validSignatureLabel.Color = values.ErrorColor
+		}
+
+		validSignatureLabel.Show()
+		checkmarkBox.Show()
+		validSignatureLabel.Refresh()
+		verifyButton.Disable()
+		scrollableMessageBox.Layout = layout.NewFixedGridLayout(maxResize)
+		scrollableMessageBox.Refresh()
+	})
+	verifyButton.SetTextStyle(fyne.TextStyle{Bold: true})
+	verifyButton.SetMinSize(verifyButton.MinSize().Add(fyne.NewSize(48, 24)))
+	verifyButton.Disable()
+
+	signMessageBox := widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20),
+		widget.NewVBox(
+			widgets.NewVSpacer(values.SpacerSize14),
+			widget.NewHBox(backIcon, widgets.NewHSpacer(values.SpacerSize12), label, layout.NewSpacer(), infoIcon),
+			widgets.NewVSpacer(values.SpacerSize12),
+			baseLabel,
+			widgets.NewVSpacer(values.SpacerSize4),
+			fyne.NewContainerWithLayout(layout.NewFixedGridLayout(widget.NewLabel(values.TestAddress).MinSize().Add(fyne.NewSize(0, 10))), addressEntry),
+			addressErrorLabel,
+			widgets.NewVSpacer(values.SpacerSize12),
+			signatureEntry,
+			signatureErrorLabel,
+			widgets.NewVSpacer(values.SpacerSize12),
+			messageEntry,
+			widgets.NewVSpacer(values.SpacerSize12),
+			widget.NewHBox(layout.NewSpacer(), widgets.CenterObject(clearAllButton, false), widgets.NewHSpacer(values.SpacerSize20), verifyButton.Container),
+
+			widgets.NewVSpacer(values.SpacerSize12),
+			checkmarkBox,
+		),
+		widgets.NewHSpacer(values.SpacerSize20))
+
+	maxResize = signMessageBox.MinSize()
+	checkmarkBox.Hide()
 	scrollableMessageBox = fyne.NewContainerWithLayout(layout.NewFixedGridLayout(signMessageBox.MinSize()), widget.NewScrollContainer(signMessageBox))
 
 	popup = widget.NewModalPopUp(scrollableMessageBox, dialogPopup.Canvas)

@@ -30,6 +30,7 @@ const (
 	WalletAccount   = "walletaccount.png"
 	AddWallet       = "addwallet.png"
 	Edit            = "edit.png"
+	Crossmark       = "crossmark.png"
 
 	Expand = "expand.png"
 

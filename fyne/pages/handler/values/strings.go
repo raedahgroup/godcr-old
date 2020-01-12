@@ -107,6 +107,7 @@ const (
 	ConfirmToSign              = "Confirm to sign"
 	Signature                  = "Signature"
 	Sign                       = "Sign"
+	VerifyMessageBaseLabel     = "Enter the address, signature, and message to verfiy:"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
