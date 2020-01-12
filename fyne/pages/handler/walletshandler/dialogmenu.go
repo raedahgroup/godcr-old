@@ -91,8 +91,32 @@ func (walletPage *WalletPageObject) signMessagePopUp(wallet *dcrlibwallet.Wallet
 	backIcon := widgets.NewImageButton(theme.NavigateBackIcon(), nil, func() {
 		popup.Hide()
 	})
+
 	infoIcon := widgets.NewImageButton(walletPage.icons[assets.InfoIcon], nil, func() {
-		// todo: show another modal popup
+		var infoPopUp *widget.PopUp
+
+		gotItText := canvas.NewText("Got it", values.Blue)
+		gotItText.TextStyle.Bold = true
+
+		gotItButton := widgets.NewClickableWidget(widget.NewHBox(gotItText), func() {
+			infoPopUp.Hide()
+			popup.Show()
+		})
+
+		infoDetails := widget.NewVBox(
+			widgets.NewVSpacer(values.SpacerSize20),
+			widgets.NewTextWithStyle(values.SignMessage, values.DefaultTextColor, fyne.TextStyle{Bold: true}, fyne.TextAlignLeading, 18),
+			widgets.NewVSpacer(values.SpacerSize12),
+			canvas.NewText("Signing message with an", values.SignMessageBaseLabelColor),
+			canvas.NewText("address' private key allows you to", values.SignMessageBaseLabelColor),
+			canvas.NewText("prove that you are the owner of a", values.SignMessageBaseLabelColor),
+			canvas.NewText("given address to a possible", values.SignMessageBaseLabelColor),
+			canvas.NewText("counterparty.", values.SignMessageBaseLabelColor),
+			widget.NewHBox(layout.NewSpacer(), gotItButton),
+			widgets.NewVSpacer(values.SpacerSize20),
+		)
+
+		infoPopUp = widget.NewModalPopUp(widget.NewHBox(widgets.NewHSpacer(values.SpacerSize20), infoDetails, widgets.NewHSpacer(values.SpacerSize20)), walletPage.Window.Canvas())
 	})
 
 	label := widgets.NewTextWithSize(values.SignMessage, values.DefaultTextColor, 20)
