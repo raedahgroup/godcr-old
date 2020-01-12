@@ -77,9 +77,10 @@ func (objects *PasswordPopUpObjects) PasswordPopUp() {
 
 			return
 		}
-
-		objects.ExtraCalls()
 		sendingPasswordPopup.Hide()
+		if objects.ExtraCalls != nil {
+			objects.ExtraCalls()
+		}
 	})
 	confirmButton.SetMinSize(confirmButton.MinSize().Add(fyne.NewSize(32, 24)))
 	confirmButton.SetTextStyle(fyne.TextStyle{Bold: true})

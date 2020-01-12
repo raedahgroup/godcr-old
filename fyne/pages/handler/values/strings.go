@@ -99,6 +99,14 @@ const (
 	RenameWalletPlaceHolder    = "Wallet name"
 	RenameAccountPlaceHolder   = "Account name"
 	ConfirmToCreateAcc         = "Confirm to create account"
+	SignMessageBaseLabel       = "Enter an address and message to sign:"
+	AddressPlaceHolder         = "Address"
+	MessagePlaceHolder         = "Message"
+	Copy                       = "Copy"
+	ClearAll                   = "Clear all"
+	ConfirmToSign              = "Confirm to sign"
+	Signature                  = "Signature"
+	Sign                       = "Sign"
 
 	// Error Messages
 	AmountDecimalPlaceErr       = "Amount has more than 8 decimal places"
