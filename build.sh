@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -e
+
 function deployWeb() {
    echo "building frontend assets with yarn"
    (cd ./web/static/app && yarn install && yarn build)
@@ -49,6 +52,12 @@ elif [[ "$interface" = "terminal" ]]; then
     buildTerminal
 elif [[ "$interface" = "cli" ]]; then
     buildCli
+elif [[ "$interface" = "all" ]]; then
+    buildCli
+    deployWeb
+    buildTerminal
+    buildFyne
+    buildNuklear
 else
     echo "Usage: ./build.sh {interface} e.g. ./build.sh web"
 fi

@@ -1,5 +1,6 @@
 # godcr
 
+[![Build Status](https://github.com/raedahgroup/godcr/workflows/build/badge.svg)](https://github.com/raedahgroup/godcr/actions)
 ## Overview
 **godcr** is a [decred](https://www.decred.org/) wallet application for Desktop Operating Systems (Linux, macOS, Windows etc).
 [dcrlibwallet](https://github.com/raedahgroup/dcrlibwallet/tree/dcrlibwallet-wip), a standalone decred wallet library, is used for all wallet access and control functionality.
