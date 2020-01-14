@@ -15,6 +15,7 @@ import (
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/fyne/assets"
+	"github.com/raedahgroup/godcr/fyne/helpers"
 	"github.com/raedahgroup/godcr/fyne/pages/handler/values"
 	"github.com/raedahgroup/godcr/fyne/widgets"
 )
@@ -95,7 +96,7 @@ func (ov *overview) recentTransactionBox() fyne.CanvasObject {
 		fee := dcrutil.Amount(txn.Fee).String()
 		timeDate := dcrlibwallet.ExtractDateOrTime(txn.Timestamp)
 		status := transactionStatus(ov, txn)
-		table.Append(newTransactionRow(transactionIcon(txn.Direction), amount, fee,
+		table.Append(newTransactionRow(helpers.TxDirectionIcon(txn.Direction), amount, fee,
 			dcrlibwallet.TransactionDirectionName(txn.Direction), status, timeDate))
 	}
 
@@ -262,19 +263,6 @@ func recentTransactions(overview *overview) (transactions []dcrlibwallet.Transac
 		transactions = transactions[:5]
 	}
 	return
-}
-
-func transactionIcon(direction int32) string {
-	switch direction {
-	case 0:
-		return assets.SendIcon
-	case 1:
-		return assets.ReceiveIcon
-	case 2:
-		return assets.ReceiveIcon
-	default:
-		return assets.InfoIcon
-	}
 }
 
 func transactionStatus(overview *overview, txn dcrlibwallet.Transaction) string {

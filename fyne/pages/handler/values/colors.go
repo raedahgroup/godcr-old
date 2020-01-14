@@ -16,4 +16,5 @@ var (
 	Green                         = color.RGBA{65, 190, 83, 255}
 	NilAmountColor                = color.RGBA{137, 151, 165, 255}
 	ConfirmationPageStrippedColor = color.RGBA{237, 239, 241, 255}
+	TxdetailsLineColor            = color.RGBA{0xe0, 0xe0, 0xe0, 0xff}
 )
