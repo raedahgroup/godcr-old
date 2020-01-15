@@ -107,8 +107,19 @@ func InitImages(theme *Theme) error {
 func DrawLogo(ctx *layout.Context) {
 	inset := layout.Inset{
 		Left: unit.Dp(StandaloneScreenPadding),
+		Top: unit.Dp(StandaloneScreenPadding),
 	}
 	inset.Layout(ctx, func() {
 		logo.Layout(ctx)
 	})
+}
+
+func Inset(ctx *layout.Context, top, left, bottom, right float32, widgetFunc func()) {
+	inset := layout.Inset{
+		Top: unit.Dp(top),
+		Left: unit.Dp(left),
+		Bottom: unit.Dp(bottom),
+		Right: unit.Dp(right),
+	}
+	inset.Layout(ctx, widgetFunc)
 }

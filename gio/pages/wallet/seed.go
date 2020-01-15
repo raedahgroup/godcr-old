@@ -13,6 +13,9 @@ import (
 	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
+
+	"github.com/decred/dcrd/hdkeychain"
+	"github.com/decred/dcrwallet/walletseed"
 )
 
 type (
@@ -65,6 +68,10 @@ func NewSeedPage(createWalletPage *CreateWalletPage) *SeedPage {
 }
 
 func (s *SeedPage) prepare(seed string) {
+	// TODO remove block before if 
+	seedS, _ := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
+	seed = walletseed.EncodeMnemonic(seedS)
+
 	if !s.isPrepared {
 		s.prepareInformationScreenWidgets(seed)
 	}
@@ -166,19 +173,80 @@ func getRandomWord(words []string) string {
 	return words[rand.Intn(len(words))]
 }
 
-func (s *SeedPage) render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
-	if s.currentScreen == "reminderScreen" {
-		s.drawReminderScreen(ctx, refreshWindowFunc, changePageFunc)
-	} else if s.currentScreen == "seedPhraseScreen" {
-		s.drawSeedPhraseScreen(ctx, refreshWindowFunc, changePageFunc)
-	} else if s.currentScreen == "verifySeedPhraseScreen" {
-		s.drawVerifySeedPhraseScreen(ctx, refreshWindowFunc, changePageFunc)
-	} else if s.currentScreen == "successScreen" {
-		s.drawSuccessScreen(ctx, refreshWindowFunc, changePageFunc)
+
+func (s *SeedPage) getWidgets(ctx *layout.Context, changePageFunc func(string)) []func() {
+	switch s.currentScreen {
+	case "seedPhraseScreen":
+		return s.getSeedPhraseScreenWidgets(ctx, changePageFunc)
+	case "verifySeedPhraseScreen":
+		return s.getVerifySeedPhraseScreenWidgets(ctx, changePageFunc)
+	case "successScreen":
+		return s.getSuccessScreenWidgets(ctx, changePageFunc)
+	default: // "reminderScreen"
+		return s.getReminderScreenWidgets(ctx, changePageFunc)
 	}
 }
 
-func (s *SeedPage) drawReminderScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (s *SeedPage) getReminderScreenWidgets(ctx *layout.Context, changePageFunc func(string)) []func() {
+	return []func(){
+		// header row
+		func() {
+			drawHeader(ctx, func() {
+			}, func() {
+				widgets.NewLabel("Keep in mind").
+					SetWeight(text.Bold).
+					SetSize(6).
+					Draw(ctx)
+			})
+		},
+
+		// reminder items section
+		func() {
+			drawBody(ctx, nil, func(){
+				list := layout.List{Axis: layout.Vertical}
+				list.Layout(ctx, len(s.reminderScreen.checkboxes), func(i int){
+					inset := layout.Inset{
+						Top: unit.Dp(10),
+					}
+					inset.Layout(ctx, func(){
+						layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+							layout.Rigid(func(){
+								inset := layout.Inset{
+									Top: unit.Dp(6),
+								}
+								inset.Layout(ctx, func() {
+									ctx.Constraints.Width.Min = 38
+									ctx.Constraints.Height.Min = 40
+									s.reminderScreen.checkboxes[i].Draw(ctx)
+								})
+							}),
+							layout.Flexed(1, func(){
+								list := layout.List{Axis: layout.Vertical}
+								list.Layout(ctx, len(s.reminderScreen.labels[i]), func(j int){
+									inset := layout.Inset{
+										Top: unit.Dp(3),
+										Left: unit.Dp(30),
+									}
+									inset.Layout(ctx, func(){
+										s.reminderScreen.labels[i][j].Draw(ctx)
+									})
+								})
+							}),
+						)
+					})
+				})
+			})
+		},
+	}
+	
+
+
+
+
+
+
+
+
 	drawHeader(ctx, func() {
 
 	}, func() {
@@ -240,10 +308,11 @@ func (s *SeedPage) drawReminderScreen(ctx *layout.Context, refreshWindowFunc fun
 			Draw(ctx, func() {
 				if s.hasCheckedAllReminders() {
 					s.currentScreen = "seedPhraseScreen"
-					refreshWindowFunc()
 				}
 			})
 	})
+
+	return nil
 }
 
 func (s *SeedPage) hasCheckedAllReminders() bool {
@@ -255,7 +324,9 @@ func (s *SeedPage) hasCheckedAllReminders() bool {
 	return true
 }
 
-func (s *SeedPage) drawSeedPhraseScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (s *SeedPage) getSeedPhraseScreenWidgets(ctx *layout.Context, changePageFunc func(string)) []func() {
+	return nil
+	
 	drawHeader(ctx, func() {
 		s.backButton.Draw(ctx, func() {
 			s.currentScreen = "reminderScreen"
@@ -326,10 +397,11 @@ func (s *SeedPage) drawSeedPhraseScreen(ctx *layout.Context, refreshWindowFunc f
 			ctx.Constraints.Height.Min = 50
 			s.seedScreen.goToVerifyScreenButton.Draw(ctx, func() {
 				s.currentScreen = "verifySeedPhraseScreen"
-				refreshWindowFunc()
 			})
 		})
 	})
+
+	return nil
 }
 
 func drawColumn(ctx *layout.Context, words []string, currentItem *int) {
@@ -349,7 +421,9 @@ func drawColumn(ctx *layout.Context, words []string, currentItem *int) {
 	}
 }
 
-func (s *SeedPage) drawVerifySeedPhraseScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (s *SeedPage) getVerifySeedPhraseScreenWidgets(ctx *layout.Context, changePageFunc func(string)) []func() {
+	return nil
+	
 	drawHeader(ctx, func() {
 		s.backButton.Draw(ctx, func() {
 			s.currentScreen = "seedPhraseScreen"
@@ -449,11 +523,12 @@ func (s *SeedPage) drawVerifySeedPhraseScreen(ctx *layout.Context, refreshWindow
 					} else {
 						s.verifyScreen.failedVerification = true
 					}
-					refreshWindowFunc()
 				}
 			})
 
 	})
+
+	return nil
 }
 
 func (s *SeedPage) hasSelectedAllVerifyWords() bool {
@@ -475,7 +550,9 @@ func (s *SeedPage) doVerify() bool {
 	return true
 }
 
-func (s *SeedPage) drawSuccessScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (s *SeedPage) getSuccessScreenWidgets(ctx *layout.Context, changePageFunc func(string)) []func() {
+	return nil
+
 	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 	layout.Stack{}.Layout(ctx,
 		layout.Expanded(func() {
@@ -548,4 +625,6 @@ func (s *SeedPage) drawSuccessScreen(ctx *layout.Context, refreshWindowFunc func
 			})
 		}),
 	)
+
+	return nil
 }

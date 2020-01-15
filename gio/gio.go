@@ -31,6 +31,8 @@ type (
 		appDisplayName  string
 		multiWallet     *helper.MultiWallet
 		syncer          *common.Syncer
+
+		pageLayout      *layout.List
 	}
 )
 
@@ -83,6 +85,9 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	app.multiWallet.AddSyncProgressListener(app.syncer, app.appDisplayName)
 
 	app.prepareHandlers()
+	app.pageLayout = &layout.List{
+		Axis: layout.Vertical,
+	}
 	go func() {
 		app.window = gioapp.NewWindow(
 			gioapp.Size(unit.Dp(windowWidth), unit.Dp(windowHeight)),
@@ -154,6 +159,7 @@ func (d *desktop) render(ctx *layout.Context) {
 		}
 		d.renderNavPage(page, ctx)
 	}
+
 	d.refreshWindow()
 }
 
@@ -194,16 +200,9 @@ func (d *desktop) renderNavPage(page navPage, ctx *layout.Context) {
 }
 
 func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.Context) {
-	inset := layout.Inset{}
-	inset.Layout(ctx, func() {
-		layout.Stack{Alignment: layout.NW}.Layout(ctx,
-			layout.Stacked(func() {
-				inset := layout.Inset{Top: unit.Dp(helper.StandaloneScreenPadding)}
-				inset.Layout(ctx, func() {
-					page.Render(ctx, d.refreshWindow, d.changePage)
-				})
-			}),
-		)
+	widgets := page.GetWidgets(ctx, d.changePage)
+	d.pageLayout.Layout(ctx, len(widgets), func(i int){
+		layout.UniformInset(unit.Dp(0)).Layout(ctx, widgets[i])
 	})
 }
 

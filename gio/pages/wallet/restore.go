@@ -104,21 +104,23 @@ func (w *RestoreWalletPage) create() {
 	}
 }
 
-func (w *RestoreWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
+func (w *RestoreWalletPage) GetWidgets(ctx *layout.Context, changePageFunc func(page string)) []func() {
 	if w.changePageFunc == nil {
 		w.changePageFunc = changePageFunc
 	}
 
 	if w.currentScreen == "verifySeedScreen" {
-		w.renderVerifySeedScreen(ctx, refreshWindowFunc, changePageFunc)
+		w.renderVerifySeedScreen(ctx, changePageFunc)
 	} else if w.currentScreen == "passwordScreen" {
 		w.renderPasswordScreen(ctx)
 	} else if w.currentScreen == "restoreSuccessScreen" {
-		w.restoreSuccessScreen(ctx, refreshWindowFunc, changePageFunc)
+		w.restoreSuccessScreen(ctx, changePageFunc)
 	}
+
+	return nil
 }
 
-func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, changePageFunc func(string)) {
 	ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 	layout.Stack{}.Layout(ctx,
 		layout.Expanded(func() {
@@ -171,7 +173,7 @@ func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, refreshWin
 	)
 }
 
-func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string)) {
+func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePageFunc func(string)) {
 	drawHeader(ctx, func() {
 		w.restoreScreen.backButton.Draw(ctx, func() {
 			w.resetAndGotoPage("welcome")

@@ -2,7 +2,6 @@ package wallet
 
 import (
 	"gioui.org/layout"
-	"gioui.org/unit"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
@@ -24,52 +23,47 @@ func NewWelcomePage(multiWallet *helper.MultiWallet) *WelcomePage {
 	}
 }
 
-func (w *WelcomePage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
-	helper.DrawLogo(ctx)
+func (w *WelcomePage) GetWidgets(ctx *layout.Context, changePageFunc func(page string)) []func() {
+	widgets := []func(){
+		// logo row 
+		func(){
+			helper.DrawLogo(ctx)
+		},
 
-	inset := layout.Inset{
-		Left:  unit.Dp(helper.StandaloneScreenPadding),
-		Right: unit.Dp(helper.StandaloneScreenPadding),
+		// welcome text first row
+		func(){ 
+			helper.Inset(ctx, 45, helper.StandaloneScreenPadding, 0, 0, func(){
+				widgets.NewLabel("Welcome to", 6).Draw(ctx)
+			})
+		},
+
+		// welcome text second row
+		func(){
+			helper.Inset(ctx, 10, helper.StandaloneScreenPadding, 0, 0, func(){
+				widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
+			})
+		},
+
+		// create wallet button row
+		func() {
+			helper.Inset(ctx, 190, helper.StandaloneScreenPadding, 0,  helper.StandaloneScreenPadding, func(){
+				ctx.Constraints.Height.Min = 50
+				w.createWalletButton.Draw(ctx, func() {
+					changePageFunc("createwallet")
+				})
+			})
+		},
+
+		// restore wallet button row 
+		func() {
+			helper.Inset(ctx, 10, helper.StandaloneScreenPadding, 0,  helper.StandaloneScreenPadding, func(){
+				ctx.Constraints.Height.Min = 50
+				w.restoreWalletButton.Draw(ctx, func() {
+					changePageFunc("restorewallet")
+				})
+			})
+		},
 	}
-	inset.Layout(ctx, func() {
-		inset := layout.Inset{
-			Top: unit.Dp(55),
-		}
-		inset.Layout(ctx, func() {
-			widgets.NewLabel("Welcome to", 6).Draw(ctx)
-		})
-
-		inset = layout.Inset{
-			Top: unit.Dp(85),
-		}
-		inset.Layout(ctx, func() {
-			widgets.NewLabel("Decred Desktop Wallet", 6).Draw(ctx)
-		})
-
-		// create button section
-		inset = layout.Inset{
-			Top: unit.Dp(335),
-		}
-		inset.Layout(ctx, func() {
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			ctx.Constraints.Height.Min = 50
-
-			w.createWalletButton.Draw(ctx, func() {
-				changePageFunc("createwallet")
-			})
-		})
-
-		// restore button section
-		inset = layout.Inset{
-			Top: unit.Dp(395),
-		}
-		inset.Layout(ctx, func() {
-			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-			ctx.Constraints.Height.Min = 50
-
-			w.restoreWalletButton.Draw(ctx, func() {
-				changePageFunc("restorewallet")
-			})
-		})
-	})
+	
+	return widgets
 }

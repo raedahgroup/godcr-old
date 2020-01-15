@@ -13,11 +13,21 @@ import (
 )
 
 type (
+	colors struct {
+		passwordStrengthFillColor color.RGBA
+		confirmPasswordBorderColor color.RGBA
+		confirmPasswordFocusBorderColor color.RGBA
+		cancelLabelColor color.RGBA
+		createButtonBackgroundColor color.RGBA
+	}
+
 	passwordTab struct {
 		passwordInput             *editor.Input
 		confirmPasswordInput      *editor.Input
 		passwordStrengthIndicator *widgets.ProgressBar
 		passwordStrength          float64
+
+		errStr string
 	}
 
 	pinTab struct {
@@ -36,6 +46,8 @@ type (
 
 		createButton *widgets.Button
 		cancelLabel  *widgets.ClickableLabel
+
+		colors colors
 
 		cancelFunc func()
 		createFunc func()
@@ -60,6 +72,7 @@ func NewPinAndPasswordWidget(cancelFunc, createFunc func()) *PinAndPasswordWidge
 			pinInput:        editor.NewInput("Pin").SetMask("*").Numeric(),
 			confirmPinInput: editor.NewInput("Confirm Pin").SetMask("*").Numeric(),
 		},
+		colors: colors{},
 	}
 }
 
@@ -76,7 +89,18 @@ func (p *PinAndPasswordWidget) Value() string {
 	return p.pinTab.pinInput.Text()
 }
 
-func (p *PinAndPasswordWidget) Render(ctx *layout.Context) {
+func (p *PinAndPasswordWidget) Render(ctx *layout.Context) { 
+	// perform these actions in separate goroutines as changes happen
+	go func(){
+		// update password strength 
+		p.passwordTab.passwordStrength = (dcrlibwallet.ShannonEntropy(p.passwordTab.passwordInput.Text()) / 4) * 100
+
+		p.validate()
+		
+		// watch for changes and update colors
+		p.updateColors()
+	}()
+
 	layout.Stack{Alignment: layout.NW}.Layout(ctx,
 		layout.Expanded(func() {
 			widgets.NewLabel("Create a Spending Password", 5).
@@ -94,119 +118,155 @@ func (p *PinAndPasswordWidget) Render(ctx *layout.Context) {
 	)
 }
 
+
+func (p *PinAndPasswordWidget) updateColors() {
+	// password strength fill color
+	if p.passwordTab.passwordStrength > 70 {
+		p.colors.passwordStrengthFillColor = helper.DecredGreenColor
+	} else {
+		p.colors.passwordStrengthFillColor = helper.DecredOrangeColor
+	}
+
+	// confirm password border colors
+	if !p.bothPasswordsMatch() && p.passwordTab.confirmPasswordInput.Len() > 0 {
+		p.colors.confirmPasswordBorderColor = helper.DangerColor
+		p.colors.confirmPasswordFocusBorderColor = helper.DangerColor
+	} else {
+		p.colors.confirmPasswordBorderColor = helper.GrayColor
+		p.colors.confirmPasswordFocusBorderColor = helper.DecredLightBlueColor
+	}
+
+	// cancel label color 
+	if p.IsCreating {
+		p.colors.cancelLabelColor = helper.GrayColor
+	} else {
+		p.colors.cancelLabelColor = helper.DecredLightBlueColor
+	}
+
+	// create button 
+	if p.IsCreating {
+		p.colors.createButtonBackgroundColor = helper.GrayColor
+	} else {
+		if p.bothPasswordsMatch() && p.passwordTab.confirmPasswordInput.Len() > 0 {
+			p.colors.createButtonBackgroundColor = helper.DecredLightBlueColor
+		} else {
+			p.colors.createButtonBackgroundColor = helper.GrayColor
+		}
+	}
+}
+
+func (p *PinAndPasswordWidget) bothPasswordsMatch() bool {
+	if p.passwordTab.confirmPasswordInput.Text() == p.passwordTab.passwordInput.Text() { 
+		return true
+	}
+
+	return false
+}
+
 func (p *PinAndPasswordWidget) passwordRenderFunc(ctx *layout.Context) {
 	p.currentTab = "password"
 
-	bothPasswordsMatch := false
-	if p.passwordTab.confirmPasswordInput.Len() > 0 {
-		if p.passwordTab.confirmPasswordInput.Text() == p.passwordTab.passwordInput.Text() {
-			bothPasswordsMatch = true
-		} else {
-			bothPasswordsMatch = false
-		}
-	}
+	widgets := []func(){
+		// password row
+		func(){
+			p.passwordTab.passwordInput.Draw(ctx)
+		},
+		
+		// password strength row
+		func(){
+			helper.Inset(ctx, 10, 0, 0, 0, func(){
+				p.passwordTab.passwordStrengthIndicator.
+					SetProgressColor(p.colors.passwordStrengthFillColor).
+					Draw(ctx, &p.passwordTab.passwordStrength)
+			})
+		},
 
-	// password section
-	go func() {
-		p.passwordTab.passwordStrength = (dcrlibwallet.ShannonEntropy(p.passwordTab.passwordInput.Text()) / 4) * 100
-	}()
+		// confirm password row
+		func() {
+			helper.Inset(ctx, 10, 0, 0, 0, func(){
+				p.passwordTab.confirmPasswordInput.
+					SetBorderColor(p.colors.confirmPasswordBorderColor).
+					SetFocusedBorderColor(p.colors.confirmPasswordFocusBorderColor).
+					Draw(ctx)
+			})
+		},
 
-	p.passwordTab.passwordInput.Draw(ctx)
-
-	// password strength section
-	inset := layout.Inset{
-		Top: unit.Dp(65),
-	}
-	inset.Layout(ctx, func() {
-		var col color.RGBA
-		if p.passwordTab.passwordStrength > 70 {
-			col = helper.DecredGreenColor
-		} else {
-			col = helper.DecredOrangeColor
-		}
-		p.passwordTab.passwordStrengthIndicator.SetProgressColor(col).Draw(ctx, &p.passwordTab.passwordStrength)
-	})
-
-	// confirm password section
-	inset = layout.Inset{
-		Top: unit.Dp(85),
-	}
-	inset.Layout(ctx, func() {
-		borderColor := helper.GrayColor
-		focusBorderColor := helper.DecredLightBlueColor
-
-		if !bothPasswordsMatch && p.passwordTab.confirmPasswordInput.Len() > 0 {
-			borderColor = helper.DangerColor
-			focusBorderColor = helper.DangerColor
-		}
-		p.passwordTab.confirmPasswordInput.SetBorderColor(borderColor).SetFocusedBorderColor(focusBorderColor).Draw(ctx)
-	})
-
-	// error text section
-	inset = layout.Inset{
-		Top: unit.Dp(145),
-	}
-	inset.Layout(ctx, func() {
-		if !bothPasswordsMatch && p.passwordTab.confirmPasswordInput.Len() > 0 {
-			widgets.NewLabel("Both passwords do not match").SetColor(helper.DangerColor).Draw(ctx)
-		}
-	})
-
-	inset.Layout(ctx, func() {
-		ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-		layout.Stack{Alignment: layout.NE}.Layout(ctx,
-			layout.Stacked(func() {
+		// buttons and error text row
+		func() {
+			helper.Inset(ctx, 10, 0, 0, 0, func(){
 				layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-					layout.Rigid(func() {
-						inset := layout.Inset{
-							Right: unit.Dp(10),
-							Top:   unit.Dp(10),
-						}
-						inset.Layout(ctx, func() {
-							var col color.RGBA
-							if p.IsCreating {
-								col = helper.GrayColor
-							} else {
-								col = helper.DecredLightBlueColor
-							}
-
-							p.cancelLabel.
-								SetColor(col).
-								Draw(ctx, func() {
-									if !p.IsCreating {
-										p.cancelFunc()
-									}
-								})
+					layout.Flexed(2, func(){
+						widgets.NewLabel(p.passwordTab.errStr).SetColor(helper.DangerColor).Draw(ctx)
+					}), 
+					layout.Rigid(func(){
+						helper.Inset(ctx, 10, 0, 0, 10, func(){
+							p.cancelLabel.SetColor(p.colors.cancelLabelColor).Draw(ctx, func() {
+								if !p.IsCreating {
+									p.cancelFunc()
+								}
+							})
 						})
 					}),
-					layout.Rigid(func() {
-						createButton := p.createButton
-
-						var txt string
-						var bgCol color.RGBA
+					layout.Rigid(func(){
+						var txt string 
 						if p.IsCreating {
-							bgCol = helper.GrayColor
 							txt = "Creating..."
 						} else {
 							txt = "Create"
-							if bothPasswordsMatch && p.passwordTab.confirmPasswordInput.Len() > 0 {
-								bgCol = helper.DecredLightBlueColor
-							} else {
-								bgCol = helper.GrayColor
-							}
 						}
 
-						createButton.SetBackgroundColor(bgCol).SetText(txt).Draw(ctx, func() {
-							if !p.IsCreating {
-								p.createFunc()
-							}
+						p.createButton.SetText(txt).
+							SetBackgroundColor(p.colors.createButtonBackgroundColor).
+							Draw(ctx, func() {
+							p.validateAndCreate()
 						})
 					}),
 				)
-			}),
-		)
-	})
+			})
+		},
+	}
 
+	list := &layout.List{
+		Axis: layout.Vertical,
+	}
+
+	list.Layout(ctx, len(widgets), func(i int){
+		layout.UniformInset(unit.Dp(0)).Layout(ctx, widgets[i])
+	})
+}
+
+func (p *PinAndPasswordWidget) validate() bool {
+	if p.passwordTab.passwordInput.Text() == "" { 
+		return false
+	}
+	
+	
+	if !p.bothPasswordsMatch() {
+		p.passwordTab.errStr = "Both passwords do not match"
+		return false
+	}
+
+	p.passwordTab.errStr = ""
+
+	return true
+}
+
+func (p *PinAndPasswordWidget) validateAndCreate() {
+	if p.IsCreating {
+		return
+	}
+	
+	if p.passwordTab.passwordInput.Text() == "" {
+		p.passwordTab.errStr = "Please enter your desired password"
+		return
+	}
+
+	if !p.validate() {
+		return
+	}
+
+	p.passwordTab.errStr = ""
+	p.createFunc()
 }
 
 func (p *PinAndPasswordWidget) pinRenderFunc(ctx *layout.Context) {

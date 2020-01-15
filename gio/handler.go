@@ -13,7 +13,7 @@ import (
 )
 
 type standalonePageHandler interface {
-	Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(string))
+	GetWidgets(ctx *layout.Context, changePageFunc func(string)) []func()
 }
 
 type navPageHandler interface {

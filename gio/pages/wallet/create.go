@@ -2,7 +2,7 @@ package wallet
 
 import (
 	"gioui.org/layout"
-	"gioui.org/unit"
+	//"gioui.org/unit"
 
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets/security"
@@ -12,7 +12,6 @@ type (
 	CreateWalletPage struct {
 		multiWallet       *helper.MultiWallet
 		changePageFunc    func(string)
-		refreshWindowFunc func()
 
 		pinAndPasswordWidget *security.PinAndPasswordWidget
 
@@ -21,6 +20,7 @@ type (
 		isShowingSeedPage bool
 		isCreating        bool
 		err               error
+		validatePasswordErr error
 	}
 )
 
@@ -36,23 +36,23 @@ func NewCreateWalletPage(multiWallet *helper.MultiWallet) *CreateWalletPage {
 	return c
 }
 
-func (w *CreateWalletPage) Render(ctx *layout.Context, refreshWindowFunc func(), changePageFunc func(page string)) {
-	w.changePageFunc = changePageFunc
-	w.refreshWindowFunc = refreshWindowFunc
+func (w *CreateWalletPage) GetWidgets(ctx *layout.Context, changePageFunc func(page string)) []func() {
+	w.changePageFunc = changePageFunc 
 
 	if w.isShowingSeedPage {
 		w.seedPage.prepare(w.seed)
-		w.seedPage.render(ctx, w.refreshWindowFunc, changePageFunc)
-	} else {
-		inset := layout.Inset{
-			Top:   unit.Dp(30),
-			Left:  unit.Dp(helper.StandaloneScreenPadding),
-			Right: unit.Dp(helper.StandaloneScreenPadding),
-		}
-		inset.Layout(ctx, func() {
-			w.pinAndPasswordWidget.Render(ctx)
-		})
+		return w.seedPage.getWidgets(ctx, changePageFunc)
+	} 
+
+	widgets := []func(){
+		func(){
+			helper.Inset(ctx, 20, helper.StandaloneScreenPadding, 0, helper.StandaloneScreenPadding, func(){
+				w.pinAndPasswordWidget.Render(ctx)
+			})
+		},
 	}
+
+	return widgets
 }
 
 func (w *CreateWalletPage) cancel() {
@@ -63,12 +63,12 @@ func (w *CreateWalletPage) cancel() {
 func (w *CreateWalletPage) create() {
 	w.pinAndPasswordWidget.IsCreating = true
 
-	doneChan := make(chan bool)
+	/**doneChan := make(chan bool)
 	go func() {
 		defer func() {
 			doneChan <- true
 		}()
-		wallet, err := w.multiWallet.CreateNewWallet("public", w.pinAndPasswordWidget.Value(), 0)
+		/**wallet, err := w.multiWallet.CreateNewWallet("public", w.pinAndPasswordWidget.Value(), 0)
 		if err != nil {
 			w.err = err
 			return
@@ -77,7 +77,8 @@ func (w *CreateWalletPage) create() {
 		w.multiWallet.RegisterWalletID(wallet.ID)
 	}()
 
-	<-doneChan
+	<-doneChan**/
 	w.pinAndPasswordWidget.IsCreating = false
 	w.isShowingSeedPage = true
 }
+

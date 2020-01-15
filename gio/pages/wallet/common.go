@@ -18,30 +18,26 @@ func drawHeader(ctx *layout.Context, backFunc func(), titleFunc func()) {
 		Left:  unit.Dp(helper.StandaloneScreenPadding),
 		Right: unit.Dp(helper.StandaloneScreenPadding),
 	}
-	inset.Layout(ctx, func() {
-		layout.Stack{}.Layout(ctx,
-			layout.Expanded(func() {
-				layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
-					layout.Rigid(func() {
-						ctx.Constraints.Width.Min = 50
-						backFunc()
-					}),
-					layout.Rigid(func() {
-						inset := layout.Inset{
-							Top: unit.Dp(10),
-						}
-						inset.Layout(ctx, func() {
-							titleFunc()
-						})
-					}),
-				)
+	inset.Layout(ctx, func(){
+		layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
+			layout.Rigid(func(){
+				ctx.Constraints.Width.Min = 50
+				backFunc()
+			}),
+			layout.Flexed(1, func(){
+				inset := layout.Inset{
+					Top: unit.Dp(10),
+				}
+				inset.Layout(ctx, func(){
+					titleFunc()
+				})
 			}),
 		)
 	})
 }
 
 func drawBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
-	topInset := float32(68)
+	topInset := float32(10)
 	if title != nil {
 		inset := layout.Inset{
 			Top:   unit.Dp(topInset),
