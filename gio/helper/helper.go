@@ -22,6 +22,8 @@ const (
 	infoImagePath         = "../../gio/assets/info.png"
 
 	StandaloneScreenPadding = 20
+	WindowHeight = 570 
+	WindowWidth  = 520
 )
 
 var (

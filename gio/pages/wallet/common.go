@@ -10,6 +10,7 @@ import (
 
 const (
 	bodyHeight = 300
+	footerHeight = 300
 )
 
 func drawHeader(ctx *layout.Context, backFunc func(), titleFunc func()) {
@@ -66,7 +67,7 @@ func drawCardBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
 			Top: unit.Dp(0),
 		}
 		inset.Layout(ctx, func() {
-			ctx.Constraints.Height.Min = 400
+			ctx.Constraints.Height.Min = bodyHeight + 50
 			helper.PaintArea(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, bodyHeight+20)
 			bodyFunc()
 		})
@@ -74,14 +75,13 @@ func drawCardBody(ctx *layout.Context, title *widgets.Label, bodyFunc func()) {
 
 }
 
-func drawFooter(ctx *layout.Context, footerFunc func()) {
+func drawFooter(ctx *layout.Context, topInset float32, footerFunc func()) {
 	inset := layout.Inset{
-		Top: unit.Dp(float32(bodyHeight + 120)),
+		Top: unit.Dp(topInset),
 	}
-	inset.Layout(ctx, func() {
+	inset.Layout(ctx, func(){
 		helper.PaintFooter(ctx, helper.WhiteColor, ctx.Constraints.Width.Max, 200)
-		inset := layout.UniformInset(unit.Dp(20))
-		inset.Layout(ctx, func() {
+		layout.UniformInset(unit.Dp(20)).Layout(ctx, func(){
 			ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
 			footerFunc()
 		})

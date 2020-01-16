@@ -236,7 +236,7 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePa
 			})
 		})
 
-	drawFooter(ctx, func() {
+	drawFooter(ctx,10, func() {
 		ctx.Constraints.Height.Min = 50
 
 		bgCol := helper.GrayColor

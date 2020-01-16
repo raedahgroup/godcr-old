@@ -37,9 +37,6 @@ type (
 )
 
 const (
-	windowWidth  = 520
-	windowHeight = 530
-
 	navSectionHeight = 70
 )
 
@@ -90,7 +87,7 @@ func LaunchUserInterface(appDisplayName, appDataDir, netType string) {
 	}
 	go func() {
 		app.window = gioapp.NewWindow(
-			gioapp.Size(unit.Dp(windowWidth), unit.Dp(windowHeight)),
+			gioapp.Size(unit.Dp(helper.WindowWidth), unit.Dp(helper.WindowHeight)),
 			gioapp.Title(app.displayName),
 		)
 
@@ -139,7 +136,7 @@ func (d *desktop) renderLoop() error {
 }
 
 func (d *desktop) render(ctx *layout.Context) {
-	helper.PaintArea(ctx, helper.BackgroundColor, windowWidth, windowHeight)
+	helper.PaintArea(ctx, helper.BackgroundColor, helper.WindowWidth, helper.WindowHeight)
 
 	// first check if current page is standalone and render
 	if page, ok := d.standalonePages[d.currentPage]; ok {
@@ -208,10 +205,10 @@ func (d *desktop) renderStandalonePage(page standalonePageHandler, ctx *layout.C
 
 func (d *desktop) renderNavSection(ctx *layout.Context) {
 	inset := layout.Inset{
-		Top: unit.Dp(windowHeight - navSectionHeight),
+		Top: unit.Dp(helper.WindowHeight - navSectionHeight),
 	}
 	inset.Layout(ctx, func() {
-		helper.PaintFooter(ctx, helper.WhiteColor, windowWidth, navSectionHeight)
+		helper.PaintFooter(ctx, helper.WhiteColor, helper.WindowWidth, navSectionHeight)
 
 		navItemWidth := ctx.Constraints.Width.Max / 4
 		(&layout.List{Axis: layout.Horizontal}).Layout(ctx, 4, func(i int) {
