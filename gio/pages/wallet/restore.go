@@ -7,6 +7,7 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 
+	"github.com/raedahgroup/dcrlibwallet"
 	"github.com/raedahgroup/godcr/gio/helper"
 	"github.com/raedahgroup/godcr/gio/widgets"
 	"github.com/raedahgroup/godcr/gio/widgets/editor"
@@ -25,7 +26,7 @@ type (
 		changePageFunc func(string)
 		currentScreen  string
 
-		err                  error
+		errStr               string
 		pinAndPasswordWidget *security.PinAndPasswordWidget
 		backToWalletsButton  *widgets.ClickableLabel
 
@@ -41,7 +42,7 @@ func NewRestoreWalletPage(multiWallet *helper.MultiWallet) *RestoreWalletPage {
 		backToWalletsButton: widgets.NewClickableLabel("Get Started").SetAlignment(widgets.AlignMiddle).SetSize(5).SetColor(helper.DecredLightBlueColor).SetWeight(text.Bold),
 	}
 
-	w.pinAndPasswordWidget = security.NewPinAndPasswordWidget(w.cancel, w.create)
+	w.pinAndPasswordWidget = security.NewPinAndPasswordWidget(w.cancel, w.restore)
 
 	// restore screen widgets
 	w.restoreScreen = &restoreScreen{
@@ -57,7 +58,7 @@ func NewRestoreWalletPage(multiWallet *helper.MultiWallet) *RestoreWalletPage {
 }
 
 func (w *RestoreWalletPage) cancel() {
-	w.err = nil
+	w.errStr = ""
 
 	for i := range w.restoreScreen.inputs {
 		w.restoreScreen.inputs[i].SetText("")
@@ -65,9 +66,9 @@ func (w *RestoreWalletPage) cancel() {
 	w.currentScreen = "verifySeedScreen"
 }
 
-func (w *RestoreWalletPage) create() {
+func (w *RestoreWalletPage) restore() {
 	w.isRestoring = true
-	w.err = nil
+	w.errStr = ""
 	w.currentScreen = "verifySeedScreen"
 
 	doneChan := make(chan bool)
@@ -87,19 +88,19 @@ func (w *RestoreWalletPage) create() {
 
 		wallet, err := w.multiWallet.RestoreWallet("public", seed, password, 0)
 		if err != nil {
-			w.err = err
+			w.errStr = err.Error()
 			return
 		}
 
-		w.err = wallet.UnlockWallet([]byte(password))
-		if w.err == nil {
+		w.errStr = wallet.UnlockWallet([]byte(password)).Error()
+		if w.errStr == "" {
 			w.multiWallet.RegisterWalletID(wallet.ID)
 		}
 	}()
 
 	<-doneChan
 	w.isRestoring = false
-	if w.err == nil {
+	if w.errStr == "" {
 		w.currentScreen = "restoreSuccessScreen"
 	}
 }
@@ -110,7 +111,7 @@ func (w *RestoreWalletPage) GetWidgets(ctx *layout.Context, changePageFunc func(
 	}
 
 	if w.currentScreen == "verifySeedScreen" {
-		w.renderVerifySeedScreen(ctx, changePageFunc)
+		return w.renderVerifySeedScreen(ctx, changePageFunc)
 	} else if w.currentScreen == "passwordScreen" {
 		w.renderPasswordScreen(ctx)
 	} else if w.currentScreen == "restoreSuccessScreen" {
@@ -173,23 +174,20 @@ func (w *RestoreWalletPage) restoreSuccessScreen(ctx *layout.Context, changePage
 	)
 }
 
-func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePageFunc func(string)) {
-	drawHeader(ctx, func() {
-		w.restoreScreen.backButton.Draw(ctx, func() {
-			w.resetAndGotoPage("welcome")
-		})
-	}, func() {
-		widgets.NewLabel("Restore from seed phrase").
-			SetWeight(text.Bold).
-			SetSize(6).
-			Draw(ctx)
-	})
-
-	drawBody(ctx,
-		widgets.NewLabel("Enter your seed phrase in the correct order.").SetSize(5),
-		func() {
+func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePageFunc func(string)) []func() {
+	return []func(){
+		func(){
+			drawHeader(ctx, func(){
+				w.restoreScreen.backButton.Draw(ctx, func(){
+					w.resetAndGotoPage("welcome")
+				})
+			}, func(){
+				widgets.NewLabel("Restore from seed phrase").SetWeight(text.Bold).SetSize(6).Draw(ctx)
+			})
+		},
+		func(){
 			topInset := float32(10)
-			if w.err != nil {
+			if w.errStr != "" {
 				inset := layout.Inset{
 					Top: unit.Dp(topInset),
 				}
@@ -197,7 +195,7 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePa
 					helper.PaintArea(ctx, helper.DangerColor, ctx.Constraints.Width.Max, 30)
 
 					ctx.Constraints.Width.Min = ctx.Constraints.Width.Max
-					widgets.NewLabel("Failed to restore. Please verify all words and try again").
+					widgets.NewLabel(w.errStr).
 						SetSize(5).
 						SetColor(helper.WhiteColor).
 						SetAlignment(widgets.AlignMiddle).
@@ -213,8 +211,8 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePa
 				(&layout.List{Axis: layout.Vertical}).Layout(ctx, 33, func(i int) {
 					inset := layout.Inset{
 						Top:   unit.Dp(10),
-						Left:  unit.Dp(5),
-						Right: unit.Dp(5),
+						Left:  unit.Dp(15),
+						Right: unit.Dp(15),
 					}
 					inset.Layout(ctx, func() {
 						layout.Flex{Axis: layout.Horizontal}.Layout(ctx,
@@ -234,31 +232,33 @@ func (w *RestoreWalletPage) renderVerifySeedScreen(ctx *layout.Context, changePa
 					})
 				})
 			})
-		})
-
-	drawFooter(ctx,10, func() {
-		ctx.Constraints.Height.Min = 50
-
-		bgCol := helper.GrayColor
-		txt := "Continue"
-		if w.hasEnteredAllSeedWords() {
-			bgCol = helper.DecredLightBlueColor
-		}
-
-		if w.isRestoring {
-			bgCol = helper.GrayColor
-			txt = "Restoring..."
-		}
-		w.restoreScreen.
-			restoreButton.
-			SetText(txt).
-			SetBackgroundColor(bgCol).
-			Draw(ctx, func() {
+		},
+		func(){
+			drawFooter(ctx,10, func() {
+				ctx.Constraints.Height.Min = 50
+		
+				bgCol := helper.GrayColor
+				txt := "Continue"
 				if w.hasEnteredAllSeedWords() {
-					w.currentScreen = "passwordScreen"
+					bgCol = helper.DecredLightBlueColor
 				}
+		
+				if w.isRestoring {
+					bgCol = helper.GrayColor
+					txt = "Restoring..."
+				}
+				w.restoreScreen.
+					restoreButton.
+					SetText(txt).
+					SetBackgroundColor(bgCol).
+					Draw(ctx, func() {
+						if w.hasEnteredAllSeedWords() && w.doVerify() {
+							w.currentScreen = "passwordScreen"
+						}
+					})
 			})
-	})
+		},
+	}
 }
 
 func (w *RestoreWalletPage) renderPasswordScreen(ctx *layout.Context) {
@@ -281,7 +281,24 @@ func (w *RestoreWalletPage) hasEnteredAllSeedWords() bool {
 	return true
 }
 
+func (w *RestoreWalletPage) doVerify() bool {
+	w.errStr = ""
+
+	seedString := ""
+	for _,v := range w.restoreScreen.inputs {
+		seedString += v.Text() + " "
+	}
+	
+	if dcrlibwallet.VerifySeed(seedString) {
+		w.errStr = ""
+		return true
+	}
+
+	w.errStr = "Failed to restore. Please verify all words and try again"
+	return false
+}
+
 func (w *RestoreWalletPage) resetAndGotoPage(page string) {
-	w.err = nil
+	w.errStr = ""
 	w.changePageFunc(page)
 }
